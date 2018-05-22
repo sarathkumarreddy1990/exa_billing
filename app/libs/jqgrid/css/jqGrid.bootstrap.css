@@ -1,0 +1,190 @@
+.ui-jqgrid .ui-jqgrid-view,
+.ui-jqgrid .ui-jqgrid-pager{
+    font-size:12px;
+}
+
+.ui-jqgrid-titlebar{
+    height: 40px;
+    line-height: 15px;
+    color: #999999;
+    background-color: #F9F9F9;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+.ui-jqgrid .ui-jqgrid-title {
+    float: left;
+    margin: 1.1em 1em 0.2em;
+}
+.ui-widget-header{
+    background: none;
+    background-image: none;
+    background-color: #F9F9F9;
+    text-transform: uppercase;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+}
+.ui-jqgrid tr.ui-row-ltr td {
+    border-right-color: inherit;
+    border-right-style: solid;
+    border-right-width: 1px;
+    text-align: left;
+    border-color: #DDDDDD;
+    background-color: inherit;
+}
+.ui-search-toolbar input[type="text"]{
+    font-size: 12px;
+    height: 22px;
+    border: 1px solid #CCCCCC;
+    border-radius: 0px;
+}
+.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default {
+    background: #F9F9F9;
+    border: 1px solid #D3D3D3;
+    line-height: 15px;
+    /*height: 45px;*/
+    font-weight: bold;
+    color: #777777;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+.ui-icon-triangle-1-n {
+    background-position: 1px -16px;
+}
+.ui-jqgrid tr.ui-search-toolbar th {
+    border-top-width: 0px !important;
+    border-top-color: inherit !important;
+    border-top-style: ridge !important
+}
+.ui-state-hover, .ui-widget-content .ui-state-hover, .ui-widget-header .ui-state-hover, .ui-state-focus, .ui-widget-content .ui-state-focus, .ui-widget-header .ui-state-focus {
+    /*border: 0px;*/
+    background: #dadada;
+}
+.ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active {
+    border: 1px solid #aaaaaa;
+    background: #ffffff;
+    font-weight: normal; color: #212121;
+}
+.ui-jqgrid .ui-pg-input {
+    font-size: inherit;
+    width: 50px;
+}
+.ui-jqgrid .ui-pg-selbox {
+    display: block;
+    font-size: 0.8em;
+    height: 25px;
+    line-height: 18px;
+    margin: 0;
+    width: 100px;
+}
+.ui-jqgrid .ui-pager-control {
+    /*height: 50px;*/
+    position: relative;
+}
+.ui-pg-table .navtable .ui-corner-all{
+    border-radius: 0px;
+}
+.ui-jqgrid .ui-pg-button:hover {
+    /*padding: 1px;*/
+}
+.ui-jqgrid .loading {
+    position: absolute;
+    top: 45%;
+    left: 45%;
+    width: auto;
+    height: auto;
+    z-index:101;
+    padding: 6px;
+    margin: 5px;
+    text-align: center;
+    font-weight: bold;
+    display: none;
+    border-width: 2px !important;
+    font-size:11px;
+}
+
+/*ui-jqgrid-btable{*/
+    /*max-width: 100% !important;*/
+    /*background-color: transparent !important;*/
+    /*border-collapse: collapse !important;*/
+    /*border-spacing: 0 !important;*/
+/*}*/
+
+.jqgfirstrow td:first-child{
+   width:30px !important;
+}
+
+.ui-jqgrid-labels th:first-child{
+    width:30px !important;
+}
+.ui-widget-header{
+    background-color: #F9F9F9 !important;
+}
+
+
+/*ui-state-default ui-th-column ui-th-ltr:first-line{*/
+    /*width:30px !important;*/
+/*}*/
+
+/*.ui-jqgrid-htable th,*/
+/*.ui-jqgrid-btable td {*/
+    /*padding:5px !important;*/
+    /*line-height: 20px !important;*/
+    /*text-align: left !important;*/
+    /*vertical-align: top !important;*/
+    /*border-top: 1px solid #dddddd !important;*/
+/*}*/
+/*.ui-jqgrid tr.ui-row-ltr td:nth-child(2){*/
+     /*padding: 0px;*/
+ /*}*/
+
+.ui-jqgrid tr.ui-row-ltr td{
+    padding: 6px;
+}
+
+.ui-jqgrid .ui-jqgrid-pager{
+    height:45px !important;
+}
+
+.ui-pager-control{
+    padding: 8px;
+}
+
+/*ui-pager-control{*/
+    /*padding: 10px !important;*/
+/*}*/
+
+/*.ui-jqgrid .ui-jqgrid-htable th{*/
+    /*padding: 5px;*/
+/*}*/
+
+/*.ui-jqgrid-htable th {*/
+/*font-weight: bold !important;*/
+/*}*/
+
+/*.ui-jqgrid-htable thead th {*/
+/*vertical-align: bottom !important;*/
+/*}*/
+
+input[type="text"]{
+    display: inline-block !important;
+    margin-bottom: 10px !important;
+    font-size: 14px !important;
+    line-height: 20px !important;
+    color: #555555 !important;
+    vertical-align: middle !important;
+    -webkit-border-radius: 4px !important;
+    -moz-border-radius: 4px !important;
+    border-radius: 4px !important;
+}
+
+/*.ui-pg-input{*/
+    /*height: 20px;*/
+/*}*/
+
+.ui-pg-div{
+    width:50px !important;
+}
+
+.ui-jqgrid-title,
+.ui-jqgrid-sortable{
+    color:#000000 !important;
+}
+

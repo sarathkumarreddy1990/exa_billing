@@ -1,0 +1,9 @@
+extends layout
+
+block content
+  h1= title
+  p Welcome to #{title}
+
+  #root
+
+  script(type='text/javascript', src='/node_modules/requirejs/require.js', data-main='/js/main.js')
