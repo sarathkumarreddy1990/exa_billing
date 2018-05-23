@@ -4,7 +4,7 @@
   "description": "EXA Billing Module",
   "main": "server/app.js",
   "scripts": {
-    "start": "node ./bin/www",
+    "start": "nodemon ./bin/www",
     "test": "mocha"
   },
   "repository": {
@@ -12,14 +12,20 @@
     "url": "git+https://ramesh_git@bitbucket.org/viztek/exa-billing.git"
   },
   "dependencies": {
-    "bootstrap": "^4.1.1",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.9",
     "express": "~4.16.0",
+    "express-promise-router": "^3.0.2",
     "http-errors": "~1.6.2",
     "morgan": "~1.9.0",
-    "pg": "^7.4.1",
-    "pug": "2.0.0-beta11"
+    "nconf": "^0.10.0",
+    "pg": "^7.4.3",
+    "pug": "2.0.0-beta11",
+    "sql-template-strings": "^2.2.2"
+  },
+  "devDependencies": {
+    "eslint": "^4.19.1",
+    "nodemon": "^1.17.5"
   },
   "keywords": [
     "EXA",
