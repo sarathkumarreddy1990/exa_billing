@@ -19,10 +19,12 @@
     "express": "~4.16.0",
     "express-promise-router": "^3.0.2",
     "http-errors": "~1.6.2",
+    "less-middleware": "^3.0.0",
     "morgan": "~1.9.0",
     "nconf": "^0.10.0",
     "pg": "^7.4.3",
     "pug": "2.0.0-beta11",
+    "response-time": "^2.3.2",
     "sql-template-strings": "^2.2.2"
   },
   "devDependencies": {

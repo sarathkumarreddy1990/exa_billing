@@ -2,6 +2,7 @@ const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
+const responseTime = require('response-time');
 const logger = require('morgan');
 
 const config = require('./config');
@@ -17,6 +18,19 @@ const studiesRouter = require('./routes/studies');
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
+
+app.use(responseTime());
+
+if (process.env.NODE_ENV != 'production') {
+    //app.use(logger(':date[iso] :remote-addr :method :url', {immediate: true}));
+    //logger.logInfo('Starting LESS middleware');
+
+    const lessMiddleware = require('less-middleware');
+    app.use(lessMiddleware(path.join(__dirname, '/../app/'), {
+        debug: true,
+        render: {compress: true}
+    }));
+}
 
 app.use(logger('dev'));
 app.use(express.json());
