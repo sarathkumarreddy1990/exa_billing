@@ -4,12 +4,12 @@ var router = new Router();
 const studiesController = require('../controller/studies');
 const httpHandler = require('../shared/http');
 
-router.get('/', async function (req, res, next) {
+router.get('/', async function (req, res) {
     const data = await studiesController.getData();
     httpHandler.sendRows(req, res, data);
 });
 
-router.get('/:fromDate/:toDate', async function (req, res, next) {
+router.get('/:fromDate/:toDate', async function (req, res) {
     const data = await studiesController.getDataByDate(req.params);
     httpHandler.sendRows(req, res, data);
 });

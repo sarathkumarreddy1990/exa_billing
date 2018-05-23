@@ -1,5 +1,4 @@
 const path = require('path');
-const fs = require('fs');
 
 const nconf = require('nconf');
 const logger = require('../shared/logger');
@@ -7,10 +6,10 @@ const logger = require('../shared/logger');
 module.exports = {
 
     keys: {
-        dbConnection: "dbConnection",
-        RedisStore: "RedisStore",
-        dbCacheEnabled: "dbCacheEnabled",
-        dbCacheTtl: "dbCacheTtl"
+        dbConnection: 'dbConnection',
+        RedisStore: 'RedisStore',
+        dbCacheEnabled: 'dbCacheEnabled',
+        dbCacheTtl: 'dbCacheTtl'
     },
 
     paths: [
@@ -25,18 +24,18 @@ module.exports = {
             for (let i = 0; i < this.paths.length; ++i) {
                 const _path = this.paths[i];
 
-                logger.logInfo("Loading config from: '%s'", _path);
+                logger.logInfo(`Loading config from: ${_path}`);
                 nconf.file(_path);
 
                 if (Object.keys(nconf.stores.file.store || {}).length === 0) {
-                    logger.logInfo("Failed to load config from: '%s'", _path);
-                    return reject('Failed to load config')
+                    logger.logInfo(`Failed to load config from: ${_path}`);
+                    return reject('Failed to load config');
                 } else {
                     return resolve(this);
                 }
             }
 
-            return reject('No cfg files found')
+            return reject('No cfg files found');
         });
     },
 
@@ -65,4 +64,4 @@ module.exports = {
     save: function (callback) {
         nconf.save(callback);
     },
-}
+};

@@ -1,5 +1,5 @@
 module.exports = {
-    logInfo: function (msg, meta) {
-        console.log(msg, meta)
+    logInfo: function () {
+        //console.log(msg, meta);
     }
-}
+};

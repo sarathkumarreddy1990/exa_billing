@@ -1,7 +1,7 @@
 const { query, SQL } = require('./index');
 
 module.exports = {
-    
+
     getData: async function () {
 
         return await query(`
@@ -23,4 +23,4 @@ module.exports = {
 
         return await query(sql);
     }
-}
+};

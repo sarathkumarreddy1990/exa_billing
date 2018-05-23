@@ -9,4 +9,4 @@ module.exports = {
     getDataByDate: function (params) {
         return data.getDataByDate(params);
     },
-}
+};

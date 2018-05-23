@@ -30,7 +30,7 @@ poolConfig.idleTimeoutMillis = 120000;     // close idle clients after 2 minute 
 
 const pool = new Pool(poolConfig);
 
-pool.on('error', (err, client) => {
+pool.on('error', (err) => {
     logger.logInfo('PG POOL on.error: ' + err.message);
 });
 
@@ -43,11 +43,11 @@ module.exports = {
         if (typeof text === 'object') {
             queryObj = text;
         } else {
-            queryObj = { name: preparedName || null, text, values }
+            queryObj = { name: preparedName || null, text, values };
         }
         
         return pool.query(queryObj);
     },
 
     SQL,
-}
+};
