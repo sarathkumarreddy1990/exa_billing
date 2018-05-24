@@ -1,7 +1,7 @@
 const path = require('path');
 
 const nconf = require('nconf');
-const logger = require('../logger');
+const logger = require('../../logger');
 
 module.exports = {
 

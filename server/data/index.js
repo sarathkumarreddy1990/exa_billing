@@ -2,7 +2,7 @@ const { Pool } = require('pg');
 const SQL = require('sql-template-strings');
 const url = require('url');
 
-const logger = require('../logger');
+const logger = require('../../logger');
 const config = require('../config');
 
 const dbConnString = config.get(config.keys.dbConnection);
