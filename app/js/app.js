@@ -1,16 +1,16 @@
 define([
-  'backbone',
-  'routes/app.router'
+    'backbone',
+    'routes/app.router'
 ], function (Backbone, AppRouter) {
 
-  return {
-    initialize: function () {
+    return {
+        initialize: function () {
 
-      if (!window.location.hash) {
-        window.location.hash = '#app/worklist';
-      }
+            if (!window.location.hash) {
+                window.location.hash = '#app/worklist';
+            }
 
-      AppRouter.initialize();
+            AppRouter.initialize();
+        }
     }
-  }
 });

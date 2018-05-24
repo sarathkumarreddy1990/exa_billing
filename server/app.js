@@ -3,7 +3,7 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const responseTime = require('response-time');
-const logger = require('morgan');
+const logger = require('./logger');
 
 const config = require('./config');
 
@@ -23,7 +23,7 @@ app.use(responseTime());
 
 if (process.env.NODE_ENV != 'production') {
     //app.use(logger(':date[iso] :remote-addr :method :url', {immediate: true}));
-    //logger.logInfo('Starting LESS middleware');
+    logger.info('Starting LESS middleware');
 
     const lessMiddleware = require('less-middleware');
     app.use(lessMiddleware(path.join(__dirname, '/../app/'), {
@@ -32,7 +32,7 @@ if (process.env.NODE_ENV != 'production') {
     }));
 }
 
-app.use(logger('dev'));
+//app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
