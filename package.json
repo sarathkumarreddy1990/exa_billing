@@ -14,13 +14,18 @@
         "url": "git+https://ramesh_git@bitbucket.org/viztek/exa-billing.git"
     },
     "dependencies": {
+        "bcrypt-nodejs": "0.0.3",
+        "bluebird": "^3.5.1",
         "cookie-parser": "~1.4.3",
         "debug": "~2.6.9",
         "express": "~4.16.0",
         "express-promise-router": "^3.0.2",
         "http-errors": "~1.6.2",
+        "jsreport-client": "^1.0.0",
         "less-middleware": "^3.0.0",
         "ln": "^0.4.3",
+        "moment": "^2.22.1",
+        "moment-timezone": "^0.5.17",
         "morgan": "~1.9.0",
         "nconf": "^0.10.0",
         "pg": "^7.4.3",

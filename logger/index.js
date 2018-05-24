@@ -2,7 +2,7 @@ const ln = require('ln');
 const path = require('path');
 
 const getFilePath = () => {
-    const logPath = path.join(__dirname, '../../../log');
+    const logPath = path.join(__dirname, '../../log');
     return `[${logPath}/exa-billing.]YYMMDD[.log]`;
 };
 
@@ -38,5 +38,8 @@ const log = new ln({
 
 log.info('Log files goes here', { 'a': 10 });
 log.info(getFilePath());
+
+log.logInfo = log.info;
+log.logInfo('Log files goes here - test');
 
 module.exports = log;
