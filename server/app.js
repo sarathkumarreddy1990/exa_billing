@@ -3,17 +3,14 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const responseTime = require('response-time');
-const logger = require('morgan');
+const logger = require('../logger');
 
 const config = require('./config');
 
 const app = express();
 
 config.initialize();
-//console.log(config.get('dbConnection'))
-const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/users');
-const studiesRouter = require('./routes/studies');
+
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -23,7 +20,7 @@ app.use(responseTime());
 
 if (process.env.NODE_ENV != 'production') {
     //app.use(logger(':date[iso] :remote-addr :method :url', {immediate: true}));
-    //logger.logInfo('Starting LESS middleware');
+    logger.info('Starting LESS middleware');
 
     const lessMiddleware = require('less-middleware');
     app.use(lessMiddleware(path.join(__dirname, '/../app/'), {
@@ -32,15 +29,13 @@ if (process.env.NODE_ENV != 'production') {
     }));
 }
 
-app.use(logger('dev'));
+//app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, '../app')));
 
-app.use('/exa_modules/billing', indexRouter);
-app.use('/exa_modules/billing/studies', studiesRouter);
-app.use('/users', usersRouter);
+require('./config/routes')(app);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

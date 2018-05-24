@@ -1,7 +1,7 @@
 const path = require('path');
 
 const nconf = require('nconf');
-const logger = require('../shared/logger');
+const logger = require('../../logger');
 
 module.exports = {
 
@@ -24,11 +24,11 @@ module.exports = {
             for (let i = 0; i < this.paths.length; ++i) {
                 const _path = this.paths[i];
 
-                logger.logInfo(`Loading config from: ${_path}`);
+                logger.info(`Loading config from: ${_path}`);
                 nconf.file(_path);
 
                 if (Object.keys(nconf.stores.file.store || {}).length === 0) {
-                    logger.logInfo(`Failed to load config from: ${_path}`);
+                    logger.info(`Failed to load config from: ${_path}`);
                     return reject('Failed to load config');
                 } else {
                     return resolve(this);
