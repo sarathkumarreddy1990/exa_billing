@@ -5,7 +5,7 @@ module.exports = {
     getData: async function () {
 
         return await query(`
-                        SELECT * 
+                        SELECT id as study_id,*
                         FROM   studies 
                         ORDER  BY id DESC 
                         LIMIT  10 `);
