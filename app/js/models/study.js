@@ -1,13 +1,3 @@
-/**
- * Author  : Sumither
- * Created : 4/20/13 2:52 PM
- * ----------------------------------------------------------------------
- * Copyright © EMD Systems Software Private Ltd.  All rights reserved.
- * This file is subject to the terms and conditions defined in
- * file 'LICENSE.txt', which is part of this source code package.
- * All other rights reserved.
- * ----------------------------------------------------------------------
- */
 define([ 'backbone' ], function ( Backbone ) {
     return Backbone.Model.extend({
         'defaults': {
