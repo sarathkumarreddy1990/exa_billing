@@ -1,8 +1,8 @@
 define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale', 'collections/studyFilters',
     'text!templates/studies.html', 'text!templates/index.html',
-    'models/studyFilters', 'worklist-grid',
+    'models/studyFilters', 'grid',
     'shared/fields'],
-    function (jQuery, Immutable, _, Backbone, JGrid, JGridLocale, StudyFiltersCollection, TestGrid, IndexHTML, modelStudyFilter, WorklistGrid, workListFields) {
+    function (jQuery, Immutable, _, Backbone, JGrid, JGridLocale, StudyFiltersCollection, TestGrid, IndexHTML, modelStudyFilter, StudyGrid, ListFields) {
         var $ = jQuery;
         var MergeQueueBase = Immutable.Record({
             'filterIndexSet': Immutable.OrderedSet(),
@@ -522,7 +522,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
 
                             // SMH Bug #2606 - Hides icons if necessary when setting up the table.
                             setTimeout(function () {
-                                commonjs.toggleWorklistColumns();
+                                commonjs.toggleGridlistColumns();
                             }, 10);
                         });
 
@@ -907,32 +907,12 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                                 self.initializeStatusCodes(gridObj, 'study');
                                 commonjs.nextRowID = 0;
                                 commonjs.previousRowID = 0;
-                                app.worklistStudies = gridObj.datastore.map(function (study) {
+                                app.listStudies = gridObj.datastore.map(function (study) {
                                     return study.id;
                                 });
                                 commonjs.setFilter(filterID, gridObj);
                             };
-//                            var table = new WorklistGrid({
-//                                'isAdmin': self.isAdmin,
-//                                'gridelementid': '#tblGrid' + filterID,
-//                                'filterid': filterID,
-//                                'setpriorstudies': '',
-//                                'isPrior': isPrior,
-//                                'isDicomSearch': false,
-//                                'providercontact_ids': [],
-//                                'searchByAssociatedPatients': '',
-//                                'isRisOrderSearch': false,
-//                                'showEncOnly': false,
-//                                'study_id': self.priorsstudyID,
-//                                'container': self.el,
-//                                '$container': self.$el,
-//                                'updateStudiesPager': updateStudiesPager,
-//                                'unreadDicomsView': '',
-//                                'notesView': ''
-//                            });
-//                            table.renderStudy();
-
-                            var table = new WorklistGrid({
+                            var table = new StudyGrid({
                                 'isAdmin': self.isAdmin,
                                 'gridelementid': '#tblGrid' + filterID,
                                 'filterid': filterID,
@@ -955,7 +935,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         createStudiesTable();
                     }
                     else {
-                        app.worklistStudies = filter.datastore.map(function (study) {
+                        app.listStudies = filter.datastore.map(function (study) {
                             return study.id;
                         });
                         self.toggleTabContents(2);
@@ -969,7 +949,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 }
 
                 // SMH Bug #2606 - Hides icons if necessary when setting up the table.
-                commonjs.toggleWorklistColumns();
+                commonjs.toggleGridlistColumns();
             },
 
             afterGridBindStudy: function (dataset, gridObj) {
@@ -1212,8 +1192,6 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 if (filter) {
                     var $tblGrid = filter.customGridTable || $(filter.options.gridelementid);
                     var $currentStudyTab = $(document.getElementById('studyTabs')).find('a').filter('[href="#divGridContainer' + commonjs.currentStudyFilter + '"]');
-                    // [JIRA EXA-527] Different worklist query
-                    // Corrected the way this data is retreived to match the refresh all function
                     var isDicomSearch = $currentStudyTab.attr('data-showDicom') == "true";
                     var isRisOrderSearch = $currentStudyTab.attr('data-showRisOrder') == "true";
                     var showEncOnly = $currentStudyTab.attr('data-showEncOnly') == "true";

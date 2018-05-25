@@ -965,7 +965,7 @@ var commonjs = {
             showDropdowns: true
         }
         var options = $.extend(true, {}, defaultOptions, drpOptions);
-       // drpTarget.daterangepicker(options, callback);
+        // drpTarget.daterangepicker(options, callback);
         //since DRP is attached to text input element, trigger 'filter mode' setup
         drpTarget.on("apply.daterangepicker", function (ev, drp) {
             var fmt = drp.locale.format;
@@ -9213,7 +9213,7 @@ var commonjs = {
 
     // SMH Bug #2604 - Method for showing/hiding worklist columns
 
-    toggleWorklistColumns: function (tabPane) {
+    toggleGridlistColumns: function (tabPane) {
         // default to userSetting visibility
         var hide = app.hideWorklistIcons;
 

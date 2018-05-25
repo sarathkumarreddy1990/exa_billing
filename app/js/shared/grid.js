@@ -1,4 +1,4 @@
-define('worklist-grid', [
+define('grid', [
     'jquery',
     'change-grid',
     'shared/utils',

@@ -1,5 +1,5 @@
 'use strict';
-define('worklist-events', [ 'jquery', 'underscore', './formatter', './change-grid' ], function ( jQuery, _, Formatter, initChangeGrid ) {
+define('grid-events', [ 'jquery', 'underscore', './formatter', './change-grid' ], function ( jQuery, _, Formatter, initChangeGrid ) {
     var $ = jQuery;
     return function ( filterID ) {
 

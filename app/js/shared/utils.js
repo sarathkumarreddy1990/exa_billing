@@ -40,8 +40,8 @@ define([ 'jquery', 'underscore' ], function ( jQuery, _ ) {
 
 
     var disableRightClick = function () {
-        if ( app.usersettings && app.usersettings.worklist_filter_info && app.usersettings.worklist_filter_info.options ) {
-            return !isTrue(app.usersettings.worklist_filter_info.options.disableRightClick);
+        if (app.usersettings && app.usersettings.filter_info && app.usersettings.filter_info.options) {
+            return !isTrue(app.usersettings.filter_info.options.disableRightClick);
         }
         return true;
     };

@@ -16,8 +16,8 @@ require.config({
         'appsettings_shared': 'shared/app.settings',
         'customgrid': 'shared/customgrid',
         'change-grid': 'shared/change-grid',
-        'worklist-grid': 'shared/grid',
-        'worklist-events': 'shared/events'
+        'grid': 'shared/grid',
+        'grid-events': 'shared/events'
     },
     shim: {
         'bootstrap': {
@@ -54,10 +54,10 @@ require.config({
             deps: ['change-grid'],
             exports: 'customgrid'
         },
-        'worklist-grid': {
+        'grid': {
             'deps': [ 'appsettings_shared', 'commonscript']
         },
-        'worklist-events': {
+        'grid-events': {
             'deps': [ 'commonscript' ]
         }
     }
