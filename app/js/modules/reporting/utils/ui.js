@@ -2,9 +2,8 @@ define([
     'jquery'
     , 'underscore'
     , 'backbone'
-    , 'collections/setup/modalityList'
 ],
-    function ($, _, Backbone, ModalityList) {
+    function ($, _, Backbone) {
 
         const UI = {
 

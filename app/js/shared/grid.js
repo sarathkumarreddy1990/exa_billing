@@ -1,0 +1,400 @@
+define('worklist-grid', [
+    'jquery',
+    'change-grid',
+    'shared/utils',
+    'models/pager',
+    'collections/study-fields',
+    'collections/studies'
+], function (jQuery, initChangeGrid, utils, Pager, StudyFields, Studies) {
+    var $ = jQuery;
+    var isTrue = utils.isTrue;
+    var isFalse = utils.isFalse;
+    var isNotTrue = utils.isNotTrue;
+    var getData = utils.getData;
+    var disableRightClick = utils.disableRightClick;
+    var setRightMenuPosition = utils.setRightMenuPosition;
+    var updateCollection = utils.updateCollection;
+    var updateReorderColumn = utils.updateReorderColumn;
+    var updateResizeColumn = utils.updateResizeColumn;
+    var setScrollHandler = utils.setScrollHandler;
+
+    return function (options) {
+        var self = this;
+        var filterID = options.filterid;
+        var gridID = options.gridelementid;
+        var isAdmin = options.isAdmin;
+        var $tblGrid = $(gridID);
+        var dateFormatter = function (cellvalue, options, rowObject) {
+            return '';
+        };
+        var checkLicense = '';
+        var userSettings = commonjs.hstoreParse(app.userInfo.user_settings);
+        var risOrderChoose = false;
+        var risOrderID = 0;
+        var risOrderDetails = [];
+
+
+        var handleStudyDblClick = function (data, event, gridID) {
+            event.stopPropagation();
+            if (data === null) {
+                return false;
+            }
+            if (isTrue(data.has_deleted)) {
+                return commonjs.showWarning('Study is deleted - nowhere to go unless restored.', '', true);
+            }
+            var id = data.study_id;
+            editStudyID = id;
+            return chooseScreen(id, data, event, gridID);
+        };
+
+        var openCreateClaim = function (rowID, event, encOnly, store) {
+            var target = event.currentTarget;
+            var $target = $(target);
+            let studyArray = [];
+            let divObj = 'studyRightMenu';
+            let $divObj = $(document.getElementById(divObj));
+            $divObj.empty();
+            let gridData = getData(rowID, store, gridID);
+            if (gridData === null) {
+                return false;
+            }
+            let $checkedInputs = $tblGrid.find('input').filter('[name=chkStudy]:checked');
+            let selectedCount = $checkedInputs.length;
+            let currentStudy;
+            for (var r = 0; r < selectedCount; r++) {
+                var rowId = $checkedInputs[r].parentNode.parentNode.id;
+                currentStudy = getData(rowId, store, gridID);
+                studyArray.push(rowId);
+            }
+            var studyIds = studyArray.join();
+            var liLog = '<li><a id="anc_create_claim" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log">Create Claim</a></li>';
+            $divObj.append(liLog);
+            $('#anc_create_claim').click(function () {
+                alert(studyIds)
+            });
+            $divObj.show();
+            setRightMenuPosition(divObj, event);
+            event.preventDefault();
+        };
+
+        self.renderStudy = function () {
+            var studyStore = new Studies(null, { 'filterID': filterID });
+            var studiesTable = new customGrid(studyStore, gridID);
+            var changeGrid = initChangeGrid(studiesTable);
+            var transcriptionHide = true;
+            var opalViewerHide = true;
+            var dicomViewerHide = true;
+            var showPriorsHide = true;
+            var reportHide = true;
+            var colName = [];
+            var i18nName = [];
+            var colModel = [];
+
+            if (!options.isPrior && !showPriorsHide && isNotTrue(options.showEncOnly)) {
+                colName.push('');
+                i18nName.push('');
+                colModel.push({
+                    name: 'as_prior',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: false,
+                    isIconCol: true, // SMH Bug #2606 - Mark column as an icon cell which can be hidden
+                    formatter: function (cellvalue, options, rowObject) {
+                        return !rowObject.has_priors ?
+                            "<i class='icon-ic-prior-studies' style='opacity: 0.3' title='Prior'></span>" :
+                            "<i class='icon-ic-prior-studies' title='Prior'></span>";
+                    },
+                    customAction: function (rowID, e, that) {
+                        var gridData = getData(rowID, studyStore, gridID);
+                        if (gridData === null) {
+                            return false;
+                        }
+                        if (isTrue(gridData.has_priors)) {
+                            options.setpriorstudies(rowID, filterID, gridData);
+                            return false;
+                        }
+                    }
+                });
+            }
+
+            var icon_width = 24;
+            colName = colName.concat([
+                '<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />',
+                '',
+
+            ]);
+
+            i18nName = i18nName.concat([
+                '',
+                ''
+            ]);
+
+            colModel = colModel.concat([
+                {
+                    name: 'as_chk',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    isIconCol: true,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return '<input type="checkbox" name="chkStudy" id="chkSendStudy_' + rowObject.study_id + '" />'
+                    },
+                    customAction: function (rowID, e, that) {
+                    }
+                },
+                {
+                    name: 'as_edit',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true,
+                    formatter: function () {
+                        return "<i class='icon-ic-edit' title='Edit'></i>"
+                    },
+                    customAction: function (rowID, e, that) {
+                        if (true) {
+                            var gridData = getData(rowID, studyStore, gridID);
+                            if (gridData === null || isTrue(gridData.has_deleted)) {
+                                return false;
+                            }
+                        }
+                        return false;
+                    }
+                }
+            ]);
+
+            if (app.showserial) {
+                colName.push('#');
+                i18nName.push('');
+                colModel.push({
+                    name: 'record_no',
+                    width: 25,
+                    sortable: false,
+                    search: false,
+                    resizable: false
+                });
+            }
+
+            var gridIDPrefix = '#jqgh_' + gridID.slice(1);
+
+            var subGridNeed = ((app.showpriors && true) || true);
+            //this is hotcode i will remove later
+            app.usersettings = {id: 1,
+                field_orders: [1, 2, 3, 4],
+                grid_options: [
+                    {name: "Modality", width: 150},
+
+                    {name: "Study Description", width: 200},
+
+                    {name: "Accession #", width: 200},
+
+                    {name: "Status", width: 150}
+                ],
+                sort_column: "Accession #",
+                sort_order: "Desc",
+                wl_sort_field: "accession_no",
+                study_fields: ["Modality", "Study Description", "Accession #", "Status"]};
+
+            var studyFieldsCollection = new StudyFields(null, { gridOptions: app.usersettings.grid_options || null, filterType: 'OD' });
+            var studyFields = studyFieldsCollection.reduce(function (fieldSet, field) {
+                fieldSet.colName[fieldSet.colName.length] = field.get('field_name');
+                fieldSet.i18nName[fieldSet.i18nName.length] = field.get('i18n_name') || '';
+                fieldSet.colModel[fieldSet.colModel.length] = field.get('field_info');
+                return fieldSet;
+            }, {
+                'colName': [],
+                'i18nName': [],
+                'colModel': []
+            });
+            var defSortOrder = app.usersettings.sort_order || "asc";
+            var defColumn = studyFieldsCollection.findWhere({
+                'field_name': app.usersettings.sort_column !== 'ID' ?
+                    app.usersettings.sort_column :
+                    'Study Received Date'
+            });
+            var fieldInfo = defColumn ? defColumn.get('field_info') : null;
+            var defSortColumn = fieldInfo ? fieldInfo.name : 'study_received_dt';
+
+            app.usersettings.wl_sort_field = defSortColumn;
+
+            var afterInsertRow = function (rowid, rowdata) {
+                var $row = $tblGrid.find('#' + rowid);
+                var setCell = changeGrid.setCell($row);
+                var cells = [];
+
+                cells = cells.concat(changeGrid.getPrior(rowdata));
+                cells = cells.concat(changeGrid.getRefPhy(rowdata));
+                cells = cells.concat(changeGrid.getReferringProviders(rowid, rowdata));
+                cells = cells.concat(changeGrid.getReadPhy(rowid, rowdata));
+                cells = cells.concat(changeGrid.getAge(rowdata.patient_age));
+                setCell(cells);
+
+                if (typeof options.afterInsertRow === 'function') {
+                    options.afterInsertRow(rowid, rowdata);
+                }
+            };
+
+            var afterGridBind = function (model, gridObj) {
+                if (typeof options.updateStudiesPager === 'function') {
+                    options.updateStudiesPager(model, gridObj);
+                }
+
+            };
+
+            var rowattr = function (domData, data) {
+                var attrs = {
+                    'class': '',
+                    'style': ''
+                };
+
+                if (isTrue(data.has_deleted) || isFalse(data.is_active)) {
+                    attrs['class'] += 'inActiveRow';
+                }
+
+                if (isNotTrue(data.has_deleted) && data.current_status_waiting_time > 0 && data.max_waiting_time > 0 && (data.max_waiting_time > data.current_status_waiting_time)) {
+                    attrs['class'] += 'warnExceedTime';
+                    attrs['data_interval'] = 1;
+                }
+
+                var stat = data.stat_level;
+                if (stat) {
+                    var css = changeGrid.getStatLevelAttr(stat);
+                    attrs.style += 'background-color:' + css.bgColor + ';color:' + css.textColor + ';';
+                }
+
+                return attrs;
+            };
+
+            studiesTable.render({
+                gridelementid: gridID,
+                custompager: new Pager(),
+                colNames: colName.concat(studyFields.colName),
+                i18nNames: i18nName.concat(studyFields.i18nName),
+                colModel: colModel.concat(studyFields.colModel),
+                emptyMessage: 'No Study found',
+                sortname: defSortColumn,
+                sortorder: defSortOrder,
+                caption: "Studies",
+                idprefix: isTrue(options.showEncOnly) ? "" : "st",
+                disableautowidthresize: false,
+                disableautoheightresize: false,
+                container: options.container,
+                multiselect: true,
+                ondblClickRow: function (rowID, irow, icol, event) {
+                    var data = getData(rowID, studyStore, gridID);
+                    handleStudyDblClick(data, event, gridID);
+                },
+                disablesearch: false,
+                disablesort: false,
+                disablepaging: true,
+                disableadd: true,
+                showcaption: false,
+                offsetHeight: '10',
+                customizeSort: true,
+                sortable: {
+                    exclude: [
+                        ',',
+                        gridIDPrefix,
+                        '_as_chk,'
+                    ].join(''),
+                    update: function (permutation, gridObj) {
+                        var colModel = gridObj && gridObj.p ?
+                            gridObj.p.colModel :
+                            $tblGrid.jqGrid('getGridParam', 'colModel');
+                        studyFieldsCollection.sort(colModel.filter(function (col) {
+                            return col.hasOwnProperty('custom_name');
+                        }));
+                        updateReorderColumn(studyFieldsCollection.toJSON());
+                    }
+                },
+
+                isSearch: true,
+                shrinkToFit: false,
+                autowidth: false,
+                isPrior: options.isPrior,
+                isDicomSearch: options.isDicomSearch,
+                showEncOnly: options.showEncOnly,
+                providercontact_ids: app.providercontact_ids,
+                searchByAssociatedPatients: userSettings.searchByAssociatedPatients,
+                isRisOrderSearch: options.isRisOrderSearch,
+
+                onRightClickRow: function (rowID, iRow, iCell, event, options) {
+                    if (disableRightClick()) {
+                        openCreateClaim(rowID, event, options.showEncOnly, studyStore);
+                    }
+                    else {
+                        event.stopPropagation();
+                    }
+                },
+                beforeSearch: function () {
+                    commonjs.scrollLeft = $('.ui-jqgrid-bdiv').scrollLeft();
+                },
+
+                resizeStop: function (newWidth, index, gridObj) {
+                    var colModel = gridObj && gridObj.p ?
+                        gridObj.p.colModel :
+                        $tblGrid.jqGrid('getGridParam', 'colModel');
+                    var col = colModel[index];
+                    if (!col) {
+                        commonjs.showWarning('Could not save new column size');
+                        return false;
+                    }
+                    studyFieldsCollection.add({
+                        'id': col.custom_id,
+                        'field_info': {
+                            'width': col.width
+                        }
+                    }, { 'merge': true });
+                    updateResizeColumn(studyFieldsCollection.toJSON());
+                },
+                afterInsertRow: afterInsertRow,
+                onbeforegridbind: updateCollection,
+                onaftergridbind: afterGridBind,
+                defaultwherefilter: '',
+                customargs: {
+                    flag: 'home_study',
+                    isPrior: options.isPrior,
+                    filter_id: filterID,
+                    study_id: options.study_id,
+                    isExceedsMaxTime: filterID,
+                    showdeletedstudies: true,
+                    isDicomSearch: options.isDicomSearch,
+                    showEncOnly: options.showEncOnly,
+                    isRisOrderSearch: options.isRisOrderSearch,
+                    providercontact_ids: [],
+                    searchByAssociatedPatients: userSettings.searchByAssociatedPatients,
+                    patient_id: 0,
+                    study_dt: (commonjs.prior_study_dt) ?
+                        commonjs.prior_study_dt :
+                        null,
+                    order_id: (commonjs.prior_order_id > 0) ?
+                        commonjs.prior_order_id :
+                        0
+                },
+                rowattr: rowattr
+            });
+        };
+        self.setDropDownSubMenuPosition = function (e, divObj) {
+            var mouseX = e.clientX;
+            var mouseY = e.clientY;
+            var windowWidth = $window.width();
+            var windowHeight = $window.height();
+            var $divObj = $(document.getElementById(divObj));
+            var menuWidth = $divObj.outerWidth();
+            var menuHeight = $divObj.outerHeight();
+            var list = $(e.target.parentElement).find('ul')[0];
+            var subMenuWidth = $(list).width();
+            var subMenuHeight = $(list).height();
+            if (mouseX + menuWidth + subMenuWidth > windowWidth) {
+                $(list).css('left', '-100%');
+                list.style.float = 'left';
+            }
+
+        };
+    };
+});

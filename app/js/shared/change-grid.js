@@ -331,7 +331,7 @@ define('change-grid', [ 'jquery' ], function ( jQuery ) {
             var createEl = function ( cellvalue ) {
                 var authorizations = cellvalue;
 
-                if (authorizations.length > 0 && typeof authorizations === 'string') {
+                if (authorizations&&authorizations.length > 0 && typeof authorizations === 'string') {
                     authorizations = JSON.parse(authorizations);
                 }
 
