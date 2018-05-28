@@ -1,13 +1,12 @@
+define(['backbone'], function (Backbone) {
+    var appsettings = Backbone.Collection.extend({
 
-define(['backbone'],function(Backbone){
-    var appsettings=Backbone.Collection.extend({
+        url: '/exa_modules/billing/appSettings',
 
-        url:'/exa_modules/billing/appSettings',
-
-        initialize:function(){
+        initialize: function () {
         },
 
-        parse:function(response){
+        parse: function (response) {
             return response;
         }
     });
