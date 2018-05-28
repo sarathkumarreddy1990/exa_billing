@@ -1,7 +1,7 @@
 const Router = require('express-promise-router');
 var router = new Router();
 
-const studiesController = require('../controller/studies');
+const studiesController = require('../controllers/studies');
 const httpHandler = require('../shared/http');
 
 router.get('/', async function (req, res) {
