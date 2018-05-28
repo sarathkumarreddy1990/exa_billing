@@ -1,4 +1,3 @@
-
 require.config({
     waitSeconds: 0,
     paths: {
@@ -17,6 +16,8 @@ require.config({
         'appsettings_shared': 'shared/app.settings',
         'customgrid': 'shared/customgrid',
         'change-grid': 'shared/change-grid',
+        'grid': 'shared/grid',
+        'grid-events': 'shared/events'
     },
     shim: {
         'bootstrap': {
@@ -53,31 +54,29 @@ require.config({
             deps: ['change-grid'],
             exports: 'customgrid'
         },
+        'grid': {
+            'deps': [ 'appsettings_shared', 'commonscript']
+        },
+        'grid-events': {
+            'deps': [ 'commonscript' ]
+        }
     }
 });
 
 
 require([
     'immutable',
-    'moment-timezone',], function (
-        Immutable,
-        MomentTimezone) {
-        window.Immutable = Immutable;
+    'moment-timezone', ], function (Immutable, MomentTimezone) {
+    window.Immutable = Immutable;
 
-        require([
-            'jquery',
-            'underscore',
-            'bootstrap',
-            'commonscript',
-            'customgrid',
-            'app'], function (
-                $,
-                _,
-                Bootstrap,
-                commonjs,
-                customGrid,
-                App) {
-                App.initialize();
-            });
-
+    require([
+        'jquery',
+        'underscore',
+        'bootstrap',
+        'commonscript',
+        'customgrid',
+        'app'], function ($, _, Bootstrap, commonjs, customGrid, App) {
+        App.initialize();
     });
+
+});

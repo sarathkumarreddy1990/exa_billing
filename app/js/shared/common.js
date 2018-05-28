@@ -965,7 +965,7 @@ var commonjs = {
             showDropdowns: true
         }
         var options = $.extend(true, {}, defaultOptions, drpOptions);
-        drpTarget.daterangepicker(options, callback);
+        // drpTarget.daterangepicker(options, callback);
         //since DRP is attached to text input element, trigger 'filter mode' setup
         drpTarget.on("apply.daterangepicker", function (ev, drp) {
             var fmt = drp.locale.format;
@@ -3662,7 +3662,7 @@ var commonjs = {
         }
         $('#divGadgetSummaryNew .widget.item').css('width', (_gw - 26) + 'px');
         $('#column1 .masonry-wrap').css('width', ($(window).width() - 50 + 'px'));
-        $('#column1').masonry();
+       // $('#column1').masonry();
 
     },
 
@@ -6351,7 +6351,22 @@ var commonjs = {
                         app.settings.studyflag.push(flagData.description);
                     });
                     app.settings.patientLocation = (patientLocation && patientLocation.length > 0) ? patientLocation : [];
-                    app.usersettings = typeof appsettingsobj.usersettings === "object" && appsettingsobj.usersettings || {};
+                    app.usersettings = typeof appsettingsobj.usersettings === "object" && appsettingsobj.usersettings || {id:1,
+                        field_orders:[1,2,3,4],
+                        grid_options:[
+                            {name: "Modality", width: 150},
+
+                            {name: "Patient", width: 200},
+
+                            {name: "Accession #", width: 200},
+
+                            {name: "Status", width: 150}
+                        ],
+                        sort_column:"Accession #",
+                        sort_order:"Desc",
+                        wl_sort_field:"accession_no",
+                        study_fields:["Modality","Patient","Accession #","Status"]
+                    };
                     function change_theme(theme) {
                         app.currentTheme = theme;
                         commonjs.refreshUserSettings();
@@ -7698,7 +7713,7 @@ var commonjs = {
     processPostRender: function (args) {
         var screenTitle = (args && args.screen != '') ? args.screen : 'PACS-Title';
 
-        var cultureCode = browserLocale.replace('-', '_').toLowerCase();
+        var cultureCode = 'es_us';
 
         switch (cultureCode.substring(0, 2)) {
             case 'es':
@@ -7733,11 +7748,11 @@ var commonjs = {
     },
 
     updateCulture: function (culture, cb) {
-        var upCul = i18n.loadDefaultLanguage(function () {
-            i18n.setLang(culture);
-            i18n.t(undefined, cb);
-        });
-        return upCul;
+//        var upCul = i18n.loadDefaultLanguage(function () {
+//            i18n.setLang(culture);
+//            i18n.t(undefined, cb);
+//        });
+//        return upCul;
     },
 
     /**
@@ -9198,7 +9213,7 @@ var commonjs = {
 
     // SMH Bug #2604 - Method for showing/hiding worklist columns
 
-    toggleWorklistColumns: function (tabPane) {
+    toggleGridlistColumns: function (tabPane) {
         // default to userSetting visibility
         var hide = app.hideWorklistIcons;
 

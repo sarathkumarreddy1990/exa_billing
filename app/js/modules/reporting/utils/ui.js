@@ -3,7 +3,7 @@ define([
     , 'underscore'
     , 'backbone'
 ],
-    function ($, _, Backbone, ModalityList) {
+    function ($, _, Backbone) {
 
         const UI = {
 
