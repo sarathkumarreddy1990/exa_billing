@@ -14,6 +14,7 @@ define([
                 this.appRoute = new WorklistView({ el: $('#root') });
             }
         },
+        
         startReporting: function (subroutes) {
             if (!this.reportingRoute) {
                // this.reportingRoute = new ReportView("reports/", { createTrailingSlashRoutes: true });

@@ -34,7 +34,7 @@ pool.on('error', (err) => {
     logger.error('PG POOL on.error: ' + err.message);
 });
 
-module.exports = {
+const pgData = {
 
     query: async function (text, values, preparedName) {
 
@@ -45,9 +45,20 @@ module.exports = {
         } else {
             queryObj = { name: preparedName || null, text, values };
         }
-        
+
         return pool.query(queryObj);
+    },
+
+    queryRows: async function (text, values, preparedName) {
+        try {
+            let result = await pgData.query(text, values, preparedName);
+            return result.rows;
+        } catch (err) {
+            throw err;
+        }
     },
 
     SQL,
 };
+
+module.exports = pgData;

@@ -23,7 +23,7 @@ if (process.env.NODE_ENV != 'production') {
     logger.info('Starting LESS middleware');
 
     const lessMiddleware = require('less-middleware');
-    app.use(lessMiddleware(path.join(__dirname, '/../app/'), {
+    app.use(lessMiddleware(path.join(__dirname, '/../app'), {
         debug: true,
         render: {compress: true}
     }));
