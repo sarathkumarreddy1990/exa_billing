@@ -17,7 +17,8 @@ require.config({
         'customgrid': 'shared/customgrid',
         'change-grid': 'shared/change-grid',
         'grid': 'shared/grid',
-        'grid-events': 'shared/events'
+        'grid-events': 'shared/events',
+        'appserver_shared': 'shared/app.server'
     },
     shim: {
         'bootstrap': {
@@ -75,7 +76,11 @@ require([
         'bootstrap',
         'commonscript',
         'customgrid',
-        'app'], function ($, _, Bootstrap, commonjs, customGrid, App) {
+        'app',
+        'appserver_shared'], function ($, _, Bootstrap, commonjs, customGrid, App,Appserver) {
+        new Appserver(function () {
+
+        });
         App.initialize();
     });
 
