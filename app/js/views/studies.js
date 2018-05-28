@@ -833,21 +833,6 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             setTabContents: function (filterID, isPrior, isDicomSearch, isRisOrderSearch, showEncOnly) {
                 var self = this;
                 if (filterID) {
-//                    var previousFilterID = commonjs.currentStudyFilter;
-//                    if ( previousFilterID ) {
-//                        var prevFilter = commonjs.loadedStudyFilters.get(previousFilterID);
-//                        if ( prevFilter ) {
-//                            prevFilter.customGridTable.find('tr').slice(1).remove();
-//                            app.stat_level.forEach(function ( stat, i ) {
-//                                var el = document.getElementById('statCount' + i);
-//                                if ( el ) {
-//                                    el.innerHTML = '';
-//                                }
-//                            });
-//                        }
-//                    }
-//                    self.setRangeFilter(filterID);
-
                     var filter = commonjs.loadedStudyFilters.get(filterID);
                     commonjs.currentStudyFilter = filterID;
 
@@ -855,39 +840,6 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
 
                         var createStudiesTable = function () {
                             var id = filterID;
-
-//                                    $('#i_divGridContainer' + id).click(function ( e ) {
-//                                        var filter = commonjs.loadedStudyFilters.get(id);
-//                                        if ( filter ) {
-//                                            commonjs.prior_patient_id = 0;
-//                                            commonjs.prior_study_dt = null;
-//                                            commonjs.prior_order_id = 0;
-//                                            $('#divGridContainer' + id)
-//                                                .remove();
-//                                            $('#studyTabs li.active')
-//                                                .prev()
-//                                                .find('a:first')
-//                                                .click();
-//                                            $(e.target || e.srcElement)
-//                                                .parent()
-//                                                .parent()
-//                                                .remove();
-//                                            commonjs.setFilter(id, null);
-//                                        }
-//                                        return false;
-//                                    });
-//                                    $('#data_container').append(
-//                                        self.template({
-//                                            'filterID': id
-//                                        })
-//                                    );
-
-//                                $('#studyTabs a[href="#divGridContainer' + id + '"]').tab("show");
-                            //$('#studyTabs').find('li:first').addClass('active');
-                            // $('#tab-content').find('.tab-pane:first').addClass('active');
-//                                commonjs.prior_patient_id = gridData.patient_id;
-//                                commonjs.prior_order_id = gridData.order_id;
-//                                commonjs.prior_study_dt = gridData.study_dt; //moment(gridData.study_dt).format('L');
                             self.filterQueries.push({
                                 'filterid': id,
                                 'rangeIndex': self.dateRangeFilterInitValue,
