@@ -1,4 +1,4 @@
-define(['backbone', 'collections/appsettings'], function (Backbone, AppCollection) {
+define(['backbone', 'collections/app-settings'], function (Backbone, AppCollection) {
     var appServerView = Backbone.View.extend({
 
         initialize: function (callback) {
