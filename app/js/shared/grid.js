@@ -28,7 +28,7 @@ define('grid', [
             return '';
         };
         var checkLicense = '';
-        var userSettings = commonjs.hstoreParse(app.userInfo.user_settings);
+        var userSettings = commonjs.hstoreParse(app.user_settings);
         var risOrderChoose = false;
         var risOrderID = 0;
         var risOrderDetails = [];
@@ -183,23 +183,6 @@ define('grid', [
             var gridIDPrefix = '#jqgh_' + gridID.slice(1);
 
             var subGridNeed = ((app.showpriors && true) || true);
-            //this is hotcode i will remove later
-            app.usersettings = {id: 1,
-                field_orders: [1, 2, 3, 4],
-                grid_options: [
-                    {name: "Modality", width: 150},
-
-                    {name: "Study Description", width: 200},
-
-                    {name: "Accession #", width: 200},
-
-                    {name: "Status", width: 150}
-                ],
-                sort_column: "Accession #",
-                sort_order: "Desc",
-                wl_sort_field: "accession_no",
-                study_fields: ["Modality", "Study Description", "Accession #", "Status"]};
-
             var studyFieldsCollection = new StudyFields(null, { gridOptions: app.usersettings.grid_options || null, filterType: 'OD' });
             var studyFields = studyFieldsCollection.reduce(function (fieldSet, field) {
                 fieldSet.colName[fieldSet.colName.length] = field.get('field_name');
