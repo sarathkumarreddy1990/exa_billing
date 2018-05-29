@@ -1,7 +1,7 @@
-define([ 'backbone', 'models/studyFilters' ], function ( Backbone, StudyFilterModel ) {
+define([ 'backbone', 'models/claim-filters' ], function ( Backbone, CliamFilterModel ) {
     return Backbone.Collection.extend({
-        model: StudyFilterModel,
-        url:'/exa_modules/billing/studyFilters',
+        model: CliamFilterModel,
+        url:'/exa_modules/billing/claimFilters',
         parse:function( response ){
             var rows = response;
             return Array.isArray(rows) ? rows.map(function ( row ) {
