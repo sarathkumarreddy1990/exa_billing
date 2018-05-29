@@ -19,7 +19,7 @@ define([
                     console.error('Less than 3 parts in route!');
                 }
                 viewModel.reportId = routeParts[routeParts.length - 1];
-                viewModel.reportCategory = routeParts[routeParts.length - 2];
+                viewModel.reportCategory = 'billing';
                 viewModel.reportTitle = routeOptions.screen;
 
                 return true;
@@ -43,7 +43,7 @@ define([
                     console.log('Report URL cannot be generated!');
                     return null;
                 }
-                const reportUrlBase = '../reports/render/' + category + '/' + id + '.' + format;
+                const reportUrlBase = '../exa_modules/billing/reports/render/' + category + '/' + id + '.' + format;
                 const reportUrlQueryString = $.param(params);
                 const reportUrl = reportUrlBase + '?' + reportUrlQueryString;
                 //console.log('reportUrl: ', reportUrl);
@@ -75,14 +75,19 @@ define([
                     }, 2000);
                 }
 
-                iFrame.load(function () {
-                    //console.log('iframe loaded');
+                $('#reportFrame').on("load", function() {
                     $('#divPageLoading').hide();
                     iFrame.css({ border: '1px solid #3c91f0' });
                 });
 
+                // iFrame.load(function () {
+                //     //console.log('iframe loaded');
+                //     $('#divPageLoading').hide();
+                //     iFrame.css({ border: '1px solid #3c91f0' });
+                // });
+
                 // resize iframe when window resizes
-                $(window).resize(function () {
+                $(window).on('resize', function () {
                     iFrame.height($(window).height() - iFrame.offset().top - 10);
                 });
             },

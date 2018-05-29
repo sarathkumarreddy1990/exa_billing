@@ -54,7 +54,7 @@ const api = {
             filters: [],
             lookups: {
                 user: {
-                    clientIpAddress: reportParams.client_ip
+                    clientIpAddress: '192.168.1.170'
                 }
             },
             dataSetCount: 0,
