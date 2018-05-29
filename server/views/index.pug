@@ -1,8 +1,20 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+  nav.navbar.navbar-expand-lg.navbar-light.bg-light
+    a.navbar-brand(href='#') #{title}
+    button.navbar-toggler(type='button', data-toggle='collapse', data-target='#navbarNavAltMarkup', aria-controls='navbarNavAltMarkup', aria-expanded='false', aria-label='Toggle navigation')
+      span.navbar-toggler-icon
+    #navbarNavAltMarkup.collapse.navbar-collapse
+      .navbar-nav
+        a.nav-item.nav-link.active(href='#app/studies')
+          | Home 
+          span.sr-only (current)
+        a.nav-item.nav-link(href='#app/claim_workbench') Claims
+        a.nav-item.nav-link(href='#app/payments') Payments
+        a.nav-item.nav-link(href='#app/reports') Reports
+        a.nav-item.nav-link(href='#app/setup') Setup
+        a.nav-item.nav-link(href='#') Logout
 
   #root
 
