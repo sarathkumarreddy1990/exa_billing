@@ -4,8 +4,9 @@ define('grid', [
     'shared/utils',
     'models/pager',
     'collections/study-fields',
-    'collections/studies'
-], function (jQuery, initChangeGrid, utils, Pager, StudyFields, Studies) {
+    'collections/studies',
+    'views/claims/index'
+], function (jQuery, initChangeGrid, utils, Pager, StudyFields, Studies, claimsView) {
     var $ = jQuery;
     var isTrue = utils.isTrue;
     var isFalse = utils.isFalse;
@@ -60,17 +61,31 @@ define('grid', [
             }
             let $checkedInputs = $tblGrid.find('input').filter('[name=chkStudy]:checked');
             let selectedCount = $checkedInputs.length;
-            let currentStudy;
+            let _storeEle;
             for (var r = 0; r < selectedCount; r++) {
                 var rowId = $checkedInputs[r].parentNode.parentNode.id;
-                currentStudy = getData(rowId, store, gridID);
+                _storeEle = getData(rowId, store, gridID);
                 studyArray.push(rowId);
+                var study = {
+                    study_id: rowId,
+                    patient_id: _storeEle.patient_id,
+                    facility_id: _storeEle.facility_id,
+                    study_date: _storeEle.study_dt,
+                    patient_name: _storeEle.patient_name,
+                    account_no: _storeEle.account_no,
+                    patient_dob: _storeEle.birth_date,
+                    accession_no: _storeEle.accession_no,
+                };
             }
             var studyIds = studyArray.join();
             var liLog = '<li><a id="anc_create_claim" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log">Create Claim</a></li>';
             $divObj.append(liLog);
-            $('#anc_create_claim').click(function () {
-                alert(studyIds)
+            $('#anc_create_claim').off().click(function () {
+                //alert(studyIds)
+                window.localStorage.setItem('selected_studies',null);
+                window.localStorage.setItem('selected_studies', JSON.stringify(study));
+                self.claimView = new claimsView();
+                self.claimView.showClaimForm(studyIds);
             });
             $divObj.show();
             setRightMenuPosition(divObj, event);
@@ -122,13 +137,12 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 '<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />',
-                '',
+                '','','','',''
 
             ]);
 
             i18nName = i18nName.concat([
-                '',
-                ''
+                '','','','','',''
             ]);
 
             colModel = colModel.concat([
@@ -165,6 +179,42 @@ define('grid', [
                         }
                         return false;
                     }
+                },
+                {
+                    name: 'account_no',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true
+                },
+                {
+                    name: 'birth_date',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true
+                },
+                {
+                    name: 'patient_name',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true
+                },
+                {
+                    name: 'patient_id',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true
                 }
             ]);
 
@@ -183,7 +233,7 @@ define('grid', [
             var gridIDPrefix = '#jqgh_' + gridID.slice(1);
 
             var subGridNeed = ((app.showpriors && true) || true);
-            var studyFieldsCollection = new StudyFields(null, { gridOptions: app.usersettings.grid_options || null, filterType: 'OD' });
+            var studyFieldsCollection = new StudyFields(null, { gridOptions: app.usersettings && app.usersettings.grid_options || null, filterType: 'OD' });
             var studyFields = studyFieldsCollection.reduce(function (fieldSet, field) {
                 fieldSet.colName[fieldSet.colName.length] = field.get('field_name');
                 fieldSet.i18nName[fieldSet.i18nName.length] = field.get('i18n_name') || '';

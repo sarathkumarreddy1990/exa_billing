@@ -5,9 +5,10 @@ module.exports = {
     getData: async function () {
 
         return await query(`
-                        SELECT id as study_id,*
+                        SELECT studies.id as study_id,patients.full_name as patient_name,patients.birth_date,patients.account_no,*
                         FROM   studies 
-                        ORDER  BY id DESC 
+                        LEFT JOIN patients on patients.id = studies.patient_id
+                        ORDER  BY studies.id DESC 
                         LIMIT  10 `);
     },
 
