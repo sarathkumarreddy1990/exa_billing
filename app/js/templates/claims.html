@@ -1,0 +1,17 @@
+<style>
+    .popover {
+        max-width: 500px !important;
+        width: 375px !important;
+    }
+    td {
+        white-space: nowrap!important;
+    }
+    span.notesSpan {
+        white-space: nowrap !important;
+    }
+</style>
+<div class="tab-pane" id='divClaimGridContainer<%= filterID %>'>
+    <div class='Grid' id='divClaimGrid<%= filterID %>'>
+        <table id="tblClaimGrid<%= filterID %>" class="datagrid<%= typeof document.documentMode === 'number' ? ' ie' : ' not-ie' %>"></table>
+    </div>
+</div>

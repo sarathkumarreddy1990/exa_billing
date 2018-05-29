@@ -107,9 +107,9 @@ require([
                 Appserver,
                 select2) {
                 new Appserver(function () {
-
+                    App.initialize();
                 });
-                App.initialize();
+
             });
 
     });

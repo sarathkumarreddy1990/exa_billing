@@ -4,10 +4,10 @@ define(['jquery',
     'backbone',
     'jqgrid',
     'jqgridlocale',
-    'collections/study-filters',
-    'text!templates/studies.html',
+    'collections/claim-filters',
+    'text!templates/claims.html',
     'text!templates/index.html',
-    'models/study-filters',
+    'models/claim-filters',
     'grid',
     'shared/fields'],
     function ($,
@@ -16,11 +16,11 @@ define(['jquery',
               Backbone,
               JGrid,
               JGridLocale,
-              StudyFiltersCollection,
-              StudyHTML,
+              ClaimFiltersCollection,
+              ClaimHTML,
               IndexHTML,
-              modelStudyFilter,
-              StudyGrid,
+              ModelClaimsFilters,
+              ClaimsGrid,
               ListFields) {
         var MergeQueueBase = Immutable.Record({
             'filterIndexSet': Immutable.OrderedSet(),
@@ -111,7 +111,8 @@ define(['jquery',
                 "showAssignedStudies": false,
                 "includeDeleted": null,
                 "showEncOnly": false,
-                "disableRightClick": false
+                "disableRightClick": false,
+                isClaimGrid: true
             }
         };
 
@@ -172,9 +173,7 @@ define(['jquery',
             filterQueries: [],
             dateRangeFilterInitValue: 4,
             study_loaded: false,
-            order_loaded: false,
             routePrefix: '',
-            ordersTable: null,
             studiesTable: null,
             studyFilters: null,
             isAdmin: false,
@@ -190,7 +189,6 @@ define(['jquery',
                 this.options = options;
                 var self = this;
                 self.render();
-                self.routePrefix = '#home/studies/';
 
                 $document.on('studyFilter:delete', function (e, id) {
                     self.removeStudyTab(id);
@@ -228,11 +226,10 @@ define(['jquery',
 
             render: function (queryString) {
                 var self = this;
-                self.template = _.template(StudyHTML);
+                self.template = _.template(ClaimHTML);
                 self.indexTemplate = _.template(IndexHTML);
                 self.$el.html(self.indexTemplate({
                     gadget: '',
-                    customOrderStatus: [],
                     customStudyStatus: []
                 }));
 
@@ -245,18 +242,37 @@ define(['jquery',
 
                 $('#divPageLoading').show();
                 $('#diveHomeIndex').hide();
-                $('#divStudyFooter').hide();
+                $('#divclaimsFooter').hide();
 
                 isDefaultTab = false;
-                self.studyFilters = new StudyFiltersCollection();
-                self.studyFilters.fetch({
+                self.claimsFilters = new ClaimFiltersCollection();
+                self.claimsFilters.fetch({
                     data: {},
                     success: function (model, response) {
-                        // if (commonjs.isValidResponse(response)) {
-                        var studyFilters = response || [];
-                        commonjs.studyFilters = Immutable.List(studyFilters);
-                        self.setFiltertabs(studyFilters);
-                        // }
+                        var claimsFilters = [];
+                        claimsFilters.push({
+                            assigned_users: null,
+                            display_as_tab: true,
+                            display_in_ddl: true,
+                            filter_id: "All_Claims",
+                            filter_info: null,
+                            filter_name: "All Claims",
+                            filter_order: 0,
+                            id: "All_Claims"
+                        })
+                        claimsFilters.push({
+                            assigned_users: null,
+                            display_as_tab: true,
+                            display_in_ddl: true,
+                            filter_id: "Follow_up_queue",
+                            filter_info: null,
+                            filter_name: "Follow-Up Queue",
+                            filter_order: 0,
+                            id: "Follow_up_queue"
+                        });
+                        claimsFilters = claimsFilters.concat(response)
+                        commonjs.claimsFilters = Immutable.List(claimsFilters);
+                        self.setFiltertabs(claimsFilters);
 
                     },
                     error: function (model, response) {
@@ -283,9 +299,6 @@ define(['jquery',
                 }).columns;
                 var drpOptions = { locale: { format: "L" } };
 
-                if (commonjs.currentStudyFilter == "0" && self.isFirstTabEnabled) {
-                    commonjs.currentStudyFilter = "PS";
-                }
                 var currentFilter = self.getFilterObject(commonjs.currentStudyFilter);
                 _.each(columnsToBind, function (col) {
                     var rangeSetName = "past";
@@ -301,8 +314,8 @@ define(['jquery',
                     //      $._data($("#gs_scheduled_dt")[0], "events");
                     //
                     // because ids for columns are not unique, we have to bind using jQuery object and filter id as selector
-                    // all columns start with "gs_" and are several levels under "gview_tblGrid{filterId}"
-                    var colSelector = "#gview_tblGrid" + gridObj.options.filterid + " " + "#gs_" + col;
+                    // all columns start with "gs_" and are several levels under "gview_tblClaimGrid{filterId}"
+                    var colSelector = "#gview_tblClaimGrid" + gridObj.options.filterid + " " + "#gs_" + col;
                     var colElement = $(colSelector);
                     if (!colElement.length) {
                         return; // skips current iteration only !
@@ -344,13 +357,12 @@ define(['jquery',
                 commonjs.setFilter(null, null);
 
                 // cache jQuery objects
-                var $divStudyTabsContainer = $(document.getElementById('divStudyTabsContainer'));
-                var $studyTabs = $divStudyTabsContainer.find('#studyTabs');
+                var $divclaimsTabsContainer = $(document.getElementById('divclaimsTabsContainer'));
+                var $claimsTabs = $divclaimsTabsContainer.find('#claimsTabs');
                 var $ulTabCollection = $(document.getElementById('ulTabCollection'));
                 var $dataContainer = $(document.getElementById('data_container'));
                 var $divTabsContainer = $(document.getElementById('divTabsContainer'));
                 var $divFiltersContainer = $(document.getElementById('divFiltersContainer'));
-                var $lblShowPrior = $(document.getElementById('lblShowPrior'));
                 var $divFilterRangeHTML = $(document.getElementById('divFilterRange')).find('span').html();
                 var $divPager = $(document.getElementById('divPager'));
                 var $btnTabNavLeftIcon = $(document.getElementById('btnTabNavLeft'));
@@ -372,42 +384,42 @@ define(['jquery',
                             diff = moment().diff(moment(Number(cookie[ 1 ])), 'minutes');
                         }
 
-                        var $studyTabsItems = $studyTabs.children('li');
-                        var $studyTabTarget = $studyTabsItems.eq(0);
+                        var $claimsTabsItems = $claimsTabs.children('li');
+                        var $claimsTabTarget = $claimsTabsItems.eq(0);
                         var $link;
 
                         // Check for how long tab cookie has been there, if more than 8 hours, use default tab
                         if (( diff === undefined || diff > 480 ) && !isDefaultTab && app.defaultTab) {
-                            $link = $studyTabs.children('#liStudyTab' + app.defaultTab);
+                            $link = $claimsTabs.children('#liclaimsTab' + app.defaultTab);
                             if ($link.length > 0) {
                                 // Default tab targeted - go there
-                                $studyTabTarget = $link;
+                                $claimsTabTarget = $link;
                                 isDefaultTab = true;
                             }
                         }
                         if (( typeof $link === 'undefined' || $link.length === 0 ) && id.length > 0) {
                             // Otherwise use cookie
-                            $link = $studyTabs.children('#liStudyTab' + id);
+                            $link = $claimsTabs.children('#liclaimsTab' + id);
                             if ($link.length > 0) {
-                                $studyTabTarget = $link;
+                                $claimsTabTarget = $link;
                             }
                         }
-                        $studyTabTarget.children('a').click();
+                        $claimsTabTarget.children('a').click();
 
                     }.bind(null, navState);
 
                     var setClickEvents = function (navState, callback) {
                         commonjs.hideLoading();
                         var $pagination = $divPager.find('.pagination');
-                        var $studyTabsItems = $studyTabs.children('li');
-                        var $studyTabsLinks = $studyTabsItems.children('a');
+                        var $claimsTabsItems = $claimsTabs.children('li');
+                        var $claimsTabsLinks = $claimsTabsItems.children('a');
                         $ulTabCollection.on('click', 'li', function (e) {
                             var target = e.currentTarget;
                             var $target = $(target);
                             var dataContainerValue = target.getAttribute('data-container');
-                            var $studyTabsItems = $studyTabs.children('li');
-                            var $studyTabsLinks = $studyTabsItems.children('a');
-                            var $link = $studyTabsLinks.filter('[data-container="' + dataContainerValue + '"]');
+                            var $claimsTabsItems = $claimsTabs.children('li');
+                            var $claimsTabsLinks = $claimsTabsItems.children('a');
+                            var $link = $claimsTabsLinks.filter('[data-container="' + dataContainerValue + '"]');
 
                             if ($target.hasClass('can-merge') && navState.getState('isMerging') === true) {
                                 e.preventDefault();
@@ -416,7 +428,7 @@ define(['jquery',
                                 var currentQueue = navState.getState('mergeQueue');
                                 var currentSet = currentQueue.get('filterIndexSet');
 
-                                var filterIndex = commonjs.studyFilters.findIndex(function (filter) {
+                                var filterIndex = commonjs.claimsFilters.findIndex(function (filter) {
                                     return filter.filter_id == dataContainerValue;
                                 });
 
@@ -436,8 +448,8 @@ define(['jquery',
                                     $link.click();
                                     break;
                                 default:
-                                    var studyTabID = '[href="#divGridContainer' + dataContainerValue + '"]';
-                                    var $targetStudyTab = $studyTabsLinks.filter(studyTabID);
+                                    var studyTabID = '[href="#divClaimGridContainer' + dataContainerValue + '"]';
+                                    var $targetStudyTab = $claimsTabsLinks.filter(studyTabID);
                                     if ($targetStudyTab.length > 0) {
                                         //$targetStudyTab.show();
                                         $targetStudyTab.click();
@@ -446,13 +458,13 @@ define(['jquery',
                             }
                         });
 
-                        $studyTabsLinks.on("click", function (e) {
+                        $claimsTabsLinks.on("click", function (e) {
                             var target = e.currentTarget;
                             var $target = $(target);
                             var $tab = $target.parent();
                             var dataContainerValue = target.getAttribute('data-container');
-                            var $studyTabsItems = $studyTabs.children('li');
-                            var $studyTabsLinks = $studyTabsItems.children('a');
+                            var $claimsTabsItems = $claimsTabs.children('li');
+                            var $claimsTabsLinks = $claimsTabsItems.children('a');
                             var $ulTabItems = $ulTabCollection.children('li');
                             var $ulTab = $ulTabItems.filter('[data-container="' + dataContainerValue + '"]');
                             var $ulLink = $ulTab.children('a');
@@ -486,28 +498,27 @@ define(['jquery',
                             commonjs.previousRowID = 0;
                             commonjs.currentGridID = '';
                             commonjs.setCookieOptions(5, dataContainerValue + '__' + (new Date()).getTime());
-                            $studyTabsLinks.css('border-top', '');
-                            $studyTabsItems.css('margin-bottom', '');
+                            $claimsTabsLinks.css('border-top', '');
+                            $claimsTabsItems.css('margin-bottom', '');
                             if (dataContainerValue) {
-                                $lblShowPrior.show();
                                 self.toggleTabContents(2);
-                                var studyTabID = '[href="#divGridContainer' + dataContainerValue + '"]';
-                                var $studyTabTarget = $studyTabsLinks.filter(studyTabID);
+                                var claimsTabID = '[href="#divClaimGridContainer' + dataContainerValue + '"]';
+                                var $claimsTabTarget = $claimsTabsLinks.filter(claimsTabID);
                                 var borderWidth = '3px !important';
-                                if ($studyTabTarget.length > 0 && $studyTabTarget.attr('style') && /background/.test($studyTabTarget.attr('style'))) {
-                                    $studyTabTarget
+                                if ($claimsTabTarget.length > 0 && $claimsTabTarget.attr('style') && /background/.test($claimsTabTarget.attr('style'))) {
+                                    $claimsTabTarget
                                         .css({
                                             'border-top-width': borderWidth,
-                                            'border-top-color': $studyTabTarget[ 0 ].style.backgroundColor + ' !important'
+                                            'border-top-color': $claimsTabTarget[ 0 ].style.backgroundColor + ' !important'
                                         })
                                         .closest('li')
                                         .css('margin-bottom', '-' + borderWidth);
                                 }
                             }
-                            if ($studyTabTarget) {
-                                var isDicomSearch = $studyTabTarget.attr('data-showDicom') === "true";
-                                var isRisOrderSearch = $studyTabTarget.attr('data-showRisOrder') === "true";
-                                var showEncOnly = $studyTabTarget.attr('data-showEncOnly') === "true";
+                            if ($claimsTabTarget) {
+                                var isDicomSearch = $claimsTabTarget.attr('data-showDicom') === "true";
+                                var isRisOrderSearch = $claimsTabTarget.attr('data-showRisOrder') === "true";
+                                var showEncOnly = $claimsTabTarget.attr('data-showEncOnly') === "true";
                             }
 
                             self.setTabContents(dataContainerValue, false, isDicomSearch, isRisOrderSearch, showEncOnly);
@@ -524,7 +535,7 @@ define(['jquery',
 
                             var $uiJQHTableKids = $('.ui-jqgrid-htable').children().children();
                             $ulTabItems.filter('[data-container="' + dataContainerValue + '"]').addClass("active");  // Add Tab Collection active highlight
-                            $('#tblGrid' + dataContainerValue).first().children().first().addClass('dg-body');
+                            $('#tblClaimGrid' + dataContainerValue).first().children().first().addClass('dg-body');
                             $uiJQHTableKids.first().height('40px');
                             $uiJQHTableKids.last().css('line-height', '2');
 
@@ -546,8 +557,8 @@ define(['jquery',
 
                         $pagination.on("click", "a", function (e) {
                             if (!/disabled/.test(e.currentTarget.parentNode.className)) {
-                                $(document.getElementById('chkStudyHeader_' + commonjs.currentStudyFilter)).prop('checked', false);
-                                self.navigateRecords(commonjs.currentStudyFilter, e.currentTarget.getAttribute('data-container'));
+                                $(document.getElementById('chkclaimsHeader_' + commonjs.currentclaimsFilter)).prop('checked', false);
+                                self.navigateRecords(commonjs.currentclaimsFilter, e.currentTarget.getAttribute('data-container'));
                             }
                         });
 
@@ -578,15 +589,15 @@ define(['jquery',
 
                                 // get the width of the UL to fix an IE rendering bug
                                 var ulWidth = 0;
-                                $studyTabs.children('li').each(function () {
+                                $claimsTabs.children('li').each(function () {
                                     ulWidth += $(this).outerWidth();
                                 });
 
-                                var visible = $divStudyTabsContainer.width();
-                                // var currPos = $studyTabs.position().left;
+                                var visible = $divclaimsTabsContainer.width();
+                                // var currPos = $claimsTabs.position().left;
                                 var currPos = navState.getState('leftPosition');
                                 var remains = -currPos;
-                                var nextPos = getPosition($studyTabs, currPos + visible * 0.8);
+                                var nextPos = getPosition($claimsTabs, currPos + visible * 0.8);
                                 var css = {
                                     'opacity': 1.0,
                                     'pointerEvents': 'auto'
@@ -611,7 +622,7 @@ define(['jquery',
                                     });
                                     $btnTabNavLeft.css(css);
 
-                                    $studyTabs.css({
+                                    $claimsTabs.css({
                                         'transform': 'translateX(' + nextPos + 'px)'
                                     });
 
@@ -644,14 +655,14 @@ define(['jquery',
 
                                 // get the width of the UL to fix an IE rendering bug
                                 var ulWidth = 0;
-                                $studyTabs.children('li').each(function () {
+                                $claimsTabs.children('li').each(function () {
                                     ulWidth += $(this).outerWidth();
                                 });
 
-                                var visible = $divStudyTabsContainer.width();
-                                // var currPos = $studyTabs.position().left;
+                                var visible = $divclaimsTabsContainer.width();
+                                // var currPos = $claimsTabs.position().left;
                                 var currPos = navState.getState('leftPosition');
-                                var nextPos = getPosition($studyTabs, currPos - visible * 0.8);
+                                var nextPos = getPosition($claimsTabs, currPos - visible * 0.8);
                                 var remains = ulWidth + nextPos;
                                 var css = {
                                     'opacity': 1,
@@ -677,7 +688,7 @@ define(['jquery',
                                     });
                                     $btnTabNavRight.css(css);
 
-                                    $studyTabs.css({
+                                    $claimsTabs.css({
                                         'transform': 'translateX(' + nextPos + 'px)'
                                     });
 
@@ -701,7 +712,7 @@ define(['jquery',
 
                     self.filterQueries = elements.filterQueries.slice(0);
                     $dataContainer.html(elements.dataContainer.join(''));
-                    $studyTabs.html(elements.studyTabs.join(''));
+                    $claimsTabs.html(elements.claimsTabs.join(''));
                     $ulTabCollection.html(elements.ulTabCollection.join(''));
 
                     if (typeof callback === 'function') {
@@ -715,43 +726,14 @@ define(['jquery',
                         ' ' :
                         ' studies.has_deleted = false ';
                     $divFiltersContainer.hide();
-                    $lblShowPrior.hide();
 
                     var processOptions = function (info) {
-                        if (info && info.options) {
-                            var options = info.options;
-                            var isDicomSearch = typeof options.showDicomStudies === 'boolean' ?
-                                options.showDicomStudies :
-                                false;
-                            var isRisOrderSearch = typeof options.showRisOrders === 'boolean' ?
-                                options.showRisOrders :
-                                false;
-                            var showEncOnly = typeof options.showEncOnly === 'boolean' ?
-                                options.showEncOnly :
-                                false;
-                            if (showEncOnly) {
-                                var dicomwhere = " AND (order_type='E')";
-                            }
-                            else {
-                                if (isDicomSearch && isRisOrderSearch) {
-                                    dicomwhere = " AND (COALESCE(dicom_status,'') in ('CO','IP','NA',''))";
-                                }
-                                else if (isDicomSearch) {
-                                    dicomwhere = " AND (dicom_status in ('CO','IP'))";
-                                }
-                                else if (isRisOrderSearch) {
-                                    dicomwhere = " AND (COALESCE(dicom_status,'') in ('NA',''))";
-                                }
-                                else {
-                                    dicomwhere = "";
-                                }
-                            }
-                        }
                         return {
                             isDicomSearch: isDicomSearch,
                             isRisOrderSearch: isRisOrderSearch,
                             showEncOnly: showEncOnly,
-                            dicomwhere: dicomwhere
+                            dicomwhere: dicomwhere,
+                            isClaimGrid: true
                         };
                     };
 
@@ -759,9 +741,8 @@ define(['jquery',
                         var id = data.filter_id;
                         var name = data.filter_name;
                         var info = data.filter_info;
-                        var options = processOptions(info);
-                        var liStudyTab = [
-                            '<li id="liStudyTab',
+                        var liclaimsTab = [
+                            '<li id="liclaimsTab',
                             id,
                             '"',
                             (!data.display_as_tab ?
@@ -769,17 +750,11 @@ define(['jquery',
                                 ''),
                             ' class="nav-item',
                             (info ? ' can-merge' : ''),
-                            '"><a href="#divGridContainer',
+                            '"><a href="#divClaimGridContainer',
                             id,
                             '" data-container="',
                             id,
                             '"class="nav-link"',
-                            '" data-showDicom="',
-                            options.isDicomSearch,
-                            '" data-showRisOrder="',
-                            options.isRisOrderSearch,
-                            '" data-showEncOnly="',
-                            options.showEncOnly,
                             '" data-toggle="tab" title="',
                             name,
                             '">',
@@ -806,7 +781,6 @@ define(['jquery',
 
                         arrays.filterQueries.push({
                             filterid: id.toString(),
-                            dicomwhere: options.dicomwhere,
                             rangeIndex: self.dateRangeFilterInitValue,
                             dateString: $divFilterRangeHTML,
                             startDate: dateRangePickerStart,
@@ -818,7 +792,7 @@ define(['jquery',
                         arrays.dataContainer.push(
                             templateHTML
                         );
-                        arrays.studyTabs.push(liStudyTab);
+                        arrays.claimsTabs.push(liclaimsTab);
                         arrays.ulTabCollection.push(liTab);
                         return arrays;
                     };
@@ -826,14 +800,14 @@ define(['jquery',
                     var initialTabs = function () {
                         var filterQueries = [];
                         var dataContainer = [];
-                        var studyTabs = [];
+                        var claimsTabs = [];
                         var ulTabCollection = [];
 
 
                         return {
                             filterQueries: filterQueries,
                             dataContainer: dataContainer,
-                            studyTabs: studyTabs,
+                            claimsTabs: claimsTabs,
                             ulTabCollection: ulTabCollection
                         };
                     };
@@ -852,7 +826,7 @@ define(['jquery',
                 var self = this;
                 if (filterID) {
                     var filter = commonjs.loadedStudyFilters.get(filterID);
-                    commonjs.currentStudyFilter = filterID;
+                    commonjs.currentclaimsFilter = filterID;
 
                     if (!filter) {
 
@@ -870,21 +844,21 @@ define(['jquery',
                             commonjs.docResize();
 
                             var updateStudiesPager = function (model, gridObj) {
-                                $('#chkStudyHeader_' + filterID).prop('checked', false);
+                                $('#chkclaimsHeader_' + filterID).prop('checked', false);
                                 self.setGridPager(filterID, gridObj, false);
-                                self.bindDateRangeOnSearchBox(gridObj, 'study');
-                                self.afterGridBindStudy(model, gridObj);
-                                self.initializeStatusCodes(gridObj, 'study');
+                                self.bindDateRangeOnSearchBox(gridObj, 'claims');
+                                self.afterGridBindclaims(model, gridObj);
+                                self.initializeStatusCodes(gridObj, 'claims');
                                 commonjs.nextRowID = 0;
                                 commonjs.previousRowID = 0;
-                                app.listStudies = gridObj.datastore.map(function (study) {
-                                    return study.id;
+                                app.listStudies = gridObj.datastore.map(function (claims) {
+                                    return claims.id;
                                 });
                                 commonjs.setFilter(filterID, gridObj);
                             };
-                            var table = new StudyGrid({
+                            var table = new ClaimsGrid({
                                 'isAdmin': self.isAdmin,
-                                'gridelementid': '#tblGrid' + filterID,
+                                'gridelementid': '#tblClaimGrid' + filterID,
                                 'filterid': filterID,
                                 'setpriorstudies': '',
                                 'isPrior': false,
@@ -893,10 +867,11 @@ define(['jquery',
                                 'searchByAssociatedPatients': '',
                                 'isRisOrderSearch': false,
                                 'showEncOnly': false,
-                                'study_id': 0,
+                                'claims_id': 0,
                                 'container': self.el,
                                 '$container': self.$el,
-                                'updateStudiesPager': ''
+                                'updateStudiesPager': '',
+                                'isClaimGrid': true
                             });
                             table.renderStudy();
                         };
@@ -905,8 +880,8 @@ define(['jquery',
                         createStudiesTable();
                     }
                     else {
-                        app.listStudies = filter.datastore.map(function (study) {
-                            return study.id;
+                        app.listStudies = filter.datastore.map(function (claims) {
+                            return claims.id;
                         });
                         self.toggleTabContents(2);
                         self.setFooter(filter);
@@ -922,7 +897,7 @@ define(['jquery',
                 commonjs.toggleGridlistColumns();
             },
 
-            afterGridBindStudy: function (dataset, gridObj) {
+            afterGridBindclaims: function (dataset, gridObj) {
                 $('.ui-jqgrid-bdiv').scrollLeft(commonjs.scrollLeft);
             },
 
@@ -951,7 +926,7 @@ define(['jquery',
                                     app.docServerUrl + "/dcm/query?" + commonjs.getSessionArgs() :
                                     "/order_studies_records";
                     }
-                    var flag = /ExceedStudy/.test(filterID);
+                    var flag = /Exceedclaims/.test(filterID);
                     jQuery.ajax({
                         url: url,
                         type: "GET",
@@ -962,7 +937,7 @@ define(['jquery',
                             customArgs: {
                                 show_comp_pend_list: app.show_comp_pend_list,
                                 showdeletedpendingstudies: app.showdeletedpendingstudies,
-                                flag: 'home_study',
+                                flag: 'home_claims',
                                 filter_id: filterID,
                                 isExceedsMaxTime: filterID !== 'OD' && filterID !== 'PS' && filterID !== 'SU' && filterID !== 'QR',
                                 showdeletedstudies: (app.showdeletedstudies) ? true : false,
@@ -976,8 +951,8 @@ define(['jquery',
                                 showEncOnly: filterObj.options.showEncOnly,
                                 applyFilter: $('#showQCApplyFilter').prop('checked'),
                                 clearFilter: $('#showQCClearFilter').prop('checked'),
-                                patient_id: filterObj.options.isPrior ? $('#studyTabs').find('.active a').attr('data-patient_id') : (commonjs.prior_patient_id > 0) ? commonjs.prior_patient_id : 0,
-                                study_dt: (commonjs.prior_study_dt) ? commonjs.prior_study_dt : null,
+                                patient_id: filterObj.options.isPrior ? $('#claimsTabs').find('.active a').attr('data-patient_id') : (commonjs.prior_patient_id > 0) ? commonjs.prior_patient_id : 0,
+                                claims_dt: (commonjs.prior_claims_dt) ? commonjs.prior_claims_dt : null,
                                 order_id: commonjs.prior_order_id ? commonjs.prior_order_id : 0,
                                 showOnlyPhyOrders: $('#showOnlyPhyOrders').prop('checked'),
                                 showOnlyOFOrders: $('#showOnlyOFOrders').prop('checked'),
@@ -1020,7 +995,7 @@ define(['jquery',
 
                 var pagerObj = filter.pager;
                 var totalRecords = pagerObj.get('TotalRecords');
-                if (/^ExceedStudy.*/.test(filter.options.filterid)) {
+                if (/^Exceedclaims.*/.test(filter.options.filterid)) {
                     totalRecords = pagerObj.get('ExceedStudies');
                 }
 
@@ -1031,7 +1006,7 @@ define(['jquery',
                 $('#spnExceedsTime').html(pagerObj.get('ExceedStudies'));
                 $('#spnCurrentPage').html(1);
                 $('#spnTotalPage').html(endIndex);
-                $("#divStudyFooter #divPager .pagination li").removeClass("disabled");
+                $("#divclaimsFooter #divPager .pagination li").removeClass("disabled");
                 if (pagerObj.get('PageNo') == 1) {
                     $('#liHomeFirst').addClass('disabled');
                     $('#liHomePrev').addClass('disabled');
@@ -1075,7 +1050,7 @@ define(['jquery',
             },
 
             navigateRecords: function (filterID, arg) {
-                var filter = commonjs.loadedStudyFilters.get(filterID);
+                var filter = commonjs.loadedclaimsFilters.get(filterID);
                 filter.doPaging(arg, function (filterObj) {
                     commonjs.setFilter(filterID, filterObj);
                 });
@@ -1160,8 +1135,8 @@ define(['jquery',
 
                 filter = filter || commonjs.loadedStudyFilters.get(commonjs.currentStudyFilter);
                 if (filter) {
-                    var $tblGrid = filter.customGridTable || $(filter.options.gridelementid);
-                    var $currentStudyTab = $(document.getElementById('studyTabs')).find('a').filter('[href="#divGridContainer' + commonjs.currentStudyFilter + '"]');
+                    var $tblClaimGrid = filter.customGridTable || $(filter.options.gridelementid);
+                    var $currentStudyTab = $(document.getElementById('studyTabs')).find('a').filter('[href="#divClaimGridContainer' + commonjs.currentStudyFilter + '"]');
                     var isDicomSearch = $currentStudyTab.attr('data-showDicom') == "true";
                     var isRisOrderSearch = $currentStudyTab.attr('data-showRisOrder') == "true";
                     var showEncOnly = $currentStudyTab.attr('data-showEncOnly') == "true";
@@ -1181,6 +1156,7 @@ define(['jquery',
                     }
 
                     filter.options.customargs.showEncOnly = filter.options.showEncOnly = showEncOnly;
+                    filter.options.customargs.isClaimGrid = filter.options.isClaimGrid = true;
                     filter.options.customargs.applyFilter = $('#showQCApplyFilter').prop('checked');
                     filter.options.customargs.clearFilter = $('#showQCClearFilter').prop('checked');
                     if (commonjs.currentStudyFilter != 'PS') {
@@ -1199,7 +1175,7 @@ define(['jquery',
                     // Handle grid reload finished to scroll to last position and re-select all previously selected rows
                     if (curScroll > 0) {
                         var gridCompleteTimer = 0;
-                        $tblGrid.jqGrid("setGridParam", {
+                        $tblClaimGrid.jqGrid("setGridParam", {
                             gridComplete: function () {
                                 var regRowClass = /customRowSelect/;
                                 clearTimeout(gridCompleteTimer);
@@ -1221,7 +1197,7 @@ define(['jquery',
                                                 return !regRowClass.test(el.className);
                                             }).click();
                                         });
-                                        $tblGrid.jqGrid("setGridParam", {
+                                        $tblClaimGrid.jqGrid("setGridParam", {
                                             gridComplete: function () {
                                             }
                                         });
@@ -1306,7 +1282,7 @@ define(['jquery',
                             app.usersettings = Object.assign({}, app.usersettings, resp.usersettings);
                             var fid = filter.options.filterid;
                             var isprior = filter.options.isPrior;
-                            var $currentstudyTab = $(document.getElementById('studyTabs')).find('a').filter('[href="#divGridContainer' + fid + '"]');
+                            var $currentstudyTab = $(document.getElementById('studyTabs')).find('a').filter('[href="#divClaimGridContainer' + fid + '"]');
                             var isDicomSearch = $currentstudyTab.attr('data-showDicom') === "true";
                             var isRisOrderSearch = $currentstudyTab.attr('data-showRisOrder') === "true";
                             var showEncOnly = $currentstudyTab.attr('data-showEncOnly') === "true";
@@ -1324,15 +1300,8 @@ define(['jquery',
                         commonjs.handleXhrError(err);
                     }
                 });
-                if (commonjs.currentStudyFilter == "PS") {
-                    $('#divTempStatusSearch :checkbox').attr("checked", false);
-                }
-                else if (commonjs.currentStudyFilter == "OD") {
-                    $('#divOrderStatusSearch :checkbox').attr("checked", false);
-                }
-                else {
-                    $('#divStatusSearch :checkbox').attr("checked", false);
-                }
+
+                $('#divStatusSearch :checkbox').attr("checked", false);
             },
 
             getStudyFilter: function (filterID) {
@@ -1341,7 +1310,7 @@ define(['jquery',
                 var self = this;
 
                 commonjs.setCookieOptions(5, filterID + '__' + (new Date()).getTime());
-                this.studyFiltersModel = new modelStudyFilter();
+                this.studyFiltersModel = new ModelClaimsFilters();
                 this.studyFiltersModel.fetch({
                     data: {
                         id: filterID,
@@ -1352,7 +1321,7 @@ define(['jquery',
                             if (response) {
                                 var result = response;
                                 var fore_color = (result.fore_color) ? result.fore_color : 'black';
-                                var currentstudyTabID = '#studyTabs a[href="#divGridContainer' + filterID + '"]';
+                                var currentstudyTabID = '#studyTabs a[href="#divClaimGridContainer' + filterID + '"]';
                                 var $currentStudyTab = $(currentstudyTabID);
                                 var currentTabBorderColor = $currentStudyTab.css('border-top-color');
 
@@ -1396,27 +1365,12 @@ define(['jquery',
                 $("#divStudyFooter").show();
                 $("#divStudyFooterSetup").show();
                 $("#divStudyFooterSetup :button").show();
-
-                $("#divReprocessConflicts").hide();
-                $("#divFilterType").show();
-                $('#divCountTatStat').show();
                 $('#divshowcheckStudies').show();
                 $('#btnNoneStudy').show();
                 $('#btnAllStudy').show();
-                $('#spnExceedsTime').show();
-                $('#spLabelExceedsTime').show();
-                $('#showPreOrderControls').hide();
                 $('#showStudyFilterControl').hide();
-                if (app.providerID > 0) {
-                    $("#btnSignedStudy").show();
-                } else {
-                    $("#btnSignedStudy").hide();
-                }
                 $('#btnNewStudy').show();
                 $('#studyRightMenu').hide();
-                $('#orderRightMenu').hide();
-                $('#pendingRightMenu').hide();
-
                 if (app.refproviderID > 0) {
                     $('.hide_btncontent').attr("disabled", true);
                 }
@@ -1468,22 +1422,6 @@ define(['jquery',
                         return false;
                     });
                     self.scrolleventStudies1(commonjs.currentStudyFilter, 'divOrderStatusSearch', order_status);
-                }
-                else if (tabtype == "pending_study") {
-                    var pend_study_status = $(gridObj.options.gridelementid).closest("div.ui-jqgrid-view")
-                        .children("div.ui-jqgrid-hdiv").find('#gs_dicom_status');
-                    pend_study_status.prop("readonly", true);
-                    pend_study_status.css('cursor', 'pointer');
-                    pend_study_status.unbind('click').click(function (e) {
-                        $("#divTempStatusSearch").css({
-                            "top": pend_study_status.offset().top + 25 + "px",
-                            "left": pend_study_status.offset().left + "px"
-                        });
-                        $("#divTempStatusSearch").show();
-                        e.stopPropagation();
-                        return false;
-                    });
-                    self.scrolleventStudies1(commonjs.currentStudyFilter, 'divTempStatusSearch', pend_study_status);
                 }
                 else {
                     var sch_date = $(gridObj.options.gridelementid).closest("div.ui-jqgrid-view")
@@ -1566,9 +1504,9 @@ define(['jquery',
             },
             scrolleventStudies1: function (filterid, divId, studyStatus) {
                 var self = this;
-                var divid = "#divGrid" + filterid, scrolldiv = "";
-                if ($(divid).find("#gview_tblGrid" + filterid)) {
-                    scrolldiv = $(divid).find("#gview_tblGrid" + filterid).find(".ui-jqgrid-bdiv");
+                var divid = "#divClaimGrid" + filterid, scrolldiv = "";
+                if ($(divid).find("#gview_tblClaimGrid" + filterid)) {
+                    scrolldiv = $(divid).find("#gview_tblClaimGrid" + filterid).find(".ui-jqgrid-bdiv");
                 }
                 scrolldiv.scroll(function (e) {
                     $("#gs_study_status").focusout();
@@ -1581,10 +1519,10 @@ define(['jquery',
                 var divID = "#divStatusSearch";
                 self.statusCode = [];
 
-                study_status = $('#tblGrid' + commonjs.currentStudyFilter).closest("div.ui-jqgrid-view")
+                study_status = $('#tblClaimGrid' + commonjs.currentStudyFilter).closest("div.ui-jqgrid-view")
                     .children("div.ui-jqgrid-hdiv").find('#gs_study_status');
                 study_status.val('');
-                var studyTabID = '#studyTabs a[href="#divGridContainer' + commonjs.currentStudyFilter + '"]';
+                var studyTabID = '#studyTabs a[href="#divClaimGridContainer' + commonjs.currentStudyFilter + '"]';
                 var showEncOnly = $(studyTabID).attr('data-showEncOnly') == "true";
                 if (showEncOnly) {
                     divID = "#divEncStatusSearch";
@@ -1618,7 +1556,7 @@ define(['jquery',
 
             cancelStatusFilterSearch: function () {
                 var self = this;
-                let study_status = $('#tblGrid' + commonjs.currentStudyFilter).closest("div.ui-jqgrid-view")
+                let study_status = $('#tblClaimGrid' + commonjs.currentStudyFilter).closest("div.ui-jqgrid-view")
                     .children("div.ui-jqgrid-hdiv").find('#gs_study_status');
                 study_status.val('');
                 $('#divEncStatusSearch').find('input[type=checkbox]:checked').removeAttr('checked');
