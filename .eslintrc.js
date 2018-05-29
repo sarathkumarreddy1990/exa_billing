@@ -27,8 +27,8 @@ module.exports = {
             "error",
             "always"
         ],
-        "no-var": [
-            "error"
-        ],
+        "no-var": ["error"],
+        "no-console": ["error"],
+        "curly": ["error"]
     }
 };

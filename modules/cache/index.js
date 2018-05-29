@@ -41,11 +41,11 @@ const sessionCache = {
         let data = cache[key];
         if (typeof data != 'undefined') {
             if (isNaN(data.expire) || data.expire >= now()) {
-                if (debug) hitCount++;
+                if (debug) { hitCount++; }
                 return data.value;
             } else {
                 // free some space
-                if (debug) missCount++;
+                if (debug) { missCount++; }
                 sessionCache.del(key);
             }
         } else if (debug) {
@@ -57,9 +57,11 @@ const sessionCache = {
     size: function () {
         let size = 0, key;
         for (key in cache) {
-            if (cache.hasOwnProperty(key))
-                if (sessionCache.get(key) !== null)
+            if (cache.hasOwnProperty(key)) {
+                if (sessionCache.get(key) !== null) {
                     size++;
+                }
+            }
         }
         return size;
     },
@@ -67,8 +69,9 @@ const sessionCache = {
     memsize: function () {
         let size = 0, key;
         for (key in cache) {
-            if (cache.hasOwnProperty(key))
+            if (cache.hasOwnProperty(key)) {
                 size++;
+            }
         }
         return size;
     },
