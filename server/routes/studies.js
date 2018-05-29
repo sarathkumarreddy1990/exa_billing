@@ -1,5 +1,5 @@
 const Router = require('express-promise-router');
-var router = new Router();
+const router = new Router();
 
 const studiesController = require('../controllers/studies');
 const httpHandler = require('../shared/http');

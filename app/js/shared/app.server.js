@@ -10,6 +10,7 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                 processData: true,
                 success: function (model, response) {
                     _.extend(window.app, response[0]);
+                    callback();
                 }
             });
         }

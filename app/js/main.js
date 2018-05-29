@@ -12,9 +12,12 @@ require.config({
         'jqgrid': '../libs/jqgrid/js/jquery.jqGrid.src',
         'jqgridlocale': '../libs/jqgrid/js/i18n/grid.locale-en',
         'immutable': '../node_modules/immutable/dist/immutable',
+        'jstorage': '../node_modules/jstorage/jstorage.min',
         'commonscript': 'shared/common',
         'appsettings_shared': 'shared/app.settings',
         'customgrid': 'shared/customgrid',
+        'i18nscript': 'shared/i18n',
+        'sessionhandler': 'shared/sessionmanager',
         'change-grid': 'shared/change-grid',
         'grid': 'shared/grid',
         'grid-events': 'shared/events',
@@ -43,8 +46,14 @@ require.config({
         'backbonesubroute': {
             deps: ['backbone']
         },
+        'jstorage': {
+            deps: ['jquery']
+        },
         'commonscript': {
             deps: ['jquery', 'immutable', 'underscore']
+        },
+        'i18nscript': {
+            deps: ['jquery']
         },
         'appsettings_shared': {
             'deps': ['immutable']
@@ -57,13 +66,13 @@ require.config({
             exports: 'customgrid'
         },
         'grid': {
-            'deps': [ 'appsettings_shared', 'commonscript']
+            'deps': ['appsettings_shared', 'commonscript']
         },
         'grid-events': {
-            'deps': [ 'commonscript' ]
+            'deps': ['commonscript']
         },
         'select2': {
-            deps: [ "jquery" ], exports: "select2"
+            deps: ["jquery"], exports: "select2"
         }
     }
 });
@@ -71,22 +80,36 @@ require.config({
 
 require([
     'immutable',
-    'moment-timezone', ], function (Immutable, MomentTimezone) {
-    window.Immutable = Immutable;
+    'moment-timezone',], function (Immutable, MomentTimezone) {
+        window.Immutable = Immutable;
 
-    require([
-        'jquery',
-        'underscore',
-        'bootstrap',
-        'commonscript',
-        'customgrid',
-        'app',
-        'appserver_shared',
-        'select2'], function ($, _, Bootstrap, commonjs, customGrid, App, Appserver, select2) {
-        new Appserver(function () {
+        require([
+            'jquery',
+            'jstorage',
+            'underscore',
+            'bootstrap',
+            'commonscript',
+            'i18nscript',
+            'sessionhandler',
+            'customgrid',
+            'app',
+            'appserver_shared',
+            'select2'], function (
+                $,
+                jstorage,
+                _,
+                Bootstrap,
+                commonjs,
+                i18n,
+                sessionhandler,
+                customGrid,
+                App,
+                Appserver,
+                select2) {
+                new Appserver(function () {
+                    App.initialize();
+                });
 
-        });
-        App.initialize();
+            });
+
     });
-
-});

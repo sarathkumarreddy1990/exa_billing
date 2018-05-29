@@ -7748,11 +7748,12 @@ var commonjs = {
     },
 
     updateCulture: function (culture, cb) {
-//        var upCul = i18n.loadDefaultLanguage(function () {
-//            i18n.setLang(culture);
-//            i18n.t(undefined, cb);
-//        });
-//        return upCul;
+       var upCul = i18n.loadDefaultLanguage(function () {
+           i18n.setLang(culture);
+           i18n.t(undefined, cb);
+       });
+       
+       return upCul;
     },
 
     /**

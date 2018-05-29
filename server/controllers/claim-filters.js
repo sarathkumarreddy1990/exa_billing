@@ -1,4 +1,4 @@
-const data = require('../data/studyFilters');
+const data = require('../data/claim-filters');
 
 module.exports = {
 

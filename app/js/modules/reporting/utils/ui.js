@@ -39,7 +39,7 @@ define([
             },
 
             generateReportUrl: function(id, category, format, params) {
-                if (!(id || category || foramt)) {
+                if (!(id || category || format)) {
                     console.log('Report URL cannot be generated!');
                     return null;
                 }

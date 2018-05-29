@@ -47,7 +47,7 @@ define('grid', [
             return chooseScreen(id, data, event, gridID);
         };
 
-        var openCreateClaim = function (rowID, event, encOnly, store) {
+        var openCreateClaim = function (rowID, event, isClaimGrid, store) {
             var target = event.currentTarget;
             var $target = $(target);
             let studyArray = [];
@@ -67,11 +67,46 @@ define('grid', [
                 studyArray.push(rowId);
             }
             var studyIds = studyArray.join();
-            var liLog = '<li><a id="anc_create_claim" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log">Create Claim</a></li>';
-            $divObj.append(liLog);
-            $('#anc_create_claim').click(function () {
-                alert(studyIds)
-            });
+            if(isClaimGrid){
+
+                var liClaimStatus = '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.flagAs">Change Claim Status</a><ul id="ul_change_claim_status" style="float:right;" class="dropdown-menu"></ul></li>';
+                $divObj.append(liClaimStatus);
+
+                var liBillingCode = '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.flagAs">Change Billing Code</a><ul id="ul_change_billing_code" style="float:right;" class="dropdown-menu"></ul></li>';
+                $divObj.append(liBillingCode);
+
+                var liBillingClass = '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.flagAs">Change Billing Class</a><ul id="ul_change_billing_class" style="float:right;" class="dropdown-menu"></ul></li>';
+                $divObj.append(liBillingClass);
+
+                var liPayerType = '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.flagAs">Change Payer type</a><ul id="ul_change_payer_type" style="float:right;" class="dropdown-menu"></ul></li>';
+                $divObj.append(liPayerType);
+
+                var liEditClaim = '<li><a id="anc_edit_claim" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log">Edit Claim</a></li>';
+                $divObj.append(liEditClaim);
+                $('#anc_edit_claim').click(function () {
+                    alert(studyIds)
+                });
+
+                var liClaimInquiry = '<li><a id="anc_claim_inquiry" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log">Claim Inquiry</a></li>';
+                $divObj.append(liClaimInquiry);
+                $('#anc_claim_inquiry').click(function () {
+                    alert(studyIds)
+                });
+
+                var liSplitOrders = '<li><a id="anc_split_orders" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log">Create/split Orders</a></li>';
+                $divObj.append(liSplitOrders);
+                $('#anc_split_orders').click(function () {
+                    alert(studyIds)
+                });
+
+            }else{
+                var liCreateClaim = '<li><a id="anc_create_claim" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log">Create Claim</a></li>';
+                $divObj.append(liCreateClaim);
+                $('#anc_create_claim').click(function () {
+                    alert(studyIds)
+                });
+            }
+
             $divObj.show();
             setRightMenuPosition(divObj, event);
             event.preventDefault();
@@ -305,10 +340,11 @@ define('grid', [
                 providercontact_ids: app.providercontact_ids,
                 searchByAssociatedPatients: userSettings.searchByAssociatedPatients,
                 isRisOrderSearch: options.isRisOrderSearch,
+                isClaimGrid: options.isClaimGrid,
 
                 onRightClickRow: function (rowID, iRow, iCell, event, options) {
                     if (disableRightClick()) {
-                        openCreateClaim(rowID, event, options.showEncOnly, studyStore);
+                        openCreateClaim(rowID, event, options.isClaimGrid, studyStore);
                     }
                     else {
                         event.stopPropagation();

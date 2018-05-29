@@ -1,7 +1,7 @@
 const Router = require('express-promise-router');
-var router = new Router();
+const router = new Router();
 
-const appSettingsController = require('../controller/app-settings');
+const appSettingsController = require('../controllers/app-settings');
 const i18nData = require('../shared/i18n');
 const httpHandler = require('../shared/http');
 
