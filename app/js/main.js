@@ -14,15 +14,17 @@ require.config({
         'immutable': '../node_modules/immutable/dist/immutable',
         'jstorage': '../node_modules/jstorage/jstorage.min',
         'commonscript': 'shared/common',
-        'appsettings_shared': 'shared/app.settings',
+        'layout': 'shared/layout',
+        'debug': 'shared/debug',
+        'appsettings_shared': 'shared/app-settings',
         'customgrid': 'shared/customgrid',
         'i18nscript': 'shared/i18n',
-        'sessionhandler': 'shared/sessionmanager',
+        'sessionhandler': 'shared/session-manager',
         'change-grid': 'shared/change-grid',
         'grid': 'shared/grid',
         'grid-events': 'shared/events',
-        'appserver_shared': 'shared/app.server',
-        'select2': '../node_modules/select2/dist/js/select2'
+        'appserver_shared': 'shared/app-server',
+        'select2': '../node_modules/select2/dist/js/select2.full'
     },
     shim: {
         'bootstrap': {
@@ -80,36 +82,43 @@ require.config({
 
 require([
     'immutable',
-    'moment-timezone',], function (Immutable, MomentTimezone) {
-        window.Immutable = Immutable;
+    'moment-timezone',
+], function (Immutable, MomentTimezone) {
+    window.Immutable = Immutable;
 
-        require([
-            'jquery',
-            'jstorage',
-            'underscore',
-            'bootstrap',
-            'commonscript',
-            'i18nscript',
-            'sessionhandler',
-            'customgrid',
-            'app',
-            'appserver_shared',
-            'select2'], function (
-                $,
-                jstorage,
-                _,
-                Bootstrap,
-                commonjs,
-                i18n,
-                sessionhandler,
-                customGrid,
-                App,
-                Appserver,
-                select2) {
-                new Appserver(function () {
-                    App.initialize();
-                });
-
+    require([
+        'jquery',
+        'underscore',
+        'jstorage',
+        'bootstrap',
+        'commonscript',
+        'layout',
+        'debug',
+        'i18nscript',
+        'sessionhandler',
+        'customgrid',
+        'app',
+        'appserver_shared',
+        'select2'
+    ], function (
+        $,
+        _,
+        jstorage,
+        Bootstrap,
+        commonjs,
+        layout,
+        debug,
+        i18n,
+        sessionhandler,
+        customGrid,
+        App,
+        Appserver,
+        select2
+    ) {
+            new Appserver(function () {
+                App.initialize();
             });
 
-    });
+        });
+
+});
