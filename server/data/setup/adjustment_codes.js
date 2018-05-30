@@ -38,7 +38,8 @@ module.exports = {
     },
 
     createAdjustment: async (params) => {
-        const { code, desc, type, inactive_date } = params;
+        let { code, desc, type, inactive_date } = params;
+        inactive_date = inactive_date ? ` now() `: null;
         const sql = SQL`INSERT INTO 
                         billing.adjustment_codes (
                               company_id
@@ -56,7 +57,8 @@ module.exports = {
     },
 
     updateAdjustment: async (params) => {
-        const { code, desc, type, id, inactive_date } = params;
+        let { code, desc, type, id, inactive_date } = params;
+        inactive_date = inactive_date ? ` now() `: null;
         const sql = SQL`UPDATE
                              billing.adjustment_codes 
                         SET  
