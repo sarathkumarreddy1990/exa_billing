@@ -22,7 +22,7 @@ require.config({
         'grid': 'shared/grid',
         'grid-events': 'shared/events',
         'appserver_shared': 'shared/app.server',
-        'select2': '../node_modules/select2/dist/js/select2'
+        'select2': '../node_modules/select2/dist/js/select2.full'
     },
     shim: {
         'bootstrap': {

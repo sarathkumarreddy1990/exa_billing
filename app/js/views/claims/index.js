@@ -1,5 +1,5 @@
-define(['jquery', 'underscore', 'backbone', 'text!templates/claims/claimForm.html','text!templates/claims/chargeRow.html'],
-    function ($, _, Backbone, claimCreationTemplate,chargeRowTemplate) {
+define(['jquery', 'underscore', 'backbone','text!templates/claims/claimForm.html','text!templates/claims/chargeRow.html','collections/study-filters'],
+    function ($, _, Backbone, claimCreationTemplate,chargeRowTemplate,StudyFiltersCollection) {
         var paymentView = Backbone.View.extend({
             el: null,
             rendered: false,
@@ -141,63 +141,71 @@ define(['jquery', 'underscore', 'backbone', 'text!templates/claims/claimForm.htm
                 if (type == 'code') {
                     id = txtCptCode;
                     message = self.usermessage.selectcptcode;
-                   // $('.form-control-lg').css({ 'min-width': '100px' });
                 }
                 else {
                     id = txtCptDescription;
                     message = self.usermessage.selectcptdescription;
                 }
-                commonjs.setAutocompleteInfinite({
-                    containerID: "#" + id,
-                    placeHolder: message,
-                    inputLength: 0,
-                    clearnotNeed: true,
-                    URL: "/billing/autocomplete/cptsAutoComplete",
-                    data: function (term, page) {
-                        self.term = term;
+
+                $("#"+id).select2({
+                    ajax: {
+                      url: "/exa_modules/billing/autoCompleteRouter",
+                      dataType: 'json',
+                      delay: 250,
+                      data: function (params) {
                         return {
-                            pageNo: page,
+                            page: params.page || 20,
+                            q: params.term || '',
                             pageSize: 10,
-                            q: ($('#s2id_' + id).data('select2').search.val() == $('#s2id_' + id + ' a span').text()) ? $('#s2id_' + id + ' a span').text() : term,
                             sortField: "trim(display_description)",
-                            sortOrder: "asc"
+                            sortOrder: "asc",
+                            company_id:1
                         };
-
+                      },
+                      processResults: function (data, params) {
+                        params.page = params.page || 1;
+                        return {
+                          results: data,
+                          pagination: {
+                            more: (params.page * 30) < data[0].total_records
+                          }
+                        };
+                      },
+                      cache: true
                     },
-                    results: function (data, page) {
-                        var more = data.result.length > 0 ? (page * 10) < data.result[0].total_records : false;
-                        return { results: data.result, more: more };
-
-                    },
-                    formatID: function (obj) {
-                        return obj.id;
-                    },
-                    formatResult: function (res) {
-                        return commonjs.formatACResult(res.display_code, res.display_description, res.is_active, res.linked_cpt_codes ? res.linked_cpt_codes.toString() : '', true);
-                    },
-                    formatSelection: function (res) {
-                        commonjs.autoCompleteChanged = true;
-                        var duration = (res.duration > 0) ? res.duration : 15;
-                        var units = (res.units > 0) ? parseFloat(res.units) : 1.0;
-                        var fee = (res.globalfee > 0) ? parseFloat(res.globalfee) : 0.0;
-                        var isExistCpt = self.checkCptExists(rowIndex, res.id);
-                        if (isExistCpt) {
-                            if (confirm('Code already exists. Do you want to add ?'))
-                                self.setCptValues(rowIndex, txtCptCode, txtCptDescription, res, duration, units, fee);
-                            else
-                                self.resetCptValues(id, txtCptCode, txtCptDescription);
-                        }
-                        else
-                            self.setCptValues(rowIndex, txtCptCode, txtCptDescription, res, duration, units, fee);
-
+                    placeholder: message,
+                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 0,
+                    templateResult: formatRepo,
+                    templateSelection: formatRepoSelection
+                  });
+                  function formatRepo (repo) {
+                    if (repo.loading) {
+                      return repo.text;
                     }
-                });
-                $('#' + id).on('select2-open', function (event) {
-                    if ($('#s2id_' + id + '  a span').text() != message)
-                        $('#s2id_' + id).data('select2').search.val($('#s2id_' + id + ' a span').text());
-                });
+                    if (repo.is_active || repo.is_active == undefined) {
+                        var markup = "<table><tr>";
+                        if (repo.display_code != '')
+                            markup += "<td title='" + repo.display_code + (repo.display_description ? "(" + repo.display_description + ")" : '') + "'><div>" + repo.display_code + (repo.display_description ? "(" + repo.display_description + ")" : '') + "</div>";
+                        else
+                            markup += "<td title='" + repo.display_code + repo.display_description ? repo.display_description : '' + "'><div>" + repo.display_code + repo.display_description ? repo.display_description : '' + "</div>";
+                        markup += "</td></tr></table>"
+                        return markup;
+                    }
+                    else {
+                        var markup1 = "<table><tr class='inActiveRow'>";
+                        if (repo.display_code != '')
+                            markup1 += "<td title='" + repo.display_code + "(" + repo.display_description + ")" + "'><div>" + repo.display_code + "(" + repo.display_description + ")" + "</div>";
+                        else
+                            markup += "<td title='" + repo.display_code + repo.display_description + "'><div>" + repo.display_code + repo.display_description + "</div>";
+                        markup1 += "</td></tr></table>"
+                        return markup1;
+                    }
+                  }
+                  function formatRepoSelection (repo) {
+                    return repo.display_code || null;
+                  }
             }
-            
         });
         return paymentView;
     });
