@@ -14,4 +14,19 @@ router.get('/:id', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.post('/', async function (req, res) {
+    const data = await casGroupCodeControllers.saveCasGroupCodes(req.body);
+    httpHandler.sendRows(req, res, data);
+});
+
+router.put('/', async function (req, res) {
+    const data = await casGroupCodeControllers.updateCasGroupCodes(req.body);
+    httpHandler.sendRows(req, res, data);
+});
+
+router.delete('/', async function (req, res) {
+    const data = await casGroupCodeControllers.deleteCasGroupCodes(req.body);
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;
