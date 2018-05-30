@@ -5,8 +5,8 @@ module.exports = {
     getData: function () {
         return data.getData();
     },
+
     getById : async (params) =>{
         return data.getById(params);
     }
-
 };

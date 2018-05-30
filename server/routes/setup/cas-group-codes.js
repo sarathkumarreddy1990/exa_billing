@@ -8,6 +8,7 @@ router.get('/', async function (req, res) {
     const data = await casGroupCodeControllers.getData();
     httpHandler.sendRows(req, res, data);
 });
+
 router.get('/:id', async function (req, res) {
     const data = await casGroupCodeControllers.getById(req.params);
     httpHandler.sendRows(req, res, data);

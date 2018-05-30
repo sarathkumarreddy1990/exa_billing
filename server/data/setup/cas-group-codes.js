@@ -10,9 +10,9 @@ module.exports = {
                         ORDER  BY id DESC 
                         LIMIT  10 `);
     },
+
     getById: async function (params) {
         let { id } = params;
-        
 
         let sql = SQL`
                     SELECT   * 

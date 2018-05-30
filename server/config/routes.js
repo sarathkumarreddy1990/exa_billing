@@ -6,7 +6,7 @@ const studyFiltersRouter = require('../routes/study-filters');
 const appSettingsRouter = require('../routes/app-settings');
 const claimFiltersRouter = require('../routes/claim-filters');
 const autoCompleteRouter = require('../routes/autoCompleteDropDown');
-const setupRouters = require('../routes/setup/index');
+const setupRouters = require('../routes/setup/');
 
 const router = function (app) {
 
