@@ -1,5 +1,5 @@
 const Router = require('express-promise-router');
-var router = new Router();
+const router = new Router();
 
 const autoCompleteController = require('../controllers/autoCompleteDropDown');
 const httpHandler = require('../shared/http');

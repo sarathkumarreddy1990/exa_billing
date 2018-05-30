@@ -33,8 +33,9 @@ module.exports = {
                                     cpt_codes
                                 WHERE           
                                     NOT has_deleted AND company_id = ${params.company_id} AND is_active `;
-        if (params.q != '')
+        if (params.q != ''){
             insur_sql.append(search_query);
+        }
         insur_sql.append(SQL` ORDER BY  ${params.sortField} `)
             .append(params.sortOrder)
             .append(SQL` LIMIT ${params.pageSize}`)
