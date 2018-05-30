@@ -5,11 +5,25 @@ config.initialize();
 
 const studiesController = require('../../server/controllers/studies');
 
-describe('Studies-GetData', () => {
-    it('should return array of rows', async () => {
-        const data = await studiesController.getData();
+describe('Studies', () => {
+    describe('getData', () => {
+        it('should return array of rows', async () => {
+            const data = await studiesController.getData();
 
-        should.exist(data);
-        data.rows.should.be.an('array');
+            should.exist(data);
+            data.rows.should.be.an('array');
+        });
+    });
+
+    describe('getDataByDate', () => {
+        it('should return array of rows', async () => {
+            const data = await studiesController.getDataByDate({
+                fromDate: '01-01-2018',
+                toDate: '02-01-2018'
+            });
+
+            should.exist(data);
+            data.rows.should.be.an('array');
+        });
     });
 });
