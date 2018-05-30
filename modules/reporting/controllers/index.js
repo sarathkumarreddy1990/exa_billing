@@ -5,8 +5,7 @@ const logger = require('../../../logger')
     , moment = require('moment-timezone')
     , DEBUG_ENABLED = false
     ;
-
-const jsReportClient = require("jsreport-client")('http://localhost/reporting/', 'jsradmin', 'JSR1q2w3e4r5t');
+    const jsReportClient = require("jsreport-client")('http://192.168.1.170:5488/', 'jsradmin', 'JSR1q2w3e4r5t');
 let reqNum = 0;
 
 const api = {
@@ -99,7 +98,7 @@ const api = {
                     console.timeEnd(`${repInfo} s5___jsreport`);
                     if (err) {
                         //return next(err);
-                        logger.logError(`${reqId}EXA Reporting - jsreport client error while rendering report!`, err);
+                        //logger.logError(`${reqId}EXA Reporting - jsreport client error while rendering report!`, err);
                         return responseHandler.sendError(req, res);
                     }
                     // adjust response header for downloadable content
@@ -121,8 +120,8 @@ const api = {
                 });
             })
             .catch((err) => {
-                logger.logError(`${reqId}EXA Reporting - error while processing report!`, err);
-                console.trace();
+             //   logger.logError(`${reqId}EXA Reporting - error while processing report!`, err);
+              //  console.trace();
                 //res.writeHead(500, { 'content-type': 'text/plain' });
                 //res.end('An error occurred');
                 //return next(err);
@@ -152,9 +151,9 @@ const api = {
      */
     getReportParams: (req) => {
         const initialReportParams = {
-            companyId: req.query.company_id,      // there is also req.query.companyid ??? both are injected automatically into req...
-            userId: req.query.user_id,            // there is also req.query.userid ??? both are injected automatically into req...
-            userIpAddress: req.query.user_ip,     // injected automatically into req...
+            companyId: 1 ,    //req.query.company_id,      // there is also req.query.companyid ??? both are injected automatically into req...
+            userId: 1 ,//req.query.user_id,            // there is also req.query.userid ??? both are injected automatically into req...
+            userIpAddress: '192.168.1.170',     // injected automatically into req...
             valid: true                           // flag to toggle if any of minimum required params are not valid
         }
         const reportParams = _(initialReportParams)
@@ -172,7 +171,7 @@ const api = {
         }
         // convert array of 'string numbers' to array of numbers
         if (reportParams.facilityIds) {
-            reportParams.facilityIds = reportParams.facilityIds.map(Number);
+           // reportParams.facilityIds = reportParams.facilityIds.map(Number);
         }
         // convert string to a number
         if (reportParams.facilityId) {
