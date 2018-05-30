@@ -146,6 +146,7 @@
         },
         "screens": {},
         "fields": {
+            "inactive" : "InActive"
         }
     }
 }
