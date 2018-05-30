@@ -1,6 +1,6 @@
 define([
     'backbone',
-    'routes/app.router'
+    'routes/app-router'
 ], function (Backbone, AppRouter) {
 
     return {

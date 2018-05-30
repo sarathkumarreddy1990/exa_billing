@@ -6,15 +6,33 @@ block content
     button.navbar-toggler(type='button', data-toggle='collapse', data-target='#navbarNavAltMarkup', aria-controls='navbarNavAltMarkup', aria-expanded='false', aria-label='Toggle navigation')
       span.navbar-toggler-icon
     #navbarNavAltMarkup.collapse.navbar-collapse
-      .navbar-nav
-        a.nav-item.nav-link.active(href='#app/studies')
-          | Home 
-          span.sr-only (current)
-        a.nav-item.nav-link(href='#app/claim_workbench') Claims
-        a.nav-item.nav-link(href='#app/payments') Payments
-        a.nav-item.nav-link(href='#app/reports') Reports
-        a.nav-item.nav-link(href='#app/setup') Setup
-        a.nav-item.nav-link(href='#') Logout
+      ul.navbar-nav
+        li.nav-item
+            a.nav-link.active(href='#app/studies') Home
+        li.nav-item
+            a.nav-link(href='#app/claim_workbench') Claims
+        li.nav-item
+            a.nav-link(href='#app/payments') Payments
+        li.nav-item
+            a.nav-link(href='#app/reports') Reports
+            
+        li.nav-item.dropdown
+            a.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Setup
+            .dropdown-menu
+                a.dropdown-item(href='#') Adjustment Codes
+                a.dropdown-item(href='#') Billing codes
+                a.dropdown-item(href='#') Billing Classes
+                a.dropdown-item(href='#') Claim Status
+                .dropdown-divider
+                a.dropdown-item(href='#app/setup/billing_providers/list') Billing Providers
+                a.dropdown-item(href='#') Provider ID Codes
+                a.dropdown-item(href='#') Provider ID Code Qualifiers
+                .dropdown-divider
+                a.dropdown-item(href='#') Billing Messages
+                a.dropdown-item(href='#') Payment Reasons
+
+        li.nav-item
+            a.nav-link(href='#') Logout
 
   #root
 
