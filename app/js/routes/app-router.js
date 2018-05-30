@@ -3,6 +3,7 @@ define([
     'views/worklist',
     'views/studies',
     'views/claim-workbench',
+    'routes/app/index',
     'routes/setup/index',
     'modules/reporting/views/billing/charges',
     'modules/reporting/views/billing/payments'
@@ -10,6 +11,7 @@ define([
     WorklistView,
     StudiesView,
     ClaimWorkBenchView,
+    AppRoute,
     SetupRoute,
     ChargeReportView,
     PaymentReportView) {
@@ -22,18 +24,25 @@ define([
                 "app/report/charges": "startChargeReporting" ,
                 "app/report/payments": "startPaymentReporting",
     
-                "app/setup/*subroute": "startSetup",
+                "app/*subroute": "startApp",
+                "setup/*subroute": "startSetup",
             },
 
-            startApp: function (subroutes) {
-                if (!this.appRoute) {
-                    this.appRoute = new WorklistView({ el: $('#root') });
+            // startApp: function (subroutes) {
+            //     if (!this.appRoute) {
+            //         this.appRoute = new WorklistView({ el: $('#root') });
+            //     }
+            // },
+
+            startApp: function (subroute) {
+                if (!this.appRouter) {
+                    this.appRouter = new AppRoute("app/", { createTrailingSlashRoutes: true });
                 }
             },
 
             startSetup: function (subroute) {
                 if (!this.setupRouter) {
-                    this.setupRouter = new SetupRoute("app/setup/", { createTrailingSlashRoutes: true });
+                    this.setupRouter = new SetupRoute("setup/", { createTrailingSlashRoutes: true });
                 }
             },
 

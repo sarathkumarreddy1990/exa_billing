@@ -68,7 +68,7 @@ define([
                 this.render();
             },
 
-            showForm: function (icdCodeID) {
+            showForm: function (id) {
                 var self = this;
                 this.render();
                 this.renderForm();
