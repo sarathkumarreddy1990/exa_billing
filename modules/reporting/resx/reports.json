@@ -195,7 +195,7 @@
         }
     },
     {
-        "id": "claimActivity",
+        "id": "claim_activity",
         "category": "billing",
         "title": "Claim Activity",
         "description": "Report shows detailed claims transaction history for selected facilities and given scheduled date range.",
@@ -479,7 +479,7 @@
         }
     },
     {
-        "id": "claimInquiry",
+        "id": "claim_inquiry",
         "category": "billing",
         "title": "Claim Inquiry",
         "description": "Report shows all submitted claims and order payment/balance.",
@@ -531,7 +531,7 @@
         }
     },
     {
-        "id": "patientStatement",
+        "id": "patient_statement",
         "category": "billing",
         "title": "Patient Statement",
         "description": "Report shows Patient Statement.",
@@ -646,7 +646,7 @@
         }
     },
     {
-        "id": "modalitySummary",
+        "id": "modality_summary",
         "category": "billing",
         "title": "Modality Summary",
         "description": "Modality Summary",
@@ -922,6 +922,29 @@
         "category": "billing",
         "title": "Aged AR Detail",
         "description": "Report shows AR aging by facility, responsible party and payer for given cut off date and selected facilities in detail.",
+        "jsreport": {
+            "html": {
+                "template": { "name": "default-table-html" }
+            },
+            "pdf": {
+                "template": { "name": "default-table-pdf" }
+            },
+            "xlsx": {
+                "template": { "name": "default-table-excel" }
+            },
+            "csv": {
+                "template": { "name": "default-table-csv" }
+            },
+            "xml": {
+                "template": { "name": "default-table-xml" }
+            }
+        }
+    },
+    {
+        "id": "payer_mix",
+        "category": "billing",
+        "title": "Payer Mix",
+        "description": "Report shows Payer Mix.",
         "jsreport": {
             "html": {
                 "template": { "name": "default-table-html" }

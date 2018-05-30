@@ -4,16 +4,27 @@ define([
     'views/studies',
     'views/claim-workbench',
     'modules/reporting/views/billing/charges',
-    'modules/reporting/views/billing/payments'
-], function (Backbone, WorklistView, StudiesView, ClaimWorkBenchView, ChargeReportView, PaymentReportView) {
+    'modules/reporting/views/billing/payments',
+    'modules/reporting/views/billing/claim_activity',
+    'modules/reporting/views/billing/claim_inquiry',
+    'modules/reporting/views/billing/patient_statement',
+    'modules/reporting/views/billing/modality_summary',
+    'modules/reporting/views/billing/payer_mix'
+], function (Backbone, WorklistView, StudiesView, ClaimWorkBenchView, ChargeReportView, PaymentReportView, ClaimActivityView, ClaimInquiryView, PatientStatementView, MoadalitySummaryView, PayerMixView) {
     var AppRouter = Backbone.Router.extend({
         routes: {
             "app/worklist": "startApp",
             "app/report": "startReporting",
             "app/studies": "startAppStudies",
             "app/claim_workbench": "startClaimWorkBench",
-            "app/report/charges": "startChargeReporting" ,
-            "app/report/payments": "startPaymentReporting"
+            "app/reports/charges": "startChargeReporting" ,
+            "app/reports/payments": "startPaymentReporting",
+            "app/reports/claim_activity": "startClaimActivityReporting",
+            "app/reports/claim_inquiry": "startClaimInquiryReporting",
+            "app/reports/patient_statement": "startPatientStatementReporting",
+            "app/reports/modality_summary": "startModalitySummaryReporting",           
+            "app/reports/payer_mix": "startPayerMixReporting"           
+
         },
 
         startApp: function (subroutes) {
@@ -50,6 +61,33 @@ define([
         startPaymentReporting: function (subroutes) {
             if (!this.reportingRoute) {             
                 this.reportingRoute = new PaymentReportView({ el: $('#root') });
+            }
+        },
+
+        startClaimActivityReporting: function (subroutes) {
+            if (!this.reportingRoute) {             
+                this.reportingRoute = new ClaimActivityView({ el: $('#root') });
+            }
+        },
+        startClaimInquiryReporting: function (subroutes) {
+            if (!this.reportingRoute) {             
+                this.reportingRoute = new ClaimInquiryView({ el: $('#root') });
+            }
+        },
+        startPatientStatementReporting: function (subroutes) {
+            if (!this.reportingRoute) {             
+                this.reportingRoute = new PatientStatementView({ el: $('#root') });
+            }
+        },
+        startModalitySummaryReporting: function (subroutes) {
+            if (!this.reportingRoute) {             
+                this.reportingRoute = new MoadalitySummaryView({ el: $('#root') });
+            }
+        }, 
+        
+        startPayerMixReporting: function (subroutes) {
+            if (!this.reportingRoute) {             
+                this.reportingRoute = new PayerMixView({ el: $('#root') });
             }
         }
 

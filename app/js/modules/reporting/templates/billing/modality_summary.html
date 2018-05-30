@@ -1,0 +1,80 @@
+<form class="form-horizonta form-list" novalidate="" _lpchecked="1">
+
+    <!-- row: form elements -->
+    <div class="col-xs-12 col-md-12 col-lg-12">
+        <!-- col: form elements -->
+        <div class="col-xs-4">
+            <div class="form-group form-inline">
+                <div class="col-form-label">
+                    <label class="control-label field-required" for="txtDateRange" i18n="shared.fields.scheduleDate" />
+                </div>
+                <div class="col-form-content">
+                    <div class="input-group">
+                        <span class="input-group-addon add-on">
+                            <i class="fa fa-calendar"> </i>
+                        </span>
+                        <input type="text" id="txtDateRange" class="form-control" required="required" name="dateRange">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /col: form elements -->
+        <div class="col-xs-3">
+            <div class="form-group form-inline">
+                <div class="col-form-label">
+                    <label class="control-label">Facilities
+                    </label>
+                </div>
+                <div class="col-form-label" class="multiselect">
+                    <select id="ddlFacilityFilter" multiple="multiple">
+                       
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-3">
+            <div class="form-group form-inline">
+                <div class="col-form-label">
+                    <label class="control-label">Billing Provider
+                    </label>
+                </div>
+                <div class="col-form-label" class="multiselect">
+                    <select id="ddlBillingProvider" multiple="multiple" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /row: form elements -->
+
+    <!-- row: form buttons -->
+    <div class="col-xs-12 <!--col-xs-offset-1-->">
+        <div class="btn-toolbar" role="toolbar">
+            <div class="btn-group">
+                <button type="button" class="btn btn-primary" id="btnViewReport" data-rformat="html">
+                    <i class="fa fa-file"></i> View</button>
+                <button type="button" class="btn btn-primary" id="btnViewReportNewTab" data-rformat="html">
+                    <i class="fa fa-external-link"></i>
+                </button>
+            </div>
+            <div class="btn-group">
+                <button type="button" class="btn btn-primary" id="btnPdfReport" data-rformat="pdf">
+                    <i class="fa fa-file-pdf-o"></i> PDF</button>
+                <button type="button" class="btn btn-primary" id="btnExcelReport" data-rformat="xlsx">
+                    <i class="fa fa-file-excel-o"></i> Excel</button>
+                <button type="button" class="btn btn-primary" id="btnCsvReport" data-rformat="csv">
+                    <i class="fa fa-file-text-o"></i> CSV</button>
+                <button type="button" class="btn btn-primary" id="btnXmlReport" data-rformat="xml">
+                    <i class="fa fa-file-code-o"></i> XML</button>
+            </div>
+        </div>
+    </div>
+    <!-- /row: form buttons -->
+
+</form>
+
+
+<!-- row: iframe -->
+<div class="col-xs-12 form-top-padding" id="divReportFrame" style="overflow: auto; text-align: center">
+    <iframe id="reportFrame" frameBorder="0" style="width: 100%; min-height:100px"></iframe>
+</div>
+<!-- /row: iframe -->
