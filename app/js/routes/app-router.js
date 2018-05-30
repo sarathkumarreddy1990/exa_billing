@@ -19,7 +19,13 @@ define([
     AppRoute,
     SetupRoute,
     ChargeReportView,
-    PaymentReportView) {
+    PaymentReportView,
+    ClaimActivityView, 
+    ClaimInquiryView, 
+    PatientStatementView, 
+    MoadalitySummaryView, 
+    PayerMixView
+    ) {
         var AppRouter = Backbone.Router.extend({
             routes: {
                 "app/worklist": "startApp",
