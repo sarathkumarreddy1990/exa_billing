@@ -13,8 +13,6 @@ module.exports = {
                                           , description
                                           , COUNT(1) OVER (range unbounded preceding) as total_records
                                         FROM   billing.cas_group_codes
-                                        WHERE 
-                                            inactivated_dt IS NULL
                                         ORDER  BY id DESC 
                                         LIMIT  10 `;
 
