@@ -554,7 +554,7 @@
         }
     },
     {
-        "id": "referring_provider_count",
+        "id": "referring-provider-count",
         "category": "billing",
         "title": "Referring Provider Count",
         "description": "Referring Provider Count",
@@ -573,6 +573,39 @@
             },
             "xml": {
                 "template": { "name": "default-table-xml" }
+            }
+        }
+    },
+    {
+        "id": "referring-provider-summary",
+        "category": "billing",
+        "title": "Referring Provider Summary",
+        "description": "Report shows Referring Doctor Summary Information",
+        "jsreport": {
+            "html": {
+                "template": {
+                    "name": "default-table-html"
+                }
+            },
+            "pdf": {
+                "template": {
+                    "name": "default-table-pdf"
+                }
+            },
+            "xlsx": {
+                "template": {
+                    "name": "default-table-excel"
+                }
+            },
+            "csv": {
+                "template": {
+                    "name": "default-table-csv"
+                }
+            },
+            "xml": {
+                "template": {
+                    "name": "default-table-xml"
+                }
             }
         }
     },
@@ -831,7 +864,7 @@
         }
     },
     {
-        "id": "transactionSummary",
+        "id": "transaction-summary",
         "category": "billing",
         "title": "Transaction Summary Report",
         "description": "Report shows Transaction Summary.",
@@ -964,7 +997,7 @@
         }
     },
     { 
-        "id": "payments_by_ins_company",
+        "id": "payments-by-ins-company",
         "category": "billing",
         "title": "Payments By Insurance Company",
         "description": "Calculate Insurance Company wise payments",

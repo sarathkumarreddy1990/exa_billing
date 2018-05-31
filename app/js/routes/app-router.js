@@ -12,8 +12,10 @@ define([
     'modules/reporting/views/billing/patient-statement',
     'modules/reporting/views/billing/modality-summary',
     'modules/reporting/views/billing/payer-mix',
-    'modules/reporting/views/billing/payments_by_ins_company',
-    'modules/reporting/views/billing/referring_provider_count'
+    'modules/reporting/views/billing/payments-by-ins-company',
+    'modules/reporting/views/billing/referring-provider-count',
+    'modules/reporting/views/billing/referring-provider-summary',
+    'modules/reporting/views/billing/transaction-summary'
 ], function (Backbone,
     WorklistView,
     StudiesView,
@@ -28,7 +30,9 @@ define([
     MoadalitySummaryView, 
     PayerMixView,
     PaymentByInsCompanyView,
-    ReferringProviderCountView
+    ReferringProviderCountView,
+    ReferringProviderSummaryView,
+    transactionSummaryView
     ) {
         var AppRouter = Backbone.Router.extend({
             routes: {
@@ -43,8 +47,10 @@ define([
                 "app/reports/patient-statement": "startPatientStatementReporting",
                 "app/reports/modality-summary": "startModalitySummaryReporting",           
                 "app/reports/payer-mix": "startPayerMixReporting",
-                "app/reports/payments_by_ins_company": "startPaymentsByInsuranceCompanyReporting",
-                "app/reports/referring_provider_count": "startReferringProviderCountReporting",
+                "app/reports/payments-by-ins-company": "startPaymentsByInsuranceCompanyReporting",
+                "app/reports/referring-provider-count": "startReferringProviderCountReporting",
+                "app/reports/referring-provider-summary": "startReferringProviderSummaryReporting",
+                "app/reports/transaction-summary": "starttransactionSummaryReporting",
     
                 "app/*subroute": "startApp",
                 "setup/*subroute": "startSetup",
@@ -135,6 +141,18 @@ define([
             startReferringProviderCountReporting: function (subroutes) {
                 if (!this.reportingRoute) {             
                     this.reportingRoute = new ReferringProviderCountView({ el: $('#root') });
+                }
+            },
+
+            startReferringProviderSummaryReporting: function (subroutes) {
+                if (!this.reportingRoute) {             
+                    this.reportingRoute = new ReferringProviderSummaryView({ el: $('#root') });
+                }
+            },
+
+            starttransactionSummaryReporting: function (subroutes) {
+                if (!this.reportingRoute) {             
+                    this.reportingRoute = new transactionSummaryView({ el: $('#root') });
                 }
             },
 
