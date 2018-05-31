@@ -45,11 +45,11 @@ module.exports = {
             code,
             desc,
             type,
-            inactivated_date,
+            is_active,
             company_id
         } = params;
 
-        inactivated_date = inactivated_date ? ' now() ' : null;
+        let inactivated_date = is_active ? ' now() ' : null;
 
         const sql = SQL`INSERT INTO 
                         billing.adjustment_codes (
@@ -75,10 +75,10 @@ module.exports = {
             desc,
             type,
             id,
-            inactivated_date
+            is_active
         } = params;
 
-        inactivated_date = inactivated_date ? ' now() ' : null;
+        let inactivated_date = is_active ? ' now() ' : null;
 
         const sql = SQL`UPDATE
                              billing.adjustment_codes 
