@@ -1,0 +1,33 @@
+const { query } = require('./index');
+
+module.exports = {
+
+    getpendingPayments: async function (params) {
+        return await query(`                                            
+        SELECT 
+            bc.id AS claim_id,
+            patient_id,
+            bc.id,
+            bc.invoice_no,
+            get_full_name(pp.last_name,pp.first_name) AS full_name,
+            bc.claim_dt,
+            pp.account_no,
+            array_agg(pcc.display_description) AS display_description,
+            (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) AS billing_fee,
+            (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) AS balance
+        FROM billing.claims bc
+        INNER JOIN public.patients pp on pp.id = bc.patient_id 
+        INNER JOIN billing.charges bch on bch.claim_id = bc.id
+        INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
+
+        WHERE NOT EXISTS (SELECT 1 FROM billing.payment_applications bpa 
+            INNER JOIN billing.payments bp ON bp.id = bpa.payment_id
+            WHERE  bpa.charge_id = bch.id
+            AND payment_id = ${params.customArgs.paymentID})
+            AND patient_id = ${params.customArgs.payerId}
+
+        AND (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) > 0::money 
+        group by bc.id, bc.invoice_no, bc.claim_dt, pp.account_no, get_full_name(pp.last_name,pp.first_name)
+        `);
+    }
+};

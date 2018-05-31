@@ -6,12 +6,14 @@ define([
     'routes/app/index',
     'routes/setup/index',
     'modules/reporting/views/billing/charges',
-    'modules/reporting/views/billing/payments',
     'modules/reporting/views/billing/claim_activity',
     'modules/reporting/views/billing/claim_inquiry',
     'modules/reporting/views/billing/patient_statement',
     'modules/reporting/views/billing/modality_summary',
-    'modules/reporting/views/billing/payer_mix'
+    'modules/reporting/views/billing/payer_mix',
+    'modules/reporting/views/billing/payments',
+    'views/app/payments',
+    'views/app/payment-edit'
 ], function (Backbone,
     WorklistView,
     StudiesView,
@@ -24,7 +26,9 @@ define([
     ClaimInquiryView, 
     PatientStatementView, 
     MoadalitySummaryView, 
-    PayerMixView
+    PayerMixView,
+    PaymentsView,
+    EditPaymentView
     ) {
         var AppRouter = Backbone.Router.extend({
             routes: {
@@ -40,8 +44,10 @@ define([
                 "app/reports/modality_summary": "startModalitySummaryReporting",           
                 "app/reports/payer_mix": "startPayerMixReporting",
     
-                "app/*subroute": "startApp",
+                // "app/*subroute": "startApp",
                 "setup/*subroute": "startSetup",
+                "app/payments": "startPayments",
+                "app/payments/edit/:id": "editPayment"
             },
 
             // startApp: function (subroutes) {
@@ -120,6 +126,16 @@ define([
                 }
             },
 
+            startPayments: function (subroutes) {
+                if (!this.appRoute) {
+                    this.appRoute = new PaymentsView({ el: $('#root') });
+                }
+            },
+            editPayment: function (paymentId) {
+                if (!this.appRoute) {
+                    this.appRoute = new EditPaymentView({ el: $('#root'), id: paymentId });
+                }
+            },
 
             initialize: function () {
                 $('#initialLoading').hide();
