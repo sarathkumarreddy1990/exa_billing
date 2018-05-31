@@ -5,7 +5,7 @@ const casGroupCodeControllers = require('../../controllers/setup/cas-group-codes
 const httpHandler = require('../../shared/http');
 
 router.get('/', async function (req, res) {
-    const data = await casGroupCodeControllers.getData();
+    const data = await casGroupCodeControllers.getData(req.query);
     httpHandler.sendRows(req, res, data);
 });
 
