@@ -28,3 +28,6 @@ router.delete('/:id', async function (req, res) {
     const data = await adjController.delete(req.params);
     httpHandler.sendRows(req, res, data);
 });
+
+
+module.exports = router;
