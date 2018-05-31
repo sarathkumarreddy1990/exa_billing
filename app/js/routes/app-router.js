@@ -6,16 +6,14 @@ define([
     'routes/app/index',
     'routes/setup/index',
     'modules/reporting/views/billing/charges',
+    'modules/reporting/views/billing/claim_activity',
+    'modules/reporting/views/billing/claim_inquiry',
+    'modules/reporting/views/billing/patient_statement',
+    'modules/reporting/views/billing/modality_summary',
+    'modules/reporting/views/billing/payer_mix',
     'modules/reporting/views/billing/payments',
-    'modules/reporting/views/billing/claim-activity',
-    'modules/reporting/views/billing/claim-inquiry',
-    'modules/reporting/views/billing/patient-statement',
-    'modules/reporting/views/billing/modality-summary',
-    'modules/reporting/views/billing/payer-mix',
-    'modules/reporting/views/billing/payments-by-ins-company',
-    'modules/reporting/views/billing/referring-provider-count',
-    'modules/reporting/views/billing/referring-provider-summary',
-    'modules/reporting/views/billing/transaction-summary'
+    'views/app/payments',
+    'views/app/payment-edit'
 ], function (Backbone,
     WorklistView,
     StudiesView,
@@ -29,10 +27,8 @@ define([
     PatientStatementView, 
     MoadalitySummaryView, 
     PayerMixView,
-    PaymentByInsCompanyView,
-    ReferringProviderCountView,
-    ReferringProviderSummaryView,
-    transactionSummaryView
+    PaymentsView,
+    EditPaymentView
     ) {
         var AppRouter = Backbone.Router.extend({
             routes: {
@@ -42,18 +38,16 @@ define([
                 "app/claim_workbench": "startClaimWorkBench",
                 "app/reports/charges": "startChargeReporting" ,
                 "app/reports/payments": "startPaymentReporting",
-                "app/reports/claim-activity": "startClaimActivityReporting",
-                "app/reports/claim-inquiry": "startClaimInquiryReporting",
-                "app/reports/patient-statement": "startPatientStatementReporting",
-                "app/reports/modality-summary": "startModalitySummaryReporting",           
-                "app/reports/payer-mix": "startPayerMixReporting",
-                "app/reports/payments-by-ins-company": "startPaymentsByInsuranceCompanyReporting",
-                "app/reports/referring-provider-count": "startReferringProviderCountReporting",
-                "app/reports/referring-provider-summary": "startReferringProviderSummaryReporting",
-                "app/reports/transaction-summary": "starttransactionSummaryReporting",
+                "app/reports/claim_activity": "startClaimActivityReporting",
+                "app/reports/claim_inquiry": "startClaimInquiryReporting",
+                "app/reports/patient_statement": "startPatientStatementReporting",
+                "app/reports/modality_summary": "startModalitySummaryReporting",           
+                "app/reports/payer_mix": "startPayerMixReporting",
     
-                "app/*subroute": "startApp",
+                // "app/*subroute": "startApp",
                 "setup/*subroute": "startSetup",
+                "app/payments": "startPayments",
+                "app/payments/edit/:id": "editPayment"
             },
 
             // startApp: function (subroutes) {
@@ -132,30 +126,16 @@ define([
                 }
             },
 
-            startPaymentsByInsuranceCompanyReporting: function (subroutes) {
-                if (!this.reportingRoute) {             
-                    this.reportingRoute = new PaymentByInsCompanyView({ el: $('#root') });
+            startPayments: function (subroutes) {
+                if (!this.appRoute) {
+                    this.appRoute = new PaymentsView({ el: $('#root') });
                 }
             },
-            
-            startReferringProviderCountReporting: function (subroutes) {
-                if (!this.reportingRoute) {             
-                    this.reportingRoute = new ReferringProviderCountView({ el: $('#root') });
+            editPayment: function (paymentId) {
+                if (!this.appRoute) {
+                    this.appRoute = new EditPaymentView({ el: $('#root'), id: paymentId });
                 }
             },
-
-            startReferringProviderSummaryReporting: function (subroutes) {
-                if (!this.reportingRoute) {             
-                    this.reportingRoute = new ReferringProviderSummaryView({ el: $('#root') });
-                }
-            },
-
-            starttransactionSummaryReporting: function (subroutes) {
-                if (!this.reportingRoute) {             
-                    this.reportingRoute = new transactionSummaryView({ el: $('#root') });
-                }
-            },
-
 
             initialize: function () {
                 $('#initialLoading').hide();

@@ -15,17 +15,17 @@ router.get('/:id', async function (req, res) {
 });
 
 router.post('/', async function (req, res) {
-    const data = await casGroupCodeControllers.saveCasGroupCodes(req.body);
+    const data = await casGroupCodeControllers.save(req.body);
     httpHandler.sendRows(req, res, data);
 });
 
 router.put('/', async function (req, res) {
-    const data = await casGroupCodeControllers.updateCasGroupCodes(req.body);
+    const data = await casGroupCodeControllers.update(req.body);
     httpHandler.sendRows(req, res, data);
 });
 
-router.delete('/', async function (req, res) {
-    const data = await casGroupCodeControllers.deleteCasGroupCodes(req.body);
+router.delete('/:id', async function (req, res) {
+    const data = await casGroupCodeControllers.delete(req.params);
     httpHandler.sendRows(req, res, data);
 });
 
