@@ -1,4 +1,4 @@
-const data = require('../../data/setup/adjustment_codes');
+const data = require('../../data/setup/cas-reason-codes');
 
 module.exports = {
 
