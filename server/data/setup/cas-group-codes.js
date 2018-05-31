@@ -40,8 +40,8 @@ module.exports = {
 
     saveCasGroupCodes: async function (params) {
 
-        let { company_id, code, name, description, inactivated_dt } = params;
-        inactivated_dt = inactivated_dt ? `now()` : null;
+        let { company_id, code, name, description, is_active } = params;
+        let inactivated_dt = is_active ? null: 'now()';
 
         const cas_group_cods_sql = SQL` INSERT INTO billing.cas_group_codes
                                             (  company_id
@@ -63,8 +63,8 @@ module.exports = {
 
     updateCasGroupCodes: async function (params) {
 
-        let { id, code, name, description, inactivated_dt } = params;
-        inactivated_dt = inactivated_dt ? `now()` : null;
+        let { id, code, name, description, is_active } = params;
+        let inactivated_dt = is_active ? null: 'now()';
 
         const cas_group_cods_sql = SQL` UPDATE
                                             billing.cas_group_codes
