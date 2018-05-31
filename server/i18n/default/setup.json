@@ -1,0 +1,9 @@
+{
+    "setup" : {
+        "casgroupcodes" : {
+            "code" : "Code",
+            "name" : "Name",
+            "description" : "Description"
+        }
+    }
+}

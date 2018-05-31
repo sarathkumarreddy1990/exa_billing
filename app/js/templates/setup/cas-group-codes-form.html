@@ -1,0 +1,34 @@
+<div>
+    <div id="divCasCodesFromBtnGrps" style="float:right;">
+        <input type="button" value="Add" id="btnSaveCasGroupCode" i18n="shared.buttons.save" class="btn btn-primary">
+        <input type="button" value="Refresh" id="btnBackToCasGroupCode" i18n="shared.buttons.back" class="btn btn-primary">
+    </div>
+    <form class="form-horizontal form-list">
+        <div class="form-group form-inline">
+            <div class="col-form-label">
+                <label class="control-label field-required" for="txtCode" i18n="setup.casgroupcodes.code"></label>
+            </div>
+            <div class="col-form-content">
+                <input type="text" maxlength="512" id="txtCode" name="code" class="form-control">
+                <input type="checkbox" id="chkActive"/>
+                <span for="chkActive" class="field-chk" i18n="shared.fields.inactive" style="text-align:center;"></span>
+            </div>
+        </div>
+        <div class="form-group form-inline">
+            <div class="col-form-label">
+                <label class="control-label field-required" for="txtName" i18n="setup.casgroupcodes.name"></label>
+            </div>
+            <div class="col-form-content">
+                <input type="text" maxlength="512" id="txtName" name="name" class="form-control">
+            </div>
+        </div>
+        <div class="form-group form-inline">
+            <div class="col-form-label">
+                <label class="control-label field-required" for="txtCode" i18n="setup.casgroupcodes.description"></label>
+            </div>
+            <div class="col-form-content">
+                <input type="text" maxlength="512" id="txtDescription" name="description" class="form-control">
+            </div>
+        </div>
+    </form>
+</div>
