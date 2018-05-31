@@ -5,7 +5,7 @@ const paymentsController = require('../controllers/edit-payments');
 const httpHandler = require('../shared/http');
 
 router.get('/', async function (req, res) {
-    const data = await paymentsController.getpendingPayments(req.query);
+    const data = await paymentsController.getPendingPayments(req.query);
     httpHandler.sendRows(req, res, data);
 });
 
