@@ -7,28 +7,31 @@ const _ = require('lodash')
 
 // generate query template ***only once*** !!!
 
-const chargesDataSetQueryTemplate = _.template(`
-WITH code_counts AS (
+const payerMixDataSetQueryTemplate = _.template(`
+with payer_mix_details as (
     SELECT
-        get_full_name(p.last_name, p.first_name,p.middle_name, p.prefix_name, p.suffix_name) AS patient_name,
-        SUM(bill_fee*units),
-        SUM(allowed_amount*units)
-    FROM 
-        billing.charges bch
-    INNER JOIN billing.claims bc on bc.id = bch.claim_id 
-    INNER JOIN public.patients p on p.id = bc.patient_id 
-    INNER JOIN facilities f on f.id = bc.facility_id
-    where 1=1 
-    AND  <%= companyId %>
-    GROUP BY 
-        ROLLUP (patient_name)
-    ORDER BY 
-        patient_name
-  )
-  SELECT
-     *
-  FROM
-     code_counts cc LIMIT 10  
+    pcc.display_code,
+    pip.insurance_code,
+    pip.insurance_name,
+    pf.facility_name,
+    bc.claim_dt,
+    sum(bch.bill_fee),
+    COUNT(bc.id) as claim_count
+FROM billing.claims bc
+INNER JOIN billing.charges bch ON bch.claim_id = bc.id 
+INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
+INNER JOIN public.facilities pf ON pf.id = bc.facility_id
+LEFT JOIN public.patient_insurances ppi ON ppi.id = ANY (ARRAY[bc.primary_patient_insurance_id,bc.secondary_patient_insurance_id,bc.tertiary_patient_insurance_id])
+LEFT JOIN public.insurance_providers pip ON pip.id= ppi.insurance_provider_id 
+WHERE 1=1
+AND  <%= companyId %>
+GROUP BY  pcc.display_code,
+          pip.insurance_code,
+          pip.insurance_name,
+          pf.facility_name,
+          bc.claim_dt
+ ORDER BY insurance_name,facility_name)
+ select * from payer_mix_details
 `);
 
 const api = {
@@ -39,14 +42,14 @@ const api = {
      */
     getReportData: (initialReportData) => {
         return Promise.join(            
-            api.createchargesDataSet(initialReportData.report.params),
+            api.createpayerMixDataSet(initialReportData.report.params),
             // other data sets could be added here...
-            (chargesDataSet) => {
+            (payerMixDataSet) => {
                 // add report filters                
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 // add report specific data sets
-                initialReportData.dataSets.push(chargesDataSet);
+                initialReportData.dataSets.push(payerMixDataSet);
                 initialReportData.dataSetCount = initialReportData.dataSets.length;
                 return initialReportData;
             });
@@ -104,21 +107,21 @@ const api = {
     },
 
     // ================================================================================================================
-    // --- DATA SET - Charges count
+    // --- DATA SET - payerMix count
 
-    createchargesDataSet: (reportParams) => {
+    createpayerMixDataSet: (reportParams) => {
         // 1 - build the query context. Each report will 'know' how to do this, based on report params and query/queries to be executed...
-        const queryContext = api.getchargesDataSetQueryContext(reportParams);
+        const queryContext = api.getpayerMixDataSetQueryContext(reportParams);
         console.log('context__', queryContext)
         // 2 - geenrate query to execute
-        const query = chargesDataSetQueryTemplate(queryContext.templateData);
+        const query = payerMixDataSetQueryTemplate(queryContext.templateData);
         // 3a - get the report data and return a promise
         return db.queryForReportData(query, queryContext.queryParams);
     },
 
     // query context is all about query building: 1 - query parameters and 2 - query template data
     // every report and/or query may have a different logic to build a query context...
-    getchargesDataSetQueryContext: (reportParams) => {
+    getpayerMixDataSetQueryContext: (reportParams) => {
         const params = [];
         const filters = {
             companyId: null
