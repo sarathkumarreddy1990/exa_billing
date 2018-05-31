@@ -1,0 +1,43 @@
+.hide_tab{
+	display: none;
+}
+#tab_menu{
+	position: relative;
+	float: left;
+	li{
+		&.active{
+			border: none;
+		}
+		&.active_item{
+			position: absolute;
+			height: 4px;
+			width: 0;
+			overflow: hidden;
+			padding: 0;
+			bottom: 0;
+			left: 0;
+			background: #0090ff;
+		}
+	}
+}
+#inner_tab_menu{
+	position: relative;
+	li{
+		&.active{
+			border: none;
+		}
+		&.active_item{
+			position: absolute;
+			height: 2px;
+			width: 0;
+			overflow: hidden;
+			padding: 0;
+			bottom: 0;
+			left: 60px;
+			background: #0090ff;
+		}
+	}
+}
+.tab-content_box{
+	padding-top: 30px;
+}

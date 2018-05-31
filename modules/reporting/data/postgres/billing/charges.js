@@ -38,7 +38,6 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
-        console.log('iiiiiiiiiii', initialReportData)
         return Promise.join(            
             api.createchargesDataSet(initialReportData.report.params),
             // other data sets could be added here...
@@ -80,7 +79,6 @@ const api = {
     // PRIVATE ;) functions
 
     createReportFilters: (initialReportData) => {
-        console.log('wwwww', initialReportData)
         const lookups = initialReportData.lookups;
         const params = initialReportData.report.params;
         const filtersUsed = [];
@@ -156,7 +154,6 @@ const api = {
             queryParams: params,
             templateData: filters         
         }
-        console.log('12312312',queryParams )
     }
 }
 
