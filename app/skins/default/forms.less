@@ -1,0 +1,369 @@
+/**
+ * Forms
+ */
+
+/* Inputs */
+.form-control {
+	color: inherit;
+	display: block;
+	width: 100%;
+	height: @form-input-height-base;
+	font-size: @form-font-size-base;
+	//line-height: @form-line-height-base;
+	padding: @form-input-padding;
+	border: 1px solid #ced7db;
+
+	.placeholder(#8fa3ad);
+}
+
+.disabled,
+input[disabled],
+input[readonly],
+select[disabled],
+select[readonly],
+textarea[disabled],
+textarea[readonly],
+.form-control[disabled],
+.form-control[readonly] {
+	color: #999999;
+}
+
+textarea{
+	resize:none;
+	outline: none !important;
+}
+textarea.form-control {
+	height: 100px;
+	line-height: 18px;
+}
+
+textarea,
+textarea.form-control {
+	font-size: 1.125em;
+	padding: @form-input-padding;
+}
+textarea#textBoxFormField {
+	max-width: 100%;
+	border: 0 none white;
+	overflow: hidden;
+	padding: 5px;
+	background-color: #fff;
+}
+
+.form-control-tall {
+	.form-control;
+	height: @btn-height;
+	//line-height: @btn-height;
+}
+
+.fc-short {
+	width: 177px;
+	height: @form-input-height-base;
+}
+
+.fc-small {
+	width: 80px;
+}
+.fc-half {
+	width: 110px;
+}
+.fc-inline {
+	display: inline-block;
+}
+
+.fc-detils {
+	margin-left: 15px;
+	height: @form-input-height-base;
+	font-size: @form-font-size-base;
+	line-height: @form-line-height-base;
+	display: inline-block;
+}
+
+/* Form Item With Icon */
+.form-control-block {
+	background: #fff;
+	border: 1px solid #ced7db;
+	position: relative;
+
+	i {
+		color: #8fa3ad;
+		position: absolute;
+		top: 7px;
+		left: 8px;
+		font-size: 20px;
+	}
+
+	.form-control-tall,
+	.form-control {
+		border: 0;
+		padding-left: 40px;
+	}
+}
+
+/* Label */
+.control-label {
+	line-height: @form-input-height-base;
+	display: block;
+	padding-right: 5px;
+}
+
+.control-value {
+	.control-label;
+	color: #445963;
+}
+
+/* Inline Input and Button */
+.fp-input-button {
+	.clearfix;
+	input {
+		float: left;
+		width: 90%;
+	}
+
+	button {
+		float: right;
+	}
+}
+
+.form-list {
+	.form-group {
+		padding: 0;
+		margin: 0;
+
+		.col-form-content,
+		.col-form-label {
+			padding: 0;
+			margin: 0;
+			position: relative;
+		}
+
+      .col-form-label {
+        width: @form-list-label-width;
+        float: left;
+        padding-right: 0;
+      }
+
+      .col-form-content {
+			display: block;
+			margin-left: @form-list-label-width;
+			.clearfix();
+//			padding-right: 55px;
+//			label {
+//				margin-right: 40px;
+//				float: left;
+//			}
+			textarea{
+				width: 100%;
+
+			}
+			.fc-short{
+				max-width: 177px;
+				width: 100%;
+			}
+		}
+
+      .col-form-label-med {
+        width: @form-list-label-medium-width;
+        float: left;
+        padding-right: 0;
+      }
+
+      .col-form-content-med {
+        display: block;
+        margin-left: @form-list-label-medium-width;
+        .clearfix();
+        padding-right: 55px;
+
+        //			label {
+        //				margin-right: 40px;
+        //				float: left;
+        //			}
+        textarea{
+          width: 100%;
+        }
+        .fc-short{
+          max-width: 177px;
+          width: 100%;
+        }
+      }
+
+      .col-form-label-wide {
+        width: @form-list-label-wide-width;
+        float: left;
+        padding-right: 0;
+      }
+
+      .col-form-content-wide {
+        display: block;
+        margin-left: @form-list-label-wide-width;
+        .clearfix();
+        padding-right: 55px;
+
+        //			label {
+        //				margin-right: 40px;
+        //				float: left;
+        //			}
+        textarea{
+          width: 100%;
+        }
+        .fc-short{
+          max-width: 177px;
+          width: 100%;
+        }
+      }
+  }
+}
+
+/* Select Picker */
+.bootstrap-select {
+	position: relative;
+	width: 100%;
+	> .btn {
+		color: #000;
+		display: block;
+		width: 100%;
+		height: @form-input-height-base;
+		font-size: @form-font-size-base;
+		line-height: @form-line-height-base;
+		padding: 0 6px 0 12px;
+		border: 1px solid #ced7db;
+		font-weight: 400;
+		position: relative;
+		text-transform: none;
+		background: #fff;
+		outline: none;
+		&:hover{
+			background: none !important;
+		}
+		.caret {
+			border: 0;
+			&:before {
+				content: '\e61b';
+				color: @dg-icon-color;
+				font-family: @icon-font;
+				font-size: 8px;
+				position: absolute;
+				right: 0;
+				top: -12px;
+
+			}
+		}
+	}
+}
+
+/**
+ * Custom Forms
+ */
+
+/* Login Form */
+.login-form {
+	width: 257px;
+	margin: 0 auto;
+
+	input[type='text'],
+	input[type='password'],
+	button {
+		width: 100%;
+	}
+	.checkbox {
+		color: rgba(0, 0, 0, .5);
+		font-weight: 300;
+		font-size: @form-font-size-base;
+		line-height: @form-line-height-base;
+
+		&:before {
+			color: @btn-bg;
+			font-size: 18px;
+		}
+	}
+}
+
+/* Search Patient Form */
+.search-patient-form {
+	.fp-input-button input {
+		width: 400px;
+	}
+}
+
+/* Setup Header Form */
+.setup-header-form {
+	.btn {
+		position: relative;
+		right: -45px;
+		float: right;
+	}
+}
+
+/* Top Form */
+.top-form {
+	label {
+		color: #fff;
+	}
+
+	.search-label {
+		line-height: 36px;
+	}
+
+	.checkbox:before {
+		color: #fff;
+	}
+
+	.btn-block {
+		color: #fff;
+	}
+}
+
+.tf-list {
+	> li {
+		float: left;
+	}
+}
+
+.tfl-search-label {
+	width: 120px;
+}
+
+.tfl-control {
+	width: 400px;
+	padding-right: 20px;
+}
+
+.tfl-checkbox {
+	width: 157px;
+}
+button{
+	padding-top: 0;
+}
+.change-pass{
+	.btn{
+		margin-left: 16px;
+		position: relative;
+		&:before{
+			content:'';
+			position: absolute;
+			border-radius: 2px;
+			width:100%;
+			height:100%;
+			top: 0;
+			left: 0;
+			.transition(all 0.5s ease);
+			.transform(scale(0));
+		}
+		&:hover{
+			background: none;
+			&:before{
+				background-color: rgba(0, 0, 0, 0.1);
+				.transition(all 0.5s ease);
+				.transform(scale(1));
+			}
+		}
+	}
+}
+
+#divCCRos{
+  .Required{
+    color: red;
+    padding-left: 5px;
+  }
+}
+

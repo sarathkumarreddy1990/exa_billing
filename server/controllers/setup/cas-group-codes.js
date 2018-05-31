@@ -2,7 +2,10 @@ const data = require('../../data/setup/cas-group-codes');
 
 module.exports = {
 
-    getData: function () {
+    getData: function (args) {
+        if(args.id) {
+            return data.getById(args);
+        }
         return data.getData();
     },
 
@@ -10,15 +13,15 @@ module.exports = {
         return data.getById(params);
     },
 
-    saveCasGroupCodes: async (params) => {
-        return data.saveCasGroupCodes(params);
+    save: async (params) => {
+        return data.save(params);
     },
 
-    updateCasGroupCodes: async (params) => {
-        return data.updateCasGroupCodes(params);
+    update: async (params) => {
+        return data.update(params);
     },
 
-    deleteCasGroupCodes: async (params) => {
-        return data.deleteCasGroupCodes(params);
+    delete: async (params) => {
+        return data.delete(params);
     }
 };

@@ -7,6 +7,7 @@ require.config({
         'backbone': '../node_modules/backbone/backbone',
         'backbonesubroute': '../node_modules/backbone.subroute/backbone.subroute',
         'bootstrap': '../node_modules/bootstrap/dist/js/bootstrap.bundle',
+        'bootstrapmultiselect': '../node_modules/bootstrap-multiselect/dist/js/bootstrap-multiselect',
         'moment': '../node_modules/moment/min/moment-with-locales',
         'moment-timezone': '../node_modules/moment-timezone/builds/moment-timezone-with-data',
         'jqgrid': '../libs/jqgrid/js/jquery.jqGrid.src',
@@ -34,6 +35,9 @@ require.config({
             deps: ["jquery"]
         },
         'jqgridlocale': {
+            deps: ["jquery"]
+        },
+        'bootstrapmultiselect': {
             deps: ["jquery"]
         },
         'moment-timezone': {
@@ -99,6 +103,7 @@ require([
         'customgrid',
         'app',
         'appserver_shared',
+        'bootstrapmultiselect',
         'select2'
     ], function (
         $,
@@ -113,6 +118,7 @@ require([
         customGrid,
         App,
         Appserver,
+        bootstrapmultiselect,
         select2
     ) {
             new Appserver(function () {
