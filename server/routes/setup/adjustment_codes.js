@@ -15,19 +15,16 @@ router.get('/:id', async function (req, res) {
 });
 
 router.post('/', async function (req, res) {
-    const data = await adjController.createAdjustment(req.body);
+    const data = await adjController.create(req.body);
     httpHandler.sendRows(req, res, data);
 });
 
 router.put('/', async function (req, res) {
-    const data = await adjController.updateAdjustment(req.body);
+    const data = await adjController.update(req.body);
     httpHandler.sendRows(req, res, data);
 });
 
-router.delete('/', async function (req, res) {
-    const data = await adjController.deleteAdjustment(req.body);
+router.delete('/:id', async function (req, res) {
+    const data = await adjController.delete(req.params);
     httpHandler.sendRows(req, res, data);
 });
-
-
-module.exports = router;

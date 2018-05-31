@@ -10,15 +10,15 @@ module.exports = {
         return data.getDataById(params);
     },
 
-    createAdjustment: (params) => {
-        return data.createAdjustment(params);
+    create: (params) => {
+        return data.create(params);
     },
 
-    updateAdjustment: (params) => {
-        return data.updateAdjustment(params);
+    update: (params) => {
+        return data.update(params);
     },
 
-    deleteAdjustment: (params) => {
-        return data.deleteAdjustment(params);
+    delete: (params) => {
+        return data.delete(params);
     }
 };
