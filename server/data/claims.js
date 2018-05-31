@@ -107,6 +107,8 @@ module.exports = {
     save: async function(params){
         const claim = (params.claims);
         const claim_insurances = JSON.stringify(params.insurances);
+        const claim_charges = JSON.stringify(params.charges);
+        const claim_icds = JSON.stringify(params.claim_icds);
         const claim_sql = SQL`
         WITH save_patient_insurances AS  (
             INSERT INTO patient_insurances (
@@ -157,7 +159,7 @@ module.exports = {
                     , now() + interval '1 month'
                     , medicare_insurance_type_code
             FROM
-                 json_to_recordset(${claim_insurances}) AS x (
+                 json_to_recordset(${claim_insurances}) AS insurances (
                       patient_id bigint
                     , insurance_provider_id bigint 
                     , subscriber_zipcode bigint
@@ -259,8 +261,100 @@ module.exports = {
                      ,(SELECT CASE WHEN 'referring_provider' =  ${claim.payer_type} THEN ${claim.referring_provider_contact_id}::bigint
 			    	    ELSE NULL
                         END )    
-
             ) RETURNING id
+        )
+       , charge_details AS (
+            SELECT
+                 ( SELECT id FROM save_claim )::bigint as claim_id
+                 , cpt_id
+                 , modifier1_id
+                 , modifier2_id
+                 , modifier3_id
+                 , modifier4_id
+                 , bill_fee
+                 , allowed_amount
+                 , units
+                 , created_by
+                 , charge_dt
+                 , pointer1
+                 , pointer2
+                 , pointer3
+                 , pointer4
+                 , authorization_no
+                 , study_id
+            FROM
+                json_to_recordset((${claim_charges})) AS charge (
+                  claim_id bigint
+                , cpt_id bigint
+                , modifier1_id bigint
+                , modifier2_id bigint
+                , modifier3_id bigint
+                , modifier4_id bigint
+                , bill_fee money
+                , allowed_amount money
+                , units numeric(7,3)
+                , created_by bigint
+                , charge_dt timestamp with time zone
+                , pointer1 text
+                , pointer2 text
+                , pointer3 text
+                , pointer4 text
+                , authorization_no text
+                , study_id bigint
+            )
+        )
+        , save_charges AS (
+            INSERT INTO  billing.charges (
+                       claim_id     
+                     , cpt_id
+                     , modifier1_id
+                     , modifier2_id
+                     , modifier3_id
+                     , modifier4_id
+                     , bill_fee
+                     , allowed_amount
+                     , units
+                     , created_by
+                     , charge_dt
+                     , pointer1
+                     , pointer2
+                     , pointer3
+                     , pointer4
+                     , authorization_no
+            )
+            (SELECT
+                      claim_id
+                    , cpt_id
+                    , modifier1_id
+                    , modifier2_id
+                    , modifier3_id
+                    , modifier4_id
+                    , bill_fee
+                    , allowed_amount
+                    , units
+                    , created_by
+                    , charge_dt
+                    , pointer1
+                    , pointer2
+                    , pointer3
+                    , pointer4
+                    , authorization_no
+            FROM
+                charge_details
+            ) RETURNING billing.charges.id, billing.charges.cpt_id, billing.charges.created_by
+        ),
+        save_claim_icds AS (
+            INSERT INTO billing.claim_icds (
+                      claim_id 
+                    , icd_id 
+            )
+            SELECT
+                    ( SELECT id FROM save_claim )
+                    , icd_id 
+            FROM
+                json_to_recordset(${claim_icds}) AS icds (
+                      icd_id bigint 
+                )
         )
         SELECT * FROM save_claim`;
         return await query(claim_sql);

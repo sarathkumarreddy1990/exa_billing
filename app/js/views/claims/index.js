@@ -1,5 +1,5 @@
-define(['jquery', 'underscore', 'backbone', 'models/claims','text!templates/claims/claimForm.html', 'text!templates/claims/chargeRow.html', 'collections/study-filters'],
-    function ($, _, Backbone, newClaimModel, claimCreationTemplate, chargeRowTemplate, StudyFiltersCollection) {
+define(['jquery', 'underscore', 'backbone', 'models/claims', 'text!templates/claims/claimForm.html', 'text!templates/claims/chargeRow.html'],
+    function ($, _, Backbone, newClaimModel, claimCreationTemplate, chargeRowTemplate) {
         var claimView = Backbone.View.extend({
             el: null,
             rendered: false,
@@ -13,7 +13,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','text!templates/clai
             existingTriInsurance: [],
             ACSelect: { refPhy: {}, readPhy: {} },
             responsible_list: [
-                { payer_type: "PPP",  payer_type_name: "patient", payer_id: null, payer_name: null },
+                { payer_type: "PPP", payer_type_name: "patient", payer_id: null, payer_name: null },
                 { payer_type: "PIP_P", payer_type_name: "primary_insurance", payer_id: null, coverage_level: "P", payer_name: null, billing_method: null },
                 { payer_type: "PIP_S", payer_type_name: "secondary_insurance", payer_id: null, coverage_level: "S", payer_name: null, billing_method: null },
                 { payer_type: "PIP_T", payer_type_name: "tertiary_insurance", payer_id: null, coverage_level: "T", payer_name: null, billing_method: null },
@@ -207,8 +207,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','text!templates/clai
                 self.setChargeAutoComplete(index, 'description');
 
                 // /* Bind charge table data*/
-                 $('#select2-txtCptCode_' + index + '-container').html(data.cpt_code).prop('title', data.cpt_code).attr({ 'data_code': data.cpt_code, 'data_description': data.display_description, 'data_id': data.cpt_code_id }).css('min-width', '80');
-                 $('#select2-txtCptDescription_' + index + '-container').html(data.display_description).prop('title', data.display_description).attr({ 'data_code': data.cpt_code, 'data_description': data.display_description, 'data_id': data.cpt_code_id });
+                $('#select2-txtCptCode_' + index + '-container').html(data.cpt_code).prop('title', data.cpt_code).attr({ 'data_code': data.cpt_code, 'data_description': data.display_description, 'data_id': data.cpt_code_id }).css('min-width', '80');
+                $('#select2-txtCptDescription_' + index + '-container').html(data.display_description).prop('title', data.display_description).attr({ 'data_code': data.cpt_code, 'data_description': data.display_description, 'data_id': data.cpt_code_id });
             },
             updateResponsibleList: function (payer_details) {
                 var self = this, index, responsibleEle, selected_opt;
@@ -328,7 +328,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','text!templates/clai
 
             },
             setProviderAutoComplete: function (provider_type) {
-                var self = this,_id;
+                var self = this, _id;
 
                 if (provider_type == 'PR') {
                     _id = 'ddlRenderingProvider';
@@ -336,7 +336,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','text!templates/clai
                     _id = 'ddlReferringProvider';
                 }
 
-                $("#"+_id).select2({
+                $("#" + _id).select2({
                     ajax: {
                         url: "/exa_modules/billing/autoCompleteRouter/providers",
                         dataType: 'json',
@@ -476,30 +476,11 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','text!templates/clai
 
                     curDiagnosis.push(self.ICDID);
                     $('#hdnDiagCodes').val(curDiagnosis.join(','));
-
-                    // Adding same ICD after deleted, change[is_deleted,deleted_by] flag from icd list
-                    if (_.findIndex(self.claimICDLists, { icd_id: self.ICDID }) > -1) {
-                        self.claimICDLists = _.map(self.claimICDLists, function (obj) {
-                            if (obj.icd_id === parseInt(self.ICDID)) {
-                                obj.is_deleted = false;
-                                obj.deleted_by = null;
-                            }
-                            return obj;
-                        });
-                    } else {
-                        self.claimICDLists.push({
-                            id: null,
-                            icd_id: self.ICDID,
-                            claim_id: self.claim_Id || null,
-                            created_by: app.userID,
-                            last_updated_by: app.userID,
-                            deleted_by: null,
-                            last_updated_date: null,
-                            created_date: null,
-                            deleted_dt: null,
-                            is_deleted: false
-                        });
-                    }
+                    self.claimICDLists.push({
+                        id: null,
+                        icd_id: self.ICDID,
+                        claim_id: self.claim_Id || null,
+                    });
 
                     /* Bind Diagnosis codes */
                     $('#ulSelectedDiagCodes').append(
@@ -513,16 +494,10 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','text!templates/clai
                         }).append(
                             $('<a/>').addClass("remove").attr('data-id', self.ICDID
                             ).append(
-                                $('<span/>').addClass("icon-ic-close").off().click(function (e) {
+                                $('<span/>').text('X').addClass("icon-ic-close").css({ 'font-weight': 'bold', 'font-size': 'medium' }).off().click(function (e) {
                                     var curDiagnosis = ($('#hdnDiagCodes').val() !== "") ? $('#hdnDiagCodes').val().split(',') : [],
                                         codeId = $(e.target).parent().attr('data-id');
-                                    self.claimICDLists = _.map(self.claimICDLists, function (obj) {
-                                        if (obj.icd_id === parseInt(codeId)) {
-                                            obj.is_deleted = true;
-                                            obj.deleted_by = app.userID;
-                                        }
-                                        return obj;
-                                    });
+                                    self.claimICDLists = _.reject(self.claimICDLists, function (obj) { return parseInt(obj.icd_id) === parseInt(codeId); });
 
                                     var removePointer = curDiagnosis.indexOf(codeId)
                                     curDiagnosis.splice(removePointer, 1);
@@ -535,7 +510,13 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','text!templates/clai
                     );
                 }
             },
-            bindExistingPatientInsurance:function(){
+            sortDigCodes: function () {
+                var self = this;
+                $('ul.icdTagList li span.orderNo').each(function (index, obj) {
+                    $(this).text(index + 1 + ')');
+                });
+            },
+            bindExistingPatientInsurance: function () {
                 var self = this;
                 $.ajax({
                     url: '/exa_modules/billing/claims/get_patient_insurances',
@@ -561,19 +542,19 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','text!templates/clai
                                         self.existingTriInsurance.push(value);
                                 }
                             });
-                            self.bindExistingInsurance(self.existingPrimaryInsurance,'ddlExistPriIns')
-                            self.bindExistingInsurance(self.existingSecondaryInsurance,'ddlExistSecIns')
-                            self.bindExistingInsurance(self.existingTriInsurance,'ddlExistTerIns')
+                            self.bindExistingInsurance(self.existingPrimaryInsurance, 'ddlExistPriIns')
+                            self.bindExistingInsurance(self.existingSecondaryInsurance, 'ddlExistSecIns')
+                            self.bindExistingInsurance(self.existingTriInsurance, 'ddlExistTerIns')
                         }
                     },
                     error: function (err, response) {
                         commonjs.handleXhrError(err, response);
                     }
-                }) 
+                })
             },
             bindExistingInsurance: function (array, insurance_id) {
                 var self = this;
-                var existingInsElement = $('#'+insurance_id);
+                var existingInsElement = $('#' + insurance_id);
                 existingInsElement.empty();
                 existingInsElement.append("<option value=''>SELECT</option>");
                 for (var i = 0; i < array.length; i++) {
@@ -584,7 +565,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','text!templates/clai
                         }).text(array[i].insurance_name));
                 }
             },
-            setOrderingFacilityAutoComplete:function(){
+            setOrderingFacilityAutoComplete: function () {
                 var self = this;
                 $("#ddlOrdFacility").select2({
                     ajax: {
@@ -598,7 +579,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','text!templates/clai
                                 pageSize: 10,
                                 sortField: "group_name",
                                 sortOrder: "ASC",
-                                groupType:'OF',
+                                groupType: 'OF',
                                 company_id: 1
                             };
                         },
@@ -630,19 +611,19 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','text!templates/clai
 
                 }
                 function formatRepoSelection(res) {
-                        self.group_name = res.group_name;
-                        self.group_id = res.provider_group_id;
-                        self.updateResponsibleList({
-                            payer_type: 'POF',
-                            payer_id: res.provider_group_id,
-                            payer_name: res.group_name + '(Service Facility)'
-                        });
-                        return res.group_name;
-                } 
+                    self.group_name = res.group_name;
+                    self.group_id = res.provider_group_id;
+                    self.updateResponsibleList({
+                        payer_type: 'POF',
+                        payer_id: res.provider_group_id,
+                        payer_name: res.group_name + '(Service Facility)'
+                    });
+                    return res.group_name;
+                }
             },
-            bindInsuranceAutocomplete:function(element_id){
+            bindInsuranceAutocomplete: function (element_id) {
                 var self = this;
-                $("#"+element_id).select2({
+                $("#" + element_id).select2({
                     ajax: {
                         url: "/exa_modules/billing/autoCompleteRouter/insurances",
                         dataType: 'json',
@@ -682,15 +663,15 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','text!templates/clai
                     var markup = "<table><tr>";
                     markup += "<td title='" + repo.insurance_code + "(" + repo.insurance_name + ")'> <div>" + repo.insurance_code + "(" + repo.insurance_name + ")" + "</div><div>" + insurance_info.Address1 + "</div>";
                     markup += "<div>" + insurance_info.City + ", " + insurance_info.State + " " + insurance_info.ZipCode + "</div>";
-                    markup += "</td></tr></table>";    
+                    markup += "</td></tr></table>";
                     return markup;
 
                 }
                 function formatRepoSelection(res) {
-                    if (res && res.id) 
+                    if (res && res.id)
                         self.bindInsurance(element_id, res);
                     return res.insurance_name;
-                }  
+                }
             },
             bindInsurance: function (element_id, res) {
                 var self = this, payer_typ, coverage_level;
@@ -752,7 +733,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','text!templates/clai
                     $('#lbl' + level + 'InsCityStateZip').hide();
 
             },
-            bindBillingSummary:function(){
+            bindBillingSummary: function () {
                 var self = this;
                 $.ajax({
                     type: 'GET',
@@ -847,7 +828,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','text!templates/clai
                     coverage_level: 'primary',
                     policy_number: $('#txtPriPolicyNo').val(),
                     group_number: $('#txtPriGroupNo').val(),
-                   //plan_name: $('#ddlPriPlanName option:selected').val() || null,
+                    //plan_name: $('#ddlPriPlanName option:selected').val() || null,
                     subscriber_firstname: $('#txtPriSubFirstName').val(),
                     subscriber_lastname: $('#txtPriSubLastName').val(),
                     subscriber_middlename: $('#txtPriSubMiName').val(),
@@ -954,8 +935,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','text!templates/clai
                     claim_model.charges.push({
                         id: rowData.id ? rowData.id : null,
                         claim_id: rowData.claim_id ? rowData.claim_id : null,
-                        line_num: index,
-                        ref_charge_id: rowData.ref_charge_id ? parseInt(rowData.ref_charge_id) : null,
+                        //line_num: index,
                         cpt_id: parseInt(cpt_code_id),
                         pointer1: $('#ddlPointer1_' + id).val() || null,
                         pointer2: $('#ddlPointer2_' + id).val() || null,
@@ -968,18 +948,22 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','text!templates/clai
                         bill_fee: parseFloat($('#txtBillFee_' + id).val()) || null,
                         allowed_amount: parseFloat($('#txtAllowedFee_' + id).val()),
                         units: parseFloat($('#txtUnits_' + id).val()),
-                        created_by: 0,
+                        created_by: 1,
                         authorization_no: $('#txtAuthInfo_' + id).val() || null,
-                        charge_dt : self.cur_study_date || null,
-                        study_id : self.cur_study_id || null
+                        charge_dt: self.cur_study_date || null,
+                        study_id: rowData.study_id || null
                     });
                 });
+
+                /*Setting ICD pointers details*/
+                claim_model.claim_icds = self.claimICDLists || [];
 
                 // set claims details
                 self.claimModel.set({
                     insurances: claim_model.insurances,
                     charges: claim_model.charges,
-                    claims: claim_model.claims
+                    claims: claim_model.claims,
+                    claim_icds: claim_model.claim_icds
                 });
 
                 self.claimModel.save({}, {
