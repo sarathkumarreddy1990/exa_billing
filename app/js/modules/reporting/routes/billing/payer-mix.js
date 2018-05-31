@@ -3,7 +3,7 @@ define([
     , 'backbone'
     , 'backbonesubroute'
     , 'modules/reporting/utils/routing'
-    , 'modules/reporting/views/billing/payer_mix'
+    , 'modules/reporting/views/billing/payer-mix'
 ],
     function ($, Backbone, SubRoute, RoutingUtils, payerMixView) {
 
@@ -25,7 +25,7 @@ define([
 
             initializeRouter: function () {
                 console.log('router - initializeRouter');
-                this.options.screen = facilityModules.reportScreens.payer_mix;
+                this.options.screen = facilityModules.reportScreens.payer-mix;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {

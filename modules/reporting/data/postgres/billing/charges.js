@@ -28,7 +28,7 @@ WITH code_counts AS (
   SELECT
      *
   FROM
-     code_counts cc LIMIT 10  
+     code_counts cc 
 `);
 
 const api = {

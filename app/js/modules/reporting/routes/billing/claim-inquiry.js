@@ -3,7 +3,7 @@ define([
     , 'backbone'
     , 'backbonesubroute'
     , 'modules/reporting/utils/routing'
-    , 'modules/reporting/views/billing/claim_inquiry'
+    , 'modules/reporting/views/billing/claim-inquiry'
 ],
     function ($, Backbone, SubRoute, RoutingUtils, claimInquiryView) {
 
@@ -22,7 +22,7 @@ define([
             },
 
             initializeRouter: function () {
-                this.options.screen = facilityModules.reportScreens.claim_inquiry;
+                this.options.screen = facilityModules.reportScreens.claim-inquiry;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {

@@ -3,7 +3,7 @@ define([
         , 'backbone'
         , 'backbonesubroute'
         , 'modules/reporting/utils/routing'
-        , 'modules/reporting/views/billing/modality_summary'
+        , 'modules/reporting/views/billing/modality-summary'
     ],
     function ($, Backbone, SubRoute, RoutingUtils, modalitySummaryView) {
 
@@ -23,7 +23,7 @@ define([
             },
 
             initializeRouter: function () {
-                this.options.screen = facilityModules.reportScreens.modality_summary;
+                this.options.screen = facilityModules.reportScreens.modality-summary;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {

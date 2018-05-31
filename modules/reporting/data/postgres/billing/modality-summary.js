@@ -7,31 +7,34 @@ const _ = require('lodash')
 
 // generate query template ***only once*** !!!
 
-const payerMixDataSetQueryTemplate = _.template(`
-with payer_mix_details as (
+const modalitySummaryDataSetQueryTemplate = _.template(`
+with modalitySummary as (
     SELECT
-    pcc.display_code,
-    pip.insurance_code,
-    pip.insurance_name,
-    pf.facility_name,
-    bc.claim_dt,
-    sum(bch.bill_fee),
-    COUNT(bc.id) as claim_count
-FROM billing.claims bc
-INNER JOIN billing.charges bch ON bch.claim_id = bc.id 
-INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
-INNER JOIN public.facilities pf ON pf.id = bc.facility_id
-LEFT JOIN public.patient_insurances ppi ON ppi.id = ANY (ARRAY[bc.primary_patient_insurance_id,bc.secondary_patient_insurance_id,bc.tertiary_patient_insurance_id])
-LEFT JOIN public.insurance_providers pip ON pip.id= ppi.insurance_provider_id 
+    m.modality_name,
+    count(DISTINCT o.id) AS order_count,
+    count(DISTINCT s.id) AS study_count, -- why was this in v1 referred to as "order_count" ?
+    count(DISTINCT cs.study_id) AS studies_count, -- just another way to get study count which may be faster
+    count(c.id) AS charges_count,
+    sum(c.bill_fee * c.units) AS charges_bill_fee_total 
+--, sum(c.allowed_amount * c.units) AS charges_allowed_amount_total   
+FROM
+    public.orders AS o
+    INNER JOIN public.studies AS s ON o.id = s.order_id
+    INNER JOIN modalities AS m ON m.id = s.modality_id
+    INNER JOIN billing.charges_studies AS cs ON s.id = cs.study_id
+    INNER JOIN billing.charges AS c ON c.id = cs.charge_id
 WHERE 1=1
 AND  <%= companyId %>
-GROUP BY  pcc.display_code,
-          pip.insurance_code,
-          pip.insurance_name,
-          pf.facility_name,
-          bc.claim_dt
- ORDER BY insurance_name,facility_name)
- select * from payer_mix_details
+    AND NOT o.has_deleted
+    AND NOT o.is_quick_appt
+    AND o.order_status NOT IN ('NOS', 'ABRT', 'ORD', 'CAN')
+    AND s.study_dt IS NOT NULL
+    AND s.study_status NOT IN ('NOS', 'ABRT', 'CAN')
+    AND NOT s.has_deleted
+GROUP BY
+    ROLLUP (m.modality_name)
+)
+select * from modalitySummary 
 `);
 
 const api = {
@@ -42,14 +45,14 @@ const api = {
      */
     getReportData: (initialReportData) => {
         return Promise.join(            
-            api.createpayerMixDataSet(initialReportData.report.params),
+            api.createmodalitySummaryDataSet(initialReportData.report.params),
             // other data sets could be added here...
-            (payerMixDataSet) => {
+            (modalitySummaryDataSet) => {
                 // add report filters                
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 // add report specific data sets
-                initialReportData.dataSets.push(payerMixDataSet);
+                initialReportData.dataSets.push(modalitySummaryDataSet);
                 initialReportData.dataSetCount = initialReportData.dataSets.length;
                 return initialReportData;
             });
@@ -107,21 +110,21 @@ const api = {
     },
 
     // ================================================================================================================
-    // --- DATA SET - payerMix count
+    // --- DATA SET - modalitySummary count
 
-    createpayerMixDataSet: (reportParams) => {
+    createmodalitySummaryDataSet: (reportParams) => {
         // 1 - build the query context. Each report will 'know' how to do this, based on report params and query/queries to be executed...
-        const queryContext = api.getpayerMixDataSetQueryContext(reportParams);
+        const queryContext = api.getmodalitySummaryDataSetQueryContext(reportParams);
         console.log('context__', queryContext)
         // 2 - geenrate query to execute
-        const query = payerMixDataSetQueryTemplate(queryContext.templateData);
+        const query = modalitySummaryDataSetQueryTemplate(queryContext.templateData);
         // 3a - get the report data and return a promise
         return db.queryForReportData(query, queryContext.queryParams);
     },
 
     // query context is all about query building: 1 - query parameters and 2 - query template data
     // every report and/or query may have a different logic to build a query context...
-    getpayerMixDataSetQueryContext: (reportParams) => {
+    getmodalitySummaryDataSetQueryContext: (reportParams) => {
         const params = [];
         const filters = {
             companyId: null
@@ -130,7 +133,7 @@ const api = {
 
         // company id
         params.push(reportParams.companyId);
-        filters.companyId = queryBuilder.where('bc.company_id', '=', [params.length]);
+        filters.companyId = queryBuilder.where('o.company_id', '=', [params.length]);
 
         // // order facilities
         // if (!reportParams.allFacilities && reportParams.facilityIds) {

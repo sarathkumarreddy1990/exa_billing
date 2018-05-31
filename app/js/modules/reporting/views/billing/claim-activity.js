@@ -3,7 +3,7 @@ define([
     , 'underscore'
     , 'backbone'
     , 'modules/reporting/utils/ui'
-    , 'text!modules/reporting/templates/billing/claim_activity.html'
+    , 'text!modules/reporting/templates/billing/claim-activity.html'
 ],
     function ($, _, Backbone, UI, MainTemplate) {
 

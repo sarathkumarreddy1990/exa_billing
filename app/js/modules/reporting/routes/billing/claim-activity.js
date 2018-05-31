@@ -3,7 +3,7 @@ define([
   , 'backbone'
   , 'backbonesubroute'
   , 'modules/reporting/utils/routing'
-  , 'modules/reporting/views/billing/claim_activity'
+  , 'modules/reporting/views/billing/claim-activity'
 ],
   function ($, Backbone, SubRoute, RoutingUtils, ClaimActivityView) {
 
@@ -22,7 +22,7 @@ define([
       },
 
       initializeRouter: function () {
-        this.options.screen = facilityModules.reportScreens.claim_activity;
+        this.options.screen = facilityModules.reportScreens.claim-activity;
         layout.initializeLayout(this);
 
         if (!layout.initialized) {

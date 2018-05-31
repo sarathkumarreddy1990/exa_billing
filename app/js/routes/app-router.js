@@ -7,11 +7,13 @@ define([
     'routes/setup/index',
     'modules/reporting/views/billing/charges',
     'modules/reporting/views/billing/payments',
-    'modules/reporting/views/billing/claim_activity',
-    'modules/reporting/views/billing/claim_inquiry',
-    'modules/reporting/views/billing/patient_statement',
-    'modules/reporting/views/billing/modality_summary',
-    'modules/reporting/views/billing/payer_mix'
+    'modules/reporting/views/billing/claim-activity',
+    'modules/reporting/views/billing/claim-inquiry',
+    'modules/reporting/views/billing/patient-statement',
+    'modules/reporting/views/billing/modality-summary',
+    'modules/reporting/views/billing/payer-mix',
+    'modules/reporting/views/billing/payments_by_ins_company',
+    'modules/reporting/views/billing/referring_provider_count'
 ], function (Backbone,
     WorklistView,
     StudiesView,
@@ -24,7 +26,9 @@ define([
     ClaimInquiryView, 
     PatientStatementView, 
     MoadalitySummaryView, 
-    PayerMixView
+    PayerMixView,
+    PaymentByInsCompanyView,
+    ReferringProviderCountView
     ) {
         var AppRouter = Backbone.Router.extend({
             routes: {
@@ -34,11 +38,13 @@ define([
                 "app/claim_workbench": "startClaimWorkBench",
                 "app/reports/charges": "startChargeReporting" ,
                 "app/reports/payments": "startPaymentReporting",
-                "app/reports/claim_activity": "startClaimActivityReporting",
-                "app/reports/claim_inquiry": "startClaimInquiryReporting",
-                "app/reports/patient_statement": "startPatientStatementReporting",
-                "app/reports/modality_summary": "startModalitySummaryReporting",           
-                "app/reports/payer_mix": "startPayerMixReporting",
+                "app/reports/claim-activity": "startClaimActivityReporting",
+                "app/reports/claim-inquiry": "startClaimInquiryReporting",
+                "app/reports/patient-statement": "startPatientStatementReporting",
+                "app/reports/modality-summary": "startModalitySummaryReporting",           
+                "app/reports/payer-mix": "startPayerMixReporting",
+                "app/reports/payments_by_ins_company": "startPaymentsByInsuranceCompanyReporting",
+                "app/reports/referring_provider_count": "startReferringProviderCountReporting",
     
                 "app/*subroute": "startApp",
                 "setup/*subroute": "startSetup",
@@ -117,6 +123,18 @@ define([
             startPayerMixReporting: function (subroutes) {
                 if (!this.reportingRoute) {             
                     this.reportingRoute = new PayerMixView({ el: $('#root') });
+                }
+            },
+
+            startPaymentsByInsuranceCompanyReporting: function (subroutes) {
+                if (!this.reportingRoute) {             
+                    this.reportingRoute = new PaymentByInsCompanyView({ el: $('#root') });
+                }
+            },
+            
+            startReferringProviderCountReporting: function (subroutes) {
+                if (!this.reportingRoute) {             
+                    this.reportingRoute = new ReferringProviderCountView({ el: $('#root') });
                 }
             },
 
