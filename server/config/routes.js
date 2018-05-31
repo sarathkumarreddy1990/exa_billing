@@ -7,6 +7,8 @@ const appSettingsRouter = require('../routes/app-settings');
 const claimFiltersRouter = require('../routes/claim-filters');
 const autoCompleteRouter = require('../routes/autoCompleteDropDown');
 const setupRouters = require('../routes/setup/');
+const paymentsRouter = require('../routes/payments');
+const editPaymentsRouter = require('../routes/edit-payments');
 
 const router = function (app) {
 
@@ -21,6 +23,8 @@ const router = function (app) {
     app.use('/exa_modules/billing/claimFilters', claimFiltersRouter);
     app.use('/exa_modules/billing/autoCompleteRouter', autoCompleteRouter);
     app.use('/exa_modules/billing/setup', setupRouters);
+    app.use('/exa_modules/billing/payments', paymentsRouter);
+    app.use('/exa_modules/billing/pending_payments', editPaymentsRouter);
 };
 
 module.exports = router;

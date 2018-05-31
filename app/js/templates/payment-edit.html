@@ -1,0 +1,289 @@
+<style>
+    #PaymentForm label {
+        display: inline;
+    }
+</style>
+<div id="PaymentForm">
+    <div class="form-horizontal form-list">
+        <div class="">
+            <div class="col-md-12">
+                <div class="form-group form-inline">
+                    <div class="col-form-label-wide">
+                        <label for="lblPayerID" class="control-label" i18n="billing.payments.paymentID"></label>
+                    </div>
+                    <div class="">
+                        :
+                        <label class="pad-top-6 w70 rt-offset10" id="lblPayerID"></label>
+                    </div>
+                </div>
+                <div class="form-group form-inline">
+                    <div class="col-form-label-wide">
+                        <label for="referencePaymentID" class="control-label" i18n="billing.payments.referencePaymentID"></label>
+                    </div>
+                    <div class="col-form-content-wide">
+                        <input type="text" id="referencePaymentID" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group form-inline">
+                    <div class="col-form-label-wide">
+                        <label for="chkpayerInsurance" class="control-label field-required" i18n="billing.payments.payer"></label>
+                    </div>
+                    <div class="col-form-content-wide">
+                        <label class="radio-inline" for='chkpayerInsurance'>
+                            <input id='chkpayerInsurance' type='radio' class="payerType" name="payertype" value='insurance'>
+                            <label for="chkpayerInsurance" class="field-chk" style="min-width: 20px!important;" i18n="billing.payments.insurance"></label>
+                        </label>
+                        <label class="radio-inline paymentMethod" for='chkpayerPatient'>
+                            <input id='chkpayerPatient' type='radio' class="payerType" name="payertype" value='patient'>
+                            <label for="chkpayerPatient" class="field-chk" style="min-width: 20px!important;" i18n="billing.payments.patient"></label>
+                        </label>
+                        <label class="radio-inline paymentMethod" for='chkpayerOrdering'>
+                            <input id='chkpayerOrdering' type='radio' class="payerType" name="payertype" value='"ordering_facility"'>
+                            <label for="chkpayerOrdering" class="field-chk" style="min-width: 20px!important;" i18n="billing.payments.orderingFacility"></label>
+                        </label>
+                        <label class="radio-inline paymentMethod" for='chkpayerProvider'>
+                            <input id='chkpayerProvider' type='radio' class="payerType" name="payertype" value='provider'>
+                            <label for="chkpayerProvider" class="field-chk" style="min-width: 20px!important;" i18n="billing.payments.provider"></label>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group form-inline">
+                    <div class="col-form-label-wide">
+                        <label class="control-label"> </label>
+                    </div>
+                    <div class="col-form-content-wide">
+                        <div id="divPayerInsurnace">
+                            <input type="hidden" id="hdnPayerID" class="form-control">
+                            <input type="text" id="txtautoPayerPIP" class="form-control" />
+                            <a disabled='disabled' class="btn btn-primary selectInsurance" id="spnSearchPayerInsurance" title="Search">
+                                <i class="icon-ic-search"></i>Search</a>
+                            <input type="button" class="btnInsuranceSelectSave" style="display: none;" id="btnInsuranceSelectSave">
+                            <span id="lblAutoInsurance>" disabled> </span>
+                        </div>
+                        <div id="divPayerPatient" style="display:none;">
+                            <input type="text" id="txtautoPayerPP" class="form-control" />
+                            <a disabled='disabled' class="btn btn-primary selectPatientSave" id="spnSearchPayerPatient" title="Search">
+                                <i class="icon-ic-search"></i>
+                            </a>
+                            <input type="button" class="btnPatientSelectSave" style="display: none;" id="btnPatientSelectSave">
+                            <span id="lblAutoPatient"> </span>
+                        </div>
+                        <div id="divPayerOrderFacility" style="display:none;">
+                            <input type="text" id="txtautoPayerPOF" class="form-control" />
+                            <a disabled='disabled' class="btn btn-primary selectOrderingFac" id="spnSearchPayerPOF" title="Search">
+                                <i class="icon-ic-search"></i>
+                            </a>
+                            <input type="button" class="btnOFSelectSave" style="display: none;" id="btnOFSelectSave">
+                        </div>
+                        <div id="divPayerProvider" style="display:none;">
+                            <input type="text" id="txtautoPayerPR" class="form-control" />
+                            <a disabled='disabled' class="btn btn-primary searchProvider" id="spnSearchPayerPR" title="Search">
+                                <i class="icon-ic-search"></i>
+                            </a>
+                            <input type="button" class="btnRefProviderSelectSave" style="display: none;" id="btnRefProviderSelectSave">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group form-inline">
+                    <div class="col-form-label-wide">
+                        <label for="chkMethodPaperClaim" class="control-label field-required" i18n="billing.payments.billingmethod"></label>
+                    </div>
+                    <div class="col-form-content-wide">
+                        <div id="divMethodInsurance">
+                            <label class="radio-inline" for='chkEOB'>
+                                <input id='chkEOB' type='radio' class="billMethod" name="billingMethod" value='EB'>
+                                <label for="chkEOB" class="field-chk" style="min-width: 20px!important;" i18n="billing.payments.eob"></label>
+                            </label>
+                            <label class="radio-inline" for='chkDirectingBilling'>
+                                <input id='chkDirectingBilling' type='radio' class="billMethod invoice" name="billingMethod" value='DB'>
+                                <label for="chkDirectingBilling" class="field-chk" style="min-width: 20px!important;" i18n="billing.payments.directingBilling"></label>
+                            </label>
+                            <label class="radio-inline divInvoice" style="display: none" id='chkDirectingBillingCon' for='chkDirectingBilling'>
+                                <label class="field-chk" for='chkDirectingBilling' style="margin-left: 30px; min-width:20px !important;">Invoice :</label>
+                                <input type="text" id="txtInvoice" class="form-control invoiceNo" />
+                            </label>
+                        </div>
+
+                        <div id="divMethodPatient" style="display:none;">
+                            <label class="radio-inline" for='chkMethodPatPayment'>
+                                <input id='chkMethodPatPayment' type='radio' name="billingPPMethod" value='PP'>
+                                <label for="chkMethodPatPayment" class="field-chk" style="min-width: 20px!important;" i18n="billing.payments.patientPayment"></label>
+                            </label>
+                        </div>
+                        <div id="divMethodProvider" style="display:none;">
+                            <label class="radio-inline" for='chkDirectingBilling'>
+                                <input id='chkPRDirectingBilling' type='radio' name="billingPRMethod" value='DB'>
+                                <label for="chkPRDirectingBilling" class="field-chk" style="min-width: 20px!important;" i18n="billing.payments.directingBilling"></label>
+                            </label>
+                            <label class="radio-inline" for='txtPRInvoice'>
+                                <label class="field-chk " for='txtPRInvoice>' style="margin-left: 30px; min-width:20px !important;">Invoice :</label>
+                                <input type="text" id="txtPRInvoice" class="form-control invoiceNo" />
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group form-inline">
+                    <div class="col-form-label-wide">
+                        <label for="ddlpaymentReason" class="control-label" i18n="billing.payments.paymentReason"></label>
+                    </div>
+                    <div class="col-form-content-wide">
+                        <select class="form-control" id="ddlpaymentReason">
+                            <option value="">Select</option>
+
+                            <option value="COPAY" data-reason="COPAY" data-copay="true">COPAY</option>
+
+                            <option value="PRE" data-reason="PRE" data-copay="false">PRE PAYMENT</option>
+
+                            <option value="REF" data-reason="REF" data-copay="false">REFUND</option>
+
+                        </select>
+                        <!-- <select class="form-control" id="ddlpaymentReason">
+                            <option value="">Select</option>
+                            <% _.each(paymentReasons, function(reason) { %>
+                            <option value="<%= reason.reason %>" data-reason="<%= reason.reason %>" data-copay="<%= reason.isCopay %>"><%= reason.description %></option>
+                            <% }); %>
+                        </select> -->
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12" style="height: 210px;">
+                <div class="col-md-6" style="float: left;">
+                    <div class="form-group form-inline">
+                        <div class="col-form-label-wide">
+                            <label for="ddlPaidLocation" class="control-label" i18n="billing.payments.paidLocation"></label>
+                        </div>
+                        <div class="col-form-content-wide">
+                            <select class="form-control" id="ddlPaidLocation" class="paidLocation">
+                                <% _.each(paidlocation, function(facility) { %>
+                                    <option value="<%= facility.id %>">
+                                        <%= facility.facility_name %>
+                                    </option>
+                                    <% }); %>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group form-inline" style="display:none">
+                        <div class="col-form-label-wide">
+                            <label for="ddlBillingOffice" class="control-label" i18n="billing.payments.billingOffice"></label>
+                        </div>
+                        <div class="col-form-content-wide">
+                            <select class="form-control" id="ddlBillingOffice" class="billingOffice">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group form-inline">
+                        <div class="col-form-label-wide">
+                            <label class="control-label  field-required" for="txtAccountingDate" i18n="billing.payments.accountingDate"></label>
+                        </div>
+                        <div class="col-form-content-wide">
+                            <div id="divAccountingDate" class="input-group">
+                                <input type="text" id="txtAccountingDate" class="form-control form-control-date maskDateLocale" name="accountingDate">
+                                <span class="input-group-addon add-on">
+                                    <i class="icon-ic-schedule icon-ic-calendar"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group form-inline">
+                        <div class="col-form-label-wide">
+                            <label class="control-label field-required" for="txtAmount" i18n="billing.payments.amount"></label>
+                        </div>
+                        <div class="col-form-content-wide">
+                            :
+                            <input type="text" id="txtAmount" class="form-control negativeFloatBox" />
+                        </div>
+                    </div>
+                    <div class="form-group form-inline">
+                        <div class="col-form-label-wide">
+                            <label for="lblApplied" class="control-label" i18n="billing.payments.applied"></label>
+                        </div>
+                        <div class="col-form-content-wide">
+                            :
+                            <label class="pad-top-6 w70 rt-offset10" id="lblApplied"></label>
+                        </div>
+                    </div>
+                    <div class="form-group form-inline">
+                        <div class="col-form-label-wide">
+                            <label for="lblBalance" class="control-label" i18n="billing.payments.balance"></label>
+                        </div>
+                        <div class="col-form-content-wide">
+                            :
+                            <label class="pad-top-6 w70 rt-offset10" id="lblBalance"></label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6" style="float: right" ;>
+                    <div class="form-group form-inline">
+                        <div class="col-form-label-wide">
+                            <label for="chkModeCash" class="control-label" i18n="billing.payments.paymentmode"></label>
+                        </div>
+                        <div class="col-form-content-wide">
+                            <div id="divPayerMode">
+                                <input id='chkModeCash' type='radio' class="payerMode" name="payerMode" value='cash'>
+                                <label for="chkModeCash" class="field-chk" style="min-width: 20px!important; padding-left:8px;" i18n="billing.payments.cash">
+                                </label>
+
+                                <input id='chkModeCheck' type='radio' class="payerMode" name="payerMode" value='check'>
+                                <label for="chkModeCheck" class="field-chk" style="min-width: 20px!important; padding-left:8px;" i18n="billing.payments.cheque">
+                                </label>
+
+                                <input id='chkModeCard' type='radio' class="payerMode" name="payerMode" value='card'>
+                                <label for="chkModeCard" class="field-chk" style="min-width: 20px!important; padding-left:8px;" i18n="billing.payments.card">
+                                </label>
+
+                                <input id='chkEFT' type='radio' class="payerMode" name="payerMode" value='EFT'>
+                                <label for="chkEFT" class="field-chk" i18n="billing.payments.eft" style="min-width: 20px!important; padding-left:8px;"> </label>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group form-inline">
+                        <div class="col-form-label-wide">
+                            <label class="control-label" for="txtCheque" i18n="billing.payments.chequeCardNo"></label>
+                        </div>
+                        <div class="col-form-content-wide">
+                            <input type="text" id="txtCheque" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="form-group form-inline">
+                        <div class="col-form-label-wide">
+                            <label class="control-label" for="txtCardName" i18n="billing.payments.cardName"></label>
+                        </div>
+                        <div class="col-form-content-wide">
+                            <input type="text" id="txtCardName" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="form-group form-inline">
+                        <div class="col-form-label-wide">
+                            <label class="control-label" for="txtNotes">Notes</label>
+                        </div>
+                        <div class="col-form-content-wide">
+                            <textarea class="form-control" id="txtNotes" rows="4" style="height: 40px;"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <input type="hidden" id="hdnOldPayerFlag>">
+                <input type="hidden" id="hdnOldInvoiceNo">
+                <input type="hidden" id="hdnOldPayerId">
+            </div>
+
+            <div class="col-md-12">
+                <div class="col-form-content">
+                    <input type="button" id="btnPaymentSave" class="btn btn-default btn-primary savePayment" i18n="shared.buttons.save">
+                    <input type="button" id="btnPaymentInvoice" class="btn btn-default" i18n="shared.buttons.invoice " style="display: none">
+                    <input type="button" id="btnPaymentAddNew" class="btn btn-default addnew" i18n="shared.buttons.addNew">
+                    <input type="button" id="btnPaymentClear" class="btn btn-default clearAdd" i18n="shared.buttons.clear">
+                    <input type="button" id="btnPaymentPrint" class="btn btn-default printPayment" i18n="shared.buttons.print">
+                    <input type="button" id="btnPrintReceipt" class="btn btn-default printReceipt" i18n="order.chargePayment.printReceipt">
+                    <input type="button" id="btnPaymentRefClick" class="btn btn-default paymentRefresh" i18n="shared.buttons.refresh" style="display:none;">
+                    <input type="button" id="btnPaymentDelete" class="btn btn-default paymentDelete" i18n="shared.buttons.delete">
+                </div>
+            </div>
+            <br/>
+            <br/>
+            <div id="divPendingPay" class="col-xs-12">
+            </div>
+        </div>
+    </div>
+</div>
