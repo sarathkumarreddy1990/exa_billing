@@ -146,15 +146,20 @@ define(['jquery',
                     this.model.fetch({
                         data: { id: this.model.id},
                         success: function (model, response) {
-                            response = response[0];
-                            if (response) {
-                                $('#txtCode').val(response.code);
-                                $('#txtDescription').val(response.description);
-                                $('#txtName').val(response.name);
-                                $('#chkActive').prop('checked',response.is_active);
+                            if (response && response.length > 0) {
+                                var data = response[0];
+                                if (data) {
+                                    $('#txtCode').val(data.code ? data.code : '');
+                                    $('#txtDescription').val(data.description ? data.description : '');
+                                    $('#txtName').val(data.name ? data.name : '');
+                                    $('#chkActive').prop('checked', data.inactivated_dt ? true : false);
+                                }
                             }
                         }
                     });
+                } else {
+                    this.model = new CasGroupCodesModel();
+
                 }
                 $('#divCasGroupCodesGrid').hide();
                 $('#divCasGroupCodesForm').show();
@@ -178,13 +183,14 @@ define(['jquery',
                     "code": $.trim($('#txtCode').val()),
                     "description": $.trim($('#txtDescription').val()),
                     "name": $.trim($('#txtName').val()),
-                    "is_active" : $('#chkActive').prop('checked')
+                    "is_active" : !$('#chkActive').prop('checked'),
+                    "company_id" : app.companyID
                 });
                 this.model.save({
                 }, {
                     success: function (model, response) {
                         if(response) {
-                            location.href = "#setup/cas_group_codes/list";
+                            location.href = "#setup/cas_group_codes/list"; 
                         }
                     },
                     error: function (model, response) {

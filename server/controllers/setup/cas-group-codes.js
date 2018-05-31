@@ -6,7 +6,6 @@ module.exports = {
         if(args.id) {
             return data.getById(args);
         }
-
         return data.getData();
     },
 
