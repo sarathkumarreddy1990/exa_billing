@@ -2,7 +2,11 @@ const data = require('../../data/setup/cas-group-codes');
 
 module.exports = {
 
-    getData: function () {
+    getData: function (args) {
+        if(args.id) {
+            return data.getById(args);
+        }
+
         return data.getData();
     },
 
