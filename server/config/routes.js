@@ -6,6 +6,7 @@ const studyFiltersRouter = require('../routes/study-filters');
 const appSettingsRouter = require('../routes/app-settings');
 const claimFiltersRouter = require('../routes/claim-filters');
 const autoCompleteRouter = require('../routes/autoCompleteDropDown');
+const setupRouters = require('../routes/setup/');
 const claimsRouters = require('../routes/claims');
 
 const router = function (app) {
@@ -20,6 +21,7 @@ const router = function (app) {
     app.use('/exa_modules/billing/appSettings', appSettingsRouter);
     app.use('/exa_modules/billing/claimFilters', claimFiltersRouter);
     app.use('/exa_modules/billing/autoCompleteRouter', autoCompleteRouter);
+    app.use('/exa_modules/billing/setup', setupRouters);
     app.use('/exa_modules/billing/claims', claimsRouters);
 };
 

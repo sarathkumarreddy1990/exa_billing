@@ -24,7 +24,7 @@
         "express-promise-router": "^3.0.2",
         "express-session": "^1.15.6",
         "http-errors": "~1.6.2",
-        "jsreport-client": "^1.0.0",
+        "jsreport-client": "^0.4.1",
         "less-middleware": "^3.0.0",
         "ln": "^0.4.3",
         "moment": "^2.22.1",
