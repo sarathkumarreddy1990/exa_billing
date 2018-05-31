@@ -40,7 +40,7 @@ module.exports = {
         return await query(sql);
     },
 
-    createAdjustment: async (params) => {
+    create: async (params) => {
         let {
             code,
             desc,
@@ -68,7 +68,7 @@ module.exports = {
         return await query(sql);
     },
 
-    updateAdjustment: async (params) => {
+    update: async (params) => {
 
         let {
             code,
@@ -83,7 +83,7 @@ module.exports = {
         const sql = SQL`UPDATE
                              billing.adjustment_codes 
                         SET  
-                            , code = ${code}
+                              code = ${code}
                             , desctiption = ${desc}
                             , accounting_entry_type = ${type}
                             , inactivated_dt = ${inactivated_date}
@@ -93,7 +93,7 @@ module.exports = {
         return await query(sql);
     },
 
-    deleteAdjustment: async (params) => {
+    delete: async (params) => {
         const { id } = params;
 
         const sql = SQL`DELETE FROM 
