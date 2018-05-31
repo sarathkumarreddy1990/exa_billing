@@ -4,7 +4,7 @@ module.exports = {
 
     getData: async function (params) {
         let whereQuery = '';
-        params.sortOrder = params.sortOrder ? params.sortOrder : ` DESC`;
+        params.sortOrder = params.sortOrder ? params.sortOrder : ' DESC';
 
         const sql = SQL`SELECT 
                           id AS adj_code_id
@@ -17,7 +17,7 @@ module.exports = {
             sql.append(whereQuery);
         }
         sql.append(SQL` ORDER BY id `);
-        sql.append(params.sortOrder)
+        sql.append(params.sortOrder);
 
         return await query(sql);
     },
@@ -39,7 +39,7 @@ module.exports = {
 
     createAdjustment: async (params) => {
         let { code, desc, type, inactive_date, company_id } = params;
-        inactive_date = inactive_date ? ` now() `: null;
+        inactive_date = inactive_date ? ' now()': null;
         const sql = SQL`INSERT INTO 
                         billing.adjustment_codes (
                               company_id
