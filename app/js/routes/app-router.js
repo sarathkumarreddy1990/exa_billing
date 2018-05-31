@@ -6,7 +6,9 @@ define([
     'routes/app/index',
     'routes/setup/index',
     'modules/reporting/views/billing/charges',
-    'modules/reporting/views/billing/payments'
+    'modules/reporting/views/billing/payments',
+    'views/payments',
+    'views/payment-edit'
 ], function (Backbone,
     WorklistView,
     StudiesView,
@@ -14,7 +16,10 @@ define([
     AppRoute,
     SetupRoute,
     ChargeReportView,
-    PaymentReportView) {
+    PaymentReportView,
+    PaymentsView,
+    EditPaymentView
+    ) {
         var AppRouter = Backbone.Router.extend({
             routes: {
                 "app/worklist": "startApp",
@@ -24,8 +29,10 @@ define([
                 "app/report/charges": "startChargeReporting" ,
                 "app/report/payments": "startPaymentReporting",
     
-                "app/*subroute": "startApp",
+                // "app/*subroute": "startApp",
                 "setup/*subroute": "startSetup",
+                "app/payments": "startPayments",
+                "app/payments/edit/:id": "editPayment"
             },
 
             // startApp: function (subroutes) {
@@ -77,6 +84,16 @@ define([
                 }
             },
 
+            startPayments: function (subroutes) {
+                if (!this.appRoute) {
+                    this.appRoute = new PaymentsView({ el: $('#root') });
+                }
+            },
+            editPayment: function (paymentId) {
+                if (!this.appRoute) {
+                    this.appRoute = new EditPaymentView({ el: $('#root'), id: paymentId });
+                }
+            },
 
             initialize: function () {
                 $('#initialLoading').hide();
