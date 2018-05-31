@@ -37,9 +37,17 @@ module.exports = {
 
     },
 
-    createAdjustment: async (params) => {
-        let { code, desc, type, inactive_date, company_id } = params;
-        inactive_date = inactive_date ? ` now() `: null;
+    create: async (params) => {
+        let {
+            code,
+            desc,
+            type,
+            is_active,
+            company_id
+        } = params;
+
+        let inactivated_date = is_active ? ' now() ' : null;
+
         const sql = SQL`INSERT INTO 
                         billing.adjustment_codes (
                               company_id
@@ -56,13 +64,22 @@ module.exports = {
         return await query(sql);
     },
 
-    updateAdjustment: async (params) => {
-        let { code, desc, type, id, inactive_date } = params;
-        inactive_date = inactive_date ? ` now() `: null;
+    update: async (params) => {
+
+        let {
+            code,
+            desc,
+            type,
+            id,
+            is_active
+        } = params;
+
+        let inactivated_date = is_active ? ' now() ' : null;
+
         const sql = SQL`UPDATE
                              billing.adjustment_codes 
                         SET  
-                            , code = ${code}
+                              code = ${code}
                             , desctiption = ${desc}
                             , accounting_entry_type = ${type}
                             , inactivated_dt = ${inactive_date}
@@ -71,7 +88,7 @@ module.exports = {
         return await query(sql);
     },
 
-    deleteAdjustment: async (params) => {
+    delete: async (params) => {
         const { id } = params;
         const sql = SQL`DELETE FROM 
                             billing.adjustment_codes 
