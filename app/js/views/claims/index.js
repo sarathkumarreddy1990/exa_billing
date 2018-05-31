@@ -1,5 +1,5 @@
-define(['jquery', 'underscore', 'backbone', 'models/claims', 'text!templates/claims/claimForm.html', 'text!templates/claims/chargeRow.html'],
-    function ($, _, Backbone, newClaimModel, claimCreationTemplate, chargeRowTemplate) {
+define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insurance', 'text!templates/claims/claim-form.html', 'text!templates/claims/charge-row.html'],
+    function ($, _, Backbone, newClaimModel, modelPatientInsurance, claimCreationTemplate, chargeRowTemplate) {
         var claimView = Backbone.View.extend({
             el: null,
             rendered: false,
@@ -33,6 +33,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'text!templates/cla
             initialize: function (options) {
                 this.options = options;
                 this.model = new newClaimModel();
+                this.patInsModel = new modelPatientInsurance();
                 var planName = [
                     { value: '', 'text': 'Select' },
                     { value: 'Health', 'text': 'Health' },
@@ -106,6 +107,9 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'text!templates/cla
                 });
                 $("#btnSaveClaim").off().click(function (e) {
                     self.setClaimDetails(e);
+                });
+                $("#ddlExistTerIns, #ddlExistSecIns, #ddlExistPriIns").off().change(function (e) {
+                    self.assignExistInsurance(e);
                 });
             },
             getLineItemsAndBind: function (curClaimDetails) {
@@ -494,7 +498,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'text!templates/cla
                         }).append(
                             $('<a/>').addClass("remove").attr('data-id', self.ICDID
                             ).append(
-                                $('<span/>').text('X').addClass("icon-ic-close").css({ 'font-weight': 'bold', 'font-size': 'medium' }).off().click(function (e) {
+                                $('<span/>').addClass("icon-ic-close").off().click(function (e) {
                                     var curDiagnosis = ($('#hdnDiagCodes').val() !== "") ? $('#hdnDiagCodes').val().split(',') : [],
                                         codeId = $(e.target).parent().attr('data-id');
                                     self.claimICDLists = _.reject(self.claimICDLists, function (obj) { return parseInt(obj.icd_id) === parseInt(codeId); });
@@ -979,6 +983,102 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'text!templates/cla
             },
             convertToTimeZone: function (facility_id, date_data) {
                 return moment.tz(date_data, "YYYY-MM-DD HH:mm a", commonjs.getFacilityTimeZone(facility_id));
+            },
+            assignExistInsurance: function(e){
+                var self = this;
+                var id = e.target.id;
+                var patientInsID = $('#' + id + ' option:selected').val();
+                if (patientInsID > 0) {
+                    var self = this;
+                    this.patInsModel.set({id: patientInsID});
+                    this.patInsModel.fetch({
+                        data: $.param({ id: this.patInsModel.id }),
+                        success: function (models, response) {
+                            var result = response && response.length ? response[0] : '',
+                                coverageLevel = result.coverage_level;
+                            self.bindExistInsurance(result, coverageLevel);
+                        },
+                        error: function (model, response) {
+                            commonjs.handleXhrError(model, response);
+                        }
+                    });
+                }
+            },
+            bindExistInsurance: function (result, coverageLevel) {
+                var self = this, flag;
+                if (result) {
+                    switch (coverageLevel) {
+                        case 'p':
+                            self.priInsID = result.insurance_provider_id
+                            self.priInsCode = result.insurance_code;
+                            self.priInsName = result.insurance_name;
+                            flag = 'Pri';
+                            commonjs.checkNotEmpty(result.sub_dob) ? self.dtpPriDOBDate.date(result.sub_dob) : self.dtpPriDOBDate.clear();
+                            // append to ResponsibleList
+                            self.updateResponsibleList({
+                                payer_type: 'PIP_P',
+                                payer_id: result.insurance_provider_id,
+                                payer_name: result.insurance_name + '( Primary Insurance )',
+                                billing_method: result.billing_method
+                            });
+                            break;
+
+                        case 's':
+                            self.secInsID = result.insurance_provider_id
+                            self.secInsCode = result.insurance_code;
+                            self.SecInsName = result.insurance_name;
+                            flag = 'Sec';
+                            commonjs.checkNotEmpty(result.sub_dob) ? self.dtpSecDOBDate.date(result.sub_dob) : self.dtpSecDOBDate.clear();
+                            // append to ResponsibleList
+                            self.updateResponsibleList({
+                                payer_type: 'PIP_S',
+                                payer_id: result.insurance_provider_id,
+                                payer_name: result.insurance_name + '( Secondary Insurance )',
+                                billing_method: result.billing_method
+                            });
+                            break;
+
+                        case 't':
+                            self.terInsID = result.insurance_provider_id
+                            self.terInsCode = result.insurance_code;
+                            self.terInsName = result.insurance_name;
+                            flag = 'Ter';
+                            commonjs.checkNotEmpty(result.sub_dob) ? self.dtpTerDOBDate.date(result.sub_dob) : self.dtpTerDOBDate.clear();
+                            // append to ResponsibleList
+                            self.updateResponsibleList({
+                                payer_type: 'PIP_T',
+                                payer_id: result.insurance_provider_id,
+                                payer_name: result.insurance_name + '( Tertiary Insurance )',
+                                billing_method: result.billing_method
+                            });
+                            break;
+                    }
+
+                    $('#txt' + flag + 'Insurance').val(result.insurance_name);
+                    $('#s2id_txt' + flag + 'Insurance a span').html(result.insurance_code + '(' + result.insurance_name + ')');
+                    $('#chk' + flag + 'AcptAsmt').prop('checked', result.assign_benefits_to_patient == "true");
+                    $('#lbl' + flag + 'InsPriAddr').html(result.ins_pri_address);
+                    var csz = result.ins_city + (commonjs.checkNotEmpty(result.ins_state) ? ',' + result.ins_state : "") + (commonjs.checkNotEmpty(result.ins_zip_code) ? ',' + result.ins_zip_code : "");
+                    $('#lbl' + flag + 'InsCityStateZip').html(csz);
+                    $('#lbl' + flag + 'InsPriAddr').show()
+                    $('#lbl' + flag + 'InsCityStateZip').show()
+                    $('#txt' + flag + 'PolicyNo').val(result.policy_number);
+                    $('#txt' + flag + 'GroupNo').val(result.group_number);
+                    //$('#ddl' + flag + 'PlanName').val(result.plan_name);
+                    $('#ddl' + flag + 'EmpStatus').val(result.subscriber_employment_status_id);
+                    $('#ddl' + flag + 'RelationShip').val(result.subscriber_relationship_id);
+                    $('#txt' + flag + 'SubFirstName').val(result.subscriber_firstname);
+                    $('#txt' + flag + 'MiddleName').val(result.subscriber_middlename);
+                    $('#txt' + flag + 'SubLastName').val(result.subscriber_lastname);
+                    $('#txt' + flag + 'SubSuffix').val(result.subscriber_name_suffix);
+                    $('#ddl' + flag + 'Gender').val(result.subscriber_gender);
+                    $('#txt' + flag + 'SubPriAddr').val(result.subscriber_address_line1);
+                    $('#txt' + flag + 'SubSecAddr').val(result.subscriber_address_line2);
+                    $('#txt' + flag + 'City').val(result.subscriber_city);
+                    $('#txt' + flag + 'State').val(result.subscriber_state);
+                    $('#txt' + flag + 'ZipCode').val(result.subscriber_zipcode);
+
+                }
             }
         });
         return claimView;

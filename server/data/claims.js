@@ -56,6 +56,46 @@ module.exports = {
                         ORDER BY pi.id asc `;
         return await query(patient_insurance_query);
     },
+    getPatientInsurancesById: async function (params) {
+        let { id } = params;
+        const patient_insurance_query = SQL`
+                       SELECT
+                                 pi.id
+                               , ip.id AS insurance_provider_id
+                               , ip.insurance_name
+                               , lower(pi.coverage_level) as coverage_level
+                               , ip.insurance_code
+                               , pi.subscriber_relationship_id   
+                               , pi.subscriber_info->'ExpireDate' as ExpireDate
+                               , pi.subscriber_employment_status_id                     
+                               , pi.subscriber_dob
+                               , pi.medicare_insurance_type_code
+                               , pi.coverage_level
+                               , pi.policy_number
+                               , pi.group_name
+                               , pi.group_number
+                               , pi.precertification_phone_number
+                               , pi.precertification_fax_number
+                               , pi.subscriber_firstname
+                               , pi.subscriber_lastname
+                               , pi.subscriber_middlename
+                               , pi.subscriber_name_suffix
+                               , pi.subscriber_gender
+                               , pi.subscriber_address_line1
+                               , pi.subscriber_address_line2
+                               , pi.subscriber_city
+                               , pi.subscriber_state
+                               , pi.subscriber_zipcode
+                               , pi.assign_benefits_to_patient
+                           FROM 
+                               patient_insuarances pi
+                           LEFT JOIN 
+                               insurance_providers ip ON ip.id= pi.insurance_provider_id                                   
+                           WHERE 
+                               pi.has_deleted=False
+                               AND pi.id = ${id}  `;
+        return await query(patient_insurance_query);
+    },
     getMasterDetails: async function (params) {
 
         const biling_query = SQL`

@@ -1,4 +1,4 @@
-const data = require('../data/autoCompleteDropDown');
+const data = require('../data/auto-complete');
 
 module.exports = {
 

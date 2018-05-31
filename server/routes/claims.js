@@ -25,4 +25,5 @@ router.put('/', async function (req, res) {
     const data = await claimsController.update(req.query);
     httpHandler.sendRows(req, res, data);
 });
+
 module.exports = router;
