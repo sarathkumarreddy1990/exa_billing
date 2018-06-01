@@ -4,11 +4,6 @@ module.exports = {
 
     getData: async function (params) {
         let whereQuery = [];
-        params.code = 'bbcc';
-        params.description = 'bbbbccc';
-        params.pageNo = 1;
-        params.pageSize = 10;
-        params.sortField = 'id';
         params.sortOrder = params.sortOrder || ' DESC';
         let {
             code,
