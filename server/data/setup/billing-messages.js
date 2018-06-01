@@ -8,7 +8,6 @@ module.exports = {
         let {
             code,
             description,
-            isSystemStatus,
             sortOrder,
             sortField,
             pageNo,
@@ -23,20 +22,13 @@ module.exports = {
             whereQuery.push(` description ILIKE '${description}'`);
         }
 
-        if(isSystemStatus == 'true'){
-            whereQuery.push(' is_system_status ');
-        }else if(isSystemStatus == 'false'){
-            whereQuery.push(' NOT is_system_status ');
-        }
-
         const sql = SQL`SELECT 
                           id
                         , code
                         , description
-                        , is_system_status
                         , COUNT(1) OVER (range unbounded preceding) AS total_records
                     FROM   
-                        billing.claim_status `;
+                        billing.messages `;
 
         if (whereQuery.length) {
             sql.append(SQL` WHERE `)
@@ -53,46 +45,22 @@ module.exports = {
         return await query(sql);
     },
 
-    getDataById: async (params) => {
-        const { id } = params;
-
-        const sql = SQL`SELECT 
-                          id
-                        , code
-                        , description
-                        , is_system_status
-                    FROM   
-                        billing.claim_status 
-                    WHERE 
-                        id = ${id} `;
-
-        return await query(sql);
-    },
-
     create: async (params) => {
         let {
             code,
             description,
-            isActive,
-            companyId,
-            isSystemStatus
+            companyId
         } = params;
 
-        let inactivated_date = isActive ? null : ' now() ';
-
         const sql = SQL`INSERT INTO 
-                        billing.claim_status (
+                        billing.messages (
                               company_id
                             , code
-                            , description
-                            , inactivated_dt
-                            , is_system_status)
+                            , description)
                         VALUES(
                                ${companyId}
                              , ${code}
-                             , ${description}
-                             , ${inactivated_date}
-                             , ${isSystemStatus} )`;
+                             , ${description} )`;
 
         return await query(sql);
     },
@@ -102,33 +70,17 @@ module.exports = {
         let {
             code,
             description,
-            id,
-            isActive,
-            isSystemStatus
+            id
         } = params;
 
-        let inactivated_date = isActive ? null : ' now() ';
-
         const sql = SQL`UPDATE
-                             billing.claim_status 
+                             billing.messages 
                         SET  
                               code = ${code}
                             , description = ${description}
-                            , inactivated_dt = ${inactivated_date}
-                            , is_system_status = ${isSystemStatus}
                         WHERE
                             id = ${id} `;
 
         return await query(sql);
     },
-
-    delete: async (params) => {
-        const { id } = params;
-
-        const sql = SQL`DELETE FROM 
-                            billing.claim_status 
-                        WHERE id = ${id}`;
-
-        return await query(sql);
-    }
 };
