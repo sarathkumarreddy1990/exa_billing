@@ -3,30 +3,30 @@ const { query, SQL } = require('../index');
 module.exports = {
 
     getData: async function (params) {
-        let whereQuery = '';
-        params.qcode = '';
-        params.qdesc = '';
+        let whereQuery = [];
+        params.code = '';
+        params.description = '';
         params.pageNo = 1;
         params.pageSize = 10;
         params.sortField = 'id';
         params.sortOrder = params.sortOrder || ` DESC`;
         let {
-            qcode,
-            qdesc,
+            code,
+            description,
             sortOrder,
             sortField,
             pageNo,
             pageSize
         } = params;
-
-        if (params.qcode && params.qdesc) {
-            whereQuery = `WHERE code ILIKE '${qcode}' AND description ILIKE '${qdesc}'`;
-        } else if (params.qcode && !params.qdesc) {
-            whereQuery = `WHERE code ILIKE '${qcode}' `;
-        } else if (!params.qcode && params.qdesc) {
-            whereQuery = `WHERE description ILIKE '${qdesc}' `;
+        if (code && description) {
+            whereQuery.push(` code ILIKE '${code}'`);
+            whereQuery.push(` description ILIKE '${description}'`);
+        } else if (code && !description) {
+            whereQuery.push(`code ILIKE '${code}'`);;
+        } else if (!code && description) {
+            whereQuery.push(` description ILIKE '${description}'`);
         } else {
-            whereQuery = ` `;
+            whereQuery = ``;
         }
 
         const sql = SQL`SELECT 
@@ -37,7 +37,8 @@ module.exports = {
                         billing.cas_reason_codes `;
 
         if (whereQuery) {
-            sql.append(whereQuery);
+            sql.append(SQL` WHERE `)
+            sql.append(whereQuery.join(` AND `));
         }
 
         sql.append(SQL` ORDER BY ${sortField} `)
@@ -66,12 +67,12 @@ module.exports = {
     create: async (params) => {
         let {
             code,
-            desc,
-            is_active,
+            description,
+            isActive,
             company_id
         } = params;
 
-        let inactivated_date = is_active ? ' now() ' : null;
+        let inactivated_date = isActive ? ' now() ' : null;
 
         const sql = SQL`INSERT INTO 
                         billing.cas_reason_codes (
@@ -82,7 +83,7 @@ module.exports = {
                         VALUES(
                                ${company_id}
                              , ${code}
-                             , ${desc}
+                             , ${description}
                              , ${inactivated_date} )`;
 
         return await query(sql);
@@ -92,18 +93,18 @@ module.exports = {
 
         let {
             code,
-            desc,
+            description,
             id,
-            is_active
+            isActive
         } = params;
 
-        let inactivated_date = is_active ? ' now() ' : null;
+        let inactivated_date = isActive ? ' now() ' : null;
 
         const sql = SQL`UPDATE
                              billing.cas_reason_codes 
                         SET  
                               code = ${code}
-                            , description = ${desc}
+                            , description = ${description}
                             , inactivated_dt = ${inactivated_date}
                         WHERE
                             id = ${id} `;

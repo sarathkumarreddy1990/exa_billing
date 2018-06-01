@@ -43,13 +43,13 @@ module.exports = {
     create: async (params) => {
         let {
             code,
-            desc,
+            description,
             type,
-            is_active,
+            isActive,
             company_id
         } = params;
 
-        let inactivated_date = is_active ? ' now() ' : null;
+        let inactivated_date = isActive ? null: ' now() ' ;
 
         const sql = SQL`INSERT INTO 
                         billing.adjustment_codes (
@@ -61,7 +61,7 @@ module.exports = {
                         VALUES(
                                ${company_id}
                              , ${code}
-                             , ${desc}
+                             , ${description}
                              , ${type} 
                              , ${inactivated_date} )`;
 
@@ -72,19 +72,19 @@ module.exports = {
 
         let {
             code,
-            desc,
+            description,
             type,
             id,
-            is_active
+            isActive
         } = params;
 
-        let inactivated_date = is_active ? ' now() ' : null;
+        let inactivated_date = isActive ? null : ' now() ' ;
 
         const sql = SQL`UPDATE
                              billing.adjustment_codes 
                         SET  
                               code = ${code}
-                            , description = ${desc}
+                            , description = ${description}
                             , accounting_entry_type = ${type}
                             , inactivated_dt = ${inactivated_date}
                         WHERE
