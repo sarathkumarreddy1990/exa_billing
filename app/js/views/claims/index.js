@@ -536,13 +536,13 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                             var existing_insurance = response || [];
                             $.each(existing_insurance, function (index, value) {
                                 switch (value.coverage_level) {
-                                    case 'p':
+                                    case 'primary':
                                         self.existingPrimaryInsurance.push(value);
                                         break;
-                                    case 's':
+                                    case 'secondary':
                                         self.existingSecondaryInsurance.push(value);
                                         break;
-                                    case 't':
+                                    case 'tertiary':
                                         self.existingTriInsurance.push(value);
                                 }
                             });
@@ -617,11 +617,13 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                 function formatRepoSelection(res) {
                     self.group_name = res.group_name;
                     self.group_id = res.provider_group_id;
-                    self.updateResponsibleList({
-                        payer_type: 'POF',
-                        payer_id: res.provider_group_id,
-                        payer_name: res.group_name + '(Service Facility)'
-                    });
+                    if (res && res.id) {
+                        self.updateResponsibleList({
+                            payer_type: 'POF',
+                            payer_id: res.provider_group_id,
+                            payer_name: res.group_name + '(Service Facility)'
+                        });
+                    }
                     return res.group_name;
                 }
             },
@@ -844,7 +846,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                     subscriber_state: $('#ddlPriState option:selected').val() || null,
                     subscriber_zipcode: $('#txtPriZipCode').val() != '' ? parseInt($('#txtPriZipCode').val()) : null,
                     assign_benefits_to_patient: $('#chkPriAcptAsmt').prop("checked"),
-                    medicare_insurance_type_code: null,
+                    medicare_insurance_type_code: null
                 },
                     secondary_insurance_details = {
                         patient_id: self.cur_patient_id || null,
@@ -927,7 +929,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                     is_auto_accident: $('#chkAutoAccident').is(':checked'),
                     is_other_accident: $('#chkOtherAccident').is(':checked'),
                     is_employed: $('#chkEmployment').is(':checked'),
-                    service_by_outside_lab: $('#chkOutSideLab').is(':checked')
+                    service_by_outside_lab: $('#chkOutSideLab').is(':checked'),
+                    claim_status_id: 2 // Default // payment pending from claim_status table
                 }
 
                 /*Setting claim charge details*/
@@ -973,7 +976,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                 self.claimModel.save({}, {
                     success: function (model, response) {
                         if (response && response.length > 0) {
-                            commonjs.hideLoading();
+                            alert('Claim Created successfully');
+                            $('#site_modal_div_container').empty().hide();
                         }
                     },
                     error: function (model, response) {
@@ -1008,12 +1012,12 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                 var self = this, flag;
                 if (result) {
                     switch (coverageLevel) {
-                        case 'p':
+                        case 'primary':
                             self.priInsID = result.insurance_provider_id
                             self.priInsCode = result.insurance_code;
                             self.priInsName = result.insurance_name;
                             flag = 'Pri';
-                            commonjs.checkNotEmpty(result.sub_dob) ? self.dtpPriDOBDate.date(result.sub_dob) : self.dtpPriDOBDate.clear();
+                            //commonjs.checkNotEmpty(result.subscriber_dob) ? self.dtpPriDOBDate.date(result.subscriber_dob) : self.dtpPriDOBDate.clear();
                             // append to ResponsibleList
                             self.updateResponsibleList({
                                 payer_type: 'PIP_P',
@@ -1021,14 +1025,15 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                                 payer_name: result.insurance_name + '( Primary Insurance )',
                                 billing_method: result.billing_method
                             });
+                            self.is_primary_available = true;
                             break;
 
-                        case 's':
+                        case 'secondary':
                             self.secInsID = result.insurance_provider_id
                             self.secInsCode = result.insurance_code;
                             self.SecInsName = result.insurance_name;
                             flag = 'Sec';
-                            commonjs.checkNotEmpty(result.sub_dob) ? self.dtpSecDOBDate.date(result.sub_dob) : self.dtpSecDOBDate.clear();
+                            //commonjs.checkNotEmpty(result.subscriber_dob) ? self.dtpSecDOBDate.date(result.subscriber_dob) : self.dtpSecDOBDate.clear();
                             // append to ResponsibleList
                             self.updateResponsibleList({
                                 payer_type: 'PIP_S',
@@ -1036,14 +1041,15 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                                 payer_name: result.insurance_name + '( Secondary Insurance )',
                                 billing_method: result.billing_method
                             });
+                            self.is_secondary_available = true;
                             break;
 
-                        case 't':
+                        case 'tertiary':
                             self.terInsID = result.insurance_provider_id
                             self.terInsCode = result.insurance_code;
                             self.terInsName = result.insurance_name;
                             flag = 'Ter';
-                            commonjs.checkNotEmpty(result.sub_dob) ? self.dtpTerDOBDate.date(result.sub_dob) : self.dtpTerDOBDate.clear();
+                            //commonjs.checkNotEmpty(result.sub_dob) ? self.dtpTerDOBDate.date(result.sub_dob) : self.dtpTerDOBDate.clear();
                             // append to ResponsibleList
                             self.updateResponsibleList({
                                 payer_type: 'PIP_T',
@@ -1051,11 +1057,10 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                                 payer_name: result.insurance_name + '( Tertiary Insurance )',
                                 billing_method: result.billing_method
                             });
+                            self.is_tertiary_available = true;
                             break;
                     }
-
-                    $('#txt' + flag + 'Insurance').val(result.insurance_name);
-                    $('#s2id_txt' + flag + 'Insurance a span').html(result.insurance_code + '(' + result.insurance_name + ')');
+                    $('#select2-ddl' + flag + 'Insurance-container').html(result.insurance_name);
                     $('#chk' + flag + 'AcptAsmt').prop('checked', result.assign_benefits_to_patient == "true");
                     $('#lbl' + flag + 'InsPriAddr').html(result.ins_pri_address);
                     var csz = result.ins_city + (commonjs.checkNotEmpty(result.ins_state) ? ',' + result.ins_state : "") + (commonjs.checkNotEmpty(result.ins_zip_code) ? ',' + result.ins_zip_code : "");
