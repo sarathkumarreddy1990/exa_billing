@@ -7,28 +7,33 @@ const _ = require('lodash')
 
 // generate query template ***only once*** !!!
 
-const chargesDataSetQueryTemplate = _.template(`
-WITH code_counts AS (
+const paymentByInsuranceCompanyDataSetQueryTemplate = _.template(`
+with paymentsByInsCompany as (
     SELECT
-        get_full_name(p.last_name, p.first_name,p.middle_name, p.prefix_name, p.suffix_name) AS patient_name,
-        SUM(bill_fee*units),
-        SUM(allowed_amount*units)
-    FROM 
-        billing.charges bch
-    INNER JOIN billing.claims bc on bc.id = bch.claim_id 
-    INNER JOIN public.patients p on p.id = bc.patient_id 
-    INNER JOIN facilities f on f.id = bc.facility_id
-    where 1=1 
-    AND  <%= companyId %>
-    GROUP BY 
-        ROLLUP (patient_name)
-    ORDER BY 
-        patient_name
-  )
-  SELECT
-     *
+    bp.id as payment_id,
+    ip.insurance_code as insurance_code,
+    ip.insurance_name as insurance_name,
+    f.facility_name as facility_name,
+    f.id as facility_id,
+    (SELECT payment_balance_total FROM billing.get_payment_totals(bp.id)) as payment_balance,
+    (SELECT payments_applied_total FROM billing.get_payment_totals(bp.id)) as payment_applied_amount,
+    bp.amount as amount,
+    bp.card_number as cheque_card_number,
+    bp.mode as payment_mode,
+    timezone(f.time_zone,bp.payment_dt) AS payment_date
   FROM
-     code_counts cc 
+    billing.payments bp
+    INNER JOIN public.insurance_providers ip ON ip.id = bp.insurance_provider_id
+    LEFT JOIN public.facilities f ON f.id = bp.facility_id
+  WHERE 1=1
+    AND  <%= companyId %>
+  ORDER BY
+    ip.insurance_name,
+    bp.id  
+  
+)
+select * from paymentsByInsCompany
+
 `);
 
 const api = {
@@ -39,14 +44,14 @@ const api = {
      */
     getReportData: (initialReportData) => {
         return Promise.join(            
-            api.createchargesDataSet(initialReportData.report.params),
+            api.createpaymentByInsuranceCompanyDataSet(initialReportData.report.params),
             // other data sets could be added here...
-            (chargesDataSet) => {
+            (paymentByInsuranceCompanyDataSet) => {
                 // add report filters                
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 // add report specific data sets
-                initialReportData.dataSets.push(chargesDataSet);
+                initialReportData.dataSets.push(paymentByInsuranceCompanyDataSet);
                 initialReportData.dataSetCount = initialReportData.dataSets.length;
                 return initialReportData;
             });
@@ -104,21 +109,21 @@ const api = {
     },
 
     // ================================================================================================================
-    // --- DATA SET - Charges count
+    // --- DATA SET - paymentByInsuranceCompany count
 
-    createchargesDataSet: (reportParams) => {
+    createpaymentByInsuranceCompanyDataSet: (reportParams) => {
         // 1 - build the query context. Each report will 'know' how to do this, based on report params and query/queries to be executed...
-        const queryContext = api.getchargesDataSetQueryContext(reportParams);
+        const queryContext = api.getpaymentByInsuranceCompanyDataSetQueryContext(reportParams);
         console.log('context__', queryContext)
         // 2 - geenrate query to execute
-        const query = chargesDataSetQueryTemplate(queryContext.templateData);
+        const query = paymentByInsuranceCompanyDataSetQueryTemplate(queryContext.templateData);
         // 3a - get the report data and return a promise
         return db.queryForReportData(query, queryContext.queryParams);
     },
 
     // query context is all about query building: 1 - query parameters and 2 - query template data
     // every report and/or query may have a different logic to build a query context...
-    getchargesDataSetQueryContext: (reportParams) => {
+    getpaymentByInsuranceCompanyDataSetQueryContext: (reportParams) => {
         const params = [];
         const filters = {
             companyId: null
@@ -127,7 +132,7 @@ const api = {
 
         // company id
         params.push(reportParams.companyId);
-        filters.companyId = queryBuilder.where('bc.company_id', '=', [params.length]);
+        filters.companyId = queryBuilder.where('bp.company_id', '=', [params.length]);
 
         // // order facilities
         // if (!reportParams.allFacilities && reportParams.facilityIds) {

@@ -3,18 +3,18 @@ define([
     , 'backbone'
     , 'backbonesubroute'
     , 'modules/reporting/utils/routing'
-    , 'modules/reporting/views/billing/claim_inquiry'
+    , 'modules/reporting/views/billing/referring-provider-summary'
 ],
-    function ($, Backbone, SubRoute, RoutingUtils, claimInquiryView) {
+    function ($, Backbone, SubRoute, RoutingUtils, referringProviderSummaryView) {
 
-        var claimInquiryRouter = Backbone.SubRoute.extend({
+        return Backbone.SubRoute.extend({
             routes: {
                 '': 'showDefaultView'
             },
 
             showDefaultView: function () {
                 this.initializeRouter();
-                this.claimInquiryView.showForm();
+                this.referringProviderSummaryView.showForm();
             },
 
             initialize: function (options) {
@@ -22,16 +22,14 @@ define([
             },
 
             initializeRouter: function () {
-                this.options.screen = facilityModules.reportScreens.claim_inquiry;
+                this.options.screen = facilityModules.reportScreens.referringProviderSummary;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
                     RoutingUtils.clearView(this.options.currentView);
-                    this.claimInquiryView = new claimInquiryView(this.options);
-                    this.options.currentView = this.claimInquiryView;
+                    this.referringProviderSummaryView = new referringProviderSummaryView(this.options);
+                    this.options.currentView = this.referringProviderSummaryView;
                 }
             }
         });
-
-        return claimInquiryRouter;
     });

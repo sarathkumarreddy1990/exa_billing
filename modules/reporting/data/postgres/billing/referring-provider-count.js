@@ -7,28 +7,24 @@ const _ = require('lodash')
 
 // generate query template ***only once*** !!!
 
-const chargesDataSetQueryTemplate = _.template(`
-WITH code_counts AS (
-    SELECT
-        get_full_name(p.last_name, p.first_name,p.middle_name, p.prefix_name, p.suffix_name) AS patient_name,
-        SUM(bill_fee*units),
-        SUM(allowed_amount*units)
-    FROM 
-        billing.charges bch
-    INNER JOIN billing.claims bc on bc.id = bch.claim_id 
-    INNER JOIN public.patients p on p.id = bc.patient_id 
-    INNER JOIN facilities f on f.id = bc.facility_id
-    where 1=1 
-    AND  <%= companyId %>
-    GROUP BY 
-        ROLLUP (patient_name)
-    ORDER BY 
-        patient_name
-  )
-  SELECT
-     *
-  FROM
-     code_counts cc 
+const referringProividerCountDataSetQueryTemplate = _.template(`
+WITH referring_provider_count as
+(SELECT
+    pp.full_name AS provider_name,
+    count(pp.id) as orderCount
+FROM billing.claims bc 
+INNER JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
+INNER JOIN public.providers pp ON pp.id = ppc.provider_id
+where 1 =1
+AND  <%= companyId %>
+GROUP BY 
+    pp.provider_code,
+    pp.full_name
+)
+SELECT coalesce (provider_name,'Total') ,
+       sum(orderCount) from referring_provider_count
+group by ROLLUP (provider_name)
+ORDER BY provider_name ASC
 `);
 
 const api = {
@@ -39,14 +35,14 @@ const api = {
      */
     getReportData: (initialReportData) => {
         return Promise.join(            
-            api.createchargesDataSet(initialReportData.report.params),
+            api.createreferringProividerCountDataSet(initialReportData.report.params),
             // other data sets could be added here...
-            (chargesDataSet) => {
+            (referringProividerCountDataSet) => {
                 // add report filters                
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 // add report specific data sets
-                initialReportData.dataSets.push(chargesDataSet);
+                initialReportData.dataSets.push(referringProividerCountDataSet);
                 initialReportData.dataSetCount = initialReportData.dataSets.length;
                 return initialReportData;
             });
@@ -104,21 +100,21 @@ const api = {
     },
 
     // ================================================================================================================
-    // --- DATA SET - Charges count
+    // --- DATA SET - referringProividerCount count
 
-    createchargesDataSet: (reportParams) => {
+    createreferringProividerCountDataSet: (reportParams) => {
         // 1 - build the query context. Each report will 'know' how to do this, based on report params and query/queries to be executed...
-        const queryContext = api.getchargesDataSetQueryContext(reportParams);
+        const queryContext = api.getreferringProividerCountDataSetQueryContext(reportParams);
         console.log('context__', queryContext)
         // 2 - geenrate query to execute
-        const query = chargesDataSetQueryTemplate(queryContext.templateData);
+        const query = referringProividerCountDataSetQueryTemplate(queryContext.templateData);
         // 3a - get the report data and return a promise
         return db.queryForReportData(query, queryContext.queryParams);
     },
 
     // query context is all about query building: 1 - query parameters and 2 - query template data
     // every report and/or query may have a different logic to build a query context...
-    getchargesDataSetQueryContext: (reportParams) => {
+    getreferringProividerCountDataSetQueryContext: (reportParams) => {
         const params = [];
         const filters = {
             companyId: null
