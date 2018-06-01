@@ -9,7 +9,7 @@ module.exports = {
         params.pageNo = 1;
         params.pageSize = 10;
         params.sortField = 'id';
-        params.sortOrder = params.sortOrder || ` DESC`;
+        params.sortOrder = params.sortOrder || ' DESC';
         let {
             code,
             description,
@@ -18,9 +18,12 @@ module.exports = {
             pageNo,
             pageSize
         } = params;
+
         if (code) {
             whereQuery.push(` code ILIKE '${code}'`);
-        if(description)
+        }
+
+        if (description) {
             whereQuery.push(` description ILIKE '${description}'`);
         }
 
@@ -31,9 +34,9 @@ module.exports = {
                     FROM   
                         billing.cas_reason_codes `;
 
-        if (whereQuery.length ) {
+        if (whereQuery.length) {
             sql.append(SQL` WHERE `)
-            .append(whereQuery.join(' AND '));
+                .append(whereQuery.join(' AND '));
         }
 
         sql.append(SQL` ORDER BY ${sortField} `)
@@ -67,7 +70,7 @@ module.exports = {
             company_id
         } = params;
 
-        let inactivated_date = isActive ? null : ' now() ' ;
+        let inactivated_date = isActive ? null : ' now() ';
 
         const sql = SQL`INSERT INTO 
                         billing.cas_reason_codes (
@@ -93,7 +96,7 @@ module.exports = {
             isActive
         } = params;
 
-        let inactivated_date = isActive ? null: ' now() ' ;
+        let inactivated_date = isActive ? null : ' now() ';
 
         const sql = SQL`UPDATE
                              billing.cas_reason_codes 
