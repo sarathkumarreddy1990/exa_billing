@@ -4,22 +4,47 @@ module.exports = {
 
     getData: async function (params) {
         let whereQuery = '';
-        params.sortOrder = params.sortOrder || ' DESC';
-
+        params.qcode = '';
+        params.qdesc = '';
+        params.pageNo = 1;
+        params.pageSize = 10;
+        params.sortField= 'id';
+        params.sortOrder = params.sortOrder || ` DESC`;
+        let {
+            qcode,
+            qdesc,
+            sortOrder,
+            sortField,
+            pageNo,
+            pageSize
+        } = params;
+        if(params.qcode && params.qdesc) {
+            whereQuery = `WHERE code ILIKE '${qcode}' AND description ILIKE '${qdesc}'`;
+        }
+        else if(params.qcode && !params.qdesc){
+            whereQuery = `WHERE code ILIKE '${qcode}' `; 
+        }
+        else if(!params.qcode && params.qdesc){
+            whereQuery = `WHERE description ILIKE '${qdesc}' `
+        }
+        else{
+            whereQuery = ` `;
+        }
         const sql = SQL`SELECT 
                           id
                         , code
-                        , desctiption
-                        , accounting_entry_type
+                        , description
                     FROM   
-                        billing.adjustment_codes `;
+                        billing.cas_reason_codes `;
 
         if (whereQuery) {
             sql.append(whereQuery);
         }
 
-        sql.append(SQL` ORDER BY id `);
-        sql.append(params.sortOrder);
+        sql.append(SQL` ORDER BY ${sortField} `)
+        .append(sortOrder)
+        .append(SQL` LIMIT ${pageSize}`)
+        .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
 
         return await query(sql);
     },
@@ -30,10 +55,9 @@ module.exports = {
         const sql = SQL`SELECT 
                           id
                         , code
-                        , desctiption
-                        , accounting_entry_type
+                        , description
                     FROM   
-                        billing.adjustment_codes 
+                        billing.cas_reason_codes 
                     WHERE 
                         id = ${id} `;
 
@@ -44,7 +68,6 @@ module.exports = {
         let {
             code,
             desc,
-            type,
             is_active,
             company_id
         } = params;
@@ -52,17 +75,15 @@ module.exports = {
         let inactivated_date = is_active ? ' now() ' : null;
 
         const sql = SQL`INSERT INTO 
-                        billing.adjustment_codes (
+                        billing.cas_reason_codes (
                               company_id
                             , code
-                            , desctiption
-                            , accounting_entry_type
+                            , description
                             , inactivated_dt)
                         VALUES(
                                ${company_id}
                              , ${code}
                              , ${desc}
-                             , ${type} 
                              , ${inactivated_date} )`;
 
         return await query(sql);
@@ -73,7 +94,6 @@ module.exports = {
         let {
             code,
             desc,
-            type,
             id,
             is_active
         } = params;
@@ -81,11 +101,10 @@ module.exports = {
         let inactivated_date = is_active ? ' now() ' : null;
 
         const sql = SQL`UPDATE
-                             billing.adjustment_codes 
+                             billing.cas_reason_codes 
                         SET  
                               code = ${code}
-                            , desctiption = ${desc}
-                            , accounting_entry_type = ${type}
+                            , description = ${desc}
                             , inactivated_dt = ${inactivated_date}
                         WHERE
                             id = ${id} `;
@@ -97,7 +116,7 @@ module.exports = {
         const { id } = params;
 
         const sql = SQL`DELETE FROM 
-                            billing.adjustment_codes 
+                            billing.cas_reason_codes 
                         WHERE id = ${id}`;
 
         return await query(sql);
