@@ -1,13 +1,14 @@
-const data = require('../../data/setup/billing-providers');
+const data = require('../../data/setup/provider-id-codes');
 
 module.exports = {
 
-    getData: function (args) {
+    getData: function (args,params) {
         if(args.id) {
+            args.provider_id = params.provider_id;
             return data.getById(args);
         }
         
-        return data.getData(args);
+        return data.getData(params);
     },
 
     getById: async (params) => {

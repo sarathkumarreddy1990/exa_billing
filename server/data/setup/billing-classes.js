@@ -28,7 +28,7 @@ module.exports = {
                         , description
                         , COUNT(1) OVER (range unbounded preceding) AS total_records
                     FROM   
-                        billing.cas_reason_codes `;
+                        billing.billing_classes `;
 
         if (whereQuery.length) {
             sql.append(SQL` WHERE `)
@@ -39,7 +39,7 @@ module.exports = {
             .append(sortField)
             .append(' ')
             .append(sortOrder)
-            .append(SQL` LIMIT ${pageSize}`)
+            .append(SQL` LIMIT ${pageSize} `)
             .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
 
         return await query(sql);
@@ -53,7 +53,7 @@ module.exports = {
                         , code
                         , description
                     FROM   
-                        billing.cas_reason_codes 
+                        billing.billing_classes 
                     WHERE 
                         id = ${id} `;
 
@@ -71,7 +71,7 @@ module.exports = {
         let inactivated_date = isActive ? null : ' now() ';
 
         const sql = SQL`INSERT INTO 
-                        billing.cas_reason_codes (
+                        billing.billing_classes (
                               company_id
                             , code
                             , description
@@ -97,7 +97,7 @@ module.exports = {
         let inactivated_date = isActive ? null : ' now() ';
 
         const sql = SQL`UPDATE
-                             billing.cas_reason_codes 
+                             billing.billing_classes 
                         SET  
                               code = ${code}
                             , description = ${description}
@@ -112,7 +112,7 @@ module.exports = {
         const { id } = params;
 
         const sql = SQL`DELETE FROM 
-                            billing.cas_reason_codes 
+                            billing.billing_classes 
                         WHERE id = ${id}`;
 
         return await query(sql);

@@ -1,4 +1,4 @@
-const data = require('../../data/setup/billing-providers');
+const data = require('../../data/setup/provider-id-code-qualifiers');
 
 module.exports = {
 

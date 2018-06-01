@@ -6,8 +6,9 @@ define('grid', [
     'collections/study-fields',
     'collections/studies',
     'collections/claim-workbench',
-    'views/claims/index'
-], function (jQuery, initChangeGrid, utils, Pager, StudyFields, Studies,claimWorkbench, claimsView) {
+    'views/claims/index',
+    'views/user-settings'
+], function (jQuery, initChangeGrid, utils, Pager, StudyFields, Studies,claimWorkbench, claimsView,UserSettingsView) {
     var $ = jQuery;
     var isTrue = utils.isTrue;
     var isFalse = utils.isFalse;
@@ -341,6 +342,11 @@ define('grid', [
 
                 return attrs;
             };
+            
+            $('#mySettings').unbind().click(function(e){
+                self.UserSettingsView = new UserSettingsView();
+                self.UserSettingsView.showForm();
+            });
 
             claimsTable.render({
                 gridelementid: gridID,

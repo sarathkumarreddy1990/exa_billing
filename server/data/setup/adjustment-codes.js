@@ -4,7 +4,7 @@ module.exports = {
 
     getData: async function (params) {
         let whereQuery = [];
-        params.sortOrder = params.sortOrder || ' DESC';
+        params.sortOrder = params.sortOrder || ' ASC';
         let {
             code,
             description,
@@ -32,6 +32,7 @@ module.exports = {
                         , code
                         , description
                         , accounting_entry_type
+                        , COUNT(1) OVER (range unbounded preceding) AS total_records
                     FROM   
                         billing.adjustment_codes `;
 
@@ -40,7 +41,9 @@ module.exports = {
                 .append(whereQuery.join(' AND '));
         }
 
-        sql.append(SQL` ORDER BY ${sortField} `)
+        sql.append(SQL` ORDER BY  `)
+            .append(sortField)
+            .append(' ')
             .append(sortOrder)
             .append(SQL` LIMIT ${pageSize}`)
             .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
@@ -70,7 +73,7 @@ module.exports = {
             description,
             type,
             isActive,
-            company_id
+            companyId
         } = params;
 
         let inactivated_date = isActive ? null : ' now() ';
@@ -83,7 +86,7 @@ module.exports = {
                             , accounting_entry_type
                             , inactivated_dt)
                         VALUES(
-                               ${company_id}
+                               ${companyId}
                              , ${code}
                              , ${description}
                              , ${type} 

@@ -5,15 +5,13 @@ module.exports = {
     getData: async function (params) {
 
         params.code = '';
-        params.name = '';
         params.description = '';
         params.pageNo = 1;
         params.pageSize = 10;
-        params.sortField = ' code ';
+        params.sortField = ' qualifier_code ';
         params.sortOrder = params.sortOrder || ' DESC';
         let {
             code,
-            name,
             description,
             sortOrder,
             sortField,
@@ -24,11 +22,7 @@ module.exports = {
         let whereQuery = [];
 
         if (code) {
-            whereQuery.push(` code ILIKE '%${code}%'`);
-        }
-
-        if (name) {
-            whereQuery.push(` code ILIKE '%${name}%'`);
+            whereQuery.push(` qualifier_code ILIKE '%${code}%'`);
         }
 
         if (description) {
@@ -39,11 +33,10 @@ module.exports = {
                             id
                             , company_id
                             , inactivated_dt
-                            , code
-                            , name
+                            , qualifier_code
                             , description
                             , COUNT(1) OVER (range unbounded preceding) as total_records
-                        FROM   billing.cas_group_codes`;
+                        FROM   billing.provider_id_code_qualifiers`;
 
         if (whereQuery.length) {
             sql.append(SQL` WHERE `)
@@ -57,7 +50,6 @@ module.exports = {
             .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
 
         return await query(sql);
-
     },
 
     getById: async function (params) {
@@ -68,10 +60,9 @@ module.exports = {
                               id
                             , company_id
                             , inactivated_dt
-                            , code
-                            , name
+                            , qualifier_code
                             , description
-                        FROM   billing.cas_group_codes
+                        FROM   billing.provider_id_code_qualifiers
                         WHERE 
                             id = ${id} `;
 
@@ -83,22 +74,19 @@ module.exports = {
         let {
             companyId,
             code,
-            name,
             description,
             isActive } = params;
         let inactivated_dt = isActive ? null : 'now()';
 
-        const sql = SQL` INSERT INTO billing.cas_group_codes
+        const sql = SQL` INSERT INTO billing.provider_id_code_qualifiers
                                                 (   company_id
-                                                  , code
-                                                  , name
+                                                  , qualifier_code
                                                   , description
                                                   , inactivated_dt)
                                                 values
                                                 (
                                                     ${companyId}
                                                   , ${code}
-                                                  , ${name}
                                                   , ${description}
                                                   , ${inactivated_dt}
                                                 ) RETURNING id`;
@@ -110,16 +98,14 @@ module.exports = {
 
         let { id,
             code,
-            name,
             description,
             isActive } = params;
         let inactivated_dt = isActive ? null : 'now()';
 
         const sql = SQL` UPDATE
-                              billing.cas_group_codes
+                              billing.provider_id_code_qualifiers
                          SET
-                              code = ${code}
-                            , name = ${name}
+                              qualifier_code = ${code}
                             , description = ${description}
                             , inactivated_dt = ${inactivated_dt}
                          WHERE
@@ -133,7 +119,7 @@ module.exports = {
         let { id } = params;
 
         const sql = SQL` DELETE FROM
-                             billing.cas_group_codes
+                             billing.provider_id_code_qualifiers
                          WHERE
                              id = ${id}`;
 
