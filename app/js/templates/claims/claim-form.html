@@ -127,9 +127,10 @@
                             <div class="col-form-label-med">
                                 <label class="field-chk" for="txtClaimDate">ClaimDate</label>
                             </div>
-                            <div id="divClaimDate" class="input-group">
-                                <input type="text" id="txtClaimDate" name="ClaimDate">
-                                <span class="input-group-addon add-on"><i class="icon-ic-schedule"></i></span>
+                            <div class="col-form-content">
+                                    <div id="divClaimDate" class="input-group">
+                                        <input type="date" name="ClaimDate" id="txtClaimDate" class="form-control form-control-date maskDateLocale" required="required">
+                                    </div>
                             </div>
                         </div>
                         <div class="form-group form-inline">
@@ -275,6 +276,8 @@
                                     </div>
                                 </div>
                                 <div class="form-group form-inline">
+                                        <div class="col-form-label">
+                                        </div>
                                     <div class="col-form-content">
                                         <label id="lblPriInsCityStateZip" for="lblPriInsCityStateZip"></label>
                                     </div>
@@ -360,8 +363,7 @@
                                     </div>
                                     <div class="col-form-content">
                                         <div id="divPriDOBDate" class="input-group">
-                                            <input type="text" name="dob1" id="txtPriDOB" placeholder="Date of Birth" class="form-control form-control-date maskDateLocale" required="required">
-                                            <span class="input-group-addon add-on"><i class="icon-ic-schedule"></i></span>
+                                            <input type="date" name="dob1" id="txtPriDOB" placeholder="Date of Birth" class="form-control form-control-date maskDateLocale" required="required">
                                         </div>
                                     </div>
                                 </div>
@@ -430,10 +432,7 @@
                                         <label class="field-chk" for="txtBenefitOnDate" i18n="shared.fields.benefitOnDate">benefitOnDate</label>
                                     </div>
                                     <div id="divPriBenefitOnDate" class="input-group">
-                                        <input type="text" id="txtBenefitOnDate" name="BenefitOnDate">
-                                        <span class="input-group-addon add-on">
-                                            <i class="icon-ic-schedule"></i>
-                                        </span>
+                                        <input type="date" id="txtBenefitOnDate" class="form-control" name="BenefitOnDate">
                                     </div>
                                     <a id="aCheckEligibility" style="cursor: pointer; padding: 6px;" class="alert alert-success" >checkEligibility</a>
                                     <a id="aViewReport" style="cursor: pointer; padding: 6px;" class="alert alert-success " >viewReport</a>
@@ -507,6 +506,7 @@
                                     </div>
                                 </div>
                                 <div class="form-group form-inline">
+                                        <div class="col-form-label"></div>
                                     <div class="col-form-content">
                                         <label id="lblSecInsCityStateZip" for="lblSecInsCityStateZip"></label>
                                     </div>
@@ -586,11 +586,8 @@
                                     </div>
                                     <div class="col-form-content">
                                         <div id="divSecDOBDate" class="input-group">
-                                            <input data-format="MM/dd/yyyy" type="text" name="dob2" id="txtSecDOB" placeholder="Date of Birth" class="form-control form-control-date maskDateLocale"
+                                            <input data-format="MM/dd/yyyy" type="date" name="dob2" id="txtSecDOB" placeholder="Date of Birth" class="form-control form-control-date maskDateLocale"
                                                    required="required">
-                                            <span class="input-group-addon add-on">
-                                                <i class="icon-ic-schedule"></i>
-                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -659,10 +656,7 @@
                                         <label class="field-chk" for="txtBenefitOnDate2">benefitOnDate</label>
                                     </div>
                                     <div id="divSecBenefitOnDate" class="input-group">
-                                        <input type="text" id="txtBenefitOnDate2" class="form-control form-control-date maskDateLocale" name="BenefitOnDate">
-                                        <span class="input-group-addon add-on">
-                                            <i class="icon-ic-schedule"></i>
-                                        </span>
+                                        <input type="date" id="txtBenefitOnDate2" class="form-control form-control-date maskDateLocale" name="BenefitOnDate">
                                     </div>
                                     <a id="aCheckEligibility2" style="cursor: pointer; padding: 6px;" class="alert alert-success" >checkEligibility</a>
                                     <a id="aViewReport2" style="cursor: pointer; padding: 6px;" class="alert alert-success " >viewReport</a>
@@ -720,6 +714,8 @@
                                             </div>
                                         </div>
                                         <div class="form-group form-inline">
+                                                <div class="col-form-label">
+                                                </div>
                                             <div class="col-form-content">
                                                 <label id="lblTerInsCityStateZip" for="lblTerInsCityStateZip"></label>
                                             </div>
@@ -805,11 +801,8 @@
                                             </div>
                                             <div class="col-form-content">
                                                 <div id="divTerDOBDate" class="input-group">
-                                                    <input data-format="MM/dd/yyyy" type="text" name="dob3" id="txtTerDOB" placeholder="Date of Birth" class="form-control form-control-date maskDateLocale"
+                                                    <input data-format="MM/dd/yyyy" type="date" name="dob3" id="txtTerDOB" placeholder="Date of Birth" class="form-control form-control-date maskDateLocale"
                                                            required="required">
-                                                    <span class="input-group-addon add-on">
-                                                        <i class="icon-ic-schedule"></i>
-                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
@@ -878,10 +871,7 @@
                                                 <label class="field-chk" for="txtBenefitOnDate3" i18n="shared.fields.benefitOnDate">benefitOnDate</label>
                                             </div>
                                             <div id="divTerBenefitOnDate" class="input-group">
-                                                <input type="text" id="txtBenefitOnDate3" class="form-control form-control-date maskDateLocale" name="BenefitOnDate">
-                                                <span class="input-group-addon add-on">
-                                                    <i class="icon-ic-schedule"></i>
-                                                </span>
+                                                <input type="date" id="txtBenefitOnDate3" class="form-control form-control-date maskDateLocale" name="BenefitOnDate">
                                             </div>
                                             <a id="aCheckEligibility3" style="cursor: pointer; padding: 6px;" class="alert alert-success" i18n="patient.patientInsurance.checkEligibility">checkEligibility</a>
                                             <a id="aViewReport3" style="cursor: pointer; padding: 6px;" class="alert alert-success " i18n="patient.patientInsurance.viewReport">viewReport</a>
@@ -921,10 +911,7 @@
                                 </div>
                                 <div>
                                     <div id="divDate" class="input-group">
-                                        <input type="text" id="txtDate" class="form-control form-control-date maskDateLocale">
-                                        <span class="input-group-addon add-on">
-                                            <i class="icon-ic-schedule"></i>
-                                        </span>
+                                        <input type="date" id="txtDate" class="form-control form-control-date maskDateLocale">
                                     </div>
                                 </div>
                             </div>
@@ -935,10 +922,7 @@
                                 </div>
                                 <div>
                                     <div id="divOtherDate" class="input-group">
-                                        <input type="text" id="txtOtherDate" class="form-control form-control-date maskDateLocale">
-                                        <span class="input-group-addon add-on">
-                                            <i class="icon-ic-schedule"></i>
-                                        </span>
+                                        <input type="date" id="txtOtherDate" class="form-control form-control-date maskDateLocale">
                                     </div>
                                 </div>
                             </div>
@@ -956,16 +940,10 @@
                                     <label class="control-label" for="txtWCF" i18n="order.additionalInfo.fromTo">from/To</label>
                                 </div>
                                 <div id="divWCF" class="input-group">
-                                    <input type="text" id="txtWCF" class="form-control form-control-date maskDateLocale">
-                                    <span class="input-group-addon add-on">
-                                        <i class="icon-ic-schedule"> </i>
-                                    </span>
+                                    <input type="date" id="txtWCF" class="form-control form-control-date maskDateLocale">
                                 </div>
                                 <div id="divWCT" class="input-group">
-                                    <input type="text" id="txtWCT" class="form-control form-control-date maskDateLocale">
-                                    <span class="input-group-addon add-on">
-                                        <i class="icon-ic-schedule"></i>
-                                    </span>
+                                    <input type="date" id="txtWCT" class="form-control form-control-date maskDateLocale">
                                 </div>
                             </div>
                             <!--abovetext  hosipitalizationPatientRelatedToCurrentServices-->
@@ -983,16 +961,10 @@
                                 </div>
                                 <div class="controls">
                                     <div id="divHCF" class="input-group">
-                                        <input type="text" id="txtHCF" class="form-control form-control-date maskDateLocale">
-                                        <span class="input-group-addon add-on">
-                                            <i class="icon-ic-schedule"> </i>
-                                        </span>
+                                        <input type="date" id="txtHCF" class="form-control form-control-date maskDateLocale">
                                     </div>
                                     <div id="divHCT" class="input-group">
-                                        <input type="text" id="txtHCT" class="form-control form-control-date maskDateLocale">
-                                        <span class="input-group-addon add-on">
-                                            <i class="icon-ic-schedule"></i>
-                                        </span>
+                                        <input type="date" id="txtHCT" class="form-control form-control-date maskDateLocale">
                                     </div>
                                 </div>
                             </div>
