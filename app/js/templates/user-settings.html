@@ -1,0 +1,70 @@
+<style>
+    #site_modal_div_container {
+        background: #ffffff;
+        border: solid 1px;
+        display: none;
+        position: absolute;
+        border-radius: 10px;
+        z-index: 10000;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        width: 93%;
+        overflow: auto;
+        padding: 0px 5px 0px;
+        top: 12%;
+        left: 3%;
+    }
+</style>
+
+
+<div id="divForm_Mysettings" class="divBackgroundPayment form-horizontal form-list commonBorder" style="display: block; top: 10%; height: 80%; left: 5%;">
+    <h4 id="spanModalHeader" class="modal-title">User Settings</h4>
+    <div style="text-align: right;width: 100%;">
+        <input type="button" style="margin-top: 1px;margin-right: 2px" id="save_settings" name="save" value="save">
+    </div>
+    <div class="row">
+        <div class="col-xs-4 col-sm-4 col-md-4 col-lg-4 dragdropDiv flex-parent-vert" id="divBillingColumnOrdersList">
+            <legend class="viztekLegend">
+                <h5 i18n="setup.userSettings.headings.columnSort">Column Orders</h5>
+            </legend>
+            <ol id="ulSortList" class="ui-icon ui-icon-arrowthick-2-n-s simple_with_animation vertical flex-fill" style="list-style-type:none">
+            </ol>
+        </div>
+        <div class="col-xs-8 col-sm-8 col-md-8 col-lg-8 dragdropDiv flex-parent-vert" id="divBillingUserSettingsSummary">
+            <legend class="viztekLegend">
+                <h5>
+                    <label i18n="setup.userSettings.headings.Settings">Settings</label>
+                </h5>
+            </legend>
+            <div class="form-horizontal form-list">
+                <div class="form-group form-inline">
+                    <div class="col-form-label">
+                        <label class="control-label " for="ddlBillingDefaultColumns" i18n="setup.userSettings.defaultColumn"></label>
+                    </div>
+                    <div class="col-form-content-wide">
+                        <select id="ddlBillingDefaultColumns" name="repeats" class="form-control selects">
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group  form-inline">
+                    <div class="col-form-label">
+                        <label class="control-label " for="ddlBillingSortOrder" i18n="setup.userSettings.defaultSortOrder"></label>
+                    </div>
+
+                    <div class="col-form-content-wide">
+                        <select id="ddlBillingSortOrder" name="repeats" class="form-control selects">
+                            <option value="Desc">Desc</option>
+                            <option value="Asc">Asc</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <ol id="ulSortBillingList" class="simple_with_animation vertical flex-fill">
+        </ol>
+    </div>
+</div>
+<div style="text-align: right;width: 100%;">
+    <input type="button" style="margin-top: 1px;margin-right: 2px" id="close_settings" name="close">
+</div>
+</div>
