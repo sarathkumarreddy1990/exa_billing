@@ -4,11 +4,15 @@ module.exports = {
 
     getData: async function (params) {
         let whereQuery = [];
+        params.code = 'cc';
+        params.description = 'ccc';
+        params.pageNo = 1;
+        params.pageSize = 10;
+        params.sortField = ' id';
         params.sortOrder = params.sortOrder || ' DESC';
         let {
             code,
             description,
-            type,
             sortOrder,
             sortField,
             pageNo,
@@ -23,27 +27,21 @@ module.exports = {
             whereQuery.push(` description ILIKE '${description}'`);
         }
 
-        if (type) {
-            whereQuery.push(` accounting_entry_type ILIKE '${type}'`);
-        }
-
         const sql = SQL`SELECT 
                           id
                         , code
                         , description
-                        , accounting_entry_type
                     FROM   
-                        billing.adjustment_codes `;
+                        billing.billing_classes `;
 
         if (whereQuery.length) {
             sql.append(SQL` WHERE `)
                 .append(whereQuery.join(' AND '));
         }
 
-        sql.append(SQL` ORDER BY ${sortField} `)
-            .append(sortOrder)
-            .append(SQL` LIMIT ${pageSize}`)
-            .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+        sql.append(SQL` ORDER BY ${sortField}  ${sortOrder} `)
+        sql.append(SQL` LIMIT ${pageSize} `)
+        sql.append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
 
         return await query(sql);
     },
@@ -55,9 +53,8 @@ module.exports = {
                           id
                         , code
                         , description
-                        , accounting_entry_type
                     FROM   
-                        billing.adjustment_codes 
+                        billing.billing_classes 
                     WHERE 
                         id = ${id} `;
 
@@ -68,7 +65,6 @@ module.exports = {
         let {
             code,
             description,
-            type,
             isActive,
             companyId
         } = params;
@@ -76,17 +72,15 @@ module.exports = {
         let inactivated_date = isActive ? null : ' now() ';
 
         const sql = SQL`INSERT INTO 
-                        billing.adjustment_codes (
+                        billing.billing_classes (
                               company_id
                             , code
                             , description
-                            , accounting_entry_type
                             , inactivated_dt)
                         VALUES(
                                ${companyId}
                              , ${code}
                              , ${description}
-                             , ${type} 
                              , ${inactivated_date} )`;
 
         return await query(sql);
@@ -97,7 +91,6 @@ module.exports = {
         let {
             code,
             description,
-            type,
             id,
             isActive
         } = params;
@@ -105,11 +98,10 @@ module.exports = {
         let inactivated_date = isActive ? null : ' now() ';
 
         const sql = SQL`UPDATE
-                             billing.adjustment_codes 
+                             billing.billing_classes 
                         SET  
                               code = ${code}
                             , description = ${description}
-                            , accounting_entry_type = ${type}
                             , inactivated_dt = ${inactivated_date}
                         WHERE
                             id = ${id} `;
@@ -121,7 +113,7 @@ module.exports = {
         const { id } = params;
 
         const sql = SQL`DELETE FROM 
-                            billing.adjustment_codes 
+                            billing.billing_classes 
                         WHERE id = ${id}`;
 
         return await query(sql);

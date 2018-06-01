@@ -67,7 +67,7 @@ module.exports = {
             code,
             description,
             isActive,
-            company_id
+            companyId
         } = params;
 
         let inactivated_date = isActive ? null : ' now() ';
@@ -79,7 +79,7 @@ module.exports = {
                             , description
                             , inactivated_dt)
                         VALUES(
-                               ${company_id}
+                               ${companyId}
                              , ${code}
                              , ${description}
                              , ${inactivated_date} )`;
