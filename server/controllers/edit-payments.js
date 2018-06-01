@@ -1,7 +1,7 @@
 const data = require('../data/edit-payments');
 
 module.exports = {
-    getpendingPayments: function (params) {
-        return data.getpendingPayments(params);
+    getPendingPayments: function (params) {
+        return params.customArgs.gridFlag == 'pendingPayments' ? data.getPendingPayments(params) : data.getAppliedPayments(params);
     }
 };
