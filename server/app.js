@@ -21,8 +21,9 @@ app.use(responseTime());
 if (process.env.NODE_ENV != 'production') {
     //app.use(logger(':date[iso] :remote-addr :method :url', {immediate: true}));
     logger.info('Starting LESS middleware');
-
+    
     const lessMiddleware = require('less-middleware');
+
     app.use(lessMiddleware(path.join(__dirname, '/../app'), {
         debug: true,
         render: {compress: true}

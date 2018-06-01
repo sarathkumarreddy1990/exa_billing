@@ -13,13 +13,20 @@ block content
                     a.nav-link(href='#app/claim_workbench') Claims
                 li.nav-item
                     a.nav-link(href='#app/payments') Payments
-                li.nav-item
-                    a.nav-link(href='#app/reports') Reports
+                    
+                li.nav-item.dropdown
+                    a.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Reports
+                    .dropdown-menu
+                        a.dropdown-item(href='#') Charges
+                        a.dropdown-item(href='#') Payments
+                        .dropdown-divider
+                        a.dropdown-item(href='#') Report 1
+                        a.dropdown-item(href='#') Report 2
                     
                 li.nav-item.dropdown
                     a.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Setup
                     .dropdown-menu
-                        a.dropdown-item(href='#') Adjustment Codes
+                        a.dropdown-item(href='#setup/adjustment_codes/list') Adjustment Codes
                         a.dropdown-item(href='#') Billing codes
                         a.dropdown-item(href='#') Billing Classes
                         a.dropdown-item(href='#') Claim Status
@@ -30,7 +37,8 @@ block content
                         .dropdown-divider
                         a.dropdown-item(href='#') Billing Messages
                         a.dropdown-item(href='#') Payment Reasons
-                        a.dropdown-item(href='#setup/cas_group_codes/list') Cas Group Codes
+                        a.dropdown-item(href='#setup/cas_group_codes/list') CAS Group Codes
+                        a.dropdown-item(href='#setup/cas_reason_codes/list') CAS Reason Codes
 
                 li.nav-item
                     a.nav-link(href='#') Logout

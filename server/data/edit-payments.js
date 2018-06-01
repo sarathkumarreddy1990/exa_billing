@@ -2,7 +2,7 @@ const { query } = require('./index');
 
 module.exports = {
 
-    getpendingPayments: async function (params) {
+    getPendingPayments: async function (params) {
         return await query(`                                            
         SELECT 
             bc.id AS claim_id,
@@ -28,6 +28,31 @@ module.exports = {
 
         AND (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) > 0::money 
         group by bc.id, bc.invoice_no, bc.claim_dt, pp.account_no, get_full_name(pp.last_name,pp.first_name)
+        `);
+    },
+
+    getAppliedPayments: async function (params) {
+        return await query(`                                            
+        SELECT
+            bc.id, 
+            bc.invoice_no,
+            get_full_name(pp.last_name,pp.first_name),
+            bc.claim_dt,
+            (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) as bill_fee,
+            COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient'),0::money) as patient_paid,
+            COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient'),0::money) as others_paid,
+            (SELECT adjustments_applied_total from billing.get_claim_totals(bc.id)) as adjustment,
+            (SELECT payments_applied_total from billing.get_claim_totals(bc.id)) as payment,
+            (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from billing.get_claim_totals(bc.id)) as balance,
+            array_agg(pcc.display_description) as display_description
+        FROM billing.payments bp
+        INNER JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
+        INNER JOIN billing.charges bch on bch.id = bpa.charge_id
+        INNER JOIN billing.claims bc on bc.id = bch.claim_id
+        INNER JOIN public.patients pp on pp.id = bc.patient_id
+        INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
+        WHERE bp.id = ${params.customArgs.paymentID}
+        GROUP BY bc.id ,bc.invoice_no,get_full_name(pp.last_name,pp.first_name),bc.claim_dt        
         `);
     }
 };

@@ -19,6 +19,7 @@ module.exports = {
         else if (parseInt(params.amount) < parseInt(params.applied)) {
             params.current_status = 'OverApplied';
         }
+        
         return data.updatePayment(params);
     }
 };

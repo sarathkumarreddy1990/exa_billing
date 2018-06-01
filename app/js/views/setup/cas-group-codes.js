@@ -53,7 +53,7 @@ define(['jquery',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
                     colNames: ['','','','','',''],
-                    i18nNames: ['', '', '', 'setup.casgroupcodes.code', 'setup.casgroupcodes.name', 'setup.casgroupcodes.description'],
+                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.name', 'setup.common.description'],
                     colModel: [
                         {
                             name: 'id',

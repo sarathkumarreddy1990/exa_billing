@@ -3,7 +3,7 @@ define([
         , 'backbone'
         , 'backbonesubroute'
         , 'modules/reporting/utils/routing'
-        , 'modules/reporting/views/billing/patient_statement'
+        , 'modules/reporting/views/billing/patient-statement'
     ],
     function ($, Backbone, SubRoute, RoutingUtils, patientStatementView) {
 
@@ -22,7 +22,7 @@ define([
             },
 
             initializeRouter: function () {
-                this.options.screen = facilityModules.reportScreens.patient_statement;
+                this.options.screen = facilityModules.reportScreens.patient-statement;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {

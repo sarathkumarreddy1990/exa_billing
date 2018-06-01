@@ -7,31 +7,38 @@ const _ = require('lodash')
 
 // generate query template ***only once*** !!!
 
-const payerMixDataSetQueryTemplate = _.template(`
-with payer_mix_details as (
+const transactionSummaryDataSetQueryTemplate = _.template(`
+WITH transaction_summary_by_month as (
     SELECT
-    pcc.display_code,
-    pip.insurance_code,
-    pip.insurance_name,
-    pf.facility_name,
-    bc.claim_dt,
-    sum(bch.bill_fee),
-    COUNT(bc.id) as claim_count
-FROM billing.claims bc
-INNER JOIN billing.charges bch ON bch.claim_id = bc.id 
-INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
-INNER JOIN public.facilities pf ON pf.id = bc.facility_id
-LEFT JOIN public.patient_insurances ppi ON ppi.id = ANY (ARRAY[bc.primary_patient_insurance_id,bc.secondary_patient_insurance_id,bc.tertiary_patient_insurance_id])
-LEFT JOIN public.insurance_providers pip ON pip.id= ppi.insurance_provider_id 
-WHERE 1=1
-AND  <%= companyId %>
-GROUP BY  pcc.display_code,
-          pip.insurance_code,
-          pip.insurance_name,
-          pf.facility_name,
-          bc.claim_dt
- ORDER BY insurance_name,facility_name)
- select * from payer_mix_details
+        Date_trunc('month', bp.accounting_dt) AS txn_month,
+        sum(CASE when amount_type = 'payment' then bpa.amount else 0::money end ) as payment_amount,
+        sum(CASE when amount_type = 'adjustment' then bpa.amount else 0::money end ) as adjustment_amount
+    FROM billing.payments bp
+    INNER JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
+    INNER JOIN billing.charges bc on bc.id = bpa.charge_id
+    WHERE 1 = 1
+    AND <%= companyId %>
+    GROUP BY  (date_trunc('month', bp.accounting_dt))
+    ),
+    charge_summary AS(select
+        Date_trunc('month', charge_dt) AS txn_month,
+        sum(bill_fee*units) as charge
+    FROM billing.charges 
+    GROUP BY (date_trunc('month', charge_dt) ))
+    SELECT
+        COALESCE(to_char(ts.txn_month, 'MON-yy'), to_char(cs.txn_month, 'MON-yy') ) AS "Date",
+        coalesce(cs.charge,0::money)  AS "Charge",
+        SUM(coalesce(ts.payment_amount,0::money)) AS "Payments",
+        SUM(coalesce(adjustment_amount,0::money)) AS "Adjustments",
+        cs.charge - SUM ( coalesce(ts.payment_amount,0::money) +  coalesce(ts.adjustment_amount,0::money)) AS "Net Activity"
+    
+    FROM transaction_summary_by_month ts
+    FULL  JOIN charge_summary cs ON ts.txn_month = cs.txn_month
+    GROUP BY
+         COALESCE(to_char(ts.txn_month, 'MON-yy'), to_char(cs.txn_month, 'MON-yy') ) , cs.charge
+    ORDER BY
+          to_date(COALESCE(to_char(ts.txn_month, 'MON-yy'), to_char(cs.txn_month, 'MON-yy') ),'MON-yy')
+    
 `);
 
 const api = {
@@ -42,14 +49,14 @@ const api = {
      */
     getReportData: (initialReportData) => {
         return Promise.join(            
-            api.createpayerMixDataSet(initialReportData.report.params),
+            api.createtransactionSummaryDataSet(initialReportData.report.params),
             // other data sets could be added here...
-            (payerMixDataSet) => {
+            (transactionSummaryDataSet) => {
                 // add report filters                
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 // add report specific data sets
-                initialReportData.dataSets.push(payerMixDataSet);
+                initialReportData.dataSets.push(transactionSummaryDataSet);
                 initialReportData.dataSetCount = initialReportData.dataSets.length;
                 return initialReportData;
             });
@@ -107,21 +114,21 @@ const api = {
     },
 
     // ================================================================================================================
-    // --- DATA SET - payerMix count
+    // --- DATA SET - transactionSummary count
 
-    createpayerMixDataSet: (reportParams) => {
+    createtransactionSummaryDataSet: (reportParams) => {
         // 1 - build the query context. Each report will 'know' how to do this, based on report params and query/queries to be executed...
-        const queryContext = api.getpayerMixDataSetQueryContext(reportParams);
+        const queryContext = api.gettransactionSummaryDataSetQueryContext(reportParams);
         console.log('context__', queryContext)
         // 2 - geenrate query to execute
-        const query = payerMixDataSetQueryTemplate(queryContext.templateData);
+        const query = transactionSummaryDataSetQueryTemplate(queryContext.templateData);
         // 3a - get the report data and return a promise
         return db.queryForReportData(query, queryContext.queryParams);
     },
 
     // query context is all about query building: 1 - query parameters and 2 - query template data
     // every report and/or query may have a different logic to build a query context...
-    getpayerMixDataSetQueryContext: (reportParams) => {
+    gettransactionSummaryDataSetQueryContext: (reportParams) => {
         const params = [];
         const filters = {
             companyId: null
@@ -130,7 +137,7 @@ const api = {
 
         // company id
         params.push(reportParams.companyId);
-        filters.companyId = queryBuilder.where('bc.company_id', '=', [params.length]);
+        filters.companyId = queryBuilder.where('bp.company_id', '=', [params.length]);
 
         // // order facilities
         // if (!reportParams.allFacilities && reportParams.facilityIds) {

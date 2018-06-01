@@ -38,33 +38,42 @@ module.exports = {
         return await query(sql);
     },
 
-    save: async function (params) {
+    create: async function (params) {
 
-        let { company_id, code, name, description, is_active } = params;
-        let inactivated_dt = is_active ? null: 'now()';
+        let {
+            companyId,
+            code,
+            name,
+            description,
+            isActive } = params;
+        let inactivated_dt = isActive ? null : 'now()';
 
         const sql = SQL` INSERT INTO billing.cas_group_codes
-                                                    (     company_id
-                                                        , code
-                                                        , name
-                                                        , description
-                                                        , inactivated_dt)
-                                                    values
-                                                    (
-                                                          ${company_id}
-                                                        , ${code}
-                                                        , ${name}
-                                                        , ${description}
-                                                        , ${inactivated_dt}
-                                                    )`;
+                                                (   company_id
+                                                  , code
+                                                  , name
+                                                  , description
+                                                  , inactivated_dt)
+                                                values
+                                                (
+                                                    ${companyId}
+                                                  , ${code}
+                                                  , ${name}
+                                                  , ${description}
+                                                  , ${inactivated_dt}
+                                                ) RETURNING id`;
 
         return await query(sql);
     },
 
     update: async function (params) {
 
-        let { id, code, name, description, is_active } = params;
-        let inactivated_dt = is_active ? null: 'now()';
+        let { id,
+            code,
+            name,
+            description,
+            isActive } = params;
+        let inactivated_dt = isActive ? null : 'now()';
 
         const sql = SQL` UPDATE
                               billing.cas_group_codes

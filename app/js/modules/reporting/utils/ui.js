@@ -537,7 +537,7 @@ define([
                     type: "GET",
                     data: {
                         siteId: app.siteID,
-                        from : 'patient_statement'
+                        from : 'patient-statement'
                     },
                     success: function (model, response) {
                         if (model && model.result) {

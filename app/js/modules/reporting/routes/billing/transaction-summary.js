@@ -3,11 +3,11 @@ define([
     , 'backbone'
     , 'backbonesubroute'
     , 'modules/reporting/utils/routing'
-    , 'modules/reporting/views/billing/payer_mix'
+    , 'modules/reporting/views/billing/transaction-summary'
 ],
-    function ($, Backbone, SubRoute, RoutingUtils, payerMixView) {
+    function ($, Backbone, SubRoute, RoutingUtils, transactionSummaryView) {
 
-        var PayerMixRouter = Backbone.SubRoute.extend({
+        var transactionSummaryRouter = Backbone.SubRoute.extend({
             routes: {
                 '': 'showDefaultView'
             },
@@ -15,7 +15,7 @@ define([
             showDefaultView: function () {
                 console.log('router - showDefaultView');
                 this.initializeRouter();
-                this.payerMixView.showForm();
+                this.transactionSummaryView.showForm();
             },
 
             initialize: function (options) {
@@ -25,16 +25,16 @@ define([
 
             initializeRouter: function () {
                 console.log('router - initializeRouter');
-                this.options.screen = facilityModules.reportScreens.payer_mix;
+                this.options.screen = facilityModules.reportScreens.transactionSummary;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
                     RoutingUtils.clearView(this.options.currentView);
-                    this.payerMixView = new payerMixView(this.options);
-                    this.options.currentView = this.payerMixView;
+                    this.transactionSummaryView = new transactionSummaryView(this.options);
+                    this.options.currentView = this.transactionSummaryView;
                 }
             }
         });
 
-        return PayerMixRouter;
+        return transactionSummaryRouter;
     });

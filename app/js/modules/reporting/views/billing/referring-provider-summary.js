@@ -1,26 +1,16 @@
-/**
- * Author  : Vengadesh
- * Created : 01/09/17
- * ----------------------------------------------------------------------
- * Copyright © EMD Systems Software Private Ltd.  All rights reserved.
- * This file is subject to the terms and conditions defined in
- * file 'LICENSE.txt', which is part of this source code package.
- * All other rights reserved.
- * ----------------------------------------------------------------------
- */
 define([
     'jquery'
     , 'underscore'
     , 'backbone'
     , 'modules/reporting/utils/ui'
-    , 'text!modules/reporting/templates/billing/payer_mix.html'
+    , 'text!modules/reporting/templates/billing/referring-provider-summary.html'
 ],
-    function ($, _, Backbone, UI, payerMixTemplate) {
+    function ($, _, Backbone, UI, referringProviderSummaryTemplate) {
 
-        var payerMixView = Backbone.View.extend({
+        var referringProviderSummaryView = Backbone.View.extend({
             rendered: false,
             expanded: false,
-            mainTemplate: _.template(payerMixTemplate),
+            mainTemplate: _.template(referringProviderSummaryTemplate),
             viewModel: {
                 facilities: null,
                 modalities: null,
@@ -53,16 +43,20 @@ define([
 
             initialize: function (options) {
                 this.showForm();
-                var modelCollection = Backbone.Collection.extend({
-                    model: Backbone.Model.extend({})
+                this.$el.html(this.mainTemplate(this.viewModel));
+                this.selectDefaultFacility();
+                $('#ddlFacilityFilter').multiselect({
+                    maxHeight: 200,
+                    buttonWidth: '200px',
+                    enableFiltering: true,
+                    includeSelectAllOption: true,
+                    enableCaseInsensitiveFiltering: true
                 });
-                // initialize view model and set any defaults that are not constants
                 UI.initializeReportingViewModel(options, this.viewModel);
-                this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
-
+              
                 // Set date range to Facility Date
-                // this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(app.default_facility_id);
-                // this.viewModel.dateTo = this.viewModel.dateFrom.clone();
+              //  this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(app.default_facility_id);
+               // this.viewModel.dateTo = this.viewModel.dateFrom.clone();
             },
             showForm: function () {
                 if (!this.rendered) {
@@ -73,6 +67,12 @@ define([
             },
 
             render: function () {
+                var modelCollection = Backbone.Collection.extend({
+                    model: Backbone.Model.extend({})
+                });
+                // initialize view model and set any defaults that are not constants
+               
+                this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
                 this.$el.html(this.mainTemplate(this.viewModel));
 
                 // bind DRP and initialize it
@@ -80,16 +80,9 @@ define([
                 // this.drpStudyDt.setStartDate(this.viewModel.dateFrom);
                 // this.drpStudyDt.setEndDate(this.viewModel.dateTo);
                 // pre-select default facility
-                this.selectDefaultFacility();
-            //     $('#ddlFacilityFilter').multiselect({
-            //         maxHeight: 200,
-            //         buttonWidth: '200px',
-            //         enableFiltering: true,
-            //         includeSelectAllOption: true,
-            //         enableCaseInsensitiveFiltering: true
-            //     });
-            //     UI.bindBillingProvider();
-             },
+              
+                 UI.bindBillingProvider();
+            },
 
             bindDateRangePicker: function () {
                 var self = this;
@@ -104,6 +97,7 @@ define([
                     self.viewModel.dateTo = null;
                 });
             },
+
             onReportViewClick: function (e) {
                 var btnClicked = e && e.target ? $(e.target) : null;
                 this.getSelectedFacility();
@@ -118,7 +112,7 @@ define([
                // if (this.hasValidViewModel()) {
                     var urlParams = this.getReportParams();
                     UI.showReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
-                //}                
+              //  }               
             },
 
             hasValidViewModel: function () {
@@ -136,9 +130,9 @@ define([
             },
             selectDefaultFacility: function () {
                 // if there is only 1 facility select it, otherwise use default facility id
-           //     var defFacId = this.viewModel.facilities.length === 1 ? this.viewModel.facilities.at(0).get('id') : app.default_facility_id;
+             //   var defFacId = this.viewModel.facilities.length === 1 ? this.viewModel.facilities.at(0).get('id') : app.default_facility_id;
                 // works only if list exists by setting its value to array of selections
-                // // fires a change event
+                // fires a change event
                 // $('#ddlFacilities').val([defFacId]).change();
                 // this.defaultyFacilityId = defFacId;
             },
@@ -161,8 +155,10 @@ define([
                     billing_pro.push($(this).val());
                 });
                 this.selectedBillingProList = billing_pro;
-                //this.viewModel.allBillingProvider = this.selectedBillingProList && this.selectedBillingProList.length === $("#ddlBillingProvider option").length;
+              //  this.viewModel.allBillingProvider = this.selectedBillingProList && this.selectedBillingProList.length === $("#ddlBillingProvider option").length;
             },
+
+
             getReportParams: function () {
                 return urlParams = {
                     'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
@@ -176,5 +172,5 @@ define([
             }
         });
 
-        return payerMixView;
+        return referringProviderSummaryView;
     });

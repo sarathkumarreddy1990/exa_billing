@@ -1,16 +1,9 @@
-/**
- * Created with JetBrains WebStorm.
- * User: RameshP
- * Date: 10/09/17
- * Time: 16:47
- * To change this template use File | Settings | File Templates.
- */
 define([
     'jquery'
     , 'underscore'
     , 'backbone'
     , 'modules/reporting/utils/ui'
-    , 'text!modules/reporting/templates/billing/claim_inquiry.html'
+    , 'text!modules/reporting/templates/billing/claim-inquiry.html'
 ],
     function ($, _, Backbone, UI, ClaimInquiryTemplate) {
 
