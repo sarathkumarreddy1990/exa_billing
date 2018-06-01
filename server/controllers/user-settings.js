@@ -6,11 +6,11 @@ const data = require('../data/user-settings');
 
 module.exports = {
 
-    userSettingColumn: function () {
+    getGridFields: function () {
         let file_path = path.join(__dirname, '../resx/grid-fields.json');
-        let getGridFields = readFileAsync(file_path, 'utf8');
+        let gridFields = readFileAsync(file_path, 'utf8');
 
-        return getGridFields;
+        return gridFields;
     },
 
     save: function (args) {

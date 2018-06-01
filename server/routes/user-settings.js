@@ -4,7 +4,7 @@ const router = new Router();
 const userSettingsController = require('../controllers/user-settings');
 
 router.get('/', async function (req, res) {
-    const data = await userSettingsController.userSettingColumn(req.query);
+    const data = await userSettingsController.getGridFields(req.query);
     return res.send(JSON.parse(data));
 });
 

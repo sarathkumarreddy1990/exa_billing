@@ -127,7 +127,7 @@ define([
                 var self = this;
 
                 $.ajax({
-                    url: '/exa_modules/billing/user_setting_billing_fields',
+                    url: '/exa_modules/billing/user_settings',
                     success: function (data, response) {
                         var displayFields = [];
                         self.billingDisplayFields = [];

@@ -28,7 +28,7 @@ const router = function (app) {
     app.use('/exa_modules/billing/payments', paymentsRouter);
     app.use('/exa_modules/billing/pending_payments', editPaymentsRouter);
     app.use('/exa_modules/billing/claims', claimsRouters);
-    app.use('/exa_modules/billing/user_setting_billing_fields', userSettingRouter);
+    app.use('/exa_modules/billing/user_settings', userSettingRouter);
 };
 
 module.exports = router;
