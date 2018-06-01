@@ -25,7 +25,7 @@ module.exports = {
             whereQuery = `WHERE code ILIKE '${qcode}' `; 
         }
         else if(!params.qcode && params.qdesc){
-            whereQuery = `WHERE description ILIKE '${qdesc}' `
+            whereQuery = `WHERE description ILIKE '${qdesc}' `;
         }
         else{
             whereQuery = ` `;
@@ -42,9 +42,9 @@ module.exports = {
         }
 
         sql.append(SQL` ORDER BY ${sortField} `)
-        .append(sortOrder)
-        .append(SQL` LIMIT ${pageSize}`)
-        .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+            .append(sortOrder)
+            .append(SQL` LIMIT ${pageSize}`)
+            .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
 
         return await query(sql);
     },
