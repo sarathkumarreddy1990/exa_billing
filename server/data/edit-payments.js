@@ -79,7 +79,8 @@ module.exports = {
         );
     },
 
-    getGroupCodesAndReasonCodes : async function (params) {
+    getGroupCodesAndReasonCodes: async function (params) {
+        let { companyID } = params;
         return await query(`   
         WITH cte_cas_group_codes AS
         (
@@ -89,7 +90,7 @@ module.exports = {
                     name,
                     description
                     FROM billing.cas_group_codes 
-                    WHERE company_id = 1
+                    WHERE company_id =  ${companyID}
                     )
             AS cas_group_codes ),
                  cte_cas_reason_codes AS(
@@ -99,7 +100,7 @@ module.exports = {
                         code,
                         description
                         FROM billing.cas_reason_codes 
-                        WHERE company_id = 1
+                        WHERE company_id = ${companyID}
                         ) 
                     AS cas_reason_codes)
             SELECT *
@@ -109,4 +110,4 @@ module.exports = {
                  `
         );
     }
-}
+};
