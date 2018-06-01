@@ -5,6 +5,7 @@ let hitCount = 0;
 let missCount = 0;
 
 function now() { return (new Date).getTime(); }
+
 const sessionCache = {
 
     put: function (key, value, time, timeoutCallback) {
@@ -24,7 +25,7 @@ const sessionCache = {
         if (!isNaN(expire)) {
             let timeout = setTimeout(function () {
                 sessionCache.del(key);
-                
+
                 if (typeof timeoutCallback === 'function') {
                     timeoutCallback(key);
                 }
@@ -48,16 +49,23 @@ const sessionCache = {
 
         if (typeof data != 'undefined') {
             if (isNaN(data.expire) || data.expire >= now()) {
-                if (debug) { hitCount++; }
+                if (debug) { 
+                    hitCount++; 
+                }
+
                 return data.value;
             } else {
                 // free some space
-                if (debug) { missCount++; }
+                if (debug) { 
+                    missCount++; 
+                }
+
                 sessionCache.del(key);
             }
         } else if (debug) {
             missCount++;
         }
+
         return null;
     },
 
@@ -72,6 +80,7 @@ const sessionCache = {
                 }
             }
         }
+
         return size;
     },
 
@@ -84,6 +93,7 @@ const sessionCache = {
                 size++;
             }
         }
+        
         return size;
     },
 

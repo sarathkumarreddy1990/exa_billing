@@ -37,7 +37,7 @@ module.exports = {
         if (params.q != ''){
             insur_sql.append(search_query);
         }
-        
+
         insur_sql.append(SQL` ORDER BY  ${params.sortField} `)
             .append(params.sortOrder)
             .append(SQL` LIMIT ${params.pageSize}`)
@@ -61,10 +61,12 @@ module.exports = {
                                 INNER JOIN
                                     provider_contacts pc ON pc.provider_id = p.id
                             WHERE NOT p.has_deleted AND NOT pc.has_deleted AND p.is_active AND p.company_id = ${params.company_id} AND p.provider_type = ${params.provider_type} `;
+
         sql_provider.append(SQL` ORDER BY  ${params.sortField} `)
             .append(params.sortOrder)
             .append(SQL` LIMIT ${params.pageSize}`)
             .append(SQL` OFFSET ${((params.page * params.pageSize) - params.pageSize)}`);
+
         return await query(sql_provider);
     },
     getICDcodes: async function (params) {
@@ -77,10 +79,12 @@ module.exports = {
                                 FROM icd_codes AS icd
                                 WHERE 
                                     icd.is_active AND NOT icd.has_deleted AND icd.company_id = ${params.company_id} `;
+
         icd_sql.append(SQL` ORDER BY  ${params.sortField} `)
             .append(params.sortOrder)
             .append(SQL` LIMIT ${params.pageSize}`)
             .append(SQL` OFFSET ${((params.page * params.pageSize) - params.pageSize)}`);
+
         return await query(icd_sql);
     },
     getProviderGroups: async function (params) {
@@ -97,10 +101,12 @@ module.exports = {
                                 WHERE 
                                     NOT provider_groups.has_deleted AND (provider_groups.group_type = ${params.groupType}  OR provider_groups.group_type IS NULL) 
                                     AND provider_groups.company_id = ${params.company_id} AND is_active `;
+
         icd_sql.append(SQL` ORDER BY  ${params.sortField} `)
             .append(params.sortOrder)
             .append(SQL` LIMIT ${params.pageSize}`)
             .append(SQL` OFFSET ${((params.page * params.pageSize) - params.pageSize)}`);
+
         return await query(icd_sql);
     },
     getInsurances: async function (params) {
@@ -114,10 +120,12 @@ module.exports = {
                                 insurance_providers
                             WHERE 
                                 NOT has_deleted AND company_id = ${params.company_id} AND is_active `;
+                                
         insurance_sql.append(SQL` ORDER BY  ${params.sortField} `)
             .append(params.sortOrder)
             .append(SQL` LIMIT ${params.pageSize}`)
             .append(SQL` OFFSET ${((params.page * params.pageSize) - params.pageSize)}`);
+
         return await query(insurance_sql);
     }
 

@@ -37,8 +37,8 @@ module.exports = {
         ],
         "padding-line-between-statements": [
             "error",
-            { blankLine: "always", prev: ["*"], next: "block-like" },
-            { blankLine: "any", prev: ["block-like"], next: ["*"] }
+            { blankLine: "always", prev: "*", next: ["block-like", "function", "multiline-expression"] },
+            { blankLine: "always", prev: ["block-like", "function", "multiline-expression", "switch", "with"], next: "*" }
         ],
         "object-property-newline": ["error"],
         "no-var": ["error"],

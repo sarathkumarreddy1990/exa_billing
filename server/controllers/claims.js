@@ -7,6 +7,7 @@ module.exports = {
         if (params.id) {
             return data.getPatientInsurancesById(params);
         }
+        
         return data.getPatientInsurances(params);
     },
     getPatientInsurancesById: async (params) => {

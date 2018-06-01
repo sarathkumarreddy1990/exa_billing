@@ -23,6 +23,7 @@ router.get('/provider_group', async function (req, res) {
     const data = await autoCompleteController.getProviderGroups(req.query);
     httpHandler.sendRows(req, res, data);
 });
+
 router.get('/insurances', async function (req, res) {
     const data = await autoCompleteController.getInsurances(req.query);
     httpHandler.sendRows(req, res, data);
