@@ -13,7 +13,12 @@ const logout = function (req, res, msg) {
     if (req.originalUrl === '/exa') {
         res.redirect('/' + req.cookies.company_code + '/login?err=' + msg);
     } else {
-        res.send({ error: { code: 'NO_AUTH', description: 'Not authenticated' } });
+        res.send({
+            error: {
+                code: 'NO_AUTH',
+                description: 'Not authenticated'
+            }
+        });
     }
 };
 

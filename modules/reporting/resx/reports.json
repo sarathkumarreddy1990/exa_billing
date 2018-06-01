@@ -195,7 +195,7 @@
         }
     },
     {
-        "id": "claim_activity",
+        "id": "claim-activity",
         "category": "billing",
         "title": "Claim Activity",
         "description": "Report shows detailed claims transaction history for selected facilities and given scheduled date range.",
@@ -479,7 +479,7 @@
         }
     },
     {
-        "id": "claim_inquiry",
+        "id": "claim-inquiry",
         "category": "billing",
         "title": "Claim Inquiry",
         "description": "Report shows all submitted claims and order payment/balance.",
@@ -531,7 +531,7 @@
         }
     },
     {
-        "id": "patient_statement",
+        "id": "patient-statement",
         "category": "billing",
         "title": "Patient Statement",
         "description": "Report shows Patient Statement.",
@@ -554,7 +554,7 @@
         }
     },
     {
-        "id": "referringProviderCount",
+        "id": "referring-provider-count",
         "category": "billing",
         "title": "Referring Provider Count",
         "description": "Referring Provider Count",
@@ -573,6 +573,39 @@
             },
             "xml": {
                 "template": { "name": "default-table-xml" }
+            }
+        }
+    },
+    {
+        "id": "referring-provider-summary",
+        "category": "billing",
+        "title": "Referring Provider Summary",
+        "description": "Report shows Referring Doctor Summary Information",
+        "jsreport": {
+            "html": {
+                "template": {
+                    "name": "default-table-html"
+                }
+            },
+            "pdf": {
+                "template": {
+                    "name": "default-table-pdf"
+                }
+            },
+            "xlsx": {
+                "template": {
+                    "name": "default-table-excel"
+                }
+            },
+            "csv": {
+                "template": {
+                    "name": "default-table-csv"
+                }
+            },
+            "xml": {
+                "template": {
+                    "name": "default-table-xml"
+                }
             }
         }
     },
@@ -646,7 +679,7 @@
         }
     },
     {
-        "id": "modality_summary",
+        "id": "modality-summary",
         "category": "billing",
         "title": "Modality Summary",
         "description": "Modality Summary",
@@ -831,7 +864,7 @@
         }
     },
     {
-        "id": "transactionSummary",
+        "id": "transaction-summary",
         "category": "billing",
         "title": "Transaction Summary Report",
         "description": "Report shows Transaction Summary.",
@@ -941,7 +974,7 @@
         }
     },
     {
-        "id": "payer_mix",
+        "id": "payer-mix",
         "category": "billing",
         "title": "Payer Mix",
         "description": "Report shows Payer Mix.",
@@ -960,6 +993,39 @@
             },
             "xml": {
                 "template": { "name": "default-table-xml" }
+            }
+        }
+    },
+    { 
+        "id": "payments-by-ins-company",
+        "category": "billing",
+        "title": "Payments By Insurance Company",
+        "description": "Calculate Insurance Company wise payments",
+        "jsreport": {
+            "html": {
+                "template": {
+                    "name": "default-table-html"
+                }
+            },
+            "pdf": {
+                "template": {
+                    "name": "default-table-pdf"
+                }
+            },
+            "xlsx": {
+                "template": {
+                    "name": "default-table-excel"
+                }
+            },
+            "csv": {
+                "template": {
+                    "name": "default-table-csv"
+                }
+            },
+            "xml": {
+                "template": {
+                    "name": "default-table-xml"
+                }
             }
         }
     }

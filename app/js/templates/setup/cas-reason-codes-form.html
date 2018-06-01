@@ -1,0 +1,28 @@
+<div>
+    <div id="divCasReasonCodesFromBtnGrps" style="float:right;">
+        <input type="button" value="Add" id="btnSaveCasReasonCodes" i18n="shared.buttons.save" class="btn btn-primary">
+        <input type="button" value="Refresh" id="btnBackToCasReasonCodes" i18n="shared.buttons.back"
+               class="btn btn-primary">
+    </div>
+    <form class="form-horizontal form-list">
+        <div class="form-group form-inline">
+            <div class="col-form-label">
+                <label class="control-label field-required" for="txtCode" i18n="setup.common.code"></label>
+            </div>
+            <div class="col-form-content">
+                <input type="text" maxlength="512" id="txtCode" name="code" class="form-control">
+                <input type="checkbox" id="chkActive"/>
+                <span for="chkActive" class="field-chk" i18n="shared.fields.inactive" style="text-align:center;"></span>
+            </div>
+        </div>
+        <div class="form-group form-inline">
+            <div class="col-form-label">
+                <label class="control-label field-required" for="txtCode"
+                       i18n="setup.common.description"></label>
+            </div>
+            <div class="col-form-content">
+                <input type="text" maxlength="512" id="txtDescription" name="description" class="form-control">
+            </div>
+        </div>
+    </form>
+</div>
