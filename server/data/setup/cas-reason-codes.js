@@ -4,8 +4,8 @@ module.exports = {
 
     getData: async function (params) {
         let whereQuery = [];
-        params.code = '';
-        params.description = '';
+        params.code = 'bbcc';
+        params.description = 'bbbbccc';
         params.pageNo = 1;
         params.pageSize = 10;
         params.sortField = 'id';
@@ -18,15 +18,10 @@ module.exports = {
             pageNo,
             pageSize
         } = params;
-        if (code && description) {
+        if (code) {
             whereQuery.push(` code ILIKE '${code}'`);
+        if(description)
             whereQuery.push(` description ILIKE '${description}'`);
-        } else if (code && !description) {
-            whereQuery.push(`code ILIKE '${code}'`);;
-        } else if (!code && description) {
-            whereQuery.push(` description ILIKE '${description}'`);
-        } else {
-            whereQuery = ``;
         }
 
         const sql = SQL`SELECT 
@@ -36,9 +31,9 @@ module.exports = {
                     FROM   
                         billing.cas_reason_codes `;
 
-        if (whereQuery) {
+        if (whereQuery.length ) {
             sql.append(SQL` WHERE `)
-            sql.append(whereQuery.join(` AND `));
+            .append(whereQuery.join(' AND '));
         }
 
         sql.append(SQL` ORDER BY ${sortField} `)
@@ -72,7 +67,7 @@ module.exports = {
             company_id
         } = params;
 
-        let inactivated_date = isActive ? ' now() ' : null;
+        let inactivated_date = isActive ? null : ' now() ' ;
 
         const sql = SQL`INSERT INTO 
                         billing.cas_reason_codes (
@@ -98,7 +93,7 @@ module.exports = {
             isActive
         } = params;
 
-        let inactivated_date = isActive ? ' now() ' : null;
+        let inactivated_date = isActive ? null: ' now() ' ;
 
         const sql = SQL`UPDATE
                              billing.cas_reason_codes 

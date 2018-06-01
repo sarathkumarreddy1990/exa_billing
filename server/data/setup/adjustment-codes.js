@@ -3,8 +3,24 @@ const { query, SQL } = require('../index');
 module.exports = {
 
     getData: async function (params) {
-        let whereQuery = '';
+        let whereQuery = [];
         params.sortOrder = params.sortOrder || ' DESC';
+        let {
+            code,
+            description,
+            type,
+            sortOrder,
+            sortField,
+            pageNo,
+            pageSize
+        } = params;
+
+        if (code) 
+            whereQuery.push(` code ILIKE '${code}'`);
+        if(description)
+            whereQuery.push(` description ILIKE '${description}'`);
+        if(type)
+            whereQuery.push(` accounting_entry_type ILIKE '${type}'`);
 
         const sql = SQL`SELECT 
                           id
@@ -14,12 +30,15 @@ module.exports = {
                     FROM   
                         billing.adjustment_codes `;
 
-        if (whereQuery) {
-            sql.append(whereQuery);
+        if (whereQuery.length ) {
+            sql.append(SQL` WHERE `)
+            .append(whereQuery.join(' AND '));
         }
 
-        sql.append(SQL` ORDER BY id `);
-        sql.append(params.sortOrder);
+        sql.append(SQL` ORDER BY ${sortField} `)
+            .append(sortOrder)
+            .append(SQL` LIMIT ${pageSize}`)
+            .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
 
         return await query(sql);
     },
