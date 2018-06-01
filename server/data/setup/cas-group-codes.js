@@ -22,7 +22,7 @@ module.exports = {
         } = params;
 
         let whereQuery = [];
-        
+
         if (code) {
             whereQuery.push(` code ILIKE '%${code}%'`);
         }
