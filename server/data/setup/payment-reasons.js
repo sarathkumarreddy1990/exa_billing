@@ -8,7 +8,6 @@ module.exports = {
         let {
             code,
             description,
-            isSystemStatus,
             sortOrder,
             sortField,
             pageNo,
@@ -23,20 +22,13 @@ module.exports = {
             whereQuery.push(` description ILIKE '${description}'`);
         }
 
-        if(isSystemStatus == 'true'){
-            whereQuery.push(' is_system_status ')
-        }else if(isSystemStatus == 'false'){
-            whereQuery.push(' NOT is_system_status ');
-        }
-
         const sql = SQL`SELECT 
                           id
                         , code
                         , description
-                        , is_system_status
                         , COUNT(1) OVER (range unbounded preceding) AS total_records
                     FROM   
-                        billing.claim_status `;
+                        billing.payment_reasons `;
 
         if (whereQuery.length) {
             sql.append(SQL` WHERE `)
@@ -60,9 +52,8 @@ module.exports = {
                           id
                         , code
                         , description
-                        , is_system_status
                     FROM   
-                        billing.claim_status 
+                        billing.payment_reasons 
                     WHERE 
                         id = ${id} `;
 
@@ -74,25 +65,22 @@ module.exports = {
             code,
             description,
             isActive,
-            companyId,
-            isSystemStatus
+            companyId
         } = params;
 
         let inactivated_date = isActive ? null : ' now() ';
 
         const sql = SQL`INSERT INTO 
-                        billing.claim_status (
+                        billing.payment_reasons (
                               company_id
                             , code
                             , description
-                            , inactivated_dt
-                            , is_system_status)
+                            , inactivated_dt)
                         VALUES(
                                ${companyId}
                              , ${code}
                              , ${description}
-                             , ${inactivated_date}
-                             , ${isSystemStatus} )`;
+                             , ${inactivated_date} )`;
 
         return await query(sql);
     },
@@ -103,19 +91,17 @@ module.exports = {
             code,
             description,
             id,
-            isActive,
-            isSystemStatus
+            isActive
         } = params;
 
         let inactivated_date = isActive ? null : ' now() ';
 
         const sql = SQL`UPDATE
-                             billing.claim_status 
+                             billing.payment_reasons 
                         SET  
                               code = ${code}
                             , description = ${description}
                             , inactivated_dt = ${inactivated_date}
-                            , is_system_status = ${isSystemStatus}
                         WHERE
                             id = ${id} `;
 
@@ -126,7 +112,7 @@ module.exports = {
         const { id } = params;
 
         const sql = SQL`DELETE FROM 
-                            billing.claim_status 
+                            billing.payment_reasons 
                         WHERE id = ${id}`;
 
         return await query(sql);
