@@ -2,7 +2,44 @@ const { query, SQL } = require('../index');
 
 module.exports = {
 
-    getData: async function () {
+    getData: async function (params) {
+
+        params.code = '';
+        params.name = '';
+        params.address = '';
+        params.phoneNumber = '';
+        params.pageNo = 1;
+        params.pageSize = 10;
+        params.sortField = ' code ';
+        params.sortOrder = params.sortOrder || ' DESC';
+        let {
+            code,
+            name,
+            address,
+            phoneNumber,
+            sortOrder,
+            sortField,
+            pageNo,
+            pageSize
+        } = params;
+
+        let whereQuery = [];
+        
+        if (code) {
+            whereQuery.push(` code ILIKE '%${code}%'`);
+        }
+
+        if (name) {
+            whereQuery.push(` code ILIKE '%${name}%'`);
+        }
+
+        if (address) {
+            whereQuery.push(` (address_line1 ILIKE '%${address}%' OR address_line2 ILIKE '%${address}%') `);
+        }
+
+        if (phoneNumber) {
+            whereQuery.push(` phone_number ILIKE '%${phoneNumber}%'`);
+        }
 
         const sql = SQL`SELECT 
                             id
@@ -36,9 +73,19 @@ module.exports = {
                           , pay_to_fax_number
                           , communication_info
                           , COUNT(1) OVER (range unbounded preceding) as total_records
-                        FROM   billing.providers
-                        ORDER  BY id DESC 
-                        LIMIT  10 `;
+                        FROM   billing.providers `;
+
+        if (whereQuery.length) {
+            sql.append(SQL` WHERE `)
+                .append(whereQuery.join(' AND '));
+        }
+
+        sql.append(SQL` ORDER BY `)
+            .append(sortField)
+            .append(sortOrder)
+            .append(SQL` LIMIT ${pageSize}`)
+            .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+
 
         return await query(sql);
 

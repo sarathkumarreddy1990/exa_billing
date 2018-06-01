@@ -34,8 +34,8 @@ module.exports = {
                 .append(whereQuery.join(' AND '));
         }
 
-        sql.append(SQL` ORDER BY ${sortField}  ${sortOrder} `)
-        sql.append(SQL` LIMIT ${pageSize} `)
+        sql.append(SQL` ORDER BY ${sortField}  ${sortOrder} `);
+        sql.append(SQL` LIMIT ${pageSize} `);
         sql.append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
 
         return await query(sql);

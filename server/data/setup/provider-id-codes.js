@@ -3,6 +3,7 @@ const { query, SQL } = require('../index');
 module.exports = {
 
     getData: async function (params) {
+        
         let { provider_id } = params;
 
         const sql = SQL`SELECT 
