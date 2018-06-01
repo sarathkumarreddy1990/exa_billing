@@ -8,11 +8,10 @@ module.exports = {
                             id
                             , company_id
                             , inactivated_dt
-                            , code
-                            , name
+                            , qualifier_code
                             , description
                             , COUNT(1) OVER (range unbounded preceding) as total_records
-                        FROM   billing.cas_group_codes
+                        FROM   billing.provider_id_code_qualifiers
                         ORDER  BY id DESC 
                         LIMIT  10 `;
 
@@ -28,10 +27,9 @@ module.exports = {
                               id
                             , company_id
                             , inactivated_dt
-                            , code
-                            , name
+                            , qualifier_code
                             , description
-                        FROM   billing.cas_group_codes
+                        FROM   billing.provider_id_code_qualifiers
                         WHERE 
                             id = ${id} `;
 
@@ -43,22 +41,19 @@ module.exports = {
         let {
             companyId,
             code,
-            name,
             description,
             isActive } = params;
         let inactivated_dt = isActive ? null : 'now()';
 
-        const sql = SQL` INSERT INTO billing.cas_group_codes
+        const sql = SQL` INSERT INTO billing.provider_id_code_qualifiers
                                                 (   company_id
-                                                  , code
-                                                  , name
+                                                  , qualifier_code
                                                   , description
                                                   , inactivated_dt)
                                                 values
                                                 (
                                                     ${companyId}
                                                   , ${code}
-                                                  , ${name}
                                                   , ${description}
                                                   , ${inactivated_dt}
                                                 ) RETURNING id`;
@@ -70,16 +65,14 @@ module.exports = {
 
         let { id,
             code,
-            name,
             description,
             isActive } = params;
         let inactivated_dt = isActive ? null : 'now()';
 
         const sql = SQL` UPDATE
-                              billing.cas_group_codes
+                              billing.provider_id_code_qualifiers
                          SET
-                              code = ${code}
-                            , name = ${name}
+                              qualifier_code = ${code}
                             , description = ${description}
                             , inactivated_dt = ${inactivated_dt}
                          WHERE
@@ -93,7 +86,7 @@ module.exports = {
         let { id } = params;
 
         const sql = SQL` DELETE FROM
-                             billing.cas_group_codes
+                             billing.provider_id_code_qualifiers
                          WHERE
                              id = ${id}`;
 
