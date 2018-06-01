@@ -4,19 +4,22 @@ define([
     'views/setup/index',
     'text!templates/access-denied.html',
     'routes/setup/billing-providers',
-    'routes/setup/cas-group-codes'
+    'routes/setup/cas-group-codes',
+    'routes/setup/cas-reason-codes'
 ], function (
     Backbone,
     BackboneSubroute,
     SetupView,
     AccessDeniedTemplate,
     BillingProvidersRoute,
-    CasGroupCodesRoute
+    CasGroupCodesRoute,
+    CasReasonCodesRoute
 ) {
         return Backbone.SubRoute.extend({
             routes: {
                 "billing_providers/*subroute": "startBillingProviders",
-                "cas_group_codes/*subroute": "startCasGroupCodes"
+                "cas_group_codes/*subroute": "startCasGroupCodes",
+                "cas_reason_codes/*subroute": "startCasReasonCodes"
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -44,6 +47,15 @@ define([
                 if (this.checkLicense('CasGroupCodes') && !this.casGroupCodeRouter) {
                     this.defaultArgs.routePrefix = 'setup/cas_group_codes/';
                     this.casGroupCodeRouter = new CasGroupCodesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startCasReasonCodes: function (subroute) {
+                if (this.checkLicense('CasReasonCodes') && !this.billingProviderRouter) {
+                    this.defaultArgs.routePrefix = 'setup/cas_reason_codes/';
+                    this.casReasonCodesRouter = new CasReasonCodesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }
