@@ -15,7 +15,7 @@ router.get('/:id', async function (req, res) {
 });
 
 router.post('/', async function (req, res) {
-    const data = await casGroupCodeControllers.save(req.body);
+    const data = await casGroupCodeControllers.create(req.body);
     httpHandler.sendRows(req, res, data);
 });
 

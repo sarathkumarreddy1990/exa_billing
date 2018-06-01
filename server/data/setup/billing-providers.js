@@ -86,7 +86,7 @@ module.exports = {
         return await query(sql);
     },
 
-    save: async function (params) {
+    create: async function (params) {
 
         let {
             name,
@@ -263,10 +263,16 @@ module.exports = {
 
         let { id } = params;
 
-        const sql = SQL` DELETE FROM
-                             billing.providers
-                         WHERE
-                             id = ${id}`;
+        const sql = SQL` WITH delete_billing_provider AS(
+                                DELETE FROM
+                                    billing.provider_id_codes
+                                WHERE
+                                    billing_provider_id = ${id}
+                            )
+                            DELETE FROM
+                                billing.providers
+                            WHERE
+                                id = ${id}`;
 
         return await query(sql);
     }
