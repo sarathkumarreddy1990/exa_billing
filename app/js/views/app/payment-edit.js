@@ -1,5 +1,5 @@
-define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale', 'text!templates/payment-edit.html', 'models/payment', 'models/pager', 'text!templates/payments-payer.html', 'collections/pending-payments', 'collections/applied-payments'],
-    function (jQuery, Immutable, _, Backbone, JGrid, JGridLocale, editPayment, ModelPayments, ModelPaymentsPager, paymentsGridHtml, pendingPayments, appliedPayments) {
+define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale', 'text!templates/app/payment-edit.html', 'models/payment', 'models/pager', 'text!templates/payments-payer.html', 'collections/pending-payments', 'collections/applied-payments', 'text!templates/app/payment-apply-cas.html', 'text!templates/app/apply-payment.html'],
+    function (jQuery, Immutable, _, Backbone, JGrid, JGridLocale, editPayment, ModelPayments, ModelPaymentsPager, paymentsGridHtml, pendingPayments, appliedPayments, ApplyCasHtml, ApplyPaymentTemplate) {
         return Backbone.View.extend({
             el: null,
             pager: null,
@@ -17,9 +17,12 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             appliedPaymentTable: null,
             paymentsEditTemplate: _.template(editPayment),
             paymentsGridTemplate: _.template(paymentsGridHtml),
+            applyCasTemplate: _.template(ApplyCasHtml),
+            applyPaymentTemplate: _.template(ApplyPaymentTemplate),
 
             events: {
-                'click #btnPaymentSave': 'savePayment'
+                'click #btnPaymentSave': 'savePayment',
+                'click .applyCAS': 'applyPaymentsCAS'
             },
 
             initialize: function (options) {
@@ -101,7 +104,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 this.rendered = true;
                 self.showBillingForm(paymentId);
                 self.showPaymentsGrid(paymentId)
-//                commonjs.processPostRender();
+                //                commonjs.processPostRender();
             },
 
             showPaymentsGrid: function () {
@@ -236,14 +239,14 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                             name: 'edit', width: 20, sortable: false, search: false,
                             className: 'icon-ic-edit',
                             formatter: function (a, b, c) {
-                                return "<span class='icon-ic-edit' title='click Here to Edit'></span>"                                                       
+                                return "<span class='icon-ic-edit' title='click Here to Edit'></span>"
                                 // var url = "#app/payments/edit/" + b.rowId;
                                 // return '<a href=' + url + '> Edit'
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblpendPaymentsGrid').jqGrid('getRowData', rowID);
                                 self.order_payment_id = 0;
-                                self.applyPendingPayment(rowID);
+                                self.showApplyAndCas(rowID, paymentID);
                             }
                         },
                         {
@@ -284,7 +287,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     ondblClickRow: function (rowID) {
                         self.order_payment_id = 0;
                         var gridData = $('#tblpendPaymentsGrid').jqGrid('getRowData', rowID);
-                        self.applyPendingPayment(rowID);
+                        self.showApplyAndCas(rowID);
                     },
                     disablesearch: false,
                     disablesort: false,
@@ -325,13 +328,13 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                             name: 'edit', width: 20, sortable: false, search: false,
                             className: 'icon-ic-edit',
                             formatter: function (a, b, c) {
-                                return "<span class='icon-ic-edit' title='click Here to Edit'></span>"                                                                             
+                                return "<span class='icon-ic-edit' title='click Here to Edit'></span>"
                                 // var url = "#app/payments/edit/" + b.rowId;
                                 // return '<a href=' + url + '> Edit'
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblAppliedPaymentsGrid').jqGrid('getRowData', rowID);
-                                self.applyPendingPayment(rowID);
+                                self.showApplyAndCas(rowID, paymentID);
                             }
                         },
                         {
@@ -376,7 +379,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     container: this.el,
                     ondblClickRow: function (rowID) {
                         var gridData = $('#tblAppliedPaymentsGrid').jqGrid('getRowData', rowID);
-                        self.applyPendingPayment(rowID);
+                        self.showApplyAndCas(rowID, paymentID);
                     },
                     disablesearch: false,
                     disablesort: false,
@@ -393,8 +396,74 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 });
             },
 
-            applyPendingPayment: function (payment_id) {
+            showApplyAndCas: function (claimId, paymentID) {
+                var self = this;
+                self.defalutCASArray = [0, 1, 2, 3, 4, 5, 6];
+                $('<div/>').css({ top: '10%', height: '80%', "left": '5%', "overflow": "auto", "width": "90%", "left": "5%", "position": "absolute", 'border': '1px solid black', 'background-color': 'white' })
+                    .appendTo('body')
+                    .attr('id', 'divPaymentApply')
+                    .html(self.applyCasTemplate({ 'casArray': self.defalutCASArray, adjustmentCodes: self.adjustmentCodeList.toJSON(), 'claimStatusList': this.claimStatusList.toJSON() }));
+                commonjs.processPostRender();
+            
+                $('#btnCloseAppliedPendingPayments,#btnCloseApplyPaymentPopup').unbind().bind('click', function (e) {
+                    $('#divPaymentApply').remove();
+                    $('#siteModal').hide();
+                });
+                self.getClaimBasedCharges(claimId, paymentID);
+            },
 
-             }
+            getClaimBasedCharges: function (claimId, payment_id) {
+                var self = this;
+                self.casSave = [];
+                $.ajax({
+                    url: '/exa_modules/billing/pending_payments/getClaimBasedCharges',
+                    type: 'GET',
+                    data: {
+                        claimId: claimId
+                    },
+                    success: function (data, response) {
+                        var payments = data;
+                        $.each(payments, function (index, payment) {
+                            var paymentDet = {}
+                            paymentDet.index = index;
+                            paymentDet.payment_reconciliations_id = payment.payment_reconciliations_id ? payment.payment_reconciliations_id : null;
+                            paymentDet.study_id = payment.study_id ? payment.study_id : null;
+                            paymentDet.payment_id = payment_id;
+                            // paymentDet.order_id = order_id;
+                            paymentDet.study_cpt_id = payment.study_cpt_id ? payment.study_cpt_id : null;
+                            paymentDet.cpt_code_id = payment.cpt_code_id ? payment.cpt_code_id : null;
+                            // paymentDet.scheduled_dt = scheduled_date;
+                            paymentDet.cpt_code = payment.cpt_code;
+                            paymentDet.cpt_description = payment.cpt_description;
+                            paymentDet.payment_amount = payment.current_payment ? parseFloat(payment.current_payment).toFixed(2) : 0.00;
+                            paymentDet.other_payment = payment.other_payment && !isNaN(payment.other_payment) ? parseFloat(payment.other_payment).toFixed(2) : 0.00;
+                            paymentDet.other_adjustment = payment.other_adjustment && !isNaN(payment.other_adjustment) ? parseFloat(payment.other_adjustment).toFixed(2) : 0.00;
+                            paymentDet.adjustment = payment.current_adj ? parseFloat(payment.current_adj).toFixed(2) : 0.0;
+                            paymentDet.bill_fee = payment.bill_fee ? parseFloat(payment.bill_fee).toFixed(2) : 0.00
+                            paymentDet.allowed_fee = 0.00;
+                            var balance = parseFloat(paymentDet.bill_fee) - (parseFloat(paymentDet.other_payment) + parseFloat(paymentDet.other_adjustment) + parseFloat(paymentDet.adjustment) + parseFloat(paymentDet.payment_amount)).toFixed(2);
+                            paymentDet.balance = parseFloat(balance).toFixed(2);
+                            var applyPaymentRow = self.applyPaymentTemplate({ payment: paymentDet });
+                            $('#tBodyApplyPendingPayment').append(applyPaymentRow);
+                            $('.this_pay,.this_adjustment').unbind().blur(function (e) {
+                                self.updatePaymentAdjustment();
+                            });
+                            $('.this_allowed').unbind().blur(function (e) {
+                                self.calculateAdjustment(e)
+                            });
+                            var cas_arr_obj = [];
+                            var cas_arr_obj = payment.cas_arr_obj ? JSON.parse(payment.cas_arr_obj) : [];
+                            self.casSave[index] = cas_arr_obj;
+                        });
+                    },
+                    error: function (err, response) {
+
+                    }
+                });
+            },
+
+            applyPaymentsCAS: function () {
+                
+            }
         });
     });
