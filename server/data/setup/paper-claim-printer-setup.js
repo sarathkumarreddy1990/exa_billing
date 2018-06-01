@@ -66,6 +66,7 @@ module.exports = {
 
         sql.append(SQL` ORDER BY `)
             .append(sortField)
+            .append(' ')
             .append(sortOrder)
             .append(SQL` LIMIT ${pageSize}`)
             .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
