@@ -7,28 +7,25 @@ const _ = require('lodash')
 
 // generate query template ***only once*** !!!
 
-const chargesDataSetQueryTemplate = _.template(`
-WITH code_counts AS (
-    SELECT
-        get_full_name(p.last_name, p.first_name,p.middle_name, p.prefix_name, p.suffix_name) AS patient_name,
-        SUM(bill_fee*units),
-        SUM(allowed_amount*units)
-    FROM 
-        billing.charges bch
-    INNER JOIN billing.claims bc on bc.id = bch.claim_id 
-    INNER JOIN public.patients p on p.id = bc.patient_id 
-    INNER JOIN facilities f on f.id = bc.facility_id
-    where 1=1 
-    AND  <%= companyId %>
-    GROUP BY 
-        ROLLUP (patient_name)
-    ORDER BY 
-        patient_name
-  )
-  SELECT
-     *
-  FROM
-     code_counts cc 
+const dateOfSVCSummaryDataSetQueryTemplate = _.template(`
+with dateOfSVCSummary as (
+    SELECT 
+	  pay.id
+    , SUM(pay.amount) 
+    , pay.payment_dt
+    , pay.payer_type
+FROM billing.payments pay 
+INNER JOIN billing.payment_applications pa ON pa.payment_id = pay.id 
+where 1=1
+AND <%=companyId%>
+GROUP BY
+    pay.amount,
+    payment_dt,
+    pay.id,
+    pay.payer_type
+)
+select * from dateOfSVCSummary
+
 `);
 
 const api = {
@@ -39,14 +36,14 @@ const api = {
      */
     getReportData: (initialReportData) => {
         return Promise.join(
-            api.createchargesDataSet(initialReportData.report.params),
+            api.createdateOfSVCSummaryDataSet(initialReportData.report.params),
             // other data sets could be added here...
-            (chargesDataSet) => {
+            (dateOfSVCSummaryDataSet) => {
                 // add report filters                
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 // add report specific data sets
-                initialReportData.dataSets.push(chargesDataSet);
+                initialReportData.dataSets.push(dateOfSVCSummaryDataSet);
                 initialReportData.dataSetCount = initialReportData.dataSets.length;
                 return initialReportData;
             });
@@ -104,21 +101,21 @@ const api = {
     },
 
     // ================================================================================================================
-    // --- DATA SET - Charges count
+    // --- DATA SET - dateOfSVCSummary count
 
-    createchargesDataSet: (reportParams) => {
+    createdateOfSVCSummaryDataSet: (reportParams) => {
         // 1 - build the query context. Each report will 'know' how to do this, based on report params and query/queries to be executed...
-        const queryContext = api.getchargesDataSetQueryContext(reportParams);
+        const queryContext = api.getdateOfSVCSummaryDataSetQueryContext(reportParams);
         console.log('context__', queryContext)
         // 2 - geenrate query to execute
-        const query = chargesDataSetQueryTemplate(queryContext.templateData);
+        const query = dateOfSVCSummaryDataSetQueryTemplate(queryContext.templateData);
         // 3a - get the report data and return a promise
         return db.queryForReportData(query, queryContext.queryParams);
     },
 
     // query context is all about query building: 1 - query parameters and 2 - query template data
     // every report and/or query may have a different logic to build a query context...
-    getchargesDataSetQueryContext: (reportParams) => {
+    getdateOfSVCSummaryDataSetQueryContext: (reportParams) => {
         const params = [];
         const filters = {
             companyId: null
@@ -127,7 +124,7 @@ const api = {
 
         // company id
         params.push(reportParams.companyId);
-        filters.companyId = queryBuilder.where('bc.company_id', '=', [params.length]);
+        filters.companyId = queryBuilder.where('pay.company_id', '=', [params.length]);
 
         // // order facilities
         // if (!reportParams.allFacilities && reportParams.facilityIds) {

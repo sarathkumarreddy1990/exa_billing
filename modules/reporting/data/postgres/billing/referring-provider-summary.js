@@ -2,33 +2,32 @@ const _ = require('lodash')
     , Promise = require('bluebird')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder')
+    , queryBuilder = require('../queryBuilder')    
     , logger = require('../../../../../logger');
 
 // generate query template ***only once*** !!!
 
-const chargesDataSetQueryTemplate = _.template(`
-WITH code_counts AS (
+const referringProviderSummaryDataSetQueryTemplate = _.template(`
+with referringProviderSummary as (
     SELECT
-        get_full_name(p.last_name, p.first_name,p.middle_name, p.prefix_name, p.suffix_name) AS patient_name,
-        SUM(bill_fee*units),
-        SUM(allowed_amount*units)
-    FROM 
-        billing.charges bch
-    INNER JOIN billing.claims bc on bc.id = bch.claim_id 
-    INNER JOIN public.patients p on p.id = bc.patient_id 
-    INNER JOIN facilities f on f.id = bc.facility_id
-    where 1=1 
-    AND  <%= companyId %>
-    GROUP BY 
-        ROLLUP (patient_name)
-    ORDER BY 
-        patient_name
-  )
-  SELECT
-     *
-  FROM
-     code_counts cc 
+    pp.provider_code,
+    pp.full_name,
+    count(pp.id) as orderCount,
+    sum(bch.bill_fee * units) AS BillingFee,
+    sum(bch.allowed_amount * units) AS AllowedFee
+FROM billing.claims bc 
+INNER JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
+INNER JOIN public.providers pp ON pp.id = ppc.provider_id
+INNER JOIN billing.charges bch on bch.claim_id = bc.id
+WHERE 1=1 
+AND <%= companyId %>
+GROUP BY 
+    pp.provider_code,
+    pp.full_name
+ORDER BY pp.full_name ASC
+
+)
+select * from referringProviderSummary
 `);
 
 const api = {
@@ -38,15 +37,15 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
-        return Promise.join(
-            api.createchargesDataSet(initialReportData.report.params),
+        return Promise.join(            
+            api.createreferringProviderSummaryDataSet(initialReportData.report.params),
             // other data sets could be added here...
-            (chargesDataSet) => {
+            (referringProviderSummaryDataSet) => {
                 // add report filters                
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 // add report specific data sets
-                initialReportData.dataSets.push(chargesDataSet);
+                initialReportData.dataSets.push(referringProviderSummaryDataSet);
                 initialReportData.dataSetCount = initialReportData.dataSets.length;
                 return initialReportData;
             });
@@ -84,12 +83,12 @@ const api = {
         const filtersUsed = [];
         filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
 
-        // if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
-        //     filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
-        // else {
-        //     const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
-        //     filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
-        // }
+        if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
+            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
+        else {
+            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
+            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
+        }
         // // Billing provider Filter
         // if (params.allBillingProvider == 'true')
         //     filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
@@ -104,25 +103,26 @@ const api = {
     },
 
     // ================================================================================================================
-    // --- DATA SET - Charges count
+    // --- DATA SET - referringProviderSummary count
 
-    createchargesDataSet: (reportParams) => {
+    createreferringProviderSummaryDataSet: (reportParams) => {
+        
         // 1 - build the query context. Each report will 'know' how to do this, based on report params and query/queries to be executed...
-        const queryContext = api.getchargesDataSetQueryContext(reportParams);
+        const queryContext = api.getreferringProviderSummaryDataSetQueryContext(reportParams);
         console.log('context__', queryContext)
         // 2 - geenrate query to execute
-        const query = chargesDataSetQueryTemplate(queryContext.templateData);
+        const query = referringProviderSummaryDataSetQueryTemplate(queryContext.templateData);
         // 3a - get the report data and return a promise
         return db.queryForReportData(query, queryContext.queryParams);
     },
 
     // query context is all about query building: 1 - query parameters and 2 - query template data
     // every report and/or query may have a different logic to build a query context...
-    getchargesDataSetQueryContext: (reportParams) => {
+    getreferringProviderSummaryDataSetQueryContext: (reportParams) => {
         const params = [];
         const filters = {
             companyId: null
-
+           
         };
 
         // company id
@@ -152,7 +152,7 @@ const api = {
 
         return {
             queryParams: params,
-            templateData: filters
+            templateData: filters         
         }
     }
 }

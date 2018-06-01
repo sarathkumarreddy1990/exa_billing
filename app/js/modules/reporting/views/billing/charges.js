@@ -7,7 +7,7 @@ define([
 ],
 function ($, _, Backbone, UI, chargesTemplate) {
 
-    var chargesView = Backbone.View.extend({
+    var ChargesView = Backbone.View.extend({
         rendered: false,
         expanded: false,
         mainTemplate: _.template(chargesTemplate),
@@ -52,9 +52,10 @@ function ($, _, Backbone, UI, chargesTemplate) {
            // this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
 
             // Set date range to Facility Date
-            this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(app.default_facility_id);
+         //   this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(app.default_facility_id);
             //this.viewModel.dateTo = this.viewModel.dateFrom.clone();
         },
+
         showForm: function () {
             if (!this.rendered) {
                 this.render();
@@ -136,6 +137,7 @@ function ($, _, Backbone, UI, chargesTemplate) {
             //$('#ddlFacilities').val([defFacId]).change();
           //  this.defaultyFacilityId = 1;
         },
+        
         // multi select facilities - worked
         getSelectedFacility: function (e) {
             var selected = $("#ddlFacilityFilter option:selected");
@@ -178,5 +180,5 @@ function ($, _, Backbone, UI, chargesTemplate) {
         }
     });
 
-    return chargesView;
+    return ChargesView;
 });
