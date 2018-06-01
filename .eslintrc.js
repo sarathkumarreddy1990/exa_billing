@@ -27,6 +27,20 @@ module.exports = {
             "error",
             "always"
         ],
+        "lines-between-class-members": [
+            "error",
+            "always"
+        ],
+        "one-var-declaration-per-line": [
+            "error",
+            "always"
+        ],
+        "padding-line-between-statements": [
+            "error",
+            { blankLine: "always", prev: ["*"], next: "block-like" },
+            { blankLine: "any", prev: ["block-like"], next: ["*"] }
+        ],
+        "object-property-newline": ["error"],
         "no-var": ["error"],
         "no-console": ["error"],
         "curly": ["error"]

@@ -8,7 +8,7 @@ module.exports = {
         params.qdesc = '';
         params.pageNo = 1;
         params.pageSize = 10;
-        params.sortField= 'id';
+        params.sortField = 'id';
         params.sortOrder = params.sortOrder || ` DESC`;
         let {
             qcode,
@@ -18,18 +18,17 @@ module.exports = {
             pageNo,
             pageSize
         } = params;
-        if(params.qcode && params.qdesc) {
+
+        if (params.qcode && params.qdesc) {
             whereQuery = `WHERE code ILIKE '${qcode}' AND description ILIKE '${qdesc}'`;
-        }
-        else if(params.qcode && !params.qdesc){
-            whereQuery = `WHERE code ILIKE '${qcode}' `; 
-        }
-        else if(!params.qcode && params.qdesc){
+        } else if (params.qcode && !params.qdesc) {
+            whereQuery = `WHERE code ILIKE '${qcode}' `;
+        } else if (!params.qcode && params.qdesc) {
             whereQuery = `WHERE description ILIKE '${qdesc}' `;
-        }
-        else{
+        } else {
             whereQuery = ` `;
         }
+
         const sql = SQL`SELECT 
                           id
                         , code

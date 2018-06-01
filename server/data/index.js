@@ -19,7 +19,7 @@ const poolConfig = ((connStr) => {
         database: params.pathname.split('/')[1],
         ssl: false
     };
-
+    
     return config;
 })(dbConnString);
 
@@ -43,7 +43,11 @@ const pgData = {
         if (typeof text === 'object') {
             queryObj = text;
         } else {
-            queryObj = { name: preparedName || null, text, values };
+            queryObj = {
+                name: preparedName || null,
+                text,
+                values
+            };
         }
 
         return pool.query(queryObj);
