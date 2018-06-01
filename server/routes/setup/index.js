@@ -8,6 +8,7 @@ const providerIdCodeQualifierRouter = require('./provider-id-code-qualifiers');
 const providerIdCodeRouter = require('./provider-id-codes');
 const billingCodeRouter = require('./billing-codes');
 const claimStatusRouter = require('./claim-status');
+const paperClaimPrinterSetupRouter = require('./paper-claim-printer-setup');
 
 const app = module.exports = express();
 app.use('/cas_group_codes',casGroupRouter);
@@ -16,6 +17,7 @@ app.use('/cas_reason_codes', casReasonRouter);
 app.use('/billing_providers',billingProviderRouter);
 app.use('/billing_classes', billingClassRouter);
 app.use('/provider_id_code_qualifiers',providerIdCodeQualifierRouter);
-app.use('/provider_id_codes/',providerIdCodeRouter);
+app.use('/provider_id_codes',providerIdCodeRouter);
 app.use('/billing_codes', billingCodeRouter);
+app.use('/paper_claim_printer_setup',paperClaimPrinterSetupRouter);
 app.use('/claim_status', claimStatusRouter);
