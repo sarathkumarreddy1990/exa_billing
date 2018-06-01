@@ -26,6 +26,7 @@ module.exports = {
                           id
                         , code
                         , description
+                        , COUNT(1) OVER (range unbounded preceding) AS total_records
                     FROM   
                         billing.cas_reason_codes `;
 
@@ -34,7 +35,9 @@ module.exports = {
                 .append(whereQuery.join(' AND '));
         }
 
-        sql.append(SQL` ORDER BY ${sortField} `)
+        sql.append(SQL` ORDER BY `)
+            .append(sortField)
+            .append(' ')
             .append(sortOrder)
             .append(SQL` LIMIT ${pageSize}`)
             .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
