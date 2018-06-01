@@ -9,7 +9,7 @@ function ($, Backbone, SubRoute, RoutingUtils, chargesView) {
 
     var ChargesRouter = Backbone.View.extend({
         routes: {
-            '': 'showDefaultView'
+            'charges': 'showDefaultView'
         },
 
         showDefaultView: function () {
@@ -20,14 +20,13 @@ function ($, Backbone, SubRoute, RoutingUtils, chargesView) {
 
         initialize: function (options) {
             console.log('router - initialize, options: ', options);
-            this.options = options;
+            this.options = options;           
         },
 
         initializeRouter: function () {
             console.log('router - initializeRouter');
             this.options.screen = facilityModules.reportScreens.charges;
             layout.initializeLayout(this);
-
             if (!layout.initialized) {
                 RoutingUtils.clearView(this.options.currentView);
                 this.chargesView = new chargesView(this.options);

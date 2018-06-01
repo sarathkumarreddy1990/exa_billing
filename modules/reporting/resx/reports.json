@@ -278,7 +278,7 @@
         }
     },
     {
-        "id": "diagnosisCount",
+        "id": "diagnosis-count",
         "category": "billing",
         "title": "Diagnosis Count",
         "description": "Report shows aggregate diagnosis count by ICD code and facility for given order date range.",
@@ -1001,6 +1001,39 @@
         "category": "billing",
         "title": "Payments By Insurance Company",
         "description": "Calculate Insurance Company wise payments",
+        "jsreport": {
+            "html": {
+                "template": {
+                    "name": "default-table-html"
+                }
+            },
+            "pdf": {
+                "template": {
+                    "name": "default-table-pdf"
+                }
+            },
+            "xlsx": {
+                "template": {
+                    "name": "default-table-excel"
+                }
+            },
+            "csv": {
+                "template": {
+                    "name": "default-table-csv"
+                }
+            },
+            "xml": {
+                "template": {
+                    "name": "default-table-xml"
+                }
+            }
+        }
+    },
+    {
+        "id": "date-of-SVC-payment-summary",
+        "category": "billing",
+        "title": "Date of Service Payment Summary",
+        "description": "Report shows Date of Service Payment Summary",
         "jsreport": {
             "html": {
                 "template": {

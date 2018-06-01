@@ -2,33 +2,36 @@ const _ = require('lodash')
     , Promise = require('bluebird')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder')
+    , queryBuilder = require('../queryBuilder')    
     , logger = require('../../../../../logger');
 
 // generate query template ***only once*** !!!
 
-const chargesDataSetQueryTemplate = _.template(`
-WITH code_counts AS (
+const diagnosisCountDataSetQueryTemplate = _.template(`
+with diagnosisCount as (
     SELECT
-        get_full_name(p.last_name, p.first_name,p.middle_name, p.prefix_name, p.suffix_name) AS patient_name,
-        SUM(bill_fee*units),
-        SUM(allowed_amount*units)
-    FROM 
-        billing.charges bch
-    INNER JOIN billing.claims bc on bc.id = bch.claim_id 
-    INNER JOIN public.patients p on p.id = bc.patient_id 
-    INNER JOIN facilities f on f.id = bc.facility_id
-    where 1=1 
-    AND  <%= companyId %>
-    GROUP BY 
-        ROLLUP (patient_name)
-    ORDER BY 
-        patient_name
-  )
-  SELECT
-     *
-  FROM
-     code_counts cc 
+    icd.code 
+  , COALESCE(f.facility_name, 'Total') AS facility_name
+,CASE
+      WHEN COALESCE(f.facility_name, 'Total')  !=   'Total' THEN max(icd.description)
+      ELSE  NULL
+      END As  description,  
+   COUNT(1) as icd_code_count
+FROM billing.claim_icds claim_icd
+INNER JOIN billing.claims cl ON cl.id = claim_icd.claim_id
+INNER JOIN public.icd_codes icd ON icd.id = claim_icd.icd_id
+INNER JOIN public.facilities f ON f.id = cl.facility_id
+INNER JOIN billing.providers p ON p.id = cl.billing_provider_id
+WHERE 1 = 1
+AND <%=companyId%>
+GROUP BY
+  ROLLUP(icd.code, f.facility_name)
+ORDER BY
+    icd.code
+  , f.facility_name
+  , icd_code_count
+)
+select * from diagnosisCount
 `);
 
 const api = {
@@ -38,15 +41,15 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
-        return Promise.join(
-            api.createchargesDataSet(initialReportData.report.params),
+        return Promise.join(            
+            api.creatediagnosisCountDataSet(initialReportData.report.params),
             // other data sets could be added here...
-            (chargesDataSet) => {
+            (diagnosisCountDataSet) => {
                 // add report filters                
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 // add report specific data sets
-                initialReportData.dataSets.push(chargesDataSet);
+                initialReportData.dataSets.push(diagnosisCountDataSet);
                 initialReportData.dataSetCount = initialReportData.dataSets.length;
                 return initialReportData;
             });
@@ -104,30 +107,30 @@ const api = {
     },
 
     // ================================================================================================================
-    // --- DATA SET - Charges count
+    // --- DATA SET - diagnosisCount count
 
-    createchargesDataSet: (reportParams) => {
+    creatediagnosisCountDataSet: (reportParams) => {
         // 1 - build the query context. Each report will 'know' how to do this, based on report params and query/queries to be executed...
-        const queryContext = api.getchargesDataSetQueryContext(reportParams);
+        const queryContext = api.getdiagnosisCountDataSetQueryContext(reportParams);
         console.log('context__', queryContext)
         // 2 - geenrate query to execute
-        const query = chargesDataSetQueryTemplate(queryContext.templateData);
+        const query = diagnosisCountDataSetQueryTemplate(queryContext.templateData);
         // 3a - get the report data and return a promise
         return db.queryForReportData(query, queryContext.queryParams);
     },
 
     // query context is all about query building: 1 - query parameters and 2 - query template data
     // every report and/or query may have a different logic to build a query context...
-    getchargesDataSetQueryContext: (reportParams) => {
+    getdiagnosisCountDataSetQueryContext: (reportParams) => {
         const params = [];
         const filters = {
             companyId: null
-
+           
         };
 
         // company id
         params.push(reportParams.companyId);
-        filters.companyId = queryBuilder.where('bc.company_id', '=', [params.length]);
+        filters.companyId = queryBuilder.where('cl.company_id', '=', [params.length]);
 
         // // order facilities
         // if (!reportParams.allFacilities && reportParams.facilityIds) {
@@ -152,7 +155,7 @@ const api = {
 
         return {
             queryParams: params,
-            templateData: filters
+            templateData: filters         
         }
     }
 }
