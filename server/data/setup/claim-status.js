@@ -24,7 +24,7 @@ module.exports = {
         }
 
         if(isSystemStatus == 'true'){
-            whereQuery.push(' is_system_status ')
+            whereQuery.push(' is_system_status ');
         }else if(isSystemStatus == 'false'){
             whereQuery.push(' NOT is_system_status ');
         }
