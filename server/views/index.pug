@@ -13,8 +13,15 @@ block content
                     a.nav-link(href='#app/claim_workbench') Claims
                 li.nav-item
                     a.nav-link(href='#app/payments') Payments
-                li.nav-item
-                    a.nav-link(href='#app/reports') Reports
+                    
+                li.nav-item.dropdown
+                    a.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Reports
+                    .dropdown-menu
+                        a.dropdown-item(href='#') Charges
+                        a.dropdown-item(href='#') Payments
+                        .dropdown-divider
+                        a.dropdown-item(href='#') Report 1
+                        a.dropdown-item(href='#') Report 2
                     
                 li.nav-item.dropdown
                     a.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Setup
