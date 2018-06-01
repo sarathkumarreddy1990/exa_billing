@@ -4,7 +4,7 @@ module.exports = {
 
     getData: async function (params) {
         let whereQuery = [];
-        params.sortOrder = params.sortOrder || ' DESC';
+        params.sortOrder = params.sortOrder || ' ASC';
         let {
             code,
             description,
