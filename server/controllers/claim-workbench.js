@@ -1,7 +1,7 @@
-const data = require('../data/studies');
+const data = require('../data/claim-workbench');
 
 module.exports = {
-    
+
     getData: function (params) {
         params.isCount=false;
         return data.getData(params);
@@ -10,9 +10,5 @@ module.exports = {
     getDataCount: function (params) {
         params.isCount=true;
         return data.getData(params);
-    },
-    
-    getDataByDate: function (params) {
-        return data.getDataByDate(params);
-    },
+    }
 };

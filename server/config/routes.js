@@ -10,6 +10,7 @@ const setupRouters = require('../routes/setup/');
 const paymentsRouter = require('../routes/payments');
 const editPaymentsRouter = require('../routes/edit-payments');
 const claimsRouters = require('../routes/claims');
+const claimsWorkbenchRouters = require('../routes/claim-workbench');
 
 const router = function (app) {
 
@@ -27,6 +28,7 @@ const router = function (app) {
     app.use('/exa_modules/billing/payments', paymentsRouter);
     app.use('/exa_modules/billing/pending_payments', editPaymentsRouter);
     app.use('/exa_modules/billing/claims', claimsRouters);
+    app.use('/exa_modules/billing/claimWorkbench', claimsWorkbenchRouters);
 };
 
 module.exports = router;

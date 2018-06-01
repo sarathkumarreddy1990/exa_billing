@@ -53,6 +53,9 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var facilityValue = commonjs.makeValue(facilities, ":All;", "id", "facility_name");
         var bodyPartValue = commonjs.makeValue(commonjs.bindArray(app.settings.bodyParts, false), ":All;");
         var insProviderTypeValue = commonjs.makeValue(app.insProviderTypes, ":All;", "description", "description");
+        var billingCodeValue = commonjs.makeValue(app.billing_codes, ":All;", "id", "description");
+        var billingClassesValue = commonjs.makeValue(app.billing_classes, ":All;", "id", "description");
+        var claimStatusValue = commonjs.makeValue(app.claim_status, ":All;", "id", "description");
 
         var studyFlagArray = commonjs.bindArray(app.settings.studyflag, false);
         var studyFlagList = new Collection(studyFlagArray);
@@ -86,6 +89,9 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var imageDeliveryValue = commonjs.makeValue(imageDeliveryOptions, ':All;', 'type', 'label');
         var deletedValue = ":All;true:Only;false:None";
         var verifiedValue = ":All;true:Yes;false:No";
+        var billingMethodValue =  ":All;EB:Electronic Billing;PC:Paper Claim;PP:Patient Payment,DB:Direct Billing";
+        var payerTypeValue =  `:All;primary_insurance:Primary Insurance;secondary_insurance:Secondary Insurance;
+                                teritary_insurance:Teritary Insurance;Patient:Patient`;
 
         $.each(app.stat_level, function ( index, stat ) {
             if ( !stat.deleted ) {
@@ -132,6 +138,348 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         };
 
         // ADDING A NEW WORKLIST COLUMN <-- Search for this
+        if(filterType=="Claims"){
+            return Immutable.Map({
+                "Claim Date": {
+                    "id": 1,
+                    "field_code": "claim_dt",
+                    "field_name": "Claim Date",
+                    "i18n_name": "shared.fields.claimDate",
+                    "field_info": {
+                        "name": "claim_date",
+                        "searchFlag": "datetime",
+                        "formatter": dateFormatter,
+                        "width": 200
+                    }
+                },
+                "Patient Name": {
+                    "id": 2,
+                    "field_code": "patient_name",
+                    "field_name": "Patient Name",
+                    "i18n_name": "billing.fileInsurance.patientNameGrid",
+                    "field_info": {
+                        "name": "patient_name",
+                        "width": 170, "searchFlag": "%"
+                    },
+                },
+                "Account No": {
+                    "id": 3,
+                    "field_code": "account_no",
+                    "field_name": "Account No",
+                    "i18n_name": "billing.refund.accountNo",
+                    "field_info": {
+                        "name": "account_no",
+                        "width": "100",
+                        "searchFlag": "%"
+                    }
+                },
+                "Date Of Birth": {
+                    "id": 4,
+                    "field_code": "birth_date",
+                    "field_name": "Date Of Birth",
+                    "i18n_name": "shared.fields.dateofBirth",
+                    "field_info": {
+                        "name": "birth_date",
+                        "width": "100",
+                        "searchFlag": "date",
+                        "formatter": function ( cellvalue ) {
+                            return commonjs.checkNotEmpty(cellvalue) ?
+                                   commonjs.getFormattedUtcDate(cellvalue) :
+                                   '';
+                        }
+                    }
+                },
+                "SSN": {
+                    "id": 5,
+                    "field_code": "patient_ssn",
+                    "field_name": "SSN",
+                    "i18n_name": "billing.refund.ssn",
+                    "field_info": {
+                        "name": "patient_ssn",
+                        "width": 100,
+                        "searchFlag": "%"
+                    }
+                },
+                "Place Of Service": {
+                    "id":6,
+                    "field_code": "place_of_service",
+                    "field_name": "Place Of Service",
+                    "i18n_name": "billing.refund.placeOfService",
+                    "field_info": {
+                        "name": "place_of_service",
+                        "width": 200,
+                        "searchFlag": "%"
+                    }
+                    
+                },
+                "Referring Providers": {
+                    "id":7,
+                    "field_code": "referring_providers",
+                    "field_name": "Referring Providers",
+                    "i18n_name": "order.patientOrderDetails.referringPhysician",
+                    "field_info": {
+                        "name": "referring_providers",
+                        "width": "200",
+                        "searchFlag": "%"
+                    }                    
+                },
+                "Rendering Providers": {
+                    "id":8,
+                    "field_code": "rendering_provider",
+                    "field_name": "Rendering Providers",
+                    "i18n_name": "order.patientOrderDetails.renderingPhysician",
+                    "field_info": {
+                        "name": "rendering_provider",
+                        "width": "200"
+                    }                    
+                },
+                "Billing Fee": {
+                    "id":9,
+                    "field_code": "billing_fee",
+                    "field_name": "Billing Fee",
+                    "i18n_name": "billing.COB.billingFee",
+                    "field_info": {
+                        "name": "billing_fee",
+                        "width": "200",
+                        "formatter": "self.billFeeFormatter"
+                    }                    
+                },
+                "Cpt Description": {
+                    "id": 10,
+                    "field_code": "cpt_desc",
+                    "field_name": "Cpt Description",
+                    "i18n_name": "shared.fields.cptDescription",
+                    "field_info": {
+                        "name": "cpt_desc",
+                        "width": 130
+                    }
+                },
+                "Payer Type": {
+                    "id": 11,
+                    "field_code": "payer_type",
+                    "field_name": "Payer Type",
+                    "i18n_name": "billing.fileInsurance.payerType",
+                    "field_info": {
+                        "name": "payer_type",
+                        "stype": "select",
+                        "searchoptions": { 
+                            "value": payerTypeValue,
+                            "defaultValue":payerTypeValue
+                        },
+                        "formatter":
+                            "self.payerFormatter",
+                        "width": 80,
+                        "sortable": " true"
+                    }
+                },
+                "Clearing House": {
+                    "id": 12,
+                    "field_code": "clearing_house",
+                    "field_name": "Clearing House",
+                    "i18n_name": "billing.fileInsurance.clearingHouse",
+                    "field_info": {
+                        "name": "clearing_house",
+                        "width": 80
+                    }
+                },
+                "Payer Name": {
+                    "id": 13,
+                    "field_code": "payer_name",
+                    "field_name": "Payer Name",
+                    "field_name": "Payer Name",
+                    "i18n_name": "billing.fileInsurance.payerName",
+                    "field_info": {
+                        "name": "payer_name",
+                        "width": 150,
+                        "sortable": "true",
+                        "formatter": "self.payerNameFormatter"
+                    }
+                },
+                "Balance": {
+                    "id": 14,
+                    "field_code": "claim_balance",
+                    "field_name": "Balance",
+                    "i18n_name": "billing.fileInsurance.balance",
+                    "field_info": {
+                        "name": "claim_balance",
+                        "width": 100,
+                        "formatter": "self.balanceFormatter"
+                    }
+                },
+                "Billing Class": {
+                    "id": 15,
+                    "field_code": "billing_class",
+                    "field_name": "Billing Class",
+                    "i18n_name": "billing.fileInsurance.billingClass",
+                    "field_info": {
+                        "name": "billing_class",
+                        "width": "120",
+                        "stype": "select",
+                        "searchoptions": { 
+                            "value": billingClassesValue,
+                            "defaultValue":billingClassesValue
+                         }
+                    }
+                },
+                "Billing Code": {
+                    "id": 16,
+                    "field_code": "billing_code",
+                    "field_name": "Billing Code",
+                    "i18n_name": "billing.fileInsurance.billingCode",
+                    "field_info": {
+                        "name": "billing_code",
+                        "width": 100,
+                        "stype": "select",
+                        "searchoptions": {
+                            "value": billingCodeValue,
+                            "defaultValue":billingCodeValue
+                        }
+                    }
+                },
+                "Claim Status": {
+                    "id": 17,
+                    "field_code": "claim_status",
+                    "field_name": "Claim Status",
+                    "i18n_name": "billing.fileInsurance.claimStatus",
+                    "field_info": {
+                        "name": "claim_status",
+                        "width": 120, 
+                        "stype": "select",
+                        "searchoptions": { 
+                            "value": claimStatusValue,
+                            "defaultValue": claimStatusValue
+                        }
+                    }
+                },
+                "Notes": {
+                    "id": 18,
+                    "field_code": "claim_notes",
+                    "field_name": "Notes",
+                    "i18n_name": "billing.COB.notes",
+                    "field_info": {
+                        "name": "claim_notes",
+                        "width": 100,
+                        "formatter": "self.billingNotesFormatter",
+                        "defaultValue": ""
+                    }
+
+                },
+                "Claim No": {
+                    "id": 19,
+                    "field_code": "claim_no",
+                    "field_name": "Claim No",
+                    "i18n_name": "billing.fileInsurance.claimNo",
+                    "field_info": {
+                        "name": "claim_no",
+                        "width": 75
+                    }
+                },
+                "Claim Date": {
+                    "id": 20,
+                    "field_code": "claim_dt",
+                    "field_name": "Claim Date",
+                    "i18n_name": "billing.fileInsurance.submittedDateGrid",
+                    "field_info": {
+                        "name": "claim_dt",
+                        "formatter": "self.submittedDateFormatter",
+                        "width": 150
+                    }
+                },
+                "Invoice": {
+                    "id": 21,
+                    "field_code": "invoice_no",
+                    "field_name": "Invoice",
+                    "i18n_name": "shared.buttons.invoice",
+                    "field_info": {
+                        "name": "invoice_no",
+                        "width": 75
+                    }
+                },
+                "Billing Method": {
+                    "id": 22,
+                    "field_code": "billing_method",
+                    "field_name": "Billing Method",
+                    "i18n_name": "billing.fileInsurance.billingmethod",
+                    "field_info": {
+                        "name": "billing_method",
+                        "formatter": "self.billingMethodFormatter",
+                        "width": "150",
+                        "stype": "select",
+                        "searchoptions": { 
+                            "value": billingMethodValue,
+                            "defaultValue":billingMethodValue
+                        }
+                    },
+                },
+                "Follow-up Date": {
+                    "id": 23,
+                    "field_code": "followup_date",
+                    "field_name": "Follow-up Date",
+                    "i18n_name": "billing.fileInsurance.followUpDate",
+                    "field_info": {
+                        "name": "followup_date",
+                        "formatter": "self.followUpDateFormatter",
+                        "width": "150"
+                    }
+                },
+                "Date of Injury": {
+                    "id": 24,
+                    "field_code": "current_illness_date",
+                    "field_name": "Date of Injury",
+                    "i18n_name": "billing.fileInsurance.dateOfInjury",
+                    "field_info": {
+                        "name": "current_illness_date",
+                        "formatter": "self.dateOfInjuryFormatter",
+                        "width": 200
+                    }
+                },
+                "Policy Number": {
+                    "id": 25,
+                    "field_code": "policy_number",
+                    "field_name": "Policy Number",
+                    "i18n_name": "billing.fileInsurance.policyNumber",
+                    "field_info": {
+                        "name": "policy_number",
+                        "formatter": "self.policyNumberFormatter",
+                        "width": 200
+                    }
+                },
+                "Group Number": {
+                    "id": 26,
+                    "field_code": "group_number",
+                    "field_name": "Group Number",
+                    "i18n_name": "billing.fileInsurance.groupNumber",
+                    "field_info": {
+                        "name": "group_number",
+                        "formatter": "self.groupNumberFormatter",
+                        "width": 200
+                    }
+                },
+                "Billing Provider": {
+                    "id": 27,
+                    "field_code": "billing_provider",
+                    "field_name": "Billing Provider",
+                    "i18n_name": "shared.fields.billingProvider",
+                    "field_info": {
+                        "name": "billing_provider",
+                        "formatter": "self.billingProviderFormatter",
+                        "width": 200
+                    }
+                },
+                "Gender": {
+                    "id": 28,
+                    "field_code": "gender",
+                    "field_name": "Gender",
+                    "i18n_name": "shared.fields.gender",
+                    "field_info": {
+                        "name": "gender",
+                        "width": 200
+                    }
+                }
+
+
+            });   
+        }else{
         return Immutable.Map({
             "Account#": {
                 "id": 1,
@@ -1281,6 +1629,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 },
                 "field_code": "visit_no"
             }
-        });
+        });      
+    
+    }
     };
 });

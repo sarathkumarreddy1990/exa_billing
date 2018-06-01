@@ -896,7 +896,7 @@ define(['jquery',
                                 'study_id': 0,
                                 'container': self.el,
                                 '$container': self.$el,
-                                'updateStudiesPager': ''
+                                'updateStudiesPager': updateStudiesPager
                             });
                             table.renderStudy();
                         };
@@ -938,19 +938,8 @@ define(['jquery',
                 var self = this;
                 filterObj.options.filterid = filterID;
 
-                if (filterObj.options.isSearch) {
-                    if (filterObj.options.showEncOnly === "true" || filterObj.options.showEncOnly === true) {
-                        var url = '/getEncountersCount';
-                    }
-                    else {
-                        var url = filterID === 'OD' ?
-                            "/order_records" :
-                            isPending ?
-                                "/qc_studies_count" :
-                                filterID === 'QR' ?
-                                    app.docServerUrl + "/dcm/query?" + commonjs.getSessionArgs() :
-                                    "/order_studies_records";
-                    }
+                if (filterObj.options.isSearch) {                   
+                    var url ="/exa_modules/billing/studies/studies_total_records";
                     var flag = /ExceedStudy/.test(filterID);
                     jQuery.ajax({
                         url: url,
@@ -986,12 +975,9 @@ define(['jquery',
 
                         },
                         success: function (data, textStatus, jqXHR) {
-                            if (data && data.result) {
+                            if (data&&data.length) {
                                 filterObj.pager.set({
-                                    "TotalRecords": data.result.total_records
-                                });
-                                filterObj.pager.set({
-                                    "ExceedStudies": data.result.exceeds_count
+                                    "TotalRecords": data[0].total_records
                                 });
 
                                 filterObj.setPagerInfos();
