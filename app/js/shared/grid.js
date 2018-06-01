@@ -7,7 +7,7 @@ define('grid', [
     'collections/studies',
     'views/claims/index',
     'views/user-settings'
-], function (jQuery, initChangeGrid, utils, Pager, StudyFields, Studies, claimsView, mySettingsView) {
+], function (jQuery, initChangeGrid, utils, Pager, StudyFields, Studies, claimsView, UserSettingsView) {
     var $ = jQuery;
     var isTrue = utils.isTrue;
     var isFalse = utils.isFalse;
@@ -339,8 +339,8 @@ define('grid', [
             };
 
             $('#mySettings').unbind().click(function(e){
-                var mysettingsview = new mySettingsView();
-                mysettingsview.showForm();
+                self.UserSettingsView = new UserSettingsView();
+                self.UserSettingsView.showForm();
             });
 
             studiesTable.render({

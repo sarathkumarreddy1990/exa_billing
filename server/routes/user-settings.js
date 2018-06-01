@@ -1,15 +1,15 @@
 const Router = require('express-promise-router');
 const router = new Router();
 
-const userSettingColumnController = require('../controllers/user-settings');
+const userSettingsController = require('../controllers/user-settings');
 
 router.get('/', async function (req, res) {
-    const data = await userSettingColumnController.userSettingColumn(req.query);
+    const data = await userSettingsController.userSettingColumn(req.query);
     return res.send(JSON.parse(data));
 });
 
 router.post('/', async function (req, res) {
-    const data = await userSettingColumnController.save(req.body);
+    const data = await userSettingsController.save(req.body);
     return res.send(data);
 });
 

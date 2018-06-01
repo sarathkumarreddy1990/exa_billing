@@ -1,15 +1,16 @@
-let Promise = require('bluebird');
 let path = require('path');
-let fs = Promise.promisifyAll(require('fs'));
+const fs = require('fs');
+const  {promisify}  = require('util');
+const readFileAsync = promisify(fs.readFile);
 const data = require('../data/user-settings');
 
 module.exports = {
 
     userSettingColumn: function () {
-        let file_path = path.join(__dirname, '../resx/billingFields.json');
-        let gridFields = fs.readFileAsync(file_path, 'utf8');
+        let file_path = path.join(__dirname, '../resx/grid-fields.json');
+        let getGridFields = readFileAsync(file_path, 'utf8');
 
-        return gridFields;
+        return getGridFields;
     },
 
     save: function (args) {
