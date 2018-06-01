@@ -6,137 +6,7 @@
     div.topbar, div.top-nav{
         display: none;
     }
-    legend {margin-bottom: 8px;}
-    #headerContainer {height: auto;}
-    #mainContainer {margin-top: 10px;}
-    #divPatDetails {
-    color: #fff;
-    background: #2b547e;
-    height: 43px;
-    width: 100%;
-    min-width: 1250px;
-    min-width: 0;
-} 
-ul, li {
-    list-style: none;
-}   
-#PatDetails>li {
-    float: left;
-    padding: 6px 20px 3px;
-    border-bottom: 4px solid transparent;
-}
-.tn-menu>li {
-    float: left;
-    padding: 13px 20px 12px;
-    border-bottom: 4px solid transparent;
-}
-.row {
-     margin-right: -9px;
-    margin-left: -2px;
-}
-
-#headerContainer .top-nav {
-    background: #2b547e;
-    padding: 0 25px 0 60px;
-    min-height: 49px;
-    width: 100%;
-    min-width: 1250px;
-    min-width: 0;
-}
-#tab_menu {
-    position: relative;
-    float: left;
-}
-.new-menu-right {
-    float: right;
-}
-.new-menu-right>li {
-    float: left;
-    padding: 6px 11px 3px;
-    border-bottom: 4px solid transparent;
-}
-.top-buffer {
-    margin-top: 3px;
-    margin-bottom: 3px;
-}
-
-.btn {
-    color: #fff;
-    font-size: 14px;
-    font-weight: 500;
-    border: 0;
-    text-align: center;
-    text-transform: uppercase;
-    -webkit-border-radius: 2px;
-    -moz-border-radius: 2px;
-    border-radius: 2px;
-    background: #3c91f0;
-    padding-left: 24px;
-    padding-right: 24px;
-    display: inline-block;
-    transition: all .2s ease 0s;
-    outline: none !important;
-}
-.tn-menu>li.active a {
-    color: #fff;
-}
-
-.tn-menu>li>a:hover {
-    color: #fff;
-}
-.tn-menu>li>a {
-    color: rgba(255,255,255,0.5);
-    font-size: 14px;
-    display: block;
-    text-transform: uppercase;
-}
-a:hover {
-    text-decoration: none;
-}
-legend.viztekLegend {
-    border-bottom: 1px solid #0090FF;
-}
-.col-xs-12{
-    width: 100%;
-    float: left;
-}
-.col-xs-6{
-    width: 50%;
-    float: left;
-}
-.col-xs-5{
-    width: 41%;
-    float: left;
-}
-.col-xs-4{
-    width: 33%;
-    float: left;
-}
-.icdTagList {
-    min-width: 450px;
-    height: 260px;
-    overflow: auto;
-    padding: 5px;
-    border-color: #bebebe;
-    background-color: #FFF;
-    border: solid 1px;
-}
-label{
-    display: inline-flex !important;
-}
-#divCharge {
-    overflow-x: auto;
-}
-    #tblCharge, #tblCharge th , #tblCharge td {white-space: nowrap !important}
-    #tblCharge td:nth-last-child(n+17){ vertical-align: middle;}
-    #divCharge { overflow-x: auto;}
-    input[id^="ddlModifier"]{ width: 60px;}
-    input[id^="ddlPointer"]{width: 45px;}
-    input[id^="txtUnits"]{width: 70px;}
-    input[id^="txtTotalBillFee"]{width: 125px;}
-    input[id^="txtAllowedFee"]{width: 100px;}
-    input[id^="txtTotalAllowedFee"]{width: 120px;}
-    .select2-container{z-index: 10000;}
+    
 </style>
 <div id="headerContainer" style="background-color:#fff">
     <!-- Top Navigation Bar -->
@@ -145,8 +15,8 @@ label{
             <div class="row" id="divPatDetails">
                 <nav>
                     <ul id="PatDetails" class="tn-menu">
-                        <li><span id="patName">Patient name</span></li>
-                        <li>( <span id="paAccountNo">Patient account no</span>, <span id="paDOB">Patient DOB</span> )</li>
+                        <li><span id="patName"><%=patient_name%></span></li>
+                        <li>( <span id="paAccountNo">Acc#:<%= account_no %></span>, <span id="paDOB">DOB:<%= dob %></span> )</li>
                     </ul>
                     <nav>
             </div>
@@ -268,7 +138,11 @@ label{
                             </div>
                             <div class="col-form-content">
                                 <select id="ddlFacility">
-                                    <option value='0'>Select</option>
+                                    <% _.each(facilities, function(facility) { %>
+                                        <option value='<%= facility.id %>'>
+                                            <%= facility.text %>
+                                        </option>
+                                        <% }); %>
                                 </select>
                             </div>
                         </div>
@@ -277,9 +151,7 @@ label{
                                 <label class="control-label" for="ddlBillingProvider">Billing Provider</label>
                             </div>
                             <div class="col-form-content">
-                                <select id="ddlBillingProvider">
-                                        <option value='0'>Select</option>
-                                </select>
+                                <select id="ddlBillingProvider"></select>
                             </div>
                         </div>
                         <!--renderingProvider-->
@@ -288,9 +160,7 @@ label{
                                 <label class="control-label" for="txtRenderingProvider">Rendering Provider</label>
                             </div>
                             <div class="col-form-content">
-                                <select id="ddlRenderingProvider">
-                                        <option value='0'>Select</option>
-                                </select>
+                                <select id="ddlRenderingProvider" style="width: 250px"></select>
                             </div>
                         </div>
                         <!--referringProvider-->
@@ -299,9 +169,7 @@ label{
                                 <label class="control-label" for="txReferringProvider" >Referring Provider</label>
                             </div>
                             <div class="col-form-content">
-                                <select id="ddlReferringProvider">
-                                        <option value='0'>Select</option>
-                                </select>
+                                <select id="ddlReferringProvider" style="width: 250px"></select>
                             </div>
                         </div>
 
@@ -310,8 +178,7 @@ label{
                                 <label class="control-label" for="txtOrdFacility" >Service Facility</label>
                             </div>
                             <div class="col-form-content">
-                                <select id="ddlOrdFacility">
-                                        <option value='0'>Select</option>
+                                <select id="ddlOrdFacility" style="width:250px">                                        
                                 </select>
                             </div>
                         </div>
@@ -337,9 +204,7 @@ label{
                                     </div>
                                     <div class="col-form-content">
                                         <div class="flex-parent-horiz">
-                                            <select id="ddlMultipleDiagCodes">
-                                                    <option value='0'>Select</option>
-                                                </select>
+                                            <select id="ddlMultipleDiagCodes" style="width: 250px"></select>
                                             <button type="button" class="btn" id="btnAddDiagCode"><span>+</span></button>
                                         </div>
                                     </div>
@@ -381,7 +246,7 @@ label{
                                         <label class="control-label" for="ddlExistPriIns" >ExistingInsurances</label>
                                     </div>
                                     <div class="col-form-content">
-                                        <select id="ddlExistPriIns" name="ExistingPrimaryIns">
+                                        <select id="ddlExistPriIns" name="ExistingPrimaryIns" style="width: 250px">
                                             <option>Select</option>
                                         </select>
                                         <input id="chkPriAcptAsmt" type="checkbox" name="AcceptAssignment" value="AcceptAssignment">
@@ -395,8 +260,7 @@ label{
                                         <label class="control-label" for="txtPriInsurance" >Carrier</label>
                                     </div>
                                     <div class="col-form-content">
-                                        <select id="ddlPriInsurance" name="priInsurance">
-                                                <option>Select</option>
+                                        <select id="ddlPriInsurance" name="priInsurance" style="width: 250px">
                                         </select>
                                     </div>
                                 </div>
@@ -443,7 +307,11 @@ label{
                                     </div>
                                     <div class="col-form-content">
                                         <select id="ddlPriPlanName">
-                                            <option value='0'>Select</option>
+                                            <% _.each(planname, function(plan) { %>
+                                                <option value='<%= plan.value %>'>
+                                                    <%= plan.text %>
+                                                </option>
+                                                <% }); %>
                                         </select>
                                     </div>
                                 </div>
@@ -592,7 +460,7 @@ label{
                                         <label class="control-label" for="ddlExistSecIns">ExistingInsurances</label>
                                     </div>
                                     <div class="col-form-content">
-                                        <select id="ddlExistSecIns" name="ExistingIns2"><option value='0'>select</option>
+                                        <select id="ddlExistSecIns" name="ExistingIns2" style="width: 250px"><option value='0'>select</option>
                                         </select>
                                         <input type="checkbox" id="chkSecAcptAsmt" name="isSecAssignment" value="AllFacilities">
                                         <label for="chkSecAcptAsmt" class="field-chk">AcceptAssignment</label>
@@ -624,9 +492,7 @@ label{
                                         <label class="control-label" for="txtSecInsurance" >carrier</label>
                                     </div>
                                     <div class="col-form-content">
-                                        <select id="ddlSecInsurance" class="form-control">
-                                                <option value='0'>select</option>
-                                        </select>
+                                        <select id="ddlSecInsurance" style="width: 250px"></select>
                                     </div>
     
                                 </div>
@@ -670,7 +536,11 @@ label{
                                     </div>
                                     <div class="col-form-content">
                                         <select id="ddlSecPlanName" >
-                                                <option value='0'>select</option>
+                                            <% _.each(planname, function(plan) { %>
+                                                <option value='<%= plan.value %>'>
+                                                    <%= plan.text %>
+                                                </option>
+                                                <% }); %>
                                         </select>
                                     </div>
                                 </div>
@@ -821,7 +691,7 @@ label{
                                                 <label class="control-label" for="ddlExistTerIns" i18n="order.newOrder.existingInsurances">existingInsurances</label>
                                             </div>
                                             <div class="col-form-content">
-                                                <select id="ddlExistTerIns" name="ExistingIns3">
+                                                <select id="ddlExistTerIns" name="ExistingIns3" style="width: 250px">
                                                     <option>Select</option>
                                                 </select>
                                                 <input id="chkTerAcptAsmt" type="checkbox" name="terAcceptAssignment" value="AcceptAssignment">
@@ -836,9 +706,7 @@ label{
                                             </div>
                                             <div class="col-form-content">
                                                
-                                                <select id="ddlTerInsurance" >
-                                                        <option>Select</option>
-                                                </select>
+                                                <select id="ddlTerInsurance" style="width: 250px"></select>
                                             </div>
                                         </div>
         
@@ -883,7 +751,11 @@ label{
                                             </div>
                                             <div class="col-form-content">
                                                 <select id="ddlTerPlanName" >
-                                                        <option>Select</option>
+                                                    <% _.each(planname, function(plan) { %>
+                                                        <option value='<%= plan.value %>'>
+                                                            <%= plan.text %>
+                                                        </option>
+                                                        <% }); %>
                                                 </select>
                                             </div>
                                         </div>
