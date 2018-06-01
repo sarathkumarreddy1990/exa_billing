@@ -4,6 +4,11 @@
             "code" : "Code",
             "name" : "Name",
             "description" : "Description"
+        },
+        "adjustmentcodes" : {
+            "credit" : "Credit",
+            "debit" : "Debit",
+            "entryType" : "Entry Type"
         }
     }
 }

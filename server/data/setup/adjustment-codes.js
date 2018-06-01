@@ -3,23 +3,50 @@ const { query, SQL } = require('../index');
 module.exports = {
 
     getData: async function (params) {
-        let whereQuery = '';
-        params.sortOrder = params.sortOrder || ' DESC';
+        let whereQuery = [];
+        params.sortOrder = params.sortOrder || ' ASC';
+        let {
+            code,
+            description,
+            type,
+            sortOrder,
+            sortField,
+            pageNo,
+            pageSize
+        } = params;
+
+        if (code) {
+            whereQuery.push(` code ILIKE '${code}'`);
+        }
+
+        if (description) {
+            whereQuery.push(` description ILIKE '${description}'`);
+        }
+
+        if (type) {
+            whereQuery.push(` accounting_entry_type ILIKE '${type}'`);
+        }
 
         const sql = SQL`SELECT 
                           id
                         , code
                         , description
                         , accounting_entry_type
+                        , COUNT(1) OVER (range unbounded preceding) AS total_records
                     FROM   
                         billing.adjustment_codes `;
 
-        if (whereQuery) {
-            sql.append(whereQuery);
+        if (whereQuery.length) {
+            sql.append(SQL` WHERE `)
+                .append(whereQuery.join(' AND '));
         }
 
-        sql.append(SQL` ORDER BY id `);
-        sql.append(params.sortOrder);
+        sql.append(SQL` ORDER BY  `)
+            .append(sortField)
+            .append(' ')
+            .append(sortOrder)
+            .append(SQL` LIMIT ${pageSize}`)
+            .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
 
         return await query(sql);
     },
@@ -43,13 +70,13 @@ module.exports = {
     create: async (params) => {
         let {
             code,
-            desc,
+            description,
             type,
-            is_active,
-            company_id
+            isActive,
+            companyId
         } = params;
 
-        let inactivated_date = is_active ? ' now() ' : null;
+        let inactivated_date = isActive ? null : ' now() ';
 
         const sql = SQL`INSERT INTO 
                         billing.adjustment_codes (
@@ -59,9 +86,9 @@ module.exports = {
                             , accounting_entry_type
                             , inactivated_dt)
                         VALUES(
-                               ${company_id}
+                               ${companyId}
                              , ${code}
-                             , ${desc}
+                             , ${description}
                              , ${type} 
                              , ${inactivated_date} )`;
 
@@ -72,19 +99,19 @@ module.exports = {
 
         let {
             code,
-            desc,
+            description,
             type,
             id,
-            is_active
+            isActive
         } = params;
 
-        let inactivated_date = is_active ? ' now() ' : null;
+        let inactivated_date = isActive ? null : ' now() ';
 
         const sql = SQL`UPDATE
                              billing.adjustment_codes 
                         SET  
                               code = ${code}
-                            , description = ${desc}
+                            , description = ${description}
                             , accounting_entry_type = ${type}
                             , inactivated_dt = ${inactivated_date}
                         WHERE

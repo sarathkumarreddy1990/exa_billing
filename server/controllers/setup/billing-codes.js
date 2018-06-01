@@ -1,12 +1,8 @@
-const data = require('../../data/setup/adjustment-codes');
+const data = require('../../data/setup/billing-codes');
 
 module.exports = {
 
     getData: (params) => {
-        if (params.id) {           
-            return data.getDataById(params);
-        }
-        
         return data.getData(params);
     },
 

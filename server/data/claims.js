@@ -3,7 +3,9 @@ const { query, SQL } = require('./index');
 module.exports = {
 
     getLineItemsDetails: async function (params) {
+
         const studyIds = params.study_ids.split('~').map(Number);
+
         let sql = SQL`
                      SELECT json_agg(row_to_json(charge)) "charges" FROM
                      (SELECT
@@ -35,38 +37,71 @@ module.exports = {
 
         return await query(sql);
     },
+
     getPatientInsurances: async function (params) {
+
+        const patient_insurance_query = SQL`
+                                SELECT
+                                    pi.id
+                                  , ip.id AS insurance_provider_id
+                                  , ip.insurance_name
+                                  , ip.insurance_code
+                                  , ip.insurance_info->'billingMethod' AS billing_method
+                                  , ip.insurance_info->'City' AS ins_city
+                                  , ip.insurance_info->'State' AS ins_state
+                                  , ip.insurance_info->'ZipCode' AS ins_zip_code
+                                  , ip.insurance_info->'Address1' AS ins_pri_address
+                                  , pi.coverage_level
+                                  , pi.subscriber_relationship_id   
+                                  , pi.valid_to_date
+                                  , pi.subscriber_employment_status_id                     
+                                  , pi.subscriber_dob
+                                  , pi.medicare_insurance_type_code
+                                  , pi.coverage_level
+                                  , pi.policy_number
+                                  , pi.group_name
+                                  , pi.group_number
+                                  , pi.precertification_phone_number
+                                  , pi.precertification_fax_number
+                                  , pi.subscriber_firstname
+                                  , pi.subscriber_lastname
+                                  , pi.subscriber_middlename
+                                  , pi.subscriber_name_suffix
+                                  , pi.subscriber_gender
+                                  , pi.subscriber_address_line1
+                                  , pi.subscriber_address_line2
+                                  , pi.subscriber_city
+                                  , pi.subscriber_state
+                                  , pi.subscriber_zipcode
+                                  , pi.assign_benefits_to_patient
+                                FROM 
+                                    patient_insurances pi
+                                LEFT JOIN insurance_providers ip ON ip.id= pi.insurance_provider_id                                  
+                            WHERE 
+                                pi.patient_id = ${params.patient_id}
+                        ORDER BY pi.id asc `;
+
+        return await query(patient_insurance_query);
+    },
+
+    getPatientInsurancesById: async function (params) {
+
+        let { id } = params;
 
         const patient_insurance_query = SQL`
                        SELECT
                                  pi.id
                                , ip.id AS insurance_provider_id
                                , ip.insurance_name
-                               , lower(pi.coverage_level) as coverage_level
-                               , pi.subscriber_relationship                        
+                               , ip.insurance_info->'billingMethod' AS billing_method
+                               , ip.insurance_info->'City' AS ins_city
+                               , ip.insurance_info->'State' AS ins_state
+                               , ip.insurance_info->'ZipCode' AS ins_zip_code
+                               , ip.insurance_info->'Address1' AS ins_pri_address
                                , ip.insurance_code
-                               , pi.subscriber_info->'ExpireDate' as ExpireDate
-                           FROM 
-                               patient_insuarances pi
-                           LEFT JOIN 
-                               insurance_providers ip ON ip.id= pi.insurance_provider_id                                   
-                           WHERE 
-                               pi.has_deleted=False
-                               AND pi.patient_id = ${params.patient_id}
-                        ORDER BY pi.id asc `;
-        return await query(patient_insurance_query);
-    },
-    getPatientInsurancesById: async function (params) {
-        let { id } = params;
-        const patient_insurance_query = SQL`
-                       SELECT
-                                 pi.id
-                               , ip.id AS insurance_provider_id
-                               , ip.insurance_name
-                               , lower(pi.coverage_level) as coverage_level
-                               , ip.insurance_code
+                               , pi.coverage_level
                                , pi.subscriber_relationship_id   
-                               , pi.subscriber_info->'ExpireDate' as ExpireDate
+                               , pi.valid_to_date
                                , pi.subscriber_employment_status_id                     
                                , pi.subscriber_dob
                                , pi.medicare_insurance_type_code
@@ -88,14 +123,13 @@ module.exports = {
                                , pi.subscriber_zipcode
                                , pi.assign_benefits_to_patient
                            FROM 
-                               patient_insuarances pi
+                                patient_insurances pi
                            LEFT JOIN 
                                insurance_providers ip ON ip.id= pi.insurance_provider_id                                   
-                           WHERE 
-                               pi.has_deleted=False
-                               AND pi.id = ${id}  `;
+                           WHERE pi.id = ${id}  `;
         return await query(patient_insurance_query);
     },
+
     getMasterDetails: async function (params) {
 
         const biling_query = SQL`
@@ -117,7 +151,7 @@ module.exports = {
                                                  ,description 
                                                 FROM public.places_of_service 
                                              WHERE  company_id = ${params.company_id} AND inactivated_dt IS NULL 
-                                          ) AS posList
+                                         ) AS posList
                                   ) posList
                                   ,(
                                      SELECT json_agg(row_to_json(relations)) relationships FROM
@@ -142,13 +176,18 @@ module.exports = {
                                               inactivated_dt IS NULL 
                                          ) AS adjustment_code_list
                                      ) adjustment_code_details `;
+
         return await query(biling_query);
     },
+    
     save: async function(params){
-        const claim = (params.claims);
-        const claim_insurances = JSON.stringify(params.insurances);
-        const claim_charges = JSON.stringify(params.charges);
-        const claim_icds = JSON.stringify(params.claim_icds);
+       
+        let {
+            claims
+            , insurances
+            , claim_icds
+        } = params;
+
         const claim_sql = SQL`
         WITH save_patient_insurances AS  (
             INSERT INTO patient_insurances (
@@ -183,7 +222,7 @@ module.exports = {
                     , coverage_level
                     , policy_number
                     , group_number
-                    , 11
+                    , subscriber_employment_status_id
                     , subscriber_firstname
                     , subscriber_lastname
                     , subscriber_middlename
@@ -199,7 +238,7 @@ module.exports = {
                     , now() + interval '1 month'
                     , medicare_insurance_type_code
             FROM
-                 json_to_recordset(${claim_insurances}) AS insurances (
+                 json_to_recordset(${JSON.stringify(insurances)}) AS insurances (
                       patient_id bigint
                     , insurance_provider_id bigint 
                     , subscriber_zipcode bigint
@@ -259,130 +298,51 @@ module.exports = {
                     , referring_provider_contact_id
             )
             values(
-                      ${ claim.company_id}
-                    , ${ claim.facility_id}
-                    , ${ claim.patient_id}
-                    , ${ claim.billing_provider_id}
-                    , ${ claim.place_of_service_id}
-                    , ${ claim.billing_code_id}
-                    , ${ claim.billing_class_id}
-                    , ${ claim.created_by}
-                    , ${ claim.billing_method}
-                    , ${ claim.billing_notes}
-                    , ${ claim.claim_dt}
-                    , ${ claim.current_illness_date}
-                    , ${ claim.same_illness_first_date}
-                    , ${ claim.unable_to_work_from_date}
-                    , ${ claim.unable_to_work_to_date}
-                    , ${ claim.hospitalization_from_date}
-                    , ${ claim.hospitalization_to_date}
-                    , ${ claim.claim_notes}
-                    , ${ claim.original_reference}
-                    , ${ claim.authorization_no}
-                    , ${ claim.frequency}
-                    , ${ claim.is_auto_accident}
-                    , ${ claim.is_other_accident}
-                    , ${ claim.is_employed}
-                    , ${ claim.service_by_outside_lab}
-                    , ${ claim.payer_type}
-                    , 2
-                    ,( SELECT CASE WHEN 'primary_insurance' =  ${claim.payer_type} THEN (SELECT id FROM save_patient_insurances WHERE coverage_level = 'primary')
+                      ${claims.company_id}
+                    , ${claims.facility_id}
+                    , ${claims.patient_id}
+                    , ${claims.billing_provider_id}
+                    , ${claims.place_of_service_id}
+                    , ${claims.billing_code_id}
+                    , ${claims.billing_class_id}
+                    , ${claims.created_by}
+                    , ${claims.billing_method}
+                    , ${claims.billing_notes}
+                    , ${claims.claim_dt}
+                    , ${claims.current_illness_date}
+                    , ${claims.same_illness_first_date}
+                    , ${claims.unable_to_work_from_date}
+                    , ${claims.unable_to_work_to_date}
+                    , ${claims.hospitalization_from_date}
+                    , ${claims.hospitalization_to_date}
+                    , ${claims.claim_notes}
+                    , ${claims.original_reference}
+                    , ${claims.authorization_no}
+                    , ${claims.frequency}
+                    , ${claims.is_auto_accident}
+                    , ${claims.is_other_accident}
+                    , ${claims.is_employed}
+                    , ${claims.service_by_outside_lab}
+                    , ${claims.payer_type}
+                    , ${claims.claim_status_id}
+                    ,( SELECT CASE WHEN 'primary_insurance' =  ${claims.payer_type} THEN (SELECT id FROM save_patient_insurances WHERE coverage_level = 'primary')
                         ELSE NULL
                         END )
-                    ,(SELECT CASE WHEN 'secondary_insurance' =  ${claim.payer_type} THEN (SELECT id FROM save_patient_insurances WHERE coverage_level = 'secondary')
+                    ,( SELECT CASE WHEN 'secondary_insurance' =  ${claims.payer_type} THEN (SELECT id FROM save_patient_insurances WHERE coverage_level = 'secondary')
+			    	    ELSE NULL
+                    END )
+                    ,( SELECT CASE WHEN 'tertiary_insurance' =  ${claims.payer_type} THEN (SELECT id FROM save_patient_insurances WHERE coverage_level = 'tertiary')
 			    	    ELSE NULL
                         END )
-                     ,(SELECT CASE WHEN 'tertiary_insurance' =  ${claim.payer_type} THEN (SELECT id FROM save_patient_insurances WHERE coverage_level = 'tertiary')
-			    	    ELSE NULL
-                        END )
-                     ,(SELECT CASE WHEN 'ordering_facility' =  ${claim.payer_type} THEN  ${claim.ordering_facility_id}::bigint
+                    ,( SELECT CASE WHEN 'ordering_facility' =  ${claims.payer_type} THEN  ${claims.ordering_facility_id}::bigint
 			    	    ELSE NULL
                         END )    
-                     ,(SELECT CASE WHEN 'referring_provider' =  ${claim.payer_type} THEN ${claim.referring_provider_contact_id}::bigint
+                    ,( SELECT CASE WHEN 'referring_provider' =  ${claims.payer_type} THEN ${claims.referring_provider_contact_id}::bigint
 			    	    ELSE NULL
                         END )    
             ) RETURNING id
         )
-       , charge_details AS (
-            SELECT
-                 ( SELECT id FROM save_claim )::bigint as claim_id
-                 , cpt_id
-                 , modifier1_id
-                 , modifier2_id
-                 , modifier3_id
-                 , modifier4_id
-                 , bill_fee
-                 , allowed_amount
-                 , units
-                 , created_by
-                 , charge_dt
-                 , pointer1
-                 , pointer2
-                 , pointer3
-                 , pointer4
-                 , authorization_no
-                 , study_id
-            FROM
-                json_to_recordset((${claim_charges})) AS charge (
-                  claim_id bigint
-                , cpt_id bigint
-                , modifier1_id bigint
-                , modifier2_id bigint
-                , modifier3_id bigint
-                , modifier4_id bigint
-                , bill_fee money
-                , allowed_amount money
-                , units numeric(7,3)
-                , created_by bigint
-                , charge_dt timestamp with time zone
-                , pointer1 text
-                , pointer2 text
-                , pointer3 text
-                , pointer4 text
-                , authorization_no text
-                , study_id bigint
-            )
-        )
-        , save_charges AS (
-            INSERT INTO  billing.charges (
-                       claim_id     
-                     , cpt_id
-                     , modifier1_id
-                     , modifier2_id
-                     , modifier3_id
-                     , modifier4_id
-                     , bill_fee
-                     , allowed_amount
-                     , units
-                     , created_by
-                     , charge_dt
-                     , pointer1
-                     , pointer2
-                     , pointer3
-                     , pointer4
-                     , authorization_no
-            )
-            (SELECT
-                      claim_id
-                    , cpt_id
-                    , modifier1_id
-                    , modifier2_id
-                    , modifier3_id
-                    , modifier4_id
-                    , bill_fee
-                    , allowed_amount
-                    , units
-                    , created_by
-                    , charge_dt
-                    , pointer1
-                    , pointer2
-                    , pointer3
-                    , pointer4
-                    , authorization_no
-            FROM
-                charge_details
-            ) RETURNING billing.charges.id, billing.charges.cpt_id, billing.charges.created_by
-        ),
+       ,
         save_claim_icds AS (
             INSERT INTO billing.claim_icds (
                       claim_id 
@@ -392,11 +352,67 @@ module.exports = {
                     ( SELECT id FROM save_claim )
                     , icd_id 
             FROM
-                json_to_recordset(${claim_icds}) AS icds (
+                json_to_recordset(${JSON.stringify(claim_icds)}) AS icds (
                       icd_id bigint 
                 )
         )
-        SELECT * FROM save_claim`;
+        SELECT * FROM save_claim `;
         return await query(claim_sql);
+    },
+
+    saveCharges: async function(params){
+
+        const charge_sql=SQL`
+                    WITH save_charges AS (
+                         INSERT INTO billing.charges (
+                                    claim_id     
+                                  , cpt_id
+                                  , modifier1_id
+                                  , modifier2_id
+                                  , modifier3_id
+                                  , modifier4_id
+                                  , bill_fee
+                                  , allowed_amount
+                                  , units
+                                  , created_by
+                                  , charge_dt
+                                  , pointer1
+                                  , pointer2
+                                  , pointer3
+                                  , pointer4
+                                  , authorization_no
+                         )
+                         values ( 
+                                  ${params.claim_id}
+                                 ,${params.cpt_id}
+                                 ,${params.modifier1_id}
+                                 ,${params.modifier2_id}
+                                 ,${params.modifier3_id}
+                                 ,${params.modifier4_id}
+                                 ,${params.bill_fee}
+                                 ,${params.allowed_amount}
+                                 ,${params.units}
+                                 ,${params.created_by}
+                                 ,${params.charge_dt}
+                                 ,${params.pointer1}
+                                 ,${params.pointer2}
+                                 ,${params.pointer3}
+                                 ,${params.pointer4}
+                                 ,${params.authorization_no}
+                         ) RETURNING billing.charges.id
+                     )
+                     , save_charge_study AS (
+                         INSERT INTO billing.charges_studies (
+                             charge_id
+                           , study_id
+                         )
+                         values(
+                             (SELECT id FROM save_charges )
+                             ,${params.study_id}
+                         )
+                     )
+                     select * from save_charges `;
+
+        return await query(charge_sql);
     }
 };

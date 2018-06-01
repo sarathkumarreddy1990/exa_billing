@@ -1,4 +1,4 @@
-const data = require('../../data/setup/cas-group-codes');
+const data = require('../../data/setup/billing-providers');
 
 module.exports = {
 

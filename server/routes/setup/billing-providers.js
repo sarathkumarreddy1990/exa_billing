@@ -1,31 +1,31 @@
 const Router = require('express-promise-router');
 const router = new Router();
 
-const casGroupCodeControllers = require('../../controllers/setup/cas-group-codes');
+const billingProviderControllers = require('../../controllers/setup/billing-providers');
 const httpHandler = require('../../shared/http');
 
 router.get('/', async function (req, res) {
-    const data = await casGroupCodeControllers.getData(req.query);
+    const data = await billingProviderControllers.getData(req.query);
     httpHandler.sendRows(req, res, data);
 });
 
 router.get('/:id', async function (req, res) {
-    const data = await casGroupCodeControllers.getById(req.params);
+    const data = await billingProviderControllers.getById(req.params);
     httpHandler.sendRows(req, res, data);
 });
 
 router.post('/', async function (req, res) {
-    const data = await casGroupCodeControllers.create(req.body);
+    const data = await billingProviderControllers.create(req.body);
     httpHandler.sendRows(req, res, data);
 });
 
 router.put('/', async function (req, res) {
-    const data = await casGroupCodeControllers.update(req.body);
+    const data = await billingProviderControllers.update(req.body);
     httpHandler.sendRows(req, res, data);
 });
 
 router.delete('/:id', async function (req, res) {
-    const data = await casGroupCodeControllers.delete(req.params);
+    const data = await billingProviderControllers.delete(req.params);
     httpHandler.sendRows(req, res, data);
 });
 
