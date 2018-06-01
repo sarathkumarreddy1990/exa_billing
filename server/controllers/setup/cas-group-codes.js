@@ -7,7 +7,7 @@ module.exports = {
             return data.getById(args);
         }
         
-        return data.getData();
+        return data.getData(args);
     },
 
     getById: async (params) => {
