@@ -42,7 +42,7 @@ module.exports = {
         sql.append(SQL` ORDER BY ${sortField} `)
             .append(sortOrder)
             .append(SQL` LIMIT ${pageSize}`)
-            .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+            .append(SQL` OFFSET ${(pageNo * pageSize - pageSize)}`);
 
         return await query(sql);
     },

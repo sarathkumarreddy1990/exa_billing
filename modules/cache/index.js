@@ -49,19 +49,19 @@ const sessionCache = {
 
         if (typeof data != 'undefined') {
             if (isNaN(data.expire) || data.expire >= now()) {
-                if (debug) { 
-                    hitCount++; 
+                if (debug) {
+                    hitCount++;
                 }
 
                 return data.value;
-            } else {
-                // free some space
-                if (debug) { 
-                    missCount++; 
-                }
-
-                sessionCache.del(key);
             }
+            
+            // free some space
+            if (debug) {
+                missCount++;
+            }
+
+            sessionCache.del(key);
         } else if (debug) {
             missCount++;
         }
@@ -74,7 +74,7 @@ const sessionCache = {
             key;
 
         for (key in cache) {
-            if (cache.hasOwnProperty(key)) {
+            if (Object.prototype.hasOwnProperty.call(cache, key)) {
                 if (sessionCache.get(key) !== null) {
                     size++;
                 }
@@ -89,11 +89,11 @@ const sessionCache = {
             key;
 
         for (key in cache) {
-            if (cache.hasOwnProperty(key)) {
+            if (Object.prototype.hasOwnProperty.call(cache, key)) {
                 size++;
             }
         }
-        
+
         return size;
     },
 

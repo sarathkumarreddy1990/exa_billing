@@ -1,4 +1,9 @@
-const { query, SQL } = require('../index');
+const {
+    SQL,
+    query,
+    queryWithAudit,
+    constants
+} = require('../index');
 
 module.exports = {
 
@@ -67,7 +72,7 @@ module.exports = {
     create: async (params) => {
         let {
             code,
-            description,
+            desc,
             type,
             isActive,
             company_id
@@ -75,21 +80,32 @@ module.exports = {
 
         let inactivated_date = isActive ? null : ' now() ';
 
-        const sql = SQL`INSERT INTO 
-                        billing.adjustment_codes (
-                              company_id
-                            , code
-                            , description
-                            , accounting_entry_type
-                            , inactivated_dt)
-                        VALUES(
-                               ${company_id}
-                             , ${code}
-                             , ${description}
-                             , ${type} 
-                             , ${inactivated_date} )`;
+        const sql = SQL`
+                    INSERT INTO billing.adjustment_codes 
+                    ( 
+                        company_id , 
+                        code , 
+                        description , 
+                        accounting_entry_type , 
+                        inactivated_dt 
+                    ) 
+                    VALUES 
+                    ( 
+                        ${company_id} , 
+                        ${code} , 
+                        ${desc} , 
+                        ${type} , 
+                        ${inactivated_date} 
+                    )
+                    RETURNING id
+        `;
 
-        return await query(sql);
+        return await queryWithAudit(sql, {
+            ...params,
+            screenName: constants.screenNames.adjustmentCodes,
+            moduleName: constants.moduleNames.setup,
+            logDescription: 'Created'
+        });
     },
 
     update: async (params) => {

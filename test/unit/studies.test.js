@@ -12,6 +12,7 @@ describe('Studies', () => {
 
             should.exist(data);
             data.rows.should.be.an('array');
+            data.rows.should.have.lengthOf.above(0);
         });
     });
 

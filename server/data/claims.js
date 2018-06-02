@@ -144,11 +144,13 @@ module.exports = {
                                      ) adjustment_code_details `;
         return await query(biling_query);
     },
+
     save: async function(params){
         const claim = (params.claims);
         const claim_insurances = JSON.stringify(params.insurances);
         const claim_charges = JSON.stringify(params.charges);
         const claim_icds = JSON.stringify(params.claim_icds);
+
         const claim_sql = SQL`
         WITH save_patient_insurances AS  (
             INSERT INTO patient_insurances (
@@ -397,6 +399,7 @@ module.exports = {
                 )
         )
         SELECT * FROM save_claim`;
+
         return await query(claim_sql);
     }
 };
