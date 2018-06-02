@@ -94,7 +94,7 @@ module.exports = {
                     ) 
                     VALUES 
                     ( 
-                        ${company_id} , 
+                        ${companyId} , 
                         ${code} , 
                         ${desc} , 
                         ${type} , 

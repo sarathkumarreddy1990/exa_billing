@@ -5,7 +5,7 @@ const FORMAT_STYLE = `YYYY-MM-DD`;
 
 module.exports = (fieldID, fieldValue) => {
 
-    if (!fieldValue){
+    if (!fieldValue) {
         return ` "${fieldID}" IS NULL`;
     }
 
@@ -17,22 +17,14 @@ module.exports = (fieldID, fieldValue) => {
         if (date.isValid()) {
             return ` ${fieldID} ILIKE '%${moment(fieldValue).format(FORMAT_STYLE)}%'`;
         }
-        else {
-            //console.log("filtervalidator: invalid dt");
-        }
-    }
-    else if (fromToDates.length === 2) {
+    } else if (fromToDates.length === 2) {
         const from = moment(fromToDates[0]);
         const to = moment(fromToDates[1]);
 
         if (from.isValid() && to.isValid()) {
             return ` ((${fieldID})::date BETWEEN ('${from.format(FORMAT_STYLE)}')::date AND ('${to.format(FORMAT_STYLE)}')::date)`;
         }
-        else {
-            //console.log("filtervalidator: invalid from and/or to");
-        }
-    }
-    else {
+    } else {
         //console.log("filtervalidator error");
     }
 

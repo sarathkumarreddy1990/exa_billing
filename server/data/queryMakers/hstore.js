@@ -6,9 +6,8 @@ module.exports = (fieldID, fieldValue) => {
     if (useToFormat) {
         fieldValue = fieldValue.replace(/[^0-9]/g, '');
         return `  regexp_replace(COALESCE(${fieldID}, ''), '[^0-9]', '', 'g') ILIKE '%${fieldValue}%'`;
-    } 
-    else{
-        return ` ${fieldID} ILIKE '${(["payment_info->'payer_name'"].indexOf(fieldID) === -1 || fieldValue.length > 3 ? '%' : '') + fieldValue}%'`;
     }
+
+    return ` ${fieldID} ILIKE '${(["payment_info->'payer_name'"].indexOf(fieldID) === -1 || fieldValue.length > 3 ? '%' : '') + fieldValue}%'`;
 };
 
