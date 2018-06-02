@@ -21,7 +21,7 @@ module.exports = {
         } = params;
 
         if (code) {
-            whereQuery.push(` code ILIKE '${code}'`);
+            whereQuery.push(` code ILIKE '%${code}%'`);
         }
 
         if (description) {
