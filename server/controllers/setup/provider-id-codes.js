@@ -2,12 +2,12 @@ const data = require('../../data/setup/provider-id-codes');
 
 module.exports = {
 
-    getData: function (args,params) {
-        if(args.id) {
+    getData: function (args, params) {
+        if (args.id) {
             args.provider_id = params.provider_id;
             return data.getById(args);
         }
-        
+
         return data.getData(params);
     },
 

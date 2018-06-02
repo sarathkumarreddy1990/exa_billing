@@ -26,6 +26,7 @@ module.exports = {
                           id
                         , code
                         , description
+                        , COUNT(1) OVER (range unbounded preceding) AS total_records
                     FROM   
                         billing.billing_classes `;
 
@@ -34,9 +35,12 @@ module.exports = {
                 .append(whereQuery.join(' AND '));
         }
 
-        sql.append(SQL` ORDER BY ${sortField}  ${sortOrder} `)
-        sql.append(SQL` LIMIT ${pageSize} `)
-        sql.append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+        sql.append(SQL` ORDER BY `)
+            .append(sortField)
+            .append(' ')
+            .append(sortOrder)
+            .append(SQL` LIMIT ${pageSize} `)
+            .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
 
         return await query(sql);
     },

@@ -2,8 +2,14 @@ const data = require('../data/studies');
 
 module.exports = {
     
-    getData: function () {
-        return data.getData();
+    getData: function (params) {
+        params.isCount=false;
+        return data.getData(params);
+    },
+
+    getDataCount: function (params) {
+        params.isCount=true;
+        return data.getData(params);
     },
     
     getDataByDate: function (params) {

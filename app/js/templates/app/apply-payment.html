@@ -1,0 +1,49 @@
+<tr data_id="<%= payment.payment_reconciliations_id %>" data_order_id="<%= payment.order_id %>" data_payment_id="<%= payment.payment_id %>"
+    data_cpt_id="<%= payment.cpt_code_id %>" data_study_id="<%= payment.study_id %>" data_study_cpt_id="<%= payment.study_cpt_id %>">
+    <td style="white-space: nowrap !important">
+        <span>
+            <%= payment.cpt_code %>
+        </span>
+    </td>
+    <td style="white-space: nowrap !important">
+        <span>
+            <%= payment.cpt_description %>
+        </span>
+    </td>
+    <td style="white-space: nowrap !important">
+        <span id="spReconcileBillFee_<%= payment.payment_reconciliations_id %>" class="billfee">
+            <%= payment.bill_fee %>
+        </span>
+    </td>
+    <td style="white-space: nowrap !important">
+        <span id="spUnappliedAdjustment_<%= payment.payment_reconciliations_id %>">
+            <%= payment.other_payment %>
+        </span>
+    </td>
+    <td style="white-space: nowrap !important">
+        <input id="txtThisPay_<%= payment.payment_reconciliations_id %>" this_pay="<%= payment.this_pay %>" value="<%= payment.payment_amount %>"
+            type="text" class="input-xs this_pay floatbox">
+    </td>
+    <td style="white-space: nowrap !important">
+        <input id="txtAllowed_<%= payment.payment_reconciliations_id %>" this_allowed="<%= payment.this_pay %>" value="<%= payment.allowed_fee %>"
+            type="text" class="input-xs this_allowed floatbox">
+    </td>
+    <td style="white-space: nowrap !important">
+        <span id="spUnappliedAdjustment_<%= payment.payment_reconciliations_id %>">
+            <%= payment.other_adjustment %>
+        </span>
+    </td>
+    <td style="white-space: nowrap !important">
+        <input id="txtThisAdjustment_<%= payment.payment_reconciliations_id %>" this_adjustment="<%= payment.this_adjustment %>"
+            type="text" class="input-xs this_adjustment floatbox" value="<%= payment.adjustment %>">
+    </td>
+    <td style="white-space: nowrap !important">
+        <span id="spReconcileBalance_<%= payment.payment_reconciliations_id %>">
+            <%= payment.balance %>
+        </span>
+    </td>
+    <td style="white-space: nowrap !important">
+        <span>
+            <input id="btnApplyCAS" index=<%=payment.index%> type="button" value="CAS" class="btn btn-primary applyCAS"></span>
+    </td>
+</tr>

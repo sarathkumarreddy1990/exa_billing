@@ -32,7 +32,18 @@ define([ 'backbone', 'immutable', 'models/study-field', 'shared/fields' ], funct
             var processedModels = options && Array.isArray(options.gridOptions) ?
                                   createModels(options.gridOptions, this.defaults) :
                                   this.defaults.toArray().sort(defaultFieldsSorter);
-            this.set(processedModels);
+                                  
+                                    var key = [];
+                                    _.each(options.field_order, function(value){
+                                    _.find(processedModels, function(v, k) {
+                                        if (v.id === value) {
+                                            key.push(v);
+                                        }
+                                    });
+                                });
+                                console.log(key);
+                            
+            this.set(key);
         }
     });
 });

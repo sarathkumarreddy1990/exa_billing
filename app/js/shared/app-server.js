@@ -10,6 +10,8 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                 processData: true,
                 success: function (model, response) {
                     _.extend(window.app, response[0]);
+                    app.study_user_settings=_.where(app.usersettings, {grid_name:'Studies'}) [0];
+                    app.claim_user_settings= _.where(app.usersettings, {grid_name:'Claims'}) [0];
                     callback();
                 }
             });

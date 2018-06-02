@@ -43,7 +43,7 @@ define(['jquery',
                 "toDate": null,
                 "toDateTime": null,
                 "isStudyDate": false,
-                "dateType": "study_dt"
+                "dateType": "claim_dt"
             },
             "patientInformation": {
                 "patientName": [],
@@ -291,7 +291,7 @@ define(['jquery',
                     {
                         // ALL STUDIES
                         forTab: "study",
-                        columns: ["study_received_dt", "study_dt", "check_indate", "approved_dt", "mu_last_updated", "scheduled_dt", "status_last_changed_dt", "birth_date"]
+                        columns: ["study_received_dt", "claim_dt", "check_indate", "approved_dt", "mu_last_updated", "scheduled_dt", "status_last_changed_dt", "birth_date"]
                     }
                 ];
                 var columnsToBind = _.find(drpTabColumnSet,function (val) {
@@ -846,7 +846,7 @@ define(['jquery',
                             var updateStudiesPager = function (model, gridObj) {
                                 $('#chkclaimsHeader_' + filterID).prop('checked', false);
                                 self.setGridPager(filterID, gridObj, false);
-                                self.bindDateRangeOnSearchBox(gridObj, 'claims');
+                                //self.bindDateRangeOnSearchBox(gridObj, 'claims');
                                 self.afterGridBindclaims(model, gridObj);
                                 self.initializeStatusCodes(gridObj, 'claims');
                                 commonjs.nextRowID = 0;
@@ -870,7 +870,7 @@ define(['jquery',
                                 'claims_id': 0,
                                 'container': self.el,
                                 '$container': self.$el,
-                                'updateStudiesPager': '',
+                                'updateStudiesPager':updateStudiesPager,
                                 'isClaimGrid': true
                             });
                             table.renderStudy();
@@ -914,18 +914,7 @@ define(['jquery',
                 filterObj.options.filterid = filterID;
 
                 if (filterObj.options.isSearch) {
-                    if (filterObj.options.showEncOnly === "true" || filterObj.options.showEncOnly === true) {
-                        var url = '/getEncountersCount';
-                    }
-                    else {
-                        var url = filterID === 'OD' ?
-                            "/order_records" :
-                            isPending ?
-                                "/qc_studies_count" :
-                                filterID === 'QR' ?
-                                    app.docServerUrl + "/dcm/query?" + commonjs.getSessionArgs() :
-                                    "/order_studies_records";
-                    }
+                    var url ="/exa_modules/billing/claimWorkbench/claims_total_records";
                     var flag = /Exceedclaims/.test(filterID);
                     jQuery.ajax({
                         url: url,
@@ -961,21 +950,21 @@ define(['jquery',
 
                         },
                         success: function (data, textStatus, jqXHR) {
-                            if (data && data.result) {
+                            if (data && data.length) {
                                 filterObj.pager.set({
-                                    "TotalRecords": data.result.total_records
+                                    "TotalRecords": data[0].total_records
                                 });
                                 filterObj.pager.set({
-                                    "ExceedStudies": data.result.exceeds_count
+                                    "ExceedStudies": data[0].exceeds_count
                                 });
 
                                 filterObj.setPagerInfos();
                                 filterObj.options.isSearch = false;
-                                if (filterID === commonjs.currentStudyFilter) {
+                               // if (filterID === commonjs.currentStudyFilter) {
                                     self.setFooter(filterObj);
                                     commonjs.setFilter(filterID, filterObj);
                                     commonjs.docResize();
-                                }
+                               // }
 
                             }
                         },

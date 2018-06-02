@@ -2,6 +2,8 @@ require.config({
     waitSeconds: 0,
     paths: {
         'jquery': '../node_modules/jquery/dist/jquery',
+        'jquery.validate': '../node_modules/jquery-validation/dist/jquery.validate',
+        'jqueryvalidateadditional': '../node_modules/jquery-validation/dist/additional-methods',
         'underscore': '../node_modules/underscore/underscore',
         'text': '../node_modules/requirejs-text/text',
         'backbone': '../node_modules/backbone/backbone',
@@ -14,6 +16,7 @@ require.config({
         'jqgridlocale': '../libs/jqgrid/js/i18n/grid.locale-en',
         'immutable': '../node_modules/immutable/dist/immutable',
         'jstorage': '../node_modules/jstorage/jstorage.min',
+        'daterangepicker': '../node_modules/bootstrap-daterangepicker/daterangepicker',
         'commonscript': 'shared/common',
         'layout': 'shared/layout',
         'debug': 'shared/debug',
@@ -28,6 +31,12 @@ require.config({
         'select2': '../node_modules/select2/dist/js/select2.full'
     },
     shim: {
+        'jquery.validate': {
+            deps: ['jquery']
+        },
+        'jqueryvalidateadditional': {
+            deps: ['jquery', 'jquery.validate']
+        },
         'bootstrap': {
             deps: ["jquery"]
         },
@@ -54,6 +63,9 @@ require.config({
         },
         'jstorage': {
             deps: ['jquery']
+        },
+        'daterangepicker': {
+            deps: ["jquery", "moment"]
         },
         'commonscript': {
             deps: ['jquery', 'immutable', 'underscore']
@@ -87,44 +99,53 @@ require.config({
 require([
     'immutable',
     'moment-timezone',
-], function (Immutable, MomentTimezone) {
-    window.Immutable = Immutable;
-
-    require([
-        'jquery',
-        'underscore',
-        'jstorage',
-        'bootstrap',
-        'commonscript',
-        'layout',
-        'debug',
-        'i18nscript',
-        'sessionhandler',
-        'customgrid',
-        'app',
-        'appserver_shared',
-        'bootstrapmultiselect',
-        'select2'
-    ], function (
-        $,
-        _,
-        jstorage,
-        Bootstrap,
-        commonjs,
-        layout,
-        debug,
-        i18n,
-        sessionhandler,
-        customGrid,
-        App,
-        Appserver,
-        bootstrapmultiselect,
-        select2
+    'jquery.validate',
+], function (
+    Immutable,
+    MomentTimezone,
+    jqueryvalidate,
     ) {
-            new Appserver(function () {
-                App.initialize();
+        window.Immutable = Immutable;
+
+        require([
+            'jquery',
+            'underscore',
+            'jqueryvalidateadditional',
+            'jstorage',
+            'bootstrap',
+            'commonscript',
+            'layout',
+            'debug',
+            'i18nscript',
+            'sessionhandler',
+            'customgrid',
+            'app',
+            'appserver_shared',
+            'bootstrapmultiselect',
+            'select2',
+            'daterangepicker'
+        ], function (
+            $,
+            _,
+            jqueryvalidateadditional,
+            jstorage,
+            Bootstrap,
+            commonjs,
+            layout,
+            debug,
+            i18n,
+            sessionhandler,
+            customGrid,
+            App,
+            Appserver,
+            bootstrapmultiselect,
+            select2,
+            daterangepicker
+        ) {
+                new Appserver(function () {
+                    App.initialize();
+                });
+
             });
 
-        });
-
-});
+    });

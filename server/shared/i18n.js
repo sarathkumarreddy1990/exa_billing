@@ -16,34 +16,34 @@ module.exports = {
 
         if (languages && languages[dir]) {
             return languages[dir];
-        } else {
-            let jsonI18nData = {};
-            let i18nPath = path.join(__dirname, '../i18n/', dir);
+        }
 
-            try {
-                let dirExists = fs.existsSync(i18nPath);
+        let jsonI18nData = {};
+        let i18nPath = path.join(__dirname, '../i18n/', dir);
 
-                if (!dirExists) {
-                    i18nPath = path.join(__dirname, '../i18n/default');
-                }
+        try {
+            let dirExists = fs.existsSync(i18nPath);
 
-                let names = await readdir(i18nPath);
-
-                if (names.length === 0) {
-                    return this.getI18nData('default');
-                }
-
-                for (let i = 0; i < names.length; i++) {
-                    let jsonFilePath = path.join(i18nPath, names[i]);
-                    let data = await readFile(jsonFilePath);
-
-                    jsonI18nData = Object.assign(jsonI18nData, JSON.parse(data));
-                }
-
-                return jsonI18nData;
-            } catch (err) {
-                throw err;
+            if (!dirExists) {
+                i18nPath = path.join(__dirname, '../i18n/default');
             }
+
+            let names = await readdir(i18nPath);
+
+            if (names.length === 0) {
+                return this.getI18nData('default');
+            }
+
+            for (let i = 0; i < names.length; i++) {
+                let jsonFilePath = path.join(i18nPath, names[i]);
+                let data = await readFile(jsonFilePath);
+
+                jsonI18nData = Object.assign(jsonI18nData, JSON.parse(data));
+            }
+
+            return jsonI18nData;
+        } catch (err) {
+            throw err;
         }
     }
 };

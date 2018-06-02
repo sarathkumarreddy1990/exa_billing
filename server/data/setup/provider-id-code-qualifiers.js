@@ -2,7 +2,32 @@ const { query, SQL } = require('../index');
 
 module.exports = {
 
-    getData: async function () {
+    getData: async function (params) {
+
+        params.code = '';
+        params.description = '';
+        params.pageNo = 1;
+        params.pageSize = 10;
+        params.sortField = ' qualifier_code ';
+        params.sortOrder = params.sortOrder || ' DESC';
+        let {
+            code,
+            description,
+            sortOrder,
+            sortField,
+            pageNo,
+            pageSize
+        } = params;
+
+        let whereQuery = [];
+
+        if (code) {
+            whereQuery.push(` qualifier_code ILIKE '%${code}%'`);
+        }
+
+        if (description) {
+            whereQuery.push(` description ILIKE '%${description}%'`);
+        }
 
         const sql = SQL`SELECT 
                             id
@@ -11,12 +36,20 @@ module.exports = {
                             , qualifier_code
                             , description
                             , COUNT(1) OVER (range unbounded preceding) as total_records
-                        FROM   billing.provider_id_code_qualifiers
-                        ORDER  BY id DESC 
-                        LIMIT  10 `;
+                        FROM   billing.provider_id_code_qualifiers`;
+
+        if (whereQuery.length) {
+            sql.append(SQL` WHERE `)
+                .append(whereQuery.join(' AND '));
+        }
+
+        sql.append(SQL` ORDER BY `)
+            .append(sortField)
+            .append(sortOrder)
+            .append(SQL` LIMIT ${pageSize}`)
+            .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
 
         return await query(sql);
-
     },
 
     getById: async function (params) {
