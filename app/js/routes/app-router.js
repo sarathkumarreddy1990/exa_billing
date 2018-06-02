@@ -5,12 +5,8 @@ define([
     'views/claim-workbench',
     'routes/app/index',
     'routes/setup/index',
+    'modules/reporting/routes/index',   
     'modules/reporting/views/billing/charges',
-    'modules/reporting/views/billing/claim-activity',
-    'modules/reporting/views/billing/claim-inquiry',
-    'modules/reporting/views/billing/patient-statement',
-    'modules/reporting/views/billing/modality-summary',
-    'modules/reporting/views/billing/payer-mix',
     'modules/reporting/views/billing/payments',
     'modules/reporting/views/billing/claim-activity',
     'modules/reporting/views/billing/claim-inquiry',
@@ -21,6 +17,8 @@ define([
     'modules/reporting/views/billing/referring-provider-count',
     'modules/reporting/views/billing/referring-provider-summary',
     'modules/reporting/views/billing/transaction-summary',
+    'modules/reporting/views/billing/date-of-SVC-payment-summary',
+    'modules/reporting/views/billing/diagnosis-count',
     'views/app/payments',
     'views/app/payment-edit'
 ], function (Backbone,
@@ -29,13 +27,9 @@ define([
     ClaimWorkBenchView,
     AppRoute,
     SetupRoute,
-    ChargeReportView,
-    PaymentReportView,
-    ClaimActivityView, 
-    ClaimInquiryView, 
-    PatientStatementView, 
-    MoadalitySummaryView, 
-    PayerMixView,
+    ReportRoute,
+    ChargeReportView,   
+    PaymentReportView,   
     ClaimActivityView, 
     ClaimInquiryView, 
     PatientStatementView, 
@@ -44,23 +38,20 @@ define([
     PaymentByInsCompanyView,
     ReferringProviderCountView,
     ReferringProviderSummaryView,
-    transactionSummaryView,
+    TransactionSummaryView,
+    DateOfSVCSummaryView,
+    DiagnosisCountView,
     PaymentsView,
     EditPaymentView
     ) {
         var AppRouter = Backbone.Router.extend({
             routes: {
                 "app/worklist": "startApp",
-                "app/report": "startReporting",
+                "app/reports": "startReporting",
                 "app/studies": "startAppStudies",
-                "app/claim_workbench": "startClaimWorkBench",
-                "app/reports/charges": "startChargeReporting" ,
-                "app/reports/payments": "startPaymentReporting",
-                "app/reports/claim_activity": "startClaimActivityReporting",
-                "app/reports/claim_inquiry": "startClaimInquiryReporting",
-                "app/reports/patient_statement": "startPatientStatementReporting",
-                "app/reports/modality_summary": "startModalitySummaryReporting",           
-                "app/reports/payer_mix": "startPayerMixReporting",
+                "app/claim_workbench": "startClaimWorkBench",               
+                "app/reports/charges": "startChargeReporting",               
+                "app/reports/payments": "startPaymentReporting",               
                 "app/reports/claim-activity": "startClaimActivityReporting",
                 "app/reports/claim-inquiry": "startClaimInquiryReporting",
                 "app/reports/patient-statement": "startPatientStatementReporting",
@@ -70,11 +61,14 @@ define([
                 "app/reports/referring-provider-count": "startReferringProviderCountReporting",
                 "app/reports/referring-provider-summary": "startReferringProviderSummaryReporting",
                 "app/reports/transaction-summary": "starttransactionSummaryReporting",
+                "app/reports/date-of-SVC-payment-summary": "startDateOfSVCSummaryViewReporting",
+                "app/reports/diagnosis-count": "startDiagnosisCountReporting",
     
                 // "app/*subroute": "startApp",
                 "setup/*subroute": "startSetup",
                 "app/payments": "startPayments",
-                "app/payments/edit/:id": "editPayment"
+                "app/payments/edit/:id": "editPayment",
+                "reports/*subroute": "startReport"
             },
             // startApp: function (subroutes) {
             //     if (!this.appRoute) {
@@ -91,10 +85,9 @@ define([
                     this.setupRouter = new SetupRoute("setup/", { createTrailingSlashRoutes: true });
                 }
             },
-            startReporting: function (subroutes) {
-                if (!this.reportingRoute) {
-                    // this.reportingRoute = new ReportView("reports/", { createTrailingSlashRoutes: true });
-                    this.reportingRoute = new ReportView({ el: $('#root') });
+            startReport : function (subroute) {
+                if (!this.reportingRouter) {                  
+                    this.reportingRouter = new ReportRoute("reports/", { createTrailingSlashRoutes: true } );
                 }
             },
             startAppStudies: function (subroutes) {
@@ -106,99 +99,104 @@ define([
                 if (!this.appClaimWorkBenchRoute) {
                     this.appClaimWorkBenchRoute = new ClaimWorkBenchView({ el: $('#root') });
                 }
-            },
+            },           
+    
             startChargeReporting: function (subroutes) {
                 if (!this.reportingRoute) {             
                     this.reportingRoute = new ChargeReportView({ el: $('#root') });
                 }
-            },
-    
+            },   
+
             startPaymentReporting: function (subroutes) {
                 if (!this.reportingRoute) {             
                     this.reportingRoute = new PaymentReportView({ el: $('#root') });
                 }
-            },
-    
+            },    
+
+            startPaymentReporting: function (subroutes) {
+                if (!this.reportingRoute) {             
+                    this.reportingRoute = new PaymentReportView({ el: $('#root') });
+                }
+            },    
+          
             startClaimActivityReporting: function (subroutes) {
                 if (!this.reportingRoute) {             
                     this.reportingRoute = new ClaimActivityView({ el: $('#root') });
                 }
             },
+
             startClaimInquiryReporting: function (subroutes) {
                 if (!this.reportingRoute) {             
                     this.reportingRoute = new ClaimInquiryView({ el: $('#root') });
                 }
             },
+
             startPatientStatementReporting: function (subroutes) {
                 if (!this.reportingRoute) {             
                     this.reportingRoute = new PatientStatementView({ el: $('#root') });
                 }
             },
+
             startModalitySummaryReporting: function (subroutes) {
                 if (!this.reportingRoute) {             
                     this.reportingRoute = new MoadalitySummaryView({ el: $('#root') });
                 }
-            },             
+            }, 
+
             startPayerMixReporting: function (subroutes) {
                 if (!this.reportingRoute) {             
                     this.reportingRoute = new PayerMixView({ el: $('#root') });
                 }
             },
-            startClaimActivityReporting: function (subroutes) {
-                if (!this.reportingRoute) {             
-                    this.reportingRoute = new ClaimActivityView({ el: $('#root') });
-                }
-            },
-            startClaimInquiryReporting: function (subroutes) {
-                if (!this.reportingRoute) {             
-                    this.reportingRoute = new ClaimInquiryView({ el: $('#root') });
-                }
-            },
-            startPatientStatementReporting: function (subroutes) {
-                if (!this.reportingRoute) {             
-                    this.reportingRoute = new PatientStatementView({ el: $('#root') });
-                }
-            },
-            startModalitySummaryReporting: function (subroutes) {
-                if (!this.reportingRoute) {             
-                    this.reportingRoute = new MoadalitySummaryView({ el: $('#root') });
-                }
-            },             
-            startPayerMixReporting: function (subroutes) {
-                if (!this.reportingRoute) {             
-                    this.reportingRoute = new PayerMixView({ el: $('#root') });
-                }
-            },
+            
             startPaymentsByInsuranceCompanyReporting: function (subroutes) {
                 if (!this.reportingRoute) {             
                     this.reportingRoute = new PaymentByInsCompanyView({ el: $('#root') });
                 }
-            },            
+            },  
+
             startReferringProviderCountReporting: function (subroutes) {
                 if (!this.reportingRoute) {             
                     this.reportingRoute = new ReferringProviderCountView({ el: $('#root') });
                 }
             },
+
             startReferringProviderSummaryReporting: function (subroutes) {
                 if (!this.reportingRoute) {             
                     this.reportingRoute = new ReferringProviderSummaryView({ el: $('#root') });
                 }
             },
+
             starttransactionSummaryReporting: function (subroutes) {
                 if (!this.reportingRoute) {             
-                    this.reportingRoute = new transactionSummaryView({ el: $('#root') });
+                    this.reportingRoute = new TransactionSummaryView({ el: $('#root') });
                 }
             },
+
+            startDateOfSVCSummaryViewReporting: function (subroutes) {
+                if (!this.reportingRoute) {             
+                    this.reportingRoute = new DateOfSVCSummaryView({ el: $('#root') });
+                }
+            },
+
+            startDiagnosisCountReporting: function (subroutes) {
+                if (!this.reportingRoute) {             
+                    this.reportingRoute = new DiagnosisCountView({ el: $('#root') });
+                }
+            },
+
             startPayments: function (subroutes) {
                 if (!this.appRoute) {
                     this.appRoute = new PaymentsView({ el: $('#root') });
                 }
             },
+
             editPayment: function (paymentId) {
                 if (!this.appRoute) {
                     this.appRoute = new EditPaymentView({ el: $('#root'), id: paymentId });
                 }
             },
+
             initialize: function () {
                 $('#initialLoading').hide();
                 $('#root-content').show();

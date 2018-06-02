@@ -4,6 +4,7 @@ const url = require('url');
 
 const logger = require('../../logger');
 const config = require('../config');
+const constants = require('../shared/constants');
 
 const dbConnString = config.get(config.keys.dbConnection);
 
@@ -19,7 +20,7 @@ const poolConfig = ((connStr) => {
         database: params.pathname.split('/')[1],
         ssl: false
     };
-    
+
     return config;
 })(dbConnString);
 
@@ -61,6 +62,50 @@ const pgData = {
             throw err;
         }
     },
+
+    queryWithAudit: async function (query, args) {
+        let {
+            userId,
+            patientId,
+            studyId,
+            //claimId,
+            screenName,
+            moduleName,
+            logDescription,
+            clientIp,
+            companyId
+        } = args;
+
+        let sql = SQL`WITH cte AS (`;
+        sql.append(query);
+
+        sql.append(SQL`
+                ),
+                audit_cte AS (
+                    SELECT create_audit(
+                    ${userId || 0},
+                    ${patientId || 0},
+                    0,
+                    ${studyId || 0},
+                    ${screenName},
+                    ${moduleName},
+                    ${logDescription},
+                    ${clientIp || ''},
+                    null,
+                    null,
+                    '',
+                    ${companyId || 1}
+                    )
+                )
+
+                SELECT  *
+                FROM    cte
+            `);
+
+        return await pgData.query(sql);
+    },
+
+    constants,
 
     SQL,
 };

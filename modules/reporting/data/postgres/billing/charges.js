@@ -2,7 +2,7 @@ const _ = require('lodash')
     , Promise = require('bluebird')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder')    
+    , queryBuilder = require('../queryBuilder')
     , logger = require('../../../../../logger');
 
 // generate query template ***only once*** !!!
@@ -38,7 +38,7 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
-        return Promise.join(            
+        return Promise.join(
             api.createchargesDataSet(initialReportData.report.params),
             // other data sets could be added here...
             (chargesDataSet) => {
@@ -122,7 +122,7 @@ const api = {
         const params = [];
         const filters = {
             companyId: null
-           
+
         };
 
         // company id
@@ -152,7 +152,7 @@ const api = {
 
         return {
             queryParams: params,
-            templateData: filters         
+            templateData: filters
         }
     }
 }

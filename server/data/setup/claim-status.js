@@ -8,6 +8,7 @@ module.exports = {
         let {
             code,
             description,
+            isSystemStatus,
             sortOrder,
             sortField,
             pageNo,
@@ -22,10 +23,17 @@ module.exports = {
             whereQuery.push(` description ILIKE '${description}'`);
         }
 
+        if(isSystemStatus == 'true'){
+            whereQuery.push(' is_system_status ');
+        }else if(isSystemStatus == 'false'){
+            whereQuery.push(' NOT is_system_status ');
+        }
+
         const sql = SQL`SELECT 
                           id
                         , code
                         , description
+                        , is_system_status
                         , COUNT(1) OVER (range unbounded preceding) AS total_records
                     FROM   
                         billing.claim_status `;
@@ -52,6 +60,7 @@ module.exports = {
                           id
                         , code
                         , description
+                        , is_system_status
                     FROM   
                         billing.claim_status 
                     WHERE 
@@ -65,7 +74,8 @@ module.exports = {
             code,
             description,
             isActive,
-            companyId
+            companyId,
+            isSystemStatus
         } = params;
 
         let inactivated_date = isActive ? null : ' now() ';
@@ -75,12 +85,14 @@ module.exports = {
                               company_id
                             , code
                             , description
-                            , inactivated_dt)
+                            , inactivated_dt
+                            , is_system_status)
                         VALUES(
                                ${companyId}
                              , ${code}
                              , ${description}
-                             , ${inactivated_date} )`;
+                             , ${inactivated_date}
+                             , ${isSystemStatus} )`;
 
         return await query(sql);
     },
@@ -91,7 +103,8 @@ module.exports = {
             code,
             description,
             id,
-            isActive
+            isActive,
+            isSystemStatus
         } = params;
 
         let inactivated_date = isActive ? null : ' now() ';
@@ -102,6 +115,7 @@ module.exports = {
                               code = ${code}
                             , description = ${description}
                             , inactivated_dt = ${inactivated_date}
+                            , is_system_status = ${isSystemStatus}
                         WHERE
                             id = ${id} `;
 

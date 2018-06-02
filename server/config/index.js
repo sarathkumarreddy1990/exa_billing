@@ -30,9 +30,9 @@ module.exports = {
                 if (Object.keys(nconf.stores.file.store || {}).length === 0) {
                     logger.info(`Failed to load config from: ${_path}`);
                     return reject('Failed to load config');
-                } else {
-                    return resolve(this);
                 }
+
+                return resolve(this);
             }
 
             return reject('No cfg files found');

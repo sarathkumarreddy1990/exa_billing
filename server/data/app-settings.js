@@ -55,18 +55,15 @@ module.exports = {
                                    AND    is_active
                                    AND    id=${userID} ) AS users)
                 , cte_user_settings AS(
-                                    SELECT row_to_json(userSettings) userSettings
+                                    SELECT Json_agg(row_to_json(userSettings)) userSettings
                                     FROM  (
                                     SELECT id AS user_setting_id,
-                                         study_fields,
-                                         page_size,
-                                         sort_column,
-                                         sort_order ,
-                                         field_order,
-                                         worklist_filter_info,
-                                         grid_options,
-                                         grid_field_settings
-                                    FROM   user_settings
+                                        field_order,
+                                        grid_name,
+                                        default_column_order_by,
+                                        default_column ,
+                                        default_tab
+                                    FROM   billing.user_settings
                                     WHERE  user_id=${userID}  ) AS userSettings)
                , cte_study_status AS(
                                     SELECT Json_agg(Row_to_json(study_status)) study_status
@@ -79,13 +76,41 @@ module.exports = {
                                           waiting_time
                                     FROM   study_status
                                     WHERE  NOT has_deleted ) AS study_status)
+                , cte_claim_status AS(
+                                    SELECT Json_agg(Row_to_json(claim_status)) claim_status
+                                    FROM  (
+                                    SELECT id,
+                                        code,
+                                        description,
+                                        is_system_status
+                                    FROM   billing.claim_status
+                                    WHERE  NOT is_system_status AND company_id=${companyID} ) AS claim_status)
+                , cte_billing_codes AS(
+                                    SELECT Json_agg(Row_to_json(billing_codes)) billing_codes
+                                    FROM  (
+                                    SELECT id,
+                                        code,
+                                        description
+                                    FROM   billing.billing_codes
+                                    WHERE  company_id=${companyID} ) AS billing_codes)
+                , cte_billing_classes AS(
+                                    SELECT Json_agg(Row_to_json(billing_classes)) billing_classes
+                                    FROM  (
+                                    SELECT id,
+                                        code,
+                                        description
+                                    FROM   billing.billing_classes
+                                    WHERE  company_id=${companyID} ) AS billing_classes)
                SELECT *
                FROM   cte_company,
                       cte_facilities,
                       cte_modalities,
                       cte_user,
                       cte_user_settings,
-                      cte_study_status
+                      cte_study_status,
+                      cte_claim_status,
+                      cte_billing_codes,
+                      cte_billing_classes
                `;
 
         return await query(sql);

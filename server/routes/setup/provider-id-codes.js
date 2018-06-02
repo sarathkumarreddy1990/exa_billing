@@ -5,7 +5,7 @@ const providerIdCodeControllers = require('../../controllers/setup/provider-id-c
 const httpHandler = require('../../shared/http');
 
 router.get('/:provider_id', async function (req, res) {
-    const data = await providerIdCodeControllers.getData(req.query,req.params);
+    const data = await providerIdCodeControllers.getData(req.query, req.params);
     httpHandler.sendRows(req, res, data);
 });
 
