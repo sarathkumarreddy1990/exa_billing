@@ -19,6 +19,11 @@ router.get('/get_masterdetails', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/', async function (req, res) {
+    const data = await claimsController.getData(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
 router.post('/', async function (req, res) {
     const data = await claimsController.save(req.body);
     httpHandler.sendRows(req, res, data);

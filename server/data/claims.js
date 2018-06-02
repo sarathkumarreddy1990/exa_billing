@@ -414,5 +414,84 @@ module.exports = {
                      select * from save_charges `;
 
         return await query(charge_sql);
+    },
+
+    getClaimData: async (params) => {
+
+        const get_claim_sql = SQL`
+                SELECT 
+                      c.company_id
+                    , c.facility_id
+                    , c.patient_id
+                    , c.billing_provider_id
+                    , c.rendering_provider_contact_id
+                    , c.referring_provider_contact_id
+                    , c.primary_patient_insurance_id
+                    , c.secondary_patient_insurance_id
+                    , c.tertiary_patient_insurance_id
+                    , c.ordering_facility_id
+                    , c.place_of_service_id
+                    , c.billing_code_id
+                    , c.billing_class_id
+                    , c.created_by
+                    , c.billing_method
+                    , c.billing_notes
+                    , c.claim_dt
+                    , c.current_illness_date
+                    , c.same_illness_first_date
+                    , c.unable_to_work_from_date
+                    , c.unable_to_work_to_date
+                    , c.hospitalization_from_date
+                    , c.hospitalization_to_date
+                    , c.claim_notes
+                    , c.original_reference
+                    , c.authorization_no
+                    , c.frequency
+                    , c.is_auto_accident
+                    , c.is_other_accident
+                    , c.is_employed
+                    , c.service_by_outside_lab
+                    , c.payer_type
+                    , c.claim_status_id
+                    , c.primary_patient_insurance_id
+                    , c.secondary_patient_insurance_id
+                    , c.tertiary_patient_insurance_id
+                    , c.ordering_facility_id
+                    , c.referring_provider_contact_id
+                    , (
+                        SELECT array_agg(row_to_json(pointer)) AS claim_charges 
+                        FROM (
+                            SELECT 
+                                  ch.id 
+                                , claim_id
+                                , cpt_id
+                                , modifier1_id
+                                , modifier2_id
+                                , modifier3_id
+                                , modifier4_id
+                                , pointer1 
+                                , pointer2 
+                                , pointer3 
+                                , pointer4 
+                                , cpt.display_code AS cpt_code 
+                                , cpt.display_description
+                                , ch.units
+                                , ch.charge_dt
+                                , ch.bill_fee::numeric
+                                , ch.allowed_amount::numeric as allowed_fee
+                                , ch.authorization_no
+                                , (ch.units * ch.bill_fee)::numeric as total_bill_fee
+                                , (ch.units * ch.allowed_amount)::numeric as total_allowed_fee
+                            FROM billing.charges ch 
+                                INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id 
+                            WHERE claim_id = c.id 
+                            ORDER BY ch.id, ch.line_num ASC
+                      ) pointer) AS claim_charges
+                       FROM
+                           billing.claims c
+                       WHERE 
+                        c.id = ${params.id}`;
+
+        return await query(get_claim_sql);
     }
 };

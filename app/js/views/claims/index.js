@@ -90,6 +90,112 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 self.bindBillingSummary();
             },
 
+            initializeClaimEditForm: function () {
+                var self = this;
+                if (!this.rendered)
+                    this.render();
+                self.bindclaimFormEvents();
+            },
+
+            /* Get claim edit details function*/
+            showEditClaimForm: function (claim_Id, IsUpdated) {
+                var self = this, _claimMgmtStatus = {
+                    'rv': 'Ready To Validate',
+                    'rd': 'Ready To File',
+                    'st': 'Submitted'
+                };
+                self.claim_Id = claim_Id;
+                self.isEdit = true;
+                self.claimICDLists = [];
+                self.removedCharges = [];
+                self.chargeModel = [];
+
+                $.ajax({
+                    type: 'GET',
+                    url: '/exa_modules/billing/claims',
+                    data: {
+                        id: claim_Id
+                    },
+                    success: function (model, response) {
+
+                        if (model && model.length > 0) {
+                            var claimDetails = model[0];
+                            /* Header Details */
+                           // $(parent.document).find('#spanModalHeader').html('Edit: <STRONG>' + claimDetails.patient_full_name + '</STRONG> (Acc#:' + claimDetails.patient_account_no + '), <i>' + claimDetails.patient_dob + '</i>  ');
+                            self.cur_patient_acc_no = claimDetails.patient_account_no;
+                            self.cur_patient_name = claimDetails.patient_full_name;
+                            self.cur_patient_dob = claimDetails.patient_dob;
+                            self.cur_patient_id = claimDetails.patient_id ? parseInt(claimDetails.patient_id) : null;
+                            self.cur_study_date = (commonjs.checkNotEmpty(claimDetails.claim_dt) ? commonjs.convertToFacilityTimeZone(claimDetails.facility_id, claimDetails.claim_dt).format('L LT z') : '');
+                            self.priClaimInsID = claimDetails.p_claim_insurance_id || null;
+                            self.secClaimInsID = claimDetails.s_claim_insurance_id || null;
+                            self.terClaimInsID = claimDetails.t_claim_insurance_id || null;
+                            self.current_responsible_id = claimDetails.claim_responsible_id || null;
+
+                            self.initializeClaimEditForm();
+
+                            /* Bind claim charge Details*/
+                            $('#tBodyCharge').empty();
+                            claimDetails.claim_charges = claimDetails.claim_charges || [];
+                            $.each(claimDetails.claim_charges, function (index, obj) {
+                                obj.claim_dt = claimDetails.claim_dt;
+                                obj.facility_id = claimDetails.facility_id;
+                                obj.data_row_id = index;
+                                self.addLineItems(obj, index, false);
+                                self.chargeModel.push({
+                                    id: obj.id,
+                                    data_row_id: index,
+                                    ref_charge_id: null,
+                                    claim_id: obj.claim_id,
+                                    study_id: obj.study_id,
+                                    accession_no: obj.accession_no,
+                                    is_deleted: false
+                                });
+                            });
+
+                            // trigger blur event for update Total bill fee, balance etc.
+                            $(".allowedFee").blur();
+                            $(".diagCodes").blur();
+
+                            /*Bind ICD List*/
+                            claimDetails.claim_icd_data = claimDetails.claim_icd_data || [];
+                            self.claimICDLists = [];
+                            $('#ulSelectedDiagCodes').empty();
+                            $('#hdnDiagCodes').val('');
+                            $.each(claimDetails.claim_icd_data, function (index, obj) {
+                                self.ICDID = obj.icd_id;
+                                self.icd_code = obj.code;
+                                self.icd_description = obj.description
+
+                                self.claimICDLists.push({
+                                    id: obj.id,
+                                    icd_id: obj.icd_id,
+                                    claim_id: self.claim_Id || null,
+                                    last_updated_date: null,
+                                    created_date: null,
+                                    last_updated_by: app.userID,
+                                    created_by: null,
+                                    deleted_by: null,
+                                    is_deleted: false
+                                });
+                                self.addDiagCodes();
+                            });
+
+                            // clear icd details after bind
+                            self.ICDID = self.icd_code = self.icd_description = '';
+
+                            $('#ddlClaimManagement').text(_claimMgmtStatus[claimDetails.file_status]);
+                            $('#spClaimId').text(claimDetails.id);
+                            $('#btnSaveClaim').attr('disabled', false);
+                        }
+                    },
+                    error: function (model, response) {
+                        commonjs.handleXhrError(model, response);
+                    }
+
+                });
+            },
+
             showClaimForm: function (options) {
                 var self = this;
                 var curClaimDetails = JSON.parse(window.localStorage.getItem('selected_studies'));
@@ -112,6 +218,12 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     payer_id: self.cur_patient_id
                 });
 
+                self.bindclaimFormEvents();
+            },
+
+            bindclaimFormEvents:function(){
+
+                var self = this;
                 $("#createNewCharge").off().click(function (e) {
                     self.addChargeLine(e);
                 });
@@ -121,7 +233,6 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 });
 
                 $("#btnSaveClaim").off().click(function (e) {
-                    //self.setClaimDetails(e);
                     self.saveClaimDetails(e);
                 });
 
@@ -136,8 +247,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 $("#chkSecMedicarePayer").off().change(function (e) {
                     $('#selectMedicalPayer').toggle($('#chkSecMedicarePayer').is(':checked')).val('');
                 });
-            },
 
+            },
             getLineItemsAndBind: function (curClaimDetails) {
                 var self = this, study_ids;
                 if ($.isArray(curClaimDetails)) {

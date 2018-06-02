@@ -1,4 +1,4 @@
-const SearchFilter = require('./search-filter');
+const SearchFilter = require('./claim-search-filters');
 
 module.exports = {
 

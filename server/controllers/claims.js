@@ -43,5 +43,7 @@ module.exports = {
 
             return await Promise.all(results);
         }
-    }
+    },
+
+    getData: async (params)=> { return data.getClaimData(params); },
 };
