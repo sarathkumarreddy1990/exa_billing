@@ -5,7 +5,16 @@ const studiesController = require('../controllers/studies');
 const httpHandler = require('../shared/http');
 
 router.get('/', async function (req, res) {
-    const data = await studiesController.getData();
+    req.query.company_id = 1;
+    req.query.user_id = 2;    
+    const data = await studiesController.getData(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
+router.get('/studies_total_records', async function (req, res) {
+    req.query.company_id = 1;
+    req.query.user_id = 2;    
+    const data = await studiesController.getDataCount(req.query);
     httpHandler.sendRows(req, res, data);
 });
 

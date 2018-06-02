@@ -1,15 +1,11 @@
 const { query, SQL } = require('./index');
+const  SearchFilter = require('./search-filter');
 
 module.exports = {
 
-    getData: async function () {
+    getData: async function (args) {
 
-        return await query(`
-                        SELECT studies.id as study_id,patients.full_name as patient_name,patients.birth_date,patients.account_no,*
-                        FROM   studies 
-                        LEFT JOIN patients on patients.id = studies.patient_id
-                        ORDER  BY studies.id DESC 
-                        LIMIT  10 `);
+        return await SearchFilter.getWL(args);
     },
 
     getDataByDate: async function (params) {

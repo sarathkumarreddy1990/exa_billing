@@ -15,7 +15,7 @@ router.get('/:id', async function (req, res) {
 });
 
 router.post('/', async function (req, res) {
-    const data = await billingProviderControllers.save(req.body);
+    const data = await billingProviderControllers.create(req.body);
     httpHandler.sendRows(req, res, data);
 });
 

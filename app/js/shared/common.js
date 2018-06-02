@@ -9230,35 +9230,6 @@ var commonjs = {
             }
         }
 
-        if (typeof tabPane !== 'undefined') {
-            var toggleElement = $('.worklistIconToggle', tabPane);
-            if (!toggleElement.length) {
-                $('div.ui-jqgrid > div.ui-jqgrid-view > div.ui-jqgrid-hdiv', tabPane)
-                    .append('<div class="worklistIconToggle expanded collapsed"><i class="collapseIcons icon-ic-expand" title="Hide Icons"></i><i class="expandIcons icon-ic-expand-flipped" title="Show Icons"></i></div>');
-                toggleElement = $('.worklistIconToggle', tabPane);
-            }
-            if (typeof toggleElement.data('hide') === 'boolean') {
-                hide = toggleElement.data('hide');
-            }
-
-            toggleElement
-                .unbind('click')
-                .removeClass('expanded collapsed')
-                .addClass((hide) ? 'collapsed' : 'expanded');
-
-            toggleElement.bind('click', function () {
-                var tab = $(this).closest('.tab-pane'),
-                    hide = $(this).hasClass('expanded');
-
-                $(this)
-                    .data('hide', hide)
-                    .removeClass('expanded collapsed')
-                    .addClass((hide) ? 'collapsed' : 'expanded');
-
-                commonjs.toggleWorklistColumns(tab);
-            });
-        }
-
         var action = hide ? "hideCol" : "showCol",
             columns = commonjs.getWorklistIconColumns(tabPane);
 

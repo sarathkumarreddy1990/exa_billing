@@ -4,12 +4,7 @@ module.exports = {
 
     getData: async function (params) {
         let whereQuery = [];
-        params.code = 'bbcc';
-        params.description = 'bbbbccc';
-        params.pageNo = 1;
-        params.pageSize = 10;
-        params.sortField = 'id';
-        params.sortOrder = params.sortOrder || ' DESC';
+        params.sortOrder = params.sortOrder || ' ASC';
         let {
             code,
             description,
@@ -31,6 +26,7 @@ module.exports = {
                           id
                         , code
                         , description
+                        , COUNT(1) OVER (range unbounded preceding) AS total_records
                     FROM   
                         billing.cas_reason_codes `;
 
@@ -39,7 +35,9 @@ module.exports = {
                 .append(whereQuery.join(' AND '));
         }
 
-        sql.append(SQL` ORDER BY ${sortField} `)
+        sql.append(SQL` ORDER BY `)
+            .append(sortField)
+            .append(' ')
             .append(sortOrder)
             .append(SQL` LIMIT ${pageSize}`)
             .append(SQL` OFFSET ${(pageNo * pageSize - pageSize)}`);
@@ -67,7 +65,7 @@ module.exports = {
             code,
             description,
             isActive,
-            company_id
+            companyId
         } = params;
 
         let inactivated_date = isActive ? null : ' now() ';
@@ -79,7 +77,7 @@ module.exports = {
                             , description
                             , inactivated_dt)
                         VALUES(
-                               ${company_id}
+                               ${companyId}
                              , ${code}
                              , ${description}
                              , ${inactivated_date} )`;

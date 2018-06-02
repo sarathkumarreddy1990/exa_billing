@@ -6,7 +6,7 @@ module.exports = {
         if(args.id) {
             return data.getById(args);
         }
-
+        
         return data.getData(args);
     },
 
@@ -14,8 +14,8 @@ module.exports = {
         return data.getById(params);
     },
 
-    save: async (params) => {
-        return data.save(params);
+    create: async (params) => {
+        return data.create(params);
     },
 
     update: async (params) => {
