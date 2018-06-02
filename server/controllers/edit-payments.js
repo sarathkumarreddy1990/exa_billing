@@ -11,5 +11,9 @@ module.exports = {
 
     getGroupCodesAndReasonCodes: function (params) {
         return data.getGroupCodesAndReasonCodes(params);
+    },
+
+    getPayemntApplications: function (params) {
+        return data.getPayemntApplications(params);
     }
 };
