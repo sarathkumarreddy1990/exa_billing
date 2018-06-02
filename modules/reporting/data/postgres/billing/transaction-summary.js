@@ -2,7 +2,7 @@ const _ = require('lodash')
     , Promise = require('bluebird')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder')    
+    , queryBuilder = require('../queryBuilder')
     , logger = require('../../../../../logger');
 
 // generate query template ***only once*** !!!
@@ -16,8 +16,13 @@ WITH transaction_summary_by_month as (
     FROM billing.payments bp
     INNER JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
     INNER JOIN billing.charges bc on bc.id = bpa.charge_id
+    INNER JOIN billing.claims bcl on bcl.id = bc.claim_id
+    <% if (billingProID) { %> INNER JOIN billing.providers bbp ON bbp.id = bcl.billing_provider_id <% } %>
     WHERE 1 = 1
     AND <%= companyId %>
+    AND <%= claimDate %>
+    <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+    <% if(billingProID) { %> AND <% print(billingProID); } %>
     GROUP BY  (date_trunc('month', bp.accounting_dt))
     ),
     charge_summary AS(select
@@ -48,7 +53,7 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
-        return Promise.join(            
+        return Promise.join(
             api.createtransactionSummaryDataSet(initialReportData.report.params),
             // other data sets could be added here...
             (transactionSummaryDataSet) => {
@@ -94,22 +99,22 @@ const api = {
         const filtersUsed = [];
         filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
 
-        // if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
-        //     filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
-        // else {
-        //     const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
-        //     filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
-        // }
-        // // Billing provider Filter
-        // if (params.allBillingProvider == 'true')
-        //     filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
-        // else {
-        //     const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
-        //     filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
-        // }
+        if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
+            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
+        else {
+            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
+            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
+        }
+        // Billing provider Filter
+        if (params.allBillingProvider == 'true')
+            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
+        else {
+            const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
+            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
+        }
 
-        // filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
-        // filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
+        filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
+        filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
         return filtersUsed;
     },
 
@@ -131,38 +136,42 @@ const api = {
     gettransactionSummaryDataSetQueryContext: (reportParams) => {
         const params = [];
         const filters = {
-            companyId: null
-           
+            companyId: null,
+            claimDate: null,
+            facilityIds: null,
+            billingProID: null
+
         };
 
         // company id
         params.push(reportParams.companyId);
         filters.companyId = queryBuilder.where('bp.company_id', '=', [params.length]);
 
-        // // order facilities
-        // if (!reportParams.allFacilities && reportParams.facilityIds) {
-        //     params.push(reportParams.facilityIds);
-        //     filters.facilityIds = queryBuilder.whereIn('c.facility_id', [params.length]);
-        // }
+        //claim facilities
+        if (!reportParams.allFacilities && reportParams.facilityIds) {
+            params.push(reportParams.facilityIds);
+            filters.facilityIds = queryBuilder.whereIn('bcl.facility_id', [params.length]);
+        }
 
-        // //  scheduled_dt
-        // if (reportParams.fromDate === reportParams.toDate) {
-        //     params.push(reportParams.fromDate);
-        //     filters.studyDate = queryBuilder.whereDate('c.claim_dt', '=', [params.length], 'f.time_zone');
-        // } else {
-        //     params.push(reportParams.fromDate);
-        //     params.push(reportParams.toDate);
-        //     filters.studyDate = queryBuilder.whereDateBetween('c.claim_dt', [params.length - 1, params.length], 'f.time_zone');
-        // }
-        // // billingProvider single or multiple
-        // if (reportParams.billingProvider) {
-        //     params.push(reportParams.billingProvider);
-        //     filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
-        // }
+        //  scheduled_dt
+        if (reportParams.fromDate === reportParams.toDate) {
+            params.push(reportParams.fromDate);
+            filters.claimDate = queryBuilder.whereDate('bcl.claim_dt', '=', [params.length], 'f.time_zone');
+        } else {
+            params.push(reportParams.fromDate);
+            params.push(reportParams.toDate);
+            filters.claimDate = queryBuilder.whereDateBetween('bcl.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+        }
+
+        // billingProvider single or multiple
+        if (reportParams.billingProvider) {
+            params.push(reportParams.billingProvider);
+            filters.billingProID = queryBuilder.whereIn('bbp.id', [params.length]);
+        }
 
         return {
             queryParams: params,
-            templateData: filters         
+            templateData: filters
         }
     }
 }

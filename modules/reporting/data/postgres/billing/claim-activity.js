@@ -2,7 +2,7 @@ const _ = require('lodash')
     , Promise = require('bluebird')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder')    
+    , queryBuilder = require('../queryBuilder')
     , logger = require('../../../../../logger');
 
 // generate query template ***only once*** !!!
@@ -17,19 +17,23 @@ SELECT
 	get_full_name(ppref.last_name,ppref.first_name,ppref.middle_initial,null,ppref.suffix) as referring_physician,
 	get_full_name(ppren.last_name,ppren.first_name,ppren.middle_initial,null,ppren.suffix) as reading_physician,
     pg.group_name as ordering_facility,
-    pf.time_zone as facility_timezone,
-    pf.facility_code as facility_code
+    f.time_zone as facility_timezone,
+    f.facility_code as facility_code
 FROM 
    billing.claims bc
    INNER JOIN public.patients p on p.id = bc.patient_id
-   INNER JOIN public.facilities pf on pf.id = bc.facility_id 
+   INNER JOIN public.facilities f on f.id = bc.facility_id 
    LEFT JOIN public.provider_contacts pcref on pcref.id = bc.referring_provider_contact_id
    LEFT JOIN public.providers ppref on ppref.id =pcref.provider_id
    LEFT JOIN public.provider_contacts pcren on pcren.id = bc.rendering_provider_contact_id
    LEFT JOIN public.providers ppren on ppren.id = pcren.provider_id
    LEFT JOIN public.provider_groups pg on pg.id = bc.ordering_facility_id
+   <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
    WHERE 1=1
    AND  <%= companyId %>
+   AND <%= claimDate %>
+   <% if (facilityIds) { %>AND <% print(facilityIds); } %>  
+   <% if(billingProID) { %> AND <% print(billingProID); } %>
       ),
 
 charge_details as (
@@ -104,9 +108,33 @@ FROM claim_details cd
      LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
      LEFT JOIN public.providers p on p.id = pc.provider_id
 )
-select * from charge_details 
-
-order by claim_id,account_no,payment_id,code DESC
+SELECT
+    claim_id AS "CLAIM ID" ,
+    patient_name  AS "PATIENT NAME",
+    account_no AS "ACCOUNT NO",
+    claim_date AS "CLAIM DATE",
+    referring_physician AS "REF.PHY.",
+    referring_physician AS "READPHY.",
+    ordering_facility AS "ORD. FAC.",
+    facility_code AS "FACILITY CODE",
+    type AS "TYPE",
+    payment_id AS "PAYMENT ID",
+    payment_date AS "PAYMENT DATE",
+    accounting_date AS "ACC. DATE",
+    code AS "CODE",
+    description AS "PAYER TYPE" ,
+    modifiers AS "MODIFIERS",
+    amount AS "AMOUNT",
+    created_on AS "CREATED ON",
+    created_by AS "CREATED BY"
+FROM
+     charge_details 
+ORDER BY
+     claim_id,
+     account_no,
+     payment_id,
+     code 
+DESC
 `);
 
 const api = {
@@ -116,7 +144,7 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
-        return Promise.join(            
+        return Promise.join(
             api.createclaimActivityDataSet(initialReportData.report.params),
             // other data sets could be added here...
             (claimActivityDataSet) => {
@@ -162,22 +190,22 @@ const api = {
         const filtersUsed = [];
         filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
 
-        // if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
-        //     filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
-        // else {
-        //     const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
-        //     filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
-        // }
-        // // Billing provider Filter
-        // if (params.allBillingProvider == 'true')
-        //     filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
-        // else {
-        //     const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
-        //     filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
-        // }
+        if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
+            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
+        else {
+            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
+            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
+        }
+        // Billing provider Filter
+        if (params.allBillingProvider == 'true')
+            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
+        else {
+            const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
+            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
+        }
 
-        // filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
-        // filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
+        filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
+        filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
         return filtersUsed;
     },
 
@@ -199,38 +227,42 @@ const api = {
     getclaimActivityDataSetQueryContext: (reportParams) => {
         const params = [];
         const filters = {
-            companyId: null
-           
+            companyId: null,
+            claimDate: null,
+            facilityIds: null,
+            billingProID: null
+
         };
 
         // company id
         params.push(reportParams.companyId);
         filters.companyId = queryBuilder.where('bc.company_id', '=', [params.length]);
 
-        // // order facilities
-        // if (!reportParams.allFacilities && reportParams.facilityIds) {
-        //     params.push(reportParams.facilityIds);
-        //     filters.facilityIds = queryBuilder.whereIn('c.facility_id', [params.length]);
-        // }
+        //claim facilities
+        if (!reportParams.allFacilities && reportParams.facilityIds) {
+            params.push(reportParams.facilityIds);
+            filters.facilityIds = queryBuilder.whereIn('bc.facility_id', [params.length]);
+        }
 
-        // //  scheduled_dt
-        // if (reportParams.fromDate === reportParams.toDate) {
-        //     params.push(reportParams.fromDate);
-        //     filters.studyDate = queryBuilder.whereDate('c.claim_dt', '=', [params.length], 'f.time_zone');
-        // } else {
-        //     params.push(reportParams.fromDate);
-        //     params.push(reportParams.toDate);
-        //     filters.studyDate = queryBuilder.whereDateBetween('c.claim_dt', [params.length - 1, params.length], 'f.time_zone');
-        // }
-        // // billingProvider single or multiple
-        // if (reportParams.billingProvider) {
-        //     params.push(reportParams.billingProvider);
-        //     filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
-        // }
+        // //  Claim Date
+        if (reportParams.fromDate === reportParams.toDate) {
+            params.push(reportParams.fromDate);
+            filters.claimDate = queryBuilder.whereDate('bc.claim_dt', '=', [params.length], 'f.time_zone');
+        } else {
+            params.push(reportParams.fromDate);
+            params.push(reportParams.toDate);
+            filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+        }
+
+        // billingProvider single or multiple
+        if (reportParams.billingProvider) {
+            params.push(reportParams.billingProvider);
+            filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
+        }
 
         return {
             queryParams: params,
-            templateData: filters         
+            templateData: filters
         }
     }
 }

@@ -2,29 +2,40 @@ const _ = require('lodash')
     , Promise = require('bluebird')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder')    
+    , queryBuilder = require('../queryBuilder')
     , logger = require('../../../../../logger');
 
 // generate query template ***only once*** !!!
 
 const referringProividerCountDataSetQueryTemplate = _.template(`
 WITH referring_provider_count as
-(SELECT
-    pp.full_name AS provider_name,
-    count(pp.id) as orderCount
-FROM billing.claims bc 
-INNER JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
-INNER JOIN public.providers pp ON pp.id = ppc.provider_id
-where 1 =1
-AND  <%= companyId %>
-GROUP BY 
-    pp.provider_code,
-    pp.full_name
+(
+    SELECT
+        pp.full_name AS provider_name,
+        COUNT(pp.id) AS orderCount
+    FROM 
+        billing.claims bc 
+    INNER JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
+    INNER JOIN public.providers pp ON pp.id = ppc.provider_id
+    <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
+    WHERE 1 =1
+    AND <%= companyId %>
+    AND <%= claimDate %>
+    <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+    <% if(billingProID) { %> AND <% print(billingProID); } %>
+    GROUP BY 
+        pp.provider_code,
+        pp.full_name
 )
-SELECT coalesce (provider_name,'Total') ,
-       sum(orderCount) from referring_provider_count
-group by ROLLUP (provider_name)
-ORDER BY provider_name ASC
+SELECT 
+       COALESCE(provider_name,'Total')  AS "PROVIDER NAME",
+       SUM(orderCount) "CLAIM COUNT"
+FROM
+     referring_provider_count
+GROUP BY
+     ROLLUP (provider_name)
+ORDER BY
+     provider_name ASC
 `);
 
 const api = {
@@ -34,12 +45,14 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
-        return Promise.join(            
+        return Promise.join(
             api.createreferringProividerCountDataSet(initialReportData.report.params),
+            dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId,initialReportData.report.params.billingProvider),
             // other data sets could be added here...
-            (referringProividerCountDataSet) => {
+            (referringProividerCountDataSet,providerInfo) => {
                 // add report filters                
                 initialReportData.filters = api.createReportFilters(initialReportData);
+                initialReportData.lookups.billingProviderInfo = providerInfo || [];
 
                 // add report specific data sets
                 initialReportData.dataSets.push(referringProividerCountDataSet);
@@ -80,22 +93,22 @@ const api = {
         const filtersUsed = [];
         filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
 
-        // if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
-        //     filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
-        // else {
-        //     const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
-        //     filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
-        // }
-        // // Billing provider Filter
-        // if (params.allBillingProvider == 'true')
-        //     filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
-        // else {
-        //     const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
-        //     filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
-        // }
+        if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
+            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
+        else {
+            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
+            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
+        }
+        // Billing provider Filter
+        if (params.allBillingProvider == 'true')
+            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
+        else {
+            const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
+            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
+        }
 
-        // filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
-        // filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
+        filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
+        filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
         return filtersUsed;
     },
 
@@ -117,38 +130,42 @@ const api = {
     getreferringProividerCountDataSetQueryContext: (reportParams) => {
         const params = [];
         const filters = {
-            companyId: null
-           
+            companyId: null,
+            claimDate: null,
+            facilityIds: null,
+            billingProID: null
+
         };
 
         // company id
         params.push(reportParams.companyId);
         filters.companyId = queryBuilder.where('bc.company_id', '=', [params.length]);
 
-        // // order facilities
-        // if (!reportParams.allFacilities && reportParams.facilityIds) {
-        //     params.push(reportParams.facilityIds);
-        //     filters.facilityIds = queryBuilder.whereIn('c.facility_id', [params.length]);
-        // }
+        //claim facilities
+        if (!reportParams.allFacilities && reportParams.facilityIds) {
+            params.push(reportParams.facilityIds);
+            filters.facilityIds = queryBuilder.whereIn('bc.facility_id', [params.length]);
+        }
 
-        // //  scheduled_dt
-        // if (reportParams.fromDate === reportParams.toDate) {
-        //     params.push(reportParams.fromDate);
-        //     filters.studyDate = queryBuilder.whereDate('c.claim_dt', '=', [params.length], 'f.time_zone');
-        // } else {
-        //     params.push(reportParams.fromDate);
-        //     params.push(reportParams.toDate);
-        //     filters.studyDate = queryBuilder.whereDateBetween('c.claim_dt', [params.length - 1, params.length], 'f.time_zone');
-        // }
-        // // billingProvider single or multiple
-        // if (reportParams.billingProvider) {
-        //     params.push(reportParams.billingProvider);
-        //     filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
-        // }
+        //  scheduled_dt
+        if (reportParams.fromDate === reportParams.toDate) {
+            params.push(reportParams.fromDate);
+            filters.claimDate = queryBuilder.whereDate('bc.claim_dt', '=', [params.length], 'f.time_zone');
+        } else {
+            params.push(reportParams.fromDate);
+            params.push(reportParams.toDate);
+            filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+        }
+
+        // billingProvider single or multiple
+        if (reportParams.billingProvider) {
+            params.push(reportParams.billingProvider);
+            filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
+        }
 
         return {
             queryParams: params,
-            templateData: filters         
+            templateData: filters
         }
     }
 }

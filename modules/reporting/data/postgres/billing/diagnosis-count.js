@@ -2,36 +2,47 @@ const _ = require('lodash')
     , Promise = require('bluebird')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder')    
+    , queryBuilder = require('../queryBuilder')
     , logger = require('../../../../../logger');
 
 // generate query template ***only once*** !!!
 
 const diagnosisCountDataSetQueryTemplate = _.template(`
-with diagnosisCount as (
-    SELECT
-    icd.code 
-  , COALESCE(f.facility_name, 'Total') AS facility_name
-,CASE
+WITH diagnosisCount as (
+  SELECT
+    icd.code  AS code
+   , COALESCE(f.facility_name, 'Total') AS facility_name
+   , CASE
       WHEN COALESCE(f.facility_name, 'Total')  !=   'Total' THEN max(icd.description)
       ELSE  NULL
-      END As  description,  
-   COUNT(1) as icd_code_count
-FROM billing.claim_icds claim_icd
-INNER JOIN billing.claims cl ON cl.id = claim_icd.claim_id
-INNER JOIN public.icd_codes icd ON icd.id = claim_icd.icd_id
-INNER JOIN public.facilities f ON f.id = cl.facility_id
-INNER JOIN billing.providers p ON p.id = cl.billing_provider_id
-WHERE 1 = 1
-AND <%=companyId%>
-GROUP BY
-  ROLLUP(icd.code, f.facility_name)
-ORDER BY
-    icd.code
-  , f.facility_name
-  , icd_code_count
-)
-select * from diagnosisCount
+      END AS  description,  
+    COUNT(1) AS icd_code_count
+  FROM 
+     billing.claim_icds claim_icd
+    INNER JOIN billing.claims cl ON cl.id = claim_icd.claim_id
+    INNER JOIN public.icd_codes icd ON icd.id = claim_icd.icd_id
+    INNER JOIN public.facilities f ON f.id = cl.facility_id
+    INNER JOIN billing.providers p ON p.id = cl.billing_provider_id
+    <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = cl.billing_provider_id <% } %>
+    WHERE 1 = 1
+    AND <%=companyId%>
+    AND <%= claimDate %>
+    <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+    <% if(billingProID) { %> AND <% print(billingProID); } %>
+    GROUP BY
+        ROLLUP(icd.code, f.facility_name)
+    ORDER BY
+         icd.code
+        , f.facility_name
+        , icd_code_count
+  )
+  SELECT 
+        code AS "ICD CODE",
+        facility_name AS "FAC. NAME",
+        description AS "DESCRIPTION",
+        icd_code_count  AS "COUNT"
+  FROM
+        diagnosisCount
 `);
 
 const api = {
@@ -41,7 +52,7 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
-        return Promise.join(            
+        return Promise.join(
             api.creatediagnosisCountDataSet(initialReportData.report.params),
             // other data sets could be added here...
             (diagnosisCountDataSet) => {
@@ -87,22 +98,23 @@ const api = {
         const filtersUsed = [];
         filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
 
-        // if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
-        //     filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
-        // else {
-        //     const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
-        //     filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
-        // }
-        // // Billing provider Filter
-        // if (params.allBillingProvider == 'true')
-        //     filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
-        // else {
-        //     const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
-        //     filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
-        // }
+        if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
+            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
+        else {
+            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
+            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
+        }
 
-        // filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
-        // filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
+        // // Billing provider Filter
+        if (params.allBillingProvider == 'true')
+            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
+        else {
+            const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
+            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
+        }
+
+        filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
+        filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
         return filtersUsed;
     },
 
@@ -124,38 +136,42 @@ const api = {
     getdiagnosisCountDataSetQueryContext: (reportParams) => {
         const params = [];
         const filters = {
-            companyId: null
-           
+            companyId: null,
+            claimDate: null,
+            facilityIds: null,
+            billingProID: null
+
         };
 
         // company id
         params.push(reportParams.companyId);
         filters.companyId = queryBuilder.where('cl.company_id', '=', [params.length]);
 
-        // // order facilities
-        // if (!reportParams.allFacilities && reportParams.facilityIds) {
-        //     params.push(reportParams.facilityIds);
-        //     filters.facilityIds = queryBuilder.whereIn('c.facility_id', [params.length]);
-        // }
+        //claim facilities
+        if (!reportParams.allFacilities && reportParams.facilityIds) {
+            params.push(reportParams.facilityIds);
+            filters.facilityIds = queryBuilder.whereIn('cl.facility_id', [params.length]);
+        }
 
-        // //  scheduled_dt
-        // if (reportParams.fromDate === reportParams.toDate) {
-        //     params.push(reportParams.fromDate);
-        //     filters.studyDate = queryBuilder.whereDate('c.claim_dt', '=', [params.length], 'f.time_zone');
-        // } else {
-        //     params.push(reportParams.fromDate);
-        //     params.push(reportParams.toDate);
-        //     filters.studyDate = queryBuilder.whereDateBetween('c.claim_dt', [params.length - 1, params.length], 'f.time_zone');
-        // }
-        // // billingProvider single or multiple
-        // if (reportParams.billingProvider) {
-        //     params.push(reportParams.billingProvider);
-        //     filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
-        // }
+        //  scheduled_dt
+        if (reportParams.fromDate === reportParams.toDate) {
+            params.push(reportParams.fromDate);
+            filters.claimDate = queryBuilder.whereDate('cl.claim_dt', '=', [params.length], 'f.time_zone');
+        } else {
+            params.push(reportParams.fromDate);
+            params.push(reportParams.toDate);
+            filters.claimDate = queryBuilder.whereDateBetween('cl.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+        }
+
+        // billingProvider single or multiple
+        if (reportParams.billingProvider) {
+            params.push(reportParams.billingProvider);
+            filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
+        }
 
         return {
             queryParams: params,
-            templateData: filters         
+            templateData: filters
         }
     }
 }

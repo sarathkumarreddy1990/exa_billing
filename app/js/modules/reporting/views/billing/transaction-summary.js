@@ -7,20 +7,16 @@ define([
 ],
     function ($, _, Backbone, UI, transactionSummaryTemplate) {
 
-        var transactionSummaryView = Backbone.View.extend({
+        var TransactionSummaryView = Backbone.View.extend({
             rendered: false,
             expanded: false,
             mainTemplate: _.template(transactionSummaryTemplate),
             viewModel: {
                 facilities: null,
-                modalities: null,
                 dateFrom: null,
                 dateTo: null,
                 allFacilities: false,
                 facilityIds: null,
-                allModalities: false,
-                modalityCodes: null,
-                patients: { id: null, name: null },
                 openInNewTab: false,
                 reportId: null,
                 reportCategory: null,
@@ -43,16 +39,16 @@ define([
 
             initialize: function (options) {
                 this.showForm();
-                var modelCollection = Backbone.Collection.extend({
-                    model: Backbone.Model.extend({})
+                this.$el.html(this.mainTemplate(this.viewModel));
+                $('#ddlFacilityFilter').multiselect({
+                    maxHeight: 200,
+                    buttonWidth: '300px',
+                    width: '300px',
+                    enableFiltering: true,
+                    includeSelectAllOption: true,
+                    enableCaseInsensitiveFiltering: true
                 });
-                // initialize view model and set any defaults that are not constants
                 UI.initializeReportingViewModel(options, this.viewModel);
-                this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
-
-                // Set date range to Facility Date
-                // this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(app.default_facility_id);
-                // this.viewModel.dateTo = this.viewModel.dateFrom.clone();
             },
             showForm: function () {
                 if (!this.rendered) {
@@ -63,22 +59,13 @@ define([
             },
 
             render: function () {
-                this.$el.html(this.mainTemplate(this.viewModel));
-
-                // bind DRP and initialize it
-                this.bindDateRangePicker();
-               // this.drpStudyDt.setStartDate(this.viewModel.dateFrom);
-               // this.drpStudyDt.setEndDate(this.viewModel.dateTo);
-                // pre-select default facility
-                this.selectDefaultFacility();
-                $('#ddlFacilityFilter').multiselect({
-                    maxHeight: 200,
-                    buttonWidth: '200px',
-                    enableFiltering: true,
-                    includeSelectAllOption: true,
-                    enableCaseInsensitiveFiltering: true
+                var modelCollection = Backbone.Collection.extend({
+                    model: Backbone.Model.extend({})
                 });
-//UI.bindBillingProvider();
+                this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
+                this.$el.html(this.mainTemplate(this.viewModel));
+                // Binding Billing Provider MultiSelect
+                UI.bindBillingProvider();
             },
 
             bindDateRangePicker: function () {
@@ -106,10 +93,10 @@ define([
                 var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnViewReportNewTab' : false;
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = openInNewTab && rFormat === 'html';
-             //   if (this.hasValidViewModel()) {
+                if (this.hasValidViewModel()) {
                     var urlParams = this.getReportParams();
                     UI.showReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
-               // }                
+                }
             },
 
             hasValidViewModel: function () {
@@ -118,16 +105,16 @@ define([
                     return false;
                 }
 
-                if (this.viewModel.dateFrom == null || this.viewModel.dateTo == null) {
-                    commonjs.showWarning('Please select date range!');
+                if ($('#txtDateRangeFrom').val() == "" || $('#txtDateRangeTo').val() == "") {
+                    alert('Please select date range!')
+                    //commonjs.showWarning('Please select date range!');
                     return false;
                 }
-
                 return true;
             },
             selectDefaultFacility: function () {
                 // if there is only 1 facility select it, otherwise use default facility id
-            //    var defFacId = this.viewModel.facilities.length === 1 ? this.viewModel.facilities.at(0).get('id') : app.default_facility_id;
+                //    var defFacId = this.viewModel.facilities.length === 1 ? this.viewModel.facilities.at(0).get('id') : app.default_facility_id;
                 // works only if list exists by setting its value to array of selections
                 // fires a change event
                 // $('#ddlFacilities').val([defFacId]).change();
@@ -141,7 +128,7 @@ define([
                     facilities.push($(this).val());
                 });
                 this.selectedFacilityList = facilities
-               // this.viewModel.allFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlFacilityFilter option").length;
+                this.viewModel.allFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlFacilityFilter option").length;
             },
 
             // multi select billing provider - worked
@@ -152,7 +139,7 @@ define([
                     billing_pro.push($(this).val());
                 });
                 this.selectedBillingProList = billing_pro;
-              //  this.viewModel.allBillingProvider = this.selectedBillingProList && this.selectedBillingProList.length === $("#ddlBillingProvider option").length;
+                this.viewModel.allBillingProvider = this.selectedBillingProList && this.selectedBillingProList.length === $("#ddlBillingProvider option").length;
             },
 
 
@@ -160,14 +147,14 @@ define([
                 return urlParams = {
                     'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
                     'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
-                    // 'fromDate': this.viewModel.dateFrom.format('YYYY-MM-DD'),
-                    // 'toDate': this.viewModel.dateTo.format('YYYY-MM-DD'),
+                    'fromDate': moment($('#txtDateRangeFrom').val()).format('L'),
+                    'toDate': moment($('#txtDateRangeTo').val()).format('L'),
                     'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
-                    'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
+                    'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false
                 };
             }
         });
 
-        return transactionSummaryView;
+        return TransactionSummaryView;
     });
