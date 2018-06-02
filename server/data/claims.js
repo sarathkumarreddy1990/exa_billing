@@ -329,17 +329,17 @@ module.exports = {
                         ELSE NULL
                         END )
                     ,( SELECT CASE WHEN 'secondary_insurance' =  ${claims.payer_type} THEN (SELECT id FROM save_patient_insurances WHERE coverage_level = 'secondary')
-			    	    ELSE NULL
+                        ELSE NULL
                     END )
                     ,( SELECT CASE WHEN 'tertiary_insurance' =  ${claims.payer_type} THEN (SELECT id FROM save_patient_insurances WHERE coverage_level = 'tertiary')
-			    	    ELSE NULL
+                        ELSE NULL
                         END )
                     ,( SELECT CASE WHEN 'ordering_facility' =  ${claims.payer_type} THEN  ${claims.ordering_facility_id}::bigint
-			    	    ELSE NULL
-                        END )    
+                        ELSE NULL
+                        END )
                     ,( SELECT CASE WHEN 'referring_provider' =  ${claims.payer_type} THEN ${claims.referring_provider_contact_id}::bigint
-			    	    ELSE NULL
-                        END )    
+                        ELSE NULL
+                        END )
             ) RETURNING id
         )
        ,

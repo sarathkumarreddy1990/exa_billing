@@ -47,6 +47,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                 this.planList = new modelCollection(planName);
 
             },
+
             render: function () {
                 var self = this;
                 this.rendered = true;
@@ -65,6 +66,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                 });
                 self.bindDetails();
             },
+
             bindDetails: function () {
                 var self = this;
                 self.setProviderAutoComplete('PR'); // rendering provider auto complete
@@ -78,6 +80,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                 self.bindInsuranceAutocomplete('ddlTerInsurance');
                 self.bindBillingSummary();
             },
+
             showClaimForm: function (options) {
                 var self = this;
                 var curClaimDetails = JSON.parse(window.localStorage.getItem('selected_studies'));
@@ -99,19 +102,28 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                     payer_name: self.cur_patient_name + '( Patient )',
                     payer_id: self.cur_patient_id
                 });
+
                 $("#createNewCharge").off().click(function (e) {
                     self.addChargeLine(e);
                 });
+
                 $("#btnAddDiagCode").off().click(function (e) {
                     self.addDiagCodes(e);
                 });
+
                 $("#btnSaveClaim").off().click(function (e) {
                     self.setClaimDetails(e);
                 });
+
                 $("#ddlExistTerIns, #ddlExistSecIns, #ddlExistPriIns").off().change(function (e) {
                     self.assignExistInsurance(e);
                 });
+
+                $(".closePopup").off().click(function (e) {
+                    $('#site_modal_div_container').empty().hide();
+                });
             },
+
             getLineItemsAndBind: function (curClaimDetails) {
                 var self = this, study_ids;
                 if ($.isArray(curClaimDetails)) {
@@ -158,6 +170,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                 }
 
             },
+
             getSelectedStudyID: function (curClaimDetails) {
                 var studyIds = [];
                 $.each(curClaimDetails, function (index, obj) {
@@ -167,6 +180,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                 })
                 return studyIds;
             },
+
             addChargeLine: function (e) {
                 e.stopImmediatePropagation();
                 var self = this;
@@ -201,6 +215,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                 self.chargeModel.push(_rowObj);
 
             },
+
             addLineItems: function (data, index, isNew) {
                 var self = this;
 
@@ -210,10 +225,91 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                 self.setChargeAutoComplete(index, 'code');
                 self.setChargeAutoComplete(index, 'description');
 
-                // /* Bind charge table data*/
-                $('#select2-txtCptCode_' + index + '-container').html(data.cpt_code).prop('title', data.cpt_code).attr({ 'data_code': data.cpt_code, 'data_description': data.display_description, 'data_id': data.cpt_code_id }).css('min-width', '80');
-                $('#select2-txtCptDescription_' + index + '-container').html(data.display_description).prop('title', data.display_description).attr({ 'data_code': data.cpt_code, 'data_description': data.display_description, 'data_id': data.cpt_code_id });
+                /* Bind charge table data*/
+                if (data.cpt_code || data.display_description) {
+                    $('#select2-txtCptCode_' + index + '-container').html(data.cpt_code).prop('title', data.cpt_code).attr({ 'data_code': data.cpt_code, 'data_description': data.display_description, 'data_id': data.cpt_code_id }).css('min-width', '80');
+                    $('#select2-txtCptDescription_' + index + '-container').html(data.display_description).prop('title', data.display_description).attr({ 'data_code': data.cpt_code, 'data_description': data.display_description, 'data_id': data.cpt_code_id });
+                    $('#txtCptCode_' + index).removeClass('cptIsExists');
+                }
+
+                //self.assignModifierEvent();
+                self.assignLineItemsEvents(index);
+                commonjs.enableModifiersOnbind('M'); // Modifier
+                commonjs.enableModifiersOnbind('P'); // Diagnostic Pointer
+                commonjs.validateControls();
+
             },
+
+            assignLineItemsEvents: function (index) {
+                var self = this;
+
+                // Add NewChargeLine
+                $(".addChargeLine").off().click(function (e) {
+                    self.addChargeLine(e);
+                });
+                // Remove line item form charge table
+                $('.removecharge').off().click(function (e) {
+                    var rowObj = $(e.target || e.srcElement).closest('tr');
+                    var rowId = parseInt(rowObj.attr('data_row_id'))
+                    var rowData = _.find(self.chargeModel, { 'data_row_id': rowId });
+
+                    if (rowData.id || null) {
+                        self.removedCharges.push({
+                            id: parseInt(rowData.id),
+                            claim_id: rowData.claim_id ? rowData.claim_id : null,
+                            last_updated_by: app.userID,
+                            deleted_by: app.userID,
+                            is_deleted: true
+                        });
+                    }
+                    self.chargeModel = _.reject(self.chargeModel, (d) => d.data_row_id === rowId);
+                    rowObj.remove();
+                    // trigger blur event for update Total bill fee, balance etc.
+                    $(".allowedFee").blur();
+                });
+                // Enable bill_fee 
+                $('#editBillFee_' + index).off().click(function (e) {
+                    $('#txtBillFee_' + index).attr({ disabled: false, edit: true }).focus();
+                    $('#txtAllowedFee_' + index).attr({ disabled: false, edit: true });
+                });
+                // changeFee details on keup
+                $(".units, .billFee, .allowedFee").off().blur(function (e) {
+                    ///this.value = this.value.replace(/[^0-9\.]/g, '');
+                    self.changeFeeData(e)
+                });
+
+            },
+
+            changeFeeData: function (e) {
+                var self = this, total_bill_fee = 0.0, total_allowed = 0.0;
+                if (!commonjs.checkNotEmpty($(e.target || e.srcElement).val()))
+                    $(e.target || e.srcElement).hasClass('units') ? $(e.target || e.srcElement).val('1.000') : $(e.target || e.srcElement).val('0.00');
+                if (commonjs.checkNotEmpty($(e.target || e.srcElement).val()) && !$(e.target || e.srcElement).hasClass('units')) {
+                    var billingNumber = $(e.target || e.srcElement).val()
+                    $(e.target || e.srcElement).val(parseFloat(billingNumber).toFixed(2));
+                }
+                var rowID = $(e.target || e.srcElement).closest('tr').attr('data_row_id');
+                var totalBillFee = parseFloat($('#txtUnits_' + rowID).val()) * parseFloat($('#txtBillFee_' + rowID).val());
+                var totalAllowedFee = parseFloat($('#txtUnits_' + rowID).val()) * parseFloat($('#txtAllowedFee_' + rowID).val());
+                $('#txtTotalAllowedFee_' + rowID).val(totalAllowedFee.toFixed(2));
+                $('#txtTotalBillFee_' + rowID).val(totalBillFee.toFixed(2));
+
+                $("#tBodyCharge").find("tr").each(function (index) {
+
+                    var thisTotalBillFee = $(this).find('td:nth-child(17)>input').val() ? $(this).find('td:nth-child(17)>input').val() : 0.00;
+                    var thisTotalAllowed = $(this).find('td:nth-child(19)>input').val() ? $(this).find('td:nth-child(19)>input').val() : 0.00;
+                    total_bill_fee = total_bill_fee + parseFloat(thisTotalBillFee);
+                    total_allowed = total_allowed + parseFloat(thisTotalAllowed);
+                });
+
+                $('#spTotalBillFeeValue').text(commonjs.roundFee(total_bill_fee));
+                $('#spBillFee').text(commonjs.roundFee(total_bill_fee));
+                $('#spBalance').text(commonjs.roundFee(total_bill_fee));
+                $('#spTotalAllowedFeeValue').text(commonjs.roundFee(total_allowed));
+                $('#spAllowed').text(commonjs.roundFee(total_allowed));
+
+            },
+
             updateResponsibleList: function (payer_details) {
                 var self = this, index, responsibleEle, selected_opt;
                 index = _.findIndex(self.responsible_list, (item) => item.payer_type == payer_details.payer_type);
@@ -231,6 +327,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                 else
                     $(responsibleEle).append($('<option/>').attr('value', payer_details.payer_type).text(payer_details.payer_name));
             },
+
             setChargeAutoComplete: function (rowIndex, type) {
                 var self = this;
                 var txtCptCode = 'txtCptCode_' + rowIndex;
@@ -302,13 +399,16 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                     }
                 }
                 function formatRepoSelection(res) {
-                    var duration = (res.duration > 0) ? res.duration : 15;
-                    var units = (res.units > 0) ? parseFloat(res.units) : 1.0;
-                    var fee = (res.globalfee > 0) ? parseFloat(res.globalfee) : 0.0;
-                    self.setCptValues(rowIndex, txtCptCode, txtCptDescription, res, duration, units, fee);
+                    if (res.id) {
+                        var duration = (res.duration > 0) ? res.duration : 15;
+                        var units = (res.units > 0) ? parseFloat(res.units) : 1.0;
+                        var fee = (res.globalfee > 0) ? parseFloat(res.globalfee) : 0.0;
+                        self.setCptValues(rowIndex, txtCptCode, txtCptDescription, res, duration, units, fee);
+                    }
                     return type == 'code' ? res.display_code : res.display_description;
                 }
             },
+
             setCptValues: function (rowIndex, txtCptCode, txtCptDescription, res, duration, units, fee) {
                 var self = this;
                 $('#select2-' + txtCptCode + '-container').html(res.display_code).attr('title', res.display_code);
@@ -331,6 +431,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                 $('#' + txtCptCode).removeClass('cptIsExists');
 
             },
+
             setProviderAutoComplete: function (provider_type) {
                 var self = this, _id;
 
@@ -410,6 +511,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                     return res.full_name;
                 }
             },
+
             setDiagCodesAutoComplete: function () {
                 var self = this;
                 $("#ddlMultipleDiagCodes").select2({
@@ -467,6 +569,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                     return res.code;
                 }
             },
+
             addDiagCodes: function () {
                 var self = this;
                 var curDiagnosis = ($('#hdnDiagCodes').val() !== "") ? $('#hdnDiagCodes').val().split(',') : [];
@@ -514,12 +617,14 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                     );
                 }
             },
+
             sortDigCodes: function () {
                 var self = this;
                 $('ul.icdTagList li span.orderNo').each(function (index, obj) {
                     $(this).text(index + 1 + ')');
                 });
             },
+
             bindExistingPatientInsurance: function () {
                 var self = this;
                 $.ajax({
@@ -556,6 +661,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                     }
                 })
             },
+
             bindExistingInsurance: function (array, insurance_id) {
                 var self = this;
                 var existingInsElement = $('#' + insurance_id);
@@ -569,6 +675,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                         }).text(array[i].insurance_name));
                 }
             },
+
             setOrderingFacilityAutoComplete: function () {
                 var self = this;
                 $("#ddlOrdFacility").select2({
@@ -627,6 +734,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                     return res.group_name;
                 }
             },
+
             bindInsuranceAutocomplete: function (element_id) {
                 var self = this;
                 $("#" + element_id).select2({
@@ -679,6 +787,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                     return res.insurance_name;
                 }
             },
+
             bindInsurance: function (element_id, res) {
                 var self = this, payer_typ, coverage_level;
                 switch (element_id) {
@@ -723,6 +832,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                     billing_method: res.insurance_info && res.insurance_info.billingMethod ? res.insurance_info.billingMethod : null
                 });
             },
+
             updateInsAddress: function (level, res) {
                 var self = this;
                 var insuranceInfo = res.insurance_info || null;
@@ -739,6 +849,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                     $('#lbl' + level + 'InsCityStateZip').hide();
 
             },
+
             bindBillingSummary: function () {
                 var self = this;
                 $.ajax({
@@ -809,6 +920,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                     }
                 })
             },
+
             setClaimDetails: function () {
                 var self = this;
                 var claim_model = {}, billingMethod;
@@ -975,19 +1087,21 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
 
                 self.claimModel.save({}, {
                     success: function (model, response) {
-                        if (response && response.length > 0) {
+                        //if (response && response.length > 0) {
                             alert('Claim Created successfully');
                             $('#site_modal_div_container').empty().hide();
-                        }
+                        //}
                     },
                     error: function (model, response) {
                         commonjs.handleXhrError(model, response);
                     }
                 });
             },
+
             convertToTimeZone: function (facility_id, date_data) {
                 return moment.tz(date_data, "YYYY-MM-DD HH:mm a", commonjs.getFacilityTimeZone(facility_id));
             },
+
             assignExistInsurance: function(e){
                 var self = this;
                 var id = e.target.id;
@@ -1008,6 +1122,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims','models/patient-insu
                     });
                 }
             },
+
             bindExistInsurance: function (result, coverageLevel) {
                 var self = this, flag;
                 if (result) {

@@ -9563,7 +9563,7 @@ var commonjs = {
     },
     enableModifiersOnbind: function (isFrom) {
         var self = this;
-        var _className = isFrom == 'chargeandpayment_pointer' ? 'diagCodes' : 'inputModifiers';
+        var _className = isFrom == 'P' ? 'diagCodes' : 'inputModifiers';
         $('.' + _className).each(function (index, val) {
             self.activateInputModifiers(isFrom, this);
         });
