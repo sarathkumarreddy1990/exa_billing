@@ -98,7 +98,8 @@ module.exports = {
                              , ${inactivated_dt}
                              , ${code}
                              , ${description} 
-                             , ${readingProviderPercentLevel} )`;
+                             , ${readingProviderPercentLevel} 
+                            ) RETURNING id`;
 
         return await query(sql);
     },
