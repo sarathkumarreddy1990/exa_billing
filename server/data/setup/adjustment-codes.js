@@ -25,11 +25,11 @@ module.exports = {
         }
 
         if (description) {
-            whereQuery.push(` description ILIKE '${description}'`);
+            whereQuery.push(` description ILIKE '%${description}%'`);
         }
 
         if (type) {
-            whereQuery.push(` accounting_entry_type ILIKE '${type}'`);
+            whereQuery.push(` accounting_entry_type ILIKE '%${type}%'`);
         }
 
         const sql = SQL`SELECT 
