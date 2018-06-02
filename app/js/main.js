@@ -2,7 +2,7 @@ require.config({
     waitSeconds: 0,
     paths: {
         'jquery': '../node_modules/jquery/dist/jquery',
-        //'jquery.validate': '../node_modules/jquery-validation/dist/jquery.validate',
+        'jquery.validate': '../node_modules/jquery-validation/dist/jquery.validate',
         'jqueryvalidateadditional': '../node_modules/jquery-validation/dist/additional-methods',
         'underscore': '../node_modules/underscore/underscore',
         'text': '../node_modules/requirejs-text/text',
@@ -31,12 +31,12 @@ require.config({
         'select2': '../node_modules/select2/dist/js/select2.full'
     },
     shim: {
-        // 'jquery.validate': {
-        //     deps: ['jquery']
-        // },
-        // 'jqueryvalidateadditional': {
-        //     deps: ['jquery', 'jquery.validate']
-        // },
+        'jquery.validate': {
+            deps: ['jquery']
+        },
+        'jqueryvalidateadditional': {
+            deps: ['jquery', 'jquery.validate']
+        },
         'bootstrap': {
             deps: ["jquery"]
         },
@@ -99,18 +99,18 @@ require.config({
 require([
     'immutable',
     'moment-timezone',
-    //'jquery.validate',
+    'jquery.validate',
 ], function (
     Immutable,
     MomentTimezone,
-    //jqueryvalidate,
+    jqueryvalidate,
     ) {
         window.Immutable = Immutable;
 
         require([
             'jquery',
             'underscore',
-           // 'jqueryvalidateadditional',
+           'jqueryvalidateadditional',
             'jstorage',
             'bootstrap',
             'commonscript',
@@ -122,12 +122,12 @@ require([
             'app',
             'appserver_shared',
             'bootstrapmultiselect',
-            'select2'
-         //   'daterangepicker'
+            'select2',
+           'daterangepicker'
         ], function (
             $,
             _,
-           // jqueryvalidateadditional,
+           jqueryvalidateadditional,
             jstorage,
             Bootstrap,
             commonjs,
@@ -139,8 +139,8 @@ require([
             App,
             Appserver,
             bootstrapmultiselect,
-            select2
-          //  daterangepicker
+            select2,
+            daterangepicker
         ) {
                 new Appserver(function () {
                     App.initialize();
