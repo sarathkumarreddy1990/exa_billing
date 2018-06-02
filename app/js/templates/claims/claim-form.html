@@ -128,7 +128,7 @@
                         <!-- BenefitOnDate -->
                         <div class="form-group form-inline">
                             <div class="col-form-label-med">
-                                <label class="field-chk" for="txtClaimDate">ClaimDate</label>
+                                <label class="field-chk field-required" for="txtClaimDate">ClaimDate</label>
                             </div>
                             <div class="col-form-content">
                                     <div id="divClaimDate" class="input-group">
@@ -152,7 +152,7 @@
                         </div>
                         <div class="form-group form-inline">
                             <div class="col-form-label-med">
-                                <label class="control-label" for="ddlBillingProvider">Billing Provider</label>
+                                <label class="control-label field-required" for="ddlBillingProvider">Billing Provider</label>
                             </div>
                             <div class="col-form-content">
                                 <select id="ddlBillingProvider"></select>
@@ -251,7 +251,7 @@
                                     </div>
                                     <div class="col-form-content">
                                         <select id="ddlExistPriIns" name="ExistingPrimaryIns" style="width: 250px">
-                                            <option>Select</option>
+                                            <option value="0">Select</option>
                                         </select>
                                         <input id="chkPriAcptAsmt" type="checkbox" name="AcceptAssignment" value="AcceptAssignment">
                                         <label for="chkPriAcptAsmt" class="field-chk">Accept Assignment</label>
@@ -378,7 +378,7 @@
                                     </div>
                                     <div class="col-form-content">
                                         <select id="ddlPriGender" class="form-control" >
-                                            <option value='0'>Select</option>
+                                            <option value=''>Select</option>
                                             </select>
                                     </div>
                                 </div>
@@ -474,7 +474,7 @@
                                     <div class="col-form-content">
                                         <input type="checkbox" id="chkSecMedicarePayer" name="isSecMedicarePayer" value="">
                                         <label for="chkSecMedicarePayer" class="field-chk" >isMedicarePayer</label>
-                                        <select id="selectMedicalPayer" class="form-control">
+                                        <select id="selectMedicalPayer" class="form-control" style="display: none;">
                                                 <option value="" i18n="shared.buttons.select">Select</option>
                                                 <option value="12">12-Working Aged Beneficiary</option>
                                                 <option value="13">13-ERSD Beneficiary/30th Month</option>
@@ -602,7 +602,7 @@
                                     </div>
                                     <div class="col-form-content">
                                         <select id="ddlSecGender" class="form-control" style="width:130px">
-                                                <option value='0'>select</option>
+                                                <option value=''>select</option>
                                         </select>
                                     </div>
                                 </div>
@@ -689,7 +689,7 @@
                                             </div>
                                             <div class="col-form-content">
                                                 <select id="ddlExistTerIns" name="ExistingIns3" style="width: 250px">
-                                                    <option>Select</option>
+                                                    <option value="0">Select</option>
                                                 </select>
                                                 <input id="chkTerAcptAsmt" type="checkbox" name="terAcceptAssignment" value="AcceptAssignment">
                                                 <label for="chkTerAcptAsmt" class="field-chk">AcceptAssignment</label>
@@ -817,7 +817,7 @@
                                             </div>
                                             <div class="col-form-content">
                                                 <select id="ddlTerGender" class="form-control">
-                                                        <option>Select</option>
+                                                        <option value="">Select</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -1104,19 +1104,12 @@
                                 </div>
                                 <div class="col-form-content">
                                         <select class="form-control" id="ddlClaimStatus">
-                                            <option value="" >Select</option>
-                                            <option value="1" data-desc="PatBal">Patient Balance</option>
-                                            <option value="2" data-desc="FilIns">File Insurance</option>
-                                            <option value="3" data-desc="FilSec">File Secondary</option>
-                                            <option value="4" data-desc="FilTer">File Tertiary</option>
-                                            <option value="5" data-desc="PInFul">Paid In Full</option>
-                                            <option value="6" data-desc="OvePay">Over Payment</option>
-                                            <option value="7" data-desc="PP">Pending Payment</option>
-                                            <option value="8" data-desc="NPB">New Patient Balance</option>
-                                            <option value="9" data-desc="Denied">Denied</option>
-                                            <option value="10" data-desc="InsOP">Insurance Over Payment</option>
-                                            <option value="11" data-desc="PIF">Paid In Full</option>
-                                            <option value="12" data-desc="PatOP">Patient Over Payment</option>
+                                            <option value="">Select</option>
+                                            <% _.each(claimStatusList, function(claimStatus) { %>
+                                                <option value='<%= claimStatus.id %>' data-desc='<%= claimStatus.code %>'>
+                                                    <%= claimStatus.description %>
+                                                </option>
+                                            <% }); %>
                                         </select>
                                 </div>
                             </div>
@@ -1169,7 +1162,12 @@
                                 </div>
                                 <div class="col-form-content">
                                     <select class="form-control" id="ddlBillingCode">
-                                        <option value="" >select</option>
+                                            <option value="">Select</option>
+                                        <% _.each(billingCodesList, function(billingCode) { %>
+                                            <option value='<%= billingCode.id %>' data-desc='<%= billingCode.code %>'>
+                                                <%= billingCode.description %>
+                                            </option>
+                                        <% }); %>
                                     </select>
                                 </div>
                             </div>
@@ -1181,7 +1179,12 @@
                                 </div>
                                 <div class="col-form-content ">
                                     <select class="form-control form-control" id="ddlBillingClass">
-                                            <option value="" >select</option>
+                                            <option value="">Select</option>
+                                        <% _.each(billingClassList, function(billingClass) { %>
+                                            <option value='<%= billingClass.id %>' data-desc='<%= billingClass.code %>'>
+                                                <%= billingClass.description %>
+                                            </option>
+                                        <% }); %>
                                     </select>
                                 </div>
                             </div>

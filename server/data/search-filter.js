@@ -1,9 +1,9 @@
 const config = require('../config');
 const studyfilterdata = require('./study-filters');
-const filterValidator = null;//require('./filter-validator')();
+const filterValidator = require('./filter-validator')();
 const moment = require('moment');
 const { query, SQL } = require('./index');
-const util = null;//require('./util');
+const util = require('./util');
 
 const colModel = [
     {

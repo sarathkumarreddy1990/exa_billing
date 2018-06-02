@@ -6,6 +6,21 @@
         "errors": {
 		},
 		"warning": {
+            "claims": {
+                "selectfacility": "Please select facility",
+                "selectbillingProvider": "Please select billing provider",
+                "chargeValidation": "Without charge can not create claim ,please add/select any one charge",
+                "samePatientValidate": "Please select study with same patient",
+                "sameStudyDtValidate": "Please select study with same study date",
+                "sameFacilityValidate": "Please select study with same facility",
+                "priInsValidation": "Please enter mandatory details for primary insurance",
+                "secInsValidation": "Please enter mandatory details for secondary insurance",
+                "terInsValidation": "Please enter mandatory details for tertiary insurance",
+                "priMissingValidation": "Without primary insurance, can not create secondary insurance",
+                "secMissingValidation": "Without secondary insurance, can not create tertiary insurance",
+                "missingClaimStatus": "Please select claim status",
+                "missingResponsible": "Please select responsible"
+            }
         },
         "loadingMsg": {
             "default": "Loading ...",

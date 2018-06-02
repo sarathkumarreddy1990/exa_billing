@@ -1,6 +1,14 @@
 extends layout
 
 block content
+    div(class="progress loadingMsg", id="divLoading", style="display:none")
+        div(class="progress-bar progress-bar-striped bg-success", role="progressbar", style="width:100%", id="divLoadingMsg")
+    div(class="loadingMsg", id="divWarning", style="display:none")
+        span(class="badge badge-warning" id="divWarningMsg")
+    div(class="loadingMsg", id="divError", style="display:none")
+        span(class="badge badge-danger" id="divErrorMsg")
+    div(class="loadingMsg", id="divSuccess", style="display:none")
+        span(class="badge badge-success" id="divSuccessMsg")
     nav.navbar.fixed-top.navbar-expand-lg.navbar-dark.bg-primary
         a.navbar-brand(href='#') #{title}
         button.navbar-toggler(type='button', data-toggle='collapse', data-target='#navbarNavAltMarkup', aria-controls='navbarNavAltMarkup', aria-expanded='false', aria-label='Toggle navigation')
