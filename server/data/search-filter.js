@@ -1,9 +1,9 @@
 const config = require('../config');
 const studyfilterdata = require('./study-filters');
-const filterValidator = require('./filter-validator')();
+const filterValidator = null;//require('./filter-validator')();
 const moment = require('moment');
 const { query, SQL } = require('./index');
-const util = require('./util');
+const util = null;//require('./util');
 
 const colModel = [
     {
@@ -844,7 +844,7 @@ const api = {
         let innerQuery = api.getWLQuery(`
                             row_number() over(${sort}) as number
                             , studies.id AS study_id
-                            ` , args, params);
+                            `, args, params);
 
         innerQuery += limit + offset;
 
@@ -1059,10 +1059,9 @@ const api = {
 
             if(args.isCount){
                 return await api.getWorkListCount(args); 
-            }else{
-                return await api.getWorkList(args);                
             }
-                
+            
+            return await api.getWorkList(args);
         }
     }
 };

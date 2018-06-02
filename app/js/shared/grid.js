@@ -5,10 +5,10 @@ define('grid', [
     'models/pager',
     'collections/study-fields',
     'collections/studies',
-    'collections/claim-workbench',
+    //'collections/claim-workbench',
     'views/claims/index',
     'views/user-settings'
-], function (jQuery, initChangeGrid, utils, Pager, StudyFields, Studies,claimWorkbench, claimsView,UserSettingsView) {
+], function (jQuery, initChangeGrid, utils, Pager, StudyFields, Studies, claimsView,UserSettingsView) {
     var $ = jQuery;
     var isTrue = utils.isTrue;
     var isFalse = utils.isFalse;
