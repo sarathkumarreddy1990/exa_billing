@@ -5,9 +5,10 @@ define('grid', [
     'models/pager',
     'collections/study-fields',
     'collections/studies',
+    'collections/claim-workbench',
     'views/claims/index',
     'views/user-settings'
-], function (jQuery, initChangeGrid, utils, Pager, StudyFields, Studies, claimsView, UserSettingsView) {
+], function (jQuery, initChangeGrid, utils, Pager, StudyFields, Studies,claimWorkbench, claimsView,UserSettingsView) {
     var $ = jQuery;
     var isTrue = utils.isTrue;
     var isFalse = utils.isFalse;
@@ -30,7 +31,7 @@ define('grid', [
             return '';
         };
         var checkLicense = '';
-        var userSettings = commonjs.hstoreParse(app.user_settings);
+        var userSettings = options.isClaimGrid ? app.claim_user_settings : app.study_user_settings;
         var risOrderChoose = false;
         var risOrderID = 0;
         var risOrderDetails = [];
@@ -128,9 +129,13 @@ define('grid', [
         };
 
         self.renderStudy = function () {
-            var studyStore = new Studies(null, { 'filterID': filterID });
-            var studiesTable = new customGrid(studyStore, gridID);
-            var changeGrid = initChangeGrid(studiesTable);
+            if(options.isClaimGrid)
+                var studyStore = new claimWorkbench(null, { 'filterID': filterID });
+            else{
+                var studyStore = new Studies(null, { 'filterID': filterID });
+            }
+            var claimsTable = new customGrid(studyStore, gridID);
+            var changeGrid = initChangeGrid(claimsTable);
             var transcriptionHide = true;
             var opalViewerHide = true;
             var dicomViewerHide = true;
@@ -268,7 +273,7 @@ define('grid', [
             var gridIDPrefix = '#jqgh_' + gridID.slice(1);
 
             var subGridNeed = ((app.showpriors && true) || true);
-            var studyFieldsCollection = new StudyFields(null, { gridOptions: app.usersettings && app.usersettings.grid_options || null, filterType: 'OD' });
+            var studyFieldsCollection = new StudyFields(null, { gridOptions: null, field_order:userSettings.field_order,filterType: userSettings.grid_name });
             var studyFields = studyFieldsCollection.reduce(function (fieldSet, field) {
                 fieldSet.colName[fieldSet.colName.length] = field.get('field_name');
                 fieldSet.i18nName[fieldSet.i18nName.length] = field.get('i18n_name') || '';
@@ -279,14 +284,14 @@ define('grid', [
                 'i18nName': [],
                 'colModel': []
             });
-            var defSortOrder = app.usersettings.sort_order || "asc";
+            var defSortOrder = userSettings.default_column_order_by || "asc";
             var defColumn = studyFieldsCollection.findWhere({
-                'field_name': app.usersettings.sort_column !== 'ID' ?
-                    app.usersettings.sort_column :
+                'field_name': userSettings.default_column !== 'ID' ?
+                userSettings.default_column :
                     'Study Received Date'
             });
-            var fieldInfo = defColumn ? defColumn.get('field_info') : null;
-            var defSortColumn = fieldInfo ? fieldInfo.name : 'study_received_dt';
+           
+            var defSortColumn = userSettings.default_column;
 
             app.usersettings.wl_sort_field = defSortColumn;
 
@@ -337,13 +342,13 @@ define('grid', [
 
                 return attrs;
             };
-
+            
             $('#mySettings').unbind().click(function(e){
                 self.UserSettingsView = new UserSettingsView();
                 self.UserSettingsView.showForm();
             });
 
-            studiesTable.render({
+            claimsTable.render({
                 gridelementid: gridID,
                 custompager: new Pager(),
                 colNames: colName.concat(studyFields.colName),
