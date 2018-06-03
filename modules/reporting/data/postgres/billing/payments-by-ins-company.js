@@ -2,38 +2,53 @@ const _ = require('lodash')
     , Promise = require('bluebird')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder')    
+    , queryBuilder = require('../queryBuilder')
     , logger = require('../../../../../logger');
 
 // generate query template ***only once*** !!!
 
 const paymentByInsuranceCompanyDataSetQueryTemplate = _.template(`
-with paymentsByInsCompany as (
+WITH paymentsByInsCompany as (
     SELECT
-    bp.id as payment_id,
-    ip.insurance_code as insurance_code,
-    ip.insurance_name as insurance_name,
-    f.facility_name as facility_name,
-    f.id as facility_id,
-    (SELECT payment_balance_total FROM billing.get_payment_totals(bp.id)) as payment_balance,
-    (SELECT payments_applied_total FROM billing.get_payment_totals(bp.id)) as payment_applied_amount,
-    bp.amount as amount,
-    bp.card_number as cheque_card_number,
-    bp.mode as payment_mode,
-    timezone(f.time_zone,bp.payment_dt) AS payment_date
-  FROM
-    billing.payments bp
-    INNER JOIN public.insurance_providers ip ON ip.id = bp.insurance_provider_id
-    LEFT JOIN public.facilities f ON f.id = bp.facility_id
-  WHERE 1=1
-    AND  <%= companyId %>
+        bp.id AS payment_id,
+        ip.insurance_code AS insurance_code,
+        ip.insurance_name AS insurance_name,
+        f.facility_name AS facility_name,
+        f.id AS facility_id,
+        (SELECT payment_balance_total FROM billing.get_payment_totals(bp.id)) AS payment_balance,
+        (SELECT payments_applied_total FROM billing.get_payment_totals(bp.id)) AS payment_applied_amount,
+        bp.amount AS amount,
+        bp.card_number AS cheque_card_number,
+        bp.mode AS payment_mode,
+        timezone(f.time_zone,bp.payment_dt) AS payment_date
+    FROM
+        billing.payments bp
+        INNER JOIN public.insurance_providers ip ON ip.id = bp.insurance_provider_id
+        LEFT JOIN public.facilities f ON f.id = bp.facility_id
+        <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
+    WHERE 1=1
+    AND <%= companyId %>
+    AND <%= paymentDate %>
+    <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+    <% if(billingProID) { %> AND <% print(billingProID); } %>
   ORDER BY
     ip.insurance_name,
     bp.id  
-  
 )
-select * from paymentsByInsCompany
-
+    SELECT 
+        payment_id AS "PAYMENT ID",
+        insurance_code AS "INSURANCE CODE",
+        insurance_name AS "INSURANCE NAME",
+        facility_name AS "FACILITY NAME",
+        facility_id AS "FACILITY ID",
+        payment_balance AS "PAYMENT BALANCE",
+        payment_applied_amount AS "PAYMENT APPLIED AMOUNT",
+        amount AS "AMOUNT",
+        cheque_card_number AS "CHEQUE/CARD #",
+        payment_mode AS "PAYMENT MODE",
+        payment_date AS "PAYMENT DATE"
+    FROM
+         paymentsByInsCompany
 `);
 
 const api = {
@@ -43,7 +58,7 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
-        return Promise.join(            
+        return Promise.join(
             api.createpaymentByInsuranceCompanyDataSet(initialReportData.report.params),
             // other data sets could be added here...
             (paymentByInsuranceCompanyDataSet) => {
@@ -89,22 +104,23 @@ const api = {
         const filtersUsed = [];
         filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
 
-        // if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
-        //     filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
-        // else {
-        //     const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
-        //     filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
-        // }
-        // // Billing provider Filter
-        // if (params.allBillingProvider == 'true')
-        //     filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
-        // else {
-        //     const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
-        //     filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
-        // }
+        if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
+            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
+        else {
+            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
+            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
+        }
+        // Billing provider Filter
+        if (params.allBillingProvider == 'true')
+            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
+        else {
+            const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
+            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
+        }
 
-        // filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
-        // filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
+        filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
+        filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
+        return filtersUsed;
         return filtersUsed;
     },
 
@@ -126,30 +142,34 @@ const api = {
     getpaymentByInsuranceCompanyDataSetQueryContext: (reportParams) => {
         const params = [];
         const filters = {
-            companyId: null
-           
+            companyId: null,
+            paymentDate: null,
+            facilityIds: null,
+            billingProID: null
+
         };
 
         // company id
         params.push(reportParams.companyId);
         filters.companyId = queryBuilder.where('bp.company_id', '=', [params.length]);
 
-        // // order facilities
-        // if (!reportParams.allFacilities && reportParams.facilityIds) {
-        //     params.push(reportParams.facilityIds);
-        //     filters.facilityIds = queryBuilder.whereIn('c.facility_id', [params.length]);
-        // }
+        //claim facilities
+        if (!reportParams.allFacilities && reportParams.facilityIds) {
+            params.push(reportParams.facilityIds);
+            filters.facilityIds = queryBuilder.whereIn('bp.facility_id', [params.length]);
+        }
 
-        // //  scheduled_dt
-        // if (reportParams.fromDate === reportParams.toDate) {
-        //     params.push(reportParams.fromDate);
-        //     filters.studyDate = queryBuilder.whereDate('c.claim_dt', '=', [params.length], 'f.time_zone');
-        // } else {
-        //     params.push(reportParams.fromDate);
-        //     params.push(reportParams.toDate);
-        //     filters.studyDate = queryBuilder.whereDateBetween('c.claim_dt', [params.length - 1, params.length], 'f.time_zone');
-        // }
-        // // billingProvider single or multiple
+        //  scheduled_dt
+        if (reportParams.fromDate === reportParams.toDate) {
+            params.push(reportParams.fromDate);
+            filters.paymentDate = queryBuilder.whereDate('bp.accounting_dt', '=', [params.length], 'f.time_zone');
+        } else {
+            params.push(reportParams.fromDate);
+            params.push(reportParams.toDate);
+            filters.paymentDate = queryBuilder.whereDateBetween('bp.accounting_dt', [params.length - 1, params.length], 'f.time_zone');
+        }
+
+        // billingProvider single or multiple
         // if (reportParams.billingProvider) {
         //     params.push(reportParams.billingProvider);
         //     filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
@@ -157,7 +177,12 @@ const api = {
 
         return {
             queryParams: params,
-            templateData: filters         
+            templateData: filters
+        }
+
+        return {
+            queryParams: params,
+            templateData: filters
         }
     }
 }

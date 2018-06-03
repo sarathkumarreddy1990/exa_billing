@@ -544,7 +544,6 @@ define([
                             var billingProviders = model[0].billingProvidersList;
                             var ddlBillingProvider = $('#ddlBillingProvider');
                             ddlBillingProvider.empty();
-                            ddlBillingProvider.append($('<option/>', { value: "", text: "NONE SELECTED" }));
                             if (billingProviders && billingProviders.length > 0) {
                                 for (var b = 0; b < billingProviders.length; b++) {
                                     ddlBillingProvider.append($('<option/>', {
@@ -557,7 +556,7 @@ define([
                         // For Multi Select drop down 
                         $('#ddlBillingProvider').multiselect({
                             maxHeight: 200,
-                            buttonWidth: '200px',
+                            buttonWidth: '250px',
                             enableFiltering: true,
                             includeSelectAllOption: true,
                             enableCaseInsensitiveFiltering: true
