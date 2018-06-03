@@ -5,7 +5,7 @@ define('grid', [
     'models/pager',
     'collections/study-fields',
     'collections/studies',
-    'collections/claim-workbench',
+    'collections/studies',
     'views/claims/index',
     'views/user-settings'
 ], function (jQuery, initChangeGrid, utils, Pager, StudyFields, Studies,claimWorkbench, claimsView,UserSettingsView) {
