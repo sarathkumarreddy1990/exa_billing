@@ -12,6 +12,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             gridLoaded: false,
             formLoaded: false,
             gridPendLoaded: false,
+            casCodesLoaded: false,
             pendPaymentTable: null,
             pendPaymentTable1: null,
             appliedPaymentTable: null,
@@ -22,7 +23,6 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
 
             events: {
                 'click #btnPaymentSave': 'savePayment',
-                'click .applyCAS': 'applyPaymentsCAS'
             },
 
             initialize: function (options) {
@@ -172,6 +172,28 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
 
                 self.showPendingPaymentsGrid(paymentID);
                 self.showAppliedByPaymentsGrid(paymentID);
+                if (!self.casCodesLoaded)
+                    self.setCasGroupCodesAndReasonCodes();
+            },
+
+            setCasGroupCodesAndReasonCodes: function () {
+                var self = this;
+                $.ajax({
+                    url: '/exa_modules/billing/pending_payments/getGroupCodesAndReasonCodes',
+                    type: 'GET',
+                    data: {
+                        companyID: app.companyID
+                    },
+                    success: function (data, response) {
+                        self.casCodesLoaded = true;
+                        var casCodes = data[0];
+                        self.cas_group_codes = casCodes.cas_group_codes;
+                        self.cas_reason_codes = casCodes.cas_reason_codes;
+                    },
+                    error: function (err, response) {
+
+                    }
+                });
             },
 
             savePayment: function () {
@@ -246,7 +268,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblpendPaymentsGrid').jqGrid('getRowData', rowID);
                                 self.order_payment_id = 0;
-                                self.showApplyAndCas(rowID, paymentID);
+                                self.showApplyAndCas(rowID, paymentID, 'pending');
                             }
                         },
                         {
@@ -263,14 +285,14 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         { name: 'id', index: 'id', key: true, searchFlag: 'int', hidden: true },
                         { name: 'order_id', hidden: true },
                         { name: 'study_id', hidden: true },
-                        { name: 'claim_id', searchColumn: ['orders.id'], searchFlag: '%' },
-                        { name: 'invoice_no', searchFlag: '%', sortable: false },
-                        { name: 'full_name', searchFlag: '%', searchColumn: ['patients.full_name'] },
-                        { name: 'study_date', searchFlag: 'datetime', formatter: self.studyDateFormatter },
-                        { name: 'billing_fee', searchFlag: 'int', formatter: self.billingFeeFormatter },
-                        { name: 'balance', searchFlag: 'int', formatter: self.balanceFormatter },
-                        { name: 'display_description', searchFlag: '%' },
-                        { name: 'account_no', searchFlag: '%' },
+                        { name: 'claim_id', searchColumn: ['orders.id'], searchFlag: '%', width: 100 },
+                        { name: 'invoice_no', searchFlag: '%', sortable: false, width: 100 },
+                        { name: 'full_name', searchFlag: '%', searchColumn: ['patients.full_name'], width: 150 },
+                        { name: 'study_date', searchFlag: 'datetime', formatter: self.studyDateFormatter, width: 100 },
+                        { name: 'billing_fee', searchFlag: 'int', formatter: self.billingFeeFormatter, width: 100 },
+                        { name: 'balance', searchFlag: 'int', formatter: self.balanceFormatter, width: 100 },
+                        { name: 'display_description', searchFlag: '%', width: 200 },
+                        { name: 'account_no', searchFlag: '%', width: 100 },
                         { name: 'patient_id', key: true, hidden: true },
                         { name: 'facility_id', key: true, hidden: true },
                     ],
@@ -287,7 +309,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     ondblClickRow: function (rowID) {
                         self.order_payment_id = 0;
                         var gridData = $('#tblpendPaymentsGrid').jqGrid('getRowData', rowID);
-                        self.showApplyAndCas(rowID);
+                        self.showApplyAndCas(rowID, paymentID, 'pending');
                     },
                     disablesearch: false,
                     disablesort: false,
@@ -334,7 +356,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblAppliedPaymentsGrid').jqGrid('getRowData', rowID);
-                                self.showApplyAndCas(rowID, paymentID);
+                                self.showApplyAndCas(rowID, paymentID, 'applied');
                             }
                         },
                         {
@@ -351,18 +373,18 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         { name: 'id', index: 'id', key: true, searchFlag: 'int', hidden: true },
                         { name: 'order_id', hidden: true },
                         { name: 'study_id', hidden: true },
-                        { name: 'order_payment_ref', searchColumn: ['orders.id'], searchFlag: '%', width: 120 },
+                        { name: 'order_payment_ref', searchColumn: ['orders.id'], searchFlag: '%', width: 50 },
                         { name: 'order_id_grid', searchColumn: ['orders.id'], searchFlag: '%', width: 50 },
                         { name: 'invoice_no', searchFlag: '%', sortable: false, width: 50 },
-                        { name: 'full_name', searchFlag: '%', searchColumn: ['patients.full_name'], width: 150 },
-                        { name: 'study_date', searchFlag: 'datetime', formatter: self.studyDateFormatter, width: 200 },
-                        { name: 'bill_fee', searchFlag: 'hstore', searchColumn: ['order_info->bill_fee'], formatter: self.appliedBillFeeFormatter, width: 80 },
-                        { name: 'patient_paid', searchFlag: 'hstore', searchColumn: ['more_info->patient_paid'], formatter: self.appliedPatPaidFormatter, width: 80 },
-                        { name: 'others_paid', searchFlag: 'hstore', searchColumn: ['more_info->payer_paid'], formatter: self.appliedPayerPaidFormatter, width: 80 },
-                        { name: 'adjustment', searchFlag: 'hstore', searchColumn: ['order_info->adjustment'], formatter: self.appliedAdjustmentFormatter, width: 80 },
-                        { name: 'amount_paid', searchFlag: 'money', formatter: self.paymentApplied, width: 80 },
-                        { name: 'balance', searchFlag: 'hstore', searchColumn: ['order_info->balance'], formatter: self.appliedBalanceFormatter, width: 80 },
-                        { name: 'display_description', search: false, searchFlag: '%', width: 200 },
+                        { name: 'full_name', searchFlag: '%', searchColumn: ['patients.full_name'], width: 100 },
+                        { name: 'study_date', searchFlag: 'datetime', formatter: self.studyDateFormatter, width: 100 },
+                        { name: 'bill_fee', searchFlag: 'hstore', searchColumn: ['order_info->bill_fee'], formatter: self.appliedBillFeeFormatter, width: 100 },
+                        { name: 'patient_paid', searchFlag: 'hstore', searchColumn: ['more_info->patient_paid'], formatter: self.appliedPatPaidFormatter, width: 100 },
+                        { name: 'others_paid', searchFlag: 'hstore', searchColumn: ['more_info->payer_paid'], formatter: self.appliedPayerPaidFormatter, width: 100 },
+                        { name: 'adjustment', searchFlag: 'hstore', searchColumn: ['order_info->adjustment'], formatter: self.appliedAdjustmentFormatter, width: 100 },
+                        { name: 'amount_paid', searchFlag: 'money', formatter: self.paymentApplied, width: 100 },
+                        { name: 'balance', searchFlag: 'hstore', searchColumn: ['order_info->balance'], formatter: self.appliedBalanceFormatter, width: 100 },
+                        { name: 'display_description', searchFlag: '%', width: 200 },
                         { name: 'patient_id', key: true, hidden: true },
                         { name: 'facility_id', key: true, hidden: true }
 
@@ -379,7 +401,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     container: this.el,
                     ondblClickRow: function (rowID) {
                         var gridData = $('#tblAppliedPaymentsGrid').jqGrid('getRowData', rowID);
-                        self.showApplyAndCas(rowID, paymentID);
+                        self.showApplyAndCas(rowID, paymentID, 'applied');
                     },
                     disablesearch: false,
                     disablesort: false,
@@ -396,43 +418,42 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 });
             },
 
-            showApplyAndCas: function (claimId, paymentID) {
+            showApplyAndCas: function (claimId, paymentID, paymentStatus) {
                 var self = this;
                 self.defalutCASArray = [0, 1, 2, 3, 4, 5, 6];
                 $('<div/>').css({ top: '10%', height: '80%', "left": '5%', "overflow": "auto", "width": "90%", "left": "5%", "position": "absolute", 'border': '1px solid black', 'background-color': 'white' })
                     .appendTo('body')
                     .attr('id', 'divPaymentApply')
-                    .html(self.applyCasTemplate({ 'casArray': self.defalutCASArray, adjustmentCodes: self.adjustmentCodeList.toJSON(), 'claimStatusList': this.claimStatusList.toJSON() }));
+                    .html(self.applyCasTemplate({ 'casArray': self.defalutCASArray, adjustmentCodes: self.adjustmentCodeList.toJSON(), 'claimStatusList': this.claimStatusList.toJSON(), cas_group_codes: self.cas_group_codes, cas_reason_codes: self.cas_reason_codes }));
                 commonjs.processPostRender();
-            
+
                 $('#btnCloseAppliedPendingPayments,#btnCloseApplyPaymentPopup').unbind().bind('click', function (e) {
                     $('#divPaymentApply').remove();
                     $('#siteModal').hide();
                 });
-                self.getClaimBasedCharges(claimId, paymentID);
+                self.getClaimBasedCharges(claimId, paymentID, paymentStatus);
             },
 
-            getClaimBasedCharges: function (claimId, payment_id) {
+            getClaimBasedCharges: function (claimId, paymentId, paymentStatus) {
                 var self = this;
                 self.casSave = [];
                 $.ajax({
                     url: '/exa_modules/billing/pending_payments/getClaimBasedCharges',
                     type: 'GET',
                     data: {
-                        claimId: claimId
+                        claimId: claimId,
+                        paymentId: paymentId
                     },
                     success: function (data, response) {
                         var payments = data;
                         $.each(payments, function (index, payment) {
                             var paymentDet = {}
                             paymentDet.index = index;
-                            paymentDet.payment_reconciliations_id = payment.payment_reconciliations_id ? payment.payment_reconciliations_id : null;
+                            paymentDet.id = payment.id ? payment.id : null;
                             paymentDet.study_id = payment.study_id ? payment.study_id : null;
-                            paymentDet.payment_id = payment_id;
-                            // paymentDet.order_id = order_id;
+                            paymentDet.payment_id = paymentId;
                             paymentDet.study_cpt_id = payment.study_cpt_id ? payment.study_cpt_id : null;
                             paymentDet.cpt_code_id = payment.cpt_code_id ? payment.cpt_code_id : null;
-                            // paymentDet.scheduled_dt = scheduled_date;
                             paymentDet.cpt_code = payment.cpt_code;
                             paymentDet.cpt_description = payment.cpt_description;
                             paymentDet.payment_amount = payment.current_payment ? parseFloat(payment.current_payment).toFixed(2) : 0.00;
@@ -447,13 +468,25 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                             $('#tBodyApplyPendingPayment').append(applyPaymentRow);
                             $('.this_pay,.this_adjustment').unbind().blur(function (e) {
                                 self.updatePaymentAdjustment();
-                            });
-                            $('.this_allowed').unbind().blur(function (e) {
-                                self.calculateAdjustment(e)
-                            });
+                            });                         
                             var cas_arr_obj = [];
                             var cas_arr_obj = payment.cas_arr_obj ? JSON.parse(payment.cas_arr_obj) : [];
                             self.casSave[index] = cas_arr_obj;
+
+                            $('#btnApplyCAS').on('click', function (e) {
+                                var chargeItem = $(e.target).closest('tr');
+                                var chargeId = chargeItem.attr('data_charge_id_id');
+                                self.showApplyCASSegments(chargeId, paymentId);
+                            });
+
+                            $('#btnCancelCAS').on('click', function () {
+                                self.closePaymentsCAS(paymentStatus);
+                            });
+
+                            $('#btnSaveCAS').on('click', function () {
+                                self.savePaymentsCAS(claimId, paymentId, paymentStatus);
+                            });
+
                         });
                     },
                     error: function (err, response) {
@@ -462,8 +495,61 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 });
             },
 
-            applyPaymentsCAS: function () {
-                
+            savePaymentsCAS: function (claimId, paymentId, paymentStatus) {
+                var self = this;
+                var cas = self.vaidateCasCodeAndReason();
+
+                var self = this;
+                // $.ajax({
+                //     url: '/exa_modules/billing/pending_payments/savePaymentApplicationDetails',
+                //     type: 'GET',
+                //     data: {
+                //         cas: cas,
+                //         companyID: app.companyID
+                //     },
+                //     success: function (data, response) {
+                //     },
+                //     error: function (err, response) {
+
+                //     }
+                // });
+
+                // if (!cas || cas.length == 0)
+                //     alert('Please select atleast one CAS');
+            },
+
+            vaidateCasCodeAndReason: function () {
+                var casObj = [];
+                var emptyCasObj = {};
+                for (var i = 1; i <= 7; i++) {
+                    var currentCasCode = $('#selectGroupCode' + i).val();
+                    var currentCasReason = $('#selectReason' + i).val();;
+                    var amount = $('#txtAmount' + i).val();
+                    if (currentCasCode == '' && currentCasReason == '' && amount == '') {
+                        break;
+                    }
+                    else if (currentCasCode != '' && currentCasReason != '' && amount != '') {
+                        emptyCasObj['group_code' + i] = currentCasCode;
+                        emptyCasObj['group_reason' + i] = currentCasReason;
+                        emptyCasObj['amount' + i] = amount;
+                        casObj.push(emptyCasObj);
+                    }
+                    else if (currentCasCode == '' || currentCasReason == '' || amount == '') {
+                        alert('Please select all fields in row ' + i);
+                        break;
+                    }
+                }
+                return casObj;
+            },
+
+            showApplyCASSegments: function (chargeId, payment_id) {
+                $('#divPaymentCAS').show();
+            },
+
+            closePaymentsCAS: function (e) {
+                $('#divPaymentCAS select').val('');
+                $('#divPaymentCAS input[type="text"]').val('');
+                $('#divPaymentCAS').hide();
             }
         });
     });

@@ -1,5 +1,4 @@
-<tr data_id="<%= payment.payment_reconciliations_id %>" data_order_id="<%= payment.order_id %>" data_payment_id="<%= payment.payment_id %>"
-    data_cpt_id="<%= payment.cpt_code_id %>" data_study_id="<%= payment.study_id %>" data_study_cpt_id="<%= payment.study_cpt_id %>">
+<tr data_charge_id_id="<%= payment.id %>"  data_payment_id="<%= payment.payment_id %>">
     <td style="white-space: nowrap !important">
         <span>
             <%= payment.cpt_code %>
@@ -11,12 +10,12 @@
         </span>
     </td>
     <td style="white-space: nowrap !important">
-        <span id="spReconcileBillFee_<%= payment.payment_reconciliations_id %>" class="billfee">
+        <span id="spReconcileBillFee_<%= payment.id %>" class="billfee">
             <%= payment.bill_fee %>
         </span>
     </td>
     <td style="white-space: nowrap !important">
-        <span id="spUnappliedAdjustment_<%= payment.payment_reconciliations_id %>">
+        <span id="spUnappliedAdjustment_<%= payment.id %>">
             <%= payment.other_payment %>
         </span>
     </td>
@@ -26,7 +25,7 @@
     </td>
     <td style="white-space: nowrap !important">
         <input id="txtAllowed_<%= payment.payment_reconciliations_id %>" this_allowed="<%= payment.this_pay %>" value="<%= payment.allowed_fee %>"
-            type="text" class="input-xs this_allowed floatbox">
+            type="text" class="input-xs this_allowed floatbox" disabled="disabled">
     </td>
     <td style="white-space: nowrap !important">
         <span id="spUnappliedAdjustment_<%= payment.payment_reconciliations_id %>">
