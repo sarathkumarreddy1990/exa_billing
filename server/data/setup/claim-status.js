@@ -16,11 +16,11 @@ module.exports = {
         } = params;
 
         if (code) {
-            whereQuery.push(` code ILIKE '${code}'`);
+            whereQuery.push(` code ILIKE '%${code}%'`);
         }
 
         if (description) {
-            whereQuery.push(` description ILIKE '${description}'`);
+            whereQuery.push(` description ILIKE '%${description}%'`);
         }
 
         if(isSystemStatus == 'true'){
