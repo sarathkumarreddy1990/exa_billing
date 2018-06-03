@@ -80,27 +80,29 @@ module.exports = {
     },
 
     getGroupCodesAndReasonCodes: async function (params) {
-        let { companyID } = params;
         return await query(`   
         WITH cte_cas_group_codes AS
         (
             SELECT Json_agg(Row_to_json(cas_group_codes)) cas_group_codes
                 FROM   (
-                    SELECT code,
+                    SELECT 
+                    id,
+                    code,
                     name,
                     description
                     FROM billing.cas_group_codes 
-                    WHERE company_id =  ${companyID}
+                    WHERE company_id =  ${params.companyID}
                     )
             AS cas_group_codes ),
                  cte_cas_reason_codes AS(
             SELECT Json_agg(Row_to_json(cas_reason_codes)) cas_reason_codes
                 FROM  (
                     SELECT 
+                        id,
                         code,
                         description
                         FROM billing.cas_reason_codes 
-                        WHERE company_id = ${companyID}
+                        WHERE company_id = ${params.companyID}
                         ) 
                     AS cas_reason_codes)
             SELECT *
@@ -108,6 +110,24 @@ module.exports = {
                 cte_cas_group_codes,                      
                 cte_cas_reason_codes   
                  `
+        );
+    },
+
+    getPayemntApplications: async function (params) {
+        return await query(
+            `
+                SELECT 
+                    adjustment_code_id,
+                    amount,
+                    amount_type,
+                    applied_dt,
+                    created_by
+                FORM  
+                    billing.payment_applications
+                WHERE 
+                    payment_id = ${params.paymentId},
+                    charge_id = ${params.chargeId}
+            `
         );
     }
 };

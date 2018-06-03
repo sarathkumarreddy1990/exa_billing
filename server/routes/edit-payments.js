@@ -14,8 +14,13 @@ router.get('/getClaimBasedCharges', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
-router.get('/GroupCodesAndReasonCodes', async function (req, res) {
+router.get('/getGroupCodesAndReasonCodes', async function (req, res) {
     const data = await paymentsController.getGroupCodesAndReasonCodes(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
+router.get('/getPayemntApplications', async function (req, res) {
+    const data = await paymentsController.getPayemntApplications(req.query);
     httpHandler.sendRows(req, res, data);
 });
 

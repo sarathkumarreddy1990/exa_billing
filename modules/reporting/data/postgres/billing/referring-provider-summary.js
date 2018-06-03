@@ -2,32 +2,42 @@ const _ = require('lodash')
     , Promise = require('bluebird')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder')    
+    , queryBuilder = require('../queryBuilder')
     , logger = require('../../../../../logger');
 
 // generate query template ***only once*** !!!
-
 const referringProviderSummaryDataSetQueryTemplate = _.template(`
-with referringProviderSummary as (
+WITH referringProviderSummary as (
     SELECT
-    pp.provider_code,
-    pp.full_name,
-    count(pp.id) as orderCount,
-    sum(bch.bill_fee * units) AS BillingFee,
-    sum(bch.allowed_amount * units) AS AllowedFee
-FROM billing.claims bc 
-INNER JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
-INNER JOIN public.providers pp ON pp.id = ppc.provider_id
-INNER JOIN billing.charges bch on bch.claim_id = bc.id
-WHERE 1=1 
-AND <%= companyId %>
-GROUP BY 
-    pp.provider_code,
-    pp.full_name
-ORDER BY pp.full_name ASC
-
-)
-select * from referringProviderSummary
+        pp.provider_code,
+        pp.full_name,
+        COUNT(pp.id) AS orderCount,
+        SUM(bch.bill_fee * units) AS BillingFee,
+        SUM(bch.allowed_amount * units) AS AllowedFee
+    FROM 
+        billing.claims bc    
+    INNER JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
+    INNER JOIN public.providers pp ON pp.id = ppc.provider_id
+    INNER JOIN billing.charges bch ON bch.claim_id = bc.id
+    INNER JOIN facilities f ON f.id = bc.facility_id
+    <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
+    WHERE 1=1 
+        AND <%= companyId %>
+        AND <%= claimDate %>
+        <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+        <% if(billingProID) { %> AND <% print(billingProID); } %>
+    GROUP BY 
+        pp.provider_code,
+        pp.full_name
+    ORDER BY 
+        pp.full_name ASC
+ )
+    SELECT 
+        orderCount AS "COUNT" ,
+        BillingFee AS "BILL FEE", 
+        AllowedFee AS "ALLOWED FEE"
+    FROM
+         referringProviderSummary
 `);
 
 const api = {
@@ -37,7 +47,7 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
-        return Promise.join(            
+        return Promise.join(
             api.createreferringProviderSummaryDataSet(initialReportData.report.params),
             // other data sets could be added here...
             (referringProviderSummaryDataSet) => {
@@ -89,16 +99,16 @@ const api = {
             const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
         }
-        // // Billing provider Filter
-        // if (params.allBillingProvider == 'true')
-        //     filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
-        // else {
-        //     const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
-        //     filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
-        // }
+        // Billing provider Filter
+        if (params.allBillingProvider == 'true')
+            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
+        else {
+            const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
+            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
+        }
 
-        // filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
-        // filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
+        filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
+        filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
         return filtersUsed;
     },
 
@@ -106,11 +116,11 @@ const api = {
     // --- DATA SET - referringProviderSummary count
 
     createreferringProviderSummaryDataSet: (reportParams) => {
-        
+
         // 1 - build the query context. Each report will 'know' how to do this, based on report params and query/queries to be executed...
         const queryContext = api.getreferringProviderSummaryDataSetQueryContext(reportParams);
         console.log('context__', queryContext)
-        // 2 - geenrate query to execute
+        // 2 - generate query to execute
         const query = referringProviderSummaryDataSetQueryTemplate(queryContext.templateData);
         // 3a - get the report data and return a promise
         return db.queryForReportData(query, queryContext.queryParams);
@@ -121,38 +131,42 @@ const api = {
     getreferringProviderSummaryDataSetQueryContext: (reportParams) => {
         const params = [];
         const filters = {
-            companyId: null
-           
+            companyId: null,
+            claimDate: null,
+            facilityIds: null,
+            billingProID : null
+
         };
 
         // company id
         params.push(reportParams.companyId);
         filters.companyId = queryBuilder.where('bc.company_id', '=', [params.length]);
 
-        // // order facilities
-        // if (!reportParams.allFacilities && reportParams.facilityIds) {
-        //     params.push(reportParams.facilityIds);
-        //     filters.facilityIds = queryBuilder.whereIn('c.facility_id', [params.length]);
-        // }
+        //claim facilities
+        if (!reportParams.allFacilities && reportParams.facilityIds) {
+            params.push(reportParams.facilityIds);
+            filters.facilityIds = queryBuilder.whereIn('bc.facility_id', [params.length]);
+        }
 
-        // //  scheduled_dt
-        // if (reportParams.fromDate === reportParams.toDate) {
-        //     params.push(reportParams.fromDate);
-        //     filters.studyDate = queryBuilder.whereDate('c.claim_dt', '=', [params.length], 'f.time_zone');
-        // } else {
-        //     params.push(reportParams.fromDate);
-        //     params.push(reportParams.toDate);
-        //     filters.studyDate = queryBuilder.whereDateBetween('c.claim_dt', [params.length - 1, params.length], 'f.time_zone');
-        // }
-        // // billingProvider single or multiple
-        // if (reportParams.billingProvider) {
-        //     params.push(reportParams.billingProvider);
-        //     filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
-        // }
+        //  scheduled_dt
+        if (reportParams.fromDate === reportParams.toDate) {
+            params.push(reportParams.fromDate);
+            filters.claimDate = queryBuilder.whereDate('bc.claim_dt', '=', [params.length], 'f.time_zone');
+        } else {
+            params.push(reportParams.fromDate);
+            params.push(reportParams.toDate);
+            filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+        }
+
+        // billingProvider single or multiple
+        if (reportParams.billingProvider) {
+            params.push(reportParams.billingProvider);
+            filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
+        }
 
         return {
             queryParams: params,
-            templateData: filters         
+            templateData: filters
         }
     }
 }

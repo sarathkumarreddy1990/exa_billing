@@ -2,15 +2,15 @@ const _ = require('lodash')
     , Promise = require('bluebird')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder')    
+    , queryBuilder = require('../queryBuilder')
     , logger = require('../../../../../logger');
 
 // generate query template ***only once*** !!!
 
 const modalitySummaryDataSetQueryTemplate = _.template(`
-with modalitySummary as (
+WITH modalitySummary as (
     SELECT
-    m.modality_name,
+    m.modality_name AS modality_name,
     count(DISTINCT o.id) AS order_count,
     count(DISTINCT s.id) AS study_count, -- why was this in v1 referred to as "order_count" ?
     count(DISTINCT cs.study_id) AS studies_count, -- just another way to get study count which may be faster
@@ -19,11 +19,18 @@ with modalitySummary as (
 --, sum(c.allowed_amount * c.units) AS charges_allowed_amount_total   
 FROM
     public.orders AS o
-    INNER JOIN public.studies AS s ON o.id = s.order_id
-    INNER JOIN modalities AS m ON m.id = s.modality_id
-    INNER JOIN billing.charges_studies AS cs ON s.id = cs.study_id
-    INNER JOIN billing.charges AS c ON c.id = cs.charge_id
+    INNER JOIN public.studies s ON o.id = s.order_id
+    INNER JOIN modalities m ON m.id = s.modality_id
+    INNER JOIN billing.charges_studies cs ON s.id = cs.study_id
+    INNER JOIN billing.charges c ON c.id = cs.charge_id
+    INNER JOIN billing.claims bc ON bc.id = c.claim_id
+    INNER JOIN facilities f ON f.id = bc.facility_id
+    <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
 WHERE 1=1
+AND <%= companyId %>
+AND <%= claimDate %>
+<% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+<% if(billingProID) { %> AND <% print(billingProID); } %>
 AND  <%= companyId %>
     AND NOT o.has_deleted
     AND NOT o.is_quick_appt
@@ -34,7 +41,15 @@ AND  <%= companyId %>
 GROUP BY
     ROLLUP (m.modality_name)
 )
-select * from modalitySummary 
+SELECT 
+    modality_name AS "MODALITY NAME",
+    order_count AS "ORDR COUNT", 
+    study_count AS "STUDY COUNT",
+    studies_count AS "CSTUDIES COUNT",
+    charges_count AS "CHARGES COUNT",
+    charges_bill_fee_total AS "TOTAL BILL FEE"
+FROM
+     modalitySummary 
 `);
 
 const api = {
@@ -44,7 +59,7 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
-        return Promise.join(            
+        return Promise.join(
             api.createmodalitySummaryDataSet(initialReportData.report.params),
             // other data sets could be added here...
             (modalitySummaryDataSet) => {
@@ -90,22 +105,23 @@ const api = {
         const filtersUsed = [];
         filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
 
-        // if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
-        //     filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
-        // else {
-        //     const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
-        //     filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
-        // }
-        // // Billing provider Filter
-        // if (params.allBillingProvider == 'true')
-        //     filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
-        // else {
-        //     const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
-        //     filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
-        // }
+        if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
+            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
+        else {
+            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
+            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
+        }
+        
+        // Billing provider Filter
+        if (params.allBillingProvider == 'true')
+            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
+        else {
+            const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
+            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
+        }
 
-        // filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
-        // filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
+        filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
+        filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
         return filtersUsed;
     },
 
@@ -127,38 +143,42 @@ const api = {
     getmodalitySummaryDataSetQueryContext: (reportParams) => {
         const params = [];
         const filters = {
-            companyId: null
-           
+            companyId: null,
+            claimDate: null,
+            facilityIds: null,
+            billingProID: null
+
         };
 
         // company id
         params.push(reportParams.companyId);
-        filters.companyId = queryBuilder.where('o.company_id', '=', [params.length]);
+        filters.companyId = queryBuilder.where('bc.company_id', '=', [params.length]);
 
-        // // order facilities
-        // if (!reportParams.allFacilities && reportParams.facilityIds) {
-        //     params.push(reportParams.facilityIds);
-        //     filters.facilityIds = queryBuilder.whereIn('c.facility_id', [params.length]);
-        // }
+        //claim facilities
+        if (!reportParams.allFacilities && reportParams.facilityIds) {
+            params.push(reportParams.facilityIds);
+            filters.facilityIds = queryBuilder.whereIn('bc.facility_id', [params.length]);
+        }
 
-        // //  scheduled_dt
-        // if (reportParams.fromDate === reportParams.toDate) {
-        //     params.push(reportParams.fromDate);
-        //     filters.studyDate = queryBuilder.whereDate('c.claim_dt', '=', [params.length], 'f.time_zone');
-        // } else {
-        //     params.push(reportParams.fromDate);
-        //     params.push(reportParams.toDate);
-        //     filters.studyDate = queryBuilder.whereDateBetween('c.claim_dt', [params.length - 1, params.length], 'f.time_zone');
-        // }
-        // // billingProvider single or multiple
-        // if (reportParams.billingProvider) {
-        //     params.push(reportParams.billingProvider);
-        //     filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
-        // }
+        //  scheduled_dt
+        if (reportParams.fromDate === reportParams.toDate) {
+            params.push(reportParams.fromDate);
+            filters.claimDate = queryBuilder.whereDate('bc.claim_dt', '=', [params.length], 'f.time_zone');
+        } else {
+            params.push(reportParams.fromDate);
+            params.push(reportParams.toDate);
+            filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+        }
+
+        // billingProvider single or multiple
+        if (reportParams.billingProvider) {
+            params.push(reportParams.billingProvider);
+            filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
+        }
 
         return {
             queryParams: params,
-            templateData: filters         
+            templateData: filters
         }
     }
 }

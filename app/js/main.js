@@ -16,6 +16,7 @@ require.config({
         'jqgridlocale': '../libs/jqgrid/js/i18n/grid.locale-en',
         'immutable': '../node_modules/immutable/dist/immutable',
         'jstorage': '../node_modules/jstorage/jstorage.min',
+        'datetimepicker': '../node_modules/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min',
         'daterangepicker': '../node_modules/bootstrap-daterangepicker/daterangepicker',
         'commonscript': 'shared/common',
         'layout': 'shared/layout',
@@ -64,6 +65,9 @@ require.config({
         'jstorage': {
             deps: ['jquery']
         },
+        'datetimepicker': {
+            deps: ['jquery', 'moment', 'bootstrap']
+        },
         'daterangepicker': {
             deps: ["jquery", "moment"]
         },
@@ -110,7 +114,7 @@ require([
         require([
             'jquery',
             'underscore',
-           'jqueryvalidateadditional',
+            'jqueryvalidateadditional',
             'jstorage',
             'bootstrap',
             'commonscript',
@@ -123,11 +127,12 @@ require([
             'appserver_shared',
             'bootstrapmultiselect',
             'select2',
-           'daterangepicker'
+            'datetimepicker',
+            'daterangepicker'
         ], function (
             $,
             _,
-           jqueryvalidateadditional,
+            jqueryvalidateadditional,
             jstorage,
             Bootstrap,
             commonjs,
@@ -140,6 +145,7 @@ require([
             Appserver,
             bootstrapmultiselect,
             select2,
+            datetimepicker,
             daterangepicker
         ) {
                 new Appserver(function () {
