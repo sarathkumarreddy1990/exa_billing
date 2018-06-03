@@ -1,14 +1,69 @@
 {
-    "setup" : {
-        "common" : {
-            "code" : "Code",
-            "name" : "Name",
-            "description" : "Description"
+    "setup": {
+        "common": {
+            "code": "Code",
+            "name": "Name",
+            "description": "Description"
         },
-        "adjustmentcodes" : {
-            "credit" : "Credit",
-            "debit" : "Debit",
-            "entryType" : "Entry Type"
+        "adjustmentcodes": {
+            "credit": "Credit",
+            "debit": "Debit",
+            "entryType": "Entry Type"
+        },
+        "billingprovider": {
+            "address": "Address",
+            "shortdescription": "Short Description",
+            "federaltaxid": "Federal Tax ID",
+            "npino": "NPI",
+            "taxonomycode": "Taxonomy Code",
+            "enableftp": "Enable FTP",
+            "addressinfo": "Address Info",
+            "paytoaddress": "Pay To Address",
+            "contactname": "Contact Name",
+            "addresslinel": "Address1",
+            "addressline2": "Address2",
+            "citystatezip": "City/State/Zip",
+            "phoneno": "Phone",
+            "fax": "Fax",
+            "email": "Email",
+            "weburl": "Web URL",
+            "ftpdetails": "FTP Details",
+            "hostname": "Hostname",
+            "username": "Username",
+            "password": "Password",
+            "type": "Type",
+            "sftp": "SFTP",
+            "ftp": "FTP",
+            "port": "Port",
+            "sentfolder": "Sent Folder",
+            "receivefolder": "Receive Folder",
+            "identityfilepath": "Identity File Path",
+            "idcodes": "ID Codes",
+            "stateLicenseNumber": "State License Number",
+            "blueCross": "Blue Cross Provider Number",
+            "blueShield": "Blue Shield Provider Number",
+            "medicareProvider": "Medicare Provider Number",
+            "medicaidProvider": "Medicaid Provider Number",
+            "providerUPIN": "Provider UPIN Number",
+            "champusID": "CHAMPUS Identification Number",
+            "providerCommericialNumber": "Provider Commercial Number",
+            "locationNumber": "Location Number",
+            "providerPlanNetwork": "Provider Plan Network Identification Number",
+            "federalTaxpayerID": "Federal Taxpayer’s Identification Number",
+            "clinicalLaboratory": "Clinical Laboratory Improvement Amendment",
+            "stateIndustrialAccident": "State Industrial Accident Provider Number",
+            "facilityID": "Facility ID Number",
+            "preferredProvider": "Preferred Provider Organization Number",
+            "healthMaintenance": "Health Maintenance Organization Code Number",
+            "employerID": "Employer’s Identification Number",
+            "clinicNumber": "Clinic Number",
+            "providerSiteNumber": "Provider Site Number",
+            "ssn": "Social Security Number",
+            "uniqueSupplierID": "Unique Supplier Identification Number (USIN)",
+            "payerassignedproviderid": "Payer Assigned Provider ID",
+            "codequalifier": "ID Code Qualifier",
+            "insuranceprovider": "InsuranceProvider",
+            "saveIdCode": "SAVE ID CODE"
         }
     }
 }
