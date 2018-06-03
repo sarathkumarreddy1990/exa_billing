@@ -110,7 +110,7 @@ require([
         require([
             'jquery',
             'underscore',
-            'jqueryvalidateadditional',
+           'jqueryvalidateadditional',
             'jstorage',
             'bootstrap',
             'commonscript',
@@ -123,11 +123,11 @@ require([
             'appserver_shared',
             'bootstrapmultiselect',
             'select2',
-            'daterangepicker'
+           'daterangepicker'
         ], function (
             $,
             _,
-            jqueryvalidateadditional,
+           jqueryvalidateadditional,
             jstorage,
             Bootstrap,
             commonjs,

@@ -46,7 +46,7 @@ module.exports = {
 
         let {
             qualifierId,
-            provider_id,
+            providerId,
             insuranceProviderId,
             payerAssignedProviderId } = params;
 
@@ -58,7 +58,7 @@ module.exports = {
                                                 values
                                                 (
                                                     ${qualifierId}
-                                                  , ${provider_id}
+                                                  , ${providerId}
                                                   , ${insuranceProviderId}
                                                   , ${payerAssignedProviderId}
                                                 ) RETURNING id`;

@@ -1,9 +1,9 @@
 <tr data_row_id="<%= row.data_row_id %>">
         <td>
-            <span id="spAddCharge_<%= row.data_row_id %>" class="addChargeGrid">+</span>
+            <span id="spAddCharge_<%= row.data_row_id %>" class="icon icon-ic-plus addChargeLine"></span>
         </td>
         <td>
-            <span id="spDeleteCharge_<%= row.data_row_id %>" class="removecharge">X</span>
+            <span id="spDeleteCharge_<%= row.data_row_id %>" class="icon  icon-ic-close removecharge"></span>
         </td>
         <td>
             <span class="charges__accession-num" id="spAccessionNo_<%= row.data_row_id %>">
@@ -16,7 +16,7 @@
             </span>
         </td>
         <td class="charges__cpt-code">
-            <select id="txtCptCode_<%= row.data_row_id %>"  class="cptIsExists" style="width: 250px"></select>
+            <select id="txtCptCode_<%= row.data_row_id %>"  class="cptIsExists cptcode" style="width: 250px"></select>
         </td>
         <td class="charges__cpt-description">
             <select id="txtCptDescription_<%= row.data_row_id %>" class="cptdescription" style="width: 250px"></select>
@@ -58,14 +58,14 @@
             <input value="<%= row.units ? row.units : 1.000 %>"  id="txtUnits_<%= row.data_row_id %>" type="text" class="form-control maskUnits units floatbox">
         </td>
         <td>
-            <input value="<%= row.bill_fee ? row.bill_fee : 0.00 %>" id="txtBillFee_<%= row.data_row_id %>" type="text" class="billFee form-control-med form-control maskFee floatbox" style="display:inline-block;width:auto;" edit="false">
+            <input disabled value="<%= row.bill_fee ? row.bill_fee : 0.00 %>" id="txtBillFee_<%= row.data_row_id %>" type="text" class="billFee form-control-med form-control maskFee floatbox"  style="display:inline-block;width:auto;" edit="false">
             <span id="editBillFee_<%= row.data_row_id %>" class="icon-ic-edit" style="margin-left: 4px;cursor:pointer;" rel="tooltip" title="" data-original-title="Click here to edit"></span>
         </td>
         <td>
             <input disabled value="<%= row.total_bill_fee ? row.total_bill_fee : 0.00 %>" id="txtTotalBillFee_<%= row.data_row_id %>" type="text" class="totalbill form-control floatbox">
         </td>
         <td>
-            <input value="<%= row.allowed_fee ? row.allowed_fee : 0.00 %>" id="txtAllowedFee_<%= row.data_row_id %>" type="text" class="maskFee allowedFee form-control floatbox" disabled="disabled">
+            <input disabled value="<%= row.allowed_fee ? row.allowed_fee : 0.00 %>" id="txtAllowedFee_<%= row.data_row_id %>" type="text" class="maskFee allowedFee form-control floatbox">
         </td>
         <td>
             <input disabled value="<%= row.total_allowed_fee ? row.total_allowed_fee : 0.00 %>" id="txtTotalAllowedFee_<%= row.data_row_id %>" type="text" class="totalallowed form-control floatbox">

@@ -5,10 +5,10 @@ define('grid', [
     'models/pager',
     'collections/study-fields',
     'collections/studies',
-    //'collections/claim-workbench',
+    'collections/claim-workbench',
     'views/claims/index',
     'views/user-settings'
-], function (jQuery, initChangeGrid, utils, Pager, StudyFields, Studies, claimsView,UserSettingsView) {
+], function (jQuery, initChangeGrid, utils, Pager, StudyFields, Studies,claimWorkbench, claimsView,UserSettingsView) {
     var $ = jQuery;
     var isTrue = utils.isTrue;
     var isFalse = utils.isFalse;
@@ -96,8 +96,10 @@ define('grid', [
 
                 var liEditClaim = '<li><a id="anc_edit_claim" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log">Edit Claim</a></li>';
                 $divObj.append(liEditClaim);
-                $('#anc_edit_claim').click(function () {
-                    alert(studyIds)
+                $('#anc_edit_claim').off().click(function () {
+                    
+                   self.claimView = new claimsView();
+                   self.claimView.showEditClaimForm(studyIds);
                 });
 
                 var liClaimInquiry = '<li><a id="anc_claim_inquiry" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log">Claim Inquiry</a></li>';
