@@ -32,7 +32,7 @@ module.exports = {
 
     },
 
-    createTemplate: async function (templateName) {
+    createTemplate: async function (templateName, type) {
 
         if (!templateName) {
             throw new Error('Invalid template name');
@@ -40,7 +40,7 @@ module.exports = {
 
         let options = {
             method: 'POST',
-            uri: ediServerUri + '/edi/api/new_template',
+            uri: ediServerUri + '/edi/api/new_template/' + type,
             body: {
                 templateName: templateName
             },
