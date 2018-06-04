@@ -3,10 +3,10 @@ const data = require('../../data/setup/billing-providers');
 module.exports = {
 
     getData: function (args) {
-        if(args.id) {
+        if (args.id) {
             return data.getById(args);
         }
-        
+
         return data.getData(args);
     },
 
