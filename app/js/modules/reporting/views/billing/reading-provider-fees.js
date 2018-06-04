@@ -1,26 +1,16 @@
-/**
- * Author  : Vengadesh
- * Created : 01/09/17
- * ----------------------------------------------------------------------
- * Copyright © EMD Systems Software Private Ltd.  All rights reserved.
- * This file is subject to the terms and conditions defined in
- * file 'LICENSE.txt', which is part of this source code package.
- * All other rights reserved.
- * ----------------------------------------------------------------------
- */
 define([
     'jquery'
     , 'underscore'
     , 'backbone'
     , 'modules/reporting/utils/ui'
-    , 'text!modules/reporting/templates/billing/date-of-SVC-payment-summary.html'
+    , 'text!modules/reporting/templates/billing/reading-provider-fees.html'
 ],
-    function ($, _, Backbone, UI, dateOfSVCPaymentSummaryTemplate) {
+    function ($, _, Backbone, UI, readingProviderFeesTemplate) {
 
-        var DateOfSVCPaymentSummaryView = Backbone.View.extend({
+        var ReadingProviderFeesView = Backbone.View.extend({
             rendered: false,
             expanded: false,
-            mainTemplate: _.template(dateOfSVCPaymentSummaryTemplate),
+            mainTemplate: _.template(readingProviderFeesTemplate),
             viewModel: {
                 facilities: null,
                 modalities: null,
@@ -37,7 +27,7 @@ define([
                 billingProvider: null,
                 allBillingProvider: false
             },
-            selectedFacilityListDetail: [],
+            selectedFacilityList: [],
             defaultyFacilityId: null,
             events: {
                 'click #btnViewReport': 'onReportViewClick',
@@ -82,12 +72,34 @@ define([
 
             bindDateRangePicker: function () {
                 var self = this;
-                var drpEl = $('#txtDateRangeFromTo');
+                var drpEl = $('#txtDateRange');
                 var drpOptions = { autoUpdateInput: true, locale: { format: 'L' } };
                 this.drpStudyDt = commonjs.bindDateRangePicker(drpEl, drpOptions, 'past', function (start, end, format) {
                     self.viewModel.dateFrom = start;
                     self.viewModel.dateTo = end;
                 });
+            },
+
+            // multi select facilities - worked
+            getSelectedFacility: function (e) {
+                var selected = $("#ddlFacilityFilter option:selected");
+                var facilities = [];
+                selected.each(function () {
+                    facilities.push($(this).val());
+                });
+                this.selectedFacilityList = facilities
+                this.viewModel.allFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlFacilityFilter option").length;
+            },
+
+            // multi select billing provider - worked
+            getBillingProvider: function (e) {
+                var billing_pro = []
+                var selected = $("#ddlBillingProvider option:selected");
+                selected.each(function () {
+                    billing_pro.push($(this).val());
+                });
+                this.selectedBillingProList = billing_pro;
+                this.viewModel.allBillingProvider = this.selectedBillingProList && this.selectedBillingProList.length === $("#ddlBillingProvider option").length;
             },
 
             onReportViewClick: function (e) {
@@ -122,29 +134,6 @@ define([
                 return true;
             },
 
-
-            // multi select facilities - worked
-            getSelectedFacility: function (e) {
-                var selected = $("#ddlFacilityFilter option:selected");
-                var facilities = [];
-                selected.each(function () {
-                    facilities.push($(this).val());
-                });
-                this.selectedFacilityList = facilities
-                this.viewModel.allFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlFacilityFilter option").length;
-            },
-
-            // multi select billing provider - worked
-            getBillingProvider: function (e) {
-                var billing_pro = []
-                var selected = $("#ddlBillingProvider option:selected");
-                selected.each(function () {
-                    billing_pro.push($(this).val());
-                });
-                this.selectedBillingProList = billing_pro;
-                this.viewModel.allBillingProvider = this.selectedBillingProList && this.selectedBillingProList.length === $("#ddlBillingProvider option").length;
-            },
-
             getReportParams: function () {
                 return urlParams = {
                     'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
@@ -158,5 +147,5 @@ define([
             }
         });
 
-        return DateOfSVCPaymentSummaryView;
+        return ReadingProviderFeesView;
     });

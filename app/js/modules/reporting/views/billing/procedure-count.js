@@ -1,43 +1,33 @@
-/**
- * Author  : Vengadesh
- * Created : 01/09/17
- * ----------------------------------------------------------------------
- * Copyright © EMD Systems Software Private Ltd.  All rights reserved.
- * This file is subject to the terms and conditions defined in
- * file 'LICENSE.txt', which is part of this source code package.
- * All other rights reserved.
- * ----------------------------------------------------------------------
- */
 define([
     'jquery'
     , 'underscore'
     , 'backbone'
     , 'modules/reporting/utils/ui'
-    , 'text!modules/reporting/templates/billing/date-of-SVC-payment-summary.html'
+    , 'text!modules/reporting/templates/billing/procedure-count.html'
 ],
-    function ($, _, Backbone, UI, dateOfSVCPaymentSummaryTemplate) {
+    function ($, _, Backbone, UI, ProcedureCountTemplate) {
 
-        var DateOfSVCPaymentSummaryView = Backbone.View.extend({
+        var ProcedureCountView = Backbone.View.extend({
             rendered: false,
+            drpStudyDt: null,
             expanded: false,
-            mainTemplate: _.template(dateOfSVCPaymentSummaryTemplate),
+            mainTemplate: _.template(ProcedureCountTemplate),
             viewModel: {
                 facilities: null,
-                modalities: null,
                 dateFrom: null,
                 dateTo: null,
-                allFacilities: false,
+                allFacilities: true,
                 facilityIds: null,
                 openInNewTab: false,
                 reportId: null,
                 reportCategory: null,
                 reportTitle: null,
                 reportFormat: null,
-                reportDate: null,
                 billingProvider: null,
                 allBillingProvider: false
             },
-            selectedFacilityListDetail: [],
+            selectedBillingProList: [],
+            selectedFacilityList: [],
             defaultyFacilityId: null,
             events: {
                 'click #btnViewReport': 'onReportViewClick',
@@ -82,12 +72,35 @@ define([
 
             bindDateRangePicker: function () {
                 var self = this;
-                var drpEl = $('#txtDateRangeFromTo');
+                var drpEl = $('#txtDateRange');
                 var drpOptions = { autoUpdateInput: true, locale: { format: 'L' } };
                 this.drpStudyDt = commonjs.bindDateRangePicker(drpEl, drpOptions, 'past', function (start, end, format) {
+                    //console.info('DRP: ', format, start, end);
                     self.viewModel.dateFrom = start;
                     self.viewModel.dateTo = end;
                 });
+            },
+
+            // multi select facilities - worked
+            getSelectedFacility: function (e) {
+                var selected = $("#ddlFacilityFilter option:selected");
+                var facilities = [];
+                selected.each(function () {
+                    facilities.push($(this).val());
+                });
+                this.selectedFacilityList = facilities
+                this.viewModel.allFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlFacilityFilter option").length;
+            },
+
+            // multi select billing provider - worked
+            getBillingProvider: function (e) {
+                var billing_pro = []
+                var selected = $("#ddlBillingProvider option:selected");
+                selected.each(function () {
+                    billing_pro.push($(this).val());
+                });
+                this.selectedBillingProList = billing_pro;
+                this.viewModel.allBillingProvider = this.selectedBillingProList && this.selectedBillingProList.length === $("#ddlBillingProvider option").length;
             },
 
             onReportViewClick: function (e) {
@@ -118,33 +131,8 @@ define([
                     //commonjs.showWarning('Please select date range!');
                     return false;
                 }
-
                 return true;
             },
-
-
-            // multi select facilities - worked
-            getSelectedFacility: function (e) {
-                var selected = $("#ddlFacilityFilter option:selected");
-                var facilities = [];
-                selected.each(function () {
-                    facilities.push($(this).val());
-                });
-                this.selectedFacilityList = facilities
-                this.viewModel.allFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlFacilityFilter option").length;
-            },
-
-            // multi select billing provider - worked
-            getBillingProvider: function (e) {
-                var billing_pro = []
-                var selected = $("#ddlBillingProvider option:selected");
-                selected.each(function () {
-                    billing_pro.push($(this).val());
-                });
-                this.selectedBillingProList = billing_pro;
-                this.viewModel.allBillingProvider = this.selectedBillingProList && this.selectedBillingProList.length === $("#ddlBillingProvider option").length;
-            },
-
             getReportParams: function () {
                 return urlParams = {
                     'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
@@ -158,5 +146,5 @@ define([
             }
         });
 
-        return DateOfSVCPaymentSummaryView;
+        return ProcedureCountView;
     });

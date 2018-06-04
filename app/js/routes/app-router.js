@@ -19,6 +19,9 @@ define([
     'modules/reporting/views/billing/transaction-summary',
     'modules/reporting/views/billing/date-of-SVC-payment-summary',
     'modules/reporting/views/billing/diagnosis-count',
+    'modules/reporting/views/billing/patients-by-insurance-company',
+    'modules/reporting/views/billing/procedure-count',
+    'modules/reporting/views/billing/reading-provider-fees',
     'views/app/payments',
     'views/app/payment-edit'
 ], function (Backbone,
@@ -27,7 +30,7 @@ define([
     ClaimWorkBenchView,
     AppRoute,
     SetupRoute,
-    ReportRoute,
+    ReportingRoute,
     ChargeReportView,   
     PaymentReportView,   
     ClaimActivityView, 
@@ -41,13 +44,15 @@ define([
     TransactionSummaryView,
     DateOfSVCSummaryView,
     DiagnosisCountView,
+    PatientsByInsuranceCompanyView,
+    ProcedureCountView,
+    ReadingProviderFeesView,
     PaymentsView,
     EditPaymentView
     ) {
         var AppRouter = Backbone.Router.extend({
             routes: {
                 "app/worklist": "startApp",
-                "app/reports": "startReporting",
                 "app/studies": "startAppStudies",
                 "app/claim_workbench": "startClaimWorkBench",               
                 "app/reports/charges": "startChargeReporting",               
@@ -63,12 +68,15 @@ define([
                 "app/reports/transaction-summary": "starttransactionSummaryReporting",
                 "app/reports/date-of-SVC-payment-summary": "startDateOfSVCSummaryViewReporting",
                 "app/reports/diagnosis-count": "startDiagnosisCountReporting",
+                "app/reports/patients-by-insurance-company": "startPatientsByInsuranceCompanyViewReporting",
+                "app/reports/procedure-count": "startProcedureCountViewReporting",
+                "app/reports/reading-provider-fees": "startReadingProviderFeesReporting",
     
                 // "app/*subroute": "startApp",
                 "setup/*subroute": "startSetup",
                 "app/payments": "startPayments",
                 "app/payments/edit/:id": "editPayment",
-                "reports/*subroute": "startReport"
+                "reports/*subroute": "startReporting"
             },
             // startApp: function (subroutes) {
             //     if (!this.appRoute) {
@@ -85,10 +93,10 @@ define([
                     this.setupRouter = new SetupRoute("setup/", { createTrailingSlashRoutes: true });
                 }
             },
-            startReport : function (subroute) {
-                if (!this.reportingRouter) {                  
-                    this.reportingRouter = new ReportRoute("reports/", { createTrailingSlashRoutes: true } );
-                }
+            startReporting : function (subroute) {
+                if (!this.reportingRouter) {
+                  this.reportingRouter = new ReportingRoute("reports/", { createTrailingSlashRoutes: true }); // new module, notice plural "/reports" <---
+                             }
             },
             startAppStudies: function (subroutes) {
                 if (!this.appRoute) {
@@ -182,6 +190,24 @@ define([
             startDiagnosisCountReporting: function (subroutes) {
                 if (!this.reportingRoute) {             
                     this.reportingRoute = new DiagnosisCountView({ el: $('#root') });
+                }
+            },
+
+            startPatientsByInsuranceCompanyViewReporting: function (subroutes) {
+                if (!this.reportingRoute) {             
+                    this.reportingRoute = new PatientsByInsuranceCompanyView({ el: $('#root') });
+                }
+            },
+
+            startProcedureCountViewReporting: function (subroutes) {
+                if (!this.reportingRoute) {             
+                    this.reportingRoute = new ProcedureCountView({ el: $('#root') });
+                }
+            },
+
+            startReadingProviderFeesReporting: function (subroutes) {
+                if (!this.reportingRoute) {             
+                    this.reportingRoute = new ReadingProviderFeesView({ el: $('#root') });
                 }
             },
 
