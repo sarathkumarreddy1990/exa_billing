@@ -34,7 +34,8 @@ describe('AdjustmentCodes', () => {
             });
 
             should.exist(data);
-            data.rows.should.be.an('array');
+            data.rowCount.should.equal(1);
+            data.rows.should.have.lengthOf.above(0);
             id = data.rows[0].id;
         });
     });
@@ -46,7 +47,7 @@ describe('AdjustmentCodes', () => {
             });
 
             should.exist(data);
-            data.rows.should.be.an('array');
+            data.rowCount.should.equal(1);
         });
     });
 
@@ -61,7 +62,7 @@ describe('AdjustmentCodes', () => {
             });
 
             should.exist(data);
-            data.rows.should.be.an('array');
+            data.rowCount.should.equal(1);
         });
     });
 
@@ -72,7 +73,7 @@ describe('AdjustmentCodes', () => {
             });
 
             should.exist(data);
-            data.rows.should.be.an('array');
+            data.rowCount.should.equal(1);
         });
     });
 });

@@ -33,7 +33,8 @@ describe('BillingClass', () => {
             });
 
             should.exist(data);
-            data.rows.should.be.an('array');
+            data.rowCount.should.equal(1);
+            data.rows.should.have.lengthOf.above(0);
             id = data.rows[0].id;
         });
     });
@@ -45,7 +46,7 @@ describe('BillingClass', () => {
             });
 
             should.exist(data);
-            data.rows.should.be.an('array');
+            data.rowCount.should.equal(1);
         });
     });
 
@@ -59,7 +60,7 @@ describe('BillingClass', () => {
             });
 
             should.exist(data);
-            data.rows.should.be.an('array');
+            data.rowCount.should.equal(1);
         });
     });
 
@@ -70,7 +71,7 @@ describe('BillingClass', () => {
             });
 
             should.exist(data);
-            data.rows.should.be.an('array');
+            data.rowCount.should.equal(1);
         });
     });
 });
