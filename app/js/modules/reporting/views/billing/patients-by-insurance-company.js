@@ -13,14 +13,14 @@ define([
     , 'underscore'
     , 'backbone'
     , 'modules/reporting/utils/ui'
-    , 'text!modules/reporting/templates/billing/date-of-SVC-payment-summary.html'
+    , 'text!modules/reporting/templates/billing/patients-by-insurance-company.html'
 ],
-    function ($, _, Backbone, UI, dateOfSVCPaymentSummaryTemplate) {
+    function ($, _, Backbone, UI, patientsByInsuranceCompanyTemplate) {
 
-        var DateOfSVCPaymentSummaryView = Backbone.View.extend({
+        var PatientsByInsuranceCompanyView = Backbone.View.extend({
             rendered: false,
             expanded: false,
-            mainTemplate: _.template(dateOfSVCPaymentSummaryTemplate),
+            mainTemplate: _.template(patientsByInsuranceCompanyTemplate),
             viewModel: {
                 facilities: null,
                 modalities: null,
@@ -38,7 +38,6 @@ define([
                 allBillingProvider: false
             },
             selectedFacilityListDetail: [],
-            defaultyFacilityId: null,
             events: {
                 'click #btnViewReport': 'onReportViewClick',
                 'click #btnViewReportNewTab': 'onReportViewClick',
@@ -118,7 +117,6 @@ define([
                     //commonjs.showWarning('Please select date range!');
                     return false;
                 }
-
                 return true;
             },
 
@@ -158,5 +156,5 @@ define([
             }
         });
 
-        return DateOfSVCPaymentSummaryView;
+        return PatientsByInsuranceCompanyView;
     });

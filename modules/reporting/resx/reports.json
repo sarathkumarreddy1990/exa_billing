@@ -633,7 +633,7 @@
         }
     },
     {
-        "id": "procedureCount",
+        "id": "procedure-count",
         "category": "billing",
         "title": "Procedure Count",
         "description": "Procedure Count",
@@ -1001,6 +1001,39 @@
         "category": "billing",
         "title": "Payments By Insurance Company",
         "description": "Calculate Insurance Company wise payments",
+        "jsreport": {
+            "html": {
+                "template": {
+                    "name": "default-table-html"
+                }
+            },
+            "pdf": {
+                "template": {
+                    "name": "default-table-pdf"
+                }
+            },
+            "xlsx": {
+                "template": {
+                    "name": "default-table-excel"
+                }
+            },
+            "csv": {
+                "template": {
+                    "name": "default-table-csv"
+                }
+            },
+            "xml": {
+                "template": {
+                    "name": "default-table-xml"
+                }
+            }
+        }
+    },
+    { 
+        "id": "patients-by-insurance-company",
+        "category": "billing",
+        "title": "Patient By Insurance Company",
+        "description": "Calculate Insurance Company wise by Patients",
         "jsreport": {
             "html": {
                 "template": {
