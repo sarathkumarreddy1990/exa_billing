@@ -5,7 +5,7 @@ define(['backbone'], function (Backbone) {
 
         defaults: {
             code: "",
-            desc: "",
+            description: "",
             type: "",
             is_active: "",
             company_id:"",

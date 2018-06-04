@@ -52,15 +52,25 @@ module.exports = {
             companyId
         } = params;
 
-        const sql = SQL`INSERT INTO 
-                        billing.messages (
+        const sql = SQL`WITH update_message AS(
+                        UPDATE
+                            billing.messages 
+                        SET  
+                              code = ${code}
+                            , description = ${description}
+                        WHERE 
+                        code = ${code}
+                        RETURNING id)
+                        INSERT INTO  billing.messages (
                               company_id
                             , code
                             , description)
-                        VALUES(
-                               ${companyId}
-                             , ${code}
-                             , ${description} )`;
+                        SELECT 
+                              ${companyId}
+                            , ${code}
+                            , ${description} 
+                        WHERE NOT EXISTS(SELECT * FROM update_message)
+                        RETURNING id `;
 
         return await query(sql);
     },

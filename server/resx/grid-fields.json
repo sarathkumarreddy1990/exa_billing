@@ -349,5 +349,810 @@
 			},
 			"id": 28
 		}
-	]
+	],
+	"study_fields":[
+        		
+        {
+            "id": 1,
+            "field_name": "Account#",
+            "i18n_name": "setup.studyFilters.accountNo",
+            "field_info": {
+                "custom_name": "Account#",
+                "name": "account_no",
+                "width": 200
+            },
+            "field_code": "account_no"
+        },
+        {
+            "id": 2,
+            "field_name": "ID",
+            "i18n_name": "shared.fields.id",
+            "field_info": {
+                "custom_name": "ID",
+                "name": "study_id",
+                "width": 0,
+                "index": "study_id",
+                "key": true,
+                "hidden": true
+            },
+            "field_code": "study_id"
+        },
+        {
+            "id": 3,
+            "field_name": "Study Description",
+            "i18n_name": "setup.studyFilters.studyDescription",
+            "field_info": {
+                "custom_name": "Study Description",
+                "name": "study_description",
+                "width": 250,
+                "defaultValue": ""
+            },
+            "field_code": "study_description"
+        },
+        {
+            "id": 4,
+            "field_name": "Station",
+            "i18n_name": "order.newOrder.station",
+            "field_info": {
+                "custom_name": "Station",
+                "name": "station",
+                "width": 100,
+                "defaultValue": ""
+            },
+            "field_code": "station"
+        },
+        {
+            "id": 5,
+            "field_name": "Study Received Date",
+            "i18n_name": "setup.studyFilters.studyReceivedDate",
+            "field_info": {
+                "custom_name": "Study Received Date",
+                "name": "study_received_dt",
+                "width": 200,
+                "defaultValue": "",
+                "search": true
+            },
+            "field_code": "study_received_dt"
+        },
+        {
+            "id": 6,
+            "field_name": "BodyPart",
+            "i18n_name": "setup.studyFilters.bodyPart",
+            "field_info": {
+                "custom_name": "BodyPart",
+                "name": "body_part",
+                "width": 150,
+                "stype": "select"
+            },
+            "field_code": "body_part"
+        },
+        {
+            "id": 7,
+            "field_name": "Department",
+            "i18n_name": "order.newOrder.department",
+            "field_info": {
+                "custom_name": "Department",
+                "name": "department",
+                "width": 100,
+                "defaultValue": ""
+            },
+            "field_code": "department"
+        },
+        {
+            "id": 8,
+            "field_name": "Reason for Study",
+            "i18n_name": "order.notes.reasonForStudy",
+            "field_info": {
+                "custom_name": "Reason for Study",
+                "name": "reason_for_study",
+                "width": 150,
+                "defaultValue": ""
+            },
+            "field_code": "reason_for_study"
+        },
+        {
+            "id": 9,
+            "field_name": "Modality",
+            "i18n_name": "shared.fields.modality",
+            "field_info": {
+                "custom_name": "Modality",
+                "name": "modalities",
+                "width": 150,
+                "stype": "select"
+            },
+            "field_code": "modalities"
+        },
+        {
+            "id": 10,
+            "field_name": "Patient",
+            "i18n_name": "shared.fields.patient",
+            "field_info": {
+                "custom_name": "Patient",
+                "name": "patient_name",
+                "width": 250
+            },
+            "field_code": "patient_name"
+        },
+        {
+            "id": 11,
+            "field_name": "DOB",
+            "i18n_name": "shared.fields.dob",
+            "field_info": {
+                "custom_name": "DOB",
+                "name": "birth_date",
+                "width": 200,
+                "defaultValue": ""
+            },
+            "field_code": "birth_date"
+        },
+        {
+            "id": 12,
+            "field_name": "Gender",
+            "i18n_name": "shared.fields.gender",
+            "field_info": {
+                "custom_name": "Gender",
+                "name": "gender",
+                "width": 100,
+                "defaultValue": ""
+            },
+            "field_code": "gender"
+        },
+        {
+            "id": 13,
+            "field_name": "Age-Time of Study",
+            "i18n_name": "setup.studyFilters.ageTimeOfStudy",
+            "field_info": {
+                "custom_name": "Age-Time of Study",
+                "name": "patient_age",
+                "width": 100,
+                "defaultValue": "",
+                "hidden": false
+            },
+            "field_code": "patient_age"
+        },
+        {
+            "id": 14,
+            "field_name": "Ref.Physician",
+            "i18n_name": "home.pendingStudies.refPhy",
+            "field_info": {
+                "custom_name": "Ref.Physician",
+                "name": "refphy_name",
+                "width": 250,
+                "defaultValue": ""
+            },
+            "field_code": "refphy_name"
+        },
+        {
+            "id": 15,
+            "field_name": "Study Date",
+            "i18n_name": "shared.fields.studyDate",
+            "field_info": {
+                "custom_name": "Study Date",
+                "name": "study_dt",
+                "width": 200,
+                "defaultValue": "",
+                "search": true,
+                "hidden": false
+            },
+            "field_code": "study_dt"
+        },
+        {
+            "id": 16,
+            "field_name": "Accession #",
+            "i18n_name": "setup.studyFilters.accession",
+            "field_info": {
+                "custom_name": "Accession #",
+                "name": "accession_no",
+                "width": 200
+            },
+            "field_code": "accession_no"
+        },
+        {
+            "id": 17,
+            "field_name": "Facility",
+            "i18n_name": "shared.fields.facility",
+            "field_info": {
+                "custom_name": "Facility",
+                "name": "facility_name",
+                "width": 200,
+                "stype": "select"
+            },
+            "field_code": "facility_name"
+        },
+        {
+            "id": 18,
+            "field_name": "Reading Physician",
+            "i18n_name": "home.pendingStudies.readPhy",
+            "field_info": {
+                "custom_name": "Reading Physician",
+                "name": "readphy_name",
+                "width": 250,
+                "defaultValue": ""
+            },
+            "field_code": "readphy_name"
+        },
+        {
+            "id": 19,
+            "field_name": "Institution",
+            "i18n_name": "setup.studyFilters.institution",
+            "field_info": {
+                "custom_name": "Institution",
+                "name": "institution",
+                "width": 100,
+                "defaultValue": ""
+            },
+            "field_code": "institution"
+        },
+        {
+            "id": 20,
+            "field_name": "Stat",
+            "i18n_name": "setup.studyFilters.stat",
+            "field_info": {
+                "custom_name": "Stat",
+                "name": "stat_level",
+                "width": 150,
+                "stype": "select",
+                "sortable": false
+            },
+            "field_code": "stat_level"
+        },
+        {
+            "id": 21,
+            "field_name": "Series",
+            "i18n_name": "shared.fields.series",
+            "field_info": {
+                "custom_name": "Series",
+                "name": "no_of_series",
+                "width": 150,
+                "defaultValue": ""
+            },
+            "field_code": "no_of_series"
+        },
+        {
+            "id": 22,
+            "field_name": "IMGS",
+            "i18n_name": "setup.studyFilters.imgs",
+            "field_info": {
+                "custom_name": "IMGS",
+                "name": "no_of_instances",
+                "width": 60,
+                "defaultValue": "",
+                "search": false
+            },
+            "field_code": "no_of_instances"
+        },
+        {
+            "id": 23,
+            "field_name": "Study Flag",
+            "i18n_name": "order.assignVehicle.studyFlag",
+            "field_info": {
+                "custom_name": "Study Flag",
+                "name": "study_flag",
+                "width": 100,
+                "stype": "select"
+            },
+            "field_code": "study_flag"
+        },
+        {
+            "id": 24,
+            "field_name": "Priority",
+            "i18n_name": "order.additionalInfo.priority",
+            "field_info": {
+                "custom_name": "Priority",
+                "name": "priority",
+                "width": 150,
+                "stype": "select"
+            },
+            "field_code": "priority"
+        },
+        {
+            "id": 25,
+            "field_name": "Notes",
+            "i18n_name": "shared.fields.notes",
+            "field_info": {
+                "custom_name": "Notes",
+                "name": "notes",
+                "width": 150,
+                "search": false,
+                "sortable": false,
+                "defaultValue": ""
+            },
+            "field_code": "notes"
+        },
+        {
+            "id": 26,
+            "field_name": "CPT Codes",
+            "i18n_name": "order.summary.cptCodes",
+            "field_info": {
+                "custom_name": "CPT Codes",
+                "name": "studies.cpt_codes",
+                "width": 200,
+                "search": false,
+                "sortable": false,
+                "defaultValue": ""
+            },
+            "field_code": "cpt_codes"
+        },
+        {
+            "id": 27,
+            "field_name": "ICD Codes",
+            "i18n_name": "setup.customForms.icdCodes",
+            "field_info": {
+                "custom_name": "ICD Codes",
+                "name": "icd_codes",
+                "width": 100,
+                "search": false,
+                "sortable": false,
+                "defaultValue": ""
+            },
+            "field_code": "icd_codes"
+        },
+        {
+            "id": 28,
+            "field_name": "Insurance Providers",
+            "i18n_name": "setup.cptCodes.insuranceProviders",
+            "field_info": {
+                "custom_name": "Insurance Providers",
+                "name": "insurance_providers",
+                "width": 200,
+                "search": true,
+                "sortable": true,
+                "defaultValue": ""
+            },
+            "field_code": "insurance_providers"
+        },
+        {
+            "id": 29,
+            "field_name": "Ordered By",
+            "i18n_name": "setup.studyFilters.orderedBy",
+            "field_info": {
+                "custom_name": "Ordered By",
+                "name": "ordered_by",
+                "width": 150,
+                "search": false,
+                "sortable": false,
+                "defaultValue": ""
+            },
+            "field_code": "ordered_by"
+        },
+        {
+            "id": 30,
+            "field_name": "Last Name",
+            "i18n_name": "shared.fields.lastName",
+            "field_info": {
+                "custom_name": "Last Name",
+                "name": "last_name",
+                "width": 250
+            },
+            "field_code": "last_name"
+        },
+        {
+            "id": 31,
+            "field_name": "First Name",
+            "i18n_name": "shared.fields.firstName",
+            "field_info": {
+                "custom_name": "First Name",
+                "name": "first_name",
+                "width": 250
+            },
+            "field_code": "first_name"
+        },
+        {
+            "id": 32,
+            "field_name": "Schedule Type",
+            "i18n_name": "setup.studyFilters.scheduleType",
+            "field_info": {
+                "custom_name": "Schedule Type",
+                "name": "order_type",
+                "width": 150,
+                "stype": "select",
+                "search": true,
+                "sortable": true
+            },
+            "field_code": "order_type"
+        },
+        {
+            "id": 33,
+            "field_name": "Vehicle Name",
+            "i18n_name": "setup.vehicleAudit.vehicleName",
+            "field_info": {
+                "custom_name": "Vehicle Name",
+                "name": "vehicle_name",
+                "width": 200,
+                "search": true,
+                "sortable": true
+            },
+            "field_code": "vehicle_name"
+        },
+        {
+            "id": 34,
+            "field_name": "Claim Status",
+            "i18n_name": "order.chargePayment.claimStatus",
+            "field_info": {
+                "custom_name": "Claim Status",
+                "name": "claim_status",
+                "width": 100,
+                "search": true,
+                "sortable": true
+            },
+            "field_code": "claim_status"
+        },
+        {
+            "id": 35,
+            "field_name": "Responsible",
+            "i18n_name": "shared.fields.responsible",
+            "field_info": {
+                "custom_name": "Responsible",
+                "name": "payer_name",
+                "width": 100,
+                "search": true,
+                "sortable": true
+            },
+            "field_code": "payer_name"
+        },
+        {
+            "id": 36,
+            "field_name": "Technologist",
+            "i18n_name": "setup.modalityRooms.technologist",
+            "field_info": {
+                "custom_name": "Technologist",
+                "name": "technologist_name",
+                "width": 100,
+                "search": true,
+                "sortable": true
+            },
+            "field_code": "technologist_name"
+        },
+        {
+            "id": 37,
+            "field_name": "Ordering Facility",
+            "i18n_name": "shared.fields.orderingFacility",
+            "field_info": {
+                "custom_name": "Ordering Facility",
+                "name": "ordering_facility",
+                "width": 250,
+                "defaultValue": ""
+            },
+            "field_code": "ordering_facility"
+        },
+        {
+            "id": 38,
+            "field_name": "MU Last Updated date",
+            "i18n_name": "setup.studyFilters.muLastUpdatedDate",
+            "field_info": {
+                "custom_name": "MU Last Updated date",
+                "name": "mu_last_updated",
+                "width": 200,
+                "defaultValue": "",
+                "search": true,
+                "sortable": true,
+                "hidden": false
+            },
+            "field_code": "mu_last_updated"
+        },
+        {
+            "id": 39,
+            "field_name": "MU Last Updated By",
+            "i18n_name": "setup.studyFilters.muLastUpdatedBy",
+            "field_info": {
+                "custom_name": "MU Last Updated By",
+                "name": "mu_last_updated_by",
+                "width": 200,
+                "defaultValue": "",
+                "search": true,
+                "sortable": true,
+                "hidden": false
+            },
+            "field_code": "mu_last_updated_by"
+        },
+        {
+            "id": 40,
+            "field_name": "Send Status",
+            "i18n_name": "menuTitles.rightClickMenu.sendStatus",
+            "field_info": {
+                "custom_name": "Send Status",
+                "name": "send_status",
+                "width": 100,
+                "stype": "select"
+            },
+            "field_code": "send_status"
+        },
+        {
+            "id": 41,
+            "field_name": "Fax Status",
+            "i18n_name": "menuTitles.rightClickMenu.faxStatus",
+            "field_info": {
+                "custom_name": "Fax Status",
+                "name": "fax_status",
+                "width": 100,
+                "stype": "select"
+            },
+            "field_code": "fax_status"
+        },
+        {
+            "id": 42,
+            "field_name": "Check In Date",
+            "i18n_name": "setup.studyFilters.checkInDate",
+            "field_info": {
+                "custom_name": "Check In Date",
+                "name": "check_indate",
+                "width": 200,
+                "defaultValue": ""
+            },
+            "field_code": "check_indate"
+        },
+        {
+            "id": 43,
+            "field_name": "Billing Code",
+            "i18n_name": "billing.fileInsurance.billingCode",
+            "field_info": {
+                "custom_name": "Billing Code",
+                "name": "billing_code",
+                "width": 200,
+                "defaultValue": ""
+            },
+            "field_code": "billing_code"
+        },
+        {
+            "id": 44,
+            "field_name": "Billing Class",
+            "i18n_name": "billing.fileInsurance.billingClass",
+            "field_info": {
+                "custom_name": "Billing Class",
+                "name": "billing_class",
+                "width": 200,
+                "defaultValue": ""
+            },
+            "field_code": "billing_class"
+        },
+        {
+            "id": 45,
+            "field_name": "Status Changed Date",
+            "i18n_name": "setup.studyFilters.statusChangedDate",
+            "field_info": {
+                "custom_name": "Status Changed Date",
+                "name": "status_last_changed_dt",
+                "width": 200,
+                "defaultValue": "",
+                "search": true,
+                "hidden": false
+            },
+            "field_code": "status_last_changed_dt"
+        },
+        {
+            "id": 46,
+            "field_name": "Scheduled Date",
+            "i18n_name": "setup.studyFilters.scheduledDate",
+            "field_info": {
+                "custom_name": "Scheduled Date",
+                "name": "scheduled_dt",
+                "width": 200,
+                "defaultValue": "",
+                "search": true
+            },
+            "field_code": "scheduled_dt"
+        },
+        {
+            "id": 47,
+            "field_name": "Approving Physician",
+            "i18n_name": "setup.studyFilters.approvingPhysician",
+            "field_info": {
+                "custom_name": "Approving Physician",
+                "name": "approving_provider",
+                "width": 200
+            },
+            "field_code": "approving_provider"
+        },
+        {
+            "id": 48,
+            "field_name": "Approved Date",
+            "i18n_name": "setup.dbTotals.approvedDate",
+            "field_info": {
+                "custom_name": "Approved Date",
+                "name": "approved_dt",
+                "width": 200,
+                "defaultValue": ""
+            },
+            "field_code": "approved_dt"
+        },
+        {
+            "id": 49,
+            "field_name": "TAT",
+            "i18n_name": "home.common.tat",
+            "field_info": {
+                "custom_name": "TAT",
+                "width": 150,
+                "defaultValue": "",
+                "stype": "select"
+            },
+            "field_code": "tat_level"
+        },
+        {
+            "id": 50,
+            "field_name": "Status",
+            "i18n_name": "shared.fields.status",
+            "field_info": {
+                "custom_name": "Status",
+                "width": 150,
+                "defaultValue": ""
+            },
+            "field_code": "study_status"
+        },
+        {
+            "id": 51,
+            "field_name": "Claim #",
+            "i18n_name": "billing.fileInsurance.claimNo",
+            "field_info": {
+                "custom_name": "Claim #",
+                "name": "claim_no",
+                "width": 200,
+                "defaultValue": ""
+            },
+            "field_code": "claim_no"
+        },
+        {
+            "id": 52,
+            "field_name": "Modality Room",
+            "i18n_name": "setup.studyFilters.modalityRoom",
+            "field_info": {
+                "custom_name": "Modality Room",
+                "name": "modality_room_id",
+                "width": 150,
+                "stype": "select",
+                "defaultValue": ""
+            },
+            "field_code": "modality_room_id"
+        },
+        {
+            "id": 53,
+            "field_name": "Report Queue Status",
+            "i18n_name": "setup.studyFilters.reportQueueStatus",
+            "field_info": {
+                "custom_name": "Report Queue Status",
+                "name": "report_queue_status",
+                "width": 200,
+                "stype": "select"
+            },
+            "field_code": "report_queue_status"
+        },
+        {
+            "id": 54,
+            "field_name": "Insurance Authorization",
+            "i18n_name": "setup.studyFilters.insuranceAuthorization",
+            "field_info": {
+                "custom_name": "Insurance Authorization",
+                "name": "as_authorization",
+                "width": 200,
+                "sortable": true,
+                "search" : true,
+                "stype": "select"
+                },
+            "field_code": "as_authorization"
+        },
+        {
+            "id": 55,
+            "field_name": "Deleted",
+            "i18n_name": "setup.studyFilters.deleted",
+            "field_info": {
+                "custom_name": "Deleted",
+                "name": "has_deleted",
+                "width": 80,
+                "stype": "select"
+            },
+            "field_code": "has_deleted"
+        },
+        {
+            "id": 56,
+            "field_name": "MU",
+            "i18n_name": "setup.studyFilters.mu",
+            "field_info": {
+                "custom_name": "MU",
+                "name": "mudatacaptured",
+                "width": 60,
+                "sortable": false,
+                "stype": "select",
+                "hidden": false
+            },
+            "field_code": "mudatacaptured"
+        },
+        {
+            "id": 57,
+            "field_name": "Eligibility",
+            "i18n_name": "setup.ediRequestTemplate.eligibility",
+            "field_info": {
+                "custom_name": "Eligibility",
+                "name": "eligibility_verified",
+                "width": 90,
+                "stype": "select",
+                "hidden": false
+            },
+            "field_code": "eligibility_verified"
+        },
+        {
+            "id": 58,
+            "field_name": "Provider Alerts",
+            "i18n_name": "order.newOrder.providerAlerts",
+            "field_info": {
+                "custom_name": "Provider Alerts",
+                "name": "providerAlerts",
+                "width": 250,
+                "sortable": false,
+                "search": false,
+                "defaultValue": "",
+                "hidden": false
+            },
+            "field_code": "providerAlerts"
+        },
+        {
+            "id": 59,
+            "field_name": "Attorney",
+            "i18n_name": "order.studyInfo.attorney",
+            "field_info": {
+                "custom_name": "Attorney",
+                "name": "attorney_name",
+                "width": 250,
+                "defaultValue": "",
+                "hidden": false
+            },
+            "field_code": "attorney_name"
+        },
+        {
+            "id": 60,
+            "field_name": "Image delivery",
+            "i18n_name": "setup.providers.imageDelivery",
+            "field_info": {
+                "custom_name": "Image delivery",
+                "name": "image_delivery",
+                "width": 140,
+                "defaultValue": "",
+                "stype": "select",
+                "hidden": false
+            },
+            "field_code": "image_delivery"
+        },
+        {
+            "id": 61,
+            "field_name": "Pateint Room#",
+            "i18n_name": "order.newOrder.patientRoom",
+            "field_info": {
+                "custom_id": 62,
+                "custom_name": "Pateint Room#",
+                "name": "patient_room",
+                "width": 120,
+                "defaultValue": "",
+                "hidden": false
+            },
+            "field_code": "patient_room"
+        },
+        {
+            "id": 63,
+            "field_name": "Ins Provider Type",
+            "i18n_name": "order.assignVehicle.insProviderType",
+            "field_info": {
+                "custom_id": 63,
+                "custom_name": "Ins Provider Type",
+                "name": "ins_provider_type",
+                "width": 200,
+                "searchFlag": "%",
+                "stype": "select",
+                "sortable": false
+            },
+            "field_code": "ins_provider_type"
+        },
+        {
+            "id": 64,
+            "field_name": "Patient Visit #",
+            "i18n_name": "order.patientVisitNumber",
+            "field_info": {
+                "custom_id": 64,
+                "custom_name": "Patient Visit #",
+                "name": "visit_no",
+                "width": 200,
+                "defaultValue": "",
+                "hidden": false,
+                "sortable": true
+            },
+            "field_code": "visit_no"
+        }   
+    ]
 }

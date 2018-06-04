@@ -1,5 +1,6 @@
 const studiesRouter = require('../routes/studies');
 const indexRouter = require('../routes/index');
+const defaultsRouter = require('../routes/defaults');
 //const authRouter = require('../routes/auth');
 const reportingRoutes = require('../../modules/reporting/routes');
 const studyFiltersRouter = require('../routes/study-filters');
@@ -17,6 +18,7 @@ const router = function (app) {
 
     app.use('/exa_modules/billing', indexRouter);
 
+    app.use(defaultsRouter);
     //app.use(authRouter);
 
     app.use('/exa_modules/billing/studies', studiesRouter);

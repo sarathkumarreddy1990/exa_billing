@@ -1,10 +1,10 @@
 module.exports = {
     moduleNames: {
         setup: 'Setup',
-        Claim: 'Claim',
+        claim: 'Claim',
     },
-    
+
     screenNames: {
-        adjustmentCodes: 'Adjustment Codes',
+        adjustment_codes: 'Adjustment Codes',
     }
 };
