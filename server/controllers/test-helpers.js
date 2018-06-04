@@ -4,6 +4,10 @@ module.exports = {
 
     getStudyIds: function () {
         return data.getStudyIds();
+    },
+
+    getPatientId: function () {
+        return data.getPatientId();
     }
 
 };
