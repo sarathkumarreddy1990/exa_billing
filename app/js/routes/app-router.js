@@ -21,6 +21,7 @@ define([
     'modules/reporting/views/billing/diagnosis-count',
     'modules/reporting/views/billing/patients-by-insurance-company',
     'modules/reporting/views/billing/procedure-count',
+    'modules/reporting/views/billing/reading-provider-fees',
     'views/app/payments',
     'views/app/payment-edit'
 ], function (Backbone,
@@ -45,6 +46,7 @@ define([
     DiagnosisCountView,
     PatientsByInsuranceCompanyView,
     ProcedureCountView,
+    ReadingProviderFeesView,
     PaymentsView,
     EditPaymentView
     ) {
@@ -68,6 +70,7 @@ define([
                 "app/reports/diagnosis-count": "startDiagnosisCountReporting",
                 "app/reports/patients-by-insurance-company": "startPatientsByInsuranceCompanyViewReporting",
                 "app/reports/procedure-count": "startProcedureCountViewReporting",
+                "app/reports/reading-provider-fees": "startReadingProviderFeesReporting",
     
                 // "app/*subroute": "startApp",
                 "setup/*subroute": "startSetup",
@@ -199,6 +202,12 @@ define([
             startProcedureCountViewReporting: function (subroutes) {
                 if (!this.reportingRoute) {             
                     this.reportingRoute = new ProcedureCountView({ el: $('#root') });
+                }
+            },
+
+            startReadingProviderFeesReporting: function (subroutes) {
+                if (!this.reportingRoute) {             
+                    this.reportingRoute = new ReadingProviderFeesView({ el: $('#root') });
                 }
             },
 

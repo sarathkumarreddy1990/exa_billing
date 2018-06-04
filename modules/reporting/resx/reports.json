@@ -11,19 +11,29 @@
         },
         "jsreport": {
             "html": {
-                "template": { "name": "default-table-html" }
-            },            
+                "template": {
+                    "name": "default-table-html"
+                }
+            },
             "pdf": {
-                "template": { "name": "default-table-pdf" }
+                "template": {
+                    "name": "default-table-pdf"
+                }
             },
             "xlsx": {
-                "template": { "name": "default-table-excel" }
+                "template": {
+                    "name": "default-table-excel"
+                }
             },
             "csv": {
-                "template": { "name": "default-table-csv" }
+                "template": {
+                    "name": "default-table-csv"
+                }
             },
             "xml": {
-                "template": { "name": "default-table-xml" }
+                "template": {
+                    "name": "default-table-xml"
+                }
             }
         }
     },
@@ -34,19 +44,29 @@
         "description": "Report lists studies currently *not having* selected study statuses, for selected facilities and given date range.",
         "jsreport": {
             "html": {
-                "template": { "name": "default-table-html" }
+                "template": {
+                    "name": "default-table-html"
+                }
             },
             "pdf": {
-                "template": { "name": "default-table-pdf" }
+                "template": {
+                    "name": "default-table-pdf"
+                }
             },
             "xlsx": {
-                "template": { "name": "default-table-excel" }
+                "template": {
+                    "name": "default-table-excel"
+                }
             },
             "csv": {
-                "template": { "name": "default-table-csv" }
+                "template": {
+                    "name": "default-table-csv"
+                }
             },
             "xml": {
-                "template": { "name": "default-table-xml" }
+                "template": {
+                    "name": "default-table-xml"
+                }
             }
         }
     },
@@ -61,19 +81,29 @@
         },
         "jsreport": {
             "html": {
-                "template": { "name": "default-table-html" }
+                "template": {
+                    "name": "default-table-html"
+                }
             },
             "pdf": {
-                "template": { "name": "default-table-pdf" }
+                "template": {
+                    "name": "default-table-pdf"
+                }
             },
             "xlsx": {
-                "template": { "name": "default-table-excel" }
+                "template": {
+                    "name": "default-table-excel"
+                }
             },
             "csv": {
-                "template": { "name": "default-table-csv" }
+                "template": {
+                    "name": "default-table-csv"
+                }
             },
             "xml": {
-                "template": { "name": "default-table-xml" }
+                "template": {
+                    "name": "default-table-xml"
+                }
             }
         }
     },
@@ -87,19 +117,29 @@
         },
         "jsreport": {
             "html": {
-                "template": { "name": "operations-schedulerActivity-html" }
+                "template": {
+                    "name": "operations-schedulerActivity-html"
+                }
             },
             "pdf": {
-                "template": { "name": "default-table-pdf" }
+                "template": {
+                    "name": "default-table-pdf"
+                }
             },
             "xlsx": {
-                "template": { "name": "default-table-excel" }
+                "template": {
+                    "name": "default-table-excel"
+                }
             },
             "csv": {
-                "template": { "name": "default-table-csv" }
+                "template": {
+                    "name": "default-table-csv"
+                }
             },
             "xml": {
-                "template": { "name": "default-table-xml" }
+                "template": {
+                    "name": "default-table-xml"
+                }
             }
         }
     },
@@ -113,19 +153,29 @@
         },
         "jsreport": {
             "html": {
-                "template": { "name": "operations-studiesBreakdown-html" }
+                "template": {
+                    "name": "operations-studiesBreakdown-html"
+                }
             },
             "pdf": {
-                "template": { "name": "default-table-pdf" }
+                "template": {
+                    "name": "default-table-pdf"
+                }
             },
             "xlsx": {
-                "template": { "name": "default-table-excel" }
+                "template": {
+                    "name": "default-table-excel"
+                }
             },
             "csv": {
-                "template": { "name": "default-table-csv" }
+                "template": {
+                    "name": "default-table-csv"
+                }
             },
             "xml": {
-                "template": { "name": "default-table-xml" }
+                "template": {
+                    "name": "default-table-xml"
+                }
             }
         }
     },
@@ -137,22 +187,32 @@
         "flags": {
             "hideDetailTableCaption": true,
             "hideSummaryTableCaption": true
-        },        
+        },
         "jsreport": {
             "html": {
-                "template": { "name": "default-table-html" }
-        },
+                "template": {
+                    "name": "default-table-html"
+                }
+            },
             "pdf": {
-                "template": { "name": "default-table-pdf" }
+                "template": {
+                    "name": "default-table-pdf"
+                }
             },
             "xlsx": {
-                "template": { "name": "default-table-excel" }
+                "template": {
+                    "name": "default-table-excel"
+                }
             },
             "csv": {
-                "template": { "name": "default-table-csv" }
+                "template": {
+                    "name": "default-table-csv"
+                }
             },
             "xml": {
-                "template": { "name": "default-table-xml" }
+                "template": {
+                    "name": "default-table-xml"
+                }
             }
         }
     },
@@ -164,22 +224,32 @@
         "flags": {
             "hideDetailTableCaption": true,
             "hideSummaryTableCaption": true
-        },        
+        },
         "jsreport": {
             "html": {
-                "template": { "name": "default-table-html" }
+                "template": {
+                    "name": "default-table-html"
+                }
             },
             "pdf": {
-                "template": { "name": "default-table-pdf" }
+                "template": {
+                    "name": "default-table-pdf"
+                }
             },
             "xlsx": {
-                "template": { "name": "default-table-excel" }
+                "template": {
+                    "name": "default-table-excel"
+                }
             },
             "csv": {
-                "template": { "name": "default-table-csv" }
+                "template": {
+                    "name": "default-table-csv"
+                }
             },
             "xml": {
-                "template": { "name": "default-table-xml" }
+                "template": {
+                    "name": "default-table-xml"
+                }
             }
         }
     },
@@ -190,7 +260,9 @@
         "description": "Report shows daily schedule book by time and modality room or provider.",
         "jsreport": {
             "pdf": {
-                "template": { "name": "scheduling-scheduleBook-pdf" }
+                "template": {
+                    "name": "scheduling-scheduleBook-pdf"
+                }
             }
         }
     },
@@ -201,19 +273,29 @@
         "description": "Report shows detailed claims transaction history for selected facilities and given scheduled date range.",
         "jsreport": {
             "html": {
-                "template": { "name": "default-table-html" }
+                "template": {
+                    "name": "default-table-html"
+                }
             },
             "pdf": {
-                "template": { "name": "default-table-pdf" }
+                "template": {
+                    "name": "default-table-pdf"
+                }
             },
             "xlsx": {
-                "template": { "name": "default-table-excel" }
+                "template": {
+                    "name": "default-table-excel"
+                }
             },
             "csv": {
-                "template": { "name": "default-table-csv" }
+                "template": {
+                    "name": "default-table-csv"
+                }
             },
             "xml": {
-                "template": { "name": "default-table-xml" }
+                "template": {
+                    "name": "default-table-xml"
+                }
             }
         }
     },
@@ -224,19 +306,29 @@
         "description": "Report shows aggregate study count by facility and modality and associated fees.",
         "jsreport": {
             "html": {
-                "template": { "name": "default-table-html" }
+                "template": {
+                    "name": "default-table-html"
+                }
             },
             "pdf": {
-                "template": { "name": "default-table-pdf" }
+                "template": {
+                    "name": "default-table-pdf"
+                }
             },
             "xlsx": {
-                "template": { "name": "default-table-excel" }
+                "template": {
+                    "name": "default-table-excel"
+                }
             },
             "csv": {
-                "template": { "name": "default-table-csv" }
+                "template": {
+                    "name": "default-table-csv"
+                }
             },
             "xml": {
-                "template": { "name": "default-table-xml" }
+                "template": {
+                    "name": "default-table-xml"
+                }
             }
         }
     },
@@ -247,19 +339,29 @@
         "description": "Report shows aggregate study count by radiologist and modality and associated fees.",
         "jsreport": {
             "html": {
-                "template": { "name": "default-table-html" }
+                "template": {
+                    "name": "default-table-html"
+                }
             },
             "pdf": {
-                "template": { "name": "default-table-pdf" }
+                "template": {
+                    "name": "default-table-pdf"
+                }
             },
             "xlsx": {
-                "template": { "name": "default-table-excel" }
+                "template": {
+                    "name": "default-table-excel"
+                }
             },
             "csv": {
-                "template": { "name": "default-table-csv" }
+                "template": {
+                    "name": "default-table-csv"
+                }
             },
             "xml": {
-                "template": { "name": "default-table-xml" }
+                "template": {
+                    "name": "default-table-xml"
+                }
             }
         }
     },
@@ -270,10 +372,14 @@
         "description": "Report shows patients/study facesheet.",
         "jsreport": {
             "html": {
-                "template": { "name": "patients-worksheet-html" }
+                "template": {
+                    "name": "patients-worksheet-html"
+                }
             },
             "pdf": {
-                "template": { "name": "patients-worksheet-pdf" }
+                "template": {
+                    "name": "patients-worksheet-pdf"
+                }
             }
         }
     },
@@ -283,21 +389,31 @@
         "title": "Diagnosis Count",
         "description": "Report shows aggregate diagnosis count by ICD code and facility for given order date range.",
         "jsreport": {
-          "html": {
-            "template": { "name": "default-table-html" }
-          },
-          "pdf": {
-            "template": { "name": "default-table-pdf" }
-          },
-          "xlsx": {
-            "template": { "name": "default-table-excel" }
-          },
-          "csv": {
-            "template": { "name": "default-table-csv" }
-          },
-          "xml": {
-            "template": { "name": "default-table-xml" }
-          }
+            "html": {
+                "template": {
+                    "name": "default-table-html"
+                }
+            },
+            "pdf": {
+                "template": {
+                    "name": "default-table-pdf"
+                }
+            },
+            "xlsx": {
+                "template": {
+                    "name": "default-table-excel"
+                }
+            },
+            "csv": {
+                "template": {
+                    "name": "default-table-csv"
+                }
+            },
+            "xml": {
+                "template": {
+                    "name": "default-table-xml"
+                }
+            }
         }
     },
     {
@@ -310,21 +426,31 @@
             "hideDetailTableCaption": true
         },
         "jsreport": {
-          "html": {
-            "template": { "name": "default-table-html" }
-          },
-          "pdf": {
-            "template": { "name": "default-table-pdf" }
-          },
-          "xlsx": {
-            "template": { "name": "default-table-excel" }
-          },
-          "csv": {
-            "template": { "name": "default-table-csv" }
-          },
-          "xml": {
-            "template": { "name": "default-table-xml" }
-          }
+            "html": {
+                "template": {
+                    "name": "default-table-html"
+                }
+            },
+            "pdf": {
+                "template": {
+                    "name": "default-table-pdf"
+                }
+            },
+            "xlsx": {
+                "template": {
+                    "name": "default-table-excel"
+                }
+            },
+            "csv": {
+                "template": {
+                    "name": "default-table-csv"
+                }
+            },
+            "xml": {
+                "template": {
+                    "name": "default-table-xml"
+                }
+            }
         }
     },
     {
@@ -333,21 +459,31 @@
         "title": "Charges",
         "description": "Report shows charges that are used to reconcile and review the charges populated for any date of service.",
         "jsreport": {
-          "html": {
-            "template": { "name": "default-table-html" }
-          },
-          "pdf": {
-            "template": { "name": "default-table-pdf" }
-          },
-          "xlsx": {
-            "template": { "name": "default-table-excel" }
-          },
-          "csv": {
-            "template": { "name": "default-table-csv" }
-          },
-          "xml": {
-            "template": { "name": "default-table-xml" }
-          }
+            "html": {
+                "template": {
+                    "name": "default-table-html"
+                }
+            },
+            "pdf": {
+                "template": {
+                    "name": "default-table-pdf"
+                }
+            },
+            "xlsx": {
+                "template": {
+                    "name": "default-table-excel"
+                }
+            },
+            "csv": {
+                "template": {
+                    "name": "default-table-csv"
+                }
+            },
+            "xml": {
+                "template": {
+                    "name": "default-table-xml"
+                }
+            }
         }
     },
     {
@@ -356,21 +492,31 @@
         "title": "Turnaround Time (TAT) - Calculated",
         "description": "Report shows Turnaround Time (TAT) calculated based on selected date type and study's approved date based on selected date range, facilities",
         "jsreport": {
-          "html": {
-            "template": { "name": "default-table-html" }
-          },
-          "pdf": {
-            "template": { "name": "default-table-pdf" }
-          },
-          "xlsx": {
-            "template": { "name": "default-table-excel" }
-          },
-          "csv": {
-            "template": { "name": "default-table-csv" }
-          },
-          "xml": {
-            "template": { "name": "default-table-xml" }
-          }
+            "html": {
+                "template": {
+                    "name": "default-table-html"
+                }
+            },
+            "pdf": {
+                "template": {
+                    "name": "default-table-pdf"
+                }
+            },
+            "xlsx": {
+                "template": {
+                    "name": "default-table-excel"
+                }
+            },
+            "csv": {
+                "template": {
+                    "name": "default-table-csv"
+                }
+            },
+            "xml": {
+                "template": {
+                    "name": "default-table-xml"
+                }
+            }
         }
     },
     {
@@ -380,19 +526,29 @@
         "description": "Report shows AR aging by facility, responsible party and payer for given cut off date and selected facilities.",
         "jsreport": {
             "html": {
-                "template": { "name": "default-table-html" }
+                "template": {
+                    "name": "default-table-html"
+                }
             },
             "pdf": {
-                "template": { "name": "default-table-pdf" }
+                "template": {
+                    "name": "default-table-pdf"
+                }
             },
             "xlsx": {
-                "template": { "name": "default-table-excel" }
+                "template": {
+                    "name": "default-table-excel"
+                }
             },
             "csv": {
-                "template": { "name": "default-table-csv" }
+                "template": {
+                    "name": "default-table-csv"
+                }
             },
             "xml": {
-                "template": { "name": "default-table-xml" }
+                "template": {
+                    "name": "default-table-xml"
+                }
             }
         }
     },
@@ -405,21 +561,31 @@
             "hideDetailTableCaption": true
         },
         "jsreport": {
-          "html": {
-            "template": { "name": "default-table-html" }
-          },
-          "pdf": {
-            "template": { "name": "default-table-pdf" }
-          },
-          "xlsx": {
-            "template": { "name": "default-table-excel" }
-          },
-          "csv": {
-            "template": { "name": "default-table-csv" }
-          },
-          "xml": {
-            "template": { "name": "default-table-xml" }
-          }
+            "html": {
+                "template": {
+                    "name": "default-table-html"
+                }
+            },
+            "pdf": {
+                "template": {
+                    "name": "default-table-pdf"
+                }
+            },
+            "xlsx": {
+                "template": {
+                    "name": "default-table-excel"
+                }
+            },
+            "csv": {
+                "template": {
+                    "name": "default-table-csv"
+                }
+            },
+            "xml": {
+                "template": {
+                    "name": "default-table-xml"
+                }
+            }
         }
     },
     {
@@ -462,19 +628,29 @@
         "description": "Report shows all submitted claims and order payment/balance.",
         "jsreport": {
             "html": {
-                "template": { "name": "default-table-html" }
+                "template": {
+                    "name": "default-table-html"
+                }
             },
             "pdf": {
-                "template": { "name": "default-table-pdf" }
+                "template": {
+                    "name": "default-table-pdf"
+                }
             },
             "xlsx": {
-                "template": { "name": "default-table-excel" }
+                "template": {
+                    "name": "default-table-excel"
+                }
             },
             "csv": {
-                "template": { "name": "default-table-csv" }
+                "template": {
+                    "name": "default-table-csv"
+                }
             },
             "xml": {
-                "template": { "name": "default-table-xml" }
+                "template": {
+                    "name": "default-table-xml"
+                }
             }
         }
     },
@@ -485,19 +661,29 @@
         "description": "Report shows all submitted claims and order payment/balance.",
         "jsreport": {
             "html": {
-                "template": { "name": "billing-claim-inquiry-html" }
+                "template": {
+                    "name": "billing-claim-inquiry-html"
+                }
             },
             "pdf": {
-                "template": { "name": "billing-claim-inquiry-pdf"}
+                "template": {
+                    "name": "billing-claim-inquiry-pdf"
+                }
             },
             "xlsx": {
-                "template": { "name": "billing-claim-inquiry-excel" }
+                "template": {
+                    "name": "billing-claim-inquiry-excel"
+                }
             },
             "csv": {
-                "template": { "name": "default-table-csv" }
+                "template": {
+                    "name": "default-table-csv"
+                }
             },
             "xml": {
-                "template": { "name": "default-table-xml" }
+                "template": {
+                    "name": "default-table-xml"
+                }
             }
         }
     },
@@ -514,19 +700,29 @@
         },
         "jsreport": {
             "html": {
-                "template": { "name": "default-table-html" }
+                "template": {
+                    "name": "default-table-html"
+                }
             },
             "pdf": {
-                "template": { "name": "default-table-pdf" }
+                "template": {
+                    "name": "default-table-pdf"
+                }
             },
             "xlsx": {
-                "template": { "name": "default-table-excel" }
+                "template": {
+                    "name": "default-table-excel"
+                }
             },
             "csv": {
-                "template": { "name": "default-table-csv" }
+                "template": {
+                    "name": "default-table-csv"
+                }
             },
             "xml": {
-                "template": { "name": "default-table-xml" }
+                "template": {
+                    "name": "default-table-xml"
+                }
             }
         }
     },
@@ -537,19 +733,29 @@
         "description": "Report shows Patient Statement.",
         "jsreport": {
             "html": {
-                "template": { "name": "billing-patient-statement-html" }
+                "template": {
+                    "name": "billing-patient-statement-html"
+                }
             },
             "pdf": {
-                "template": { "name": "billing-patient-statement-pdf" }
+                "template": {
+                    "name": "billing-patient-statement-pdf"
+                }
             },
             "xlsx": {
-                "template": { "name": "default-table-excel" }
+                "template": {
+                    "name": "default-table-excel"
+                }
             },
             "csv": {
-                "template": { "name": "default-table-csv" }
+                "template": {
+                    "name": "default-table-csv"
+                }
             },
             "xml": {
-                "template": { "name": "default-table-xml" }
+                "template": {
+                    "name": "default-table-xml"
+                }
             }
         }
     },
@@ -560,19 +766,29 @@
         "description": "Referring Provider Count",
         "jsreport": {
             "html": {
-                "template": { "name": "default-table-html" }
+                "template": {
+                    "name": "default-table-html"
+                }
             },
             "pdf": {
-                "template": { "name": "default-table-pdf" }
+                "template": {
+                    "name": "default-table-pdf"
+                }
             },
             "xlsx": {
-                "template": { "name": "default-table-excel" }
+                "template": {
+                    "name": "default-table-excel"
+                }
             },
             "csv": {
-                "template": { "name": "default-table-csv" }
+                "template": {
+                    "name": "default-table-csv"
+                }
             },
             "xml": {
-                "template": { "name": "default-table-xml" }
+                "template": {
+                    "name": "default-table-xml"
+                }
             }
         }
     },
@@ -616,19 +832,29 @@
         "description": "Report shows studies in approved status for a user selected date range.",
         "jsreport": {
             "html": {
-                "template": { "name": "default-table-html" }
+                "template": {
+                    "name": "default-table-html"
+                }
             },
             "pdf": {
-                "template": { "name": "default-table-pdf" }
+                "template": {
+                    "name": "default-table-pdf"
+                }
             },
             "xlsx": {
-                "template": { "name": "default-table-excel" }
+                "template": {
+                    "name": "default-table-excel"
+                }
             },
             "csv": {
-                "template": { "name": "default-table-csv" }
+                "template": {
+                    "name": "default-table-csv"
+                }
             },
             "xml": {
-                "template": { "name": "default-table-xml" }
+                "template": {
+                    "name": "default-table-xml"
+                }
             }
         }
     },
@@ -639,19 +865,29 @@
         "description": "Procedure Count",
         "jsreport": {
             "html": {
-                "template": { "name": "default-table-html" }
+                "template": {
+                    "name": "default-table-html"
+                }
             },
             "pdf": {
-                "template": { "name": "default-table-pdf" }
+                "template": {
+                    "name": "default-table-pdf"
+                }
             },
             "xlsx": {
-                "template": { "name": "default-table-excel" }
+                "template": {
+                    "name": "default-table-excel"
+                }
             },
             "csv": {
-                "template": { "name": "default-table-csv" }
+                "template": {
+                    "name": "default-table-csv"
+                }
             },
             "xml": {
-                "template": { "name": "default-table-xml" }
+                "template": {
+                    "name": "default-table-xml"
+                }
             }
         }
     },
@@ -662,19 +898,29 @@
         "description": "Credit Balance Encounters",
         "jsreport": {
             "html": {
-                "template": { "name": "default-table-html" }
+                "template": {
+                    "name": "default-table-html"
+                }
             },
             "pdf": {
-                "template": { "name": "billing-patient-statement-pdf" }
+                "template": {
+                    "name": "billing-patient-statement-pdf"
+                }
             },
             "xlsx": {
-                "template": { "name": "default-table-excel" }
+                "template": {
+                    "name": "default-table-excel"
+                }
             },
             "csv": {
-                "template": { "name": "default-table-csv" }
+                "template": {
+                    "name": "default-table-csv"
+                }
             },
             "xml": {
-                "template": { "name": "default-table-xml" }
+                "template": {
+                    "name": "default-table-xml"
+                }
             }
         }
     },
@@ -685,19 +931,29 @@
         "description": "Modality Summary",
         "jsreport": {
             "html": {
-                "template": { "name": "default-table-html" }
+                "template": {
+                    "name": "default-table-html"
+                }
             },
             "pdf": {
-                "template": { "name": "default-table-pdf" }
+                "template": {
+                    "name": "default-table-pdf"
+                }
             },
             "xlsx": {
-                "template": { "name": "default-table-excel" }
+                "template": {
+                    "name": "default-table-excel"
+                }
             },
             "csv": {
-                "template": { "name": "default-table-csv" }
+                "template": {
+                    "name": "default-table-csv"
+                }
             },
             "xml": {
-                "template": { "name": "default-table-xml" }
+                "template": {
+                    "name": "default-table-xml"
+                }
             }
         }
     },
@@ -706,24 +962,34 @@
         "category": "billing",
         "title": "Insurance Vs. LOP",
         "description": "Insurance Vs. LOP",
-        "flags" : {
+        "flags": {
             "hideDetailTableCaption": true
         },
         "jsreport": {
             "html": {
-                "template": { "name": "default-table-html" }
+                "template": {
+                    "name": "default-table-html"
+                }
             },
             "pdf": {
-                "template": { "name": "default-table-pdf" }
+                "template": {
+                    "name": "default-table-pdf"
+                }
             },
             "xlsx": {
-                "template": { "name": "default-table-excel" }
+                "template": {
+                    "name": "default-table-excel"
+                }
             },
             "csv": {
-                "template": { "name": "default-table-csv" }
+                "template": {
+                    "name": "default-table-csv"
+                }
             },
             "xml": {
-                "template": { "name": "default-table-xml" }
+                "template": {
+                    "name": "default-table-xml"
+                }
             }
         }
     },
@@ -830,8 +1096,7 @@
         }
     },
     {
-
-        "id": "readingProviderFees",
+        "id": "reading-provider-fees",
         "category": "billing",
         "title": "Reading Provider Fees",
         "description": "Report shows Reading Provider Fees .",
@@ -957,19 +1222,29 @@
         "description": "Report shows AR aging by facility, responsible party and payer for given cut off date and selected facilities in detail.",
         "jsreport": {
             "html": {
-                "template": { "name": "default-table-html" }
+                "template": {
+                    "name": "default-table-html"
+                }
             },
             "pdf": {
-                "template": { "name": "default-table-pdf" }
+                "template": {
+                    "name": "default-table-pdf"
+                }
             },
             "xlsx": {
-                "template": { "name": "default-table-excel" }
+                "template": {
+                    "name": "default-table-excel"
+                }
             },
             "csv": {
-                "template": { "name": "default-table-csv" }
+                "template": {
+                    "name": "default-table-csv"
+                }
             },
             "xml": {
-                "template": { "name": "default-table-xml" }
+                "template": {
+                    "name": "default-table-xml"
+                }
             }
         }
     },
@@ -980,23 +1255,33 @@
         "description": "Report shows Payer Mix.",
         "jsreport": {
             "html": {
-                "template": { "name": "default-table-html" }
+                "template": {
+                    "name": "default-table-html"
+                }
             },
             "pdf": {
-                "template": { "name": "default-table-pdf" }
+                "template": {
+                    "name": "default-table-pdf"
+                }
             },
             "xlsx": {
-                "template": { "name": "default-table-excel" }
+                "template": {
+                    "name": "default-table-excel"
+                }
             },
             "csv": {
-                "template": { "name": "default-table-csv" }
+                "template": {
+                    "name": "default-table-csv"
+                }
             },
             "xml": {
-                "template": { "name": "default-table-xml" }
+                "template": {
+                    "name": "default-table-xml"
+                }
             }
         }
     },
-    { 
+    {
         "id": "payments-by-ins-company",
         "category": "billing",
         "title": "Payments By Insurance Company",
@@ -1029,7 +1314,7 @@
             }
         }
     },
-    { 
+    {
         "id": "patients-by-insurance-company",
         "category": "billing",
         "title": "Patient By Insurance Company",
