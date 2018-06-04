@@ -3,23 +3,23 @@ const Promise = require('bluebird');
 
 module.exports = {
 
-    getLineItemsDetails: (params) => { return data.getLineItemsDetails(params); },
+    getLineItemsDetails: async (params) => { return await data.getLineItemsDetails(params); },
 
-    getPatientInsurances: (params) => {
+    getPatientInsurances: async (params) => {
 
         if (params.id) {
             return data.getPatientInsurancesById(params);
         }
 
-        return data.getPatientInsurances(params);
+        return await data.getPatientInsurances(params);
     },
 
     getPatientInsurancesById: async (params) => {
 
-        return data.getPatientInsurancesById(params);
+        return await data.getPatientInsurancesById(params);
     },
 
-    getMasterDetails: (params) => { return data.getMasterDetails(params); },
+    getMasterDetails: async (params) => { return await data.getMasterDetails(params); },
 
     save: async (params) => {
 
@@ -45,5 +45,29 @@ module.exports = {
         }
     },
 
-    getData: async (params) => { return data.getClaimData(params); },
+    update: async (params) => {
+
+        update_charges(params);
+
+        async function update_charges(objects) {
+
+            const charge_arr = [];
+            await data.update(params);
+
+            for (const obj1 of objects.charges) {
+
+                if (obj1.id) {
+
+                    charge_arr.push(data.saveCharges(obj1));
+
+                }
+
+                
+            }
+
+            return await Promise.all(charge_arr);
+        }
+        
+    },
+    getData: async (params)=> { return await data.getClaimData(params); }
 };
