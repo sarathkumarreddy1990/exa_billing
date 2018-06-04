@@ -1,4 +1,3 @@
-
 const express = require('express');
 const shared = require('../shared');
 const logger = require('../../logger');
