@@ -2325,9 +2325,9 @@ var commonjs = {
                             break;
                     }
                 }
-                else {
-                    commonjs.showError('messages.errors.someerror');
-                }
+                // else {
+                //     commonjs.showError('messages.errors.someerror');
+                // }
             }
             return false;
         }
@@ -3677,21 +3677,21 @@ var commonjs = {
     },
 
     resizeSetupMenu: function () {
-        // Modified by SMH to account for rendered height.  Some of the elements below were returning positive values for $.outerHeight despite being hidden (display:none)
-        $('#content').height($(window).height() - ($('.title-panel').get(0).offsetHeight + $('.sub-top-nav').get(0).offsetHeight + $('#divPageHeaderButtons').get(0).offsetHeight));
-        //$('#content').height($(window).height() - ($('.title-panel').outerHeight() + $('.sub-top-nav').outerHeight()+ $('#divPageHeaderButtons').outerHeight()));
+        // // Modified by SMH to account for rendered height.  Some of the elements below were returning positive values for $.outerHeight despite being hidden (display:none)
+        // $('#content').height($(window).height() - ($('.title-panel').get(0).offsetHeight + $('.sub-top-nav').get(0).offsetHeight + $('#divPageHeaderButtons').get(0).offsetHeight));
+        // //$('#content').height($(window).height() - ($('.title-panel').outerHeight() + $('.sub-top-nav').outerHeight()+ $('#divPageHeaderButtons').outerHeight()));
 
-        //Hide nav arrows if no overflow
-        var subID = $('#tab_setup_menu > li > ul > li.active').prop('id');
-        if (subID) {
-            if ($('#' + subID + 'SubMenu li:last-child').position().left > $('div.navbar-header').width()) {
-                $('#btnTabNavLeft').show();
-                $('#btnTabNavRight').show();
-            } else {
-                $('#btnTabNavLeft').hide();
-                $('#btnTabNavRight').hide();
-            }
-        }
+        // //Hide nav arrows if no overflow
+        // var subID = $('#tab_setup_menu > li > ul > li.active').prop('id');
+        // if (subID) {
+        //     if ($('#' + subID + 'SubMenu li:last-child').position().left > $('div.navbar-header').width()) {
+        //         $('#btnTabNavLeft').show();
+        //         $('#btnTabNavRight').show();
+        //     } else {
+        //         $('#btnTabNavLeft').hide();
+        //         $('#btnTabNavRight').hide();
+        //     }
+        // }
     },
 
     resizePatientMenu: function () {
