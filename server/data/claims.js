@@ -612,10 +612,14 @@ module.exports = {
     },
 
     update: async (args) => {
-        console.log('----',args)
-        const insurances = args.insurances;
-        const claim_icds = JSON.stringify(args.claim_icds);
-        const claim = (args.claims);
+    
+        let {
+            claims
+            , insurances
+            , claim_icds
+            , charges
+        } = args;
+
         const sqlQry = SQL`
         WITH insurance_details AS (
                   SELECT
@@ -772,7 +776,7 @@ module.exports = {
                     , is_deleted
                     
             FROM
-                json_to_recordset(${claim_icds}) AS x (
+                json_to_recordset(${JSON.stringify(claim_icds)}) AS x (
                       id bigint
                     , claim_id bigint
                     , icd_id bigint
@@ -804,39 +808,159 @@ module.exports = {
                 AND  icd.is_deleted
                 AND  icd.id is NOT NULL  RETURNING billing.claim_icds.id
         ),
+        update_primary_ins AS (
+            UPDATE
+                billing.claims
+            SET
+            payer_type = ${claims.payer_type}
+            , primary_patient_insurance_id = COALESCE(save_insurance.id,primary_patient_insurance_id)
+            FROM
+                save_insurance 
+            WHERE
+                billing.claims.id = ${claims.claim_id} 
+                AND save_insurance.coverage_level = 'primary'
+                AND 'primary_insurance' = ${claims.payer_type}
+            RETURNING billing.claims.id 
+        ),
+        update_secondary_ins AS (
+            UPDATE
+                billing.claims
+            SET
+            payer_type = ${claims.payer_type}
+            , secondary_patient_insurance_id =  COALESCE(save_insurance.id,secondary_patient_insurance_id)
+            FROM
+                save_insurance 
+            WHERE
+                billing.claims.id = ${claims.claim_id} 
+                AND 'secondary_insurance' = ${claims.payer_type}
+                AND save_insurance.coverage_level = 'secondary'
+            RETURNING billing.claims.id 
+        ),
+        update_tertiary_ins AS (
+            UPDATE
+                billing.claims
+            SET
+              payer_type = ${claims.payer_type}
+              ,tertiary_patient_insurance_id = COALESCE(save_insurance.id,tertiary_patient_insurance_id)
+            FROM
+                save_insurance 
+            WHERE
+                billing.claims.id = ${claims.claim_id} 
+                AND 'tertiary_insurance' = ${claims.payer_type}
+                AND save_insurance.coverage_level = 'tertiary'
+            RETURNING billing.claims.id
+        ),
         update_claim_header AS (
             UPDATE
                 billing.claims
             SET
-                  facility_id = ${ claim.facility_id}
-                , billing_provider_id = ${ claim.billing_provider_id}
-                , rendering_provider_contact_id = ${ claim.rendering_provider_contact_id}
-                , referring_provider_contact_id = ${ claim.referring_provider_contact_id}
-                , ordering_facility_id = ${ claim.ordering_facility_id}
-                , place_of_service_id = ${ claim.place_of_service_id}
-                , claim_status_id = ${ claim.claim_status_id}
-                , billing_code_id = ${ claim.billing_code_id}
-                , billing_class_id = ${ claim.billing_class_id}
-                , billing_method = ${ claim.billing_method}
-                , billing_notes = ${ claim.billing_notes}
-                , current_illness_date = ${ claim.current_illness_date}
-                , same_illness_first_date = ${ claim.same_illness_first_date}
-                , unable_to_work_from_date = ${ claim.unable_to_work_from_date}
-                , unable_to_work_to_date = ${ claim.unable_to_work_to_date}
-                , hospitalization_from_date = ${ claim.hospitalization_from_date}
-                , hospitalization_to_date = ${ claim.hospitalization_to_date}
-                , claim_notes = ${ claim.claim_notes}
-                , original_reference = ${ claim.original_reference}
-                , authorization_no = ${ claim.authorization_no}
-                , frequency = ${ claim.claim_frequency}
-                , is_auto_accident = ${ claim.is_auto_accident}
-                , is_other_accident = ${ claim.is_other_accident}
-                , is_employed = ${ claim.is_employed}
-                , service_by_outside_lab = ${ claim.service_by_outside_lab}
+                  facility_id = ${ claims.facility_id}
+                , billing_provider_id = ${ claims.billing_provider_id}
+                , rendering_provider_contact_id = ${ claims.rendering_provider_contact_id}
+                , referring_provider_contact_id = ${ claims.referring_provider_contact_id}
+                , ordering_facility_id = ${ claims.ordering_facility_id}
+                , place_of_service_id = ${ claims.place_of_service_id}
+                , claim_status_id = ${ claims.claim_status_id}
+                , billing_code_id = ${ claims.billing_code_id}
+                , billing_class_id = ${ claims.billing_class_id}
+                , billing_method = ${ claims.billing_method}
+                , billing_notes = ${ claims.billing_notes}
+                , current_illness_date = ${ claims.current_illness_date}
+                , same_illness_first_date = ${ claims.same_illness_first_date}
+                , unable_to_work_from_date = ${ claims.unable_to_work_from_date}
+                , unable_to_work_to_date = ${ claims.unable_to_work_to_date}
+                , hospitalization_from_date = ${ claims.hospitalization_from_date}
+                , hospitalization_to_date = ${ claims.hospitalization_to_date}
+                , claim_notes = ${ claims.claim_notes}
+                , original_reference = ${ claims.original_reference}
+                , authorization_no = ${ claims.authorization_no}
+                , frequency = ${ claims.claim_frequency}
+                , is_auto_accident = ${ claims.is_auto_accident}
+                , is_other_accident = ${ claims.is_other_accident}
+                , is_employed = ${ claims.is_employed}
+                , service_by_outside_lab = ${ claims.service_by_outside_lab}
             WHERE
-                billing.claims.id = ${ claim.claim_id}
+                billing.claims.id = ${ claims.claim_id}
         )
-        
+        , charge_details AS (
+            SELECT
+                id
+              , claim_id     
+              , cpt_id
+              , modifier1_id
+              , modifier2_id
+              , modifier3_id
+              , modifier4_id
+              , bill_fee
+              , allowed_amount
+              , units
+              , created_by
+              , charge_dt
+              , pointer1
+              , pointer2
+              , pointer3
+              , pointer4
+              , authorization_no
+    FROM
+        json_to_recordset((${JSON.stringify(charges)})) AS x (
+              id bigint
+              claim_id bigint     
+            , cpt_id bigint
+            , modifier1_id bigint
+            , modifier2_id bigint
+            , modifier3_id bigint
+            , modifier4_id bigint
+            , bill_fee money
+            , allowed_amount money
+            , units numeric(7,3)
+            , created_by bigint
+            , charge_dt timestamp with time zone
+            , pointer1 text
+            , pointer2 text
+            , pointer3 text
+            , pointer4 text
+            , authorization_no text
+            
+        )
+    ),
+    update_charges AS (
+        UPDATE
+            billing.charges
+        SET
+              cpt_id    = chd.cpt_id
+            , bill_fee  = chd.bill_fee
+            , allowed_amount = chd.allowed_amount
+            , units  = chd.units
+            , accession_no = chd.accession_no
+            , pointer1  = chd.pointer1
+            , pointer2  = chd.pointer2
+            , pointer3  = chd.pointer3
+            , pointer4  = chd.pointer4
+            , modifier1_id = chd.mmodifier1_id
+            , modifier2_id = chd.mmodifier2_id
+            , modifier3_id = chd.mmodifier3_id
+            , modifier4_id = chd.mmodifier4_id
+            , authorization_no  = chd.authorization_no
+
+        FROM
+            charge_details chd
+        WHERE
+             billing.charges.id = chd.id
+            AND billing.charges.claim_id = chd.claim_id
+            AND  NOT chd.is_deleted
+            AND  chd.id is NOT NULL RETURNING billing.charges.id, billing.charges.cpt_id
+    ),
+    delete_charges AS (
+
+        DELETE FROM
+            billing.charges
+        USING charge_details chd
+        WHERE
+             billing.charges.id = chd.id
+            AND billing.charges.claim_id = chd.claim_id
+            AND  chd.is_deleted
+            AND  chd.id is NOT NULL
+    )
         SELECT * FROM save_insurance `;
 
         return await query(sqlQry);

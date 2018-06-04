@@ -1660,9 +1660,13 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                         created_by: 1,
                         authorization_no: $('#txtAuthInfo_' + id).val() || null,
                         charge_dt: self.cur_study_date || null,
-                        study_id: rowData.study_id || null
+                        study_id: rowData.study_id || null,
+                        is_deleted: false
                     });
                 });
+
+                // Assign If any charges removed
+                claim_model.removed_charges = self.removedCharges || [];
 
                 /*Setting ICD pointers details*/
                 claim_model.claim_icds = self.claimICDLists || [];
@@ -1672,7 +1676,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     insurances: claim_model.insurances,
                     charges: claim_model.charges,
                     claims: claim_model.claims,
-                    claim_icds: claim_model.claim_icds
+                    claim_icds: claim_model.claim_icds,
+                    removed_charges: claim_model.removed_charges
                 });
 
             },
