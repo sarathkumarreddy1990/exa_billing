@@ -75,7 +75,7 @@ module.exports = {
     create: async (params) => {
         let {
             code,
-            desc,
+            description,
             type,
             isActive,
             companyId
@@ -96,7 +96,7 @@ module.exports = {
                     ( 
                         ${companyId} , 
                         ${code} , 
-                        ${desc} , 
+                        ${description} , 
                         ${type} , 
                         ${inactivated_date} 
                     )
