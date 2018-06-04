@@ -1,4 +1,4 @@
-const data = require('../data/exa-test-script');
+const data = require('../data/test-helpers');
 
 module.exports = {
 

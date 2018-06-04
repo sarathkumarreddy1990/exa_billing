@@ -4,7 +4,7 @@ const config = require('../../server/config');
 config.initialize();
 
 const claimsController = require('../../server/controllers/claims');
-const exaTestScriptController = require('../../server/controllers/exa-test-script');
+const exaTestScriptController = require('../../server/controllers/test-helpers');
 
 describe('Claims', () => {
     let id = null;
