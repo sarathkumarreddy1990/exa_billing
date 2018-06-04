@@ -36,6 +36,7 @@ define(['jquery',
                 'click #btnRefresh': 'refreshAdjustmentCodeGrid'
 
             },
+            
             initialize: function (options) {
                 var self = this;
                 this.options = options;
