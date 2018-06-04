@@ -92,7 +92,8 @@ module.exports = {
                              , ${code}
                              , ${description}
                              , ${inactivated_date}
-                             , ${isSystemStatus} )`;
+                             , ${isSystemStatus} )
+                        RETURNING id`;
 
         return await query(sql);
     },

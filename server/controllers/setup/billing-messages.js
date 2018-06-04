@@ -8,9 +8,5 @@ module.exports = {
 
     create: (params) => {
         return data.create(params);
-    },
-
-    update: (params) => {
-        return data.update(params);
     }
 };
