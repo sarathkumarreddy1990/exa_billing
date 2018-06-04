@@ -30,7 +30,7 @@ describe('AdjustmentCodes', () => {
                 code: 'unit_test_adjcodes_create',
                 description: 'unit_test_adjcodes_create',  
                 type: 'credit', 
-                inactivated_dt: null
+                isActive: true
             });
 
             should.exist(data);
@@ -57,7 +57,7 @@ describe('AdjustmentCodes', () => {
                 code: 'unity_test_adjcodes_update',
                 description: 'unity_test_adjcodes_update',  
                 type: 'credit', 
-                inactivated_dt: null,
+                isActive: false,
                 id: id
             });
 
