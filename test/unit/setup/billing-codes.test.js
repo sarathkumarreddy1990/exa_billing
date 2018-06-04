@@ -28,7 +28,7 @@ describe('BillingCodes', () => {
                 companyId: 1,
                 code: 'unit_test_billing_code_create',
                 description: 'unit_test_billing_code_create',  
-                inactivated_dt: null
+                isActive: true
             });
 
             should.exist(data);
@@ -54,7 +54,7 @@ describe('BillingCodes', () => {
             const data = await codesController.update({
                 code: 'unit_test_billing_code_update',
                 description: 'unit_test_billing_code_update',  
-                inactivated_dt: '04/06/2018',
+                isActive: false,
                 id:id
             });
 
