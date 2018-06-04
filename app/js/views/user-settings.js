@@ -57,10 +57,10 @@ define([
                     claimFieldOrder: JSON.stringify(claimFieldOrder),
                     claimSettingFields: claimSettingFields
                 });
-                this.model.save({
-                }, {
+                this.model.save({},
+                     {
                         success: function (model, response) {
-
+                            commonjs.hideLoading();
                         },
                         error: function (model, response) {
                             commonjs.handleXhrError(model, response);
@@ -68,7 +68,7 @@ define([
                     });
             },
 
-            ulListBinding: function (field_order, listID) {
+            ulListBinding: function (field_order, listID, checkedGridFields) {
                 var $ol = $('#' + listID),
                     $li, $label, $checkbox;
                 $('#' + listID).empty();
@@ -92,13 +92,17 @@ define([
                     newLi.append(newCB);
                     newLi.append(inputText);
                     $('#' + listID).append(newLi);
+                    if(_.contains(checkedGridFields,field_order[i].id)){
+                        newCB.find('input[type=checkbox]').attr('data_name', screenName).addClass('chkBillFields').attr('checked', true);
+                    }
                 }
                 commonjs.processPostRender();
             },
 
             showForm: function () {
                 var self = this;
-                userSettingsID = app.userID;
+                //user_id = app.userID;
+                user_id = 5;
                 $('#site_modal_div_container').empty();
                 $('#divForm_Mysettings').css({
                     top: '10%',
@@ -107,7 +111,7 @@ define([
                 $('#divForm_Mysettings').css("left", '5%');
                 $('#site_modal_div_container').append(template);
                 $('#site_modal_div_container').show();
-                this.bindSettingColumns();
+                    this.bindSettingColumns(user_id);
                 $('#close_settings').click(function (e) {
                     $('#site_modal_div_container').hide();
                 });
@@ -115,23 +119,22 @@ define([
                     self.saveUserSettingsBilling();
                     $('#site_modal_div_container').hide();
                 });
-                if (userSettingsID == 0) {
-                    this.model = new ModelUserSetting();
-                }
-                else {
-                    this.model.set({ id: userSettingsID });
-                }
             },
 
-            bindSettingColumns: function () {
+            bindSettingColumns: function (userID) {
                 var self = this;
-
                 $.ajax({
                     url: '/exa_modules/billing/user_settings',
+                    data:{
+                        user_id:userID
+                    },
                     success: function (data, response) {
                         var displayFields = [];
                         self.billingDisplayFields = [];
-                        self.billingDisplayFields = data.claim_management;
+                        self.displayFieldChecked = [];
+                        self.billingDisplayFields = JSON.parse(data[0]).claim_management;
+                        self.checkedBillingDisplayFields = data[1].rows[0].field_order;
+                        var checkedGridFields = self.checkedBillingDisplayFields;
                         var gridFieldArray = [],
                             field_order = [];
                         var sortColumn, sortOrder;
@@ -145,24 +148,7 @@ define([
                             });
                         }
                         gridFieldArray = displayFields;
-                        self.ulListBinding(displayFields, 'ulSortList');
-                        $('#ulSortBillingList li').each(function () {
-                            if (gridFieldArray) {
-                                for (var i = 0; i < gridFieldArray.length; i++) {
-                                    $(this).find('input[type=checkbox][value="' + gridFieldArray[i].field_name + '"]').each(
-                                        function () {
-                                            $(this).prop('checked', true);
-                                        });
-                                    checkedCount++;
-                                }
-                                for (var j = 0; j < gridFieldArray.length; j++) {
-                                    if ($(this).find('input[type=checkbox]')[0].value == gridFieldArray[j].field_name) {
-                                        $(this).find('input[type=hidden]')[0].value = gridFieldArray[j].width;
-                                    }
-                                }
-                            }
-
-                        });
+                        self.ulListBinding(displayFields, 'ulSortList',checkedGridFields);
                         for (var i = 0; i < self.billingDisplayFields.length; i++) {
                             $('<option/>').val(self.billingDisplayFields[i].field_name).html(self.billingDisplayFields[i].field_name).appendTo('#ddlBillingDefaultColumns');
                         }
