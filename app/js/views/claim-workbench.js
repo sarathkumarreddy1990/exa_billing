@@ -826,7 +826,7 @@ define(['jquery',
                 var self = this;
                 if (filterID) {
                     var filter = commonjs.loadedStudyFilters.get(filterID);
-                    commonjs.currentclaimsFilter = filterID;
+                    commonjs.currentStudyFilter = filterID;
 
                     if (!filter) {
 
