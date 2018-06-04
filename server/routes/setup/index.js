@@ -13,6 +13,7 @@ const providerLevelCodeRouter = require('./provider-level-codes');
 const billingMessageRouter = require('./billing-messages');
 const paymentReasonRouter = require('./payment-reasons');
 const validationsRouter = require('./validations');
+const ediClearinghouseRouter = require('./edi-clearinghouses');
 
 const app = module.exports = express();
 app.use('/cas_group_codes', casGroupRouter);
@@ -29,3 +30,4 @@ app.use('/claim_status', claimStatusRouter);
 app.use('/billing_messages', billingMessageRouter);
 app.use('/payment_reasons', paymentReasonRouter);
 app.use('/validations', validationsRouter);
+app.use('/edi_clearinghouses', ediClearinghouseRouter);

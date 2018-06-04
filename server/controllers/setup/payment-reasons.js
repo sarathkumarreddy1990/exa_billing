@@ -7,18 +7,6 @@ module.exports = {
             return data.getDataById(params);
         }
 
-        let {
-            filterCol,
-            filterData
-        } = params;
-
-        filterCol = JSON.parse(filterCol);
-        filterData = JSON.parse(filterData);
-
-        filterCol.map(function (col, index) {
-            params[col] = filterData[index];
-        });
-
         return data.getData(params);
     },
 
