@@ -46,9 +46,11 @@ const api = {
     getReportData: (initialReportData) => {
         return Promise.join(
             api.createchargesDataSet(initialReportData.report.params),
+            dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
             // other data sets could be added here...
-            (chargesDataSet) => {
+            (chargesDataSet, providerInfo) => {
                 // add report filters                
+                initialReportData.lookups.billingProviderInfo = providerInfo || [];
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 // add report specific data sets
@@ -69,12 +71,8 @@ const api = {
     /**
      * Report specific jsreport options, which will be merged with default ones in the controller.
      * Allows each report to add its own, or override default settings.
-     * Note:
-     *  You must at least set a template (based on format)!
      */
     getJsReportOptions: (reportParams, reportDefinition) => {
-        // here you could dynamically modify jsreport options *per report*....
-        // if options defined in report definition are all that is needed, then just select them based on report format
         return reportDefinition.jsreport[reportParams.reportFormat];
     },
 
@@ -87,10 +85,11 @@ const api = {
         const filtersUsed = [];
         filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
 
-        if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
+        // Facility Filter
+        if (params.allFacilities && params.facilityIds)
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
         else {
-            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
+            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id,10)) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
         }
         // Billing provider Filter

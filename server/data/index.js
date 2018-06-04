@@ -66,9 +66,6 @@ const pgData = {
     queryWithAudit: async function (query, args) {
         let {
             userId,
-            patientId,
-            studyId,
-            //claimId,
             screenName,
             moduleName,
             logDescription,
@@ -82,26 +79,23 @@ const pgData = {
         sql.append(SQL`
                 ),
                 audit_cte AS (
-                    SELECT create_audit(
-                    ${userId || 0},
-                    ${patientId || 0},
-                    0,
-                    ${studyId || 0},
-                    ${screenName},
-                    ${moduleName},
-                    ${logDescription},
-                    ${clientIp || ''},
-                    null,
-                    null,
-                    '',
-                    ${companyId || 1}
+                    SELECT billing.create_audit(
+                        ${companyId},
+                        ${screenName},
+                        1, -- to be fixed
+                        ${screenName},
+                        ${moduleName},
+                        ${logDescription},
+                        ${clientIp || 'localhost'},
+                        null,
+                        ${userId || 0}
                     )
                 )
 
                 SELECT  *
-                FROM    cte
+                FROM    audit_cte
             `);
-
+            
         return await pgData.query(sql);
     },
 

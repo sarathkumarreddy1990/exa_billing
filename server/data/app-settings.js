@@ -101,6 +101,14 @@ module.exports = {
                                         description
                                     FROM   billing.billing_classes
                                     WHERE  company_id=${companyID} ) AS billing_classes)
+                , cte_provider_id_code_qualifiers AS(
+                                    SELECT Json_agg(Row_to_json(provider_id_code_qualifiers)) provider_id_code_qualifiers
+                                    FROM  (
+                                    SELECT id,
+                                    qualifier_code,
+                                    description
+                                    FROM   billing.provider_id_code_qualifiers
+                                    WHERE  company_id=${companyID} ) AS provider_id_code_qualifiers)
                SELECT *
                FROM   cte_company,
                       cte_facilities,
@@ -110,7 +118,8 @@ module.exports = {
                       cte_study_status,
                       cte_claim_status,
                       cte_billing_codes,
-                      cte_billing_classes
+                      cte_billing_classes,
+                      cte_provider_id_code_qualifiers
                `;
 
         return await query(sql);

@@ -26,8 +26,6 @@ define([
                 billingProvider: null,
                 allBillingProvider: false
             },
-            selectedFacilityList: [],
-            defaultyFacilityId: null,
             events: {
                 'click #btnViewReport': 'onReportViewClick',
                 'click #btnViewReportNewTab': 'onReportViewClick',
@@ -97,10 +95,10 @@ define([
                 var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnViewReportNewTab' : false;
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = openInNewTab && rFormat === 'html';
-                 if (this.hasValidViewModel()) {
-                var urlParams = this.getReportParams();
-                UI.showReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
-                }              
+                if (this.hasValidViewModel()) {
+                    var urlParams = this.getReportParams();
+                    UI.showReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
+                }
             },
 
             hasValidViewModel: function () {

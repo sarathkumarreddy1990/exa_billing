@@ -1,6 +1,5 @@
 const studyfilterdata = require('./study-filters');
 const filterValidator = require('./filter-validator')();
-const moment = require('moment');
 const { query, SQL } = require('./index');
 const util = require('./util');
 
@@ -144,9 +143,9 @@ const colModel = [
 
 const api = {
 
-    getCombinedQuery: (joined_filters, user_id, statOverride) => {
+    getCombinedQuery: (joined_filters) => {
         const queries = joined_filters.reduce((queries, { filter_info }) => {
-            const sqlQuery = util.getStudyFilterQuery(filter_info, user_id, statOverride);
+            const sqlQuery = util.getClaimFilterQuery(filter_info);
 
             if (sqlQuery) {
                 queries.push(sqlQuery);
@@ -422,16 +421,16 @@ const api = {
         const response = await studyfilterdata.getUserWLFilters(filter_options);
 
         //studyfilterdata.getUserWLFilters(filter_options, function (err, response) {
-        const filter = response.rows[0];
+        const filter = response.rows&&response.rows.length>0?response.rows[0]:{};
 
-        const {
-            joined_filter_info
-        } = filter;
+        // const {
+        //     joined_filter_info
+        // } = filter;
 
-        const filter_query = joined_filter_info && api.getCombinedQuery(joined_filter_info, args.user_id, args.statOverride) || '';
-        const newFilter = Object.assign(filter, { filter_query });
+        // const filter_query = joined_filter_info && api.getCombinedQuery(joined_filter_info) || '';
+        const newFilter = {};
 
-        newFilter.perms_filter_query = util.getStudyFilterQuery(filter.perm_filter, args.user_id, args.statOverride);
+        newFilter.perms_filter= util.getClaimFilterQuery(filter.perm_filter, args.user_id, args.statOverride);
         let responseUserSetting = [newFilter];
 
         let permission_query = SQL`
@@ -447,8 +446,8 @@ const api = {
 
             if (studyFilter) {
 
-                if (studyFilter.filter_query) {
-                    whereClause.studyFilter = AND(whereClause.studyFilter, studyFilter.filter_query);
+                if (studyFilter.perms_filter) {
+                    whereClause.studyFilter = AND(whereClause.studyFilter, studyFilter.perms_filter);
                 }
 
             }
@@ -479,23 +478,6 @@ const api = {
                    ${whereClause.permission_query}
                )
                `;
-
-            if (args.customArgs && args.customArgs.isOrdingFacility == 'true' && args.customArgs.provider_group_id > 0) {
-                args.customArgs.provider_group_id = args.linked_ordering_facility_id ? args.linked_ordering_facility_id : args.customArgs.provider_group_id;
-                let from = moment(args.customArgs.fromDate, "YYYY-MM-DD");
-                let to = moment(args.customArgs.toDate, "YYYY-MM-DD");
-
-                if (args.customArgs.fromDate && args.customArgs.toDate) {
-                    whereClause.default += `
-                       AND (
-                             (to_facility_date(claims.facility_id, claims.created_dt)  BETWEEN ('${from.format()}')::date AND ('${to.format()}')::date)
-                          OR (to_facility_date(claims.facility_id, claims.claim_dt)          BETWEEN ('${from.format()}')::date AND ('${to.format()}')::date)                               
-                       )
-                   `;
-                }
-
-            }
-
 
             // Default conditions and study filter conditions
             whereClause.query = whereClause.default;

@@ -6,9 +6,8 @@ module.exports = {
 
         return await query(`
                         SELECT id as filter_id,*
-                        FROM   study_filters
-                        WHERE NOT has_deleted
-                        order by id asc
-                        LIMIT  5 `);
+                        FROM   billing.grid_filters
+                        WHERE filter_type = 2
+                        order by id  `);
     }
 };

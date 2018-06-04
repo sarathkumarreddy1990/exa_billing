@@ -15,7 +15,7 @@ router.post('/', async function (req, res) {
 });
 
 router.put('/', async function (req, res) {
-    const data = await msgController.update(req.body);
+    const data = await msgController.create(req.body);
     httpHandler.sendRows(req, res, data);
 });
 

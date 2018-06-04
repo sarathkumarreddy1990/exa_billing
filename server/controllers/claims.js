@@ -4,24 +4,24 @@ const Promise = require('bluebird');
 module.exports = {
 
     getLineItemsDetails: async (params) => { return await data.getLineItemsDetails(params); },
-    
+
     getPatientInsurances: async (params) => {
 
         if (params.id) {
             return data.getPatientInsurancesById(params);
         }
-        
+
         return await data.getPatientInsurances(params);
     },
-    
+
     getPatientInsurancesById: async (params) => {
 
         return await data.getPatientInsurancesById(params);
     },
-    
+
     getMasterDetails: async (params) => { return await data.getMasterDetails(params); },
-    
-    save: async (params) => { 
+
+    save: async (params) => {
 
         charges(params);
 
@@ -32,12 +32,12 @@ module.exports = {
 
             for (const obj of objects.charges) {
 
-                if(claimResult.rows.length && claimResult.rows[0]){
+                if (claimResult.rows.length && claimResult.rows[0]) {
 
                     obj.claim_id = claimResult.rows[0].id;
 
                 }
-                
+
                 results.push(data.saveCharges(obj));
             }
 
@@ -69,5 +69,5 @@ module.exports = {
         }
         
     },
-    getData: async (params)=> { return await data.getClaimData(params); },
+    getData: async (params)=> { return await data.getClaimData(params); }
 };

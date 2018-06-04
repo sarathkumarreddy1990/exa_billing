@@ -485,7 +485,12 @@ const api = {
             args.filterQuery = ` WHERE `;
         }
 
-        args.filterQuery += ` studies.order_id IS NOT NULL AND studies.patient_id IS NOT NULL `;     
+        args.filterQuery += ` studies.study_dt IS NOT NULL  
+                            AND schedule_dt IS NOT NULL    
+                            AND studies.study_status NOT IN ('CAN', 'NOS', 'ABRT') 
+                            AND NOT orders.has_deleted
+                            AND NOT studies.has_deleted
+                            AND COALESCE(study_info ->'ae_title','') != 'OPALIMPORT' `;     
 
         
 

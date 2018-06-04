@@ -80,7 +80,8 @@ module.exports = {
                                ${companyId}
                              , ${code}
                              , ${description}
-                             , ${inactivated_date} )`;
+                             , ${inactivated_date} )
+                        RETURNING id`;
 
         return await query(sql);
     },
