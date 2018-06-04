@@ -30,11 +30,10 @@ define([
                 ulColumnList.sortable();
             },
 
-            saveUserSettingsBilling: function () {
+            saveUserSettingsBilling: function (userId) {
                 var self = this;
                 var claim_col_name = '';
                 var claim_sort_order = '';
-                var selectedFields = [];
                 var claimFieldOrder = [];
                 var claimSettingFields = [];
                 var billingClaimGridFields = [];
@@ -48,9 +47,18 @@ define([
                         billingClaimGridFields.push({ "name": input.val(), "id": input.attr('id').split('~')[1], "width": $(this).find('input[type=hidden]')[0].value });
                     }
                 });
+                if(window.location && window.location.hash.split('/')[1] == 'studies'){
+                    var grid_name = 'studies';
+                    var default_tab = 'All Studies'; 
+                }
+                if(window.location && window.location.hash.split('/')[1] == 'claim_workbench'){
+                    var grid_name = 'claims';
+                    var default_tab = 'All Claims';
+                }
                 this.model.set({
-                    flag: 'Claims',
-                    userId: 5,
+                    flag: grid_name,
+                    default_tab: default_tab,
+                    userId: userId,
                     claim_col_name: claim_col_name,
                     claim_sort_order: claim_sort_order,
                     billingClaimGridFields: billingClaimGridFields,
@@ -101,8 +109,7 @@ define([
 
             showForm: function () {
                 var self = this;
-                //user_id = app.userID;
-                user_id = 5;
+                userID = app.userID;
                 $('#site_modal_div_container').empty();
                 $('#divForm_Mysettings').css({
                     top: '10%',
@@ -111,12 +118,12 @@ define([
                 $('#divForm_Mysettings').css("left", '5%');
                 $('#site_modal_div_container').append(template);
                 $('#site_modal_div_container').show();
-                    this.bindSettingColumns(user_id);
+                    this.bindSettingColumns(userID);
                 $('#close_settings').click(function (e) {
                     $('#site_modal_div_container').hide();
                 });
                 $('#save_settings').click(function (e) {
-                    self.saveUserSettingsBilling();
+                    self.saveUserSettingsBilling(userID);
                     $('#site_modal_div_container').hide();
                 });
             },
@@ -126,14 +133,20 @@ define([
                 $.ajax({
                     url: '/exa_modules/billing/user_settings',
                     data:{
-                        user_id:userID
+                        userID:userID
                     },
                     success: function (data, response) {
                         var displayFields = [];
                         self.billingDisplayFields = [];
                         self.displayFieldChecked = [];
-                        self.billingDisplayFields = JSON.parse(data[0]).claim_management;
-                        self.checkedBillingDisplayFields = data[1].rows[0].field_order;
+                        if(window.location && window.location.hash.split('/')[1]=='claim_workbench')
+                        {
+                            self.billingDisplayFields = JSON.parse(data[0]).claim_management;
+                        }
+                        if(window.location && window.location.hash.split('/')[1]=='studies'){
+                            self.billingDisplayFields = JSON.parse(data[0]).study_fields;
+                        }
+                        self.checkedBillingDisplayFields = data[1].rows[0] ? data[1].rows[0].field_order : 0 ;
                         var checkedGridFields = self.checkedBillingDisplayFields;
                         var gridFieldArray = [],
                             field_order = [];
@@ -143,7 +156,6 @@ define([
                             displayFields.push({
                                 field_name: self.billingDisplayFields[i].field_name,
                                 i18n_name: self.billingDisplayFields[i].i18n_name,
-                                width: self.billingDisplayFields[i].field_info.width,
                                 id: self.billingDisplayFields[i].id
                             });
                         }
