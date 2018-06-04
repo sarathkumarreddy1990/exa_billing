@@ -3043,23 +3043,12 @@ var commonjs = {
     },
 
     showStatus: function (msg) {
-        commonjs.hideLoading();
-        if (!msg) return;
-        $('#divStatus').show();
-
-        var i18nMsg = i18n.get(msg);
-        if (i18nMsg == '' || i18nMsg == app.currentCulture + '.' + msg) {
-            $('#divStatusMsg').html(msg);
-        } else {
-            $('#divStatusMsg').html(i18n.get(msg));
-        }
-
-        setTimeout(function () {
-            $('#divStatus').hide(300);
-        }, 3000);
+        commonjs.notify(msg, 'success');
     },
 
     showWarning: function (msg, classname, isCustomWarning, time_out) {
+        return commonjs.notify(msg, 'warning');
+
         var warnClass = (classname) ? classname : 'smallwarning';
         var timeOut = (time_out) ? time_out : 3000;
         commonjs.hideLoading();
@@ -3079,6 +3068,49 @@ var commonjs = {
         setTimeout(function () {
             $('#divWarning').hide(300);
         }, timeOut);
+    },
+
+    showError: function (msg, isFromService) {
+        return commonjs.notify(msg, 'danger');
+
+        commonjs.hideLoading();
+        $('#divError').show();
+        if (!isFromService && (typeof (i18n) != 'undefined' && i18n.get(msg) != app.currentCulture + '.' + msg)) {
+            if (i18n.get(msg)) {
+                $('#divErrorMsg').html(i18n.get(msg));
+            } else {
+                $('#divErrorMsg').html(msg);
+            }
+        }
+        else {
+            if (msg == 'messages.errors.accessdenied') {
+                $('#divErrorMsg').html('Access denied');
+            } else {
+                $('#divErrorMsg').html(msg);
+            }
+        }
+        setTimeout(function () {
+            $('#divError').hide(300);
+        }, 3000);
+    },
+
+    notify: function (msg, type) {
+        if (!msg) return;
+
+        var displayMsg = '';
+        var i18nMsg = i18n.get(msg);
+
+        if (i18nMsg == '' || i18nMsg == app.currentCulture + '.' + msg) {
+            displayMsg = msg;
+        } else {
+            displayMsg = i18n.get(msg);
+        }
+
+        $.notify({
+            message: displayMsg
+        }, {
+                type: type
+            });
     },
 
     geti18NString: function (localizationString) {
@@ -3193,28 +3225,6 @@ var commonjs = {
             s = str.substr(4, 2);
         //  var D = new Date(h,m,s);
         return h + ':' + m + ':' + s;
-    },
-
-    showError: function (msg, isFromService) {
-        commonjs.hideLoading();
-        $('#divError').show();
-        if (!isFromService && (typeof (i18n) != 'undefined' && i18n.get(msg) != app.currentCulture + '.' + msg)) {
-            if (i18n.get(msg)) {
-                $('#divErrorMsg').html(i18n.get(msg));
-            } else {
-                $('#divErrorMsg').html(msg);
-            }
-        }
-        else {
-            if (msg == 'messages.errors.accessdenied') {
-                $('#divErrorMsg').html('Access denied');
-            } else {
-                $('#divErrorMsg').html(msg);
-            }
-        }
-        setTimeout(function () {
-            $('#divError').hide(300);
-        }, 3000);
     },
 
     showModalBg: function () {

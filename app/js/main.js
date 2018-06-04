@@ -9,6 +9,7 @@ require.config({
         'backbone': '../node_modules/backbone/backbone',
         'backbonesubroute': '../node_modules/backbone.subroute/backbone.subroute',
         'bootstrap': '../node_modules/bootstrap/dist/js/bootstrap.bundle',
+        'bootstrap-notify': '../node_modules/bootstrap-notify/bootstrap-notify',
         'bootstrapmultiselect': '../node_modules/bootstrap-multiselect/dist/js/bootstrap-multiselect',
         'moment': '../node_modules/moment/min/moment-with-locales',
         'moment-timezone': '../node_modules/moment-timezone/builds/moment-timezone-with-data',
@@ -49,6 +50,9 @@ require.config({
         },
         'bootstrapmultiselect': {
             deps: ["jquery"]
+        },
+        'bootstrap-notify': {
+            deps: ["bootstrap"]
         },
         'moment-timezone': {
             deps: ['moment']
@@ -117,6 +121,7 @@ require([
             'jqueryvalidateadditional',
             'jstorage',
             'bootstrap',
+            'bootstrap-notify',
             'commonscript',
             'layout',
             'debug',
@@ -135,6 +140,7 @@ require([
             jqueryvalidateadditional,
             jstorage,
             Bootstrap,
+            bootstrapNotify,
             commonjs,
             layout,
             debug,
