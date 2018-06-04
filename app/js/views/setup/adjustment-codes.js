@@ -36,7 +36,7 @@ define(['jquery',
                 'click #btnRefresh': 'refreshAdjustmentCodeGrid'
 
             },
-            
+
             initialize: function (options) {
                 var self = this;
                 this.options = options;
@@ -190,7 +190,7 @@ define(['jquery',
             saveAdjustmentCodes: function () {
                 this.model.set({
                     "code": $.trim($('#txtCode').val()),
-                    "desc": $.trim($('#txtDescription').val()),
+                    "description": $.trim($('#txtDescription').val()),
                     "is_active": !$('#chkActive').prop('checked'),
                     "type": $('#ddlEntryType').val(),
                     "company_id": app.companyID

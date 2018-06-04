@@ -1,8 +1,7 @@
 const {
     SQL,
     query,
-    queryWithAudit,
-    constants
+    queryWithAudit
 } = require('../index');
 
 module.exports = {
@@ -105,9 +104,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            screenName: constants.screenNames.adjustmentCodes,
-            moduleName: constants.moduleNames.setup,
-            logDescription: 'Created'
+            logDescription: `Created ${description}(${code})`
         });
     },
 
@@ -131,9 +128,14 @@ module.exports = {
                             , accounting_entry_type = ${type}
                             , inactivated_dt = ${inactivated_date}
                         WHERE
-                            id = ${id} `;
+                            id = ${id} 
+                        RETURNING id
+                    `;
 
-        return await query(sql);
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: `Updated ${description}(${code})`
+        });
     },
 
     delete: async (params) => {
