@@ -63,7 +63,9 @@
             "payerassignedproviderid": "Payer Assigned Provider ID",
             "codequalifier": "ID Code Qualifier",
             "insuranceprovider": "InsuranceProvider",
-            "saveIdCode": "SAVE ID CODE"
+            "saveIdCode": "SAVE ID CODE",
+            "insuranceprovidername":"Insurance Provider Name",
+            "legacyidqualifier":"Legacy ID Qualifier"
         }
     }
 }
