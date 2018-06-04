@@ -28,6 +28,7 @@ define(['jquery',
             billingProvidersList: [],
             model: null,
             billingProvidersTable: null,
+            editedInsuraceIDCode : null,
             events: {
                 'click #btnAddBillingProviders': 'addNewBillingProviders',
                 'click #btnSaveBillingProviders': 'saveBillingProviders',
@@ -35,7 +36,9 @@ define(['jquery',
                 'click #btnRefresh': 'refreshBillingProvidersGrid',
                 'change #chkEnableFTP': 'showFTPDetails',
                 'click #btnSaveICDCode': 'saveProviderIDCodes',
-                'click #btnAddNewProviderCodes': 'addNewProviderIDCodes'
+                'click #btnAddNewProviderCodes': 'addNewProviderIDCodes',
+                'click #btnRefreshProviderCodes': 'refreshProviderCodes',
+                'click #btnCancel' : 'cancel'
 
             },
             initialize: function (options) {
@@ -175,8 +178,8 @@ define(['jquery',
                 //     },
                 // });
                 //     formID: '#inputFormICD'
-
-                $('#divBillingProvidersForm').html(this.billingProvidersFormTemplate());
+                var qualifierCodes = app.provider_id_code_qualifiers;
+                $('#divBillingProvidersForm').html(this.billingProvidersFormTemplate({qualifierCodes : qualifierCodes}));
                 if (id > 0) {
                     this.model.set({ id: id });
                     this.model.fetch({
@@ -187,6 +190,7 @@ define(['jquery',
                                 var communication_info = data.communication_info;
                                 if (data) {
                                     $('#txtName').val(data.name ? data.name : '');
+                                    $('#chkIsActive').prop('checked', data.inactivated_dt ? true : false);
                                     $('#txtCode').val(data.code ? data.code : '');
                                     $('#txtShortDesc').val(data.short_description ? data.short_description : '');
                                     $('#txtFederalTaxID').val(data.federal_tax_id ? data.federal_tax_id : '');
@@ -223,7 +227,7 @@ define(['jquery',
                                     $('#txtIdentityFilePath').val(communication_info.Ftp_identity_file ? communication_info.Ftp_identity_file : '');
                                 }
                                 self.showFTPDetails();
-                                self.showProviderIDCodes();
+                                self.bindProviderIDCodes();
                             }
                         }
                     });
@@ -266,7 +270,7 @@ define(['jquery',
                 }
                 this.model.set({
                     "name": $.trim($('#txtName').val()),
-                    "isActive": "",
+                    "isActive": !$('#chkIsActive').prop('checked'),
                     "companyId": app.companyID,
                     "code": $.trim($('#txtCode').val()),
                     "shortDescription": $.trim($('#txtShortDesc').val()),
@@ -361,9 +365,110 @@ define(['jquery',
                 }
             },
 
-            showProviderIDCodes: function () {
+            bindProviderIDCodes: function () {
+                var self = this;
                 $('#divIDCodesGrid').show();
+                var billing_provider_id = this.model.id;
+                var width = $('#divBillingProvidersForm').width() - 50;
+                $('#tblProviderIDCodesGrid').jqGrid({
+                    colNames: ['', '', '', '', '', 'Insurance Name', 'Payer Assigned Provider ID', 'Legacy ID Qualifier'],
+                    colModel: [
+                        { name: 'id', key: true, hidden: true },
+                        { name: 'insurance_provider_id', hidden: true },
+                        { name: 'qualifier_id', hidden: true },
+                        {
+                            name: 'edit', width: 20, sortable: false, search: false,
+                            formatter: function () {
+                                return "<span class='icon-ic-edit' title='Edit this ID Code'></span>"
+                            }
+                        },
+                        {
+                            name: 'del', width: 20, sortable: false, search: false,
+                            formatter: function () {
+                                return "<span class='icon-ic-delete' title='Delete this ID Code'></span>"
+                            }
+                        },
+                        { name: 'insurance_name', width: 300 },
+                        { name: 'payer_assigned_provider_id', width: 200 },
+                        { name: 'qualifier_desc', width: 300 }
+                    ],
+                    ondblClickRow: function (rowID) {
+                        self.editingProviderIDCodes(rowID);
+                    },
+                    beforeSelectRow: function (rowID, e) {
+                        switch ((e.target || e.srcElement).className) {
+                            case "icon-ic-delete":
+                                if(confirm("Are you sure want to delete ? ")) {
+                                    self.removeProviderIDCode(rowID);
+                                }
+                                break;
+                            case "icon-ic-edit":
+                                self.editingProviderIDCodes(rowID);
+                        }
+                    },
+                    width: width
+                });
+                $('#tblProviderIDCodesGrid').jqGrid('setGridHeight', 200);
+                $('#divCodesGrid').css({'width':width});
+                $('#tblProviderIDCodesGrid').jqGrid('clearGridData');
+                var url = `/exa_modules/billing/setup/provider_id_codes?provider_id=${billing_provider_id}`;
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    success: function (response) {
+                        self.clearIDCodesForm();
+                        if (response && response.length > 0) {
+                            for (var i = 0; i < response.length; i++) {
+                                var data = response[i];
+                                $("#tblProviderIDCodesGrid").jqGrid('addRowData', data.id, { "id": data.id, "insurance_provider_id": data.insurance_provider_id, "insurance_name": data.insurance_name, "payer_assigned_provider_id": data.payer_assigned_provider_id, "qualifier_desc": data.qualifier_desc, "qualifier_id": data.qualifier_id });
+                            }
+                        }
+                        // TODO: Bind provider id code grid 
+                    },
+                    error: function (model, response) {
+
+                    }
+                });
                 // TODO: Bind provider id code grid
+            },
+
+            editingProviderIDCodes: function (rowID) {
+                var self = this;
+                self.clearIDCodesForm();
+                self.editProviderIDCodeData = $('#tblProviderIDCodesGrid').jqGrid('getRowData', rowID);
+                $('#divIDCodesForm').show();
+                var rowData = self.editProviderIDCodeData;
+                if (rowData.payer_assigned_provider_id) {
+                    $('#txtPayerAssProId').val(rowData.payer_assigned_provider_id);
+                }
+                if (rowData.qualifier_id) {
+                    $('#ddlIdCodeQualifier').val(rowData.qualifier_id);
+                }
+                if (rowData.insurance_name) {
+                    $('#select2-ddlInsuranceProvider-container').html(rowData.insurance_name);
+                }
+                $('#txtPayerAssProId').focus();
+            },
+
+            removeProviderIDCode : function (rowID) {
+                var self = this;
+                var rowData = $('#tblProviderIDCodesGrid').jqGrid('getRowData', rowID);
+                $.ajax({
+                    url: '/exa_modules/billing/setup/provider_id_codes',
+                    type: "DELETE",
+                    data: {
+                        id : rowData.id,
+                        provider_id : self.model.id 
+                    },
+                    success: function (model, response) {
+                        $('#tblProviderIDCodesGrid').jqGrid('delRowData', rowID);
+                        self.clearIDCodeForm();
+                        self.bindProviderIDCodes();
+                    },
+                    error: function (model, response) {
+                        commonjs.handleXhrError(model, response);
+                    }
+                });
             },
 
             showFTPDetails: function () {
@@ -378,24 +483,35 @@ define(['jquery',
                 $('#txtPayerAssProId').val('');
                 $('#ddlIdCodeQualifier').val('');
                 $('#select2-ddlInsuranceProvider-container').html('');
-                $('#divIDCodesForm').hide();
+                $('#divIDCodesForm').hide(); 
+                self.editProviderIDCodeData = null;
             },
 
             saveProviderIDCodes: function () {
                 var self = this;
+                var rowData = self.editProviderIDCodeData;
+                var type = 'POST';
+                if(this.checkExist()) {
+                    return commonjs.showStatus("Insurance Provider Already Exists");
+                }
                 var data = {
                     providerId: this.model.id,
                     insuranceProviderId: $('#ddlInsuranceProvider').val(),
-                    qualifierId: 1, // TODO: needs to give a qualifier id
+                    qualifierId: $('#ddlIdCodeQualifier').val(),
                     payerAssignedProviderId: $('#txtPayerAssProId').val()
                 };
+                if(rowData) {
+                    data.id = rowData.id;
+                    data.insuranceProviderId = rowData.insurance_provider_id;
+                    type = 'PUT';
+                } 
                 $.ajax({
                     url: '/exa_modules/billing/setup/provider_id_codes',
-                    type: 'POST',
+                    type: type,
                     data: data,
                     success: function (model, response) {
                         self.clearIDCodesForm();
-                        // TODO: Bind provider id code grid 
+                        self.bindProviderIDCodes();
                     },
                     error: function (model, response) {
 
@@ -405,6 +521,11 @@ define(['jquery',
 
             addNewProviderIDCodes: function () {
                 $('#divIDCodesForm').show();
+                $('#txtPayerAssProId').focus();
+            },
+
+            refreshProviderCodes: function() {
+                this.bindProviderIDCodes();
             },
 
             cancel: function () {

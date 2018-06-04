@@ -7,8 +7,8 @@ module.exports = {
             args.provider_id = params.provider_id;
             return data.getById(args);
         }
-
-        return data.getData(params);
+        
+        return data.getData(args);
     },
 
     getById: async (params) => {
