@@ -417,7 +417,7 @@ module.exports = {
 
     getClaimData: async (params) => {
 
-        const sql = SQL`
+        const get_claim_sql = SQL`
                 SELECT 
                       c.company_id
                     , c.facility_id
@@ -631,7 +631,7 @@ module.exports = {
             , charges
         } = args;
 
-        const sql = SQL`
+        const sqlQry = SQL`
         WITH insurance_details AS (
                   SELECT
                     patient_id
@@ -959,6 +959,7 @@ module.exports = {
         return await self.updateIns_claims(claims);
 
     },
+    
     updateIns_claims: async (params) => {
 
         let sqlQry = SQL`
