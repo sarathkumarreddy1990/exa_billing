@@ -121,7 +121,9 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         });
 
         var dateFormatter = function ( cellvalue, options, rowObject ) {
-            return  '';
+            return commonjs.checkNotEmpty(cellvalue) ?
+            commonjs.convertToFacilityTimeZone(rowObject.facility_id, cellvalue).format('L LT z') :
+            '';
         };
         var queuseStatusFormatter = function (cellvalue, options, rowObject) {
             if (!cellvalue) return '-';

@@ -32,7 +32,7 @@ const colModel = [
     {
         name: 'patient_ssn',
         searchFlag: 'hstore',
-        searchColumns: [`patient_info->'ssn'`]
+        searchColumns: [`patients.patient_info->'ssn'`]
     },
     {
         name: 'billing_provider',
@@ -185,7 +185,7 @@ const api = {
         case "patient_name": return 'patients.full_name';
         case "birth_date": return `patients.birth_date`;
         case "account_no": return `patients.account_no`;
-        case "patient_ssn": return `patient_info->'ssn'`;
+        case "patient_ssn": return `patients.patient_info->'ssn'`;
         case "billing_provider": return `billing_providers.name`;
         case "place_of_service": return "places_of_service.description";
         case "referring_providers": return "ref_provider.full_name";
@@ -271,7 +271,7 @@ const api = {
             r += ` LEFT JOIN billing.claim_followups  ON claim_followups.claim_id=claims.id`;
         }
 
-        if (tables.patient_insurances) {
+        if (tables.patient_insurances || tables.insurance_providers) {
             r += `
                 LEFT JOIN patient_insurances ON patient_insurances.id = 
                 (  CASE payer_type 
@@ -279,12 +279,10 @@ const api = {
                 WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
                 WHEN 'teritary_insurance' THEN tertiary_patient_insurance_id
                 END)`;
-        }
 
-        if (tables.insurance_providers) {
             r += ` LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id `;
         }
-
+       
         if (tables.provider_groups) { r += `  LEFT JOIN provider_groups ON claims.ordering_facility_id = provider_groups.id `; }
 
         if (tables.billing_codes) { r += `  LEFT JOIN billing.billing_codes ON claims.billing_code_id = billing_codes.id `; }
