@@ -70,7 +70,9 @@
         },
         "providerIdCodeQualifiers" : {
             "qualifierCode": "Qualifier Code"
-
+        } ,
+        "paymentReasons" : {
+            "reasons" : "Reasons"
         }
     }
 }

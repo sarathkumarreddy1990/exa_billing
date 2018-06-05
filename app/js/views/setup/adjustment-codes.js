@@ -135,6 +135,7 @@ define(['jquery',
                     disablereload: true,
                     pager: '#gridPager_AdjustmentCodes'
                 });
+
                 commonjs.initializeScreen({header: {screen: 'AdjustmentCodes', ext: 'adjustmentCodes'}, grid: {id: '#tblAdjustmentCodesGrid'}, buttons: [
                     {value: 'Add', class: 'btn btn-danger', i18n: 'shared.buttons.add', clickEvent: function () {
                         Backbone.history.navigate('#setup/adjustment_codes/new', true);
@@ -142,6 +143,7 @@ define(['jquery',
                     {value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
                         self.pager.set({"PageNo": 1});
                         self.adjustmentCodesTable.refreshAll();
+                        commonjs.showStatus("Reloaded Successfully");
                     }}
                 ]});
             },
@@ -189,13 +191,40 @@ define(['jquery',
                 $('#divAdjustmentCodesForm').show();
                 commonjs.processPostRender();
             },
-            saveAdjustmentCodes: function () {
+            saveAdjustmentCodes : function() {
+                var self = this;
+                commonjs.validateForm({
+                    rules: {
+                        adjustmentCode: {
+                            required: true
+                        },
+                        description: {
+                            required: true
+                        },
+                        entryType: {
+                            required: true
+                        }
+                    },
+                    messages: {
+                        adjustmentCode: commonjs.getMessage("*", "Adjustment Code"),
+                        description: commonjs.getMessage("*", "Description"),
+                        entryType: commonjs.getMessage("*", "Accouting Entry Type")
+                    },
+                    submitHandler: function () {
+                        self.save();
+                    },
+                    formID: '#formAdjustmentCodes'
+                });
+                $('#formAdjustmentCodes').submit();
+            },
+
+            save: function () {
                 this.model.set({
                     "code": $.trim($('#txtCode').val()),
                     "description": $.trim($('#txtDescription').val()),
-                    "is_active": !$('#chkActive').prop('checked'),
+                    "isActive": !$('#chkActive').prop('checked'),
                     "type": $('#ddlEntryType').val(),
-                    "company_id": app.companyID
+                    "companyId": app.companyID
                 });
                 this.model.save({
                 }, {
@@ -206,7 +235,7 @@ define(['jquery',
                             }
                         },
                         error: function (model, response) {
-                            commonjs.handleXhrError(model, response);
+                            commonjs.handleXhrError(model, response); 
                         }
                     });
             },
