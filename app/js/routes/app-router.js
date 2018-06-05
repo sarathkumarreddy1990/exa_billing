@@ -24,7 +24,8 @@ define([
     'modules/reporting/views/billing/procedure-count',
     'modules/reporting/views/billing/reading-provider-fees',
     'views/app/payments',
-    'views/app/payment-edit'
+    'views/app/payment-edit',
+    'views/claim-inquiry'
 ], function (Backbone,
     WorklistView,
     StudiesView,
@@ -50,8 +51,9 @@ define([
     ProcedureCountView,
     ReadingProviderFeesView,
     PaymentsView,
-    EditPaymentView
-) {
+    EditPaymentView,
+    claimInquiryScreenView
+    ) {
         var AppRouter = Backbone.Router.extend({
             routes: {
                 "app/worklist": "startApp",
@@ -78,7 +80,8 @@ define([
                 "setup/*subroute": "startSetup",
                 "app/payments": "startPayments",
                 "app/payments/edit/:id": "editPayment",
-                "reports/*subroute": "startReporting"
+                "reports/*subroute": "startReporting",
+                "app/claim-inquiry": "startClaimInquiry"
             },
             // startApp: function (subroutes) {
             //     if (!this.appRoute) {
@@ -222,6 +225,12 @@ define([
             editPayment: function (paymentId) {
                 if (!this.appRoute) {
                     this.appRoute = new EditPaymentView({ el: $('#root'), id: paymentId });
+                }
+            },
+
+            startClaimInquiry: function(){
+                if(!this.appRoute){
+                    this.appRoute = new claimInquiryScreenView({ el: $('#root') });
                 }
             },
 
