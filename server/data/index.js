@@ -82,14 +82,18 @@ const pgData = {
                     SELECT billing.create_audit(
                         ${companyId},
                         ${screenName},
-                        1, -- to be fixed
+                        cte.id,
                         ${screenName},
                         ${moduleName},
                         ${logDescription},
                         ${clientIp || 'localhost'},
-                        null,
+                        json_build_object(
+                            'old_values', (SELECT COALESCE(old_values, '{}') FROM cte),
+                            'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM cte) temp_row)
+                        )::jsonb,
                         ${userId || 0}
-                    )
+                    ) id
+                    from cte
                 )
 
                 SELECT  *

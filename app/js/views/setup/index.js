@@ -8,10 +8,10 @@ define([
         $,
         _,
         Backbone,
-        homeTemplate
+        SetupTemplate
     ) {
-        var SetupView = Backbone.View.extend({
-            template: _.template(homeTemplate),
+        return Backbone.View.extend({
+            template: _.template(SetupTemplate),
             events: {
             },
 
@@ -24,6 +24,4 @@ define([
                 $(this.el).html(this.template());
             }
         });
-
-        return SetupView;
     });

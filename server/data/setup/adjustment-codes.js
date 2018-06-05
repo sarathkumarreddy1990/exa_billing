@@ -36,6 +36,7 @@ module.exports = {
                         , code
                         , description
                         , accounting_entry_type
+                        , inactivated_dt
                         , COUNT(1) OVER (range unbounded preceding) AS total_records
                     FROM   
                         billing.adjustment_codes `;
@@ -63,6 +64,7 @@ module.exports = {
                         , code
                         , description
                         , accounting_entry_type
+                        , inactivated_dt
                     FROM   
                         billing.adjustment_codes 
                     WHERE 
@@ -99,7 +101,7 @@ module.exports = {
                         ${type} , 
                         ${inactivated_date} 
                     )
-                    RETURNING id
+                    RETURNING *, '{}'::jsonb old_values
         `;
 
         return await queryWithAudit(sql, {
@@ -129,7 +131,13 @@ module.exports = {
                             , inactivated_dt = ${inactivated_date}
                         WHERE
                             id = ${id} 
-                        RETURNING id
+                        RETURNING *,
+                            (
+                                SELECT row_to_json(old_row) 
+                                FROM   (SELECT * 
+                                        FROM   billing.adjustment_codes 
+                                        WHERE  id = ${id}) old_row 
+                            ) old_values
                     `;
 
         return await queryWithAudit(sql, {
@@ -143,8 +151,13 @@ module.exports = {
 
         const sql = SQL`DELETE FROM 
                             billing.adjustment_codes 
-                        WHERE id = ${id}`;
+                        WHERE id = ${id}
+                        RETURNING *, '{}'::jsonb old_values
+                        `;
 
-        return await query(sql);
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: 'Deleted.'
+        });
     }
 };

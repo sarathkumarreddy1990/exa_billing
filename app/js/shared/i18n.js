@@ -22,7 +22,7 @@ var i18n = {
 
     load: function (cb, reqLang) {
         var self = this, lang = reqLang ? reqLang : this.getLang();
-        $.getJSON('billing/appSettings/i18n/' + lang + '.json',function (data) {
+        $.getJSON('billing/app_settings/i18n/' + lang + '.json',function (data) {
             self.put(lang, data).t(undefined, cb);
         }).fail(function () {
                 self.put(lang, {}).t(undefined, cb);

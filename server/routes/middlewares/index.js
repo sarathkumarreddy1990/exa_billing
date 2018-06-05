@@ -1,8 +1,9 @@
 const express = require('express');
 const config = require('../../config');
 
-const gridDefaults = require('./grid-defaults');
-const auditDefaults = require('./audit-defaults');
+const gridsMiddleware = require('./grid-middleware');
+const auditsMiddleware = require('./audit-middleware');
+const rightsMiddleware = require('./rights-middleware');
 
 const app = express();
 
@@ -22,7 +23,8 @@ app.use(function (req, res, next) {
     next();
 });
 
-app.use(gridDefaults);
-app.use(auditDefaults);
+app.use(gridsMiddleware);
+app.use(auditsMiddleware);
+app.use(rightsMiddleware);
 
 module.exports = app;

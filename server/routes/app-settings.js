@@ -8,6 +8,7 @@ const httpHandler = require('../shared/http');
 router.get('/', async function (req, res) {
     req.params.companyID = 1;
     req.params.userID = 2;
+    req.params.siteID = 1;
     const data = await appSettingsController.getData(req.params);
     httpHandler.sendRows(req, res, data);
 });

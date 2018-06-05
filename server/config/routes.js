@@ -1,6 +1,6 @@
 const studiesRouter = require('../routes/studies');
 const indexRouter = require('../routes/index');
-const defaultsRouter = require('../routes/defaults');
+const middlewares = require('../routes/middlewares');
 //const authRouter = require('../routes/auth');
 const reportingRoutes = require('../../modules/reporting/routes');
 const studyFiltersRouter = require('../routes/study-filters');
@@ -13,18 +13,19 @@ const editPaymentsRouter = require('../routes/edit-payments');
 const claimsRouters = require('../routes/claims');
 const userSettingRouter = require('../routes/user-settings');
 const claimsWorkbenchRouters = require('../routes/claim-workbench');
+const claimInquiry = require('../routes/claim-inquiry');
 
 const router = function (app) {
 
     app.use('/exa_modules/billing', indexRouter);
 
-    app.use(defaultsRouter);
     //app.use(authRouter);
+    app.use(middlewares);
 
     app.use('/exa_modules/billing/studies', studiesRouter);
     app.use('/exa_modules/billing/reports', reportingRoutes);
     app.use('/exa_modules/billing/studyFilters', studyFiltersRouter);
-    app.use('/exa_modules/billing/appSettings', appSettingsRouter);
+    app.use('/exa_modules/billing/app_settings', appSettingsRouter);
     app.use('/exa_modules/billing/claimFilters', claimFiltersRouter);
     app.use('/exa_modules/billing/autoCompleteRouter', autoCompleteRouter);
     app.use('/exa_modules/billing/setup', setupRouters);
@@ -33,6 +34,7 @@ const router = function (app) {
     app.use('/exa_modules/billing/claims', claimsRouters);
     app.use('/exa_modules/billing/user_settings', userSettingRouter);
     app.use('/exa_modules/billing/claimWorkbench', claimsWorkbenchRouters);
+    app.use('/exa_modules/billing/claimInquiry', claimInquiry);
 };
 
 module.exports = router;

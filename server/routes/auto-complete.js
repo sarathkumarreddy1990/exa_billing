@@ -29,4 +29,19 @@ router.get('/insurances', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/patients', async function (req, res) {
+    const data = await autoCompleteController.getPatients(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
+router.get('/orderingFacility', async function (req, res) {
+    const data = await autoCompleteController.getOrderingFacility(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
+router.get('/getProvidersAc', async function (req, res) {
+    const data = await autoCompleteController.getProvidersAc(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;

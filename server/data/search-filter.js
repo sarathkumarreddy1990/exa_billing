@@ -108,7 +108,7 @@ const colModel = [
     },
     {
         name: 'study_flag',
-        searchColumns: [`study_flags.description`],
+        searchColumns: [`studies.study_info->'study_flag_id'`],
         searchFlag: '='
     },
     {

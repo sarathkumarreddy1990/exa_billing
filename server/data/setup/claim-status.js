@@ -34,6 +34,7 @@ module.exports = {
                         , code
                         , description
                         , is_system_status
+                        , inactivated_dt
                         , COUNT(1) OVER (range unbounded preceding) AS total_records
                     FROM   
                         billing.claim_status `;
@@ -61,6 +62,7 @@ module.exports = {
                         , code
                         , description
                         , is_system_status
+                        , inactivated_dt
                     FROM   
                         billing.claim_status 
                     WHERE 

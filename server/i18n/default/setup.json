@@ -3,7 +3,8 @@
         "common": {
             "code": "Code",
             "name": "Name",
-            "description": "Description"
+            "description": "Description",
+            "readProvPercLvl" : "Reading Provider Percent Level"
         },
         "adjustmentcodes": {
             "credit": "Credit",
@@ -66,6 +67,12 @@
             "saveIdCode": "SAVE ID CODE",
             "insuranceprovidername":"Insurance Provider Name",
             "legacyidqualifier":"Legacy ID Qualifier"
+        },
+        "providerIdCodeQualifiers" : {
+            "qualifierCode": "Qualifier Code"
+        } ,
+        "paymentReasons" : {
+            "reasons" : "Reasons"
         }
     }
 }
