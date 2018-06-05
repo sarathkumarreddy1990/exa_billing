@@ -84,7 +84,7 @@ module.exports = {
         return await query(sql);
     },
 
-    createOrUPdatePayment: async function (params) {
+    createOrUpdatePayment: async function (params) {
         let {
             paymentId,
             company_id,

@@ -6,7 +6,7 @@ module.exports = {
         return params && params.id ? data.getPayment(params) : data.getPayments();
     },
 
-    createOrUPdatePayment: function (params) {
-        return data.createOrUPdatePayment(params);
+    createOrUpdatePayment: function (params) {
+        return data.createOrUpdatePayment(params);
     }
 };

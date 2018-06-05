@@ -10,12 +10,12 @@ router.get('/', async function (req, res) {
 });
 
 router.post('/', async function (req, res) {
-    const data = await paymentsController.createOrUPdatePayment(req.body);
+    const data = await paymentsController.createOrUpdatePayment(req.body);
     httpHandler.sendRows(req, res, data);
 });
 
 router.put('/', async function (req, res) {
-    const data = await paymentsController.createOrUPdatePayment(req.body);
+    const data = await paymentsController.createOrUpdatePayment(req.body);
     httpHandler.sendRows(req, res, data);
 });
 
