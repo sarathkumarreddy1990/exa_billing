@@ -130,6 +130,13 @@ module.exports = {
                                     app_states
                                     FROM   companies
                                     WHERE  id=${companyID} ) AS states)
+                , cte_gender AS(
+                                    SELECT Json_agg(Row_to_json(genders)) genders
+                                    FROM  (
+                                    SELECT 
+                                    sys_config->'sys_gender' AS gender
+                                    FROM   companies
+                                    WHERE  id=${companyID} ) AS genders)
     
             SELECT *
                FROM   cte_company,
@@ -144,7 +151,8 @@ module.exports = {
                       cte_provider_id_code_qualifiers,
                       cte_employment_status,
                       cte_relationship_status,
-                      cte_states
+                      cte_states,
+                      cte_gender
                `;
 
         return await query(sql);

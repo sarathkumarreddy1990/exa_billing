@@ -621,8 +621,9 @@ module.exports = {
         return await query(get_claim_sql);
     },
 
-    update: async (args) => {
-    
+    update: async function (args) {
+     
+        let self = this;
         let {
             claims
             , insurances
@@ -778,6 +779,42 @@ module.exports = {
                 AND ins.claim_insurance_id IS NOT NULL
                 AND is_deleted
         ),
+        update_claim_header AS (
+            UPDATE
+                billing.claims
+            SET
+                  facility_id = ${ claims.facility_id}
+                , billing_provider_id = ${ claims.billing_provider_id}
+                , rendering_provider_contact_id = ${ claims.rendering_provider_contact_id}
+                , referring_provider_contact_id = ${ claims.referring_provider_contact_id}
+                , ordering_facility_id = ${ claims.ordering_facility_id}
+                , place_of_service_id = ${ claims.place_of_service_id}
+                , claim_status_id = ${ claims.claim_status_id}
+                , billing_code_id = ${ claims.billing_code_id}
+                , billing_class_id = ${ claims.billing_class_id}
+                , billing_method = ${ claims.billing_method}
+                , billing_notes = ${ claims.billing_notes}
+                , current_illness_date = ${ claims.current_illness_date}
+                , same_illness_first_date = ${ claims.same_illness_first_date}
+                , unable_to_work_from_date = ${ claims.unable_to_work_from_date}
+                , unable_to_work_to_date = ${ claims.unable_to_work_to_date}
+                , hospitalization_from_date = ${ claims.hospitalization_from_date}
+                , hospitalization_to_date = ${ claims.hospitalization_to_date}
+                , claim_notes = ${ claims.claim_notes}
+                , original_reference = ${ claims.original_reference}
+                , authorization_no = ${ claims.authorization_no}
+                , frequency = ${ claims.claim_frequency}
+                , is_auto_accident = ${ claims.is_auto_accident}
+                , is_other_accident = ${ claims.is_other_accident}
+                , is_employed = ${ claims.is_employed}
+                , service_by_outside_lab = ${ claims.service_by_outside_lab}
+                , primary_patient_insurance_id = COALESCE(${claims.primary_patient_insurance_id}, (SELECT id FROM save_insurance WHERE coverage_level = 'primary'))
+                , secondary_patient_insurance_id = COALESCE(${claims.secondary_patient_insurance_id}, (SELECT id FROM save_insurance WHERE coverage_level = 'secondary'))
+                , tertiary_patient_insurance_id = COALESCE(${claims.tertiary_patient_insurance_id}, (SELECT id FROM save_insurance WHERE coverage_level = 'tertiary'))
+                
+            WHERE
+                billing.claims.id = ${claims.claim_id}
+        ),
         icd_details AS (
             SELECT
                       id
@@ -817,77 +854,6 @@ module.exports = {
                 AND billing.claim_icds.icd_id = icd.icd_id
                 AND  icd.is_deleted
                 AND  icd.id is NOT NULL  RETURNING billing.claim_icds.id
-        ),
-        update_primary_ins AS (
-            UPDATE
-                billing.claims
-            SET
-            payer_type = ${claims.payer_type}
-            , primary_patient_insurance_id = COALESCE(save_insurance.id,primary_patient_insurance_id)
-            FROM
-                save_insurance 
-            WHERE
-                billing.claims.id = ${claims.claim_id}
-                AND save_insurance.coverage_level = 'primary'
-            RETURNING billing.claims.id 
-        ),
-        update_secondary_ins AS (
-            UPDATE
-                billing.claims
-            SET
-            payer_type = ${claims.payer_type}
-            , secondary_patient_insurance_id =  COALESCE(save_insurance.id,secondary_patient_insurance_id)
-            FROM
-                save_insurance 
-            WHERE
-                billing.claims.id = ${claims.claim_id} 
-                AND save_insurance.coverage_level = 'secondary'
-            RETURNING billing.claims.id 
-        ),
-        update_tertiary_ins AS (
-            UPDATE
-                billing.claims
-            SET
-              payer_type = ${claims.payer_type}
-              ,tertiary_patient_insurance_id = COALESCE(save_insurance.id,tertiary_patient_insurance_id)
-            FROM
-                save_insurance 
-            WHERE
-                billing.claims.id = ${claims.claim_id} 
-                AND save_insurance.coverage_level = 'tertiary'
-            RETURNING billing.claims.id
-        ),
-        update_claim_header AS (
-            UPDATE
-                billing.claims
-            SET
-                  facility_id = ${ claims.facility_id}
-                , billing_provider_id = ${ claims.billing_provider_id}
-                , rendering_provider_contact_id = ${ claims.rendering_provider_contact_id}
-                , referring_provider_contact_id = ${ claims.referring_provider_contact_id}
-                , ordering_facility_id = ${ claims.ordering_facility_id}
-                , place_of_service_id = ${ claims.place_of_service_id}
-                , claim_status_id = ${ claims.claim_status_id}
-                , billing_code_id = ${ claims.billing_code_id}
-                , billing_class_id = ${ claims.billing_class_id}
-                , billing_method = ${ claims.billing_method}
-                , billing_notes = ${ claims.billing_notes}
-                , current_illness_date = ${ claims.current_illness_date}
-                , same_illness_first_date = ${ claims.same_illness_first_date}
-                , unable_to_work_from_date = ${ claims.unable_to_work_from_date}
-                , unable_to_work_to_date = ${ claims.unable_to_work_to_date}
-                , hospitalization_from_date = ${ claims.hospitalization_from_date}
-                , hospitalization_to_date = ${ claims.hospitalization_to_date}
-                , claim_notes = ${ claims.claim_notes}
-                , original_reference = ${ claims.original_reference}
-                , authorization_no = ${ claims.authorization_no}
-                , frequency = ${ claims.claim_frequency}
-                , is_auto_accident = ${ claims.is_auto_accident}
-                , is_other_accident = ${ claims.is_other_accident}
-                , is_employed = ${ claims.is_employed}
-                , service_by_outside_lab = ${ claims.service_by_outside_lab}
-            WHERE
-                billing.claims.id = ${ claims.claim_id}
         )
         , charge_details AS (
             SELECT
@@ -968,12 +934,42 @@ module.exports = {
             AND  chd.is_deleted
             AND  chd.id is NOT NULL
     )
-        SELECT * FROM update_secondary_ins `;
+    SELECT
+	( SELECT json_agg(row_to_json(save_insurance)) save_insurance
+                FROM (
+                        SELECT
+                              *
+                        FROM
+                            save_insurance
 
-        console.log(sqlQry.text)
-        console.log(sqlQry.values)
+                    ) AS save_insurance
+         ) AS save_insurance,
+	( SELECT json_agg(row_to_json(icd_insertion)) icd_insertion
+                FROM (
+                        SELECT
+                              *
+                        FROM
+                        icd_insertion
+
+                    ) AS icd_insertion
+         ) AS icd_insertion `;
+
+        await query(sqlQry);
+
+        return await self.updateIns_claims(claims);
+
+    },
+    updateIns_claims: async (params) => {
+
+        let sqlQry = SQL`
+        UPDATE
+            billing.claims
+        SET
+          payer_type = ${params.payer_type}
+        WHERE
+            billing.claims.id = ${params.claim_id} 
+        RETURNING id    `;
+
         return await query(sqlQry);
-       
-
-    }
+    }    
 };

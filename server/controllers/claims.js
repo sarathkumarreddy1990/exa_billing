@@ -53,7 +53,8 @@ module.exports = {
         async function update_charges(objects) {
 
             const charge_arr = [];
-            const claim_update = await data.update(params);
+            
+            await data.update(params);
         
             for (const obj1 of objects.charges) {
 

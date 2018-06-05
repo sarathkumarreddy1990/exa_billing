@@ -1638,7 +1638,10 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     is_other_accident: $('#chkOtherAccident').is(':checked'),
                     is_employed: $('#chkEmployment').is(':checked'),
                     service_by_outside_lab: $('#chkOutSideLab').is(':checked'),
-                    claim_status_id: $('#ddlClaimStatus option:selected').val() != '' ? parseInt($('#ddlClaimStatus option:selected').val()) : null
+                    claim_status_id: $('#ddlClaimStatus option:selected').val() != '' ? parseInt($('#ddlClaimStatus option:selected').val()) : null,
+                    primary_patient_insurance_id: self.priClaimInsID ? parseInt(self.priClaimInsID) : null,
+                    secondary_patient_insurance_id: self.secClaimInsID ? parseInt(self.secClaimInsID) : null,
+                    tertiary_patient_insurance_id: self.terClaimInsID ? parseInt(self.terClaimInsID) : null
                     
                 }
 
