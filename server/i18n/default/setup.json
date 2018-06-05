@@ -67,6 +67,10 @@
             "saveIdCode": "SAVE ID CODE",
             "insuranceprovidername":"Insurance Provider Name",
             "legacyidqualifier":"Legacy ID Qualifier"
+        },
+        "providerIdCodeQualifiers" : {
+            "qualifierCode": "Qualifier Code"
+
         }
     }
 }
