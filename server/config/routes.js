@@ -24,7 +24,7 @@ const router = function (app) {
     app.use('/exa_modules/billing/studies', studiesRouter);
     app.use('/exa_modules/billing/reports', reportingRoutes);
     app.use('/exa_modules/billing/studyFilters', studyFiltersRouter);
-    app.use('/exa_modules/billing/appSettings', appSettingsRouter);
+    app.use('/exa_modules/billing/app_settings', appSettingsRouter);
     app.use('/exa_modules/billing/claimFilters', claimFiltersRouter);
     app.use('/exa_modules/billing/autoCompleteRouter', autoCompleteRouter);
     app.use('/exa_modules/billing/setup', setupRouters);
