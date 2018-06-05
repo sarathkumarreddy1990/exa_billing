@@ -8,6 +8,7 @@ define([
     'routes/setup/cas-reason-codes',
     'routes/setup/adjustment-codes',
     'routes/setup/provider-level-codes',
+    'routes/setup/provider-id-code-qualifiers'
 ], function (
     Backbone,
     BackboneSubroute,
@@ -17,7 +18,8 @@ define([
     CasGroupCodesRoute,
     CasReasonCodesRoute,
     AdjustmentCodesRoute,
-    ProviderLevelCodesRoute
+    ProviderLevelCodesRoute,
+    ProvierIdCodeQualifiersRoute
 ) {
         return Backbone.SubRoute.extend({
             routes: {
@@ -25,7 +27,8 @@ define([
                 "cas_group_codes/*subroute": "startCasGroupCodes",
                 "cas_reason_codes/*subroute": "startCasReasonCodes",
                 "adjustment_codes/*subroute": "startAdjustmentCodes",
-                "provider_level_codes/*subroute": "startProviderLevelCodes"
+                "provider_level_codes/*subroute": "startProviderLevelCodes",
+                "provider_id_code_qualifiers/*subroute": "startProviderIdCodeQualifiers"
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -80,6 +83,15 @@ define([
                 if (this.checkLicense('ProviderLevelCodes') && !this.providerLevelCodesRouter) {
                     this.defaultArgs.routePrefix = 'setup/provider_level_codes/';
                     this.providerLevelCodesRouter = new ProviderLevelCodesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startProviderIdCodeQualifiers:function() {
+                if (this.checkLicense('ProvierIdCodeQualifiers') && !this.providerIdCodeQualifiers) {
+                    this.defaultArgs.routePrefix = 'setup/provider_id_code_qualifiers/';
+                    this.providerIdCodeQualifiers = new ProvierIdCodeQualifiersRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }

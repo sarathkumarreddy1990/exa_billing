@@ -9,8 +9,13 @@ router.get('/', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.post('/', async function (req, res) {
+    const data = await paymentsController.createOrUpdatePayment(req.body);
+    httpHandler.sendRows(req, res, data);
+});
+
 router.put('/', async function (req, res) {
-    const data = await paymentsController.updatePayment(req.body);
+    const data = await paymentsController.createOrUpdatePayment(req.body);
     httpHandler.sendRows(req, res, data);
 });
 

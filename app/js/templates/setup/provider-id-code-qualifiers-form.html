@@ -1,0 +1,26 @@
+<div>
+    <div id="divCasCodesFromBtnGrps" style="float:right;">
+        <input type="button" value="Save" id="btnSaveProviderIdCodeQualifiers" i18n="shared.buttons.save" class="btn btn-primary">
+        <input type="button" value="Back" id="btnBackToProviderIdCodeQualifiers" i18n="shared.buttons.back" class="btn btn-primary">
+    </div>
+    <form class="form-horizontal form-list">
+        <div class="form-group form-inline">
+            <div class="col-form-label">
+                <label class="control-label field-required" for="txtQualifierCode" i18n="setup.providerIdCodeQualifiers.qualifierCode"></label>
+            </div>
+            <div class="col-form-content">
+                <input type="text" maxlength="512" id="txtQualifierCode" name="name" class="form-control">
+                <input type="checkbox" id="chkActive"/>
+                <span for="chkActive" class="field-chk" i18n="shared.fields.inactive" style="text-align:center;"></span>
+            </div>
+        </div>
+        <div class="form-group form-inline">
+            <div class="col-form-label">
+                <label class="control-label field-required" for="txtDescription" i18n="setup.common.description"></label>
+            </div>
+            <div class="col-form-content">
+                <input type="text" maxlength="512" id="txtDescription" name="description" class="form-control">
+            </div>
+        </div>
+    </form>
+</div>
