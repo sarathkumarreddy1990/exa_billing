@@ -24,7 +24,8 @@ define([
     'modules/reporting/views/billing/procedure-count',
     'modules/reporting/views/billing/reading-provider-fees',
     'views/app/payments',
-    'views/app/payment-edit'
+    'views/app/payment-edit',
+    'views/claim-inquiry'
 ], function (Backbone,
     WorklistView,
     StudiesView,
@@ -50,8 +51,9 @@ define([
     ProcedureCountView,
     ReadingProviderFeesView,
     PaymentsView,
-    EditPaymentView
-) {
+    EditPaymentView,
+    claimInquiryScreenView
+    ) {
         var AppRouter = Backbone.Router.extend({
             routes: {
                 "app/worklist": "startApp",
@@ -78,33 +80,34 @@ define([
                 "setup/*subroute": "startSetup",
                 "app/payments": "startPayments",
                 "app/payments/edit/:id": "editPayment",
-                "reports/*subroute": "startReporting"
+                "reports/*subroute": "startReporting",
+                "app/claim-inquiry": "startClaimInquiry"
             },
-            // startApp: function (subroutes) {
-            //     if (!this.appRoute) {
-            //         this.appRoute = new WorklistView({ el: $('#root') });
-            //     }
-            // },
+            
             startApp: function (subroute) {
                 if (!this.appRouter) {
                     this.appRouter = new AppRoute("app/", { createTrailingSlashRoutes: true });
                 }
             },
+
             startSetup: function (subroute) {
                 if (!this.setupRouter) {
                     this.setupRouter = new SetupRoute("setup/", { createTrailingSlashRoutes: true });
                 }
             },
+
             startReporting: function (subroute) {
                 if (!this.reportingRouter) {
                     this.reportingRouter = new ReportsRoute("reports/", { createTrailingSlashRoutes: true }); // new module, notice plural "/reports" <---
                 }
             },
+
             startAppStudies: function (subroutes) {
                 if (!this.appRoute) {
                     this.appRoute = new StudiesView({ el: $('#root') });
                 }
             },
+
             startClaimWorkBench: function (subroutes) {
                 if (!this.appClaimWorkBenchRoute) {
                     this.appClaimWorkBenchRoute = new ClaimWorkBenchView({ el: $('#root') });
@@ -222,6 +225,12 @@ define([
             editPayment: function (paymentId) {
                 if (!this.appRoute) {
                     this.appRoute = new EditPaymentView({ el: $('#root'), id: paymentId });
+                }
+            },
+
+            startClaimInquiry: function(){
+                if(!this.appRoute){
+                    this.appRoute = new claimInquiryScreenView({ el: $('#root') });
                 }
             },
 

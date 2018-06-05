@@ -8,6 +8,9 @@ define([
     'routes/setup/cas-reason-codes',
     'routes/setup/adjustment-codes',
     'routes/setup/provider-level-codes',
+    'routes/setup/provider-id-code-qualifiers',
+    'routes/setup/billing-codes,
+    'routes/setup/billing-classes
 ], function (
     Backbone,
     BackboneSubroute,
@@ -17,7 +20,10 @@ define([
     CasGroupCodesRoute,
     CasReasonCodesRoute,
     AdjustmentCodesRoute,
-    ProviderLevelCodesRoute
+    ProviderLevelCodesRoute,
+    ProvierIdCodeQualifiersRoute,
+    BillingCodesRoute,
+    BillingClassesRoute
 ) {
         return Backbone.SubRoute.extend({
             routes: {
@@ -25,7 +31,10 @@ define([
                 "cas_group_codes/*subroute": "startCasGroupCodes",
                 "cas_reason_codes/*subroute": "startCasReasonCodes",
                 "adjustment_codes/*subroute": "startAdjustmentCodes",
-                "provider_level_codes/*subroute": "startProviderLevelCodes"
+                "provider_level_codes/*subroute": "startProviderLevelCodes",
+                "provider_id_code_qualifiers/*subroute": "startProviderIdCodeQualifiers",
+                "billing_codes/*subroute": "startBillingCodes",
+                "billing_classes/*subroute": "startBillingClasses"
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -85,6 +94,33 @@ define([
                 }
             },
 
+            startProviderIdCodeQualifiers:function() {
+                if (this.checkLicense('ProvierIdCodeQualifiers') && !this.providerIdCodeQualifiers) {
+                    this.defaultArgs.routePrefix = 'setup/provider_id_code_qualifiers/';
+                    this.providerIdCodeQualifiers = new ProvierIdCodeQualifiersRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startBillingCodes: function () {
+                if (this.checkLicense('BillingCodes') && !this.billingCodesRouter) {
+                    this.defaultArgs.routePrefix = 'setup/billing_codes/';
+                    this.billingCodesRouter = new BillingCodesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startBillingClasses: function () {
+                if (this.checkLicense('BillingClasses') && !this.billingClassesRouter) {
+                    this.defaultArgs.routePrefix = 'setup/billing_classes/';
+                    this.billingClassesRouter = new BillingClassesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+            
             initialize: function () {
                 if (!this.setupView) {
                     this.setupView = new SetupView({ el: $('#root') });

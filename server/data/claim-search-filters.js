@@ -11,8 +11,8 @@ const colModel = [
     },
     {
         name: 'claim_status',
-        searchFlag: '%',
-        searchColumns: ['claim_status.description']
+        searchFlag: 'int',
+        searchColumns: ['claims.claim_status_id']
     },
     {
         name: 'patient_name',
@@ -121,13 +121,13 @@ const colModel = [
     },
     {
         name: 'billing_code',
-        searchColumns: ['billing_codes.description'],
-        searchFlag: '%'
+        searchColumns: ['claims.billing_code_id'],
+        searchFlag: 'int'
     },
     {
         name: 'billing_class',
-        searchColumns: ['billing_classes.description'],
-        searchFlag: '%'
+        searchColumns: ['claims.billing_class_id'],
+        searchFlag: 'int'
     },
     {
         name: 'gender',
