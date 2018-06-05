@@ -8,7 +8,8 @@ define([
     'routes/setup/cas-reason-codes',
     'routes/setup/adjustment-codes',
     'routes/setup/provider-level-codes',
-    'routes/setup/provider-id-code-qualifiers'
+    'routes/setup/provider-id-code-qualifiers',
+    'routes/setup/payment-reasons'
 ], function (
     Backbone,
     BackboneSubroute,
@@ -19,7 +20,8 @@ define([
     CasReasonCodesRoute,
     AdjustmentCodesRoute,
     ProviderLevelCodesRoute,
-    ProvierIdCodeQualifiersRoute
+    ProvierIdCodeQualifiersRoute,
+    PaymentReasonsRoute
 ) {
         return Backbone.SubRoute.extend({
             routes: {
@@ -28,7 +30,8 @@ define([
                 "cas_reason_codes/*subroute": "startCasReasonCodes",
                 "adjustment_codes/*subroute": "startAdjustmentCodes",
                 "provider_level_codes/*subroute": "startProviderLevelCodes",
-                "provider_id_code_qualifiers/*subroute": "startProviderIdCodeQualifiers"
+                "provider_id_code_qualifiers/*subroute": "startProviderIdCodeQualifiers",
+                "payment_reasons/*subroute" : "startPaymentReasons"
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -88,10 +91,19 @@ define([
                 }
             },
 
-            startProviderIdCodeQualifiers:function() {
+            startProviderIdCodeQualifiers: function () {
                 if (this.checkLicense('ProvierIdCodeQualifiers') && !this.providerIdCodeQualifiers) {
                     this.defaultArgs.routePrefix = 'setup/provider_id_code_qualifiers/';
                     this.providerIdCodeQualifiers = new ProvierIdCodeQualifiersRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startPaymentReasons: function(){
+                if (this.checkLicense('PaymentReasons') && !this.paymentReasons) {
+                    this.defaultArgs.routePrefix = 'setup/payment_reasons/';
+                    this.paymentReasons = new PaymentReasonsRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }
