@@ -3,7 +3,7 @@ const { query, SQL } = require('./index');
 module.exports = {
 
     getData: async function (params) {
-        let { companyID, userID } = params;
+        let { companyID, userID, siteID} = params;
 
         let sql = SQL`
                     WITH cte_facilities AS
@@ -23,6 +23,7 @@ module.exports = {
                                     SELECT id AS "companyID",
                                             company_code,
                                             company_name,
+                                            sys_config,
                                             time_zone
                                     FROM   companies
                                     WHERE  id=${companyID}
@@ -101,6 +102,20 @@ module.exports = {
                                         description
                                     FROM   billing.billing_classes
                                     WHERE  company_id=${companyID} ) AS billing_classes)
+                , cte_studyflag AS(
+                                    SELECT Json_agg(Row_to_json(studyflag)) studyflag
+                                    FROM  (
+                                    SELECT id,
+                                        color_code,
+                                        description
+                                    FROM   study_flags
+                                    WHERE  company_id=${companyID} AND NOT has_deleted) AS studyflag)
+                , cte_sites AS(                                   
+                                    SELECT id as siteID,
+                                        stat_level_config,
+                                        tat_config 
+                                    FROM   sites
+                                    WHERE  id=${siteID})
                SELECT *
                FROM   cte_company,
                       cte_facilities,
@@ -110,7 +125,9 @@ module.exports = {
                       cte_study_status,
                       cte_claim_status,
                       cte_billing_codes,
-                      cte_billing_classes
+                      cte_billing_classes,
+                      cte_studyflag,
+                      cte_sites
                `;
 
         return await query(sql);
