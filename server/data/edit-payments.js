@@ -24,7 +24,7 @@ module.exports = {
             INNER JOIN billing.payments bp ON bp.id = bpa.payment_id
             WHERE  bpa.charge_id = bch.id
             AND payment_id = ${params.customArgs.paymentID})
-            AND patient_id = ${params.customArgs.payerId}
+            --AND patient_id = ${params.customArgs.payerId}
 
         AND (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) > 0::money 
         group by bc.id, bc.invoice_no, bc.claim_dt, pp.account_no, get_full_name(pp.last_name,pp.first_name)
@@ -35,8 +35,9 @@ module.exports = {
         return await query(`                                            
         SELECT
             bc.id, 
+            bc.id AS claim_id, 
             bc.invoice_no,
-            get_full_name(pp.last_name,pp.first_name),
+            get_full_name(pp.last_name,pp.first_name) AS full_name,
             bc.claim_dt,
             (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) as bill_fee,
             COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient'),0::money) as patient_paid,
@@ -57,6 +58,16 @@ module.exports = {
     },
 
     getClaimBasedCharges: async function (params) {
+        let joinQuery = '';
+        let selectQuery = ``;
+        let groupByQuery = '';
+        
+        if (params.paymentStatus && params.paymentStatus == 'applied') {
+            joinQuery = ` LEFT JOIN billing.payment_applications ppa ON ppa.charge_id = ${params.charge_id} AND payment_id =  ${params.paymentId} `; //-- bch.id AND payment_id =  ${params.paymentId} `;
+            selectQuery = ` , ppa.id AS payment_application_id, adjustment_code_id, amount AS payment_application_amount, amount_type AS payment_application_amount_type `;
+            groupByQuery = ` , ppa.id, adjustment_code_id, amount , amount_type `;
+        }
+
         return await query(`   
             SELECT
                 bch.id, 
@@ -70,11 +81,13 @@ module.exports = {
                 bch.charge_dt,
                 array_agg(pcc.short_description) as cpt_description, 
                 array_agg(pcc.display_code) as cpt_code
+                ${selectQuery}
             FROM billing.charges bch
             INNER JOIN billing.claims bc on bc.id = bch.claim_id
             INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
+            ${joinQuery}
             WHERE bch.claim_id = ${params.claimId}
-                GROUP BY bch.id 
+                GROUP BY bch.id ${groupByQuery}
                  `
         );
     },
@@ -117,16 +130,13 @@ module.exports = {
         return await query(
             `
                 SELECT 
-                    adjustment_code_id,
-                    amount,
-                    amount_type,
-                    applied_dt,
-                    created_by
-                FORM  
-                    billing.payment_applications
+                    cas_group_code_id,
+                    cas_reason_code_id,
+                    amount
+                FROM  
+                    billing.cas_payment_application_details
                 WHERE 
-                    payment_id = ${params.paymentId},
-                    charge_id = ${params.chargeId}
+                payment_application_id = ${params.paymentApplicationId}
             `
         );
     }

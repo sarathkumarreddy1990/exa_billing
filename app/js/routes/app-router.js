@@ -81,7 +81,8 @@ define([
                 "app/payments": "startPayments",
                 "app/payments/edit/:id": "editPayment",
                 "reports/*subroute": "startReporting",
-                "app/claim-inquiry": "startClaimInquiry"
+                "app/claim-inquiry": "startClaimInquiry",
+                "app/payments/new": "editPayment"
             },
             // startApp: function (subroutes) {
             //     if (!this.appRoute) {
