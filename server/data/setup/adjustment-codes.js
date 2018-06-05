@@ -36,6 +36,7 @@ module.exports = {
                         , code
                         , description
                         , accounting_entry_type
+                        , inactivated_dt
                         , COUNT(1) OVER (range unbounded preceding) AS total_records
                     FROM   
                         billing.adjustment_codes `;
@@ -63,6 +64,7 @@ module.exports = {
                         , code
                         , description
                         , accounting_entry_type
+                        , inactivated_dt
                     FROM   
                         billing.adjustment_codes 
                     WHERE 

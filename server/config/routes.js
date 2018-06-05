@@ -13,6 +13,7 @@ const editPaymentsRouter = require('../routes/edit-payments');
 const claimsRouters = require('../routes/claims');
 const userSettingRouter = require('../routes/user-settings');
 const claimsWorkbenchRouters = require('../routes/claim-workbench');
+const claimInquiry = require('../routes/claim-inquiry');
 
 const router = function (app) {
 
@@ -33,6 +34,7 @@ const router = function (app) {
     app.use('/exa_modules/billing/claims', claimsRouters);
     app.use('/exa_modules/billing/user_settings', userSettingRouter);
     app.use('/exa_modules/billing/claimWorkbench', claimsWorkbenchRouters);
+    app.use('/exa_modules/billing/claimInquiry', claimInquiry);
 };
 
 module.exports = router;
