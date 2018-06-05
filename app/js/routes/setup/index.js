@@ -9,8 +9,8 @@ define([
     'routes/setup/adjustment-codes',
     'routes/setup/provider-level-codes',
     'routes/setup/provider-id-code-qualifiers',
-    'routes/setup/billing-codes,
-    'routes/setup/billing-classes,
+    'routes/setup/billing-codes',
+    'routes/setup/billing-classes',
     'routes/setup/payment-reasons'
 ], function (
     Backbone,
