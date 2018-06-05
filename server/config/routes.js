@@ -1,6 +1,6 @@
 const studiesRouter = require('../routes/studies');
 const indexRouter = require('../routes/index');
-const defaultsRouter = require('../routes/defaults');
+const middlewares = require('../routes/middlewares');
 //const authRouter = require('../routes/auth');
 const reportingRoutes = require('../../modules/reporting/routes');
 const studyFiltersRouter = require('../routes/study-filters');
@@ -18,13 +18,13 @@ const router = function (app) {
 
     app.use('/exa_modules/billing', indexRouter);
 
-    app.use(defaultsRouter);
     //app.use(authRouter);
+    app.use(middlewares);
 
     app.use('/exa_modules/billing/studies', studiesRouter);
     app.use('/exa_modules/billing/reports', reportingRoutes);
     app.use('/exa_modules/billing/studyFilters', studyFiltersRouter);
-    app.use('/exa_modules/billing/appSettings', appSettingsRouter);
+    app.use('/exa_modules/billing/app_settings', appSettingsRouter);
     app.use('/exa_modules/billing/claimFilters', claimFiltersRouter);
     app.use('/exa_modules/billing/autoCompleteRouter', autoCompleteRouter);
     app.use('/exa_modules/billing/setup', setupRouters);

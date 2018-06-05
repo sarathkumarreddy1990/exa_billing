@@ -178,6 +178,113 @@ const util = {
 
         return dateRange;
     },
+    getClaimFilterQuery:function(filterObj){
+        let query = '';
+        
+        if (filterObj) {
+
+            if (typeof filterObj != "object") {
+                filterObj = JSON.parse(filterObj);
+            }
+
+            if (filterObj.date) {
+                query += util.getDateRangeQuery(query, filterObj);
+            }
+
+            if (filterObj.ClaimInformation) {
+                if (filterObj.ClaimInformation.claimStatus) {
+                    let obj = filterObj.ClaimInformation.claimStatus;
+                    let statusQuery = "",   
+                        l = obj.list.length;
+                       
+
+                    if (l > 0) {
+
+                        for (let i = 0; i < l; i++) {
+
+                            if (i == 0) {
+                                
+                                statusQuery += ' claims.claim_status_id' + util.getConditionalOperator(obj.condition, obj.list[i].value, false, '');
+                                
+
+                            } else {
+                                
+                                statusQuery += util.getConditionalRelationOperator(obj.condition) + 'claims.claim_status_id' + util.getConditionalOperator(obj.condition, obj.list[i].value, false, '');
+                            }
+
+                        }
+
+                        if (obj.condition == "IsNot") {
+                            statusQuery += ' OR claims.claim_status_id IS NULL';
+                        }
+
+                        query += util.getRelationOperator(query) + "(" + statusQuery + ")";
+                    }                    
+                   
+                } 
+				
+                if (filterObj.ClaimInformation.billingMethod) {
+                    let obj = filterObj.ClaimInformation.billingMethod;
+                    let l = obj.list.length;
+                    let billingMethodQuery = '';
+
+                    if (l > 0) {
+                        for (let i = 0; i < l; i++) {
+                            if (i == 0) {
+                                billingMethodQuery += 'claims.billing_method' + util.getConditionalOperator(obj.condition, obj.list[i].value, false, 'billingMethod');
+                            } else {
+                                billingMethodQuery += util.getConditionalRelationOperator(obj.condition) + 'claims.billing_method' + util.getConditionalOperator(obj.condition, obj.list[i].value, false, 'billingMethod');
+                            }
+                        }
+
+                        if (obj.condition == "IsNot") {
+                            billingMethodQuery += ' OR claims.billing_method IS NULL';
+                        }
+
+                        query += util.getRelationOperator(query) + (l == 1 && !obj.condition ? billingMethodQuery : "(" + billingMethodQuery + ")");
+
+                    }
+                }
+
+                if (filterObj.ClaimInformation.payerType) {
+                    let obj = filterObj.ClaimInformation.payerType;
+                    let l = obj.length;
+                    let PayerTypeQuery = '';
+
+                    if (l > 0) {
+                        for (let i = 0; i < l; i++) {
+                            if (i == 0) {
+                                PayerTypeQuery += 'claims.payer_type' + util.getConditionalOperator(obj.condition, obj.list[i].value, false, 'payerType');
+                            } else {
+                                PayerTypeQuery += util.getConditionalRelationOperator(obj.condition) + 'claims.payer_type' + util.getConditionalOperator(obj.condition, obj.list[i].value, false, 'payerType');
+                            }
+                        }
+
+                        if (obj.condition == "IsNot") {
+                            PayerTypeQuery += ' OR claims.payer_type IS NULL';
+                        }
+
+                        query += util.getRelationOperator(query) + (l == 1 && !obj.condition ? PayerTypeQuery : "(" + PayerTypeQuery + ")");
+
+                    }
+                }  
+
+                if (filterObj.ClaimInformation.balance) {
+                    let obj = filterObj.ClaimInformation.balance;
+                    let BalanceQuery = '';
+
+                    BalanceQuery += ' AND (select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from BILLING.get_claim_totals(claims.id))::numeric' +  obj.value +'::numeric';
+
+                    query += BalanceQuery ;
+
+                   
+                }
+            }
+        }
+
+        return query;
+
+    },
     getStudyFilterQuery: function (filterObj, user_id, statOverride) {
         let query = '';
 
@@ -852,6 +959,9 @@ const util = {
                 break;
             case "study_received_dt":
                 scheduleDtColumn = "studies.study_received_dt";
+                break;
+            case "claim_dt":
+                scheduleDtColumn = "claims.claim_dt";
                 break;
             }
         }

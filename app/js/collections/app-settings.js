@@ -1,7 +1,7 @@
 define(['backbone'], function (Backbone) {
     var appsettings = Backbone.Collection.extend({
 
-        url: '/exa_modules/billing/appSettings',
+        url: '/exa_modules/billing/app_settings',
 
         initialize: function () {
         },
