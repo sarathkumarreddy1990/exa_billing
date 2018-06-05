@@ -178,7 +178,7 @@ define('grid', [
 
             var icon_width = 24;
             colName = colName.concat([
-                '<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />',
+                (options.isClaimGrid?'<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />':''),
                 '','','','',''
 
             ]);
