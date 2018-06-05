@@ -253,10 +253,107 @@ define(['jquery',
             },
 
             refreshBillingProvidersGrid: function () {
-                this.billingProvidersTable.refresh();
+                this.BillingProvidersTable.refresh();
+                commonjs.showStatus("Reloaded Successfully");
             },
 
-            saveBillingProviders: function () {
+            saveBillingProviders : function() {
+                var self = this;
+                var rules = {
+                    providerName: {
+                        required: true
+                    },
+                    providerCode: {
+                        required: true
+                    },
+                    shortDescription: {
+                        required: true
+                    },
+                    federalTaxID: {
+                        required: true
+                    },
+                    npiNo: {
+                        required: true
+                    },
+                    taxonomy: {
+                        required: true
+                    },
+                    contactPersonName: {
+                        required: true
+                    },
+                    addressLine1: {
+                        required: true
+                    },
+                    addressLine2: {
+                        required: true
+                    },
+                    city: {
+                        required: true
+                    },
+                    zip: {
+                        required: true
+                    },
+                    zipPlus: {
+                        required: true
+                    },
+                    phoneNo: {
+                        required: true
+                    },
+                    faxNo: {
+                        required: true
+                    }
+                }
+                var messages = {
+                    providerName: commonjs.getMessage("*", "Billing Provider Name"),
+                    providerCode: commonjs.getMessage("*", "Billing Provider Code"),
+                    shortDescription: commonjs.getMessage("*", "Billing Provider Short Desc"),
+                    federalTaxID: commonjs.getMessage("*", "Federal Tax ID"),
+                    npiNo: commonjs.getMessage("*", "Npi No"),
+                    taxonomy: commonjs.getMessage("*", "Taxonomy Code"),
+                    contactPersonName: commonjs.getMessage("*", "Contact Person Name"),
+                    addressLine1: commonjs.getMessage("*", "AddressLine1"),
+                    addressLine2: commonjs.getMessage("*", "AddressLine2"),
+                    city: commonjs.getMessage("*", "City"),
+                    zip: commonjs.getMessage("*", "Zip"),
+                    zipPlus: commonjs.getMessage("*", "Zip Plus"),
+                    phoneNo: commonjs.getMessage("*", "Phone Number"),
+                    faxNo: commonjs.getMessage("*", "Fax Number")
+                }
+                if($('#chkEnableFTP').prop('checked')) {
+                    rules.hostname = { required: true }
+                    rules.username = { required: true }
+                    rules.password = { required: true }
+                    rules.port = { required: true }
+                    rules.sentFolder = { required: true }
+                    rules.receiveFolder = { required: true }
+                    messages.hostname = commonjs.getMessage("*", "FTP Host Name");
+                    messages.username = commonjs.getMessage("*", "FTP User Name");
+                    messages.password = commonjs.getMessage("*", "FTP Passord");
+                    messages.port = commonjs.getMessage("*", "FTP Port");
+                    messages.sentFolder = commonjs.getMessage("*", "FTP Sent Folder");
+                    messages.ReceiveFolder = commonjs.getMessage("*", "FTP Receive Folder");
+                }
+                commonjs.validateForm({
+                    rules: rules,
+                    messages : messages,
+                    submitHandler: function () {
+                        self.save();
+                    },
+                    formID: '#formBillingProviders'
+                });
+                $('#formBillingProviders').submit();
+            },
+
+            save: function () {
+                if (!$('#ddlState').val()) {
+                    return commonjs.showWarning("Please Select the state");
+                }
+                if (!commonjs.checkInteger($('#txtBillProPhoneNo').val())) {
+                    return commonjs.showWarning("Please Enter a valid phone number");
+                }
+                if (!commonjs.checkInteger($('#txtFaxNo').val())) {
+                    return commonjs.showWarning("Please Enter a valid fax number");
+                }
                 let communication_info = {
                     "enable_ftp": $('#chkEnableFTP').prop('checked'),
                     "Ftp_host": $.trim($('#txtHostName').val()),
@@ -302,6 +399,7 @@ define(['jquery',
                 this.model.save({
                 }, {
                         success: function (model, response) {
+                            commonjs.showStatus("Saved Successfully");
                             if (response) {
                                 location.href = "#setup/billing_providers/list";
                             }
@@ -491,9 +589,6 @@ define(['jquery',
                 var self = this;
                 var rowData = self.editProviderIDCodeData;
                 var type = 'POST';
-                if(this.checkExist()) {
-                    return commonjs.showStatus("Insurance Provider Already Exists");
-                }
                 var data = {
                     providerId: this.model.id,
                     insuranceProviderId: $('#ddlInsuranceProvider').val(),
@@ -505,15 +600,28 @@ define(['jquery',
                     data.insuranceProviderId = rowData.insurance_provider_id;
                     type = 'PUT';
                 } 
+                if (!data.payerAssignedProviderId) {
+                    return commonjs.showStatus("Please Enter Payer Assigned Provider ID");
+                } 
+                if(!data.qualifierId) {
+                    return commonjs.showStatus("Please Select ID Code Qualifier");
+                }
+                if(!data.insuranceProviderId) {
+                    return commonjs.showStatus("Please Select Insurance Provider");
+                }
+                if(this.checkExist()) {
+                    return commonjs.showStatus("Insurance Provider Already Exists");
+                }
                 $.ajax({
                     url: '/exa_modules/billing/setup/provider_id_codes',
                     type: type,
                     data: data,
                     success: function (model, response) {
+                        commonjs.showStatus("Saved Successfully");
                         self.clearIDCodesForm();
                         self.bindProviderIDCodes();
                     },
-                    error: function (model, response) {
+                    error: function (model, response) { 
 
                     }
                 });
@@ -526,11 +634,39 @@ define(['jquery',
 
             refreshProviderCodes: function() {
                 this.bindProviderIDCodes();
+                commonjs.showWarning("Reloaded Successfully");
             },
 
             cancel: function () {
                 this.clearIDCodesForm();
                 $('#divIDCodesForm').hide();
+            },
+
+            checkExist: function () {
+                var self = this, id = [], idarray = [];
+                var provider_id = (self.editProviderIDCodeData && self.editProviderIDCodeData.id) || '';
+                $.each($("#tblProviderIDCodesGrid tr"), function () {
+                    if ($(this).hasClass('ui-widget-content'))
+                        if (this.id != provider_id)
+                            id.push(this.id);
+                })
+                $.each(id, function (index, val) {
+                    var cellVal = $("#tblProviderIDCodesGrid").jqGrid('getCell', val, 'insurance_provider_id');
+                    idarray.push(cellVal);
+                });
+
+                if (self.editProviderIDCodeData) {
+                    if ($.inArray(self.editProviderIDCodeData.insurance_provider_id, idarray) == -1)
+                        return false;
+                    else
+                        return true;
+                    
+                } 
+                else if ($.inArray($('#ddlInsuranceProvider').val(), idarray) == -1) {
+                    return false;
+                }
+                else
+                    return true;
             }
         });
         return BillingProvidersView;
