@@ -84,31 +84,31 @@ define([
                 "app/claim-inquiry": "startClaimInquiry",
                 "app/payments/new": "editPayment"
             },
-            // startApp: function (subroutes) {
-            //     if (!this.appRoute) {
-            //         this.appRoute = new WorklistView({ el: $('#root') });
-            //     }
-            // },
+            
             startApp: function (subroute) {
                 if (!this.appRouter) {
                     this.appRouter = new AppRoute("app/", { createTrailingSlashRoutes: true });
                 }
             },
+
             startSetup: function (subroute) {
                 if (!this.setupRouter) {
                     this.setupRouter = new SetupRoute("setup/", { createTrailingSlashRoutes: true });
                 }
             },
+
             startReporting: function (subroute) {
                 if (!this.reportingRouter) {
                     this.reportingRouter = new ReportsRoute("reports/", { createTrailingSlashRoutes: true }); // new module, notice plural "/reports" <---
                 }
             },
+
             startAppStudies: function (subroutes) {
                 if (!this.appRoute) {
                     this.appRoute = new StudiesView({ el: $('#root') });
                 }
             },
+
             startClaimWorkBench: function (subroutes) {
                 if (!this.appClaimWorkBenchRoute) {
                     this.appClaimWorkBenchRoute = new ClaimWorkBenchView({ el: $('#root') });
