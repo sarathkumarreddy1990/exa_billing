@@ -14,7 +14,7 @@ define([
     JGridLocale,
     Pager,
     claimInquiryTemplate) {
-        return Backbone.view.extend({
+        return Backbone.View.extend({
             el: null,
             pager: null,
             inquiryTemplate: _.template(claimInquiryTemplate),
