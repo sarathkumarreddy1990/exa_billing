@@ -330,6 +330,11 @@
                                     <div class="col-form-content">
                                         <select id="ddlPriEmpStatus">
                                             <option value='0'>Select</option>
+                                            <% _.each(empStatus, function(empStatus) { %>
+                                                <option value='<%= empStatus.id %>'>
+                                                    <%= empStatus.description %>
+                                                </option>
+                                                <% }); %>
                                         </select>
                                     </div>
                                 </div>
@@ -378,7 +383,12 @@
                                     </div>
                                     <div class="col-form-content">
                                         <select id="ddlPriGender" class="form-control" >
-                                            <option value=''>Select</option>
+                                            <option value="">Select</option>
+                                            <% _.each(genders, function(obj) { %>
+                                                <option value='<%= obj.id %>'>
+                                                    <%= obj.description %>
+                                                </option>
+                                                <% }); %>
                                             </select>
                                     </div>
                                 </div>
@@ -412,6 +422,11 @@
                                         <input type="text" id="txtPriCity" placeholder="City" i18np="shared.fields.city" class="form-control">
                                         <select id="ddlPriState" class="form-control">
                                           <option value='0'>Select</option>
+                                          <% _.each(states, function(obj) { %>
+                                            <option value='<%= obj.id %>'>
+                                                <%= obj.text %>
+                                            </option>
+                                            <% }); %>
                                           </select>
                                         <input type="text" id="txtPriZipCode" placeholder="Zip Code" i18np="shared.fields.zipCode" maxlength="5" name="zipCode" class="form-control form-control-small">
                                     </div>
@@ -555,6 +570,11 @@
                                     <div class="col-form-content">
                                         <select id="ddlSecEmpStatus" >
                                                 <option value='0'>select</option>
+                                                <% _.each(empStatus, function(empStatus) { %>
+                                                    <option value='<%= empStatus.id %>'>
+                                                        <%= empStatus.description %>
+                                                    </option>
+                                                    <% }); %>
                                         </select>
                                     </div>
                                 </div>
@@ -602,7 +622,12 @@
                                     </div>
                                     <div class="col-form-content">
                                         <select id="ddlSecGender" class="form-control" style="width:130px">
-                                                <option value=''>select</option>
+                                                <option value="">select</option>
+                                                <% _.each(genders, function(obj) { %>
+                                                    <option value='<%= obj.id %>'>
+                                                        <%= obj.description %>
+                                                    </option>
+                                                    <% }); %>
                                         </select>
                                     </div>
                                 </div>
@@ -636,6 +661,11 @@
                                         <input type="text" id="txtSecCity" placeholder="City" i18np="shared.fields.city" class="form-control">
                                         <select id="ddlSecState" class="form-control">
                                                 <option value='0'>select</option>
+                                                <% _.each(states, function(obj) { %>
+                                                    <option value='<%= obj.id %>'>
+                                                        <%= obj.text %>
+                                                    </option>
+                                                    <% }); %>
                                         </select>
                                         <input type="text" id="txtSecZipCode" placeholder="Zip Code" i18np="shared.fields.zipCode" maxlength="5" name="zipCode" class="form-control form-control-small">
                                     </div>
@@ -767,6 +797,11 @@
                                             <div class="col-form-content">
                                                 <select id="ddlTerEmpStatus" >
                                                         <option>Select</option>
+                                                        <% _.each(empStatus, function(empStatus) { %>
+                                                            <option value='<%= empStatus.id %>'>
+                                                                <%= empStatus.description %>
+                                                            </option>
+                                                         <% }); %>
                                                 </select>
                                             </div>
                                         </div>
@@ -818,6 +853,11 @@
                                             <div class="col-form-content">
                                                 <select id="ddlTerGender" class="form-control">
                                                         <option value="">Select</option>
+                                                        <% _.each(genders, function(obj) { %>
+                                                            <option value='<%= obj.id %>'>
+                                                                <%= obj.description %>
+                                                            </option>
+                                                            <% }); %>
                                                 </select>
                                             </div>
                                         </div>
@@ -850,7 +890,12 @@
                                             <div class="col-form-content">
                                                 <input type="text" id="txtTerCity" placeholder="City" i18np="shared.fields.city" class="form-control">
                                                 <select id="ddlTerState" class="form-control">
-                                                        <option>Select</option>
+                                                        <option value="">Select</option>
+                                                        <% _.each(states, function(obj) { %>
+                                                            <option value='<%= obj.id %>'>
+                                                                <%= obj.text %>
+                                                            </option>
+                                                            <% }); %>
                                                 </select>
                                                 <input type="text" id="txtTerZipCode" placeholder="Zip Code" i18np="shared.fields.zipCode" maxlength="5" name="zipCode" class="form-control form-control-small">
                                             </div>

@@ -364,6 +364,8 @@ module.exports = {
 
     saveCharges: async function (params) {
 
+        //console.log('inside data',params)
+
         const sql = SQL`WITH save_charges AS (
                                 INSERT INTO billing.charges 
                                     ( claim_id     
@@ -577,8 +579,10 @@ module.exports = {
                                 , ch.authorization_no
                                 , (ch.units * ch.bill_fee)::numeric as total_bill_fee
                                 , (ch.units * ch.allowed_amount)::numeric as total_allowed_fee
+                                , chs.study_id
                             FROM billing.charges ch 
                                 INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id 
+                                INNER JOIN billing.charges_studies chs ON chs.charge_id = ch.id
                             WHERE claim_id = c.id 
                             ORDER BY ch.id, ch.line_num ASC
                       ) pointer) AS claim_charges
@@ -614,7 +618,7 @@ module.exports = {
                        WHERE 
                         c.id = ${params.id}`;
 
-        return await query(sql);
+        return await query(get_claim_sql);
     },
 
     update: async (args) => {
@@ -823,9 +827,8 @@ module.exports = {
             FROM
                 save_insurance 
             WHERE
-                billing.claims.id = ${claims.claim_id} 
+                billing.claims.id = ${claims.claim_id}
                 AND save_insurance.coverage_level = 'primary'
-                AND 'primary_insurance' = ${claims.payer_type}
             RETURNING billing.claims.id 
         ),
         update_secondary_ins AS (
@@ -838,7 +841,6 @@ module.exports = {
                 save_insurance 
             WHERE
                 billing.claims.id = ${claims.claim_id} 
-                AND 'secondary_insurance' = ${claims.payer_type}
                 AND save_insurance.coverage_level = 'secondary'
             RETURNING billing.claims.id 
         ),
@@ -852,7 +854,6 @@ module.exports = {
                 save_insurance 
             WHERE
                 billing.claims.id = ${claims.claim_id} 
-                AND 'tertiary_insurance' = ${claims.payer_type}
                 AND save_insurance.coverage_level = 'tertiary'
             RETURNING billing.claims.id
         ),
@@ -907,10 +908,11 @@ module.exports = {
               , pointer3
               , pointer4
               , authorization_no
+              , is_deleted
     FROM
         json_to_recordset((${JSON.stringify(charges)})) AS x (
               id bigint
-              claim_id bigint     
+            , claim_id bigint     
             , cpt_id bigint
             , modifier1_id bigint
             , modifier2_id bigint
@@ -926,7 +928,7 @@ module.exports = {
             , pointer3 text
             , pointer4 text
             , authorization_no text
-            
+            , is_deleted boolean
         )
     ),
     update_charges AS (
@@ -937,15 +939,14 @@ module.exports = {
             , bill_fee  = chd.bill_fee
             , allowed_amount = chd.allowed_amount
             , units  = chd.units
-            , accession_no = chd.accession_no
             , pointer1  = chd.pointer1
             , pointer2  = chd.pointer2
             , pointer3  = chd.pointer3
             , pointer4  = chd.pointer4
-            , modifier1_id = chd.mmodifier1_id
-            , modifier2_id = chd.mmodifier2_id
-            , modifier3_id = chd.mmodifier3_id
-            , modifier4_id = chd.mmodifier4_id
+            , modifier1_id = chd.modifier1_id
+            , modifier2_id = chd.modifier2_id
+            , modifier3_id = chd.modifier3_id
+            , modifier4_id = chd.modifier4_id
             , authorization_no  = chd.authorization_no
 
         FROM
@@ -967,8 +968,10 @@ module.exports = {
             AND  chd.is_deleted
             AND  chd.id is NOT NULL
     )
-        SELECT * FROM save_insurance `;
+        SELECT * FROM update_secondary_ins `;
 
+        console.log(sqlQry.text)
+        console.log(sqlQry.values)
         return await query(sqlQry);
        
 

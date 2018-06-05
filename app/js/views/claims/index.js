@@ -44,6 +44,9 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     model: Backbone.Model.extend({})
                 });
                 this.facilities = new modelCollection(commonjs.bindArray(app.facilities, true, true));
+                this.states = new modelCollection(commonjs.bindArray(app.states[0].app_states, true));
+                this.genders = new modelCollection(app.relationship_status);
+                this.empStatus = new modelCollection(app.employment_status);
                 this.planList = new modelCollection(planName);
                 this.claimStatusList = new modelCollection(app.claim_status);
                 this.billingCodesList = new modelCollection(app.billing_codes);
@@ -65,6 +68,9 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                         dob: self.cur_patient_dob,
                         planname: self.planList.toJSON(),
                         facilities: self.facilities.toJSON(),
+                        empStatus: self.empStatus.toJSON(),
+                        genders: self.genders.toJSON(),
+                        states: self.states.toJSON(),
                         claimStatusList: self.claimStatusList.toJSON(),
                         billingCodesList: self.billingCodesList.toJSON(),
                         billingClassList: self.billingClassList.toJSON()
@@ -526,12 +532,12 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 var _targetId = $(e.target || e.srcElement).attr('id');
                 if (_targetId == "createNewCharge") {
                     var index = $('#tBodyCharge tr:last').attr('data_row_id') ? $('#tBodyCharge tr:last').attr('data_row_id') : -1;
-
+                    var rowData = _.find(self.chargeModel, { 'data_row_id': parseInt(index) });
                     var _rowObj = {
                         id: null,
                         claim_id: self.claim_Id || null,
                         ref_charge_id: null,
-                        study_id: self.cur_study_id || null,
+                        study_id: self.isEdit ? (rowData.study_id || null) : (self.cur_study_id || null),
                         accession_no: $('#tBodyCharge tr:first').length > 0 ? $('#tBodyCharge tr:first').find('.charges__accession-num').text().trim() : (self.pri_accession_no || null),
                         data_row_id: parseInt(index) + 1
                     }
@@ -566,8 +572,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
 
                 /* Bind charge table data*/
                 if (data.cpt_code || data.display_description) {
-                    $('#select2-txtCptCode_' + index + '-container').html(data.cpt_code).prop('title', data.cpt_code).attr({ 'data_code': data.cpt_code, 'data_description': data.display_description, 'data_id': data.cpt_code_id }).css('min-width', '80');
-                    $('#select2-txtCptDescription_' + index + '-container').html(data.display_description).prop('title', data.display_description).attr({ 'data_code': data.cpt_code, 'data_description': data.display_description, 'data_id': data.cpt_code_id });
+                    $('#select2-txtCptCode_' + index + '-container').html(data.cpt_code).prop('title', data.cpt_code).attr({ 'data_code': data.cpt_code, 'data_description': data.display_description, 'data_id': data.cpt_id }).css('min-width', '80');
+                    $('#select2-txtCptDescription_' + index + '-container').html(data.display_description).prop('title', data.display_description).attr({ 'data_code': data.cpt_code, 'data_description': data.display_description, 'data_id': data.cpt_id });
                     $('#txtCptCode_' + index).removeClass('cptIsExists');
                 }
 
@@ -1632,7 +1638,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     is_other_accident: $('#chkOtherAccident').is(':checked'),
                     is_employed: $('#chkEmployment').is(':checked'),
                     service_by_outside_lab: $('#chkOutSideLab').is(':checked'),
-                    claim_status_id: 2 // Default // payment pending from claim_status table
+                    claim_status_id: $('#ddlClaimStatus option:selected').val() != '' ? parseInt($('#ddlClaimStatus option:selected').val()) : null
+                    
                 }
 
                 /*Setting claim charge details*/
@@ -1643,7 +1650,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     var rowData = _.find(self.chargeModel, { 'data_row_id': parseInt(id) });
                     claim_model.charges.push({
                         id: rowData.id ? rowData.id : null,
-                        claim_id: rowData.claim_id ? rowData.claim_id : null,
+                        claim_id: rowData.claim_id ? parseInt(rowData.claim_id) : null,
                         //line_num: index,
                         cpt_id: parseInt(cpt_code_id),
                         pointer1: $('#ddlPointer1_' + id).val() || null,

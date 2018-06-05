@@ -47,27 +47,28 @@ module.exports = {
 
     update: async (params) => {
 
+        
         update_charges(params);
 
         async function update_charges(objects) {
 
             const charge_arr = [];
-            await data.update(params);
-
+            const claim_update = await data.update(params);
+        
             for (const obj1 of objects.charges) {
 
-                if (obj1.id) {
+        
+                if (!obj1.id) {
 
                     charge_arr.push(data.saveCharges(obj1));
 
                 }
 
-                
             }
 
             return await Promise.all(charge_arr);
         }
-        
+
     },
-    getData: async (params)=> { return await data.getClaimData(params); }
+    getData: async (params) => { return await data.getClaimData(params); }
 };

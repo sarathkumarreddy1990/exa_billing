@@ -109,7 +109,29 @@ module.exports = {
                                     description
                                     FROM   billing.provider_id_code_qualifiers
                                     WHERE  company_id=${companyID} ) AS provider_id_code_qualifiers)
-               SELECT *
+                , cte_employment_status AS(
+                                    SELECT Json_agg(Row_to_json(employment_status)) employment_status
+                                    FROM  (
+                                    SELECT id,
+                                    description
+                                    FROM   employment_status
+                                    WHERE  company_id=${companyID} AND inactivated_dt IS NULL ) AS employment_status)
+                , cte_relationship_status AS(
+                                    SELECT Json_agg(Row_to_json(relationship_status)) relationship_status
+                                    FROM  (
+                                    SELECT id,
+                                    description
+                                    FROM   relationship_status
+                                    WHERE  company_id=${companyID} AND inactivated_dt IS NULL ) AS relationship_status)
+                , cte_states AS(
+                                    SELECT Json_agg(Row_to_json(states)) states
+                                    FROM  (
+                                    SELECT 
+                                    app_states
+                                    FROM   companies
+                                    WHERE  id=${companyID} ) AS states)
+    
+            SELECT *
                FROM   cte_company,
                       cte_facilities,
                       cte_modalities,
@@ -119,7 +141,10 @@ module.exports = {
                       cte_claim_status,
                       cte_billing_codes,
                       cte_billing_classes,
-                      cte_provider_id_code_qualifiers
+                      cte_provider_id_code_qualifiers,
+                      cte_employment_status,
+                      cte_relationship_status,
+                      cte_states
                `;
 
         return await query(sql);
