@@ -45,25 +45,23 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             model: Backbone.Model.extend({})
         });
 
-        var priorityValue = commonjs.makeValue(commonjs.bindArray(app.settings.priorities, false), ":All;");
+        var priorityValue = commonjs.makeValue(commonjs.bindArray(app.priorities, false), ":All;");
         var modalityValue = commonjs.makeValue(app.modalities, ":All;", "modality_code", "modality_code");
 
         // filter inactive and no show study facilities
         var facilities = [];
-        var facilityValue = commonjs.makeValue(facilities, ":All;", "id", "facility_name");
-        var bodyPartValue = commonjs.makeValue(commonjs.bindArray(app.settings.bodyParts, false), ":All;");
+        var facilityValue = commonjs.makeValue(app.facilities, ":All;", "id", "facility_name");
+        var bodyPartValue = commonjs.makeValue(commonjs.bindArray(app.bodyParts, false), ":All;");
         var insProviderTypeValue = commonjs.makeValue(app.insProviderTypes, ":All;", "description", "description");
         var billingCodeValue = commonjs.makeValue(app.billing_codes, ":All;", "id", "description");
         var billingClassesValue = commonjs.makeValue(app.billing_classes, ":All;", "id", "description");
         var claimStatusValue = commonjs.makeValue(app.claim_status, ":All;", "id", "description");
 
-        var studyFlagArray = commonjs.bindArray(app.settings.studyflag, false);
-        var studyFlagList = new Collection(studyFlagArray);
-        var studyFlagArrayValue = studyFlagList.toJSON();
+        var studyFlagArray = app.studyflag;
         var isNoneExist = false;
 
-        for ( var i = 0; i < studyFlagArrayValue.length; i++ ) {
-            if ( studyFlagArrayValue[ i ].text.toUpperCase() == 'NONE' ) {
+        for ( var i = 0; i < studyFlagArray.length; i++ ) {
+            if ( studyFlagArray[ i ].description.toUpperCase() == 'NONE' ) {
                 isNoneExist = true;
                 break;
             }
@@ -71,7 +69,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
 
         var studyFlagValue = commonjs.makeValue(studyFlagArray, !isNoneExist ?
                                                        ":All;None:None;" :
-                                                       ":All;");
+                                                       ":All;","id", "description");
 
         var modalityRoomValue = commonjs.makeValue(app.modalityRooms, ":All;", "id", "modality_room_name");
         var reportQueueValue = commonjs.makeValue(app.settings.report_queue_status, ":All;", "code", "description");
@@ -89,7 +87,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var imageDeliveryValue = commonjs.makeValue(imageDeliveryOptions, ':All;', 'type', 'label');
         var deletedValue = ":All;true:Only;false:None";
         var verifiedValue = ":All;true:Yes;false:No";
-        var billingMethodValue =  ":All;EB:Electronic Billing;PC:Paper Claim;PP:Patient Payment,DB:Direct Billing";
+        var billingMethodValue =  ":All;electronic_billing:Electronic Billing;paper_claim:Paper Claim;patient_payment:Patient Payment,direct_billing:Direct Billing";
         var payerTypeValue =  `:All;primary_insurance:Primary Insurance;secondary_insurance:Secondary Insurance;
                                 teritary_insurance:Teritary Insurance;Patient:Patient`;
 

@@ -3,7 +3,7 @@ const { query, SQL } = require('./index');
 module.exports = {
 
     getData: async function (params) {
-        let { companyID, userID } = params;
+        let { companyID, userID, siteID } = params;
 
         let sql = SQL`
                     WITH cte_facilities AS
@@ -23,7 +23,8 @@ module.exports = {
                                     SELECT id AS "companyID",
                                             company_code,
                                             company_name,
-                                            time_zone
+                                            time_zone,
+                                            sys_config
                                     FROM   companies
                                     WHERE  id=${companyID}
                                     AND    NOT has_deleted )
@@ -109,6 +110,21 @@ module.exports = {
                                     description
                                     FROM   billing.provider_id_code_qualifiers
                                     WHERE  company_id=${companyID} ) AS provider_id_code_qualifiers)
+                , cte_studyflag AS(
+                                    SELECT Json_agg(Row_to_json(studyflag)) studyflag
+                                    FROM  (
+                                    SELECT id,
+                                        color_code,
+                                        description
+                                    FROM   study_flags
+                                    WHERE  company_id=${companyID} AND NOT has_deleted) AS studyflag)
+                , cte_sites AS(                                   
+                                SELECT id as siteID,
+                                    stat_level_config,
+                                    tat_config 
+                                    FROM   sites
+                                    WHERE  id=${siteID})
+    
                SELECT *
                FROM   cte_company,
                       cte_facilities,
@@ -119,7 +135,9 @@ module.exports = {
                       cte_claim_status,
                       cte_billing_codes,
                       cte_billing_classes,
-                      cte_provider_id_code_qualifiers
+                      cte_provider_id_code_qualifiers,
+                      cte_sites,
+                      cte_studyflag
                `;
 
         return await query(sql);

@@ -6,7 +6,7 @@ define(['backbone'], function (Backbone) {
         defaults: {
             "name": "",
             "isActive": "",
-            "companyID": "",
+            "companyId": "",
             "code": "",
             "shortDescription": "",
             "federalTaxId": "",

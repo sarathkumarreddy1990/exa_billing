@@ -2,16 +2,17 @@ define([
     'jquery',
     'underscore',
     'backbone',
-    'text!templates/setup/index.html'
+    'text!templates/reports/index.html'
 ],
     function (
         $,
         _,
         Backbone,
-        SetupTemplate
+        ReportTemplate
     ) {
         return Backbone.View.extend({
-            template: _.template(SetupTemplate),
+
+            template: _.template(ReportTemplate),
             events: {
             },
 

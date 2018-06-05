@@ -17,9 +17,9 @@ module.exports = {
         let moduleName = 'Billing';
         let screenName = 'UI';
 
-        let apiPath = routeParams.split(/exa_modules\/billing\//g).filter(routePrefix => !!routePrefix);
-        screenName = moduleNames[apiPath[0]] || moduleName;
-        screenName = screenNames[apiPath[1]] || screenName;
+        let apiPath = routeParams.split(/\/exa_modules\/billing\/|\/|\?/g).filter(routePrefix => !!routePrefix);
+        moduleName = moduleNames[apiPath[0]] || apiPath[0] || moduleName;
+        screenName = screenNames[apiPath[1]] || apiPath[1] || screenName;
 
         return {
             moduleName,
