@@ -12,8 +12,7 @@ define([
     ) {
         return Backbone.SubRoute.extend({
             routes: {
-                '': 'showDefaultView',
-                'list': 'showDefaultView',
+                'charges': 'showDefaultView'
             },
 
             showDefaultView: function () {
