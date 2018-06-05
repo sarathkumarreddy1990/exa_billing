@@ -6,8 +6,10 @@ module.exports = {
 
         const studyIds = params.study_ids.split('~').map(Number);
 
-        let sql = SQL`SELECT 
-                        json_agg(row_to_json(charge)) "charges" 
+        const firstStudyId = studyIds.length > 0 ? studyIds[0] : null;
+        
+        let sql = SQL`SELECT * FROM (
+            SELECT json_agg(row_to_json(charge)) "charges" 
                       FROM (SELECT
                                   sc.id AS study_cpt_id
                                 , s.study_dt
@@ -35,7 +37,65 @@ module.exports = {
                             WHERE
                                 study_id = ANY(${studyIds})
                             ORDER BY s.accession_no DESC
-                            ) AS charge `;
+                            ) AS charge
+                        ) charge_details
+                            ,(
+                                SELECT json_agg(row_to_json(claim_default_details)) "claim_details" FROM
+                                    (SELECT
+                                        facility_id,
+                                        order_info->'currentDate' AS current_illness_date,
+                                        order_info->'similarIll' AS same_illness_first_date,
+                                        order_info->'wTo' AS hospitalization_to_date,
+                                        order_info->'wFrom' AS unable_to_work_from_date,
+                                        order_info->'hTo' AS hospitalization_to_dt,
+                                        order_info->'hFrom' AS hospitalization_from_date,
+                                        order_info->'claim_notes' AS claim_notes,
+                                        COALESCE(NULLIF(order_info->'outsideLab',''), 'false')::boolean AS service_by_outside_lab,
+                                        order_info->'original_ref' AS original_reference,
+                                        order_info->'authorization_no' AS authorization_no,
+                                        order_info->'frequency_code' AS frequency,
+                                        COALESCE(NULLIF(order_info->'oa',''), 'false')::boolean AS is_other_accident,
+                                        COALESCE(NULLIF(order_info->'aa',''), 'false')::boolean AS is_auto_accident,
+                                        COALESCE(NULLIF(order_info->'emp',''), 'false')::boolean AS is_employed,
+                                        order_info -> 'rendering_provider_id' AS rendering_provider_contact_id,
+                                        order_info -> 'claim_status' AS claim_status,
+                                        order_info->'billing_code' AS billing_code,
+                                        order_info->'billing_class' AS billing_class,
+                                        orders.referring_providers [ 1 ] AS ref_prov_full_name,
+                                        referring_provider_ids [ 1 ] AS referring_provider_contact_id,
+                                        (   SELECT
+                                                    studies.study_info->'refDescription'
+                                            FROM
+                                                    studies
+                                            WHERE
+                                                studies.order_id IN (SELECT order_id FROM public.studies s WHERE s.id = ${firstStudyId})
+                                            ORDER BY studies.order_id DESC LIMIT 1 ) AS
+                                        referring_pro_study_desc,
+                                        providers.full_name AS reading_phy_full_name,
+                                        order_info -> 'ordering_facility_id' AS service_facility_id,
+                                        order_info -> 'ordering_facility' AS service_facility_name,
+                                        order_info -> 'pos' AS pos_type,
+                                        orders.order_status AS order_status, (
+                                            SELECT
+                                                claim_status
+                                            FROM
+                                                claims
+                                            WHERE
+                                                order_id = orders.id
+                                                AND (claims.has_expired != 'true' OR has_expired IS NULL)
+                                                ORDER BY
+                                                id DESC
+                                                LIMIT 1
+                                                ) AS claim_status,
+                                        order_info -> 'billing_provider' AS billing_provider_id,
+                                        order_info -> 'pos_type_code' AS pos_type_code
+                                    FROM
+                                        orders
+                                    LEFT JOIN provider_contacts ON COALESCE (NULLIF (order_info -> 'rendering_provider_id',''),'0') = provider_contacts.id::text
+                                    LEFT JOIN providers ON providers.id = provider_contacts.provider_id
+                                    WHERE orders.id IN (SELECT order_id FROM public.studies s WHERE s.id = ${firstStudyId})
+                                    ) AS claim_default_details
+                            ) claims_info `;
 
         return await query(sql);
     },
@@ -959,7 +1019,7 @@ module.exports = {
         return await self.updateIns_claims(claims);
 
     },
-    
+
     updateIns_claims: async (params) => {
 
         let sqlQry = SQL`

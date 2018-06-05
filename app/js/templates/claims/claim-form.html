@@ -325,7 +325,7 @@
                                 <!--Employee Status -->
                                 <div class="form-group form-inline">
                                     <div class="col-form-label">
-                                        <label class="control-label" for="ddlPriEmpStatus" >employeeStatus</label>
+                                        <label class="control-label field-required" for="ddlPriEmpStatus" >employeeStatus</label>
                                     </div>
                                     <div class="col-form-content">
                                         <select id="ddlPriEmpStatus">
@@ -383,10 +383,10 @@
                                     </div>
                                     <div class="col-form-content">
                                         <select id="ddlPriGender" class="form-control" >
-                                            <option value="">Select</option>
+                                            
                                             <% _.each(genders, function(obj) { %>
                                                 <option value='<%= obj.id %>'>
-                                                    <%= obj.description %>
+                                                    <%= obj.text %>
                                                 </option>
                                                 <% }); %>
                                             </select>
@@ -416,7 +416,7 @@
                                 <!--city,state,zip-->
                                 <div class="form-group form-inline">
                                     <div class="col-form-label">
-                                        <label class="control-label" for="txtPriCity" >city/State/Zip</label>
+                                        <label class="control-label field-required" for="txtPriCity" >city/State/Zip</label>
                                     </div>
                                     <div class="col-form-content">
                                         <input type="text" id="txtPriCity" placeholder="City" i18np="shared.fields.city" class="form-control">
@@ -565,7 +565,7 @@
     
                                 <div class="form-group form-inline">
                                     <div class="col-form-label">
-                                        <label class="control-label" for="ddlSecEmpStatus" >employeeStatus</label>
+                                        <label class="control-label field-required" for="ddlSecEmpStatus" >employeeStatus</label>
                                     </div>
                                     <div class="col-form-content">
                                         <select id="ddlSecEmpStatus" >
@@ -622,10 +622,10 @@
                                     </div>
                                     <div class="col-form-content">
                                         <select id="ddlSecGender" class="form-control" style="width:130px">
-                                                <option value="">select</option>
+                                               
                                                 <% _.each(genders, function(obj) { %>
                                                     <option value='<%= obj.id %>'>
-                                                        <%= obj.description %>
+                                                        <%= obj.text %>
                                                     </option>
                                                     <% }); %>
                                         </select>
@@ -655,7 +655,7 @@
                                 <!--city,state,zip-->
                                 <div class="form-group form-inline">
                                     <div class="col-form-label">
-                                        <label class="control-label" for="txtSecZip" >city/State/Zip</label>
+                                        <label class="control-label field-required" for="txtSecZip" >city/State/Zip</label>
                                     </div>
                                     <div class="col-form-content">
                                         <input type="text" id="txtSecCity" placeholder="City" i18np="shared.fields.city" class="form-control">
@@ -792,7 +792,7 @@
                                         <!--Employee Status -->
                                         <div class="form-group form-inline">
                                             <div class="col-form-label">
-                                                <label class="control-label" for="ddlTerEmpStatus" i18n="billing.claims.employeeStatus">employeeStatus</label>
+                                                <label class="control-label field-required" for="ddlTerEmpStatus" i18n="billing.claims.employeeStatus">employeeStatus</label>
                                             </div>
                                             <div class="col-form-content">
                                                 <select id="ddlTerEmpStatus" >
@@ -852,10 +852,10 @@
                                             </div>
                                             <div class="col-form-content">
                                                 <select id="ddlTerGender" class="form-control">
-                                                        <option value="">Select</option>
+                                                      
                                                         <% _.each(genders, function(obj) { %>
                                                             <option value='<%= obj.id %>'>
-                                                                <%= obj.description %>
+                                                                <%= obj.text %>
                                                             </option>
                                                             <% }); %>
                                                 </select>
@@ -885,7 +885,7 @@
                                         <!--city,state,zip-->
                                         <div class="form-group form-inline">
                                             <div class="col-form-label">
-                                                <label class="control-label" for="txtTerCity" i18n="shared.fields.cityStateZip"></label>
+                                                <label class="control-label field-required" for="txtTerCity" i18n="shared.fields.cityStateZip"></label>
                                             </div>
                                             <div class="col-form-content">
                                                 <input type="text" id="txtTerCity" placeholder="City" i18np="shared.fields.city" class="form-control">

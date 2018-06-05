@@ -1,5 +1,5 @@
-define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-insurance', 'text!templates/claims/claim-form.html', 'text!templates/claims/charge-row.html'],
-    function ($, _, Backbone, newClaimModel, modelPatientInsurance, claimCreationTemplate, chargeRowTemplate) {
+define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-insurance','models/patient-details', 'text!templates/claims/claim-form.html', 'text!templates/claims/charge-row.html'],
+    function ($, _, Backbone, newClaimModel, modelPatientInsurance, patientModel, claimCreationTemplate, chargeRowTemplate) {
         var claimView = Backbone.View.extend({
             el: null,
             rendered: false,
@@ -45,7 +45,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 });
                 this.facilities = new modelCollection(commonjs.bindArray(app.facilities, true, true));
                 this.states = new modelCollection(commonjs.bindArray(app.states[0].app_states, true));
-                this.genders = new modelCollection(app.relationship_status);
+                this.genders = new modelCollection(commonjs.bindArray(app.gender, true));
                 this.empStatus = new modelCollection(app.employment_status);
                 this.planList = new modelCollection(planName);
                 this.claimStatusList = new modelCollection(app.claim_status);
@@ -239,7 +239,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 $('input[name="otherAccident"]').attr('checked', claim_data.is_other_accident);
                 $('#txtOriginalRef').val(claim_data.original_reference ? claim_data.original_reference : '');
                 $('#txtAuthorization').val(claim_data.authorization_no ? claim_data.authorization_no : '');
-                $('#frequency').val(claim_data.authorization_no ? claim_data.authorization_no : '');
+                $('#frequency').val(claim_data.frequency ? claim_data.frequency : '');
 
                 /* Additional info end */
                 /* Billing summary start */
@@ -460,6 +460,10 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     self.assignExistInsurance(e);
                 });
 
+                $("#ddlPriRelationShip, #ddlSecRelationShip, #ddlTerRelationShip").off().change(function (e) {
+                    self.changeRelationalShip(e);
+                });
+
                 $(".closePopup").off().click(function (e) {
                     $('#site_modal_div_container').empty().hide();
                 });
@@ -505,6 +509,9 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                                         data_row_id: index
                                     });
                                 });
+
+                                var _defaultDetails = modelDetails.claim_details && modelDetails.claim_details.length > 0 ? modelDetails.claim_details[0] : {};
+                                self.bindDefaultClaimDetails(_defaultDetails)
                             }
                         },
                         error: function (model, response) {
@@ -1752,6 +1759,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                         $('#ddlPriGender option:selected').val(),
                         $('#txtPriSubPriAddr').val(),
                         $('#ddlPriRelationShip option:selected').val(),
+                        $('#ddlPriEmpStatus option:selected').val(),
                         $('#txtPriDOB').val()
                     ],
                     secondaryfields: [
@@ -1761,6 +1769,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                         $('#ddlSecGender option:selected').val(),
                         $('#txtSecSubPriAddr').val(),
                         $('#ddlSecRelationShip option:selected').val(),
+                        $('#ddlSecEmpStatus option:selected').val(),
                         $('#txtSecDOB').val()
                     ],
                     tertiaryfields: [
@@ -1770,6 +1779,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                         $('#ddlTerGender option:selected').val(),
                         $('#txtTerSubPriAddr').val(),
                         $('#ddlTerRelationShip option:selected').val(),
+                        $('#ddlSecEmpStatus option:selected').val(),
                         $('#txtTerDOB').val()
                     ]
                 }
@@ -1899,6 +1909,92 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     return false;
                 }
                 return true;
+            },
+
+            changeRelationalShip: function (e) {
+                var self = this;
+                var patID = self.cur_patient_id;
+                this.patientmodel = new patientModel();
+                var subscriberFlag = false;
+                var _targetFlag = $(e.target).attr('id') == "ddlPriRelationShip" ? 'Pri' : ( $(e.target).attr('id') == "ddlSecRelationShip" ? 'Sec' : 'Ter' ) ;
+                if (!subscriberFlag) {
+                    this.patientmodel.fetch({
+                        data: { id: patID},
+                        success: function (model, response) {
+                            if (response.length) {
+                                response = response[0];
+                                var contactInfo = commonjs.hstoreParse(response.patient_info);
+                                self.firstName = response && response && response.first_name;
+                                self.lastName = response.last_name;
+                                self.mi = response.middle_name;
+                                self.suffix = response.suffix_name;
+                                self.gender = response.gender;
+                                self.address1 = contactInfo.c1AddressLine1;
+                                self.address2 = contactInfo.c1AddressLine2;
+                                self.city = contactInfo.c1City;
+                                self.state = contactInfo.c1State;
+                                self.zipCode = contactInfo.c1Zip;
+                                //commonjs.checkNotEmpty(response.birth_date) ? self.dtpDOBDate.date(response.birth_date) : self.dtpDOBDate.clear();
+                                self.homePhone = contactInfo.c1HomePhone;
+                                self.workPhone = contactInfo.c1WorkPhone;
+                                self.empStatus = contactInfo.empStatus;
+                                subscriberFlag = true;
+                                self.bindSubscriber(_targetFlag);
+                            }
+                        }
+                    });
+                }
+                else {
+                    self.bindSubscriber(_targetFlag);
+                }
+            },
+            bindSubscriber: function (flag) {
+                var self = this;
+                var relationalShip = $.trim($('#ddl'+flag+'RelationShip option:selected').text());
+                $('#txt'+flag+'SubFirstName').val('');
+                $('#txt'+flag+'SubLastName').val('');
+                $('#txt'+flag+'SubMiName').val('');
+                $('#txt'+flag+'SubSuffix').val('');
+                $('#ddl'+flag+'Gender').val('');
+                if(self.checkAddressDetails(flag)){
+                    if(confirm("You Need to Change address details?")){
+                        $('#txt'+flag+'SubPriAddr').val('');
+                        $('#txt'+flag+'SubSecAddr').val('');
+                        $('#txt'+flag+'City').val('');
+                        $('#ddl'+flag+'State').val('');
+                        $('#txt'+flag+'ZipCode').val('');
+                    }
+                }
+                else{
+                $('#txt'+flag+'SubPriAddr').val(self.address1);
+                $('#txt'+flag+'SubSecAddr').val(self.address2);
+                $('#txt'+flag+'City').val(self.city);
+                $('#ddl'+flag+'State').val(self.state);
+                $('#txt'+flag+'ZipCode').val(self.zipCode);
+                }
+                $('#ddl'+flag+'EmpStatus').val(self.empStatus);
+
+                if (relationalShip.toLowerCase() == "self") {
+                    $('#txt'+flag+'SubFirstName').val(self.firstName);
+                    $('#txt'+flag+'SubLastName').val(self.lastName);
+                    $('#txt'+flag+'SubMiName').val(self.mi);
+                    $('#txt'+flag+'SubSuffix').val(self.suffix);
+                    $('#ddl'+flag+'Gender').val(self.gender);
+                }
+                else 
+                  document.querySelector('#txt'+flag+'DOB').value = ""
+            },
+            checkAddressDetails: function(flag)
+            {
+                var chkaddress1 = $('#txt'+flag+'Address1').val();
+                var chkaddress2 =  $('#txt'+flag+'Address2').val();
+                var chkcity =  $('#txt'+flag+'City').val();
+                var chkstate =  $('#ddl'+flag+'State').val();
+                var chkzipcode = $('#txt'+flag+'ZipCode').val();
+                if(chkaddress1==''&& chkaddress2==''&&chkcity=='' && chkstate=='' && chkzipcode==''){
+                    return false;}
+                else{
+                    return true;}
             }
 
         });
