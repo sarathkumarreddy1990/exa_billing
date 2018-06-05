@@ -30,7 +30,7 @@ router.post('/', async function (req, res) {
 });
 
 router.put('/', async function (req, res) {
-    const data = await claimsController.update(req.query);
+    const data = await claimsController.update(req.body);
     httpHandler.sendRows(req, res, data);
 });
 
