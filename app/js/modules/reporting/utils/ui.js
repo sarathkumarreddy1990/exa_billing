@@ -592,69 +592,57 @@ define([
                 })
             },
 
-            listUsersAutoComplete: function (userMessage) {
-                commonjs.setAutocompleteInfinite({
-                    containerID: '#txtUsers',
-                    inputLength: 0,
-                    placeHolder: userMessage,
-                    URL: "/usersAutoComplete",
-                    data: function (term, page) {
-                        return {
-                            pageNo: page,
-                            pageSize: 10,
-                            q: term,
-                            sortField: 'username',
-                            sortOrder: 'Asc',
-                            from: 'provider'
-                        };
+            listUsersAutoComplete: function () {
+                var self = this;
+                $("#ddlInsuranceProvider").select2({
+                    ajax: {
+                        url: "/exa_modules/billing/autoCompleteRouter/insurances",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                page: params.page || 20,
+                                q: params.term || '',
+                                pageSize: 10,
+                                sortField: "insurance_code",
+                                sortOrder: "ASC",
+                                company_id: 1
+                            };
+                        },
+                        processResults: function (data, params) {
+                            params.page = params.page || 1;
+                            return {
+                                results: data,
+                                pagination: {
+                                    more: (params.page * 30) < data[0].total_records
+                                }
+                            };
+                        },
+                        cache: true
                     },
-                    results: function (data, page) {
-                        var more = data.result.length > 0 ? (page * 10) < data.result[0].total_records : false;
-                        return { results: data.result, more: more };
-                    },
-                    formatID: function (obj) {
-                        return obj.id;
-                    },
-                    formatResult: function (res) {
-                        return commonjs.formatACResult(res.username, "", res.is_active);
-                    },
-                    formatSelection: function (res) {
-                        $('#txtUsers')[0].disabled = false;
-                        if (res.is_active == false) {
-                            commonjs.helpConfirm({
-                                icon: "fa fa-plus",
-                                head: "Add Inactive",
-                                hi18n: "messages.confirm.addInactive",
-                                body: "Are you sure that you want to add this inactive selection?",
-                                bi18n: "messages.confirm.addInactiveAreYouSure",
-                                buttons: [
-                                    {
-                                        text: "Yes",
-                                        click: function () {
-                                            $('#txtUsers').val(res.username);
-                                            $('#btnAddUsers').attr('data-id', res.id);
-                                        }
-                                    },
-                                    {
-                                        text: "No",
-                                        click: function () {
-                                            $('#txtUsers').val(res.username);
-                                            $('#txtUserID').val("");
-                                            res.username = "";
-                                            $('#txtUsers').select2('data', { id: '', text: '' });
-
-                                        }
-                                    }
-                                ]
-                            });
-                        }
-                        else {
-                            $('#txtUsers').val(res.username);
-                            $('#btnAddUsers').attr('data-id', res.id);
-                        }
-                        return res.username;
-                    }
+                    placeholder: 'Select carrier',
+                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 0,
+                    templateResult: formatRepo,
+                    templateSelection: formatRepoSelection                   
                 });
+                function formatRepo(repo) {
+                    if (repo.loading) {
+                        return repo.text;
+                    }
+                    var insurance_info = commonjs.hstoreParse(repo.insurance_info);
+                    var markup = "<table><tr>";
+                    markup += "<td title='" + repo.insurance_code + "(" + repo.insurance_name + ")'> <div>" + repo.insurance_code + "(" + repo.insurance_name + ")" + "</div><div>" + insurance_info.Address1 + "</div>";
+                    markup += "<div>" + insurance_info.City + ", " + insurance_info.State + " " + insurance_info.ZipCode + "</div>";
+                    markup += "</td></tr></table>";
+                    return markup;
+
+                }
+                function formatRepoSelection(res) {
+                    if (res && res.id) {
+                        return res.insurance_name;
+                    }
+                }
             },
 
             setEvents: function () {
