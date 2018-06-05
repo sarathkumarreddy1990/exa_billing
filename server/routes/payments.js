@@ -19,4 +19,9 @@ router.put('/', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.post('/applyPayments', async function (req, res) {
+    const data = await paymentsController.createPaymentapplications(req.body);
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;
