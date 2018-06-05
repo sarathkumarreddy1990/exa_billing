@@ -13,7 +13,7 @@ define([
 ) {
         return Backbone.SubRoute.extend({
             routes: {
-                "charges/*subroute": "startChargesReport"
+                "r/*subroute": "startChargesReport"
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -31,7 +31,7 @@ define([
 
             startChargesReport: function (subroute) {
                 if (this.checkLicense('Charges') && !this.chargesRouter) {
-                    this.defaultArgs.routePrefix = 'reports/charges/';
+                    this.defaultArgs.routePrefix = 'reports/r/';
                     this.chargesRouter = new ChargeReportRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
