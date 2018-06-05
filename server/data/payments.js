@@ -145,8 +145,8 @@ module.exports = {
                                     , ${credit_card_name}
                                     , ${credit_card_number}
                                 WHERE NOT EXISTS(SELECT 1 FROM billing.payments where id = ${paymentId})
-                                RETURNING id)
-                            UPDATE billing.payments SET
+                                RETURNING id),
+                                payment_update as(UPDATE billing.payments SET
                                 facility_id = ${facility_id}
                                 , patient_id = ${patient_id}
                                 , insurance_provider_id = ${insurance_provider_id}
@@ -163,8 +163,9 @@ module.exports = {
                                 , card_number = ${credit_card_number}
                             WHERE 
                                 id = ${paymentId}
-                            AND NOT EXISTS(SELECT 1 FROM insert_data)`;
-
+                            AND NOT EXISTS(SELECT 1 FROM insert_data))
+                            SELECT id from insert_data`;
+                            
         return await query(sql);
     },
 
