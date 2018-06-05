@@ -1,7 +1,7 @@
 const { query, SQL } = require('../index');
 
 module.exports = {
-    getData: async (params)=>{
+    getData: async (params) => {
         let {
             id
         } = params;
@@ -60,7 +60,7 @@ module.exports = {
         LEFT JOIN public.patient_insurances sec_pi ON sec_pi.id = bc.secondary_patient_insurance_id
         LEFT JOIN public.patient_insurances ter_pi ON ter_pi.id = bc.tertiary_patient_insurance_id
         WHERE 
-            bc.id = 4262
+            bc.id = ${id}
         )  
     , insurance_details AS 
         ( SELECT json_agg(row_to_json(ins)) ins_details
@@ -84,4 +84,4 @@ module.exports = {
     SELECT * FROM  encounter_details, icd_details, insurance_details , followup_details `;
         return await query(sql);
     }
-}
+};
