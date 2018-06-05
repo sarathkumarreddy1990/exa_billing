@@ -34,7 +34,7 @@ module.exports = {
                                 WHERE           
                                     NOT has_deleted AND company_id = ${params.company_id} AND is_active `;
 
-        if (params.q != ''){
+        if (params.q != '') {
             insur_sql.append(search_query);
         }
 
@@ -127,6 +127,113 @@ module.exports = {
             .append(SQL` OFFSET ${((params.page * params.pageSize) - params.pageSize)}`);
 
         return await query(insurance_sql);
-    }
+    },
 
+    getPatients: async function (params) {
+        const sql_patient = SQL`
+              SELECT
+              account_no,
+              gender,
+              patients.birth_date AS DOB,
+              patients.id,
+              full_name,
+              patients.owner_id,
+              total_records
+            , COUNT(1) OVER (range unbounded preceding) AS total_records            
+            FROM (
+                SELECT
+                    distinct(patients.id) as patients_id,
+                    COUNT(1) OVER (RANGE UNBOUNDED PRECEDING) AS total_records
+                FROM
+                    patients                
+                WHERE  
+                    NOT patients.has_deleted 
+                    AND patients.company_id =  ${params.company_id}                                 
+                AND is_active          
+                ORDER BY patients.id ASC 
+                LIMIT ${params.pageSize}
+                OFFSET ${((params.page * params.pageSize) - params.pageSize)}   
+                ) 
+            AS finalPatients INNER JOIN patients ON finalPatients.patients_id = patients.id                  
+            ORDER BY patients.id ASC
+        `;
+        return await query(sql_patient);
+    },
+
+    getOrderingFacility: async function (params) {
+        const sqlOrderingFacility = SQL`
+            SELECT
+                id
+                ,id As provider_group_id
+                ,group_code
+                ,group_name
+                ,group_info
+                ,is_active
+                ,company_id
+                ,(SELECT COUNT(1) FROM provider_groups 
+                WHERE
+                    provider_groups.has_deleted = false
+                    AND (provider_groups.group_type = 'OF'  OR provider_groups.group_type IS NULL)
+                    AND provider_groups.company_id = 1 AND is_active = TRUE
+                ) AS total_records
+            
+            FROM provider_groups    
+            WHERE
+                provider_groups.has_deleted = false
+                AND (provider_groups.group_type = 'OF'  OR provider_groups.group_type IS NULL)
+                AND provider_groups.company_id = 1 AND is_active = TRUE   
+            ORDER BY group_name 
+            LIMIT ${params.pageSize}
+            OFFSET ${((params.page * params.pageSize) - params.pageSize)}        
+            `;
+        return await query(sqlOrderingFacility);
+    },
+
+    getProvidersAc: async function (params) {
+        const sqlProvides = SQL`
+            SELECT
+            p.id,
+            p.full_name,
+            p.last_name,
+            p.first_name,
+            p.marketing_rep,
+            p.middle_initial,
+            p.is_active,
+            p.suffix,
+            p.provider_type,
+            p.provider_code,
+            pc.contact_info,
+            p.facilities, (
+                SELECT
+                    count(1)
+                FROM
+                    providers p
+                    JOIN provider_contacts pc ON p.id = pc.provider_id
+            WHERE
+                p.has_deleted = FALSE
+                AND p.is_active = TRUE
+                AND p.sys_provider = FALSE
+                AND pc.is_active = TRUE
+                AND pc.has_deleted = FALSE
+                AND p.company_id = ${params.company_id}
+                    ) AS total_records,
+                    pc.id,
+                    p.id as provider_id
+                    FROM
+                        providers p
+                    JOIN
+                        provider_contacts pc ON p.id = pc.provider_id
+            WHERE
+                p.has_deleted = FALSE
+                AND p.is_active = TRUE
+                AND p.sys_provider = FALSE
+                AND pc.is_active = TRUE
+                AND pc.has_deleted = FALSE
+                AND p.company_id = ${params.company_id}
+                ORDER BY last_name ASC
+            LIMIT ${params.pageSize}
+            OFFSET ${((params.page * params.pageSize) - params.pageSize)}
+    `;
+        return await query(sqlProvides);
+    }
 };

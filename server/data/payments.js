@@ -95,16 +95,15 @@ module.exports = {
             provider_contact_id,
             payment_reason_id,
             amount,
-            accounting_dt,
-            created_by,
-            payment_dt,
+            accounting_date,
+            user_id,
             invoice_no,
-            alternate_payment_id,
+            display_id,
             payer_type,
             notes,
-            mode,
-            card_name,
-            card_number } = params;
+            payment_mode,
+            credit_card_name,
+            credit_card_number } = params;
 
         const sql = SQL`WITH insert_data as (INSERT INTO billing.payments
                                                 (   company_id
@@ -126,45 +125,45 @@ module.exports = {
                                                   , card_name
                                                   , card_number)
                                                 SELECT
-                                                    ${company_id},
-                                                  , ${facility_id},
-                                                  , ${patient_id},
-                                                  , ${insurance_provider_id},
-                                                  , ${provider_group_id},
-                                                  , ${provider_contact_id},
-                                                  , ${payment_reason_id},
-                                                  , ${amount},
-                                                  , ${accounting_dt},
-                                                  , ${created_by},
-                                                  , ${payment_dt},
-                                                  , ${invoice_no},
-                                                  , ${alternate_payment_id},
-                                                  , ${payer_type},
-                                                  , ${notes},
-                                                  , ${mode},
-                                                  , ${card_name},
-                                                  , ${card_number}
+                                                    ${company_id}
+                                                  , ${facility_id}
+                                                  , ${patient_id}
+                                                  , ${insurance_provider_id}
+                                                  , ${provider_group_id}
+                                                  , ${provider_contact_id}
+                                                  , ${payment_reason_id}
+                                                  , ${amount}
+                                                  , ${accounting_date}
+                                                  , ${user_id}
+                                                  , now()
+                                                  , ${invoice_no}
+                                                  , ${display_id}
+                                                  , ${payer_type}
+                                                  , ${notes}
+                                                  , ${payment_mode}
+                                                  , ${credit_card_name}
+                                                  , ${credit_card_number}
                                                 WHERE NOT EXISTS(SELECT 1 FROM billing.payments where id = ${paymentId})
-                                                RETURNING id)
-                                                UPDATE billing.payments SET
+                                                RETURNING id),
+                                                payment_update as(UPDATE billing.payments SET
                                                     facility_id = ${facility_id}
                                                   , patient_id = ${patient_id}
                                                   , insurance_provider_id = ${insurance_provider_id}
                                                   , provider_group_id = ${provider_group_id}
                                                   , provider_contact_id = ${provider_contact_id}
                                                   , amount = ${amount}::money
-                                                  , accounting_dt = ${accounting_dt}
-                                                  , payment_dt = ${payment_dt}
+                                                  , accounting_dt = ${accounting_date}
                                                   , invoice_no = ${invoice_no}
-                                                  , alternate_payment_id = ${alternate_payment_id}
+                                                  , alternate_payment_id = ${display_id}
                                                   , payer_type = ${payer_type}
                                                   , notes = ${notes}
-                                                  , mode = ${mode}
-                                                  , card_name = ${card_name}
-                                                  , card_number = ${card_number}
+                                                  , mode = ${payment_mode}
+                                                  , card_name = ${credit_card_name}
+                                                  , card_number = ${credit_card_number}
                                                   WHERE 
                                                     id = ${paymentId}
-                                                  AND NOT EXISTS(SELECT 1 FROM insert_data)`;
+                                                  AND NOT EXISTS(SELECT 1 FROM insert_data))
+                                                  SELECT id from insert_data`;
 
         return await query(sql);
     }

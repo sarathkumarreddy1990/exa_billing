@@ -16,5 +16,14 @@ module.exports = {
     },
     getInsurances:function(params){
         return data.getInsurances(params);
+    },
+    getPatients: function (params) {
+        return data.getPatients(params);
+    },
+    getOrderingFacility: function (params) {
+        return data.getOrderingFacility(params);
+    },
+    getProvidersAc: function (params) {
+        return data.getProvidersAc(params);
     }
 };
