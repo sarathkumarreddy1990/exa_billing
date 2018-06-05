@@ -2,7 +2,7 @@ define([
     'backbone',
     'views/worklist',
     'views/studies',
-    'views/claim-workbench',
+    'views/claims/claim-workbench',
     'routes/app/index',
     'routes/setup/index',
     'routes/reports/index',

@@ -1,7 +1,7 @@
-const studyfilterdata = require('./study-filters');
-const filterValidator = require('./filter-validator')();
-const { query, SQL } = require('./index');
-const util = require('./util');
+const studyfilterdata = require('./../study-filters');
+const filterValidator = require('./../filter-validator')();
+const { query, SQL } = require('./../index');
+const util = require('./../util');
 
 const colModel = [
     {
@@ -237,14 +237,14 @@ const api = {
             FROM
                 billing.claims
             ${permissionQuery}
-            ${api.getWLQueryJoin(tables, true) + args.filterQuery}
+            ${api.getWLQueryJoin(tables, true, args.customArgs.filter_id) + args.filterQuery}
             `;
         return query;
     },
-    getWLQueryJoin: function (columns, isInnerQuery) {
+    getWLQueryJoin: function (columns, isInnerQuery, filterID) {
         let tables = isInnerQuery ? columns : api.getTables(columns);
         let r = "";
-
+        
         if (tables.patients) { r += ` INNER JOIN patients ON claims.patient_id = patients.id `; }
 
         if (tables.facilities) { r += ` INNER JOIN facilities ON facilities.id=claims.facility_id `; }
@@ -265,7 +265,9 @@ const api = {
                                            LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.id`;
         }
 
-        if (tables.claim_followups) {
+        if(filterID=="Follow_up_queue"){
+            r += ` INNER JOIN billing.claim_followups ON  claim_followups.claim_id=claims.id `;
+        }else if (tables.claim_followups) {
             r += ` LEFT JOIN billing.claim_followups  ON claim_followups.claim_id=claims.id`;
         }
 
@@ -378,7 +380,7 @@ const api = {
             ${columns}            
             FROM (${innerQuery}) as FinalClaims
             INNER JOIN billing.claims ON FinalClaims.claim_id = claims.id
-            ${api.getWLQueryJoin(columns)}
+            ${api.getWLQueryJoin(columns, '', args.customArgs.filter_id)}
             ORDER BY FinalClaims.number
             `
             ;
