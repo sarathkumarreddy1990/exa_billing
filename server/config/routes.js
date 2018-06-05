@@ -14,6 +14,7 @@ const claimsRouters = require('../routes/claims');
 const userSettingRouter = require('../routes/user-settings');
 const claimsWorkbenchRouters = require('../routes/claim-workbench');
 const claimInquiry = require('../routes/claim-inquiry');
+const studyFilterRouter = require('../routes/setup/study-filter');
 
 const router = function (app) {
 
@@ -35,6 +36,7 @@ const router = function (app) {
     app.use('/exa_modules/billing/user_settings', userSettingRouter);
     app.use('/exa_modules/billing/claimWorkbench', claimsWorkbenchRouters);
     app.use('/exa_modules/billing/claimInquiry', claimInquiry);
+    app.use('/exa_modules/billing/setup/study_filters', studyFilterRouter);
 };
 
 module.exports = router;
