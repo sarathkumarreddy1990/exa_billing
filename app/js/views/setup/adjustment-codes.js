@@ -185,15 +185,43 @@ define(['jquery',
 
             refreshAdjustmentCodeGrid: function () {
                 this.adjustmentCodesTable.refresh();
+                commonjs.showStatus("Reloaded Successfully");
             },
 
-            saveAdjustmentCodes: function () {
+            saveAdjustmentCodes : function() {
+                var self = this;
+                commonjs.validateForm({
+                    rules: {
+                        adjustmentCode: {
+                            required: true
+                        },
+                        description: {
+                            required: true
+                        },
+                        entryType: {
+                            required: true
+                        }
+                    },
+                    messages: {
+                        adjustmentCode: commonjs.getMessage("*", "Adjustment Code"),
+                        description: commonjs.getMessage("*", "Description"),
+                        entryType: commonjs.getMessage("*", "Accouting Entry Type")
+                    },
+                    submitHandler: function () {
+                        self.save();
+                    },
+                    formID: '#formAdjustmentCodes'
+                });
+                $('#formAdjustmentCodes').submit();
+            },
+
+            save: function () {
                 this.model.set({
                     "code": $.trim($('#txtCode').val()),
                     "description": $.trim($('#txtDescription').val()),
-                    "is_active": !$('#chkActive').prop('checked'),
+                    "isActive": !$('#chkActive').prop('checked'),
                     "type": $('#ddlEntryType').val(),
-                    "company_id": app.companyID
+                    "companyId": app.companyID
                 });
                 this.model.save({
                 }, {
@@ -204,7 +232,7 @@ define(['jquery',
                             }
                         },
                         error: function (model, response) {
-                            commonjs.handleXhrError(model, response);
+                            commonjs.handleXhrError(model, response); 
                         }
                     });
             },
