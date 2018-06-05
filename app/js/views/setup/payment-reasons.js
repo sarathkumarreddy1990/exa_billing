@@ -42,7 +42,7 @@ define([
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
                     colNames: ['', '', '', '', ''],
-                    i18nNames: ['', '', '', 'setup.paymentReasons.Reasons', 'setup.common.description'],
+                    i18nNames: ['', '', '', 'setup.common.reasons', 'setup.common.description'],
                     colModel: [
                         {
                             name: 'id',
