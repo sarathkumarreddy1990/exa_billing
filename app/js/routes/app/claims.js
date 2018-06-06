@@ -2,14 +2,14 @@ define([
     'jquery',
     'backbone',
     'backbonesubroute',
-    'views/studies'
+    'views/claims/claim-workbench'
 ],
     function (
         $,
         Backbone,
         SubRoute,
-        StudiesView
-    ) {
+        claimWorkbenchView
+        ) {
         var StudiesRouter = Backbone.SubRoute.extend({
             routes: {
                 'list': 'showGrid'
@@ -17,7 +17,7 @@ define([
 
             showGrid: function () {
                 this.initializeRouter();
-                this.studiesScreen.render();
+                this.claimWorkbenchScreen.render();
             },
 
             initialize: function (options) {
@@ -25,12 +25,12 @@ define([
             },
 
             initializeRouter: function () {
-                this.options.screen = "Studies";//facilityModules.setupScreens.icd;
-                this.options.currentView = this.studiesScreen;
+                this.options.screen = "ClaimWorkbench";//facilityModules.setupScreens.icd;
+                this.options.currentView = this.claimWorkbenchScreen;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
-                    this.studiesScreen = new StudiesView(this.options);
+                    this.claimWorkbenchScreen = new claimWorkbenchView(this.options);
                 }
             }
         });

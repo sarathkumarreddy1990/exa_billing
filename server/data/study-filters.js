@@ -9,7 +9,7 @@ module.exports = {
         return await query(`
                         SELECT id as filter_id,*
                         FROM   billing.grid_filters
-                        WHERE filter_type=1
+                        WHERE filter_type='studies'
                         order by id `);
     },
 

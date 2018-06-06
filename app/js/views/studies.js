@@ -189,7 +189,7 @@ define(['jquery',
             initialize: function (options) {
                 this.options = options;
                 var self = this;
-                self.render();
+              //  self.render();
                 self.routePrefix = '#home/studies/';
 
                 $document.on('studyFilter:delete', function (e, id) {
@@ -347,7 +347,7 @@ define(['jquery',
                 var $divStudyTabsContainer = $(document.getElementById('divStudyTabsContainer'));
                 var $studyTabs = $divStudyTabsContainer.find('#studyTabs');
                 var $ulTabCollection = $(document.getElementById('ulTabCollection'));
-                var $dataContainer = $(document.getElementById('data_container'));
+                var $dataContainer = $(document.getElementById('data_container_home'));
                 var $divTabsContainer = $(document.getElementById('divTabsContainer'));
                 var $divFiltersContainer = $(document.getElementById('divFiltersContainer'));
                 var $lblShowPrior = $(document.getElementById('lblShowPrior'));
@@ -539,9 +539,9 @@ define(['jquery',
 //                            }.bind(navState));
 
                             // SMH Bug #2606 - Hides icons if necessary when setting up the table.
-                            setTimeout(function () {
-                                commonjs.toggleGridlistColumns();
-                            }, 10);
+                            // setTimeout(function () {
+                            //     commonjs.toggleGridlistColumns();
+                            // }, 10);
                         });
 
                         $pagination.on("click", "a", function (e) {
@@ -919,7 +919,7 @@ define(['jquery',
                 }
 
                 // SMH Bug #2606 - Hides icons if necessary when setting up the table.
-                commonjs.toggleGridlistColumns();
+                //commonjs.toggleGridlistColumns();
             },
 
             afterGridBindStudy: function (dataset, gridObj) {
