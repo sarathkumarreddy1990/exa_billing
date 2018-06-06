@@ -6,8 +6,10 @@ module.exports = {
 
         const studyIds = params.study_ids.split('~').map(Number);
 
-        let sql = SQL`SELECT 
-                        json_agg(row_to_json(charge)) "charges" 
+        const firstStudyId = studyIds.length > 0 ? studyIds[0] : null;
+        
+        let sql = SQL`SELECT * FROM (
+            SELECT json_agg(row_to_json(charge)) "charges" 
                       FROM (SELECT
                                   sc.id AS study_cpt_id
                                 , s.study_dt
@@ -35,7 +37,65 @@ module.exports = {
                             WHERE
                                 study_id = ANY(${studyIds})
                             ORDER BY s.accession_no DESC
-                            ) AS charge `;
+                            ) AS charge
+                        ) charge_details
+                            ,(
+                                SELECT json_agg(row_to_json(claim_default_details)) "claim_details" FROM
+                                    (SELECT
+                                        facility_id,
+                                        order_info->'currentDate' AS current_illness_date,
+                                        order_info->'similarIll' AS same_illness_first_date,
+                                        order_info->'wTo' AS hospitalization_to_date,
+                                        order_info->'wFrom' AS unable_to_work_from_date,
+                                        order_info->'hTo' AS hospitalization_to_dt,
+                                        order_info->'hFrom' AS hospitalization_from_date,
+                                        order_info->'claim_notes' AS claim_notes,
+                                        COALESCE(NULLIF(order_info->'outsideLab',''), 'false')::boolean AS service_by_outside_lab,
+                                        order_info->'original_ref' AS original_reference,
+                                        order_info->'authorization_no' AS authorization_no,
+                                        order_info->'frequency_code' AS frequency,
+                                        COALESCE(NULLIF(order_info->'oa',''), 'false')::boolean AS is_other_accident,
+                                        COALESCE(NULLIF(order_info->'aa',''), 'false')::boolean AS is_auto_accident,
+                                        COALESCE(NULLIF(order_info->'emp',''), 'false')::boolean AS is_employed,
+                                        order_info -> 'rendering_provider_id' AS rendering_provider_contact_id,
+                                        order_info -> 'claim_status' AS claim_status,
+                                        order_info->'billing_code' AS billing_code,
+                                        order_info->'billing_class' AS billing_class,
+                                        orders.referring_providers [ 1 ] AS ref_prov_full_name,
+                                        referring_provider_ids [ 1 ] AS referring_provider_contact_id,
+                                        (   SELECT
+                                                    studies.study_info->'refDescription'
+                                            FROM
+                                                    studies
+                                            WHERE
+                                                studies.order_id IN (SELECT order_id FROM public.studies s WHERE s.id = ${firstStudyId})
+                                            ORDER BY studies.order_id DESC LIMIT 1 ) AS
+                                        referring_pro_study_desc,
+                                        providers.full_name AS reading_phy_full_name,
+                                        order_info -> 'ordering_facility_id' AS service_facility_id,
+                                        order_info -> 'ordering_facility' AS service_facility_name,
+                                        order_info -> 'pos' AS pos_type,
+                                        orders.order_status AS order_status, (
+                                            SELECT
+                                                claim_status
+                                            FROM
+                                                claims
+                                            WHERE
+                                                order_id = orders.id
+                                                AND (claims.has_expired != 'true' OR has_expired IS NULL)
+                                                ORDER BY
+                                                id DESC
+                                                LIMIT 1
+                                                ) AS claim_status,
+                                        order_info -> 'billing_provider' AS billing_provider_id,
+                                        order_info -> 'pos_type_code' AS pos_type_code
+                                    FROM
+                                        orders
+                                    LEFT JOIN provider_contacts ON COALESCE (NULLIF (order_info -> 'rendering_provider_id',''),'0') = provider_contacts.id::text
+                                    LEFT JOIN providers ON providers.id = provider_contacts.provider_id
+                                    WHERE orders.id IN (SELECT order_id FROM public.studies s WHERE s.id = ${firstStudyId})
+                                    ) AS claim_default_details
+                            ) claims_info `;
 
         return await query(sql);
     },
@@ -364,6 +424,8 @@ module.exports = {
 
     saveCharges: async function (params) {
 
+        //console.log('inside data',params)
+
         const sql = SQL`WITH save_charges AS (
                                 INSERT INTO billing.charges 
                                     ( claim_id     
@@ -415,7 +477,7 @@ module.exports = {
 
     getClaimData: async (params) => {
 
-        const sql = SQL`
+        const get_claim_sql = SQL`
                 SELECT 
                       c.company_id
                     , c.facility_id
@@ -577,8 +639,10 @@ module.exports = {
                                 , ch.authorization_no
                                 , (ch.units * ch.bill_fee)::numeric as total_bill_fee
                                 , (ch.units * ch.allowed_amount)::numeric as total_allowed_fee
+                                , chs.study_id
                             FROM billing.charges ch 
                                 INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id 
+                                INNER JOIN billing.charges_studies chs ON chs.charge_id = ch.id
                             WHERE claim_id = c.id 
                             ORDER BY ch.id, ch.line_num ASC
                       ) pointer) AS claim_charges
@@ -614,11 +678,12 @@ module.exports = {
                        WHERE 
                         c.id = ${params.id}`;
 
-        return await query(sql);
+        return await query(get_claim_sql);
     },
 
-    update: async (args) => {
-    
+    update: async function (args) {
+     
+        let self = this;
         let {
             claims
             , insurances
@@ -626,7 +691,7 @@ module.exports = {
             , charges
         } = args;
 
-        const sql = SQL`
+        const sqlQry = SQL`
         WITH insurance_details AS (
                   SELECT
                     patient_id
@@ -774,6 +839,42 @@ module.exports = {
                 AND ins.claim_insurance_id IS NOT NULL
                 AND is_deleted
         ),
+        update_claim_header AS (
+            UPDATE
+                billing.claims
+            SET
+                  facility_id = ${ claims.facility_id}
+                , billing_provider_id = ${ claims.billing_provider_id}
+                , rendering_provider_contact_id = ${ claims.rendering_provider_contact_id}
+                , referring_provider_contact_id = ${ claims.referring_provider_contact_id}
+                , ordering_facility_id = ${ claims.ordering_facility_id}
+                , place_of_service_id = ${ claims.place_of_service_id}
+                , claim_status_id = ${ claims.claim_status_id}
+                , billing_code_id = ${ claims.billing_code_id}
+                , billing_class_id = ${ claims.billing_class_id}
+                , billing_method = ${ claims.billing_method}
+                , billing_notes = ${ claims.billing_notes}
+                , current_illness_date = ${ claims.current_illness_date}
+                , same_illness_first_date = ${ claims.same_illness_first_date}
+                , unable_to_work_from_date = ${ claims.unable_to_work_from_date}
+                , unable_to_work_to_date = ${ claims.unable_to_work_to_date}
+                , hospitalization_from_date = ${ claims.hospitalization_from_date}
+                , hospitalization_to_date = ${ claims.hospitalization_to_date}
+                , claim_notes = ${ claims.claim_notes}
+                , original_reference = ${ claims.original_reference}
+                , authorization_no = ${ claims.authorization_no}
+                , frequency = ${ claims.claim_frequency}
+                , is_auto_accident = ${ claims.is_auto_accident}
+                , is_other_accident = ${ claims.is_other_accident}
+                , is_employed = ${ claims.is_employed}
+                , service_by_outside_lab = ${ claims.service_by_outside_lab}
+                , primary_patient_insurance_id = COALESCE(${claims.primary_patient_insurance_id}, (SELECT id FROM save_insurance WHERE coverage_level = 'primary'))
+                , secondary_patient_insurance_id = COALESCE(${claims.secondary_patient_insurance_id}, (SELECT id FROM save_insurance WHERE coverage_level = 'secondary'))
+                , tertiary_patient_insurance_id = COALESCE(${claims.tertiary_patient_insurance_id}, (SELECT id FROM save_insurance WHERE coverage_level = 'tertiary'))
+                
+            WHERE
+                billing.claims.id = ${claims.claim_id}
+        ),
         icd_details AS (
             SELECT
                       id
@@ -813,80 +914,6 @@ module.exports = {
                 AND billing.claim_icds.icd_id = icd.icd_id
                 AND  icd.is_deleted
                 AND  icd.id is NOT NULL  RETURNING billing.claim_icds.id
-        ),
-        update_primary_ins AS (
-            UPDATE
-                billing.claims
-            SET
-            payer_type = ${claims.payer_type}
-            , primary_patient_insurance_id = COALESCE(save_insurance.id,primary_patient_insurance_id)
-            FROM
-                save_insurance 
-            WHERE
-                billing.claims.id = ${claims.claim_id} 
-                AND save_insurance.coverage_level = 'primary'
-                AND 'primary_insurance' = ${claims.payer_type}
-            RETURNING billing.claims.id 
-        ),
-        update_secondary_ins AS (
-            UPDATE
-                billing.claims
-            SET
-            payer_type = ${claims.payer_type}
-            , secondary_patient_insurance_id =  COALESCE(save_insurance.id,secondary_patient_insurance_id)
-            FROM
-                save_insurance 
-            WHERE
-                billing.claims.id = ${claims.claim_id} 
-                AND 'secondary_insurance' = ${claims.payer_type}
-                AND save_insurance.coverage_level = 'secondary'
-            RETURNING billing.claims.id 
-        ),
-        update_tertiary_ins AS (
-            UPDATE
-                billing.claims
-            SET
-              payer_type = ${claims.payer_type}
-              ,tertiary_patient_insurance_id = COALESCE(save_insurance.id,tertiary_patient_insurance_id)
-            FROM
-                save_insurance 
-            WHERE
-                billing.claims.id = ${claims.claim_id} 
-                AND 'tertiary_insurance' = ${claims.payer_type}
-                AND save_insurance.coverage_level = 'tertiary'
-            RETURNING billing.claims.id
-        ),
-        update_claim_header AS (
-            UPDATE
-                billing.claims
-            SET
-                  facility_id = ${ claims.facility_id}
-                , billing_provider_id = ${ claims.billing_provider_id}
-                , rendering_provider_contact_id = ${ claims.rendering_provider_contact_id}
-                , referring_provider_contact_id = ${ claims.referring_provider_contact_id}
-                , ordering_facility_id = ${ claims.ordering_facility_id}
-                , place_of_service_id = ${ claims.place_of_service_id}
-                , claim_status_id = ${ claims.claim_status_id}
-                , billing_code_id = ${ claims.billing_code_id}
-                , billing_class_id = ${ claims.billing_class_id}
-                , billing_method = ${ claims.billing_method}
-                , billing_notes = ${ claims.billing_notes}
-                , current_illness_date = ${ claims.current_illness_date}
-                , same_illness_first_date = ${ claims.same_illness_first_date}
-                , unable_to_work_from_date = ${ claims.unable_to_work_from_date}
-                , unable_to_work_to_date = ${ claims.unable_to_work_to_date}
-                , hospitalization_from_date = ${ claims.hospitalization_from_date}
-                , hospitalization_to_date = ${ claims.hospitalization_to_date}
-                , claim_notes = ${ claims.claim_notes}
-                , original_reference = ${ claims.original_reference}
-                , authorization_no = ${ claims.authorization_no}
-                , frequency = ${ claims.claim_frequency}
-                , is_auto_accident = ${ claims.is_auto_accident}
-                , is_other_accident = ${ claims.is_other_accident}
-                , is_employed = ${ claims.is_employed}
-                , service_by_outside_lab = ${ claims.service_by_outside_lab}
-            WHERE
-                billing.claims.id = ${ claims.claim_id}
         )
         , charge_details AS (
             SELECT
@@ -907,10 +934,11 @@ module.exports = {
               , pointer3
               , pointer4
               , authorization_no
+              , is_deleted
     FROM
         json_to_recordset((${JSON.stringify(charges)})) AS x (
               id bigint
-              claim_id bigint     
+            , claim_id bigint     
             , cpt_id bigint
             , modifier1_id bigint
             , modifier2_id bigint
@@ -926,7 +954,7 @@ module.exports = {
             , pointer3 text
             , pointer4 text
             , authorization_no text
-            
+            , is_deleted boolean
         )
     ),
     update_charges AS (
@@ -937,15 +965,14 @@ module.exports = {
             , bill_fee  = chd.bill_fee
             , allowed_amount = chd.allowed_amount
             , units  = chd.units
-            , accession_no = chd.accession_no
             , pointer1  = chd.pointer1
             , pointer2  = chd.pointer2
             , pointer3  = chd.pointer3
             , pointer4  = chd.pointer4
-            , modifier1_id = chd.mmodifier1_id
-            , modifier2_id = chd.mmodifier2_id
-            , modifier3_id = chd.mmodifier3_id
-            , modifier4_id = chd.mmodifier4_id
+            , modifier1_id = chd.modifier1_id
+            , modifier2_id = chd.modifier2_id
+            , modifier3_id = chd.modifier3_id
+            , modifier4_id = chd.modifier4_id
             , authorization_no  = chd.authorization_no
 
         FROM
@@ -967,8 +994,43 @@ module.exports = {
             AND  chd.is_deleted
             AND  chd.id is NOT NULL
     )
-        SELECT * FROM save_insurance `;
+    SELECT
+	( SELECT json_agg(row_to_json(save_insurance)) save_insurance
+                FROM (
+                        SELECT
+                              *
+                        FROM
+                            save_insurance
 
-        return await query(sql);
-    }
+                    ) AS save_insurance
+         ) AS save_insurance,
+	( SELECT json_agg(row_to_json(icd_insertion)) icd_insertion
+                FROM (
+                        SELECT
+                              *
+                        FROM
+                        icd_insertion
+
+                    ) AS icd_insertion
+         ) AS icd_insertion `;
+
+        await query(sqlQry);
+
+        return await self.updateIns_claims(claims);
+
+    },
+
+    updateIns_claims: async (params) => {
+
+        let sqlQry = SQL`
+        UPDATE
+            billing.claims
+        SET
+          payer_type = ${params.payer_type}
+        WHERE
+            billing.claims.id = ${params.claim_id} 
+        RETURNING id    `;
+
+        return await query(sqlQry);
+    }    
 };

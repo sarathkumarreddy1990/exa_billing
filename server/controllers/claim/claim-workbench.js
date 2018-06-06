@@ -1,4 +1,4 @@
-const data = require('../data/claim-workbench');
+const data = require('../../data/claim/claim-workbench');
 
 module.exports = {
 
