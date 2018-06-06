@@ -32,7 +32,7 @@ define([
             },
 
             initializeRouter: function () {
-                this.options.screen = "Provider Id Code Qualifiers";//facilityModules.setupScreens.icd;
+                this.options.screen = "Provider Id Code Qualifiers";
                 this.options.currentView = this.providerIdCodeQualifiersScreen;
                 layout.initializeLayout(this);
                 if (!layout.initialized) {
