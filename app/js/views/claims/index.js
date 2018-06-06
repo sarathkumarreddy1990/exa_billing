@@ -1,5 +1,5 @@
-define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-insurance', 'text!templates/claims/claim-form.html', 'text!templates/claims/charge-row.html'],
-    function ($, _, Backbone, newClaimModel, modelPatientInsurance, claimCreationTemplate, chargeRowTemplate) {
+define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-insurance','models/patient-details', 'text!templates/claims/claim-form.html', 'text!templates/claims/charge-row.html'],
+    function ($, _, Backbone, newClaimModel, modelPatientInsurance, patientModel, claimCreationTemplate, chargeRowTemplate) {
         var claimView = Backbone.View.extend({
             el: null,
             rendered: false,
@@ -44,6 +44,9 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     model: Backbone.Model.extend({})
                 });
                 this.facilities = new modelCollection(commonjs.bindArray(app.facilities, true, true));
+                this.states = new modelCollection(commonjs.bindArray(app.states[0].app_states, true));
+                this.genders = new modelCollection(commonjs.bindArray(app.gender, true));
+                this.empStatus = new modelCollection(app.employment_status);
                 this.planList = new modelCollection(planName);
                 this.claimStatusList = new modelCollection(app.claim_status);
                 this.billingCodesList = new modelCollection(app.billing_codes);
@@ -65,6 +68,9 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                         dob: self.cur_patient_dob,
                         planname: self.planList.toJSON(),
                         facilities: self.facilities.toJSON(),
+                        empStatus: self.empStatus.toJSON(),
+                        genders: self.genders.toJSON(),
+                        states: self.states.toJSON(),
                         claimStatusList: self.claimStatusList.toJSON(),
                         billingCodesList: self.billingCodesList.toJSON(),
                         billingClassList: self.billingClassList.toJSON()
@@ -233,7 +239,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 $('input[name="otherAccident"]').attr('checked', claim_data.is_other_accident);
                 $('#txtOriginalRef').val(claim_data.original_reference ? claim_data.original_reference : '');
                 $('#txtAuthorization').val(claim_data.authorization_no ? claim_data.authorization_no : '');
-                $('#frequency').val(claim_data.authorization_no ? claim_data.authorization_no : '');
+                $('#frequency').val(claim_data.frequency ? claim_data.frequency : '');
 
                 /* Additional info end */
                 /* Billing summary start */
@@ -454,6 +460,10 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     self.assignExistInsurance(e);
                 });
 
+                $("#ddlPriRelationShip, #ddlSecRelationShip, #ddlTerRelationShip").off().change(function (e) {
+                    self.changeRelationalShip(e);
+                });
+
                 $(".closePopup").off().click(function (e) {
                     $('#site_modal_div_container').empty().hide();
                 });
@@ -499,6 +509,9 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                                         data_row_id: index
                                     });
                                 });
+
+                                var _defaultDetails = modelDetails.claim_details && modelDetails.claim_details.length > 0 ? modelDetails.claim_details[0] : {};
+                                self.bindDefaultClaimDetails(_defaultDetails)
                             }
                         },
                         error: function (model, response) {
@@ -526,12 +539,12 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 var _targetId = $(e.target || e.srcElement).attr('id');
                 if (_targetId == "createNewCharge") {
                     var index = $('#tBodyCharge tr:last').attr('data_row_id') ? $('#tBodyCharge tr:last').attr('data_row_id') : -1;
-
+                    var rowData = _.find(self.chargeModel, { 'data_row_id': parseInt(index) });
                     var _rowObj = {
                         id: null,
                         claim_id: self.claim_Id || null,
                         ref_charge_id: null,
-                        study_id: self.cur_study_id || null,
+                        study_id: self.isEdit ? (rowData.study_id || null) : (self.cur_study_id || null),
                         accession_no: $('#tBodyCharge tr:first').length > 0 ? $('#tBodyCharge tr:first').find('.charges__accession-num').text().trim() : (self.pri_accession_no || null),
                         data_row_id: parseInt(index) + 1
                     }
@@ -566,8 +579,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
 
                 /* Bind charge table data*/
                 if (data.cpt_code || data.display_description) {
-                    $('#select2-txtCptCode_' + index + '-container').html(data.cpt_code).prop('title', data.cpt_code).attr({ 'data_code': data.cpt_code, 'data_description': data.display_description, 'data_id': data.cpt_code_id }).css('min-width', '80');
-                    $('#select2-txtCptDescription_' + index + '-container').html(data.display_description).prop('title', data.display_description).attr({ 'data_code': data.cpt_code, 'data_description': data.display_description, 'data_id': data.cpt_code_id });
+                    $('#select2-txtCptCode_' + index + '-container').html(data.cpt_code).prop('title', data.cpt_code).attr({ 'data_code': data.cpt_code, 'data_description': data.display_description, 'data_id': data.cpt_id }).css('min-width', '80');
+                    $('#select2-txtCptDescription_' + index + '-container').html(data.display_description).prop('title', data.display_description).attr({ 'data_code': data.cpt_code, 'data_description': data.display_description, 'data_id': data.cpt_id });
                     $('#txtCptCode_' + index).removeClass('cptIsExists');
                 }
 
@@ -1632,7 +1645,11 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     is_other_accident: $('#chkOtherAccident').is(':checked'),
                     is_employed: $('#chkEmployment').is(':checked'),
                     service_by_outside_lab: $('#chkOutSideLab').is(':checked'),
-                    claim_status_id: 2 // Default // payment pending from claim_status table
+                    claim_status_id: $('#ddlClaimStatus option:selected').val() != '' ? parseInt($('#ddlClaimStatus option:selected').val()) : null,
+                    primary_patient_insurance_id: self.priClaimInsID ? parseInt(self.priClaimInsID) : null,
+                    secondary_patient_insurance_id: self.secClaimInsID ? parseInt(self.secClaimInsID) : null,
+                    tertiary_patient_insurance_id: self.terClaimInsID ? parseInt(self.terClaimInsID) : null
+                    
                 }
 
                 /*Setting claim charge details*/
@@ -1643,7 +1660,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     var rowData = _.find(self.chargeModel, { 'data_row_id': parseInt(id) });
                     claim_model.charges.push({
                         id: rowData.id ? rowData.id : null,
-                        claim_id: rowData.claim_id ? rowData.claim_id : null,
+                        claim_id: rowData.claim_id ? parseInt(rowData.claim_id) : null,
                         //line_num: index,
                         cpt_id: parseInt(cpt_code_id),
                         pointer1: $('#ddlPointer1_' + id).val() || null,
@@ -1742,6 +1759,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                         $('#ddlPriGender option:selected').val(),
                         $('#txtPriSubPriAddr').val(),
                         $('#ddlPriRelationShip option:selected').val(),
+                        $('#ddlPriEmpStatus option:selected').val(),
                         $('#txtPriDOB').val()
                     ],
                     secondaryfields: [
@@ -1751,6 +1769,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                         $('#ddlSecGender option:selected').val(),
                         $('#txtSecSubPriAddr').val(),
                         $('#ddlSecRelationShip option:selected').val(),
+                        $('#ddlSecEmpStatus option:selected').val(),
                         $('#txtSecDOB').val()
                     ],
                     tertiaryfields: [
@@ -1760,6 +1779,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                         $('#ddlTerGender option:selected').val(),
                         $('#txtTerSubPriAddr').val(),
                         $('#ddlTerRelationShip option:selected').val(),
+                        $('#ddlSecEmpStatus option:selected').val(),
                         $('#txtTerDOB').val()
                     ]
                 }
@@ -1889,6 +1909,92 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     return false;
                 }
                 return true;
+            },
+
+            changeRelationalShip: function (e) {
+                var self = this;
+                var patID = self.cur_patient_id;
+                this.patientmodel = new patientModel();
+                var subscriberFlag = false;
+                var _targetFlag = $(e.target).attr('id') == "ddlPriRelationShip" ? 'Pri' : ( $(e.target).attr('id') == "ddlSecRelationShip" ? 'Sec' : 'Ter' ) ;
+                if (!subscriberFlag) {
+                    this.patientmodel.fetch({
+                        data: { id: patID},
+                        success: function (model, response) {
+                            if (response.length) {
+                                response = response[0];
+                                var contactInfo = commonjs.hstoreParse(response.patient_info);
+                                self.firstName = response && response && response.first_name;
+                                self.lastName = response.last_name;
+                                self.mi = response.middle_name;
+                                self.suffix = response.suffix_name;
+                                self.gender = response.gender;
+                                self.address1 = contactInfo.c1AddressLine1;
+                                self.address2 = contactInfo.c1AddressLine2;
+                                self.city = contactInfo.c1City;
+                                self.state = contactInfo.c1State;
+                                self.zipCode = contactInfo.c1Zip;
+                                //commonjs.checkNotEmpty(response.birth_date) ? self.dtpDOBDate.date(response.birth_date) : self.dtpDOBDate.clear();
+                                self.homePhone = contactInfo.c1HomePhone;
+                                self.workPhone = contactInfo.c1WorkPhone;
+                                self.empStatus = contactInfo.empStatus;
+                                subscriberFlag = true;
+                                self.bindSubscriber(_targetFlag);
+                            }
+                        }
+                    });
+                }
+                else {
+                    self.bindSubscriber(_targetFlag);
+                }
+            },
+            bindSubscriber: function (flag) {
+                var self = this;
+                var relationalShip = $.trim($('#ddl'+flag+'RelationShip option:selected').text());
+                $('#txt'+flag+'SubFirstName').val('');
+                $('#txt'+flag+'SubLastName').val('');
+                $('#txt'+flag+'SubMiName').val('');
+                $('#txt'+flag+'SubSuffix').val('');
+                $('#ddl'+flag+'Gender').val('');
+                if(self.checkAddressDetails(flag)){
+                    if(confirm("You Need to Change address details?")){
+                        $('#txt'+flag+'SubPriAddr').val('');
+                        $('#txt'+flag+'SubSecAddr').val('');
+                        $('#txt'+flag+'City').val('');
+                        $('#ddl'+flag+'State').val('');
+                        $('#txt'+flag+'ZipCode').val('');
+                    }
+                }
+                else{
+                $('#txt'+flag+'SubPriAddr').val(self.address1);
+                $('#txt'+flag+'SubSecAddr').val(self.address2);
+                $('#txt'+flag+'City').val(self.city);
+                $('#ddl'+flag+'State').val(self.state);
+                $('#txt'+flag+'ZipCode').val(self.zipCode);
+                }
+                $('#ddl'+flag+'EmpStatus').val(self.empStatus);
+
+                if (relationalShip.toLowerCase() == "self") {
+                    $('#txt'+flag+'SubFirstName').val(self.firstName);
+                    $('#txt'+flag+'SubLastName').val(self.lastName);
+                    $('#txt'+flag+'SubMiName').val(self.mi);
+                    $('#txt'+flag+'SubSuffix').val(self.suffix);
+                    $('#ddl'+flag+'Gender').val(self.gender);
+                }
+                else 
+                  document.querySelector('#txt'+flag+'DOB').value = ""
+            },
+            checkAddressDetails: function(flag)
+            {
+                var chkaddress1 = $('#txt'+flag+'Address1').val();
+                var chkaddress2 =  $('#txt'+flag+'Address2').val();
+                var chkcity =  $('#txt'+flag+'City').val();
+                var chkstate =  $('#ddl'+flag+'State').val();
+                var chkzipcode = $('#txt'+flag+'ZipCode').val();
+                if(chkaddress1==''&& chkaddress2==''&&chkcity=='' && chkstate=='' && chkzipcode==''){
+                    return false;}
+                else{
+                    return true;}
             }
 
         });

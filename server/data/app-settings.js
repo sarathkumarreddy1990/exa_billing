@@ -124,7 +124,27 @@ module.exports = {
                                     tat_config 
                                     FROM   sites
                                     WHERE  id=${siteID})
-    
+                , cte_employment_status AS(
+                                    SELECT Json_agg(Row_to_json(employment_status)) employment_status
+                                    FROM  (
+                                    SELECT id,
+                                    description
+                                    FROM   employment_status
+                                    WHERE  company_id=${companyID} AND inactivated_dt IS NULL ) AS employment_status)
+                , cte_relationship_status AS(
+                                    SELECT Json_agg(Row_to_json(relationship_status)) relationship_status
+                                    FROM  (
+                                    SELECT id,
+                                    description
+                                    FROM   relationship_status
+                                    WHERE  company_id=${companyID} AND inactivated_dt IS NULL ) AS relationship_status)
+                , cte_states AS(
+                                    SELECT Json_agg(Row_to_json(states)) states
+                                    FROM  (
+                                    SELECT 
+                                    app_states
+                                    FROM   companies
+                                    WHERE  id=${companyID} ) AS states)
                SELECT *
                FROM   cte_company,
                       cte_facilities,
@@ -137,7 +157,10 @@ module.exports = {
                       cte_billing_classes,
                       cte_provider_id_code_qualifiers,
                       cte_sites,
-                      cte_studyflag
+                      cte_studyflag,
+                      cte_employment_status,
+                      cte_relationship_status,
+                      cte_states
                `;
 
         return await query(sql);

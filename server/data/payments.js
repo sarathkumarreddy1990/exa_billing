@@ -176,7 +176,43 @@ module.exports = {
                                                     id = ${paymentId}
                                                   AND NOT EXISTS(SELECT 1 FROM insert_data))
                                                   SELECT id from insert_data`;
+        return await query(sql);
+    },
 
+    createPaymentapplications: async function (params) {
+
+        const sql = SQL`WITH application_details AS(
+                                    SELECT 
+                                          payment_id
+                                        , charge_id
+                                        , amount
+                                        , amount_type
+                                        , created_by
+                                    FROM json_to_recordset(${JSON.stringify(params.appliedPaymets)}) AS details(
+                                          payment_id BIGINT
+                                        , charge_id BIGINT
+                                        , amount MONEY
+                                        , amount_type TEXT
+                                        , created_by BIGINT)
+                                    )
+                                    INSERT INTO billing.payment_applications
+                                    ( payment_id
+                                    , adjustment_code_id
+                                    , charge_id
+                                    , amount
+                                    , amount_type
+                                    , created_by
+                                    , applied_dt)
+                                    SELECT
+                                      payment_id
+                                    , null
+                                    , charge_id
+                                    , amount
+                                    , amount_type
+                                    , created_by
+                                    , now()
+                                    FROM application_details`;
+        
         return await query(sql);
     }
 

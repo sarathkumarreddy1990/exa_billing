@@ -1,18 +1,14 @@
 define(['backbone'], function (Backbone) {
-    var casGroupCodesModel = Backbone.Model.extend({
-
-        url: "/exa_modules/billing/setup/cas_group_codes",
-
+    var PaymentReasonsModel = Backbone.Model.extend({
+        url: "/exa_modules/billing/setup/payment_reasons",
         defaults: {
             code: "",
-            name: "",
             description: "",
             isActive: "",
-            companyId:"",
+            company_id: ""
         },
-
         initialize: function (models) {
         }
     });
-    return casGroupCodesModel;
+    return PaymentReasonsModel;
 });
