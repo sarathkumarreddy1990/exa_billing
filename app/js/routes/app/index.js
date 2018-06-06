@@ -33,7 +33,7 @@ define([
 
             startStudies: function (subroute) {
                 if (this.checkLicense('Studies') && !this.studiesRouter) {
-                    this.defaultArgs.routePrefix = 'app/studies/';
+                    this.defaultArgs.routePrefix = 'billing/studies/';
                     this.studiesRouter = new StudiesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
@@ -42,7 +42,7 @@ define([
 
             startClaimWorkbench: function (subroute) {
                 if (this.checkLicense('ClaimWorkbench') && !this.claimWorkbenchRouter) {
-                    this.defaultArgs.routePrefix = 'app/claim_workbench/';
+                    this.defaultArgs.routePrefix = 'billing/claim_workbench/';
                     this.claimWorkbenchRouter = new ClaimWorkBenchRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();

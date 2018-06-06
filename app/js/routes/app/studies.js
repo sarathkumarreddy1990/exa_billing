@@ -12,18 +12,12 @@ define([
     ) {
         var StudiesRouter = Backbone.SubRoute.extend({
             routes: {
-                'list': 'showGrid',
-                'new': 'showForm'
+                'list': 'showGrid'
             },
 
             showGrid: function () {
                 this.initializeRouter();
                 this.studiesScreen.render();
-            },
-
-            showForm: function () {
-                this.initializeRouter();
-                this.studiesScreen.showForm(0);
             },
 
             initialize: function (options) {

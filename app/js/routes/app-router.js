@@ -23,7 +23,7 @@ define([
         var AppRouter = Backbone.Router.extend({
             routes: {
                 "app/worklist": "startApp",
-                "app/*subroute": "startAppStudies",
+                "app/studies": "startAppStudies",
                 "app/claim_workbench": "startClaimWorkBench",              
 
                 "billing/*subroute": "startApp",
