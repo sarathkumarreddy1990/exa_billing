@@ -7,8 +7,8 @@ define(['backbone'], function (Backbone) {
             code: "",
             description: "",
             type: "",
-            is_active: "",
-            company_id:"",
+            isActive: "",
+            companyId:"",
         },
 
         initialize: function (models) {

@@ -19,7 +19,7 @@ define([
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
 
             defaultArgs: {
-                // createTrailingSlashRoutes: true, layout: siteLayouts.facility, outerLayout: null, module: facilityModules.setup, screen: null, el: '#data_container', routePrefix: null
+                createTrailingSlashRoutes: true, layout: siteLayouts.facility, outerLayout: null, module: facilityModules.setup, screen: null, el: '#data_container', routePrefix: null
             },
 
             accessDenied: function () {
@@ -30,7 +30,7 @@ define([
 
             startStudies: function (subroute) {
                 if (this.checkLicense('Studies') && !this.studiesRouter) {
-                    this.defaultArgs.routePrefix = 'app/studies2/';
+                    this.defaultArgs.routePrefix = 'billing/studies2/';
                     this.studiesRouter = new StudiesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();

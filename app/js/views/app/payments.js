@@ -16,6 +16,10 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             appliedPaymentTable: null,
             paymentsGridTemplate: _.template(paymentsGrid),
 
+            events: {
+                'click #btnPaymentAdd': 'addNewPayemnt'
+            },
+
             initialize: function (options) {
                 var self = this;
                 this.options = options;
@@ -43,8 +47,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 });
 
                 this.paymentStatusList = new modelCollection(paymentStatus);
-                // var facilities = (app.userInfo.user_type == "SU") ? app.facilities : app.userfacilities;
-                var facilities = [];
+                var facilities = (app.userInfo.user_type == "SU") ? app.facilities : app.userfacilities;
                 var adjustment_codes = jQuery.grep([], function (obj, i) {
                     return (obj.type == "ADJCDE" || obj.type == "REFADJ");
                 });
@@ -77,15 +80,6 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 self.defalutCASArray = [0, 1, 2, 3, 4, 5, 6];
                 $(this.el).html(this.paymentsGridTemplate({ paymentStatus: this.paymentStatusList.toJSON(), facilityList: this.facilityList.toJSON(), 'casArray': self.defalutCASArray, adjustmentCodes: self.adjustmentCodeList.toJSON(), 'claimStatusList': this.claimStatusList.toJSON() }));
                 this.rendered = true;
-                $('#ddlAdjustmentCode_fast').select2({
-                    formatSelection: function (res) {
-                        var content = res.id.split('-');
-                        $('#s2id_ddlAdjustmentCode_fast a span').attr({ 'data_code': res.text.trim(), 'title': res.text.trim(), 'data_id': content[0], 'data_codetype': content[2] });
-                        self.updatePaymentAdjustment();
-                        return res.text;
-                    }
-                }
-                );
                 $('#select2-drop').css('z-index', '10000');
                 $('#billingDropdown').find('li.active').removeClass('active');
                 $('#liPayments').addClass('active');
@@ -95,16 +89,6 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 $('#btnTabNavPayRight').click(function () {
                     $('#divPaymentTabsContainer').scrollTo({ top: '0px', left: '+=70' }, 300);
                 });
-
-                // // this.initializeDateTimePickers();
-                // $('#ulPaymentStatus').multiselect({
-                //     maxHeight: 300,
-                //     selectAllText: true,
-                //     numberDisplayed: 2,
-                //     selectAllValue: 'multiselect-all'
-                // });
-                // $('#divPendingPayment').hide();
-                // self.closePaymentsCAS();
             },
 
             showGrid: function (opener) {
@@ -218,7 +202,6 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                             paymentStatus: $("#ulPaymentStatus").val(),
                             facility_id: $("#ddlPaymentFacility").val()
                         }
-                        // onbeforegridbind: self.updateCollection
                     });
 
                     this.gridLoaded = true;
@@ -241,14 +224,9 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 else {
                     this.paymentTable.refresh();
                 }
-                $('#tblpaymentsGrid').setGridHeight('230px')
-                // commonjs.initializeScreen({ header: { screen: 'Payments', ext: 'Payment' }, grid: { id: '#tblpaymentsGrid' } });
 
                 setTimeout(function () {
-                    var docHeight = $(document).height();
-                    // $('#tblpaymentsGrid').jqGrid('setGridHeight', ($('#body_container').height() / 2) + 40) *
-                    //     $("#tblpendPaymentsGrid").setGridHeight(((docHeight / 3) * 2) - 140, true);
-                    $('#tblpaymentsGrid').setGridHeight('230px')
+                    $('#tblpaymentsGrid').setGridHeight('600px');
                 }, 100);
             },
 
@@ -282,6 +260,10 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
 
                 }
                 return colvalue;
+            },
+
+            addNewPayemnt: function () {
+                Backbone.history.navigate('#app/payments/new', true);
             }
         });
 

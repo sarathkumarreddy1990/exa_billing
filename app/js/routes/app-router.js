@@ -2,7 +2,7 @@ define([
     'backbone',
     'views/worklist',
     'views/studies',
-    'views/claim-workbench',
+    'views/claims/claim-workbench',
     'routes/app/index',
     'routes/setup/index',
     'routes/reports/index',
@@ -76,17 +76,18 @@ define([
                 "app/reports/procedure-count": "startProcedureCountViewReporting",
                 "app/reports/reading-provider-fees": "startReadingProviderFeesReporting",
 
-                // "app/*subroute": "startApp",
+                "billing/*subroute": "startApp",
                 "setup/*subroute": "startSetup",
                 "app/payments": "startPayments",
                 "app/payments/edit/:id": "editPayment",
                 "reports/*subroute": "startReporting",
-                "app/claim-inquiry": "startClaimInquiry"
+                "app/claim-inquiry": "startClaimInquiry",
+                "app/payments/new": "editPayment"
             },
             
             startApp: function (subroute) {
                 if (!this.appRouter) {
-                    this.appRouter = new AppRoute("app/", { createTrailingSlashRoutes: true });
+                    this.appRouter = new AppRoute("billing/", { createTrailingSlashRoutes: true });
                 }
             },
 

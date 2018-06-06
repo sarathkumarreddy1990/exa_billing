@@ -1,21 +1,136 @@
-<form>
+<style>
+    .line_height{
+        line-height: 0.5;
+    }
+    col-form-label{
+        width: 140px;
+    }
+</style>
+<form form-horizontal form-list>
     <div id="inquiryInvoice">
-        <input type="button" value="patientInquiry" id="btnPatientInquiry">
-        <input type="button" value="printInvoice" id="btnPrintInvoice">
+        <input type="button" value="patientInquiry" id="btnCIPatientInquiry">
+        <input type="button" value="printInvoice" id="btnCIPrintInvoice">
     </div>
     <div id="encounterDetails"> 
-        <html>dfdfdfdgd</html>
-    </div>
-    <div id="DiagnosisDetails">
-
-    </div>
-    <div id="InsuranceDetails">
-        
-    </div>
-    <div id="followUpDetails">
-        
-    </div>
-    <div id="claimComments">
-
+        <legend class="viztekLegend" i18n="order.chargePayment.encounterDetails" style="font-weight: bold;font-size: 15px">Encounter Details</legend>
+        <div class="col-xs-4">
+            <div class="form-group form-inline line-height">
+                <div class="col-form-label">
+                    <label class="font-weight">Reading Physician</label>
+                </div>
+                <div>
+                    <label id="lblCIReadPhy"></label>
+                </div>
+            </div>
+            <div class="form-group form-inline line-height">
+                <label class="font-weight">Referring Physician</label>
+                <div>
+                    <label id="lblCIRefPhy"></label>
+                </div>
+            </div>
+            <div class="form-group form-inline line-height">
+                <label class="font-weight">Ordering Facility</label>
+                <div>
+                    <label id="lblCIOrdFac"></label>
+                </div>
+            </div>
+            <div class="form-group form-inline line-height">
+                <label class="font-weight">Facility</label>
+                <div>
+                    <label id="lblCIfac"></label>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-4">
+                <div class="form-group form-inline line-height">
+                        <label class="font-weight">Claim Status</label>
+                        <div>
+                            <label id="lblCIStatus"></label>
+                        </div>
+                </div>
+                <div class="form-group form-inline line-height">
+                    <label class="font-weight">Patient Paid</label>
+                    <div>
+                        <label id="lblCIPatientPaid"></label>
+                    </div>
+                </div>
+                <div class="form-group form-inline line-height">
+                    <label class="font-weight">Others Paid</label>
+                    <div>
+                        <label id="lblCIOthersPaid"></label>
+                    </div>
+                </div>
+                <div class="form-group form-inline line-height">
+                    <label class="font-weight">Bill Fee</label>
+                    <div>
+                        <label id="lblCIBillFee"></label>
+                    </div>
+                </div>
+        </div>
+        <div class="col-xs-4">
+                <div class="form-group form-inline line-height">
+                    <label class="font-weight">Adjustment</label>
+                    <div>
+                        <label id="lblCIAdj"></label>
+                    </div>
+                </div>
+                <div class="form-group form-inline line-height">
+                    <label class="font-weight">Balance</label>
+                    <div>
+                        <label id="lblCIBalance"></label>
+                    </div>
+                </div>
+                <div class="form-group form-inline line-height">
+                    <label class="font-weight">Allowed</label>
+                    <div>
+                        <label id="lblCIAllowed"></label>
+                    </div>
+                </div>
+        </div>
+        <legend class="viztekLegend" style="font-size: 15px;font-weight: bold">Diagnosis</legend>
+        <div class="col-md-12">
+            <div style="min-height:150px;">
+                <div class="Grid" style="min-height:150px;">
+                    <table id='tblCIDiagnosis'></table>
+                </div>
+            </div>
+        </div>
+        <legend class="viztekLegend" style="font-size: 15px;font-weight: bold">Insurance</legend>
+        <div class="col-md-12">
+            <div style="min-height:150px;">
+                <div class="Grid" style="min-height:150px;">
+                    <table id='tblCIInsurance'></table>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="col-xs-12" style="margin-top: -30px;">
+                    <div class="col-xs-6">
+                        <div class="form-group form-inline">
+                            <div class="col-xs-3">
+                                <label class="control-label" style="font-weight: bold">FollowUp Date</label>
+                            </div>
+                            <div class="col-xs-6">
+                                <div id="divFollowUpDate" class="input-group">
+                                    <input type="text" id="txtFollowUpDate"class="form-control maskDateMonth" name="followUpDate">
+                                    <span class="input-group-addon add-on"> <i class="icon-ic-schedule"></i> </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="button" id="btnSaveCommentReport" class=" btn btn-primary" value="Save"
+                            i18n="shared.buttons.save" style="float: right;line-height: 1">
+                    <input type="button" id="btnAddComment" class=" btn btn-danger" value="Save" i18n="shared.buttons.add"
+                            style="float:right;margin-right: 5px;line-height: 1">
+            </div>
+            <div id="divPaymentCommentsTable" class="col-xs-12" style="margin-left: 0px !important;margin-top: 5px; padding-left: 0;">
+                <div style="min-height:150px;">
+                    <div class="Grid" id="divPaymentCommentsGrid" style="min-height:150px;">
+                        <table id='tblPaymentComments'></table>
+                        <div id="gridPager_claimInquiryPayCmt"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </form>

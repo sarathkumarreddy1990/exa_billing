@@ -121,7 +121,9 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         });
 
         var dateFormatter = function ( cellvalue, options, rowObject ) {
-            return  '';
+            return commonjs.checkNotEmpty(cellvalue) ?
+            commonjs.convertToFacilityTimeZone(rowObject.facility_id, cellvalue).format('L LT z') :
+            '';
         };
         var queuseStatusFormatter = function (cellvalue, options, rowObject) {
             if (!cellvalue) return '-';
@@ -167,7 +169,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "i18n_name": "billing.refund.accountNo",
                     "field_info": {
                         "name": "account_no",
-                        "width": "100",
+                        "width": 100,
                         "searchFlag": "%"
                     }
                 },
@@ -178,7 +180,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "i18n_name": "shared.fields.dateofBirth",
                     "field_info": {
                         "name": "birth_date",
-                        "width": "100",
+                        "width": 100,
                         "searchFlag": "date",
                         "formatter": function ( cellvalue ) {
                             return commonjs.checkNotEmpty(cellvalue) ?
@@ -217,7 +219,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "i18n_name": "order.patientOrderDetails.referringPhysician",
                     "field_info": {
                         "name": "referring_providers",
-                        "width": "200",
+                        "width": 200,
                         "searchFlag": "%"
                     }                    
                 },
@@ -228,7 +230,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "i18n_name": "order.patientOrderDetails.renderingPhysician",
                     "field_info": {
                         "name": "rendering_provider",
-                        "width": "200"
+                        "width": 200
                     }                    
                 },
                 "Billing Fee": {
@@ -238,7 +240,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "i18n_name": "billing.COB.billingFee",
                     "field_info": {
                         "name": "billing_fee",
-                        "width": "200",
+                        "width": 200,
                         "formatter": "self.billFeeFormatter"
                     }                    
                 },
@@ -311,7 +313,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "i18n_name": "billing.fileInsurance.billingClass",
                     "field_info": {
                         "name": "billing_class",
-                        "width": "120",
+                        "width": 120,
                         "stype": "select",
                         "searchoptions": { 
                             "value": billingClassesValue,
@@ -401,7 +403,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_info": {
                         "name": "billing_method",
                         "formatter": "self.billingMethodFormatter",
-                        "width": "150",
+                        "width": 150,
                         "stype": "select",
                         "searchoptions": { 
                             "value": billingMethodValue,
