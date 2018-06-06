@@ -74,7 +74,7 @@ define([
             },
 
             startCasReasonCodes: function (subroute) {
-                if (this.checkLicense('CasReasonCodes') && !this.billingProviderRouter) {
+                if (this.checkLicense('CasReasonCodes') && !this.casReasonCodesRouter) {
                     this.defaultArgs.routePrefix = 'setup/cas_reason_codes/';
                     this.casReasonCodesRouter = new CasReasonCodesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
