@@ -1,0 +1,31 @@
+<div>
+    <form class="form-horizontal form-list">
+        <div class="form-group form-inline">
+            <div class="col-form-label">
+                <label class="control-label field-required" for="txtCode" i18n="setup.common.reasons"></label>
+            </div>
+            <div class="col-form-content">
+                <input type="text" maxlength="512" id="txtCode" name="name" class="form-control">
+                <input type="checkbox" id="chkActive"/>
+                <span for="chkActive" class="field-chk" i18n="shared.fields.inactive" style="text-align:center;"></span>
+            </div>
+        </div>
+        <div class="form-group form-inline">
+            <div class="col-form-label">
+                <label class="control-label field-required" for="txtDescription"
+                       i18n="setup.common.description"></label>
+            </div>
+            <div class="col-form-content">
+                <input type="text" maxlength="512" id="txtDescription" name="description" class="form-control">
+            </div>
+        </div>
+        <div class="form-group form-inline">
+            <div class="col-form-label">
+            </div>
+            <div class="col-form-content">
+                <input type="checkbox" id="chkIsSystemStatus"/>
+                <span for="chkIsSystemStatus" class="field-chk" i18n="shared.fields.isSystemStatus" style="text-align:center;"></span>
+            </div>
+        </div>
+    </form>
+</div>
