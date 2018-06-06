@@ -28,13 +28,8 @@ define(['jquery',
             billingCodesList : [],
             model: null,
             billingCodesTable :null,
-            events: {
-                'click #btnAddBillingCode' : 'addNewBillingCodes',
-                'click #btnSaveBillingCode' : 'saveBillingCodes',
-                'click #btnBackToBillingCode': 'backToBillingCodeGrid',
-                'click #btnRefresh' : 'refreshBillingCodeGrid'
-
-            },
+            pager: null,
+            events: { },
             initialize: function (options) {
                 var self = this;
                 this.options = options;
@@ -64,20 +59,17 @@ define(['jquery',
                         },
                         {
                             name: 'edit',
-                            width: 50,
+                            width: 20,
                             sortable: false,
                             search: false,
                             className:'icon-ic-edit',
                             route: '#setup/billing_codes/edit/',
                             formatter: function(e, model, data) {
-                                return `<span>Edit</span>`;
-                            },
-                            cellattr: function() {
-                                return 'style=text-align:center;text-decoration: underline;cursor:pointer;'
+                                return "<span class='icon-ic-edit' title='click here to Edit'></span>"
                             }
                         },
                         {
-                            name: 'del', width: 50, sortable: false, search: false,
+                            name: 'del', width: 20, sortable: false, search: false,
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
                                 if (confirm("Are you sure want to delete")) {
@@ -95,10 +87,7 @@ define(['jquery',
                                 }
                             },
                             formatter: function(e, model, data) {
-                                return `<span>Delete</span>`;
-                            },
-                            cellattr: function() {
-                                return 'style=text-align:center;text-decoration: underline;cursor:pointer;';
+                                return "<span class='icon-ic-delete' title='click here to Delete'></span>"
                             }
                         },
                         {
@@ -125,8 +114,21 @@ define(['jquery',
                     disablepaging: false,
                     showcaption: false,
                     disableadd: true,
-                    disablereload: true
+                    disablereload: true,
+                    pager: '#gridPager_BillingCodes'
                 });
+
+                commonjs.initializeScreen({header: {screen: 'BillingCodes', ext: 'billingCodes'}, grid: {id: '#tblBillingCodesGrid'}, buttons: [
+                    {value: 'Add', class: 'btn btn-danger', i18n: 'shared.buttons.add', clickEvent: function () {
+                        Backbone.history.navigate('#setup/billing_codes/new', true);
+                    }},
+                    {value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
+                        self.pager.set({"PageNo": 1});
+                        self.billingCodesTable.refreshAll();
+                        commonjs.showStatus("Reloaded Successfully");
+                    }}
+                ]});
+
             },
             showGrid: function () {
                 this.render();
@@ -138,6 +140,7 @@ define(['jquery',
             },
 
             renderForm: function(id) {
+                var self = this;
                 $('#divBillingCodesForm').html(this.billingCodesFormTemplate());
                 if(id > 0) {
                     this.model.set({id: id});
@@ -156,23 +159,20 @@ define(['jquery',
                     });
                 } else {
                     this.model = new BillingCodesModel();
-
                 }
+
+                commonjs.initializeScreen({header: {screen: 'BillingCodes', ext: 'billingCodes'}, buttons: [
+                    {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
+                        self.saveBillingCodes();
+                    }},
+                    {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
+                        Backbone.history.navigate('#setup/billing_codes/list', true);
+                    }}
+                ]});
+
                 $('#divBillingCodesGrid').hide();
                 $('#divBillingCodesForm').show();
                 commonjs.processPostRender();
-            },
-
-            addNewBillingCodes: function() {
-                location.href = "#setup/billing_codes/new";
-            },
-
-            backToBillingCodeGrid: function() {
-                location.href = "#setup/billing_codes/list";
-            },
-
-            refreshBillingCodeGrid: function() {
-                this.billingCodesTable.refresh();
             },
 
             saveBillingCodes: function() {
