@@ -138,8 +138,7 @@ module.exports = {
               patients.id,
               full_name,
               patients.owner_id,
-              total_records
-            , COUNT(1) OVER (range unbounded preceding) AS total_records            
+              total_records         
             FROM (
                 SELECT
                     distinct(patients.id) as patients_id,

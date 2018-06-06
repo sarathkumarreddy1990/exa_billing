@@ -1,0 +1,273 @@
+<style>
+
+    body {
+        overflow: auto;
+    }
+
+    #divForm_studyFilters,
+    #studyFiltersForm,
+    #divStudyFilterDefaultContent {
+        height: 100%;
+    }
+
+    #content {
+        overflow: auto;
+        height: 0px;
+    }
+
+    divDateTime table tr {
+        line-height: 33px;
+    }
+
+    .divStudyFilterSideTopPadding {
+        padding-top: 50px !important;
+    }
+
+    .heightMax {
+        overflow: inherit !important;
+    }
+
+    .divStudyFilterDefaultContentHeightInfo {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+    }
+</style>
+<legend class='viztekLegend'>
+    <div id="headerContainer" style="background-color:#fff">
+        <h4>Study Filter</h4>
+        <ul class="new-menu-right">
+            <li class="saveAll">
+                <button type="button" class="btn top-buffer" id="btnSaveStudyFilter">SAVE</button>
+            </li>
+            <li>
+                <button type="button" class="btn top-buffer" id="btnClearData">CLEAR</button>
+            </li>
+            <li class="closePopup">
+                <button type="button" class="btn top-buffer" id="btnClosePopup">CLOSE</button>
+            </li>
+        </ul>
+    </div>
+</legend>
+<form class="form-horizontal" id="studyFiltersForm">
+    <div id="divStudyFilterDefaultContent">
+        <div class="form-group" id="divStudyFilterInputs">
+            <ul class="form-list col-md-7 col-sm-7" style="padding-left:5%;">
+                <li>
+                    <div class="form-group form-inline">
+                        <div class="form-list col-md-3 col-sm-3">
+                            <label class="col-form-label field-required" for="txtFilterName" i18n="setup.studyFilters.filterName">filter Name</label>
+                        </div>
+                        <div class="form-list col-md-4 col-sm-4">
+                            <input maxlength="128" type="text" id="txtFilterName" name="FilterNameSF" placeholder="Filter Name" i18np="setup.studyFilters.filterName"
+                                required="required" class="form-control fc-short">
+                        </div>
+
+                        <div class="form-list col-md-4 col-sm-4">
+                            <input type='checkbox' id='chkIsActive'>
+                            <label class="field-chk" for="chkIsActive" i18n="setup.studyFilters.isActive">isActive</label>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <div class="form-group form-inline">
+                        <div class="form-list col-md-3 col-sm-3">
+                            <label class="col-form-label field-required" for='txtFilterOrder' i18n="setup.studyFilters.filterOrder">filter Order
+                            </label>
+                        </div>
+                        <div class="form-list col-md-4 col-sm-4">
+                            <input type="text" id="txtFilterOrder" name="FilterOrder" maxlength="5" placeholder="Filter Order" i18np="setup.studyFilters.filterOrder"
+                                required="required" class="form-control fc-short col-md-5">
+                        </div>
+                        <div class="form-list col-md-offset-1 col-sm-offset-1 col-md-4 col-sm-4">
+                            <input type="checkbox" id="chkIsGlobalFilter">
+                            <label class="field-chk" for="chkIsGlobalFilter" i18n="setup.studyFilters.isGlobal">isGlobal</label>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <div class="form-group form-inline">
+                        <div class="form-list col-md-5 col-sm-5">
+                            <input type="checkbox" id="chkDisplayAsTab">
+                            <label class="field-chk" for="chkDisplayAsTab" i18n="setup.studyFilters.displayAsTab">displayAsTab</label>
+                        </div>
+                        <div class="form-list col-md4 col-sm-4">
+                            <input type="checkbox" id="chkDisplayAsDDL">
+                            <label class="field-chk" for="chkDisplayAsDDL" i18n="setup.studyFilters.displayInDropdown">displayInDropdown</label>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <div id="divTab" class="row borderedForm">
+            <div class="col-md-2 col-sm-2 bs-docs-sidenav">
+                <div class="tabs-left">
+                    <ul id="ulStudyFilterSideMenu">
+                        <li class="active">
+                            <a id="tabDateTime" data-toggle="tab">
+                                <span>
+                                    <i class="icon-ic-schedule"></i>
+                                </span>
+                                <span i18n="setup.studyFilters.nav.DateTime">DATE/TIME</span>
+                            </a>
+                        </li>
+                        <input type="button" id="btnResetUserStudyFilter" value="Reset" class="btn btn-primary" i18n="shared.buttons.reset" style="margin: 20px 0 0 25px; display:none">
+                    </ul>
+                </div>
+            </div>
+
+            <div id="divStudyFilterSide" class="col-md-10 col-sm-10" style="overflow-y:initial important;">
+                <!--<div id="divResetUserStudyFilter">-->
+                <!--&lt;!&ndash;<input type="button" id="btnResetUserStudyFilter" value="Reset" class="btn btn-primary"&ndash;&gt;-->
+                <!--&lt;!&ndash;i18n="shared.buttons.reset" style="float: right; margin: 10px 20px 0 0;display:none">&ndash;&gt;-->
+                <!--</div>-->
+
+                <div id="divDateTime">
+                    <div class="form-group form-inline">
+                        <table>
+                            <td>
+                                <span>
+                                    <b>
+                                        <label id="divStudyFilterSideerationsBy" class="col-form-label" i18n="setup.studyFilters.dateOperationsBy">date Operations By </label>
+                                    </b>
+                                </span>
+                            </td>
+                            <td>
+                                <span>
+                                    <input type="radio" name="DateOperations" id="rbtStudyDate">
+                                    <label class="field-chk" for="rbtStudyDate" i18n="setup.studyFilters.studyDate">study Date</label>
+                                </span>
+                            </td>
+                            <td>
+                                <span>
+                                    <input type="radio" name="DateOperations" id="rbtStudyReceivedDate">
+                                    <label class="field-chk" for="rbtStudyReceivedDate" i18n="setup.studyFilters.studyReceivedDate">studyReceivedDate</label>
+                                </span>
+                            </td>
+                            <td>
+                                <span>
+                                    <input type="radio" name="DateOperations" id="rbtScheduledDate">
+                                    <label class="field-chk" for="rbtScheduledDate" i18n="setup.studyFilters.scheduledDate"> scheduledDate </label>
+                                </span>
+                            </td>
+                        </table>
+                    </div>
+                    <table style="height:200px;" class="form-inline">
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <input type="radio" id="rbtPreformatted" name="DateTime" value="Preformatted">
+                                    <label class="field-chk" for="rbtPreformatted" i18n="setup.studyFilters.preformatted">preformatted</label>
+                                </td>
+                                <td>
+                                    <select class="form-control fc-short" id='ddlDatePreformatted'>
+                                        <option i18n="setup.studyFilters.ddlPreformatted.yesterday">yesterday</option>
+                                        <option i18n="setup.studyFilters.ddlPreformatted.today">today</option>
+                                        <option i18n="setup.studyFilters.ddlPreformatted.tomorrow">tomorrow</option>
+                                        <option i18n="setup.studyFilters.ddlPreformatted.last7days">last 7 days</option>
+                                        <option i18n="setup.studyFilters.ddlPreformatted.last30days">last 30 days</option>
+                                        <option i18n="setup.studyFilters.ddlPreformatted.lastmonth">last month</option>
+                                        <option i18n="setup.studyFilters.ddlPreformatted.next7days">next 7 days</option>
+                                        <option i18n="setup.studyFilters.ddlPreformatted.next30days">next 30 days</option>
+                                        <option i18n="setup.studyFilters.ddlPreformatted.thismonth">this month</option>
+                                        <option i18n="setup.studyFilters.ddlPreformatted.thisyear">this year</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr style="margin-bottom:20px">
+                                <td>
+                                    <div>
+                                        <input type="radio" id="rbtLast" name="DateTime" value="Last">
+                                        <label class="field-chk" for="rbtLast" i18n="setup.studyFilters.last">last</label>
+                                    </div>
+
+                                    <div>
+                                        <input type="radio" id="rbtNext" name="DateTime" value="Next">
+                                        <label class="field-chk" for="rbtNext" i18n="setup.studyFilters.next">next</label>
+                                    </div>
+                                </td>
+                                <td colspan="2">
+                                    <input type="number" id="txtLastTime" min=1 maxlength="3" name="LastTime" class="form-control fc-short">
+                                    <select class="form-control fc-short" id='ddlLast' style="width: 150px;">
+                                        <option i18n="setup.studyFilters.ddlLastMetric.hours">Hour(s)</option>
+                                        <option i18n="setup.studyFilters.ddlLastMetric.days">Day(s)</option>
+                                        <option i18n="setup.studyFilters.ddlLastMetric.weeks">Week(s)</option>
+                                        <option i18n="setup.studyFilters.ddlLastMetric.months">Month(s)</option>
+                                        <option i18n="setup.studyFilters.ddlLastMetric.years">Year(s)</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <label for="txtFromTimeLast" class="field-chk studyfilterLabel" i18n="setup.studyFilters.from">From</label>
+                                </td>
+                                <td>
+                                    <div id="divFromTimeLast" class="input-group fc-short">
+                                        <input type="time" id="txtFromTimeLast" name="fromTimeLast" class="form-control">
+                                        <span class="input-group-addon add-on">
+                                            <i class="icon-ic-alarm"></i>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <label for="txtToTimeLast" class="field-chk studyfilterLabel" i18n="setup.studyFilters.to">To</label>
+                                </td>
+                                <td>
+                                    <div id="divToTimeLast" class="input-group fc-short">
+                                        <input type="time" id="txtToTimeLast" name="toTimeLast" class="form-control">
+                                        <span class="input-group-addon add-on">
+                                            <i class="icon-ic-alarm"></i>
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input type="radio" id="rbtDate" name="DateTime" value="Date">
+                                    <label class="field-chk" for="rbtDate" i18n="setup.studyFilters.dateFrom">Date From</label>
+                                </td>
+                                <td>
+                                    <div id="divDateFrom" class="input-group fc-short">
+                                        <input type="date" id="txtDateFrom" class="form-control">
+                                        <span class="input-group-addon add-on">
+                                            <i class="icon-ic-schedule"></i>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div id="divFromTime" class="input-group fc-short">
+                                        <input type="time" id="txtFromTimeDate" name="fromTime" class="form-control">
+                                        <span class="input-group-addon add-on">
+                                            <i class="icon-ic-alarm"></i>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <label for="rbtIsNotPatientName" class="field-chk studyfilterLabel" i18n="setup.studyFilters.dateTo">Date To</label>
+                                </td>
+                                <td>
+                                    <div id="divDateTo" class="input-group fc-short">
+                                        <input type="date" id="txtDateTo" class="form-control">
+                                        <span class="input-group-addon add-on">
+                                            <i class="icon-ic-schedule"></i>
+                                        </span>
+                                    </div>
+
+                                </td>
+                                <td>
+                                    &nbsp;
+                                </td>
+                                <td>
+                                    <div id="divToTime" class="input-group fc-short">
+                                        <input type="time" id="txtToTimeDate" name="toTimeMonday" class="form-control">
+                                        <span class="input-group-addon add-on">
+                                            <i class="icon-ic-alarm"></i>
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

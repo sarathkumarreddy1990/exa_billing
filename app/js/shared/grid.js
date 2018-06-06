@@ -7,8 +7,9 @@ define('grid', [
     'collections/studies',
     'collections/claim-workbench',
     'views/claims/index',
-    'views/user-settings'
-], function (jQuery, initChangeGrid, utils, Pager, StudyFields, Studies,claimWorkbench, claimsView,UserSettingsView) {
+    'views/user-settings',
+    'views/setup/study-filter'
+], function (jQuery, initChangeGrid, utils, Pager, StudyFields, Studies,claimWorkbench, claimsView,UserSettingsView, StudyFilterView) {
     var $ = jQuery;
     var isTrue = utils.isTrue;
     var isFalse = utils.isFalse;
@@ -348,6 +349,11 @@ define('grid', [
             $('#mySettings').unbind().click(function(e){
                 self.UserSettingsView = new UserSettingsView();
                 self.UserSettingsView.showForm();
+            });
+
+            $('#btnStudyFilter').unbind().click(function(e){
+                self.StudyFilterView = new StudyFilterView();
+                self.StudyFilterView.showForm();
             });
 
             claimsTable.render({
