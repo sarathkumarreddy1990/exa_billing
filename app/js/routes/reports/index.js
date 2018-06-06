@@ -3,17 +3,64 @@ define([
     'backbonesubroute',
     'views/reports/index',
     'text!templates/access-denied.html',
-    'routes/reports/charges'
+    'routes/reports/charges',
+    'routes/reports/claim-activity',
+    'routes/reports/claim-inquiry',
+    'routes/reports/payments',
+    'routes/reports/patient-statement',
+    'routes/reports/modality-summary',
+    'routes/reports/payer-mix',
+    'routes/reports/payments-by-ins-company',
+    'routes/reports/referring-provider-count',
+    'routes/reports/referring-provider-summary',
+    'routes/reports/transaction-summary',
+    'routes/reports/date-of-SVC-payment-summary',
+    'routes/reports/diagnosis-count',
+    'routes/reports/patients-by-insurance-company',
+    'routes/reports/procedure-count',
+    'routes/reports/reading-provider-fees',
 ], function (
     Backbone,
     BackboneSubroute,
     ReportView,
     AccessDeniedTemplate,
-    ChargeReportRoute
+    ChargeReportRoute,
+    ClaimActivityReportRoute,
+    ClaimInquiryReportRoute,
+    PaymentReportRoute,
+    ClaimActivityRoute,
+    ClaimInquiryRoute,
+    PatientStatementRoute,
+    MoadalitySummaryRoute,
+    PayerMixRoute,
+    PaymentByInsCompanyRoute,
+    ReferringProviderCountRoute,
+    ReferringProviderSummaryRoute,
+    TransactionSummaryRoute,
+    DateOfSVCSummaryRoute,
+    DiagnosisCountRoute,
+    PatientsByInsuranceCompanyRoute,
+    ProcedureCountRoute,
+    ReadingProviderFeesRoute
 ) {
         return Backbone.SubRoute.extend({
             routes: {
-                "r/*subroute": "startChargesReport"
+                "r/charges": "startChargesReport",
+                "r/claim-activity": "startClaimActivityReport",
+                "r/claim-inquiry": "startClaimInquiryReport",
+                "r/payments": "startPaymentReporting",
+                "r/patient-statement": "startPatientStatementReporting",
+                "r/modality-summary": "startModalitySummaryReporting",
+                "r/payer-mix": "startPayerMixReporting",
+                "r/payments-by-ins-company": "startPaymentsByInsuranceCompanyReporting",
+                "r/referring-provider-count": "startReferringProviderCountReporting",
+                "r/referring-provider-summary": "startReferringProviderSummaryReporting",
+                "r/transaction-summary": "starttransactionSummaryReporting",
+                "r/date-of-SVC-payment-summary": "startDateOfSVCSummaryViewReporting",
+                "r/diagnosis-count": "startDiagnosisCountReporting",
+                "r/patients-by-insurance-company": "startPatientsByInsuranceCompanyViewReporting",
+                "r/procedure-count": "startProcedureCountViewReporting",
+                "r/reading-provider-fees": "startReadingProviderFeesReporting",
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -33,6 +80,141 @@ define([
                 if (this.checkLicense('Charges') && !this.chargesRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.chargesRouter = new ChargeReportRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startClaimActivityReport: function (subroute) {
+                if (this.checkLicense('Claim Activity') && !this.claimActivityRouter) {
+                    this.defaultArgs.routePrefix = 'reports/r/';
+                    this.claimActivityRouter = new ClaimActivityReportRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startClaimInquiryReport: function (subroute) {
+                if (this.checkLicense('Claim Inquiry') && !this.claimInquiryRouter) {
+                    this.defaultArgs.routePrefix = 'reports/r/';
+                    this.claimInquiryRouter = new ClaimInquiryReportRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startPaymentReporting: function (subroute) {
+                if (this.checkLicense('Payments') && !this.paymentRouter) {
+                    this.defaultArgs.routePrefix = 'reports/r/';
+                    this.paymentRouter = new PaymentReportRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startPatientStatementReporting: function (subroute) {
+                if (this.checkLicense(facilityModules.reportScreens.patientStatement) && !this.patientStatementRouter) {
+                    this.defaultArgs.routePrefix = 'reports/r/';
+                    this.patientStatementRouter = new PatientStatementRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startModalitySummaryReporting: function (subroute) {
+                if (this.checkLicense('Modality Summary') && !this.modalitySummaryRouter) {
+                    this.defaultArgs.routePrefix = 'reports/r/';
+                    this.modalitySummaryRouter = new MoadalitySummaryRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startPayerMixReporting: function (subroute) {
+                if (this.checkLicense('Payer Mix') && !this.payerMixtRouter) {
+                    this.defaultArgs.routePrefix = 'reports/r/';
+                    this.payerMixtRouter = new PayerMixRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startPaymentsByInsuranceCompanyReporting: function (subroute) {
+                if (this.checkLicense('Payments By Insurance Company') && !this.paymentsByInsuranceComapanyRouter) {
+                    this.defaultArgs.routePrefix = 'reports/r/';
+                    this.paymentsByInsuranceComapanyRouter = new PaymentByInsCompanyRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startReferringProviderCountReporting: function (subroute) {
+                if (this.checkLicense('Referring Provider Count') && !this.referringProCountRouter) {
+                    this.defaultArgs.routePrefix = 'reports/r/';
+                    this.referringProCountRouter = new ReferringProviderCountRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startReferringProviderSummaryReporting: function (subroute) {
+                if (this.checkLicense('Referring Provider Summary') && !this.referringProSummaryRouter) {
+                    this.defaultArgs.routePrefix = 'reports/r/';
+                    this.referringProSummaryRouter = new ReferringProviderSummaryRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            starttransactionSummaryReporting: function (subroute) {
+                if (this.checkLicense('Transaction Summary') && !this.transactionSummaryRouter) {
+                    this.defaultArgs.routePrefix = 'reports/r/';
+                    this.transactionSummaryRouter = new TransactionSummaryRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startDateOfSVCSummaryViewReporting: function (subroute) {
+                if (this.checkLicense('Date Of SVC Summary') && !this.dateOfSVCSummaryRouter) {
+                    this.defaultArgs.routePrefix = 'reports/r/';
+                    this.dateOfSVCSummaryRouter = new DateOfSVCSummaryRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startDiagnosisCountReporting: function (subroute) {
+                if (this.checkLicense('Diagnosis Count') && !this.diagnosisCountRouter) {
+                    this.defaultArgs.routePrefix = 'reports/r/';
+                    this.diagnosisCountRouter = new DiagnosisCountRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startPatientsByInsuranceCompanyViewReporting: function (subroute) {
+                if (this.checkLicense('Patients By Insurance Company') && !this.patientsByInsCompanyRouter) {
+                    this.defaultArgs.routePrefix = 'reports/r/';
+                    this.patientsByInsCompanyRouter = new PatientsByInsuranceCompanyRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startProcedureCountViewReporting: function (subroute) {
+                if (this.checkLicense('Procedure Count') && !this.procedureCountRouter) {
+                    this.defaultArgs.routePrefix = 'reports/r/';
+                    this.procedureCountRouter = new ProcedureCountRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startReadingProviderFeesReporting: function (subroute) {
+                if (this.checkLicense('Reading Provider Fees') && !this.readingProviderFeesRouter) {
+                    this.defaultArgs.routePrefix = 'reports/r/';
+                    this.readingProviderFeesRouter = new ReadingProviderFeesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }

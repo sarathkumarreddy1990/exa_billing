@@ -1,21 +1,19 @@
-define(['jquery',
-    'underscore',
-    'backbone',
-    'shared/report-utils',
-    'text!templates/reports/charges.html',
+define([
+    'jquery'
+    , 'underscore'
+    , 'backbone'
+    , 'shared/report-utils'
+    , 'text!templates/reports/diagnosis-count.html'
 ],
-    function ($,
-        _,
-        Backbone,
-        UI,
-        ChargesTemplate
-    ) {
-        var ChargesView = Backbone.View.extend({
+    function ($, _, Backbone, UI, MainTemplate) {
+        var DiagnosisCountView = Backbone.View.extend({
             rendered: false,
+            drpStudyDt: null,
             expanded: false,
-            mainTemplate: _.template(ChargesTemplate),
+            mainTemplate: _.template(MainTemplate),
             viewModel: {
                 facilities: null,
+                //selectedFacilityId: null,
                 dateFrom: null,
                 dateTo: null,
                 allFacilities: false,
@@ -25,10 +23,10 @@ define(['jquery',
                 reportCategory: null,
                 reportTitle: null,
                 reportFormat: null,
-                reportDate: null,
                 billingProvider: null,
                 allBillingProvider: false
             },
+
             events: {
                 'click #btnViewReport': 'onReportViewClick',
                 'click #btnViewReportNewTab': 'onReportViewClick',
@@ -40,13 +38,20 @@ define(['jquery',
 
             initialize: function (options) {
                 this.showForm();
-                var modelCollection = Backbone.Collection.extend({
-                    model: Backbone.Model.extend({})
+                this.$el.html(this.mainTemplate(this.viewModel));
+                $('#ddlFacilityFilter').multiselect({
+                    maxHeight: 200,
+                    buttonWidth: '300px',
+                    width: '300px',
+                    enableFiltering: true,
+                    includeSelectAllOption: true,
+                    enableCaseInsensitiveFiltering: true
                 });
                 UI.initializeReportingViewModel(options, this.viewModel);
             },
 
             showForm: function () {
+                console.log('view - showForm');
                 if (!this.rendered) {
                     this.render();
                 }
@@ -62,27 +67,16 @@ define(['jquery',
                 this.$el.html(this.mainTemplate(this.viewModel));
                 // Binding Billing Provider MultiSelect
                 UI.bindBillingProvider();
-                $('#ddlFacilityFilter').multiselect({
-                    maxHeight: 200,
-                    buttonWidth: '300px',
-                    width: '300px',
-                    enableFiltering: true,
-                    includeSelectAllOption: true,
-                    enableCaseInsensitiveFiltering: true
-                });
             },
 
             bindDateRangePicker: function () {
                 var self = this;
-                var drpEl = $('#txtDateRange');
+                var drpEl = $('#txtStudyDtRange');
                 var drpOptions = { autoUpdateInput: true, locale: { format: 'L' } };
                 this.drpStudyDt = commonjs.bindDateRangePicker(drpEl, drpOptions, 'past', function (start, end, format) {
+                    console.info('DRP: ', format, start, end);
                     self.viewModel.dateFrom = start;
                     self.viewModel.dateTo = end;
-                });
-                drpEl.on('cancel.daterangepicker', function (ev, drp) {
-                    self.viewModel.dateFrom = null;
-                    self.viewModel.dateTo = null;
                 });
             },
 
@@ -93,19 +87,20 @@ define(['jquery',
                 if (btnClicked && btnClicked.prop('tagName') === 'I') {
                     btnClicked = btnClicked.parent(); // in case FA icon 'inside'' button was clicked...
                 }
-                var rFormat = btnClicked ? btnClicked.attr('data-rformat') : null;
-                var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnViewReportNewTab' : false;
+                const rFormat = btnClicked ? btnClicked.attr('data-rformat') : null;
+                const openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnViewReportNewTab' : false;
                 this.viewModel.reportFormat = rFormat;
-                this.viewModel.openInNewTab = openInNewTab && rFormat === 'html';
+                this.viewModel.openInNewTab = (openInNewTab && rFormat === 'html') ? true : false;
                 if (this.hasValidViewModel()) {
-                    var urlParams = this.getReportParams();
+                    const urlParams = this.getReportParams();
                     UI.showReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
                 }
             },
 
+
             hasValidViewModel: function () {
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
-                    //    commonjs.showWarning('Please check report id, category, and/or format!');
+                    commonjs.showWarning('Please check report id, category, and/or format!');
                     return false;
                 }
 
@@ -139,9 +134,8 @@ define(['jquery',
                 this.viewModel.allBillingProvider = this.selectedBillingProList && this.selectedBillingProList.length === $("#ddlBillingProvider option").length;
             },
 
-            // Get Report Params
             getReportParams: function () {
-                return urlParams = {
+                const urlParams = {
                     'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
                     'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
                     'fromDate': moment($('#txtDateRangeFrom').val()).format('L'),
@@ -149,9 +143,11 @@ define(['jquery',
                     'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
                     'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
-                };
+                }
+                return urlParams;
             }
+
         });
 
-        return ChargesView;
+        return DiagnosisCountView;
     });

@@ -15,8 +15,8 @@ define([
                 //var routeParts = routeOptions.routePrefix.split('/'); //do not use
                 const fragment = Backbone.history.getFragment();
                 const routeParts = fragment.split('/');
-                if (routeParts.length < 3) {
-                    console.error('Less than 3 parts in route!');
+                if (routeParts.length < 2) {
+                    console.error('Less than 2 parts in route!');
                 }
                 viewModel.reportId = routeParts[routeParts.length - 1];
                 viewModel.reportCategory = 'billing';
@@ -594,7 +594,7 @@ define([
 
             listUsersAutoComplete: function () {
                 var self = this;
-                $("#ddlInsuranceProvider").select2({
+                $("#txtUsers").select2({
                     ajax: {
                         url: "/exa_modules/billing/autoCompleteRouter/insurances",
                         dataType: 'json',
@@ -632,8 +632,8 @@ define([
                     }
                     var insurance_info = commonjs.hstoreParse(repo.insurance_info);
                     var markup = "<table><tr>";
-                    markup += "<td title='" + repo.insurance_code + "(" + repo.insurance_name + ")'> <div>" + repo.insurance_code + "(" + repo.insurance_name + ")" + "</div><div>" + insurance_info.Address1 + "</div>";
-                    markup += "<div>" + insurance_info.City + ", " + insurance_info.State + " " + insurance_info.ZipCode + "</div>";
+                    markup += "<td  data-id='" + repo.id +  " ' title='" + repo.insurance_code + "(" + repo.insurance_name + ")'> <div>" + repo.insurance_code + "(" + repo.insurance_name + ")" + "</div>";
+                   
                     markup += "</td></tr></table>";
                     return markup;
 
@@ -651,11 +651,13 @@ define([
                         commonjs.showWarning('Please select one user to add');
                         return false;
                     }
-                    if ($('#ulListUsers li a[data-id="' + $(this).attr('data-id') + '"]').length) {
+                    if ($('#ulListUsers li a[data-id="' +$('#txtUsers').select2('data')[0].id + '"]').length) {
                         commonjs.showWarning("User is already selected");
                         return false;
                     }
-                    $('#ulListUsers').append('<li id="' + $('#btnAddUsers').attr('data-id') + '"><span>' + $('#s2id_txtUsers a span').html() + '</span><a class="remove" data-id="' + $('#btnAddUsers').attr('data-id') + '"><span class="icon-ic-close"></span></a></li>')
+                    var data_id = $('#txtUsers').select2('data')[0].id;
+                    var bind_text = $('#txtUsers').select2('data')[0].insurance_name;
+                    $('#ulListUsers').append('<li id="' + data_id + '"><span>' + bind_text + '</span><a class="remove" data-id="' + $('#txtUsers').select2('data')[0].id + '"><span class="icon-ic-close"></span></a></li>')
                     $('#txtUsers a span').html('Select User');
                 });
 
