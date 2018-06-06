@@ -64,41 +64,36 @@ define(['jquery',
                         },
                         {
                             name: 'edit',
-                            width: 50,
+                            width: 20,
                             sortable: false,
                             search: false,
-                            className:'icon-ic-edit',
+                            className: 'icon-ic-edit',
                             route: '#setup/cas_group_codes/edit/',
-                            formatter: function(e, model, data) {
-                                return `<span>Edit</span>`;
-                            },
-                            cellattr: function() {
-                                return 'style=text-align:center;text-decoration: underline;cursor:pointer;'
+                            formatter: function (e, model, data) {
+                                return "<span class='icon-ic-edit' title='click Here to Edit'></span>"
                             }
                         },
                         {
-                            name: 'del', width: 50, sortable: false, search: false,
+                            name: 'del', width: 20, sortable: false, search: false,
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
                                 if (confirm("Are you sure want to delete")) {
                                     var gridData = $('#tblCasGroupCodesGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
-                                        data: $.param({ id: self.model.id, code: gridData.code, description: gridData.description, name: gridData.name }),
+                                        data: $.param({ id: self.model.id }),
                                         success: function (model, response) {
+                                            commonjs.showStatus("Deleted Successfully");
                                             self.casGroupCodesTable.refresh();
                                         },
                                         error: function (model, response) {
-                                            
+
                                         }
                                     });
                                 }
                             },
-                            formatter: function(e, model, data) {
-                                return `<span>Delete</span>`;
-                            },
-                            cellattr: function() {
-                                return 'style=text-align:center;text-decoration: underline;cursor:pointer;';
+                            formatter: function (e, model, data) {
+                                return "<span class='icon-ic-delete' title='click Here to Delete'></span>"
                             }
                         },
                         {
@@ -118,6 +113,8 @@ define(['jquery',
                     container:self.el,
                     customizeSort: true,
                     offsetHeight: 01,
+                    sortname: "id",
+                    sortorder: "desc",
                     sortable: {
                         exclude: '#jqgh_tblCasGroupCodesGrid,#jqgh_tblCasGroupCodesGrid_edit,#jqgh_tblCasGroupCodesGrid_del'
                     },
@@ -176,20 +173,49 @@ define(['jquery',
 
             refreshCasGroupCodeGrid: function() {
                 this.casGroupCodesTable.refresh();
+                commonjs.showStatus("Reloaded Successfully");
             },
 
-            saveCasGroupCodes: function() {
+            saveCasGroupCodes: function () {
+                var self = this;
+                commonjs.validateForm({
+                    rules: {
+                        casGroupCode: {
+                            required: true
+                        },
+                        casGroupCodeName: {
+                            required: true
+                        },
+                        description: {
+                            required: true
+                        }
+                    },
+                    messages: {
+                        casGroupCode: commonjs.getMessage("*", "Cas Group Code"),
+                        casGroupCodeName: commonjs.getMessage("*", "Cas Group Code Name"),
+                        description: commonjs.getMessage("*", "Description")
+                    },
+                    submitHandler: function () {
+                        self.save();
+                    },
+                    formID: '#formCasGroupCodes'
+                });
+                $('#formCasGroupCodes').submit();
+            },
+
+            save : function() {
                 this.model.set({
                     "code": $.trim($('#txtCode').val()),
                     "description": $.trim($('#txtDescription').val()),
                     "name": $.trim($('#txtName').val()),
-                    "is_active" : !$('#chkActive').prop('checked'),
-                    "company_id" : app.companyID
+                    "isActive" : !$('#chkActive').prop('checked'),
+                    "companyId" : app.companyID
                 });
                 this.model.save({
                 }, {
                     success: function (model, response) {
                         if(response) {
+                            commonjs.showStatus("Saved Successfully");
                             location.href = "#setup/cas_group_codes/list"; 
                         }
                     },

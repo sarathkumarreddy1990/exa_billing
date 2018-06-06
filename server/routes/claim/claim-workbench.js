@@ -1,8 +1,8 @@
 const Router = require('express-promise-router');
 const router = new Router();
 
-const claimWorkbenchController = require('../controllers/claim-workbench');
-const httpHandler = require('../shared/http');
+const claimWorkbenchController = require('../../controllers/claim/claim-workbench');
+const httpHandler = require('../../shared/http');
 
 router.get('/', async function (req, res) {
     req.query.company_id = 1;

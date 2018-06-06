@@ -1,4 +1,4 @@
-<tr data_charge_id_id="<%= payment.id %>"  data_payment_id="<%= payment.payment_id %>">
+<tr data_charge_id_id="<%= payment.id %>"  data_payment_id="<%= payment.payment_id %>" data_payment_application_id="<%= payment.payment_application_id %>">
     <td style="white-space: nowrap !important">
         <span>
             <%= payment.cpt_code %>
@@ -43,6 +43,6 @@
     </td>
     <td style="white-space: nowrap !important">
         <span>
-            <input id="btnApplyCAS" index=<%=payment.index%> type="button" value="CAS" class="btn btn-primary applyCAS"></span>
+            <input id="btnApplyCAS" type="button" value="CAS" class="btn btn-primary applyCAS"></span>
     </td>
 </tr>
