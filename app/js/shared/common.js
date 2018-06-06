@@ -3194,23 +3194,23 @@ var commonjs = {
 
         return r.toString();
     },
-    isMaskValidate: function () {
-        $(".maskPhone").inputmask({ mask: "[(999)999-9999", skipOptionalPartCharacter: ["(", ")"] });
-        $(".postal-code-mask").inputmask({mask:"99999[-9999]"});
-        $(".maskSSN").inputmask("999-99-9999");
-        $(".maskDate").inputmask();
-        var dateTemplate = moment(new Date('December 31, 2017'))
-            .format('L')
-            .replace(/12/, 'MM')
-            .replace(/31/, 'DD')
-            .replace(/2017/, 'YYYY');
-        $(".maskDateLocale").inputmask(dateTemplate.toLowerCase(), {"placeholder": dateTemplate});
-        $(".maskDateMonth").inputmask("mm/dd/yyyy", { "placeholder": "MM/DD/YYYY" });
-        $(".maskMonthYear").inputmask("mm/yyyy", { "placeholder": "MM/YYYY" });
-        //$(".maskMonthYear").inputmask("dd/MM/yyyy hh:mm:ss",{ "placeholder": "dd/MM/yyyy hh:mm:ss" });
-        $(".maskHourmin").inputmask("h:s", { "placeholder": "HH/MM" });
-        $(".maskYear").inputmask("9999", { "placeholder": "YYYY" });
-    },
+    // isMaskValidate: function () {
+    //     $(".maskPhone").inputmask({ mask: "[(999)999-9999", skipOptionalPartCharacter: ["(", ")"] });
+    //     $(".postal-code-mask").inputmask({mask:"99999[-9999]"});
+    //     $(".maskSSN").inputmask("999-99-9999");
+    //     $(".maskDate").inputmask();
+    //     var dateTemplate = moment(new Date('December 31, 2017'))
+    //         .format('L')
+    //         .replace(/12/, 'MM')
+    //         .replace(/31/, 'DD')
+    //         .replace(/2017/, 'YYYY');
+    //     $(".maskDateLocale").inputmask(dateTemplate.toLowerCase(), {"placeholder": dateTemplate});
+    //     $(".maskDateMonth").inputmask("mm/dd/yyyy", { "placeholder": "MM/DD/YYYY" });
+    //     $(".maskMonthYear").inputmask("mm/yyyy", { "placeholder": "MM/YYYY" });
+    //     //$(".maskMonthYear").inputmask("dd/MM/yyyy hh:mm:ss",{ "placeholder": "dd/MM/yyyy hh:mm:ss" });
+    //     $(".maskHourmin").inputmask("h:s", { "placeholder": "HH/MM" });
+    //     $(".maskYear").inputmask("9999", { "placeholder": "YYYY" });
+    // },
     parseDicomDate: function (str) {
         if (!/^(\d){8}$/.test(str)) return "invalid date";
         var y = str.substr(0, 4),
@@ -7571,7 +7571,7 @@ var commonjs = {
                 });
             }
 
-            commonjs.licenseCheck();
+//commonjs.licenseCheck();
         }
         setTimeout(function () {
             commonjs.docResize();  //fjc added to correctly resize grids once rendered
@@ -7580,29 +7580,29 @@ var commonjs = {
         commonjs.processPostRender(args.header);
         commonjs.initializeCheckBoxSelection();
         commonjs.validateControls();
-        commonjs.isMaskValidate();
+       // commonjs.isMaskValidate();
         commonjs.setupCityStateZipInputs();
         if (parent.editStudyID && parent.editStudyID > 0 && app.transcriptionLock) {
             commonjs.lockUnlockTranscription({ study_id: parent.editStudyID, lockType: "unlock", user_id: app.userID });
         }
     },
 
-    licenseCheck: function () {
-        $('[data-license*=' + app.license + ']').remove();
+    // licenseCheck: function () {
+    //     $('[data-license*=' + app.license + ']').remove();
 
-        /**
-         * For handling removal of "Fax Manager" from menu until product/license
-         * code handling is changed.
-         */
-        if (app && app.settings && Array.isArray(app.thirdParty)) {
-            var removeUpdox = !app.thirdParty.some(function (tool) {
-                return tool.enabled === true && tool.id === 'updox';
-            });
-            if (!app.settings.updoxEnabled || removeUpdox) {
-                $('#faxLI').remove();
-            }
-        }
-    },
+    //     /**
+    //      * For handling removal of "Fax Manager" from menu until product/license
+    //      * code handling is changed.
+    //      */
+    //     if (app && app.settings && Array.isArray(app.thirdParty)) {
+    //         var removeUpdox = !app.thirdParty.some(function (tool) {
+    //             return tool.enabled === true && tool.id === 'updox';
+    //         });
+    //         if (!app.settings.updoxEnabled || removeUpdox) {
+    //             $('#faxLI').remove();
+    //         }
+    //     }
+    // },
 
     initilizeCustomerScreen: function (args) {
         $('#pageHeader' + args.header.ext).show();
@@ -10710,6 +10710,7 @@ var facilityModules = {
         'profitAnalysis': 'Profit Analysis',
         'summary': 'Summary',
         paymentDetails: 'Payment Details',
+        paymentsByInsCompany: 'Payments By Insurance Company',
         payerDetails: 'Payer Details',
         utility: 'Utility',
         markRepActivities: 'Marketing Rep Activities',
