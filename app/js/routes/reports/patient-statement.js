@@ -12,7 +12,7 @@ define([
     ) {
         return Backbone.SubRoute.extend({
             routes: {
-                'patient_statement': 'showDefaultView'
+                'patient-statement': 'showDefaultView'
             },
 
             showDefaultView: function () {

@@ -27,9 +27,7 @@ define([
     ChargeReportRoute,
     ClaimActivityReportRoute,
     ClaimInquiryReportRoute,
-    PaymentReportRoute,
-    ClaimActivityRoute,
-    ClaimInquiryRoute,
+    PaymentReportRoute,   
     PatientStatementRoute,
     MoadalitySummaryRoute,
     PayerMixRoute,
@@ -202,7 +200,7 @@ define([
                 }
             },
 
-            startProcedureCountViewReporting: function (subroute) {
+            startProcedureCountViewReporting: function (subroute) {                
                 if (this.checkLicense('Procedure Count') && !this.procedureCountRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.procedureCountRouter = new ProcedureCountRoute(this.defaultArgs.routePrefix, this.defaultArgs);
