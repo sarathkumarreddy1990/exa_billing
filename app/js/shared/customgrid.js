@@ -601,7 +601,7 @@ function customGrid ( datastore, gridID ) {
         var $loading = $(document.getElementById('divPageLoading'));
         var $tblGrid = $(self.options.gridelementid);
         $loading.show();
-        commonjs.showLoading('Grid Loading....')
+        commonjs.showLoading()
         self.setSearchQuery();
         var customArgs = null;
         var params = $tblGrid.jqGrid("getGridParam");
