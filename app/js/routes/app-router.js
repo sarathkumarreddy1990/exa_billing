@@ -54,16 +54,16 @@ define([
             },
 
             startAppStudies: function (subroutes) {
-                if (!this.appStudiesRoute) {
-                    this.appStudiesRoute = new AppRoute("app/", { createTrailingSlashRoutes: true }); 
+                if (!this.appRoute) {
+                 this.appRoute = new StudiesView({ el: $('#root') });
                 }
             },
 
-            // startClaimWorkBench: function (subroutes) {
-            //     if (!this.appClaimWorkBenchRoute) {
-            //         this.appClaimWorkBenchRoute = new ClaimWorkBenchView({ el: $('#root') });
-            //     }
-            // },
+            startClaimWorkBench: function (subroutes) {
+                if (!this.appClaimWorkBenchRoute) {
+                    this.appClaimWorkBenchRoute = new ClaimWorkBenchView({ el: $('#root') });
+                }
+            },
 
          
             startPayments: function (subroutes) {
