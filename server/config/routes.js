@@ -38,7 +38,7 @@ const router = function (app) {
     app.use('/exa_modules/billing/claimWorkbench', claimsWorkbenchRouters);
     app.use('/exa_modules/billing/claimInquiry', claimInquiry);
     app.use('/exa_modules/billing/patient', patientRouter);
-	app.use('/exa_modules/billing/setup/study_filters', studyFilterRouter);
+    app.use('/exa_modules/billing/setup/study_filters', studyFilterRouter);
 };
 
 module.exports = router;

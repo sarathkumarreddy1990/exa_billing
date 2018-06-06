@@ -1,10 +1,10 @@
-const { query } = require('../index');
+const {SQL, query } = require('../index');
 
 
 module.exports = {
-    save: async function (args) {
 
-        let insert_study_filter = ` INSERT INTO billing.grid_filters (
+    save: async function (args) { 
+        let insert_study_filter = SQL` INSERT INTO billing.grid_filters (
             user_id
             ,filter_order
             ,filter_type
@@ -15,20 +15,21 @@ module.exports = {
             ,display_in_ddl
             ,is_active
         )
-        VALUES
-        (
+        SELECT        
             ${args.userId}
             ,${args.filterOrder}
             ,${args.filterType}
-            ,'${args.filterName}'
-            ,'${JSON.stringify(args.json)}'
+            ,${args.filterName}
+            ,${args.jsonData}
             ,${args.isDisplayAsTab}
             ,${args.isGlobal}
             ,${args.isDisplayInDropDown}
             ,${args.isActive}
-        )
+            FROM 
+            billing.grid_filters
+            WHERE user_id != ${args.userId}
          `;
-
+        
         return await query(insert_study_filter);
     }
 };

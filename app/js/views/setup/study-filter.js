@@ -63,8 +63,10 @@ define([
             saveStudyFilter: function () {
                 var self = this;
                 var dateJsonCondition = null;
-                //TO DO filterType value need to confirm and assign
-                filterType = 5;
+                if(window.location && window.location.hash.split('/')[1] == 'studies')
+                    var filterType = 'studies';
+                if(window.location && window.location.hash.split('/')[1] == 'claim_workbench')
+                    var filterType = 'claims';
                 filterName = $('#txtFilterName').val()?$('#txtFilterName').val() :'';
                 filterOrder = $('#txtFilterOrder').val()?$('#txtFilterOrder').val():'';
                 isActive = $('#chkIsActive').is(":checked");
@@ -81,8 +83,8 @@ define([
                 else if ($('#rbtDate').is(':checked')) {
                     dateJsonCondition = "Date";
                 }
-                var json = {
-                    date: {
+                var jsonData = {                     
+                    date:{
                         preformatted: $.trim($('#ddlDatePreformatted').val()),
                         durationValue: $.trim($('#txtLastTime').val()),
                         duration: $('#ddlLast option:selected').text(),
@@ -94,12 +96,12 @@ define([
                         toDateTime: $('#txtToTimeDate').val() ? $('#txtToTimeDate').val() : null,
                         isStudyDate: $('#rbtStudyDate').is(":checked"),
                         dateType: $('#rbtStudyDate').is(":checked") ? "study_dt" : $('#rbtStudyReceivedDate').is(":checked") ? "study_received_dt" : $('#rbtScheduledDate').is(":checked") ? "scheduled_dt" : $('#rbtStatusChangeDate').is(":checked") ? "status_last_changed_dt" : "study_dt"
-                    }
+                    }                    
                 };
                 this.model.set({
-                    userID:app.userID,
+                    userId:app.userID ,
                     filterType:filterType,
-                    json:json,
+                    jsonData:JSON.stringify(jsonData),
                     filterName:filterName,
                     filterOrder:filterOrder,
                     isActive:isActive,
