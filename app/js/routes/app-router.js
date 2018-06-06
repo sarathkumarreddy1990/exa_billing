@@ -16,7 +16,6 @@ define([
     AppRoute,
     SetupRoute,
     ReportsRoute,
-    ReportingRoute,   
     PaymentsView,
     EditPaymentView,
     claimInquiryScreenView
