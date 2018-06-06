@@ -5,6 +5,11 @@ const app = express();
 
 app.use(function (req, res, next) {
 
+    let ids = {
+        userId: req.session.user_id,
+        companyId: req.session.company_id,
+    };
+
     if (['POST', 'PUT', 'DELETE'].indexOf(req.method) > -1) {
         req.body = req.body || {};
 
@@ -19,12 +24,27 @@ app.use(function (req, res, next) {
 
         req.body = {
             ...req.body,
+            ...ids,
             clientIp: 'localhost',
-            userId: req.session.user_id,
-            companyId: req.session.company_id,
             screenName: screenName,
             moduleName: moduleName,
         };
+
+        return next();
+    }
+
+    if (req.method === 'GET') {
+        req.query = {
+            ...req.query,
+            ...ids,
+        };
+
+        req.params = {
+            ...req.query,
+            ...ids,
+        };
+
+        return next();
     }
 
     next();
