@@ -55,7 +55,7 @@ define([
 
             startAppStudies: function (subroutes) {
                 if (!this.appRoute) {
-                    this.appRoute = new StudiesView({ el: $('#root') });
+                 this.appRoute = new StudiesView({ el: $('#root') });
                 }
             },
 

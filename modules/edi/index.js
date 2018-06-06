@@ -15,10 +15,16 @@ const doRequest = async function (options) {
 
 const ediProxyServer = {
 
+    apiUri: ediServerUri,
+
+    init: function (uri) {
+        this.apiUri = uri || ediServerUri;
+    },
+
     getTemplatesList: async function (flag = 'edi') {
 
         let options = {
-            uri: ediServerUri + '/templates/' + flag,
+            uri: this.apiUri + '/templates/' + flag,
             json: true
         };
 
@@ -32,7 +38,7 @@ const ediProxyServer = {
         }
 
         let options = {
-            uri: ediServerUri + '/template/' + flag + '/' + templateName,
+            uri: this.apiUri + '/template/' + flag + '/' + templateName,
             json: true
         };
 
@@ -47,7 +53,7 @@ const ediProxyServer = {
 
         let options = {
             method: 'POST',
-            uri: ediServerUri + '/new_template/' + flag,
+            uri: this.apiUri + '/new_template/' + flag,
             body: {
                 templateName: templateName
             },
@@ -65,7 +71,7 @@ const ediProxyServer = {
 
         let options = {
             method: 'POST',
-            uri: ediServerUri + '/template/' + flag + '/' + templateName,
+            uri: this.apiUri + '/template/' + flag + '/' + templateName,
             body: templateBody,
             json: true
         };
@@ -81,7 +87,7 @@ const ediProxyServer = {
 
         let options = {
             method: 'DELETE',
-            uri: ediServerUri + '/template/' + flag + '/' + templateName,
+            uri: this.apiUri + '/template/' + flag + '/' + templateName,
             json: true
         };
 
@@ -96,7 +102,7 @@ const ediProxyServer = {
 
         let options = {
             method: 'POST',
-            uri: ediServerUri + '/to_edi/' + templateName,
+            uri: this.apiUri + '/to_edi/' + templateName,
             body: {
                 ediJson: jsonData
             },
@@ -114,7 +120,7 @@ const ediProxyServer = {
 
         let options = {
             method: 'POST',
-            uri: ediServerUri + '/to_json/' + templateName,
+            uri: this.apiUri + '/to_json/' + templateName,
             body: {
                 ediText
             },

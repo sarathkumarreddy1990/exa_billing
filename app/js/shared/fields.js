@@ -138,7 +138,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         };
 
         // ADDING A NEW WORKLIST COLUMN <-- Search for this
-        if(filterType=="Claims"){
+        if(filterType=="claims"){
             return Immutable.Map({
                 "Claim Date": {
                     "id": 1,
