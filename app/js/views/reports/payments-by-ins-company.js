@@ -1,21 +1,19 @@
-define(['jquery',
-    'underscore',
-    'backbone',
-    'shared/report-utils',
-    'text!templates/reports/charges.html',
+define([
+    'jquery'
+    , 'underscore'
+    , 'backbone'
+    , 'shared/report-utils'
+    , 'text!templates/reports/payments-by-ins-company.html'
 ],
-    function ($,
-        _,
-        Backbone,
-        UI,
-        ChargesTemplate
-    ) {
-        var ChargesView = Backbone.View.extend({
+    function ($, _, Backbone, UI, paymentsByInsCompanyTemplate) {
+
+        var PaymentsByInsCompanyView = Backbone.View.extend({
             rendered: false,
             expanded: false,
-            mainTemplate: _.template(ChargesTemplate),
+            mainTemplate: _.template(paymentsByInsCompanyTemplate),
             viewModel: {
                 facilities: null,
+                modalities: null,
                 dateFrom: null,
                 dateTo: null,
                 allFacilities: false,
@@ -29,6 +27,8 @@ define(['jquery',
                 billingProvider: null,
                 allBillingProvider: false
             },
+            selectedFacilityListDetail: [],
+            defaultyFacilityId: null,
             events: {
                 'click #btnViewReport': 'onReportViewClick',
                 'click #btnViewReportNewTab': 'onReportViewClick',
@@ -40,9 +40,7 @@ define(['jquery',
 
             initialize: function (options) {
                 this.showForm();
-                var modelCollection = Backbone.Collection.extend({
-                    model: Backbone.Model.extend({})
-                });
+                this.$el.html(this.mainTemplate(this.viewModel));               
                 UI.initializeReportingViewModel(options, this.viewModel);
             },
 
@@ -60,8 +58,6 @@ define(['jquery',
                 });
                 this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
                 this.$el.html(this.mainTemplate(this.viewModel));
-                // Binding Billing Provider MultiSelect
-                UI.bindBillingProvider();
                 $('#ddlFacilityFilter').multiselect({
                     maxHeight: 200,
                     buttonWidth: '300px',
@@ -70,19 +66,17 @@ define(['jquery',
                     includeSelectAllOption: true,
                     enableCaseInsensitiveFiltering: true
                 });
+                // Binding Billing Provider MultiSelect
+                UI.bindBillingProvider();
             },
 
             bindDateRangePicker: function () {
                 var self = this;
-                var drpEl = $('#txtDateRange');
+                var drpEl = $('#txtDateRangeFromTo');
                 var drpOptions = { autoUpdateInput: true, locale: { format: 'L' } };
                 this.drpStudyDt = commonjs.bindDateRangePicker(drpEl, drpOptions, 'past', function (start, end, format) {
                     self.viewModel.dateFrom = start;
                     self.viewModel.dateTo = end;
-                });
-                drpEl.on('cancel.daterangepicker', function (ev, drp) {
-                    self.viewModel.dateFrom = null;
-                    self.viewModel.dateTo = null;
                 });
             },
 
@@ -105,7 +99,7 @@ define(['jquery',
 
             hasValidViewModel: function () {
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
-                    //    commonjs.showWarning('Please check report id, category, and/or format!');
+                    // commonjs.showWarning('Please check report id, category, and/or format!');
                     return false;
                 }
 
@@ -139,7 +133,6 @@ define(['jquery',
                 this.viewModel.allBillingProvider = this.selectedBillingProList && this.selectedBillingProList.length === $("#ddlBillingProvider option").length;
             },
 
-            // Get Report Params
             getReportParams: function () {
                 return urlParams = {
                     'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
@@ -153,5 +146,5 @@ define(['jquery',
             }
         });
 
-        return ChargesView;
+        return PaymentsByInsCompanyView;
     });

@@ -1,19 +1,16 @@
-define(['jquery',
-    'underscore',
-    'backbone',
-    'shared/report-utils',
-    'text!templates/reports/charges.html',
+define([
+    'jquery'
+    , 'underscore'
+    , 'backbone'
+    , 'shared/report-utils'
+    , 'text!templates/reports/transaction-summary.html'
 ],
-    function ($,
-        _,
-        Backbone,
-        UI,
-        ChargesTemplate
-    ) {
-        var ChargesView = Backbone.View.extend({
+    function ($, _, Backbone, UI, transactionSummaryTemplate) {
+
+        var TransactionSummaryView = Backbone.View.extend({
             rendered: false,
             expanded: false,
-            mainTemplate: _.template(ChargesTemplate),
+            mainTemplate: _.template(transactionSummaryTemplate),
             viewModel: {
                 facilities: null,
                 dateFrom: null,
@@ -29,6 +26,8 @@ define(['jquery',
                 billingProvider: null,
                 allBillingProvider: false
             },
+            selectedFacilityListDetail: [],
+            defaultyFacilityId: null,
             events: {
                 'click #btnViewReport': 'onReportViewClick',
                 'click #btnViewReportNewTab': 'onReportViewClick',
@@ -40,12 +39,9 @@ define(['jquery',
 
             initialize: function (options) {
                 this.showForm();
-                var modelCollection = Backbone.Collection.extend({
-                    model: Backbone.Model.extend({})
-                });
+                this.$el.html(this.mainTemplate(this.viewModel));               
                 UI.initializeReportingViewModel(options, this.viewModel);
             },
-
             showForm: function () {
                 if (!this.rendered) {
                     this.render();
@@ -60,8 +56,6 @@ define(['jquery',
                 });
                 this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
                 this.$el.html(this.mainTemplate(this.viewModel));
-                // Binding Billing Provider MultiSelect
-                UI.bindBillingProvider();
                 $('#ddlFacilityFilter').multiselect({
                     maxHeight: 200,
                     buttonWidth: '300px',
@@ -70,11 +64,13 @@ define(['jquery',
                     includeSelectAllOption: true,
                     enableCaseInsensitiveFiltering: true
                 });
+                // Binding Billing Provider MultiSelect
+                UI.bindBillingProvider();
             },
 
             bindDateRangePicker: function () {
                 var self = this;
-                var drpEl = $('#txtDateRange');
+                var drpEl = $('#txtDateRangeFromTo');
                 var drpOptions = { autoUpdateInput: true, locale: { format: 'L' } };
                 this.drpStudyDt = commonjs.bindDateRangePicker(drpEl, drpOptions, 'past', function (start, end, format) {
                     self.viewModel.dateFrom = start;
@@ -105,7 +101,7 @@ define(['jquery',
 
             hasValidViewModel: function () {
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
-                    //    commonjs.showWarning('Please check report id, category, and/or format!');
+                    commonjs.showWarning('Please check report id, category, and/or format!');
                     return false;
                 }
 
@@ -116,7 +112,14 @@ define(['jquery',
                 }
                 return true;
             },
-
+            selectDefaultFacility: function () {
+                // if there is only 1 facility select it, otherwise use default facility id
+                //    var defFacId = this.viewModel.facilities.length === 1 ? this.viewModel.facilities.at(0).get('id') : app.default_facility_id;
+                // works only if list exists by setting its value to array of selections
+                // fires a change event
+                // $('#ddlFacilities').val([defFacId]).change();
+                // this.defaultyFacilityId = defFacId;
+            },
             // multi select facilities - worked
             getSelectedFacility: function (e) {
                 var selected = $("#ddlFacilityFilter option:selected");
@@ -139,7 +142,7 @@ define(['jquery',
                 this.viewModel.allBillingProvider = this.selectedBillingProList && this.selectedBillingProList.length === $("#ddlBillingProvider option").length;
             },
 
-            // Get Report Params
+
             getReportParams: function () {
                 return urlParams = {
                     'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
@@ -148,10 +151,10 @@ define(['jquery',
                     'toDate': moment($('#txtDateRangeTo').val()).format('L'),
                     'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
-                    'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
+                    'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false
                 };
             }
         });
 
-        return ChargesView;
+        return TransactionSummaryView;
     });
