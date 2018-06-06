@@ -3,17 +3,20 @@ define([
     'backbonesubroute',
     'views/app/index',
     'text!templates/access-denied.html',
-    'routes/app/studies'
+    'routes/app/studies',
+    'routes/app/claims'
 ], function (
     Backbone,
     BackboneSubroute,
     AppView,
     AccessDeniedTemplate,
-    StudiesRoute
+    StudiesRoute,
+    ClaimWorkBenchRoute
 ) {
         return Backbone.SubRoute.extend({
             routes: {
-                "studies2/*subroute": "startStudies"
+                "studies/*subroute": "startStudies",
+                "claim_workbench/*subroute": "startClaimWorkbench"
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -30,12 +33,22 @@ define([
 
             startStudies: function (subroute) {
                 if (this.checkLicense('Studies') && !this.studiesRouter) {
-                    this.defaultArgs.routePrefix = 'billing/studies2/';
+                    this.defaultArgs.routePrefix = 'app/studies/';
                     this.studiesRouter = new StudiesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }
             },
+
+            startClaimWorkbench: function (subroute) {
+                if (this.checkLicense('ClaimWorkbench') && !this.claimWorkbenchRouter) {
+                    this.defaultArgs.routePrefix = 'app/claim_workbench/';
+                    this.claimWorkbenchRouter = new ClaimWorkBenchRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+            
 
             initialize: function () {
                 if (!this.appView) {

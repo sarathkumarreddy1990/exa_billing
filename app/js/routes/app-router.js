@@ -24,7 +24,7 @@ define([
         var AppRouter = Backbone.Router.extend({
             routes: {
                 "app/worklist": "startApp",
-                "app/studies": "startAppStudies",
+                "app/*subroute": "startAppStudies",
                 "app/claim_workbench": "startClaimWorkBench",              
 
                 "billing/*subroute": "startApp",
@@ -55,16 +55,16 @@ define([
             },
 
             startAppStudies: function (subroutes) {
-                if (!this.appRoute) {
-                    this.appRoute = new StudiesView({ el: $('#root') });
+                if (!this.appStudiesRoute) {
+                    this.appStudiesRoute = new AppRoute("app/", { createTrailingSlashRoutes: true }); 
                 }
             },
 
-            startClaimWorkBench: function (subroutes) {
-                if (!this.appClaimWorkBenchRoute) {
-                    this.appClaimWorkBenchRoute = new ClaimWorkBenchView({ el: $('#root') });
-                }
-            },
+            // startClaimWorkBench: function (subroutes) {
+            //     if (!this.appClaimWorkBenchRoute) {
+            //         this.appClaimWorkBenchRoute = new ClaimWorkBenchView({ el: $('#root') });
+            //     }
+            // },
 
          
             startPayments: function (subroutes) {
