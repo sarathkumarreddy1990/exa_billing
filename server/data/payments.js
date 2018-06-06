@@ -2,7 +2,7 @@ const { query, SQL } = require('./index');
 
 module.exports = {
 
-    getPayments: async function () {
+    getPayments: async function (params) {
         const sql = `SELECT
                           payments.id
                         , payments.facility_id
@@ -36,7 +36,10 @@ module.exports = {
                     INNER JOIN public.users ON users.id = payments.created_by
                     LEFT JOIN public.patients ON patients.id = payments.patient_id
                     LEFT JOIN public.facilities ON facilities.id = payments.facility_id
-                    ORDER BY id ASC LIMIT 100`;
+                    ORDER BY id ASC --LIMIT 100
+                    
+                    LIMIT ${params.pageSize}
+                    OFFSET ${((params.pageNo * params.pageSize) - params.pageSize)}`;
 
         return await query(sql);
     },
@@ -49,6 +52,10 @@ module.exports = {
                           payments.id
                         , payments.facility_id
                         , patient_id
+                        , providers.full_name AS provider_full_name
+                        , insurance_name AS insurance_name
+                        , provider_groups.group_name AS ordering_facility_name
+                        , patients.full_name as patient_name
                         , insurance_provider_id
                         , provider_group_id
                         , provider_contact_id
@@ -66,7 +73,6 @@ module.exports = {
                         , mode AS payment_mode
                         , card_name
                         , card_number
-                        , patients.full_name as patient_name
                         , get_full_name(users.last_name, users.first_name) as user_full_name
                         , facilities.facility_name
                         , amount
@@ -75,9 +81,14 @@ module.exports = {
                         , (select adjustments_applied_total from billing.get_payment_totals(payments.id)) AS adjustment_amount
                         , (select payment_status from billing.get_payment_totals(payments.id)) AS current_status
                     FROM billing.payments
+
                     INNER JOIN public.users ON users.id = payments.created_by
                     LEFT JOIN public.patients ON patients.id = payments.patient_id
                     LEFT JOIN public.facilities ON facilities.id = payments.facility_id
+                    LEFT JOIN public.insurance_providers ON insurance_providers.id = payments.insurance_provider_id
+                    LEFT JOIN provider_groups ON provider_groups.id = payments.provider_group_id
+                    LEFT JOIN public.providers ON providers.id = payments.provider_contact_id
+
                     WHERE 
                         payments.id = ${id}`;
 
@@ -156,6 +167,7 @@ module.exports = {
                                                   , invoice_no = ${invoice_no}
                                                   , alternate_payment_id = ${display_id}
                                                   , payer_type = ${payer_type}
+                                                  , payment_reason_id = ${payment_reason_id}
                                                   , notes = ${notes}
                                                   , mode = ${payment_mode}
                                                   , card_name = ${credit_card_name}
