@@ -2,10 +2,10 @@ define([
     'jquery',
     'backbone',
     'backbonesubroute',
-    'views/setup/payment-reasons'
+    'views/setup/claim-status'
 ],
-    function ($, Backbone, SubRoute, PaymentReasonsView) {
-        var PaymentReasonsRouter = Backbone.SubRoute.extend({
+    function ($, Backbone, SubRoute, ClaimStatusView) {
+        var ClaimStatusRouter = Backbone.SubRoute.extend({
             routes: {
                 'list': 'showGrid',
                 'new': 'showForm',
@@ -14,17 +14,17 @@ define([
 
             showGrid: function () {
                 this.initializeRouter();
-                this.paymentReasonsScreen.showGrid();
+                this.claimStatusScreen.showGrid();
             },
 
             showForm: function () {
                 this.initializeRouter();
-                this.paymentReasonsScreen.showForm(0);
+                this.claimStatusScreen.showForm(0);
             },
 
             showEditForm: function (id) {
                 this.initializeRouter();
-                this.paymentReasonsScreen.showForm(id);
+                this.claimStatusScreen.showForm(id);
             },
 
             initialize: function (options) {
@@ -32,16 +32,17 @@ define([
             },
 
             initializeRouter: function () {
-                this.options.screen = "Payment Reasons";
-                this.options.currentView = this.paymentReasonsScreen;
+                this.options.screen = "Claim Status";
+                this.options.currentView = this.claimStatusScreen;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
-                    this.paymentReasonsScreen = new PaymentReasonsView(this.options);
+                    this.claimStatusScreen = new ClaimStatusView(this.options);
                 }
             }
         });
 
-        return PaymentReasonsRouter;
+        return ClaimStatusRouter;
     });
+
 

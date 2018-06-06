@@ -4,45 +4,43 @@ define([
     'backbone',
     'jqgrid',
     'jqgridlocale',
-    'text!templates/setup/payment-reasons-grid.html',
-    'text!templates/setup/payment-reasons-form.html',
-    'collections/setup/payment-reasons',
-    'models/setup/payment-reasons',
+    'text!templates/setup/claim-status-grid.html',
+    'text!templates/setup/claim-status-from.html',
+    'collections/setup/claim-status',
+    'models/setup/claim-status',
     'models/pager'
 ]
-    , function ($, _, Backbone, JQGrid, JGridLocale, PaymentReasonsGrid, PaymentReasonsForm, PaymentReasonsCollections, PaymentReasonsModel, Pager) {
-        var PaymentReasonsView = Backbone.View.extend({
-            paymentReasonsGridTemplate: _.template(PaymentReasonsGrid),
-            paymentReasonsFormTemplate: _.template(PaymentReasonsForm),
-            paymentReasonsList: [],
+    , function ($, _, Backbone, JQGrid, JGridLocale, ClaimStatusGrid, ClaimStatusForm, ClaimStatusCollections, ClaimStatusModel, Pager) {
+        var ClaimStatusView = Backbone.View.extend({
+            claimStatusGridTemplate: _.template(ClaimStatusGrid),
+            claimStatusFormTemplate: _.template(ClaimStatusForm),
+            claimStatusList: [],
             model: null,
-            paymentReasonsTable: null,
+            claimStatusTable: null,
+            pager: null,
             events: {
-                'click #btnAddPaymentReasons': 'addNewPaymentReasons',
-                'click #btnSavePaymentReasons': 'savePaymentReasons',
-                'click #btnBackToPaymentReasons': 'backToPaymentReasonsGrid',
-                'click #btnPaymentReasonsRefresh': 'refreshPaymentReasonsGrid'
             },
 
             initialize: function (options) {
                 var self = this;
                 this.options = options;
-                this.model = new PaymentReasonsModel();
-                this.paymentReasonsList = new PaymentReasonsCollections();
+                this.model = new ClaimStatusModel();
+                this.pager = new Pager();
+                this.claimStatusList = new ClaimStatusCollections();
             },
 
             render: function () {
                 var self = this;
-                $('#divPaymentReasonsGrid').show();
-                $('#divPaymentReasonsForm').hide();
-                $(this.el).html(this.paymentReasonsGridTemplate());
-                this.paymentReasonsTable = new customGrid();
-                this.paymentReasonsTable.render({
-                    gridelementid: '#tblPaymentReasonsGrid',
+                $('#divClaimStatusGrid').show();
+                $('#divClaimStatusForm').hide();
+                $(this.el).html(this.claimStatusGridTemplate());
+                this.claimStatusTable = new customGrid();
+                this.claimStatusTable.render({
+                    gridelementid: '#tblClaimStatusGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
                     colNames: ['', '', '', '', ''],
-                    i18nNames: ['', '', '', 'setup.common.reasons', 'setup.common.description'],
+                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description'],
                     colModel: [
                         {
                             name: 'id',
@@ -57,12 +55,12 @@ define([
                             sortable: false,
                             search: false,
                             className: 'icon-ic-edit',
-                            route: '#setup/payment_reasons/edit/',
+                            route: '#setup/claim_status/edit/',
                             formatter: function (e, model, data) {
-                                return `<span>Edit</span>`;
+                                return `<span class='icon-ic-edit' title='click Here to Edit'></span>`;
                             },
                             cellattr: function () {
-                                return 'style=text-align:center;text-decoration: underline;cursor:pointer;'
+                                return 'style=text-align:center;cursor:pointer;'
                             }
                         },
                         {
@@ -70,12 +68,12 @@ define([
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
                                 if (confirm("Are you sure want to delete")) {
-                                    var gridData = $('#tblPaymentReasonsGrid').jqGrid('getRowData', rowID);
+                                    var gridData = $('#tblClaimStatusGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
-                                        data: $.param({ id: self.model.id, code: gridData.code, description: gridData.description, name: gridData.name }),
+                                        data: $.param({ id: self.model.id, code: gridData.code, description: gridData.description }),
                                         success: function (model, response) {
-                                            self.paymentReasonsTable.refresh();
+                                            self.claimStatusTable.refresh();
                                         },
                                         error: function (model, response) {
                                         }
@@ -84,11 +82,11 @@ define([
                             },
 
                             formatter: function (e, model, data) {
-                                return `<span>Delete</span>`;
+                                return `<span class='icon-ic-delete' title='click Here to Delete'></span>`;
                             },
 
                             cellattr: function () {
-                                return 'style=text-align:center;text-decoration: underline;cursor:pointer;';
+                                return 'style=text-align:center;cursor:pointer;';
                             }
                         },
                         {
@@ -100,14 +98,14 @@ define([
                             width: 180
                         }
                     ],
-                    datastore: self.paymentReasonsList,
+                    datastore: self.claimStatusList,
                     container: self.el,
                     customizeSort: true,
                     offsetHeight: 01,
                     sortname: "id",
                     sortorder: "desc",
                     sortable: {
-                        exclude: '#jqgh_tblPaymentReasonsGrid,#jqgh_tblPaymentReasonsGrid_edit,#jqgh_tblPaymentReasonsGrid_del'
+                        exclude: '#jqgh_tblClaimStatusGrid,#jqgh_tblClaimStatusGrid_edit,#jqgh_tblClaimStatusGrid_del'
                     },
                     dblClickActionIndex: 1,
                     disablesearch: false,
@@ -117,6 +115,18 @@ define([
                     disableadd: true,
                     disablereload: true
                 });
+
+                commonjs.initializeScreen({header: {screen: 'ClaimStatus', ext: 'claimStatus'}, grid: {id: '#tblClaimStatusGrid'}, buttons: [
+                    {value: 'Add', class: 'btn btn-danger', i18n: 'shared.buttons.add', clickEvent: function () {
+                        Backbone.history.navigate('#setup/claim_status/new', true);
+                    }},
+                    {value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
+                        self.pager.set({"PageNo": 1});
+                        self.claimStatusTable.refreshAll();
+                        commonjs.showStatus("Reloaded Successfully");
+                    }}
+                ]});
+
             },
 
             showGrid: function () {
@@ -129,7 +139,8 @@ define([
             },
 
             renderForm: function (id) {
-                $('#divPaymentReasonsForm').html(this.paymentReasonsFormTemplate());
+                var self=this;
+                $('#divClaimStatusForm').html(this.claimStatusFormTemplate());
                 if (id > 0) {
                     this.model.set({id: id});
                     this.model.fetch({
@@ -140,34 +151,33 @@ define([
                                 $('#txtCode').val(response.code);
                                 $('#txtDescription').val(response.description);
                                 $('#chkActive').prop('checked', response.inactivated_dt ? true : false);
+                                $('#chkIsSystemStatus').prop('checked', response.is_system_status  ? true : false);
                             }
                         }
                     });
                 } else {
-                    this.model = new PaymentReasonsModel();
+                    this.model = new ClaimStatusModel();
                 }
-                $('#divPaymentReasonsGrid').hide();
-                $('#divPaymentReasonsForm').show();
+                commonjs.initializeScreen({header: {screen: 'ClaimStatus', ext: 'claimStatus'}, buttons: [
+                    {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
+                        self.saveClaimStatus();
+                    }},
+                    {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
+                        Backbone.history.navigate('#setup/claim_status/list', true);
+                    }}
+                ]});
+
+                $('#divClaimStatusGrid').hide();
+                $('#divClaimStatusForm').show();
                 commonjs.processPostRender();
             },
 
-            addNewPaymentReasons: function () {
-                location.href = "#setup/payment_reasons/new";
-            },
-
-            backToPaymentReasonsGrid: function () {
-                location.href = "#setup/payment_reasons/list";
-            },
-
-            refreshPaymentReasonsGrid: function () {
-                this.paymentReasonsTable.refresh();
-            },
-
-            savePaymentReasons: function () {
+            saveClaimStatus: function () {
                 this.model.set({
                     "code": $.trim($('#txtCode').val()),
                     "description": $.trim($('#txtDescription').val()),
                     "isActive": !$('#chkActive').prop('checked'),
+                    "isSystemStatus" : $('#chkIsSystemStatus').prop('checked') ,
                     "company_id": app.companyID
                 });
                 this.model.save({
@@ -175,7 +185,7 @@ define([
                 }, {
                     success: function (model, response) {
                         if (response) {
-                            location.href = "#setup/payment_reasons/list";
+                            location.href = "#setup/claim_status/list";
                         }
                     },
                     error: function (model, response) {
@@ -184,7 +194,5 @@ define([
                 });
             }
         });
-        return PaymentReasonsView;
+        return ClaimStatusView;
     });
-
-

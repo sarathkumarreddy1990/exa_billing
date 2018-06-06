@@ -1,9 +1,4 @@
 <div>
-    <div id="divPaymentReasonsFormBtnGrps" style="float:right;">
-        <input type="button" value="Save" id="btnSavePaymentReasons" i18n="shared.buttons.save" class="btn btn-primary">
-        <input type="button" value="Back" id="btnBackToPaymentReasons" i18n="shared.buttons.back"
-               class="btn btn-primary">
-    </div>
     <form class="form-horizontal form-list">
         <div class="form-group form-inline">
             <div class="col-form-label">
@@ -22,6 +17,14 @@
             </div>
             <div class="col-form-content">
                 <input type="text" maxlength="512" id="txtDescription" name="description" class="form-control">
+            </div>
+        </div>
+        <div class="form-group form-inline">
+            <div class="col-form-label">
+            </div>
+            <div class="col-form-content">
+                <input type="checkbox" id="chkIsSystemStatus"/>
+                <span for="chkIsSystemStatus" class="field-chk" i18n="shared.fields.isSystemStatus" style="text-align:center;"></span>
             </div>
         </div>
     </form>
