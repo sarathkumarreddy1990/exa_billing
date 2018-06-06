@@ -11,10 +11,10 @@ module.exports = {
         return data.createOrUpdatePayment(params);
     },
 
-    createPaymentapplications: function (params) {
+    createOrUpdatePaymentapplications: function (params) {
         let appliedPaymets = [];
         let coPaycoInsDeductdetails = [];
-        let { paymentId, line_items, user_id, coPay, coInsurance, deductible, claimId } = params;
+        let { paymentId, line_items, user_id, coPay, coInsurance, deductible, claimId, adjestmentId, appliedStatus } = params;
         line_items = JSON.parse(line_items);
 
         _.each(line_items, function (value) {
@@ -24,6 +24,7 @@ module.exports = {
                     charge_id: value.chargeId,
                     amount: value.payment,
                     amount_type: 'payment',
+                    adjestment_id: null,
                     created_by: user_id
                 });
             }
@@ -34,6 +35,7 @@ module.exports = {
                     charge_id: value.chargeId,
                     amount: value.adjustment,
                     amount_type: 'adjustment',
+                    adjestment_id: adjestmentId,
                     created_by: user_id
                 });
             }
@@ -43,7 +45,7 @@ module.exports = {
         if (coInsurance > 0) {
             coPaycoInsDeductdetails.push({
                 claim_id: claimId,
-                note: 'Co-Insurance of'+ coInsurance +'is due',
+                note: 'Co-Insurance of ' + coInsurance + ' is due',
                 type: 'co_insurance',
                 created_by: user_id
             });
@@ -52,7 +54,7 @@ module.exports = {
         if (coPay > 0) {
             coPaycoInsDeductdetails.push({
                 claim_id: claimId,
-                note: 'Co-Pay of'+ coPay +'is due',
+                note: 'Co-Pay of ' + coPay + ' is due',
                 type: 'co_pay',
                 created_by: user_id
             });
@@ -61,7 +63,7 @@ module.exports = {
         if (deductible > 0) {
             coPaycoInsDeductdetails.push({
                 claim_id: claimId,
-                note: 'Deductible of'+ deductible +'is due',
+                note: 'Deductible of ' + deductible + ' is due',
                 type: 'deductible',
                 created_by: user_id
             });
@@ -69,7 +71,14 @@ module.exports = {
 
         params.coPaycoInsDeductdetails = coPaycoInsDeductdetails;
         params.appliedPaymets = appliedPaymets;
-        return data.createPaymentapplications(params);
+
+        if (appliedStatus == 'pending') {
+            return data.createPaymentapplications(params);
+        }
+
+        /*         if (appliedStatus == 'applied') {
+            return data.updatePaymentapplications(params);
+        } */
     }
 
 };

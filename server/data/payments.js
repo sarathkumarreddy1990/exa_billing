@@ -36,8 +36,7 @@ module.exports = {
                     INNER JOIN public.users ON users.id = payments.created_by
                     LEFT JOIN public.patients ON patients.id = payments.patient_id
                     LEFT JOIN public.facilities ON facilities.id = payments.facility_id
-                    ORDER BY id ASC --LIMIT 100
-                    
+                    ORDER BY id ASC
                     LIMIT ${params.pageSize}
                     OFFSET ${((params.pageNo * params.pageSize) - params.pageSize)}`;
 
@@ -81,7 +80,6 @@ module.exports = {
                         , (select adjustments_applied_total from billing.get_payment_totals(payments.id)) AS adjustment_amount
                         , (select payment_status from billing.get_payment_totals(payments.id)) AS current_status
                     FROM billing.payments
-
                     INNER JOIN public.users ON users.id = payments.created_by
                     LEFT JOIN public.patients ON patients.id = payments.patient_id
                     LEFT JOIN public.facilities ON facilities.id = payments.facility_id
@@ -176,6 +174,7 @@ module.exports = {
                                                     id = ${paymentId}
                                                   AND NOT EXISTS(SELECT 1 FROM insert_data))
                                                   SELECT id from insert_data`;
+
         return await query(sql);
     },
 
@@ -187,12 +186,14 @@ module.exports = {
                                         , charge_id
                                         , amount
                                         , amount_type
+                                        , adjestment_id
                                         , created_by
                                     FROM json_to_recordset(${JSON.stringify(params.appliedPaymets)}) AS details(
                                           payment_id BIGINT
                                         , charge_id BIGINT
                                         , amount MONEY
                                         , amount_type TEXT
+                                        , adjestment_id BIGINT
                                         , created_by BIGINT)
                                     ),
                              claim_comment_details AS(
@@ -218,7 +219,7 @@ module.exports = {
                                     , applied_dt)
                                     SELECT
                                       payment_id
-                                    , null
+                                    , adjestment_id
                                     , charge_id
                                     , amount
                                     , amount_type
@@ -249,6 +250,7 @@ module.exports = {
                                     , now()
                                     FROM claim_comment_details)
                                     SELECT true`;
+
         return await query(sql);
     }
 
