@@ -229,7 +229,7 @@ define([
                 }
             },
 
-            startClaimInquiry: function(){
+            startClaimInquiry: function(subroutes){
                 if(!this.appRoute){
                     this.appRoute = new claimInquiryScreenView({ el: $('#root') });
                 }
