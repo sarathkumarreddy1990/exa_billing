@@ -194,7 +194,20 @@ module.exports = {
                                         , amount MONEY
                                         , amount_type TEXT
                                         , created_by BIGINT)
-                                    )
+                                    ),
+                             claim_comment_details AS(
+                                    SELECT 
+                                          claim_id
+                                        , note
+                                        , type
+                                        , created_by
+                                    FROM json_to_recordset(${JSON.stringify(params.coPaycoInsDeductdetails)}) AS details(
+                                          claim_id BIGINT
+                                        , note TEXT
+                                        , type TEXT
+                                        , created_by BIGINT)
+                                    ),
+                             insert_application AS(
                                     INSERT INTO billing.payment_applications
                                     ( payment_id
                                     , adjustment_code_id
@@ -211,8 +224,31 @@ module.exports = {
                                     , amount_type
                                     , created_by
                                     , now()
-                                    FROM application_details`;
-        
+                                    FROM application_details),
+                             update_claims AS(
+                                    UPDATE billing.claims
+                                    SET
+                                        billing_notes = ${params.billingNotes}
+                                      , payer_type = ${params.payerType}
+                                    WHERE
+                                        id = ${params.claimId}),
+                             insert_calim_comments AS(
+                                    INSERT INTO billing.claim_comments
+                                    ( claim_id
+                                    , note
+                                    , type
+                                    , is_internal
+                                    , created_by
+                                    , created_dt)
+                                    SELECT 
+                                      claim_id
+                                    , note
+                                    , type
+                                    , false
+                                    , created_by
+                                    , now()
+                                    FROM claim_comment_details)
+                                    SELECT true`;
         return await query(sql);
     }
 

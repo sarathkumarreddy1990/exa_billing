@@ -25,7 +25,6 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             events: {
                 'click #btnPaymentSave': 'savePayment',
                 'click #btnApplyCAS': 'getPayemntApplications',
-                // 'click #btnSaveAppliedPendingPayments': 'saveAllPayments',
                 'change .payerType': 'setPayerFields',
                 'click #btnPaymentAddNew': 'addNewPayemnt'
             },
@@ -852,12 +851,16 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         claimId: claimId,
                         paymentId: paymentId,
                         paymentStatus: paymentStatus,
-                        charge_id: chargeId
+                        charge_id: chargeId,
+                        companyID: app.companyID
                     },
                     success: function (data, response) {
-                        var payments = data;
+                        var allData = data[0];
+                        var charges = allData.charges;
+                        var adjustmentCodes = allData.adjustment_codes;
+                        var payerTypes = allData.payer_types;
                         $('#tBodyApplyPendingPayment').empty();
-                        $.each(payments, function (index, payment) {
+                        $.each(charges, function (index, payment) {
                             var paymentDet = {}
                             paymentDet.index = index;
                             paymentDet.id = payment.id ? payment.id : null;
@@ -877,7 +880,9 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                             paymentDet.payment_application_id = payment.payment_application_id;
                             var balance = parseFloat(paymentDet.bill_fee) - (parseFloat(paymentDet.other_payment) + parseFloat(paymentDet.other_adjustment) + parseFloat(paymentDet.adjustment) + parseFloat(paymentDet.payment_amount)).toFixed(2);
                             paymentDet.balance = parseFloat(balance).toFixed(2);
-                            var applyPaymentRow = self.applyPaymentTemplate({ payment: paymentDet });
+
+                            var applyPaymentRow = self.applyPaymentTemplate({ payment: paymentDet, adjustmentCodes: adjustmentCodes, payers: payerTypes });
+
                             $('#tBodyApplyPendingPayment').append(applyPaymentRow);
 
                             var cas_arr_obj = [];
@@ -1017,6 +1022,13 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     line_items.push(_line_item);
                 });
 
+                var payerType = $('#ddlResponsible').val();
+                var adjustmentType = $('#ddlResponsible').val();
+                var billingNotes = $('#txtResponsibleNotes').val();
+                var deduction = $('#txtDeduction').val();
+                var coInsurance = $('#txtCoInsurance').val();
+                var coPay = $('#txtCoPay').val();
+
                 $.ajax({
                     url: '/exa_modules/billing/payments/applyPayments',
                     type: "POST",
@@ -1025,7 +1037,12 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         line_items: JSON.stringify(line_items),
                         paymentId: paymentId,
                         claimId: claimId,
-                        user_id: app.userID
+                        user_id: app.userID,
+                        coPay: coPay,
+                        coInsurance: coInsurance,
+                        deductible: deduction,
+                        billingNotes: billingNotes,
+                        payerType: payerType
                     },
                     success: function (model, response) {
                         alert('Payment has been applied successfully');

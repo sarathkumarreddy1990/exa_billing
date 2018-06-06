@@ -111,17 +111,8 @@
             <input type="button" id="btnClearAppliedPendingPayments" class="btn btn-default" value="Clear" i18n="shared.buttons.clear">
             <span id="spPaymentID"></span>
         </div>
-        <div class="col-xs-12" style="margin-top: 10px">
-            <div class="col-xs-3">
-                <div class="form-group form-inline">
-                    <div class="col-form-label">
-                        <label class="control-label">
-                            <span i18n="shared.fields.date"></span> :</label>
-                    </div>
-                    <div class="col-form-content">
-                        <label id="lblServiceDate"></label>
-                    </div>
-                </div>
+        <div style="margin-top: 20px; width: 100%;">
+            <div style="width: 30%;float: left;">
                 <div class="form-group form-inline">
                     <div class="col-form-label">
                         <label class="control-label ">
@@ -177,22 +168,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-xs-5">
-                <div class="form-group form-inline">
-                    <div class="col-form-label">
-                        <label class="control-label field-required" i18n="order.chargePayment.claimStatus"></label>
-                    </div>
-                    <div class="col-form-content">
-                        <select class="form-control" id="ddlClaimStatus">
-                            <option value="">Select</option>
-                            <% _.each(claimStatusList, function(claimStatus) { %>
-                                <option value='<%= claimStatus.id %>' data-desc='<%= claimStatus.code %>'>
-                                    <%= claimStatus.description %>
-                                </option>
-                                <% }); %>
-                        </select>
-                    </div>
-                </div>
+            <div  style="width: 40%;float: left;">
                 <div class="form-group form-inline" style="margin-bottom:10px;">
                     <div class="col-form-label">
                         <label class="control-label field-required" i18n="shared.fields.responsible"></label>
@@ -237,7 +213,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-xs-4">
+            <div style="width: 30%;">
                 <div class="form-group form-inline">
                     <div class="col-form-label">
                         <label class="control-label " i18n="order.newOrder.deduction"> :</label>
