@@ -90,5 +90,72 @@ module.exports = {
                             
     SELECT * FROM  encounter_details, icd_details, insurance_details , followup_details `;
         return await query(sql);
+    },
+
+    getClaimComments: async (params) => {
+        let {
+            claim_id
+        } = params;
+
+        let sql = SQL`SELECT
+                          cc.id AS id
+                        , null AS payment_id
+                        , type
+                        , note as comments
+                        , created_dt::date as commented_dt
+                    FROM 
+                        billing.claim_comments cc
+                    WHERE cc.claim_id = ${claim_id}   
+                    UNION ALL
+                    SELECT  
+                          ch.id AS id
+                        , null AS payment_id
+                        , 'charge' as type
+                        , cpt.short_description as comments
+                        , ch.charge_dt::date as commented_dt
+                    FROM billing.charges ch
+                    INNER JOIN cpt_codes cpt on cpt.id = ch.cpt_id 
+                    WHERE ch.claim_id = ${claim_id}
+                    UNION ALL
+                    SELECT
+                          bp.id AS id
+                        , bp.id::text AS payment_id
+                        , amount_type as type
+                        , CASE WHEN bp.payer_type = 'patient' THEN
+                                    pp.full_name
+                            WHEN bp.payer_type = 'insurance' THEN
+                                    pip.insurance_name
+                            WHEN bp.payer_type = 'ordering_facility' THEN
+                                    pg.group_name
+                            WHEN bp.payer_type = 'ordering_provider' THEN
+                                    p.full_name
+                        END as comments,
+                        bp.accounting_dt::date as commented_dt
+                    FROM billing.payments bp
+                    INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
+                    INNER JOIN billing.charges ch on ch.id = pa.charge_id 
+                    LEFT JOIN public.patients pp on pp.id = bp.patient_id
+                    LEFT JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id
+                    LEFT JOIN public.provider_groups  pg on pg.id = bp.provider_group_id
+                    LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
+                    LEFT JOIN public.providers p on p.id = pc.provider_id
+                    WHERE ch.claim_id = ${claim_id} `;
+
+        return await query(sql);
+    },
+
+    getClaimComment: async (params) => {
+        let {
+            comment_id
+        } = params;
+
+        let sql = `SELECT 
+                      id
+                    , note AS comments
+                    FROM 
+                        billing.claim_comments
+                    WHERE id = ${comment_id}`;
+
+        return await query(sql);
     }
 };

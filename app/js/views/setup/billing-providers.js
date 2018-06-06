@@ -30,10 +30,6 @@ define(['jquery',
             billingProvidersTable: null,
             editedInsuraceIDCode : null,
             events: {
-                'click #btnAddBillingProviders': 'addNewBillingProviders',
-                'click #btnSaveBillingProviders': 'saveBillingProviders',
-                'click #btnBackToBillingProvidersGrid': 'backToBillingProvidersGrid',
-                'click #btnRefresh': 'refreshBillingProvidersGrid',
                 'change #chkEnableFTP': 'showFTPDetails',
                 'click #btnSaveICDCode': 'saveProviderIDCodes',
                 'click #btnAddNewProviderCodes': 'addNewProviderIDCodes',
@@ -143,6 +139,16 @@ define(['jquery',
                     disableadd: true,
                     disablereload: true
                 });
+                commonjs.initializeScreen({header: {screen: 'BillingProviders', ext: 'billingProviders'}, grid: {id: '#tblBillingProvidersGrid'}, buttons: [
+                    {value: 'Add', class: 'btn btn-danger', i18n: 'shared.buttons.add', clickEvent: function () {
+                        Backbone.history.navigate('#setup/billing_providers/new', true);
+                    }},
+                    {value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
+                        self.pager.set({"PageNo": 1});
+                        self.billingProvidersTable.refreshAll();
+                        commonjs.showStatus("Reloaded Successfully");
+                    }}
+                ]});
             },
             showGrid: function () {
                 this.render();
@@ -235,6 +241,14 @@ define(['jquery',
                     this.model = new BillingProvidersModel();
 
                 }
+                commonjs.initializeScreen({header: {screen: 'BillingProviders', ext: 'billingProvider'}, buttons: [
+                    {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
+                        self.saveBillingProviders();
+                    }},
+                    {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
+                        Backbone.history.navigate('#setup/billing_providers/list', true);
+                    }}
+                ]});
                 $('#divBillingProvidersGrid').hide();
                 $('#divBillingProvidersForm').show();
                 $('#divFTPDetails').hide();

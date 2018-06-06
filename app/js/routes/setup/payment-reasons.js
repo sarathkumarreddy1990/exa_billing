@@ -32,7 +32,7 @@ define([
             },
 
             initializeRouter: function () {
-                this.options.screen = "Payment Reasons";//facilityModules.setupScreens.icd;
+                this.options.screen = "Payment Reasons";
                 this.options.currentView = this.paymentReasonsScreen;
                 layout.initializeLayout(this);
 

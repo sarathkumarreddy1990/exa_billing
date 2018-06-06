@@ -1,7 +1,7 @@
 define(['jquery',
     'underscore',
     'backbone',
-    'modules/reporting/utils/ui',
+    'shared/report-utils',
     'text!templates/reports/charges.html',
 ],
     function ($,
@@ -43,15 +43,6 @@ define(['jquery',
                 var modelCollection = Backbone.Collection.extend({
                     model: Backbone.Model.extend({})
                 });
-
-                $('#ddlFacilityFilter').multiselect({
-                    maxHeight: 200,
-                    buttonWidth: '300px',
-                    width: '300px',
-                    enableFiltering: true,
-                    includeSelectAllOption: true,
-                    enableCaseInsensitiveFiltering: true
-                });
                 UI.initializeReportingViewModel(options, this.viewModel);
             },
 
@@ -71,6 +62,14 @@ define(['jquery',
                 this.$el.html(this.mainTemplate(this.viewModel));
                 // Binding Billing Provider MultiSelect
                 UI.bindBillingProvider();
+                $('#ddlFacilityFilter').multiselect({
+                    maxHeight: 200,
+                    buttonWidth: '300px',
+                    width: '300px',
+                    enableFiltering: true,
+                    includeSelectAllOption: true,
+                    enableCaseInsensitiveFiltering: true
+                });
             },
 
             bindDateRangePicker: function () {
@@ -156,4 +155,3 @@ define(['jquery',
 
         return ChargesView;
     });
-    

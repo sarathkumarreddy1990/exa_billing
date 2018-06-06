@@ -29,11 +29,6 @@ define(['jquery',
             model: null,
             casGroupCodesTable :null,
             events: {
-                'click #btnAddCasGroupCode' : 'addNewCasGroupCodes',
-                'click #btnSaveCasGroupCode' : 'saveCasGroupCodes',
-                'click #btnBackToCasGroupCode': 'backToCasGroupCodeGrid',
-                'click #btnRefresh' : 'refreshCasGroupCodeGrid'
-
             },
             initialize: function (options) {
                 var self = this;
@@ -126,6 +121,16 @@ define(['jquery',
                     disableadd: true,
                     disablereload: true
                 });
+                commonjs.initializeScreen({header: {screen: 'CasGroupCodes', ext: 'casGroupCodes'}, grid: {id: '#tblCasGroupCodesGrid'}, buttons: [
+                    {value: 'Add', class: 'btn btn-danger', i18n: 'shared.buttons.add', clickEvent: function () {
+                        Backbone.history.navigate('#setup/cas_group_codes/new', true);
+                    }},
+                    {value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
+                        self.pager.set({"PageNo": 1});
+                        self.casGroupCodesTable.refreshAll();
+                        commonjs.showStatus("Reloaded Successfully");
+                    }}
+                ]});
             },
             showGrid: function () {
                 this.render();
@@ -158,6 +163,14 @@ define(['jquery',
                     this.model = new CasGroupCodesModel();
 
                 }
+                commonjs.initializeScreen({header: {screen: 'CasGroupCodes', ext: 'casGroupCodes'}, buttons: [
+                    {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
+                        self.saveCasGroupCodes();
+                    }},
+                    {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
+                        Backbone.history.navigate('#setup/cas_group_codes/list', true);
+                    }}
+                ]});
                 $('#divCasGroupCodesGrid').hide();
                 $('#divCasGroupCodesForm').show();
                 commonjs.processPostRender();
