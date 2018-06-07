@@ -867,7 +867,7 @@ define(['jquery',
                             });
                             commonjs.resizeHomeScreen();
                             //  self.setTabContents(id, true);
-                            commonjs.docResize();
+                           // commonjs.docResize();
 
                             var updateStudiesPager = function (model, gridObj) {
                                 $('#chkStudyHeader_' + filterID).prop('checked', false);
@@ -985,7 +985,7 @@ define(['jquery',
                                 if (filterID === commonjs.currentStudyFilter) {
                                     self.setFooter(filterObj);
                                     commonjs.setFilter(filterID, filterObj);
-                                    commonjs.docResize();
+                                   // commonjs.docResize();
                                 }
 
                             }
