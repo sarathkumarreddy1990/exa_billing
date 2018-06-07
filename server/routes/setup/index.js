@@ -32,4 +32,4 @@ app.use('/billing_messages', billingMessageRouter);
 app.use('/payment_reasons', paymentReasonRouter);
 app.use('/validations', validationsRouter);
 app.use('/edi_clearinghouses', ediClearinghouseRouter);
-app.use('/status_code_codes', colorCode);
+app.use('/status_color_codes', colorCode);
