@@ -1257,10 +1257,10 @@ var commonjs = {
             dataContainer = $('#site_modal_iframe_container');
             dataContainer.attr('src', options.url);
             dataContainer.show();
-            $('#site_modal_div_container').hide();
+            $('#modal_div_container').hide();
         }
         else if (typeof options.html != 'undefined' && commonjs.checkNotEmpty(options.html)) {
-            dataContainer = $('#site_modal_div_container').css({ 'overflow-x': 'hidden' });
+            dataContainer = $('#modal_div_container').css({ 'overflow-x': 'hidden' });
 
             if (!options.haveContentInContainer) {
                 dataContainer.html(options.html);
@@ -1902,8 +1902,6 @@ var commonjs = {
     },
 
     hideDialog: function (callback) {
-        $('#site_modal_div_container').html('');
-        $('#site_modal_iframe_container').attr('src', '');
         var $siteModal = $('#siteModal');
         if (typeof callback === 'function') {
             if ($siteModal.is(':visible')) {
@@ -1916,11 +1914,18 @@ var commonjs = {
                          */
 
                         $('.modal-backdrop').remove();
+
+
+                        $('#modal_div_container').html('');
+                        $('#site_modal_iframe_container').attr('src', '');
+
                         callback();
                         $(this).off('hidden.bs.modal');
                     });
             }
             else {
+                $('#modal_div_container').html('');
+                $('#site_modal_iframe_container').attr('src', '');
                 callback();
             }
         }
