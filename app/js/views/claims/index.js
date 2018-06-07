@@ -53,7 +53,13 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 this.billingClassList = new modelCollection(app.billing_classes);
 
             },
-
+            urlNavigation: function () { //To restrict the change in URL based on tab selection. Maintain Same URL for every tab in claim creation screen
+                var self = this;
+                if (!self.isEdit) {
+                    history.go(-1);
+                    return false
+                }
+            },
             render: function () {
                 var self = this;
                 this.rendered = true;
@@ -76,10 +82,13 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                         billingClassList: self.billingClassList.toJSON()
                     })
                 });
+
+
                 self.bindDetails();
                 // Hide non-edit tabs
                 // if (!self.isEdit)
                 $('.editClaimRelated').hide();
+                
             },
 
             bindDetails: function () {
@@ -126,8 +135,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
 
                         if (model && model.length > 0) {
                             var claimDetails = model[0];
-                            /* Header Details */
-                            // $(parent.document).find('#spanModalHeader').html('Edit: <STRONG>' + claimDetails.patient_full_name + '</STRONG> (Acc#:' + claimDetails.patient_account_no + '), <i>' + claimDetails.patient_dob + '</i>  ');
+                           
                             self.cur_patient_acc_no = claimDetails.patient_account_no;
                             self.cur_patient_name = claimDetails.patient_full_name;
                             self.cur_patient_dob = claimDetails.patient_dob;
@@ -138,6 +146,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                             self.terClaimInsID = claimDetails.tertiary_patient_insurance_id || null;
                             
                             self.initializeClaimEditForm();
+                            /* Header Details */
+                            $(parent.document).find('#spanModalHeader').html('Edit: <STRONG>' + claimDetails.patient_full_name + '</STRONG> (Acc#:' + claimDetails.patient_account_no + '), <i>' + claimDetails.patient_dob + '</i>  ');
 
                             /* Bind claim charge Details*/
                             $('#tBodyCharge').empty();
@@ -431,6 +441,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 if (!this.rendered)
                     this.render();
 
+                $(parent.document).find('#spanModalHeader').html('Claim Creation : <STRONG>' + curClaimDetails.patient_name + '</STRONG> (Acc#:' + curClaimDetails.account_no + '), <i>' + self.cur_patient_dob + '</i>  ');
                 self.getLineItemsAndBind(curClaimDetails);
                 self.updateResponsibleList({
                     payer_type: 'PPP',
@@ -471,7 +482,10 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 $("#chkSecMedicarePayer").off().change(function (e) {
                     $('#selectMedicalPayer').toggle($('#chkSecMedicarePayer').is(':checked')).val('');
                 });
-
+                $("#tab_menu a").off().click(function (e) {
+                   self.urlNavigation();
+                });
+                
             },
             getLineItemsAndBind: function (curClaimDetails) {
                 var self = this, study_ids;
@@ -1702,7 +1716,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
             saveClaimDetails: function () {
                 var self = this, saveButton = $('#btnSaveClaim');
 
-                //saveButton.attr('disabled', true);
+                saveButton.attr('disabled', true);
                 if (self.validateClaimData()) {
                     self.setClaimDetails();
                     commonjs.showLoading();
@@ -1713,8 +1727,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     self.claimModel.save({}, {
                         success: function (model, response) {
                             //if (response && response.length > 0) {
-                            alert('Claim Created successfully');
-                            $('#site_modal_div_container').empty().hide();
+                            alert('Successfully completed');
+                            commonjs.hideDialog();
                             //}
                         },
                         error: function (model, response) {
@@ -1779,7 +1793,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                         $('#ddlTerGender option:selected').val(),
                         $('#txtTerSubPriAddr').val(),
                         $('#ddlTerRelationShip option:selected').val(),
-                        $('#ddlSecEmpStatus option:selected').val(),
+                        $('#ddlTerEmpStatus option:selected').val(),
                         $('#txtTerDOB').val()
                     ]
                 }
