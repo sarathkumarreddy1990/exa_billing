@@ -33,9 +33,7 @@ define([
                 // self.dtpFromTimeLast = commonjs.p("divFromTimeLast", dtpTimeOptions);
                 // self.dtpToTimeLast = commonjs.bindDateTimePicker("divToTimeLast", dtpTimeOptions);
                 self.disableUnselectedData();
-                $('#btnClosePopup').click(function (e) {
-                    $('#site_modal_div_container').hide();
-                });
+                
                 $('#btnSaveStudyFilter').click(function (e) {
                     self.saveStudyFilter();
                 });

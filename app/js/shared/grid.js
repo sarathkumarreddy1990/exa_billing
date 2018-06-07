@@ -123,6 +123,7 @@ define('grid', [
                     window.localStorage.setItem('selected_studies', JSON.stringify(study));
                     self.claimView = new claimsView();
                     self.claimView.showClaimForm(studyIds);
+                   
                 });
             }
 
