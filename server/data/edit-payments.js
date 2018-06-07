@@ -186,7 +186,7 @@ module.exports = {
         );
     },
 
-    getAdjustmentCodesAndPayerType: async function (params) {
+    getAdjustmentCodesAndPayerType: async function () {
         return await query(`   
         WITH payer_types AS
         (
