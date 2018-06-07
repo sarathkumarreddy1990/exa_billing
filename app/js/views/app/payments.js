@@ -71,8 +71,6 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 // this.paymentspatientList = new paymentspatient();
                 this.adjustmentCodeList = new modelCollection(adjustment_codes);
                 this.claimStatusList = new modelCollection(claim_status);
-
-                self.showGrid();
             },
 
             render: function (opener) {
@@ -132,7 +130,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                                 className: 'icon-ic-edit',
                                 formatter: function (a, b, c) {
                                     // return "<span class='icon-ic-edit' title='click Here to Edit'>Edit</span>"                                    
-                                    var url = "#app/payments/edit/" + b.rowId;
+                                    var url = "#billing/payments/edit/" + b.rowId;
                                     return '<a href=' + url + '> Edit'
                                 },
                                 // customAction: function (rowID, e) {
@@ -263,7 +261,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             },
 
             addNewPayemnt: function () {
-                Backbone.history.navigate('#app/payments/new', true);
+                Backbone.history.navigate('#billing/payments/new', true);
             }
         });
 

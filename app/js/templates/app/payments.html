@@ -5,47 +5,6 @@
 </style>
 <form class="form-horizontal form-list">
     <div class="tabbable flex-parent-vert">
-        <div class="row" style="padding-bottom: 5px;">
-            <div class="col-xs-12" id="divPaymentTabsContainer" style="padding-right:0; overflow:hidden;margin: 0 0 10px 30px;">
-                <div id="divtabPayments">
-                    <ul class="nav nav-tabs tabControlUL" id="ulPaymentTab" style="margin-bottom: 0px !important;">
-                        <li id="liPayments" class="active"><a  href="#divPayments" i18n="billing.payments.payments" data-container="Payments" data-toggle="tab"></a></li>
-                    </ul>
-                </div>
-                <div id="divtabPendingPayments">
-                    <ul class="nav nav-tabs tabControlUL" id="ulPendingPaymentTab"
-                        style="margin-bottom: 0px !important;">
-                        <li id="liPendingPayments"><a href="#divPendPayments" data-toggle="tab"
-                                                      i18n="billing.payments.pendingPayments"
-                                                      data-container="pendingPayments" id="aAppliedPayments"></a></li>
-                        <li style="float:right">
-                            <div class="dropdown">
-                                <a data-toggle="dropdown" role="button" class="dropdown-toggle" aria-expanded="false">
-                                    <i class="icon-ic-actions" style="font-weight: bold">
-                                    </i>
-                                </a>
-                                <ul role="menu" class="dropdown-menu dropdown-menu-right">
-                                    <li>
-                                        <a id="btnUserSettings" href="javascript:showPaymentsUserSettings()" i18n="setup.userSettings.headings.userSettings"></a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-            <div id="divFiltersContainer" class="col-xs-2" align="right" style="padding-left:0; display: none;">
-                <ul id="uiPaymentList" class="emd_subHeader2 commonBorderBottom"
-                    style="padding-bottom: 4px;margin-left:0px; margin-top: 35px;">
-                    <li style="display: inline;">
-                        <i class="btn icon-ic-expand" id="btnTabNavPayLeft" title="Move tab bar by left side" ></i>
-                    </li>
-                    <li style="display: inline;">
-                        <i class="btn icon-ic-expand-flipped" id="btnTabNavPayRight" title="Move tab bar by right side"></i>
-                    </li>
-                </ul>
-            </div>
-        </div>
         <div class="tab-content row" id="divTabContent">
             <!-- Payments Tab-->
             <div class="tab-pane active" id="divPayments">

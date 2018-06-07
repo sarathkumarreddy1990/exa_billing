@@ -81,14 +81,40 @@ module.exports = {
                 FROM   (
                     SELECT bc.patient_id, 
                             bc.facility_id, 
+
                             bc.primary_patient_insurance_id AS primary, 
+                            bc.secondary_patient_insurance_id AS secondary, 
+                            bc.tertiary_patient_insurance_id AS tertiary, 
+
                             bc.ordering_facility_id AS order_facility_id, 
                             bc.referring_provider_contact_id, 
-                            payer_type 
+                            payer_type ,
+                            patients.full_name AS patient_name,
+                            facilities.facility_name AS facility_name,
+
+                            pips.insurance_name AS primary_ins_provider_name,
+                            pips.insurance_code AS primary_ins_provider_code,
+
+                            sips.insurance_name AS secondary_ins_provider_name,
+                            sips.insurance_code AS secondary_ins_provider_code,
+
+                            tips.insurance_name AS tertiary_ins_provider_name,
+                            tips.insurance_code AS tertiary_ins_provider_code,
+
+                            provider_groups.group_name AS ordering_facility_name,
+                            providers.full_name AS provider_name
                     FROM billing.claims bc
                         LEFT JOIN public.patients ON patients.id = bc.patient_id
                         LEFT JOIN public.facilities ON facilities.id = bc.facility_id
-                        LEFT JOIN public.insurance_providers ON insurance_providers.id = bc.primary_patient_insurance_id
+
+                        LEFT  JOIN patient_insuarances AS pip ON pip.id = bc.primary_patient_insurance_id
+                        LEFT  JOIN patient_insuarances AS sip ON pip.id = bc.secondary_patient_insurance_id
+                        LEFT  JOIN patient_insuarances AS tip ON pip.id = bc.tertiary_patient_insurance_id
+                  
+                        LEFT JOIN public.insurance_providers pips ON pips.id = pip.insurance_provider_id
+                        LEFT JOIN public.insurance_providers sips ON sips.id = sip.insurance_provider_id
+                        LEFT JOIN public.insurance_providers tips ON tips.id = tip.insurance_provider_id
+
                         LEFT JOIN provider_groups ON provider_groups.id = bc.ordering_facility_id
                         LEFT JOIN public.providers ON providers.id = bc.referring_provider_contact_id 
                     WHERE bc.id =  ${params.claimId}
@@ -97,7 +123,9 @@ module.exports = {
                     adjustment_codes AS(
                         SELECT Json_agg(Row_to_json(adjustment_codes)) adjustment_codes
                             FROM  (
-                                SELECT code,
+                                SELECT 
+                                    id,
+                                    code,
                                     description,
                                     accounting_entry_type 
                             FROM billing.adjustment_codes 
@@ -186,7 +214,7 @@ module.exports = {
         );
     },
 
-    getAdjustmentCodesAndPayerType: async function (params) {
+    getAdjustmentCodesAndPayerType: async function () {
         return await query(`   
         WITH payer_types AS
         (
