@@ -121,8 +121,18 @@ define('grid', [
                 $('#anc_create_claim').off().click(function () {
                     window.localStorage.setItem('selected_studies', null);
                     window.localStorage.setItem('selected_studies', JSON.stringify(study));
-                    self.claimView = new claimsView();
-                    self.claimView.showClaimForm(studyIds);
+                    commonjs.showDialog(
+                        {
+                            "width": "90%",
+                            "height": "70%",
+                            "header": "Claim Creation"
+                            //"needShrink": true
+                        });
+    
+                    self.claimView = new claimsView({ el: $('#modal_div_container') });
+                    //self.claimView.showClaimForm(studyIds);
+                    self.claimView.render();
+
                 });
             }
 

@@ -55,31 +55,45 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
             },
 
             render: function () {
-                var self = this;
-                this.rendered = true;
 
-                commonjs.showDialog({
-                    header: 'Claim Creation',
-                    width: '95%',
-                    height: '75%',
-                    html: this.claimCreationTemplate({
-                        patient_name: self.cur_patient_name,
-                        account_no: self.cur_patient_acc_no,
-                        dob: self.cur_patient_dob,
-                        planname: self.planList.toJSON(),
-                        facilities: self.facilities.toJSON(),
-                        empStatus: self.empStatus.toJSON(),
-                        genders: self.genders.toJSON(),
-                        states: self.states.toJSON(),
-                        claimStatusList: self.claimStatusList.toJSON(),
-                        billingCodesList: self.billingCodesList.toJSON(),
-                        billingClassList: self.billingClassList.toJSON()
-                    })
-                });
+                var self = this;
+                var curClaimDetails = JSON.parse(window.localStorage.getItem('selected_studies'));
+                self.cur_patient_id = curClaimDetails.patient_id ? parseInt(curClaimDetails.patient_id) : null;
+                self.cur_patient_name = curClaimDetails.patient_name;
+                self.cur_patient_acc_no = curClaimDetails.account_no;
+                self.cur_patient_dob = curClaimDetails.patient_dob ? moment.utc(curClaimDetails.patient_dob).format('L') : null;
+                self.cur_study_date = (commonjs.checkNotEmpty(curClaimDetails.study_date) ? commonjs.convertToFacilityTimeZone(curClaimDetails.facility_id, curClaimDetails.study_date).format('L LT z') : '');
+                self.pri_accession_no = curClaimDetails.accession_no || null;
+                self.cur_study_id = curClaimDetails.study_id || null;
+                self.isEdit = self.claim_Id ? true : false;
+
+                this.$el.html(this.claimCreationTemplate({
+                    patient_name: self.cur_patient_name,
+                    account_no: self.cur_patient_acc_no,
+                    dob: self.cur_patient_dob,
+                    planname: self.planList.toJSON(),
+                    facilities: self.facilities.toJSON(),
+                    empStatus: self.empStatus.toJSON(),
+                    genders: self.genders.toJSON(),
+                    states: self.states.toJSON(),
+                    claimStatusList: self.claimStatusList.toJSON(),
+                    billingCodesList: self.billingCodesList.toJSON(),
+                    billingClassList: self.billingClassList.toJSON()
+                })); 
+
                 self.bindDetails();
                 // Hide non-edit tabs
                 // if (!self.isEdit)
                 $('.editClaimRelated').hide();
+
+                self.getLineItemsAndBind(curClaimDetails);
+                self.updateResponsibleList({
+                    payer_type: 'PPP',
+                    payer_name: self.cur_patient_name + '( Patient )',
+                    payer_id: self.cur_patient_id
+                });
+                self.bindclaimFormEvents();
+                
             },
 
             bindDetails: function () {
