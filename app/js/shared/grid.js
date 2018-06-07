@@ -83,11 +83,11 @@ define('grid', [
             var studyIds = studyArray.join();
             if (isClaimGrid) {
 
-                var liClaimStatus = '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.flagAs">Change Claim Status</a><ul id="ul_change_claim_status" style="float:right;" class="dropdown-menu"></ul></li>';
+                var liClaimStatus = '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.flagAs" class="dropdown-item">Change Claim Status</a><ul id="ul_change_claim_status" style="float:right;" class="dropdown-menu"></ul></li>';
                 $divObj.append(liClaimStatus);
                 var liArray = [];
                 $.each(app.claim_status, function (index, claimStatus) {                   
-                        var $claimStatusLink = $('<li><a id="ancclaimStatus_' + claimStatus.id + '"  data-d_claim_status="' + claimStatus.description + '" href="javascript: void(0)" >' + claimStatus.description + '</a></li>');
+                        var $claimStatusLink = $('<li><a class="dropdown-item" id="ancclaimStatus_' + claimStatus.id + '"  data-d_claim_status="' + claimStatus.description + '" href="javascript: void(0)" >' + claimStatus.description + '</a></li>');
                         $claimStatusLink.click(function () {
 
                             $.ajax({
@@ -109,11 +109,11 @@ define('grid', [
                 });
                 $('#ul_change_claim_status').append(liArray);
 
-                var liBillingCode = '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.flagAs">Change Billing Code</a><ul id="ul_change_billing_code" style="float:right;" class="dropdown-menu"></ul></li>';
+                var liBillingCode = '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.flagAs" class="dropdown-item">Change Billing Code</a><ul id="ul_change_billing_code" style="float:right;" class="dropdown-menu"></ul></li>';
                 $divObj.append(liBillingCode);
                 var liArrayBillingCode = [];
                 $.each(app.billing_codes, function (index, billing_code) {                   
-                        var $billingCodeLink = $('<li><a id="ancBillingCode_' + billing_code.id + '"  data-d_billing_code="' + billing_code.description + '" href="javascript: void(0)" >' + billing_code.description + '</a></li>');
+                        var $billingCodeLink = $('<li><a class="dropdown-item" id="ancBillingCode_' + billing_code.id + '"  data-d_billing_code="' + billing_code.description + '" href="javascript: void(0)" >' + billing_code.description + '</a></li>');
                         $billingCodeLink.click(function () {
                             $.ajax({
                                 url: '/exa_modules/billing/claimWorkbench/update',
@@ -136,11 +136,11 @@ define('grid', [
 
 
                  
-                var liBillingClass = '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.flagAs">Change Billing Class</a><ul id="ul_change_billing_class" style="float:right;" class="dropdown-menu"></ul></li>';
+                var liBillingClass = '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.flagAs" class="dropdown-item">Change Billing Class</a><ul id="ul_change_billing_class" style="float:right;" class="dropdown-menu"></ul></li>';
                 $divObj.append(liBillingClass);
                 var liArrayBillingClass = [];
                 $.each(app.billing_classes, function (index, billing_class) {                   
-                        var $BillingClassLink = $('<li><a id="ancBillingClass_' + billing_class.id + '"  data-d_billing_class="' + billing_class.description + '" href="javascript: void(0)" >' + billing_class.description + '</a></li>');
+                        var $BillingClassLink = $('<li><a class="dropdown-item" id="ancBillingClass_' + billing_class.id + '"  data-d_billing_class="' + billing_class.description + '" href="javascript: void(0)" >' + billing_class.description + '</a></li>');
                         $BillingClassLink.click(function () {
                                 $.ajax({
                                     url: '/exa_modules/billing/claimWorkbench/update',
@@ -163,10 +163,10 @@ define('grid', [
                 $('#ul_change_billing_class').append(liArrayBillingClass);
 
               
-                var liPayerType = '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.flagAs">Change Payer type</a><ul id="ul_change_payer_type" style="float:right;" class="dropdown-menu"></ul></li>';
+                var liPayerType = '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.flagAs" class="dropdown-item">Change Payer type</a><ul id="ul_change_payer_type" style="float:right;" class="dropdown-menu"></ul></li>';
                 $divObj.append(liPayerType);
 
-                var liEditClaim = '<li><a id="anc_edit_claim" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log">Edit Claim</a></li>';
+                var liEditClaim = '<li><a id="anc_edit_claim" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log" class="dropdown-item">Edit Claim</a></li>';
                 $divObj.append(liEditClaim);
                 $('#anc_edit_claim').off().click(function () {
 
@@ -174,20 +174,20 @@ define('grid', [
                     self.claimView.showEditClaimForm(studyIds);
                 });
 
-                var liClaimInquiry = '<li><a id="anc_claim_inquiry" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log">Claim Inquiry</a></li>';
+                var liClaimInquiry = '<li><a id="anc_claim_inquiry" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log" class="dropdown-item">Claim Inquiry</a></li>';
                 $divObj.append(liClaimInquiry);
                 $('#anc_claim_inquiry').click(function () {
                     alert(studyIds)
                 });
 
-                var liSplitOrders = '<li><a id="anc_split_orders" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log">Create/split Orders</a></li>';
+                var liSplitOrders = '<li><a id="anc_split_orders" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log" class="dropdown-item">Create/split Orders</a></li>';
                 $divObj.append(liSplitOrders);
                 $('#anc_split_orders').click(function () {
                     alert(studyIds)
                 });
 
             } else {
-                var liCreateClaim = '<li><a id="anc_create_claim" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log">Create Claim</a></li>';
+                var liCreateClaim = '<li><a id="anc_create_claim" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log" class="dropdown-item">Create Claim</a></li>';
                 $divObj.append(liCreateClaim);
                 $('#anc_create_claim').off().click(function () {
                     window.localStorage.setItem('selected_studies', null);
