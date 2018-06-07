@@ -11,7 +11,8 @@ define([
     'routes/setup/provider-id-code-qualifiers',
     'routes/setup/billing-codes',
     'routes/setup/billing-classes',
-    'routes/setup/payment-reasons'
+    'routes/setup/payment-reasons',
+    'routes/setup/edi-clearinghouses'
 ], function (
     Backbone,
     BackboneSubroute,
@@ -25,7 +26,8 @@ define([
     ProvierIdCodeQualifiersRoute,
     BillingCodesRoute,
     BillingClassesRoute,
-    PaymentReasonsRoute
+    PaymentReasonsRoute,
+    EdiClearingHousesRoute
 ) {
         return Backbone.SubRoute.extend({
             routes: {
@@ -37,7 +39,8 @@ define([
                 "provider_id_code_qualifiers/*subroute": "startProviderIdCodeQualifiers",
                 "billing_codes/*subroute": "startBillingCodes",
                 "billing_classes/*subroute": "startBillingClasses",
-                "payment_reasons/*subroute" : "startPaymentReasons"
+                "payment_reasons/*subroute" : "startPaymentReasons",
+                "edi_clearinghouses/*subroute" : "startEDIClearingHouses"
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -128,6 +131,15 @@ define([
                 if (this.checkLicense('PaymentReasons') && !this.paymentReasons) {
                     this.defaultArgs.routePrefix = 'setup/payment_reasons/';
                     this.paymentReasons = new PaymentReasonsRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startEDIClearingHouses: function () {
+                if (this.checkLicense('EDIClearingHouse') && !this.paymentReasons) {
+                    this.defaultArgs.routePrefix = 'setup/edi_clearinghouses/';
+                    this.ediClearingHouses = new EdiClearingHousesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }
