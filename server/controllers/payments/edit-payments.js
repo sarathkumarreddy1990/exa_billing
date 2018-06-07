@@ -1,4 +1,4 @@
-const data = require('../data/edit-payments');
+const data = require('../../data/payments/edit-payments');
 
 module.exports = {
     getPendingPayments: function (params) {
