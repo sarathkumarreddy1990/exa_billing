@@ -197,7 +197,7 @@ define('grid', [
                     search: false,
                     isIconCol: true,
                     formatter: function (cellvalue, options, rowObject) {
-                        return '<input type="checkbox" name="chkStudy" id="chkSendStudy_' + rowObject.study_id + '" />'
+                        return '<input type="checkbox" name="chkStudy" id="chkSendStudy_' + (options.isClaimGrid?rowObject.id:rowObject.id )+ '" />'
                     },
                     customAction: function (rowID, e, that) {
                     }

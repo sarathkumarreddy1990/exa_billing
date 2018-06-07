@@ -20,7 +20,7 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                     app.stat_level = app.stat_level_config.stat_level;
                     app.tat_level = app.tat_config.tat_config;
                     app.userID = app.userInfo.userID;
-
+                    app.companyID =app.company.id;
                     callback();
                 }
             });

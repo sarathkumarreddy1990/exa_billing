@@ -20,14 +20,16 @@ module.exports = {
                                     AND    NOT has_deleted
                                     AND    is_active)AS facilities )
                     , cte_company AS(
-                                    SELECT id AS "companyID",
+                            SELECT (Row_to_json(company)) company
+                            FROM   (
+                                    SELECT id ,
                                             company_code,
                                             company_name,
                                             time_zone,
                                             sys_config
                                     FROM   companies
                                     WHERE  id=${companyID}
-                                    AND    NOT has_deleted )
+                                    AND    NOT has_deleted )AS company )
                     , cte_modalities AS(
                                   SELECT Json_agg(Row_to_json(modalities)) modalities
                                   FROM   (
