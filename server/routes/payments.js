@@ -20,7 +20,7 @@ router.put('/', async function (req, res) {
 });
 
 router.post('/applyPayments', async function (req, res) {
-    const data = await paymentsController.createPaymentapplications(req.body);
+    const data = await paymentsController.createOrUpdatePaymentapplications(req.body);
     httpHandler.sendRows(req, res, data);
 });
 

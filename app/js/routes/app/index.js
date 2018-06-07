@@ -25,7 +25,7 @@ define([
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
 
             defaultArgs: {
-                createTrailingSlashRoutes: true, layout: siteLayouts.facility, outerLayout: null, module: facilityModules.setup, screen: null, el: '#data_container', routePrefix: null
+                createTrailingSlashRoutes: true, layout: 'home', outerLayout: null, module: 'app', screen: null, el: '#data_container', routePrefix: null
             },
 
             accessDenied: function () {
