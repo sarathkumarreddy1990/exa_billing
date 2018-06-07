@@ -9,41 +9,21 @@
             <!-- Payments Tab-->
             <div class="tab-pane active" id="divPayments">
                 <div id="search-formPayment" class="form-inline" style="margin-bottom:10px;">
-                    <div>
-                        <div class="col-xs-12" id="payementsFilter" style="margin-bottom: 10px;">
-                            <!-- 1st column -->
-                            <div class="col-xs-2 col-lg-2">
-                                <!--  From Date -->
-                                <div class="form-group form-inline">
+                        <div class="row" style="margin-left: 0;">
+                            <div class="col-sm">
                                     <div class="col-form-label">
-                                        <label for="txtPaymentFromDate" class="control-labels" i18n="setup.studyFilters.dateFrom"></label>
-                                    </div>
-                                    <div class="col-form-content" style="text-align: right;">
-                                        <div id="divPaymentFromDate" class="input-group">
-                                            <span class="input-group-addon add-on">  <span class="icon-ic-schedule"></span> </span>
-                                            <input type="text" id="txtPaymentFromDate" class="form-control form-control-date maskDateLocale" required="required" name="paymentFromDate">
+                                            <label for="txtPaymentFromDate" class="control-labels" i18n="setup.studyFilters.dateFrom"></label>
                                         </div>
-                                    </div>
-                                </div>
-                                <!--  To Date -->
-                                <div class="form-group form-inline">
-                                    <div class="col-form-label">
-                                        <label for="txtPaymentToDate" class="control-labels" i18n="setup.studyFilters.dateTo"></label>
-                                    </div>
-                                    <div class="col-form-content" style="text-align: right;">
-                                        <div id="divPaymentToDate" class="input-group">
-                                            <span class="input-group-addon add-on"> <span class="icon-ic-schedule"></span> </span>
-                                            <input type="text" id="txtPaymentToDate" class="form-control form-control-date maskDateLocale" name="paymentToDate">
+                                        <div class="col-form-content" style="text-align: right;">
+                                            <div id="divPaymentFromDate" class="input-group">
+                                                <span class="input-group-addon add-on">  <span class="icon-ic-schedule"></span> </span>
+                                                <input type="date" id="txtPaymentFromDate" class="form-control form-control-date maskDateLocale" required="required" name="paymentFromDate">
+                                                <input type="date" id="txtPaymentToDate" class="form-control form-control-date maskDateLocale" name="paymentToDate">
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
                             </div>
-                            <!--1st column finished-->
-                            <!-- 2nd column start -->
-                            <div class="col-xs-2 col-lg-2" >
-                                <div class="form-group form-inline">
-                                    <div class="col-form-label" id='divDatePeriod' style="margin-left: 10px;">
-                                        <div class="col-form-label" style="width: 150px;">
+                            <div class="col-sm">
+                                    <div class="col-form-label" style="width: 150px;">
                                             <input type="radio" name="filterByDateType" value="accounting_date" id="filterByAccountingDt">
                                             <label class="inline field-chk" for="filterByAccountingDt" i18n="billing.payments.accountingDate"></label>
                                         </div>
@@ -51,53 +31,34 @@
                                             <input type="radio" name="filterByDateType" value="payment_date" id="filterByPostingDt" checked="checked">
                                             <label class="inline field-chk" for="filterByPostingDt" i18n="billing.payments.paymentDate"></label>
                                         </div>
-                                    </div>
-                                </div>
                             </div>
-                            <!-- 2nd column end -->
-                            <!-- 3rd column start -->
-                            <div class="col-xs-2 col-lg-2" >
-                                <div class="form-group form-inline">
+                            <div class="col-sm">
                                     <div class="col-form-label" id='divDatePeriod' style="margin-left: 10px;">
-                                        <div class="col-form-label" style="width: 150px;">
-                                            <label for="ulPaymentStatus" class="control-labels" i18n="billing.payments.paymentStatus"></label>
+                                            <div class="col-form-label" style="width: 150px;">
+                                                <label for="ulPaymentStatus" class="control-labels" i18n="billing.payments.paymentStatus"></label>
+                                            </div>
+                                            <div class="col-form-label">
+                                                <select id="ulPaymentStatus" class="multiselect" multiple="multiple" maxHeight=5>
+                                                    <% _.each(paymentStatus, function(status) { %>
+                                                    <option value="<%= status.value %>"><%= status.text %></option>
+                                                    <% }); %>
+                                                </select>
+                                            </div>
                                         </div>
-                                        <div class="col-form-label">
-                                            <select id="ulPaymentStatus" class="multiselect" multiple="multiple" maxHeight=5>
-                                                <% _.each(paymentStatus, function(status) { %>
-                                                <option value="<%= status.value %>"><%= status.text %></option>
-                                                <% }); %>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
-                            <div class="col-xs-2 col-lg-2" style="display: none;">
-                                <div class="form-group form-inline">
-                                    <div class="col-form-label">
-                                        <label for="ulPaymentStatus" class="control-labels" i18n="billing.payments.paymentStatus"></label>
-                                    </div>
-                                    <div class="col-form-content" style="text-align: right;">
-                                        <select id="ulPaymentStatus" class="multiselect" multiple="multiple" maxHeight=5>
-                                            <% _.each(paymentStatus, function(status) { %>
-                                            <option value="<%= status.value %>"><%= status.text %></option>
-                                            <% }); %>
-                                        </select>
+                            
+                            <div class="row" style="float: right;">
+                                    <div class="BillingBtnGroup" style="text-align: center;">
+                                        <input type="button" value="Search" id="btnStatusSearch" i18n="shared.buttons.search" class="btn btn-primary">
+                                        <input type="button" value="Add New" id="btnPaymentAdd" i18n="shared.buttons.addNew" class="btn btn-danger addnew">
+                                        <input type="button" value="Refresh" id="btnPaymentRefresh" i18n="shared.buttons.refresh" class="btn btn-primary">
+                                        <input type="button" value="Export To Excel" i18n="report.reportFilter.exportToExel" id="btnGenerateExcel" class="btn btn-primary" autocomplete="off">
+                                        <input type="button" value="Generate PDF" class="btn btn-primary" i18n="report.reportFilter.generatePDF" id="btnGeneratePDF">
                                     </div>
                                 </div>
-                                <div class="form-group form-inline" style="display:none;">
-                                    <div class="col-form-label">
-                                        <label for="ddlPaymentFacility" class="control-labels" i18n="shared.fields.facility"></label>
-                                    </div>
-                                    <div class="col-form-content" style="text-align: right;">
-                                        <select id="ddlPaymentFacility" class="">
-                                            <% _.each(facilityList, function(facility) { %>
-                                            <option value="<%= facility.id %>"><%= facility.text %></option>
-                                            <% }); %>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
+                        </div>
+                    <div>
+                        <div class="col-xs-12" id="payementsFilter" style="margin-bottom: 10px;">
                             <!-- 3rd column end -->
                             <div class="col-xs-6 col-md-6 col-lg-6">
                                 <div class="row" style="text-align: center;">
@@ -124,15 +85,6 @@
                                             </div>
                                             <div id="divAdjTotal" class="text-center"></div>
                                         </div>
-                                    </div>
-                                </div>
-                                <div class="row" style="float: right;">
-                                    <div class="BillingBtnGroup" style="text-align: center;">
-                                        <input type="button" value="Search" id="btnStatusSearch" i18n="shared.buttons.search" class="btn btn-primary">
-                                        <input type="button" value="Add New" id="btnPaymentAdd" i18n="shared.buttons.addNew" class="btn btn-danger addnew">
-                                        <input type="button" value="Refresh" id="btnPaymentRefresh" i18n="shared.buttons.refresh" class="btn btn-primary">
-                                        <input type="button" value="Export To Excel" i18n="report.reportFilter.exportToExel" id="btnGenerateExcel" class="btn btn-primary" autocomplete="off">
-                                        <input type="button" value="Generate PDF" class="btn btn-primary" i18n="report.reportFilter.generatePDF" id="btnGeneratePDF">
                                     </div>
                                 </div>
                             </div>

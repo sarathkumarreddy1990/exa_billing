@@ -126,18 +126,18 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         i18nNames: ['', 'billing.payments.paymentID', '', '', 'billing.payments.referencePaymentID', 'billing.payments.paymentDate', 'billing.payments.accountingDate', 'billing.payments.payertype', 'billing.payments.payerName', 'billing.payments.paymentAmount', 'billing.payments.paymentApplied', 'billing.payments.balance', 'billing.payments.adjustment', 'billing.payments.postedBy', 'billing.payments.paymentmode', 'billing.payments.facility_name', '', '', ''],
                         colModel: [
                             {
-                                name: 'edit', width: 80, sortable: false, search: false,
+                                name: 'edit', width: 50, sortable: false, search: false,
                                 className: 'icon-ic-edit',
                                 formatter: function (a, b, c) {
-                                    // return "<span class='icon-ic-edit' title='click Here to Edit'>Edit</span>"                                    
-                                    var url = "#billing/payments/edit/" + b.rowId;
-                                    return '<a href=' + url + '> Edit'
+                                    return "<span class='icon-ic-edit' title='click Here to Edit'></span>"                                    
+                                    // var url = "#billing/payments/edit/" + b.rowId;
+                                    // return '<a href=' + url + '> Edit'
                                 },
-                                // customAction: function (rowID, e) {
-                                //     self.editPayment(rowID);
-                                // },
+                                customAction: function (rowID, e) {
+                                    self.editPayment(rowID);
+                                },
                                 cellattr: function (rowId, value, rowObject, colModel, arrData) {
-                                    return 'style=text-align:center;text-decoration: underline;cursor:pointer;'
+                                    return 'style=text-align:center;'
                                 }
                             },
                             { name: 'id', index: 'id', key: true, searchFlag: 'int' },
@@ -173,9 +173,9 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         gridComplete: function () {
                             self.setupActionClickOver();
                         },
-                        // dblClickActionIndex: 1,
+                        dblClickActionIndex: 1,
                         ondblClickRow: function (rowID) {
-                            self.showForm(rowID);
+                            self.editPayment(rowID);
                         },
                         afterInsertRow: function (rowid, rowdata) {
 
@@ -216,7 +216,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         self.adjustmentTimer = setTimeout(self.calculateAdjustmentTotal, 25);
                         clearTimeout(self.appliedTimer);
                         self.appliedTimer = setTimeout(self.calculateAppliedTotal, 25);
-                        $('#tblpaymentsGrid').jqGrid('setGridHeight', ($('#body_container').height() / 2) + 40)
+                        // $('#tblpaymentsGrid').jqGrid('setGridHeight', '390px');
                     });
                 }
                 else {
@@ -224,10 +224,15 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 }
 
                 setTimeout(function () {
-                    $('#tblpaymentsGrid').setGridHeight('600px');
+                    // $('#tblpaymentsGrid').jqGrid('setGridHeight', '390px');
                 }, 100);
             },
 
+
+            editPayment: function (rowId) {
+                Backbone.history.navigate('#billing/payments/edit/' + rowId, true);
+            },
+            
             paymentDateFormatter: function (cellvalue, options, rowObject) {
                 var colValue;
                 colValue = (commonjs.checkNotEmpty(rowObject.payment_date) ? moment(rowObject.payment_date).format('L') : '');
