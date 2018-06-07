@@ -1,4 +1,4 @@
-const { query, SQL } = require('./index');
+const { query, SQL } = require('./../index');
 
 module.exports = {
 

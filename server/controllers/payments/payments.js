@@ -1,4 +1,4 @@
-const data = require('../data/payments');
+const data = require('../../data/payments/payments');
 const _ = require('lodash');
 
 module.exports = {
