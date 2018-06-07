@@ -30,9 +30,6 @@
                         <li class="saveAll">
                             <button type="button" class="btn top-buffer" id="btnSaveClaim">SAVE ALL</button>
                         </li>
-                        <li class="closePopup">
-                            <button type="button" class="btn top-buffer" id="btnClosePopup">CLOSE</button>
-                        </li>
                     </ul>
                 </nav>
             </div>
@@ -326,7 +323,7 @@
                                     </div>
                                     <div class="col-form-content">
                                         <select id="ddlPriEmpStatus">
-                                            <option value='0'>Select</option>
+                                            <option value=''>Select</option>
                                             <% _.each(empStatus, function(empStatus) { %>
                                                 <option value='<%= empStatus.id %>'>
                                                     <%= empStatus.description %>
@@ -566,7 +563,7 @@
                                     </div>
                                     <div class="col-form-content">
                                         <select id="ddlSecEmpStatus" >
-                                                <option value='0'>select</option>
+                                                <option value=''>select</option>
                                                 <% _.each(empStatus, function(empStatus) { %>
                                                     <option value='<%= empStatus.id %>'>
                                                         <%= empStatus.description %>
@@ -793,7 +790,7 @@
                                             </div>
                                             <div class="col-form-content">
                                                 <select id="ddlTerEmpStatus" >
-                                                        <option>Select</option>
+                                                        <option value=''>Select</option>
                                                         <% _.each(empStatus, function(empStatus) { %>
                                                             <option value='<%= empStatus.id %>'>
                                                                 <%= empStatus.description %>
