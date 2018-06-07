@@ -12,7 +12,8 @@ define([
     'routes/setup/billing-codes',
     'routes/setup/billing-classes',
     'routes/setup/payment-reasons',
-    'routes/setup/claim-status'
+    'routes/setup/claim-status',
+    'routes/setup/edi-clearinghouses'
 ], function (
     Backbone,
     BackboneSubroute,
@@ -27,7 +28,8 @@ define([
     BillingCodesRoute,
     BillingClassesRoute,
     PaymentReasonsRoute,
-    ClaimStatusRoute
+    ClaimStatusRoute,
+    EdiClearingHousesRoute
 ) {
         return Backbone.SubRoute.extend({
             routes: {
@@ -40,7 +42,8 @@ define([
                 "billing_codes/*subroute": "startBillingCodes",
                 "billing_classes/*subroute": "startBillingClasses",
                 "payment_reasons/*subroute" : "startPaymentReasons",
-                "claim_status/*subroute" : "startClaimStatus"
+                "claim_status/*subroute" : "startClaimStatus",
+                "edi_clearinghouses/*subroute" : "startEDIClearingHouses"
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -140,6 +143,15 @@ define([
                 if (this.checkLicense('ClaimStatus') && !this.claimStatus) {
                     this.defaultArgs.routePrefix = 'setup/claim_status/';
                     this.claimStatus = new ClaimStatusRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startEDIClearingHouses: function () {
+                if (this.checkLicense('EDIClearingHouse') && !this.paymentReasons) {
+                    this.defaultArgs.routePrefix = 'setup/edi_clearinghouses/';
+                    this.ediClearingHouses = new EdiClearingHousesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }
