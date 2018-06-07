@@ -6,6 +6,8 @@ const eraTemplateBody = require('./sample-era-template');
 const ediRequestJson = require('./sample-edi-request');
 const eraRequestText = require('./sample-era-request');
 
+ediConnect.init('http://192.168.1.102:5581/edi/api');
+
 describe('EDI-Connect', () => {
 
     const deleteEdiTemplate = function (flag, templateName) {

@@ -17,16 +17,15 @@
     .paddingBottomDiv {
         padding-bottom: 10px;
     }
+
+    .modal {
+        /* z-index: 10500; */
+    }
 </style>
 <div id="divPendingPayment" class="divBackgroundPayment form-horizontal form-list commonBorder">
-    <div style="width: 89.9%; position: fixed;background-color: #2b547e !important; padding: 15px 0 0 15px;">
-        <button type="button" class="close btn circle circle-btn-icon" id="btnCloseApplyPaymentPopup">
-            <i class="icon-ic-close"></i>
-        </button>
-    </div>
-    <div id="applyPaymentContent" style="top: 16%; overflow: auto;  height: 74%;position: fixed; width: 89.8%;">
+    <div id="applyPaymentContent">
         <table class="table">
-            <tr>
+            <!-- <tr>
                 <td colspan="2" style="border :none !important;"></td>
                 <td style="border :none !important; float: right;">
                     <label class="checkbox-inline">
@@ -36,30 +35,26 @@
                 <td align="right" style="border :none !important;">
                     <span i18n="order.chargePayment.applied"></span>
                 </td>
-                <td align="right" style="border :none !important;">
-                    <span i18n="order.chargePayment.unapplied"></span>
-                </td>
-            </tr>
+            </tr> -->
             <tr>
-                <td style="width:30%;border:none !important;">
+                <td style="width:15%;border:none !important;">
                     <span i18n="order.chargePayment.totalBillFee"></span> :
                     <span id="spApplyTotalFee"></span>
                 </td>
-                <td style="width:35%;border:none !important;">
+                <td style="width:20%;border:none !important;">
                     <span i18n="order.chargePayment.contractValue"></span> :
                     <span id="spApplyAllowed"></span>
                 </td>
-                <td style="width:10%;border:none !important;" align="right">
-                    <span i18n="order.chargePayment.payment"></span>
-                </td>
-                <td style="width:10%;border:none !important;" align="right">
+                <td style="width:20%;border:none !important;" align="right">
+                    <span>Applied Payment</span>
                     <span id="spPaymentApplied"></span>
                 </td>
-                <td style="width:10%;border:none !important;" align="right">
-                    <span id="spPaymentUnApplied"></span>
+                <td style="width:20%;border:none !important;" align="right">
+                    <span i18n="order.chargePayment.adjustment">Applied Adjustment</span> :
+                    <span id="spAdjustmentApplied"></span>
                 </td>
             </tr>
-            <tr>
+            <!-- <tr>
                 <td colspan="2" style="border :none !important;"></td>
                 <td align="right" style="border :none !important;">
                     <span i18n="order.chargePayment.adjustment"></span>
@@ -67,10 +62,7 @@
                 <td align="right" style="border :none !important;">
                     <span id="spAdjustmentApplied"></span>
                 </td>
-                <td align="right" style="border :none !important;">
-                    <span id="spAdjustmentUnApplied"></span>
-                </td>
-            </tr>
+            </tr> -->
         </table>
         <div id="divApplyPendingPayments" style="overflow: auto; height: 200px;">
             <input type="hidden" id="hdnOrderId" />
@@ -120,17 +112,8 @@
             <input type="button" id="btnClearAppliedPendingPayments" class="btn btn-default" value="Clear" i18n="shared.buttons.clear">
             <span id="spPaymentID"></span>
         </div>
-        <div class="col-xs-12" style="margin-top: 10px">
-            <div class="col-xs-3">
-                <div class="form-group form-inline">
-                    <div class="col-form-label">
-                        <label class="control-label">
-                            <span i18n="shared.fields.date"></span> :</label>
-                    </div>
-                    <div class="col-form-content">
-                        <label id="lblServiceDate"></label>
-                    </div>
-                </div>
+        <div style="margin-top: 20px; width: 100%;">
+            <div style="width: 30%;float: left;">
                 <div class="form-group form-inline">
                     <div class="col-form-label">
                         <label class="control-label ">
@@ -186,28 +169,13 @@
                     </div>
                 </div>
             </div>
-            <div class="col-xs-5">
-                <div class="form-group form-inline">
-                    <div class="col-form-label">
-                        <label class="control-label field-required" i18n="order.chargePayment.claimStatus"></label>
-                    </div>
-                    <div class="col-form-content">
-                        <select class="form-control" id="ddlClaimStatus">
-                            <option value="">Select</option>
-                            <% _.each(claimStatusList, function(claimStatus) { %>
-                                <option value='<%= claimStatus.id %>' data-desc='<%= claimStatus.code %>'>
-                                    <%= claimStatus.description %>
-                                </option>
-                                <% }); %>
-                        </select>
-                    </div>
-                </div>
+            <div style="width: 40%;float: left;">
                 <div class="form-group form-inline" style="margin-bottom:10px;">
                     <div class="col-form-label">
                         <label class="control-label field-required" i18n="shared.fields.responsible"></label>
                     </div>
                     <div class="col-form-content">
-                        <select id="ddlResponsible" class="form-control" style="width:100%">
+                        <select id="ddlResponsible" class="form-control" style="width:250px">
                             <option data_code="0" value="0" i18n="shared.buttons.select">Select</option>
                         </select>
                     </div>
@@ -217,7 +185,7 @@
                         <label class="control-label " i18n="shared.fields.adjustmentCode"></label>
                     </div>
                     <div class="col-form-content">
-                        <select id="ddlAdjustmentCode_fast" class="form-control form-control-lg adjustmentCode">
+                        <select id="ddlAdjustmentCode_fast" class="form-control form-control-lg adjustmentCode" style="width:250px">
                             <option data_id='0' data_code="0" value="0" i18n="shared.buttons.select"></option>
                             <% _.each(adjustmentCodes, function(adjustmentCode) { %>
                                 <option data_id='<%= adjustmentCode.id %>' data_code='<%= adjustmentCode.code %>' data_codetype='<%= adjustmentCode.type %>'
@@ -237,16 +205,16 @@
                         <textarea class="form-control" id="txtResponsibleNotes" rows="2"></textarea>
                     </div>
                 </div>
-                <div class="form-group form-inline">
+                <!-- <div class="form-group form-inline">
                     <div class="col-form-label">
                         <label class="control-label"></label>
                     </div>
                     <div class="col-form-content">
                         <input id="btnSaveResponsible" type="button" class="btn btn-default btn-primary" i18n="order.chargePayment.saveResponsible">
                     </div>
-                </div>
+                </div> -->
             </div>
-            <div class="col-xs-4">
+            <div style="width: 30%;">
                 <div class="form-group form-inline">
                     <div class="col-form-label">
                         <label class="control-label " i18n="order.newOrder.deduction"> :</label>
@@ -273,11 +241,9 @@
                 </div>
             </div>
         </div>
-        <div style="width: 100%;text-align: right">
-            <input type="button" id="btnCloseAppliedPendingPayments" class="btn btn-default" i18n="shared.buttons.close">
-        </div>
     </div>
-    <div id="divPaymentCAS" class="divBackgroundPayment form-horizontal form-list commonBorder" style="display: none; position: absolute; border-radius:10px;z-index:10000; width: 100%; padding:20px;background-color: white;    text-align: center;top: 9%;border: 1px solid black;">
+    <div id="divPaymentCAS" class="divBackgroundPayment form-horizontal form-list commonBorder" style="display: none; position: absolute; border-radius:10px;z-index:10000; width: 97.5%; padding:20px;background-color: white;  
+          text-align: center;top: 9%;border: 1px solid black;">
         <div style="width: 100%;">
             <div style="width: 30%;float: left;">
                 <span class="cobAmount" i18n="billing.COB.groupCode"></span>
@@ -291,7 +257,7 @@
         </div>
         <div style="width: 100%;" class="paddingBottomDiv">
             <div style="width: 30%;float: left;">
-                <select id="selectGroupCode1" class="col1">
+                <select id="selectGroupCode1" class="col1" style="width: 300px;">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_group_codes, function(cas_group_code) { %>
                         <option value="<%= cas_group_code.id %>" data-code="<%= cas_group_code.code %>">
@@ -301,7 +267,7 @@
                 </select>
             </div>
             <div style="display: inline;">
-                <select id="selectReason1" class="col2">
+                <select id="selectReason1" class="col2" style="width: 300px;">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_reason_codes, function(reason_code) { %>
                         <option value="<%= reason_code.id %>" data-code="<%= reason_code.code %>">
@@ -316,7 +282,7 @@
         </div>
         <div style="width: 100%;" class="paddingBottomDiv">
             <div style="width: 30%;float: left;">
-                <select id="selectGroupCode2" class="col1">
+                <select id="selectGroupCode2" class="col1" style="width: 300px;">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_group_codes, function(cas_group_code) { %>
                         <option value="<%= cas_group_code.id %>" data-code="<%= cas_group_code.code %>">
@@ -326,7 +292,7 @@
                 </select>
             </div>
             <div style="display: inline;">
-                <select id="selectReason2" class="col2">
+                <select id="selectReason2" class="col2" style="width: 300px;">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_reason_codes, function(reason_code) { %>
                         <option value="<%= reason_code.id %>" data-code="<%= reason_code.code %>">
@@ -341,7 +307,7 @@
         </div>
         <div style="width: 100%;" class="paddingBottomDiv">
             <div style="width: 30%;float: left;">
-                <select id="selectGroupCode3" class="col1">
+                <select id="selectGroupCode3" class="col1" style="width: 300px;">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_group_codes, function(cas_group_code) { %>
                         <option value="<%= cas_group_code.id %>" data-code="<%= cas_group_code.code %>">
@@ -351,7 +317,7 @@
                 </select>
             </div>
             <div style="display: inline;">
-                <select id="selectReason3" class="col2">
+                <select id="selectReason3" class="col2" style="width: 300px;">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_reason_codes, function(reason_code) { %>
                         <option value="<%= reason_code.id %>" data-code="<%= reason_code.code %>">
@@ -366,7 +332,7 @@
         </div>
         <div style="width: 100%;" class="paddingBottomDiv">
             <div style="width: 30%;float: left;">
-                <select id="selectGroupCode4" class="col1">
+                <select id="selectGroupCode4" class="col1" style="width: 300px;">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_group_codes, function(cas_group_code) { %>
                         <option value="<%= cas_group_code.id %>" data-code="<%= cas_group_code.code %>">
@@ -376,7 +342,7 @@
                 </select>
             </div>
             <div style="display: inline;">
-                <select id="selectReason4" class="col2">
+                <select id="selectReason4" class="col2" style="width: 300px;">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_reason_codes, function(reason_code) { %>
                         <option value="<%= reason_code.id %>" data-code="<%= reason_code.code %>">
@@ -391,7 +357,7 @@
         </div>
         <div style="width: 100%;" class="paddingBottomDiv">
             <div style="width: 30%;float: left;">
-                <select id="selectGroupCode5" class="col1">
+                <select id="selectGroupCode5" class="col1" style="width: 300px;">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_group_codes, function(cas_group_code) { %>
                         <option value="<%= cas_group_code.id %>" data-code="<%= cas_group_code.code %>">
@@ -401,7 +367,7 @@
                 </select>
             </div>
             <div style="display: inline;">
-                <select id="selectReason5" class="col2">
+                <select id="selectReason5" class="col2" style="width: 300px;">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_reason_codes, function(reason_code) { %>
                         <option value="<%= reason_code.id %>" data-code="<%= reason_code.code %>">
@@ -416,7 +382,7 @@
         </div>
         <div style="width: 100%;" class="paddingBottomDiv">
             <div style="width: 30%;float: left;">
-                <select id="selectGroupCode6" class="col1">
+                <select id="selectGroupCode6" class="col1" style="width: 300px;">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_group_codes, function(cas_group_code) { %>
                         <option value="<%= cas_group_code.id %>" data-code="<%= cas_group_code.code %>">
@@ -426,7 +392,7 @@
                 </select>
             </div>
             <div style="display: inline;">
-                <select id="selectReason6" class="col2">
+                <select id="selectReason6" class="col2" style="width: 300px;">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_reason_codes, function(reason_code) { %>
                         <option value="<%= reason_code.id %>" data-code="<%= reason_code.code %>">
@@ -441,7 +407,7 @@
         </div>
         <div style="width: 100%;" class="paddingBottomDiv">
             <div style="width: 30%;float: left;">
-                <select id="selectGroupCode7" class="col1">
+                <select id="selectGroupCode7" class="col1" style="width: 300px;">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_group_codes, function(cas_group_code) { %>
                         <option value="<%= cas_group_code.id %>" data-code="<%= cas_group_code.code %>">
@@ -451,7 +417,7 @@
                 </select>
             </div>
             <div style="display: inline;">
-                <select id="selectReason7" class="col2">
+                <select id="selectReason7" class="col2" style="width: 300px;">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_reason_codes, function(reason_code) { %>
                         <option value="<%= reason_code.id %>" data-code="<%= reason_code.code %>">
@@ -464,33 +430,10 @@
                 <input type="text" id="txtAmount6" class="col3">
             </div>
         </div>
-        <% _.each(casArray, function(cpt) { %>
-            <!-- <div class="form-group">
-                <div class="col-form-content">
-                    <div class="col-xs-3">
-                        <select id="selectReason_<%= (cpt + 1) %>" class="selectReason" index="<%= (cpt + 1) %>">
-                            <option value="" i18n="shared.buttons.select"></option>
-                            <option value="PR" i18n="billing.COB.patientResponsibility"></option>
-                            <option value="PI" i18n="billing.COB.payerInitiatedReductions"></option>
-                            <option value="CR" i18n="billing.COB.correctionsReversal"></option>
-                            <option value="OA" i18n="billing.COB.otherAdjustment">
-                                <option>
-                                    <option value="CO" i18n="billing.COB.contractualObligations"></option>
-                        </select>
-                    </div>
-                    <div class="col-xs-3">
-                        <input type="text" id="selectReasonRow_<%= (cpt + 1) %>" class="selectRow " index="<%= (cpt + 1) %>">
-                    </div>
-                    <div class="col-xs-3">
-                        <input type="text" id="txtAmountRo1_<%= (cpt + 1) %>" class="floatbox">
-                    </div>
-                </div>
-            </div> -->
-            <% }); %>
-                <div class="form-group" style="margin-top:10px;text-align: center;">
-                    <button type="button" class="btn btn-danger" id="btnSaveCAS" i18n="shared.buttons.save"></button>
-                    <button type="button" class="btn btn-primary" id="btnCancelCAS" i18n="shared.buttons.cancel" style="margin-left: 20px;"></button>
-                </div>
+        <div class="form-group" style="margin-top:10px;text-align: center;">
+            <button type="button" class="btn btn-danger" id="btnSaveCAS" i18n="shared.buttons.save"></button>
+            <button type="button" class="btn btn-primary" id="btnCancelCAS" i18n="shared.buttons.cancel" style="margin-left: 20px;"></button>
+        </div>
     </div>
 </div>
 </div>

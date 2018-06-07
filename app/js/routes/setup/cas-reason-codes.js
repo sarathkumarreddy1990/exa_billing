@@ -32,7 +32,7 @@ define([
             },
 
             initializeRouter: function () {
-                this.options.screen = "CAS Reason Codes";//facilityModules.setupScreens.icd;
+                this.options.screen = "CAS Reason Codes";
                 this.options.currentView = this.casReasonCodeScreen;
                 layout.initializeLayout(this);
                 if (!layout.initialized) {

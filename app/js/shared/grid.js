@@ -7,8 +7,9 @@ define('grid', [
     'collections/studies',
     'collections/claim-workbench',
     'views/claims/index',
-    'views/user-settings'
-], function (jQuery, initChangeGrid, utils, Pager, StudyFields, Studies,claimWorkbench, claimsView,UserSettingsView) {
+    'views/user-settings',
+    'views/setup/study-filter'
+], function (jQuery, initChangeGrid, utils, Pager, StudyFields, Studies, claimWorkbench, claimsView, UserSettingsView, StudyFilterView) {
     var $ = jQuery;
     var isTrue = utils.isTrue;
     var isFalse = utils.isFalse;
@@ -80,7 +81,7 @@ define('grid', [
                 };
             }
             var studyIds = studyArray.join();
-            if(isClaimGrid){
+            if (isClaimGrid) {
 
                 var liClaimStatus = '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.flagAs">Change Claim Status</a><ul id="ul_change_claim_status" style="float:right;" class="dropdown-menu"></ul></li>';
                 $divObj.append(liClaimStatus);
@@ -97,9 +98,9 @@ define('grid', [
                 var liEditClaim = '<li><a id="anc_edit_claim" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log">Edit Claim</a></li>';
                 $divObj.append(liEditClaim);
                 $('#anc_edit_claim').off().click(function () {
-                    
-                   self.claimView = new claimsView();
-                   self.claimView.showEditClaimForm(studyIds);
+
+                    self.claimView = new claimsView();
+                    self.claimView.showEditClaimForm(studyIds);
                 });
 
                 var liClaimInquiry = '<li><a id="anc_claim_inquiry" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log">Claim Inquiry</a></li>';
@@ -114,14 +115,15 @@ define('grid', [
                     alert(studyIds)
                 });
 
-            }else{
+            } else {
                 var liCreateClaim = '<li><a id="anc_create_claim" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log">Create Claim</a></li>';
                 $divObj.append(liCreateClaim);
                 $('#anc_create_claim').off().click(function () {
-                   window.localStorage.setItem('selected_studies',null);
-                   window.localStorage.setItem('selected_studies', JSON.stringify(study));
-                   self.claimView = new claimsView();
-                   self.claimView.showClaimForm(studyIds);
+                    window.localStorage.setItem('selected_studies', null);
+                    window.localStorage.setItem('selected_studies', JSON.stringify(study));
+                    self.claimView = new claimsView();
+                    self.claimView.showClaimForm(studyIds);
+                   
                 });
             }
 
@@ -131,9 +133,9 @@ define('grid', [
         };
 
         self.renderStudy = function () {
-            if(options.isClaimGrid)
+            if (options.isClaimGrid)
                 var studyStore = new claimWorkbench(null, { 'filterID': filterID });
-            else{
+            else {
                 var studyStore = new Studies(null, { 'filterID': filterID });
             }
             var claimsTable = new customGrid(studyStore, gridID);
@@ -178,13 +180,13 @@ define('grid', [
 
             var icon_width = 24;
             colName = colName.concat([
-                (options.isClaimGrid?'<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />':''),
-                '','','','',''
+                (options.isClaimGrid ? '<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />' : ''),
+                '', '', '', '', ''
 
             ]);
 
             i18nName = i18nName.concat([
-                '','','','','',''
+                '', '', '', '', '', ''
             ]);
 
             colModel = colModel.concat([
@@ -196,7 +198,7 @@ define('grid', [
                     search: false,
                     isIconCol: true,
                     formatter: function (cellvalue, options, rowObject) {
-                        return '<input type="checkbox" name="chkStudy" id="chkSendStudy_' + rowObject.study_id + '" />'
+                        return '<input type="checkbox" name="chkStudy" id="chkSendStudy_' + (options.isClaimGrid?rowObject.id:rowObject.id )+ '" />'
                     },
                     customAction: function (rowID, e, that) {
                     }
@@ -275,24 +277,24 @@ define('grid', [
             var gridIDPrefix = '#jqgh_' + gridID.slice(1);
 
             var subGridNeed = ((app.showpriors && true) || true);
-            var studyFieldsCollection = new StudyFields(null, { gridOptions: null, field_order:userSettings.field_order,filterType: userSettings.grid_name });
+            var studyFieldsCollection = new StudyFields(null, { gridOptions: null, field_order: userSettings.field_order, filterType: userSettings.grid_name });
             var studyFields = studyFieldsCollection.reduce(function (fieldSet, field) {
                 fieldSet.colName[fieldSet.colName.length] = field.get('field_name');
                 fieldSet.i18nName[fieldSet.i18nName.length] = field.get('i18n_name') || '';
                 fieldSet.colModel[fieldSet.colModel.length] = field.get('field_info');
                 return fieldSet;
             }, {
-                'colName': [],
-                'i18nName': [],
-                'colModel': []
-            });
+                    'colName': [],
+                    'i18nName': [],
+                    'colModel': []
+                });
             var defSortOrder = userSettings.default_column_order_by || "asc";
             var defColumn = studyFieldsCollection.findWhere({
                 'field_name': userSettings.default_column !== 'ID' ?
-                userSettings.default_column :
+                    userSettings.default_column :
                     'Study Received Date'
             });
-           
+
             var defSortColumn = userSettings.default_column;
 
             app.usersettings.wl_sort_field = defSortColumn;
@@ -344,10 +346,24 @@ define('grid', [
 
                 return attrs;
             };
-            
-            $('#mySettings').unbind().click(function(e){
-                self.UserSettingsView = new UserSettingsView();
-                self.UserSettingsView.showForm();
+
+            $('#mySettings').unbind().click(function (e) {
+
+                commonjs.showDialog(
+                    {
+                        "width": "80%",
+                        "height": "80%",
+                        "header": "User Settings",
+                        "needShrink": true
+                    });
+
+                self.UserSettingsView = new UserSettingsView({ el: $('#modal_div_container') });
+                self.UserSettingsView.render();
+            });
+
+            $('#btnStudyFilter').unbind().click(function (e) {
+                self.StudyFilterView = new StudyFilterView();
+                self.StudyFilterView.showForm();
             });
 
             claimsTable.render({

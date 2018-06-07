@@ -3,23 +3,29 @@ define([
     'backbonesubroute',
     'views/app/index',
     'text!templates/access-denied.html',
-    'routes/app/studies'
+    'routes/app/studies',
+    'routes/app/claims',
+    'routes/app/payments'
 ], function (
     Backbone,
     BackboneSubroute,
     AppView,
     AccessDeniedTemplate,
-    StudiesRoute
+    StudiesRoute,
+    ClaimWorkBenchRoute,
+    PaymentsRoute
 ) {
         return Backbone.SubRoute.extend({
             routes: {
-                "studies2/*subroute": "startStudies"
+                "studies/*subroute": "startStudies",
+                "claim_workbench/*subroute": "startClaimWorkbench",
+                "payments/*subroute": "startPayments"
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
 
             defaultArgs: {
-                createTrailingSlashRoutes: true, layout: siteLayouts.facility, outerLayout: null, module: facilityModules.setup, screen: null, el: '#data_container', routePrefix: null
+                createTrailingSlashRoutes: true, layout: 'home', outerLayout: null, module: 'app', screen: null, el: '#data_container', routePrefix: null
             },
 
             accessDenied: function () {
@@ -30,8 +36,26 @@ define([
 
             startStudies: function (subroute) {
                 if (this.checkLicense('Studies') && !this.studiesRouter) {
-                    this.defaultArgs.routePrefix = 'billing/studies2/';
+                    this.defaultArgs.routePrefix = 'billing/studies/';
                     this.studiesRouter = new StudiesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startClaimWorkbench: function (subroute) {
+                if (this.checkLicense('ClaimWorkbench') && !this.claimWorkbenchRouter) {
+                    this.defaultArgs.routePrefix = 'billing/claim_workbench/';
+                    this.claimWorkbenchRouter = new ClaimWorkBenchRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startPayments: function (subroute) {
+                if (this.checkLicense('Payments') && !this.paymentsRouter) {
+                    this.defaultArgs.routePrefix = 'billing/payments/';
+                    this.paymentsRouter = new PaymentsRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }

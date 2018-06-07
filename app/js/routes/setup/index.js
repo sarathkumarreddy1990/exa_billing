@@ -12,6 +12,7 @@ define([
     'routes/setup/billing-codes',
     'routes/setup/billing-classes',
     'routes/setup/payment-reasons',
+    'routes/setup/claim-status',
     'routes/setup/edi-clearinghouses'
 ], function (
     Backbone,
@@ -27,6 +28,7 @@ define([
     BillingCodesRoute,
     BillingClassesRoute,
     PaymentReasonsRoute,
+    ClaimStatusRoute,
     EdiClearingHousesRoute
 ) {
         return Backbone.SubRoute.extend({
@@ -40,6 +42,7 @@ define([
                 "billing_codes/*subroute": "startBillingCodes",
                 "billing_classes/*subroute": "startBillingClasses",
                 "payment_reasons/*subroute" : "startPaymentReasons",
+                "claim_status/*subroute" : "startClaimStatus",
                 "edi_clearinghouses/*subroute" : "startEDIClearingHouses"
             },
 
@@ -74,7 +77,7 @@ define([
             },
 
             startCasReasonCodes: function (subroute) {
-                if (this.checkLicense('CasReasonCodes') && !this.billingProviderRouter) {
+                if (this.checkLicense('CasReasonCodes') && !this.casReasonCodesRouter) {
                     this.defaultArgs.routePrefix = 'setup/cas_reason_codes/';
                     this.casReasonCodesRouter = new CasReasonCodesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
@@ -131,6 +134,15 @@ define([
                 if (this.checkLicense('PaymentReasons') && !this.paymentReasons) {
                     this.defaultArgs.routePrefix = 'setup/payment_reasons/';
                     this.paymentReasons = new PaymentReasonsRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startClaimStatus: function(){
+                if (this.checkLicense('ClaimStatus') && !this.claimStatus) {
+                    this.defaultArgs.routePrefix = 'setup/claim_status/';
+                    this.claimStatus = new ClaimStatusRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }

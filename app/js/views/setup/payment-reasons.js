@@ -17,17 +17,15 @@ define([
             paymentReasonsList: [],
             model: null,
             paymentReasonsTable: null,
+            pager: null,
             events: {
-                'click #btnAddPaymentReasons': 'addNewPaymentReasons',
-                'click #btnSavePaymentReasons': 'savePaymentReasons',
-                'click #btnBackToPaymentReasons': 'backToPaymentReasonsGrid',
-                'click #btnPaymentReasonsRefresh': 'refreshPaymentReasonsGrid'
             },
 
             initialize: function (options) {
                 var self = this;
                 this.options = options;
                 this.model = new PaymentReasonsModel();
+                this.pager = new Pager();
                 this.paymentReasonsList = new PaymentReasonsCollections();
             },
 
@@ -42,7 +40,7 @@ define([
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
                     colNames: ['', '', '', '', ''],
-                    i18nNames: ['', '', '', 'setup.paymentReasons.Reasons', 'setup.common.description'],
+                    i18nNames: ['', '', '', 'setup.common.reasons', 'setup.common.description'],
                     colModel: [
                         {
                             name: 'id',
@@ -59,10 +57,10 @@ define([
                             className: 'icon-ic-edit',
                             route: '#setup/payment_reasons/edit/',
                             formatter: function (e, model, data) {
-                                return `<span>Edit</span>`;
+                                return `<span class='icon-ic-edit' title='click Here to Edit'></span>`;
                             },
                             cellattr: function () {
-                                return 'style=text-align:center;text-decoration: underline;cursor:pointer;'
+                                return 'style=text-align:center;cursor:pointer;'
                             }
                         },
                         {
@@ -73,7 +71,7 @@ define([
                                     var gridData = $('#tblPaymentReasonsGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
-                                        data: $.param({ id: self.model.id, code: gridData.code, description: gridData.description, name: gridData.name }),
+                                        data: $.param({ id: self.model.id, code: gridData.code, description: gridData.description }),
                                         success: function (model, response) {
                                             self.paymentReasonsTable.refresh();
                                         },
@@ -84,11 +82,11 @@ define([
                             },
 
                             formatter: function (e, model, data) {
-                                return `<span>Delete</span>`;
+                                return `<span class='icon-ic-delete' title='click Here to Delete'></span>`;
                             },
 
                             cellattr: function () {
-                                return 'style=text-align:center;text-decoration: underline;cursor:pointer;';
+                                return 'style=text-align:center;cursor:pointer;';
                             }
                         },
                         {
@@ -117,6 +115,17 @@ define([
                     disableadd: true,
                     disablereload: true
                 });
+
+                commonjs.initializeScreen({header: {screen: 'PaymentReasons', ext: 'paymentReasons'}, grid: {id: '#tblPaymentReasonsGrid'}, buttons: [
+                    {value: 'Add', class: 'btn btn-danger', i18n: 'shared.buttons.add', clickEvent: function () {
+                        Backbone.history.navigate('#setup/payment_reasons/new', true);
+                    }},
+                    {value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
+                        self.pager.set({"PageNo": 1});
+                        self.paymentReasonsTable.refreshAll();
+                        commonjs.showStatus("Reloaded Successfully");
+                    }}
+                ]});
             },
 
             showGrid: function () {
@@ -129,6 +138,7 @@ define([
             },
 
             renderForm: function (id) {
+                var self=this;
                 $('#divPaymentReasonsForm').html(this.paymentReasonsFormTemplate());
                 if (id > 0) {
                     this.model.set({id: id});
@@ -146,21 +156,18 @@ define([
                 } else {
                     this.model = new PaymentReasonsModel();
                 }
+                commonjs.initializeScreen({header: {screen: 'PaymentReasons', ext: 'paymentReasons'}, buttons: [
+                    {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
+                        self.savePaymentReasons();
+                    }},
+                    {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
+                        Backbone.history.navigate('#setup/payment_reasons/list', true);
+                    }}
+                ]});
+
                 $('#divPaymentReasonsGrid').hide();
                 $('#divPaymentReasonsForm').show();
                 commonjs.processPostRender();
-            },
-
-            addNewPaymentReasons: function () {
-                location.href = "#setup/payment_reasons/new";
-            },
-
-            backToPaymentReasonsGrid: function () {
-                location.href = "#setup/payment_reasons/list";
-            },
-
-            refreshPaymentReasonsGrid: function () {
-                this.paymentReasonsTable.refresh();
             },
 
             savePaymentReasons: function () {

@@ -1,0 +1,84 @@
+@row-height: 35px;
+@gridHeaderColor: #EBEEF0;
+
+.ui-th-column, .ui-jqgrid .ui-jqgrid-htable th.ui-th-column {
+    text-align: left !important;
+    background: none !important;
+    background-color: @gridHeaderColor !important;
+}
+
+.ui-th-column, .ui-jqgrid .ui-jqgrid-htable th.ui-th-column {
+    text-align: left !important;
+}
+
+.ui-jqgrid .ui-jqgrid-htable .ui-search-toolbar th {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.ui-jqgrid-sortable span {
+    padding-left: 5px !important;
+}
+
+.ui-jqgrid .ui-jqgrid-htable {
+    background: @dg-inverse-background;
+    border-bottom: 1px solid @dg-border-color-top;
+    height: @row-height - 1px;
+}
+    
+.ui-th-column, .ui-jqgrid .ui-jqgrid-htable th.ui-th-column {
+    border: 0;
+}
+
+.ui-jqgrid .ui-jqgrid-htable th {
+    .typo-body-1;
+    color: @th-color;
+    text-transform: uppercase;
+    line-height: @row-height - 1px;
+    text-align: left;
+    background: none;
+}
+
+.ui-jqgrid .ui-jqgrid-htable th div {
+    height: auto;
+}
+
+.ui-jqgrid .ui-icon-asc {
+    top: 12px;
+}
+
+.ui-jqgrid .ui-icon-desc {
+    top: 13px;
+    margin-left: -1px;
+}
+
+.ui-widget-content {
+    background: none;
+    border: 0;
+}
+
+.ui-jqgrid-btable {
+    tbody {
+        tr {
+            color: @tr-color;
+            background: @dg-inverse-background;
+            height: 40px;
+            
+            &:nth-child(even) {
+                background: @dg-background;
+            }
+
+            td {
+                border: 0;
+                height: 40px;
+                font-size: 13px;
+                vertical-align: middle;
+            }
+        }
+    }
+}
+
+.customRowSelect {
+    background-color: @customRowSelectBGColor !important;
+    color: @customRowSelectColor !important;
+}

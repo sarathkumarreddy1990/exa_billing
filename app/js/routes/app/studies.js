@@ -2,7 +2,7 @@ define([
     'jquery',
     'backbone',
     'backbonesubroute',
-    'views/app/studies'
+    'views/studies'
 ],
     function (
         $,
@@ -12,18 +12,12 @@ define([
     ) {
         var StudiesRouter = Backbone.SubRoute.extend({
             routes: {
-                'list': 'showGrid',
-                'new': 'showForm'
+                'list': 'showGrid'
             },
 
             showGrid: function () {
                 this.initializeRouter();
-                this.studiesScreen.showGrid();
-            },
-
-            showForm: function () {
-                this.initializeRouter();
-                this.studiesScreen.showForm(0);
+                this.studiesScreen.render();
             },
 
             initialize: function (options) {

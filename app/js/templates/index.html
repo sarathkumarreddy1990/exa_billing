@@ -1,20 +1,3 @@
-<style>
-#site_modal_div_container{
-    background: #ffffff;
-    border: solid 1px;
-    display: none;
-    position: absolute;
-    border-radius: 10px;
-    z-index: 10000;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    width: 93%;
-    overflow: auto;
-    padding: 0px 5px 0px;
-    top: 12%;
-    left: 3%;
-}
-</style>
 <header class="header">
 </header>
 
@@ -27,6 +10,7 @@
     <input type="button" value="Reload" id="btnFileInsuranceRefresh" class="btn btn-primary"
            i18n="shared.buttons.reload">
     <input type = "button" class="btn btn-primary" id ="mySettings" i18n="shared.buttons.mySettings">
+    <input type = "button" title="Filters" class="btn btn-primary" id ="btnStudyFilter" i18n="shared.buttons.studyFilter">    
 </div>
 <nav class="top-nav">
     <div id="divStudyTabsContainer">
@@ -68,10 +52,9 @@
     </div>
 </div>
 
-<div class="tab-content bgColorGadgetLight example" id="data_container">
+<div class="tab-content bgColorGadgetLight example" id="data_container_home">
     <div class="tab-pane " style="height: auto!important" id="Summary">
         <div id="divGadgetSummary" style="display: none">
-            <%= gadget %>
         </div>
         <div id="divGadgetSummaryNew"
              style="position: absolute; top: 90px; bottom: 10px; left: 10px; right: 10px; overflow: auto;">
@@ -225,5 +208,4 @@
 
 <ul class="dropdown-menu rightmenu" id="studyRightMenu" data-toggle="context" data-target="#context-menu">
 </ul>
-<div id="site_modal_div_container">
-</div>
+

@@ -4,7 +4,8 @@
             "code": "Code",
             "name": "Name",
             "description": "Description",
-            "readProvPercLvl" : "Reading Provider Percent Level"
+            "readProvPercLvl" : "Reading Provider Percent Level",
+            "reasons" : "Reasons"
         },
         "adjustmentcodes": {
             "credit": "Credit",
@@ -70,9 +71,6 @@
         },
         "providerIdCodeQualifiers" : {
             "qualifierCode": "Qualifier Code"
-        } ,
-        "paymentReasons" : {
-            "reasons" : "Reasons"
         },
         "ediClearingHouses": {
             "name": "clearing houses name",
