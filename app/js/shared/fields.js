@@ -300,8 +300,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "i18n_name": "billing.fileInsurance.balance",
                     "field_info": {
                         "name": "claim_balance",
-                        "width": 100,
-                        "formatter": "self.balanceFormatter"
+                        "width": 100
                     }
                 },
                 "Billing Class": {
