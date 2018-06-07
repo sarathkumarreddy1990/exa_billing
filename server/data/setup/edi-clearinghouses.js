@@ -81,7 +81,7 @@ module.exports = {
     create: async function (params) {
 
         let {
-            companyId,
+            company_id,
             code,
             name,
             receiverName,
@@ -102,7 +102,7 @@ module.exports = {
                                                   , communication_info)
                                                 values
                                                 (
-                                                    ${companyId}
+                                                    ${company_id}
                                                   , ${inactivated_dt}
                                                   , ${code}
                                                   , ${name}
