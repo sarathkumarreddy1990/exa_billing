@@ -86,24 +86,19 @@ define([
 
             initialize: function (options) {
                 this.showForm();
-                var modelCollection = Backbone.Collection.extend({
-                    model: Backbone.Model.extend({})
-                });
-
-                // initialize view model and set any defaults that are not constants
+                this.$el.html(this.mainTemplate(this.viewModel));               
                 UI.initializeReportingViewModel(options, this.viewModel);
-                //this.viewModel.facilityIds = [];
 
-                this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
+                // this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
 
-                this.viewModel.dateFrom = moment().startOf('month').add(-1, 'month');    // start of the last month
-                this.viewModel.dateTo = this.viewModel.dateFrom.clone().endOf('month');  // end of the last month
+                // this.viewModel.dateFrom = moment().startOf('month').add(-1, 'month');    // start of the last month
+                // this.viewModel.dateTo = this.viewModel.dateFrom.clone().endOf('month');  // end of the last month
 
-                this.viewModel.cmtFromDate = moment().startOf('month').add(-1, 'month');    // start of the last month  (CPT Pay Date)
-                this.viewModel.cmtToDate = this.viewModel.cmtFromDate.clone().endOf('month');  // end of the last month
+                // this.viewModel.cmtFromDate = moment().startOf('month').add(-1, 'month');    // start of the last month  (CPT Pay Date)
+                // this.viewModel.cmtToDate = this.viewModel.cmtFromDate.clone().endOf('month');  // end of the last month
 
-                this.viewModel.billCreatedDateFrom = moment().startOf('month').add(-1, 'month');    // start of the last month  (CPT Pay Date)
-                this.viewModel.billCreatedDateTo = this.viewModel.billCreatedDateFrom.clone().endOf('month');  // end of the last month
+                // this.viewModel.billCreatedDateFrom = moment().startOf('month').add(-1, 'month');    // start of the last month  (CPT Pay Date)
+                // this.viewModel.billCreatedDateTo = this.viewModel.billCreatedDateFrom.clone().endOf('month');  // end of the last month
 
 
             },
@@ -115,20 +110,26 @@ define([
                 commonjs.initializeScreen({ header: { screen: this.viewModel.reportTitle, ext: this.viewModel.reportId } }); // html title
                 UI.setPageTitle(this.viewModel.reportTitle);
               //  this.bindBillingProvider();
-                this.bindCPTAutoComplete();   // CPT Code Auto complete
+               // this.bindCPTAutoComplete();   // CPT Code Auto complete
 
             },
             render: function () {
-                var self = this;
-                this.rendered = true;
-                var insProviderTypes = _.filter(app.adjustmentCodes, {'type': 'INSPYR'});
-               // $(this.el).html(this.mainTemplate({facilityList: this.viewModel.facilities.toJSON(), insTypes: insProviderTypes}));
-                  this.$el.html(this.mainTemplate(this.viewModel));
+                var modelCollection = Backbone.Collection.extend({
+                    model: Backbone.Model.extend({})
+                });
+                this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
+                this.$el.html(this.mainTemplate(this.viewModel));
+                UI.bindBillingProvider();
+                UI.bindInsuranceAutocomplete('Select Insurance', 'btnAddInsurance', 'ulListInsurance');           
+
+                UI.bindInsuranceProviderAutocomplete('Select Insurance Provider', 'btnAddInsuranceProvider', 'ulListInsuranceProvider');
+                
+               
                 // pre-select default facility
                 this.selectDefaultFacility();
-                self.bindDateRangePickers();  //  Binding date range pickers
-                self.bindInsuranceAutocomplete(); // Insurance Auto complete
-                self.bindUserAutocomplete();   // Referring Docotor Auto complete
+               // self.bindDateRangePickers();  //  Binding date range pickers
+                
+               // self.bindUserAutocomplete();   // Referring Docotor Auto complete
 
                 //   Service date (Bill) Date Picker
                 // self.drpStudyDt.setStartDate(this.viewModel.dateFrom);
@@ -147,14 +148,14 @@ define([
                 $('#workedByAll').prop('checked', true);     // For Worked By Drop down
                 $('#chkServiceDateBill').attr('checked', true); // For service Date
 
-                // facilityFilter multi select boxes
-                // $('#ddlFacilityFilter').multiselect({
-                //     maxHeight: 200,
-                //     buttonWidth: '250px',
-                //     enableFiltering: true,
-                //     includeSelectAllOption: true,
-                //     enableCaseInsensitiveFiltering: true
-                // });
+               // facilityFilter multi select boxes
+                $('#ddlFacilityFilter, #ddlClaimSelectBoxes, #ddlInsuranceOption, #ddlUsersOption , #ddlOrderBySelection').multiselect({
+                    maxHeight: 200,
+                    buttonWidth: '250px',
+                    enableFiltering: true,
+                    includeSelectAllOption: true,
+                    enableCaseInsensitiveFiltering: true
+                });
                 // // facilityFilter multi select boxes
                 // $('#ddlClaimSelectBoxes').multiselect({
                 //     maxHeight: 170,
@@ -391,6 +392,8 @@ define([
                 $('#billingProDropdown').hide();
                 $('#facilityDropDown').show();
                 $('#billingProDropdown').attr('checked', false);
+                $('#facilityDiv').show();
+                $('#billingProviderDiv').show();
             },
             // Worked By dropdown Value Ranges
             onWorkedByAllChange: function () {
@@ -411,6 +414,8 @@ define([
                 $('#chkAllFacility').prop('checked', false)
                 $('input[name=allInusranceFacilities]').prop('checked', false);
                 this.viewModel.allFacilities = false;
+                $('#facilityDiv').hide();
+                $('#billingProviderDiv').hide();
               //  $('#ddlBillingProvider').multiselect("deselectAll", false).multiselect("refresh");
              //   $('#ddlFacilityFilter').multiselect("deselectAll", false).multiselect("refresh");
 
@@ -563,13 +568,7 @@ define([
                     this.expanded = false;
                 }
             },
-            // Binding insurance auto complete for drop down
-            bindInsuranceAutocomplete: function () {
-                var self = this;
-                var txtInsuranceName = 'txtInsuranceName';
-                // var s2id_txtInsuranceName = 's2id_txtInsuranceName a span';
-                // UI.bindInsuranceAutocomplete(txtInsuranceName, s2id_txtInsuranceName, 'Select Insurance', self.defaultyFacilityId, 'btnAddInsurance', 'ulListInsurance');
-            },
+           
             // Binding insurance group auto complete drop down. Todo:: Once insurance group screen come in setup then use  this fun.
             bindInsuranceGroupAutocomplete: function () {
                 var self = this;

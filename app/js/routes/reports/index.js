@@ -111,7 +111,7 @@ define([
             },
 
             startPatientStatementReporting: function (subroute) {
-                if (this.checkLicense(facilityModules.reportScreens.patientStatement) && !this.patientStatementRouter) {
+                if (this.checkLicense('Patient Statement') && !this.patientStatementRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.patientStatementRouter = new PatientStatementRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {

@@ -117,11 +117,17 @@ WITH claim_data as(
          INNER JOIN billing.claims bc on bc.patient_id = p.id
          INNER JOIN billing_comments pc on pc.id = bc.id 
          INNER JOIN billing.providers bp on bp.id = bc.billing_provider_id
+         INNER JOIN facilities f on f.id = bc.facility_id
+         WHERE 1= 1
+           <% if (billingProviderIds) { %>AND <% print(billingProviderIds); } %>
+         <% if (patientIds) { %>AND <% print(patientIds); } %>             
+         AND <%= whereDate %>             
+
     order by first_name),
     detail_cte AS(
     select * From main_detail_cte
     where (payment_type != 'adjustment' or (payment_type = 'adjustment' AND amount != 0::money))
-    AND sum_amount >= 0::money
+    AND sum_amount >=  <%= minAmount  %>::money
     ),
     sum_encounter_cte AS (
     SELECT 
@@ -137,11 +143,11 @@ WITH claim_data as(
     sum_statement_credit_cte AS (
           SELECT 
             pid
-          , sum(enc_total_amount) FILTER (WHERE bucket_date between '2018-04-12'::date - interval '30 days' and '2018-04-12'::date) as current_amount
-          , sum(enc_total_amount) FILTER (WHERE bucket_date between '2018-04-12'::date - interval '60 days' and '2018-04-12'::date - interval '31 days') as over30_amount
-          , sum(enc_total_amount) FILTER (WHERE bucket_date between '2018-04-12'::date - interval '90 days' and '2018-04-12'::date - interval '61 days') as over60_amount
-          , sum(enc_total_amount) FILTER (WHERE bucket_date between '2018-04-12'::date - interval '120 days' and '2018-04-12'::date - interval '91 days') as over90_amount
-          , sum(enc_total_amount) FILTER (WHERE bucket_date <= '2018-04-12'::date - interval '121 days') as over120_amount
+          , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '30 days' and  <%= sDate %>) as current_amount
+          , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '60 days' and  <%= sDate %>- interval '31 days') as over30_amount
+          , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '90 days' and  <%= sDate %>- interval '61 days') as over60_amount
+          , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '120 days' and <%= sDate %> - interval '91 days') as over90_amount
+          , sum(enc_total_amount) FILTER (WHERE bucket_date <= <%= sDate %> - interval '121 days') as over120_amount
           , sum(enc_total_amount) AS statement_total_amount
           FROM sum_encounter_cte
           GROUP BY pid
@@ -561,18 +567,40 @@ WITH claim_data as(
 `);
 
 const api = {
-
-    /**
-     * STAGE 2
-     * This method is called by controller pipline after report data is initialized (common lookups are available).
-     */
     getReportData: (initialReportData) => {
+        if (initialReportData.report.params.patientOption) {
+            initialReportData.report.params.patientOption = initialReportData.report.params.patientOption === 'S' && initialReportData.report.params.patientIds === undefined ? 'All' : initialReportData.report.params.patientOption;
+        }
+
+        // convert patientIds array of string to integer
+        if (initialReportData.report.params.patientIds) {
+            initialReportData.report.params.patientIds = initialReportData.report.params.patientIds.map(Number);
+        }
+
+        // if (initialReportData.report.params.billingProvider) {
+        //     initialReportData.report.params.billingProviderIds = initialReportData.report.params.billingProvider === 'All' ? [] : initialReportData.report.params.billingProvider.split().map(Number);
+        // }
+
+        if (initialReportData.report.params.minAmount) {
+            initialReportData.report.params.minAmount = parseFloat(initialReportData.report.params.minAmount);
+        }
+
+        if (initialReportData.report.params.payToProvider && initialReportData.report.params.payToProvider !== undefined) {
+          initialReportData.report.params.payToProvider = initialReportData.report.params.payToProvider === 'true';
+        } else {
+          initialReportData.report.params.payToProvider = false;
+        }
+
         return Promise.join(            
             api.createpatientStatementDataSet(initialReportData.report.params),
+            dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
+            dataHelper.getPatientInfo(initialReportData.report.params.companyId, initialReportData.report.params.patientIds),
             // other data sets could be added here...
-            (patientStatementDataSet) => {
+            (patientStatementDataSet, providerInfo, patientInfo) => {
                 // add report filters                
                 initialReportData.filters = api.createReportFilters(initialReportData);
+                initialReportData.lookups.billingProviderInfo = providerInfo || [];
+                initialReportData.lookups.patients = patientInfo || [];
 
                 // add report specific data sets
                 initialReportData.dataSets.push(patientStatementDataSet);
@@ -581,31 +609,13 @@ const api = {
             });
     },
 
-    /**
-     * STAGE 3
-     * This method is called by controller pipeline after getReportData().
-     * All data sets will be avaliable and can be used for any complex, interdependent data set manipulations.
-     * Note:
-     *  If no transformations are to take place just return resolved promise => return Promise.resolve(rawReportData);
-     */
     transformReportData: (rawReportData) => {
         return Promise.resolve(rawReportData);
     },
 
-    /**
-     * Report specific jsreport options, which will be merged with default ones in the controller.
-     * Allows each report to add its own, or override default settings.
-     * Note:
-     *  You must at least set a template (based on format)!
-     */
     getJsReportOptions: (reportParams, reportDefinition) => {
-        // here you could dynamically modify jsreport options *per report*....
-        // if options defined in report definition are all that is needed, then just select them based on report format
         return reportDefinition.jsreport[reportParams.reportFormat];
     },
-
-    // ================================================================================================================
-    // PRIVATE ;) functions
 
     createReportFilters: (initialReportData) => {
         const lookups = initialReportData.lookups;
@@ -613,22 +623,35 @@ const api = {
         const filtersUsed = [];
         filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
 
-        // if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
-        //     filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
-        // else {
-        //     const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
-        //     filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
-        // }
-        // // Billing provider Filter
-        // if (params.allBillingProvider == 'true')
-        //     filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
-        // else {
-        //     const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
-        //     filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
-        // }
+       
+        // Facility Filter
+        if (params.allFacilities && params.facilityIds)
+            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
+        else {
+            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id,10)) > -1).map(f => f.name).value();
+            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
+        }
+        // Billing provider Filter
+        if (params.allBillingProvider == 'true')
+            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
+        else {
+            const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
+            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
+        }
 
-        // filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
-        // filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
+        // Min Amount 
+        filtersUsed.push({ name: 'minAmount', label: 'Minumum Amount', value: params.minAmount});
+
+        filtersUsed.push({ name: 'sDate', label: 'Statement Date', value: params.sDate});
+
+        const patientNames = params.patientOption === 'All' ? 'All' : _(lookups.patients).map(f => f.name).value();
+        filtersUsed.push({ name: 'patientNames', label: 'Patients', value: patientNames });
+
+        filtersUsed.push({ name: 'payToProvider', label: 'Use address of Pay-To Provider', value: params.payToProvider ? 'Yes' : 'No' })
+
+
+        filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
+        filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
         return filtersUsed;
     },
 
@@ -650,7 +673,9 @@ const api = {
     getpatientStatementDataSetQueryContext: (reportParams) => {
         const params = [];
         const filters = {
-            companyId: null
+            companyId: null,
+            patientIds: null,
+            billingProviderIds: null
            
         };
 
@@ -658,26 +683,28 @@ const api = {
         params.push(reportParams.companyId);
         filters.companyId = queryBuilder.where('bc.id', '=', [params.length]);
 
-        // // order facilities
-        // if (!reportParams.allFacilities && reportParams.facilityIds) {
-        //     params.push(reportParams.facilityIds);
-        //     filters.facilityIds = queryBuilder.whereIn('c.facility_id', [params.length]);
-        // }
+          // patients
+          if (reportParams.patientOption === 'S' && reportParams.patientIds) {
+            params.push(reportParams.patientIds);
+            filters.patientIds = queryBuilder.whereIn(`p.id`, [params.length]);
+          }
 
-        // //  scheduled_dt
-        // if (reportParams.fromDate === reportParams.toDate) {
-        //     params.push(reportParams.fromDate);
-        //     filters.studyDate = queryBuilder.whereDate('c.claim_dt', '=', [params.length], 'f.time_zone');
-        // } else {
-        //     params.push(reportParams.fromDate);
-        //     params.push(reportParams.toDate);
-        //     filters.studyDate = queryBuilder.whereDateBetween('c.claim_dt', [params.length - 1, params.length], 'f.time_zone');
-        // }
-        // // billingProvider single or multiple
-        // if (reportParams.billingProvider) {
-        //     params.push(reportParams.billingProvider);
-        //     filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
-        // }
+
+           // billing providers
+        if (reportParams.billingProviderIds && reportParams.billingProviderIds.length > 0) {
+            params.push(reportParams.billingProviderIds);
+            filters.billingProviderIds = queryBuilder.whereIn(`bp.id`, [params.length]);
+          }
+
+           // Min Amount
+        filters.minAmount = reportParams.minAmount || 0;
+
+        params.push(reportParams.sDate);
+        filters.sDate = `$${params.length}::date`;
+        filters.whereDate = queryBuilder.whereDateInTz(`bc.claim_dt`, `<=`, [params.length], `f.time_zone`);   
+
+
+   
 
         return {
             queryParams: params,
