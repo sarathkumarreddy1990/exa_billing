@@ -251,12 +251,12 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 (options.isClaimGrid ? '<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />' : ''),
-                '', '', '', '', '',''
+                '', '', '', '', '','',''
 
             ]);
 
             i18nName = i18nName.concat([
-                '', '', '', '', '', '',''
+                '', '', '', '', '', '','',''
             ]);
 
             colModel = colModel.concat([
@@ -341,7 +341,16 @@ define('grid', [
                     search: false,
                     hidden: true,
                     isIconCol: true
-                }
+                },
+                {
+                    name: 'billing_method',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true
+                },
             ]);
 
             if (app.showserial) {

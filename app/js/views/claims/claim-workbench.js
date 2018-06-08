@@ -9,7 +9,8 @@ define(['jquery',
     'text!templates/index.html',
     'models/claim-filters',
     'grid',
-    'shared/fields'],
+    'shared/fields',
+    'text!templates/claims/ediResult.html'],
     function ($,
               Immutable,
               _,
@@ -21,7 +22,8 @@ define(['jquery',
               IndexHTML,
               ModelClaimsFilters,
               ClaimsGrid,
-              ListFields) {
+              ListFields,
+              ediResultHTML) {
         var MergeQueueBase = Immutable.Record({
             'filterIndexSet': Immutable.OrderedSet(),
             /**
@@ -185,6 +187,7 @@ define(['jquery',
             events: {
                 "click #btnClearAllStudy": "clearAllSelectedRows",
                 "click #btnSelectAllStudy": "selectAllRows",
+                "click #btnInsuranceClaim": "createClaims",
             },
 
             initialize: function (options) {
@@ -364,6 +367,64 @@ define(['jquery',
                 });
                 $('#chkStudyHeader_' + filterID).prop('checked', true);
                 commonjs.setFilter(filterID, filter);
+            },
+            createClaims:function () {
+                let self=this;
+                let filterID = commonjs.currentStudyFilter;
+                let filter = commonjs.loadedStudyFilters.get(filterID);
+
+                let claimIds =[],existingBillingMethod='';       
+
+                for (let i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
+                    let rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;                   
+                    
+                    var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'billing_method');
+                    if (existingBillingMethod == '') existingBillingMethod = billingMethod
+                    if (existingBillingMethod != billingMethod||(billingMethod !='electronic_billing')) {
+                        commonjs.showWarning('Please select claims with same type of billing method and electronic billing method');
+                        return false;
+                    }
+                    else {
+                        existingBillingMethod = billingMethod;
+                    }
+                    claimIds.push(rowId);
+                }
+
+                self.ediResultTemplate = _.template(ediResultHTML);
+
+                jQuery.ajax({
+                    url: "/exa_modules/billing/claimWorkbench/submitClaim",
+                    type: "GET",
+                    data: {
+                        claimIds:claimIds
+                    },
+                    success: function (data, textStatus, jqXHR) {
+                        if (data && data.ediText.length) {
+                            let str='';
+                            $.each(data.ediText.split('~'), function (index, val) {
+                                if (val != '') {
+                                    if (index == 0 || index == 1) {
+                                        str += "<tr><td style='width: 20px; padding-bottom: 0px;'>" + (0) + "</td><td style='padding-bottom: 0px; border-right: none;'>" + val + "</td></tr>";
+                                    }
+                                    else {
+                                        str += "<tr><td style='width: 20px; padding-bottom: 0px;'>" + (index - 1) + "</td><td style='padding-bottom: 0px; border-right: none;'>" + val + "</td></tr>";
+                                    }
+                                }
+                            })
+                            
+                            commonjs.showDialog({
+                                header: 'EDI Claim',
+                                width: '95%',
+                                height: '75%',
+                                html: self.ediResultTemplate()
+                            });
+                            $('#tblEDIResp').append(str);
+                        }
+                    },
+                    error: function (err) {
+                        commonjs.handleXhrError(err);
+                    }
+                });
             },
             setFiltertabs: function (filters) {
                 var self = this;
