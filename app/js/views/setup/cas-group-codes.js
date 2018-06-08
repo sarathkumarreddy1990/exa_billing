@@ -142,6 +142,7 @@ define(['jquery',
             },
 
             renderForm: function(id) {
+                var self = this;
                 $('#divCasGroupCodesForm').html(this.casGroupCodesFormTemplate());
                 if(id > 0) {
                     this.model.set({id: id});
