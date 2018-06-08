@@ -35,6 +35,7 @@ define(['jquery',
                 this.options = options;
                 this.model = new ProviderLevelCodesModel();
                 this.providerLevelCodesList = new ProviderLevelCodesCollections();
+                this.pager = new Pager();
             },
 
             render: function() {
@@ -76,13 +77,13 @@ define(['jquery',
                                     var gridData = $('#tblProviderLevelCodesGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
-                                        data: $.param({ id: self.model.id }),
+                                        data: $.param({ id: self.model.id, code: gridData.code, description: gridData.description }),
                                         success: function (model, response) {
                                             commonjs.showStatus("Deleted Successfully");
                                             self.providerLevelCodesTable.refresh();
                                         },
                                         error: function (model, response) {
-
+                                            commonjs.handleXhrError(model, response);
                                         }
                                     });
                                 }
@@ -108,6 +109,8 @@ define(['jquery',
                     container:self.el,
                     customizeSort: true,
                     offsetHeight: 01,
+                    sortname: "id",
+                    sortorder: "desc",
                     sortable: {
                         exclude: '#jqgh_tblProviderLevelCodesGrid,#jqgh_tblProviderLevelCodesGrid_edit,#jqgh_tblProviderLevelCodesGrid_del'
                     },
@@ -180,6 +183,29 @@ define(['jquery',
             },
 
             saveProviderLevelCodes: function() {
+                var self = this;
+                commonjs.validateForm({
+                    rules: {
+                        code: {
+                            required: true
+                        },
+                        description: {
+                            required: true
+                        }
+                    },
+                    messages: {
+                        code: commonjs.getMessage("*", "Code"),
+                        description: commonjs.getMessage("*", "Description")
+                    },
+                    submitHandler: function () {
+                        self.save();
+                    },
+                    formID: '#formProviderLevelCodes'
+                });
+                $('#formProviderLevelCodes').submit();
+            },
+
+            save: function () {
                 this.model.set({
                     "companyId" : app.companyID,
                     "isActive" : !$('#chkActive').prop('checked'),
@@ -191,6 +217,7 @@ define(['jquery',
                 }, {
                     success: function (model, response) {
                         if(response) {
+                            commonjs.showStatus("Saved Successfully");
                             location.href = "#setup/provider_level_codes/list";
                         }
                     },
