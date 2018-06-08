@@ -52,7 +52,6 @@ define([
                             customAction: function (rowID) {
                                 self.showForm(rowID);
                             },
-                            // route: '#setup/provider_id_code_qualifiers/edit/',
                             formatter: function (e, model, data) {
                                 return `<span class='icon-ic-edit' title='click Here to Edit'></span>`;
                             },
