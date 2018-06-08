@@ -13,7 +13,7 @@ const claimsRouters = require('../routes/claims');
 const userSettingRouter = require('../routes/user-settings');
 const claimsWorkbenchRouters = require('../routes/claim/claim-workbench');
 const claimInquiry = require('../routes/claim-inquiry');
-const patientRouter = require('../routes/era');
+const patientRouter = require('../routes/patients');
 const studyFilterRouter = require('../routes/setup/study-filter');
 const eraRouter = require('../routes/era');
 
