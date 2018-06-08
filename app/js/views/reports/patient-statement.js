@@ -61,15 +61,21 @@ define([
                 this.$el.html(this.mainTemplate(this.viewModel));
 
                 this.initDatePicker();
-              //  UI.bindBillingProvider();
-               // UI.bindPatient('txtPatient',this.usermessage.selectPatient,'btnAddPatient','ulListPatients');                
+                UI.bindBillingProvider();
+                UI.bindPatient('txtPatient',this.usermessage.selectPatient,'btnAddPatient','ulListPatients');
+
+                $('#ddlOption').multiselect({
+                    maxHeight: '200px',
+                    buttonWidth: '220px',
+                    width: '200px'
+                });
             },
 
             /**
              * Initialize date pickers for the from and to dates
              */
-            initDatePicker: function() {
-                this.viewModel.sDate = commonjs.bindDateTimePicker('sDate', {format: 'MM/DD/YYYY', defaultDate: moment()});
+            initDatePicker: function () {
+                this.viewModel.sDate = commonjs.bindDateTimePicker('sDate', { format: 'MM/DD/YYYY', defaultDate: moment() });
             },
 
             onReportViewClick: function (e) {
@@ -82,7 +88,7 @@ define([
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = openInNewTab && rFormat === 'html';
 
-                this.viewModel.patientIds = $('ul#ulListPatients li a').map(function () {
+                this.viewModel.patientIds = $('ul#ulListPatients li').map(function () {
                     return this.id;
                 }).get();
 
@@ -90,29 +96,31 @@ define([
                 this.viewModel.billingProvider = $('#ddlBillingProvider').val();
                 this.viewModel.minAmount = $('#minAmount').val();
 
-            //   if (this.hasValidViewModel()) {
-                    var urlParams = this.getReportParams();
-                    UI.showReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
-              //  }
+                 if (this.hasValidViewModel()) {
+                var urlParams = this.getReportParams();
+                UI.showReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
+                }
             },
 
             hasValidViewModel: function () {
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
-                   // commonjs.showWarning('Please check report id, category, and/or format!');
+                    commonjs.showWarning('Please check report id, category, and/or format!');
                     return false;
                 }
-                if (this.viewModel.sDate == null) {
-                   // commonjs.showWarning('Please select statement date!');
+                if ($('#txtDateRangeFrom').val() == "" ) {
+                    alert('Please select date range!')
+                    commonjs.showWarning('Please select date range!');
                     return false;
                 }
+                
                 if (isNaN(this.viewModel.minAmount) || this.viewModel.minAmount === '') {
-                   // commonjs.showWarning('Please enter minimum amount!');
+                     commonjs.showWarning('Please enter minimum amount!');
                     return false;
                 }
                 if (this.viewModel.minAmount < 0) {
-                   // commonjs.showWarning('Please enter minimum amount greater than or equal to 0!');
+                     commonjs.showWarning('Please enter minimum amount greater than or equal to 0!');
                     return false;
-                }                
+                }
                 return true;
             },
 
@@ -120,9 +128,9 @@ define([
                 return urlParams = {
                     patientOption: this.viewModel.patientOption,
                     patientIds: this.viewModel.patientIds,
-                    billingProvider: this.viewModel.billingProvider,
+                    billingProviderIds: this.viewModel.billingProvider,
                     minAmount: this.viewModel.minAmount,
-                   // sDate: this.viewModel.sDate.date().format('YYYY-MM-DD'),
+                    sDate: moment($('#txtDateRangeFrom').val()).format('L'),
                     payToProvider: $('#chkPayToProvider').prop('checked')
                 };
             },
