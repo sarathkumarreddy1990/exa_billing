@@ -599,7 +599,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         credit_card_number: $("#txtCheque").val() || null,
                         credit_card_name: $("#txtCardName").val() || null,
                         payment_mode: $("input:radio[name=payerMode]:checked").val() ? $("input:radio[name=payerMode]:checked").val() : '',
-                        payment_reason_id: $("#ddlpaymentReason").val(),
+                        payment_reason_id: $("#ddlpaymentReason").val() || null,
                         user_id: app.userID,
                         notes: ($("#txtNotes").val()).replace(/(\r\n|\n|\r)/gm, "") || null
                     });
