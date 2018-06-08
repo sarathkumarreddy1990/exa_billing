@@ -18,7 +18,7 @@ module.exports = {
         async function applications(params) {
             let appliedPaymets = [];
             let coPaycoInsDeductdetails = [];
-            let { paymentId, line_items, user_id, coPay, coInsurance, deductible, claimId, adjestmentId, appliedStatus } = params;
+            let { paymentId, line_items, user_id, coPay, coInsurance, deductible, claimId, adjestmentId, paymentStatus } = params;
             line_items = JSON.parse(line_items);
             const save_cas_details = [];
 
@@ -77,7 +77,7 @@ module.exports = {
             params.coPaycoInsDeductdetails = coPaycoInsDeductdetails;
             params.appliedPaymets = appliedPaymets;
 
-            if (appliedStatus == 'pending') {
+            if (paymentStatus == 'pending') {
                 const appliedValues = await data.createPaymentapplications(params);
 
                 for (const value of line_items) {
@@ -103,7 +103,7 @@ module.exports = {
                 return await Promise.all(save_cas_details);
             }
 
-            /*         if (appliedStatus == 'applied') {
+            /*         if (paymentStatus == 'applied') {
                 return data.updatePaymentapplications(params);
             } */
         }
