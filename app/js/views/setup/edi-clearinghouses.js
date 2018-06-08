@@ -155,13 +155,46 @@ define(['jquery',
                         success: function (model, response) {
                             if (response && response.length > 0) {
                                 var data = response[0];
-                                // if (data) {
-                                //     $('#txtCode').val(data.code ? data.code : '');
-                                //     $('#txtDescription').val(data.description ? data.description : '');
-                                //     $('#ddlEntryType').val(data.accounting_entry_type ? data.accounting_entry_type : '');
-                                //     $('#chkActive').prop('checked', data.inactivated_dt ? true : false);
-                                // }
-                            }
+                                if (data) {
+                                    var info = data.communication_info;
+                                    $('#txtName').val(data.name ? data.name : '');
+                                    $('#code').val(data.code ? data.code : '');
+                                    $('#txtReceiverName').val(data.receiver_name ? data.receiver_name : '');
+                                    $('#txtReceiverID').val(data.txtReceiverID ? data.txtReceiverID : '');
+                                    $('#chkActive').prop('checked', data.inactivated_dt ? true : false);
+                                    $('#txtAuthInfo').val(info.AuthorizationInformation ? info.AuthorizationInformation : '');
+                                    $('#txtAuthInfoQualifier').val(info.AuthorizationInformationQualifier ? info.AuthorizationInformationQualifier : '');
+                                    $('#txtSecurityInfo').val(info.SecurityInformation ? info.SecurityInformation : '');
+                                    $('#txtSecurityAuthQualifier').val(info.SecurityInformationQualifier ? info.SecurityInformationQualifier : '');
+                                    $('#txtSenderID').val(info.InterchangeSenderId ? info.InterchangeSenderId : '');
+                                    $('#txtSenderIDQualifier').val(info.InterchangeSenderIdQualifier ? info.InterchangeSenderIdQualifier : '');
+                                    $('#txtIReceiverID').val(info.InterchangeReceiverId ? info.InterchangeReceiverId : '');
+                                    $('#txtIReceiverIDQualifier').val(info.InterchangeReceiverIdQualifier ? info.InterchangeReceiverIdQualifier : '');
+                                    $('#txtInterCtrlStandID').val(info.InterchangeControlStandardsIdentifier ? info.InterchangeControlStandardsIdentifier : '');
+                                    $('#txtInterCtrlVersionNo').val(info.InterchangeControlVersionNumber ? info.InterchangeControlVersionNumber : '');
+                                    $('#txtRepetitionSeperator').val(info.RepetitionSeparator ? info.RepetitionSeparator : '');
+                                    $('#txtElementDelimiter').val(info.ElementDelimiter ? info.ElementDelimiter : '');
+                                    $('#txtSubElementDelimiter').val(info.SegmentDelimiter ? info.SegmentDelimiter : '');
+                                    $('#txtSegmentTerminator').val(info.SegmentTerminator ? info.SegmentTerminator : '');
+                                    $('#chkAckReq').prop('checked', info.AcknowledgementRequested ? true : false);
+                                    $(`input[value=${info.UsageIndicator}]`).prop('checked', true);
+                                    $('#txtAppSenderCode').val(info.ApplicationSenderCode ? info.ApplicationSenderCode : '');
+                                    $('#txtResAgencyCode').val(info.ResponsibleAgencyCode ? info.ResponsibleAgencyCode : '');
+                                    $('#txtAppReceiverCode').val(info.ApplicationReceiverCode ? info.ApplicationReceiverCode : '');
+                                    $('#txtVerRelIndIDCode').val(info.VerRelIndIdCode ? info.VerRelIndIdCode : '');
+                                    $('#txtImplConventionReference').val(info.ImplementationConventionRef ? info.ImplementationConventionRef : '');
+                                    $('#txtRequestUrl').val(info.RequestURL ? info.RequestURL : '');
+                                    $('#txtBackupRootFolder').val(info.BackupRootFolder ? info.BackupRootFolder : '');
+                                    $('#chkEnableB2B').prop('checked', info.IsB2bEnabled ? true : false);
+                                    $('#ddlXmlTemplateSyntax').val(info.XmlSyntaxTag ? info.XmlSyntaxTag : "");
+                                    if (info.XmlSyntaxTag != '1' && info.XmlSyntaxTag != '') {
+                                        $('#divXMLTemplateSyntaxAuth').show();
+                                        $('#txtUserName').val(info.txtUserName ? info.txtUserName : '');
+                                        $('#txtPassword').val(info.Password ? info.Password : '');
+                                    }
+                                    $('#ProviderOfficeNumber').val(info.txtProviderOfficeNo ? info.txtProviderOfficeNo : '');
+                                }
+                            }     
                         }
                     });
                 } else {
@@ -266,15 +299,14 @@ define(['jquery',
                     IsB2bEnabled: $('#chkEnableB2B').prop('checked'),
                     XmlSyntaxTag: $('#ddlXmlTemplateSyntax').val(),
                     UserID: $('#txtUserName').val(),
-                    Password: $('#txtProviderOfficeNo').val(),
-                    ProviderOfficeNumber: $('#txtPassword').val()
+                    Password: $('#txtPassword').val(),
+                    ProviderOfficeNumber: $('#txtProviderOfficeNo').val()
                 }
                 this.model.set({
                     "name": $.trim($('#txtName').val()),
                     "code": $.trim($('#txtCode').val()),
-                    "receiver_name": $.trim($('#txtReceiverName').val()),
-                    "receiver_id": $.trim($('#txtReceiverID').val()),
-                    "type": $('#ddlEntryType').val(),
+                    "receiverName": $.trim($('#txtReceiverName').val()),
+                    "receiverId": $.trim($('#txtReceiverID').val()),
                     "company_id": app.companyID,
                     "isActive": !$('#chkActive').prop('checked'),
                     "communicationInfo": JSON.stringify(communication_info)

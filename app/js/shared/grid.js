@@ -1,5 +1,6 @@
 define('grid', [
     'jquery',
+    'underscore',
     'change-grid',
     'shared/utils',
     'models/pager',
@@ -8,8 +9,9 @@ define('grid', [
     'collections/claim-workbench',
     'views/claims/index',
     'views/user-settings',
-    'views/setup/study-filter'
-], function (jQuery, initChangeGrid, utils, Pager, StudyFields, Studies, claimWorkbench, claimsView, UserSettingsView, StudyFilterView) {
+    'views/setup/study-filter',
+    'text!templates/setup/study-filter-grid.html'
+], function (jQuery, _, initChangeGrid, utils, Pager, StudyFields, Studies, claimWorkbench, claimsView, UserSettingsView, StudyFilterView, studyFilterGrid) {
     var $ = jQuery;
     var isTrue = utils.isTrue;
     var isFalse = utils.isFalse;
@@ -453,10 +455,19 @@ define('grid', [
             });
 
             $('#btnStudyFilter').unbind().click(function (e) {
-                self.StudyFilterView = new StudyFilterView();
-                self.StudyFilterView.showForm();
-            });
-
+                
+                                commonjs.showDialog(
+                                    {
+                                        "width": "75%",
+                                        "height": "75%",
+                                        "header": "Study Filter",
+                                        "needShrink": true
+                                    });
+                
+                                    self.StudyFilterView = new StudyFilterView({el: $('#modal_div_container')});
+                                    self.StudyFilterView.showGrid();
+                                    $('#tblStudyFilterGrid').append(self.template);
+                            });
             claimsTable.render({
                 gridelementid: gridID,
                 custompager: new Pager(),

@@ -24,6 +24,11 @@ router.put('/', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.delete('/', async function (req, res) {
+    const data = await codesController.delete(req.body);
+    httpHandler.sendRows(req, res, data);
+});
+
 router.delete('/:id', async function (req, res) {
     const data = await codesController.delete(req.params);
     httpHandler.sendRows(req, res, data);
