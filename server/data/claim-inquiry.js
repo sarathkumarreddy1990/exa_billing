@@ -309,12 +309,12 @@ module.exports = {
         return await query(followup_query);
     },
 
-    getFollowupDate: (params) => {
+    getFollowupDate: async (params) => {
         let {
             claim_id
         } = params;
 
-        return query(SQL`SELECT 
+        return await query(SQL`SELECT 
                                 followup_date 
                             FROM 
                                 billing.claim_followups 

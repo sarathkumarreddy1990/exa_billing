@@ -40,7 +40,7 @@ router.post('/followup', async (req, res) => {
 });
 
 router.get('/followup', async (req, res) => {
-    const data = await inquiryController.getFollowupDate(req.body);
+    const data = await inquiryController.getFollowupDate(req.query);
     httpHandler.sendRows(req, res, data);
 });
     

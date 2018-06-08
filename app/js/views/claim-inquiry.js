@@ -120,7 +120,7 @@ define([
 
             claimCommentsGrid: function () {
                 var self = this;
-                self.claim_id = 1512;
+               // self.claim_id = 1512;
                 var commentType = ["payment", "adjustment", "charge"]
                 var payCmtGrid;
                 payCmtGrid = new customGrid();
@@ -231,7 +231,7 @@ define([
                         url: '/exa_modules/billing/claim_inquiry/followup',
                         type: 'POST',
                         data: {
-                            'claim_id': 1512,
+                            'claim_id': self.claim_id,
                             'followupDate': selectedFollowUpDate,
                             'assignedTo': app.userID
                         },
@@ -243,7 +243,7 @@ define([
                             else
                                 commonjs.showStatus('Follow-up Date Saved Successfully');
 
-                            // self.getFollowupDate(); AS of now commented Because deleted_dt not avail in DB
+                             self.getFollowupDate(); 
                         },
                         error: function (err, response) {
                             commonjs.handleXhrError(err, response);
@@ -261,8 +261,9 @@ define([
                         'claim_id': self.claim_id
                     },
                     success: function (data, response) {
-                        if (data && data.result) {
-                            self.previousFollowUpDate = (commonjs.checkNotEmpty(data.result.rows[0].followup_date)) ? moment(data.result.rows[0].followup_date).format('MM/DD/YYYY') : '';
+                        data  = data[0];
+                        if (data) {
+                            self.previousFollowUpDate = (commonjs.checkNotEmpty(data.followup_date)) ? moment(data.followup_date).format('MM/DD/YYYY') : '';
                             $('#txtCIFollowUpDate').val(self.previousFollowUpDate);
                         }
                         else {
