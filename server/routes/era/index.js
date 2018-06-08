@@ -1,5 +1,5 @@
 const express = require('express');
-const eraRouter = require('./eraFiles');
+const eraRouter = require('./era');
 const app = module.exports = express();
 
 app.use('/list', eraRouter);
