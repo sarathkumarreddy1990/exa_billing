@@ -14,13 +14,17 @@
         top: 12%;
         left: 3%;
     }
+
+    #ulSortList {
+        overflow: scroll;
+    }
 </style>
 
 
 <div id="divForm_Mysettings" class="divBackgroundPayment form-horizontal form-list commonBorder" style="display: block; top: 10%; height: 80%; left: 5%;">
     <h4 id="spanModalHeader" class="modal-title">User Settings</h4>
     <div style="text-align: right;width: 100%;">
-        <input type="button" style="margin-top: 1px;margin-right: 2px" id="save_settings" name="save" value="save">
+        <input type="button" class="btn btn-danger" style="margin-top: 1px;margin-right: 2px" id="save_settings" name="save" value="save">
     </div>
     <div class="row">
         <div class="col-xs-4 col-sm-4 col-md-4 col-lg-4 dragdropDiv flex-parent-vert" id="divBillingColumnOrdersList">
@@ -63,8 +67,4 @@
         <ol id="ulSortBillingList" class="simple_with_animation vertical flex-fill">
         </ol>
     </div>
-</div>
-<div style="text-align: right;width: 100%;">
-    <input type="button" style="margin-top: 1px;margin-right: 2px" id="close_settings" name="close" value="cancel">
-</div>
 </div>
