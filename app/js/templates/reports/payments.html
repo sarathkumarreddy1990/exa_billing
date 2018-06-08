@@ -9,9 +9,9 @@
                     <label class="control-label field-required" for="txtDateRange" i18n="billing.payments.accountingDate" />
                 </div>
                 <div id="divReportDate" class="input-group">
-                        <input type="date" id="txtDateRangeFrom" class="form-control" required="required" name="dateRange">
-                        <input type="date" id="txtDateRangeTo" class="form-control" required="required" name="dateRange">
-                    </div>
+                    <input type="date" id="txtDateRangeFrom" class="form-control" required="required" name="dateRange">
+                    <input type="date" id="txtDateRangeTo" class="form-control" required="required" name="dateRange">
+                </div>
             </div>
         </div>
 
@@ -22,14 +22,14 @@
                     <label class="control-label">Facilities
                     </label>
                 </div>
-                <div class="col-form-label"  class="multiselect">                    
-                        <select id="ddlFacilityFilter" multiple="multiple">
-                            <% _.each(facilities.toJSON(), function(facility) { %>
-                                <option value='<%= facility.id %>'>
-                                    <%=facility.facility_name%>
-                                </option>
-                                <% }); %>
-                        </select>                   
+                <div class="col-form-label" class="multiselect">
+                    <select id="ddlFacilityFilter" multiple="multiple">
+                        <% _.each(facilities.toJSON(), function(facility) { %>
+                            <option value='<%= facility.id %>'>
+                                <%=facility.facility_name%>
+                            </option>
+                            <% }); %>
+                    </select>
                 </div>
             </div>
         </div>
@@ -40,7 +40,7 @@
                     </label>
                 </div>
                 <div class="col-form-label" class="multiselect">
-                    <select id="ddlBillingProvider" multiple="multiple" />                  
+                    <select id="ddlBillingProvider" multiple="multiple" />
                 </div>
             </div>
         </div>
@@ -58,8 +58,6 @@
                     <div class="input-group">
                         <select id="ddlPaymentOption" class="form-control form-control-lg">
                             <option value="All">All Payments</option>
-                            <option value="S">Payments with Claim</option>
-                            <option value="G">Payments W/O Claim</option>
                         </select>
                     </div>
                 </div>
@@ -81,10 +79,11 @@
             </div>
             <div class="form-group form-inline">
                 <div id="ddlUsersBox" class="form-group form-inline" style="display: none;padding-left: 0 !important;">
-                    <label for="txtInsurnaceProvidre" class="col-sm-3 col-form-label" i18n="setup.billingprovider.insuranceprovider"></label>
-                    <div class="col-sm-5">
-                        <select id="txtUsers" style="width: 250px"> </select>
-                        <a class="btn btn-primary" id="btnAddUsers" title="Add Users"><i class="icon-ic-plus"></i></a>
+                    <div style="margin-top:60px;">
+                        <select id="txtUsers" style="width: 250px; border:1px solid;margin-top:10px"> </select>
+                        <a class="btn btn-primary" id="btnAddUsers" title="Add Users">
+                            <i class="icon-ic-plus"></i>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -96,7 +95,7 @@
                 </div>
                 <div class="form-content">
                     <div>
-                        <ul id="ulListUsers" class="ulSelectionList tagList" style="width: 330px;height:90px; border: 1px solid;">
+                        <ul id="ulListUsers" class="ulSelectionList tagList" style="overflow: auto;width: 330px;height:90px; border: 1px solid;">
                         </ul>
                     </div>
                 </div>

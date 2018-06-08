@@ -92,234 +92,156 @@ define([
                 });
             },
 
-            bindStudyStatusesToMultiselect: function (elId, facilityIds, callback) {
-                commonjs.showLoading();
-                $.ajax({
-                    url: '/getStudyStatus1',
-                    type: 'GET',
-                    data: {
-                        flag: 'study',
-                        facilities: facilityIds.length > 0 ? facilityIds : 0
-                    }
-                })
-                    .done(function (data, textStatus, jqXHR) {
-                        //data.result is array of objects [{}, {}}]
-                        if (data && data.result && data.result.length > 0) {
-                            ddlEl = $('' + elId + '');
+            // Insurance Auto Complete
 
-                            // remove all
-                            ddlEl.find('option').remove();
-                            // rebuild selections
-                            $.each(data.result, function (key, value) {
-                                ddlEl.append($('<option></option>')
-                                    .attr('value', value.status_code /*key*/)
-                                    .text(value.status_desc /*value*/));
-                            });
-                            // preselect relevant statuses
-                            //ddlEl.val(['APP', 'DIC', 'RE']).change();
-                            callback(null, ddlEl); // use the callback to pre-select statuses
-                        } else {
-                            console.log('no results!');
-                            callback(new Error('no results'), null);
-                        }
-                    })
-                    .fail(function (jqXHR, textStatus, errorThrown) {
-                        commonjs.handleXhrError(jqXHR, textStatus);
-                        callback(errorThrown, null);
-                    })
-                    .always(function () {
-                        commonjs.hideLoading();
-                    });
-            },
-
-            bindStatusesToMultiselect: function (elId, facilityIds, callback, allFacilities) {
-                commonjs.showLoading();
-                $.ajax({
-                    url: '/getStudyAndOrderStatuses',
-                    type: 'GET',
-                    data: {
-                        facilities: facilityIds && facilityIds.length > 0 ? facilityIds : 0,
-                        allFacilities: allFacilities
-                    }
-                })
-                    .done(function (data, textStatus, jqXHR) {
-                        //data.result is array of objects [{}, {}}]
-                        if (data && data.result && data.result.length > 0) {
-                            ddlEl = $('' + elId + '');
-
-                            // remove all
-                            ddlEl.find('option').remove();
-                            // rebuild selections
-                            $.each(data.result, function (key, value) {
-                                ddlEl.append($('<option></option>')
-                                    .attr('value', value.status_code /*key*/)
-                                    .text(value.status_desc /*value*/));
-                            });
-                            // preselect relevant statuses
-                            //ddlEl.val(['APP', 'DIC', 'RE']).change();
-                            callback(null, ddlEl); // use the callback to pre-select statuses
-                        } else {
-                            console.log('no results!');
-                            callback(new Error('no results'), null);
-                        }
-                    })
-                    .fail(function (jqXHR, textStatus, errorThrown) {
-                        commonjs.handleXhrError(jqXHR, textStatus);
-                        callback(errorThrown, null);
-                    })
-                    .always(function () {
-                        commonjs.hideLoading();
-                    });
-            },
-
-            bindInsuranceAutocomplete: function (fieldID, fieldName, userMessage, facilityIDs, btnAdd, ulList) {
+            bindInsuranceAutocomplete: function (userMessage, btnAdd, ulList) {
                 var self = this;
-                commonjs.setAutocompleteInfinite({
-                    containerID: "#" + fieldID,
-                    placeHolder: userMessage,
-                    inputLength: 0,
-                    URL: "/insuranceProvidersAutoComplete",
-                    data: function (term, page) {
-                        return {
-                            hide_inactive: true,
-                            pageNo: page,
-                            pageSize: 10,
-                            q: term,
-                            from: 'autocomplete',
-                            sortField: "insurance_providers.insurance_code",
-                            facility: commonjs.orderFacility,
-                            facilities: facilityIDs,
-                            sortOrder: "asc"
-                        };
+                $("#txtInsuranceName").select2({
+                    ajax: {
+                        url: "/exa_modules/billing/autoCompleteRouter/insurances",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                page: params.page || 20,
+                                q: params.term || '',
+                                pageSize: 10,
+                                sortField: "insurance_code",
+                                sortOrder: "ASC",
+                                company_id: 1
+                            };
+                        },
+                        processResults: function (data, params) {
+                            params.page = params.page || 1;
+                            return {
+                                results: data,
+                                pagination: {
+                                    more: (params.page * 30) < data[0].total_records
+                                }
+                            };
+                        },
+                        cache: true
                     },
-                    results: function (data, page) {
-                        var more = data.result.length > 0 ? (page * 10) < data.result[0].total_records : false;
-                        return { results: data.result, more: more };
-                    },
-                    formatID: function (obj) {
-                        return obj.id;
-                    },
-                    formatResult: function (res) {
-                        var insurance_info = commonjs.hstoreParse(res.insurance_info);
-                        var param = {
-                            code: res.insurance_code ? res.insurance_code : ' ',
-                            name: res.insurance_name ? res.insurance_name : ' ',
-                            address: insurance_info.Address1 ? insurance_info.Address1 : ' ',
-                            city: insurance_info.City ? insurance_info.City : ' ',
-                            state: insurance_info.State ? insurance_info.State : ' ',
-                            zip: insurance_info.ZipCode ? insurance_info.ZipCode : ' '
-                        }
-                        return commonjs.formatInsuranceACResult(param);
-                    },
-                    formatSelection: function (res) {
-                        $('#' + btnAdd).data('insuranceIdAdded', ~~res.id);
-                        $('#' + btnAdd).data('insuranceNameAdded', res.insurance_name);
+                    placeholder: 'Select carrier',
+                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 0,
+                    templateResult: formatRepo,
+                    templateSelection: formatRepoSelection
+                });
+                function formatRepo(repo) {
+                    if (repo.loading) {
+                        return repo.text;
+                    }
+                    var insurance_info = commonjs.hstoreParse(repo.insurance_info);
+                    var markup = "<table><tr>";
+                    markup += "<td  data-id='" + repo.id + " ' title='" + repo.insurance_code + "(" + repo.insurance_name + ")'> <div>" + repo.insurance_code + "(" + repo.insurance_name + ")" + "</div>";
+
+                    markup += "</td></tr></table>";
+                    return markup;
+
+                }
+                function formatRepoSelection(res) {
+                    if (res && res.id) {
                         return res.insurance_name;
                     }
-                });
-                $('#' + btnAdd).click(function () {
-                    if ($('#s2id_' + fieldID + ' > a.select2-default').length > 0) {
+                }
+
+                $('#btnAddInsurance').unbind('click').click(function () {
+                    if ($('#select2-txtInsuranceName-container > a.select2-default').length > 0) {
+                        commonjs.showWarning('Please select one Insurance to add');
+                        return false;
+                    }
+                    if ($('#ulListInsurance li a[data-id="' + $('#txtInsuranceName').select2('data')[0].id + '"]').length) {
+                        commonjs.showWarning("Insurance is already selected");
                         return false;
                     }
 
-                    // Check to see if this insurance already exists in the box
-                    var insuranceIdsList = $('#' + ulList).data('insuranceIds') || [],
-                        insuranceIdAdded = $(this).data('insuranceIdAdded');
-                    insuranceNameAdded = $(this).data('insuranceNameAdded');
-
-                    // Check to see if insurance already exists in the box
-                    if (_.indexOf(insuranceIdsList, insuranceIdAdded) !== -1) {
-                        commonjs.showError("Insurnace Already Added");
-                        return false;
-                    } else {
-                        $('#' + ulList).append('<li><span>' + insuranceNameAdded + '</span><a class="remove" data-id="' + insuranceIdAdded + '" id="' + insuranceIdAdded + '" data-value="' + insuranceNameAdded + '"><span class="icon-ic-close"></span></a></li>');
-                        insuranceIdsList.push(~~insuranceIdAdded);
-                        $('#' + ulList).data('insuranceIds', insuranceIdsList);
-                    }
+                    var data_id = $('#txtInsuranceName').select2('data')[0].id;
+                    var bind_text = $('#txtInsuranceName').select2('data')[0].insurance_name;
+                    $('#ulListInsurance').append('<li id="' + data_id + '"><span style="background:#3c91f0; color:white; border:1px solid black">' + bind_text + '</span><a class="remove" data-id="' + $('#txtInsuranceName').select2('data')[0].id + '"><span class="icon-ic-close" style="margin-left:8px;"></span></a></li>')
+                    $('#txtInsuranceName a span').html('Select User');
                 });
-                $('#' + ulList).on('click', 'a.remove', function () {
-                    var insuranceIdsList = $('#' + ulList).data('insuranceIds') || [],
-                        insuranceIdRemoved = $(this).attr('data-id');
-                    insuranceIdsList = _.without(insuranceIdsList, ~~insuranceIdRemoved);
-                    $('#' + ulList).data('insuranceIds', insuranceIdsList);
+
+                $('#ulListInsurance').delegate('a.remove', 'click', function () {
                     $(this).closest('li').remove();
-                    return;
                 });
-                $('#' + ulList).data('insuranceIds', []);
+				
+				
             },
 
-            bindCptAutocomplete: function (fieldID, fieldName, userMessage, facilityIDs, btnAdd, ulList) {
-                var self = this;
-                commonjs.setAutocompleteInfinite({
-                    containerID: '#' + fieldID,
-                    placeHolder: userMessage,
-                    inputLength: 0,
-                    URL: '/cptsAutoComplete',
-                    data: function (term, page) {
-                        return {
-                            pageNo: page,
-                            pageSize: 10,
-                            q: term,
-                            sortField: "trim(display_description)",
-                            sortOrder: "ASC",
-                            from: 'report_filter',
-                            modalities: 0,
-                            facilities: facilityIDs
-
-                        };
+            bindInsuranceProviderAutocomplete: function (userMessage, btnAdd, ulList) {
+              $("#txtInsuranceProviderName").select2({
+                    ajax: {
+                        url: "/exa_modules/billing/autoCompleteRouter/provider_group",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                page: params.page || 20,
+                                q: params.term || '',
+                                pageSize: 10,
+                                sortField: "group_name",
+                                sortOrder: "ASC",
+                                groupType: 'OF',
+                                company_id: 1
+                            };
+                        },
+                        processResults: function (data, params) {
+                            params.page = params.page || 1;
+                            return {
+                                results: data,
+                                pagination: {
+                                    more: (params.page * 30) < data[0].total_records
+                                }
+                            };
+                        },
+                        cache: true
                     },
-                    results: function (data, page) {
-                        var more = data && data.result && data.result.length > 0 ? (page * 10) < data.result[0].total_records : false;
-                        return { results: data.result, more: more };
-                    },
-
-                    formatID: function (obj) {
-                        if (obj.id) {
-                            return obj.id;
-                        }
-                    },
-
-                    formatResult: function (res) {
-                        return commonjs.formatACResult(res.display_code, res.display_description, res.is_active, res.linked_cpt_codes ? res.linked_cpt_codes.toString() : "", true);
-                    },
-
-                    formatSelection: function (res) {
-                        $('#' + btnAdd).data('cptIdAdded', ~~res.id);
-                        $('#' + btnAdd).data('cptNameAdded', res.display_code);
-                        return res.display_code;
-                    }
+                    placeholder: 'Select Insurance  Provider',
+                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 0,
+                    templateResult: formatRepo,
+                    templateSelection: formatRepoSelection
                 });
-                $('#' + btnAdd).click(function () {
-                    if ($('#s2id_' + fieldID + ' > a.select2-default').length > 0) {
+                function formatRepo(repo) {
+                    if (repo.loading) {
+                        return repo.text;
+                    }
+                    var markup = "<table class='ref-result' style='width: 100%'><tr>";
+                    markup += "<td class='movie-info'><div class='movie-title'><b>" + repo.group_name + "</b> </div>";
+                    markup += "</td></tr></table>";
+                    return markup;
+
+                }
+                function formatRepoSelection(res) {
+                    self.group_name = res.group_name;
+                    self.group_id = res.provider_group_id;
+                    if (res && res.id) {
+                        return res.group_name;
+                    }                    
+                }
+                $('#btnAddInsuranceProvider').unbind('click').click(function () {
+                    if ($('#select2-txtInsuranceProviderName-container > a.select2-default').length > 0) {
+                        commonjs.showWarning('Please select one Insurance provider to add');
                         return false;
                     }
-
-                    // Check to see if this CPT already exists in the box
-                    var cptIdsList = $('#' + ulList).data('cptIds') || [],
-                        cptIdAdded = $(this).data('cptIdAdded');
-                    cptNameAdded = $(this).data('cptNameAdded');
-
-                    // Check to see if CPT already exists in the box
-                    if (_.indexOf(cptIdsList, cptIdAdded) !== -1) {
-                        commonjs.showError("CPT Already Added");
+                    if ($('#ulListInsuranceProvider li a[data-id="' + $('#txtInsuranceProviderName').select2('data')[0].id + '"]').length) {
+                        commonjs.showWarning("Insurance group is already selected");
                         return false;
-                    } else {
-                        $('#' + ulList).append('<li><span>' + cptNameAdded + '</span><a class="remove" data-id="' + cptIdAdded + '" id="' + cptIdAdded + '" data-value="' + cptNameAdded + '"><span class="icon-ic-close"></span></a></li>');
-                        cptIdsList.push(~~cptIdAdded);
-                        $('#' + ulList).data('cptIds', cptIdsList);
                     }
+                    var data_id = $('#txtInsuranceProviderName').select2('data')[0].id;
+                    var bind_text = $('#txtInsuranceProviderName').select2('data')[0].group_name;
+                    $('#ulListInsuranceProvider').append('<li id="' + data_id + '"><span style="background:#3c91f0; color:white; border:1px solid black">' + bind_text + '</span><a class="remove" data-id="' + $('#txtInsuranceProviderName').select2('data')[0].id + '"><span class="icon-ic-close" style="margin-left:8px;"></span></a></li>')
+                    $('#txtInsuranceProviderName a span').html('Select User');
                 });
-                $('#' + ulList).on('click', 'a.remove', function () {
-                    var cptIdsList = $('#' + ulList).data('cptIds') || [],
-                        cptIdRemoved = $(this).attr('data-id');
-                    cptIdsList = _.without(cptIdsList, ~~cptIdRemoved);
-                    $('#' + ulList).data('cptIds', cptIdsList);
+
+                $('#ulListInsuranceProvider').delegate('a.remove', 'click', function () {
                     $(this).closest('li').remove();
-                    return;
                 });
-                $('#' + ulList).data('cptIds', []);
-
             },
+
+            // Referring Provider Auto Complete
+
             bindReferringPhysicianAutoComplete: function (fieldID, userMessage, btnAdd, ulList) {
                 var self = this;
                 commonjs.setAutocompleteInfinite({
@@ -387,6 +309,8 @@ define([
                 $('#' + ulList).data('referringPhysicianIds', []);
             },
 
+            // User Auto Complete
+
             bindUsersAutoComplete: function (fieldID, userMessage, btnAdd, ulList) {
                 var self = this;
                 commonjs.setAutocompleteInfinite({
@@ -423,114 +347,9 @@ define([
                         return res.username;
                     }
                 });
-                $('#' + btnAdd).click(function () {
-                    if ($('#s2id_' + fieldID + ' > a.select2-default').length > 0) {
-                        return false;
-                    }
-                    var userIdsList = $('#' + ulList).data('userIds') || [],
-                        userIdAdded = $(this).data('userIdAdded'),
-                        userNameAdded = $(this).data('userNameAdded');
-
-                    // Check to see if patients already exists in the box
-                    if (_.indexOf(userIdsList, userIdAdded) !== -1) {
-                        commonjs.showError("User Already Added");
-                        return false;
-                    } else {
-                        $('#' + ulList).append('<li><span>' + userNameAdded + '</span><a class="remove" data-id="' + userIdAdded + '" id="' + userIdAdded + '" data-value="' + userNameAdded + '"><span class="icon-ic-close"></span></a></li>');
-
-                        userIdsList.push(~~userIdAdded);
-                        $('#' + ulList).data('userIds', userIdsList);
-                    }
-                });
-
-                $('#' + ulList).on('click', 'a.remove', function () {
-                    var userIdsList = $('#' + ulList).data('userIds') || [],
-                        userIdRemoved = $(this).attr('data-id');
-
-                    userIdsList = _.without(userIdsList, ~~userIdRemoved);
-                    $('#' + ulList).data('userIds', userIdsList);
-                    $(this).closest('li').remove();
-                    return;
-                });
-
-                $('#' + ulList).data('userIds', []);
             },
 
-            bindInsuranceProviderGroupAutocomplete: function (fieldID, fieldName, userMessage, facilityIDs, btnAdd, ulList) {
-                var self = this;
-                commonjs.setAutocompleteInfinite({
-                    containerID: "#" + fieldID,
-                    placeHolder: userMessage,
-                    inputLength: 0,
-                    URL: "/insuranceProviders",
-                    data: function (term, page) {
-                        return {
-                            pageNo: page,
-                            pageSize: 10,
-                            q: term,
-                            from: 'autocomplete',
-                            sortField: "insurance_providers.insurance_code",
-                            facility: commonjs.orderFacility,
-                            facilities: facilityIDs,
-                            sortOrder: "asc"
-                        };
-                    },
-                    results: function (data, page) {
-                        var more = data.result.length > 0 ? (page * 10) < data.result[0].total_records : false;
-                        return { results: data.result, more: more };
-                    },
-                    formatID: function (obj) {
-                        return obj.id;
-                    },
-                    formatResult: function (res) {
-                        var insurance_info = commonjs.hstoreParse(res.insurance_info);
-                        var param = {
-                            code: res.insurance_code ? res.insurance_code : ' ',
-                            name: res.insurance_name ? res.insurance_name : ' ',
-                            address: insurance_info.Address1 ? insurance_info.Address1 : ' ',
-                            city: insurance_info.City ? insurance_info.City : ' ',
-                            state: insurance_info.State ? insurance_info.State : ' ',
-                            zip: insurance_info.ZipCode ? insurance_info.ZipCode : ' '
-                        }
-                        return commonjs.formatInsuranceACResult(param);
-                    },
-                    formatSelection: function (res) {
-                        $('#' + btnAdd).data('insuranceIdAdded', ~~res.id);
-                        $('#' + btnAdd).data('insuranceNameAdded', res.insurance_name);
-                        return res.insurance_name;
-                    }
-                });
-                $('#' + btnAdd).click(function () {
-                    if ($('#s2id_' + fieldID + ' > a.select2-default').length > 0) {
-                        return false;
-                    }
-
-                    // Check to see if this insurance already exists in the box
-                    var insuranceIdsList = $('#' + ulList).data('insuranceIds') || [],
-                        insuranceIdAdded = $(this).data('insuranceIdAdded');
-                    insuranceNameAdded = $(this).data('insuranceNameAdded');
-
-                    // Check to see if insurance already exists in the box
-                    if (_.indexOf(insuranceIdsList, insuranceIdAdded) !== -1) {
-                        commonjs.showError("Insurnace Already Added");
-                        return false;
-                    } else {
-                        $('#' + ulList).append('<li><span>' + insuranceNameAdded + '</span><a class="remove" data-id="' + insuranceIdAdded + '" id="' + insuranceIdAdded + '" data-value="' + insuranceNameAdded + '"><span class="icon-ic-close"></span></a></li>');
-                        insuranceIdsList.push(~~insuranceIdAdded);
-                        $('#' + ulList).data('insuranceIds', insuranceIdsList);
-                    }
-                });
-                $('#' + ulList).on('click', 'a.remove', function () {
-                    var insuranceIdsList = $('#' + ulList).data('insuranceIds') || [],
-                        insuranceIdRemoved = $(this).attr('data-id');
-                    patientIdsList = _.without(insuranceIdsList, ~~insuranceIdRemoved);
-                    $('#' + ulList).data('insuranceIds', insuranceIdsList);
-                    $(this).closest('li').remove();
-                    return;
-                });
-                $('#' + ulList).data('insuranceIds', []);
-            },
-
+            
             bindBillingProvider: function () {
                 $.ajax({
                     type: 'GET',
@@ -568,35 +387,13 @@ define([
                 })
             },
 
-            bindBillingProviderMultiSelect: function () {
-                jQuery.ajax({
-                    url: "/getBillingProviderInfo",
-                    type: "GET",
-                    data: {
-                        siteId: app.siteID,
-                        from: 'claim transaction'
-                    },
-                    success: function (model, response) {
-                        if (model && model.result) {
-                            var ddlBillingProvider = $('#billingCheckboxes');
-                            var billingProviders = model.result.billingProviders;
-                            if (billingProviders && billingProviders.length > 0) {
-                                for (var b = 0; b < billingProviders.length; b++) {
-                                    var id = billingProviders[b].id;
-                                    var full_name = billingProviders[b].full_name;
-                                    ddlBillingProvider.append('<div class="billingProviderchkBx ddl"><input class="billingProvider ddl" id=billingProvider_' + id + ' type="checkbox" name="allBillingProviders" value="' + id + '"> <label class="checkbox-inline" id="billingProvider_' + id + '" for="billingProvider_' + id + '"> ' + full_name + '</label> </input></div>');
-                                }
-                            }
-                        }
-                    }
-                })
-            },
+            // Users Auto Complete
 
             listUsersAutoComplete: function () {
                 var self = this;
                 $("#txtUsers").select2({
                     ajax: {
-                        url: "/exa_modules/billing/autoCompleteRouter/insurances",
+                        url: "/exa_modules/billing/autoCompleteRouter/getUsers",
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
@@ -604,7 +401,7 @@ define([
                                 page: params.page || 20,
                                 q: params.term || '',
                                 pageSize: 10,
-                                sortField: "insurance_code",
+                                sortField: "user_name",
                                 sortOrder: "ASC",
                                 company_id: 1
                             };
@@ -624,16 +421,15 @@ define([
                     escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
                     minimumInputLength: 0,
                     templateResult: formatRepo,
-                    templateSelection: formatRepoSelection                   
+                    templateSelection: formatRepoSelection
                 });
                 function formatRepo(repo) {
                     if (repo.loading) {
                         return repo.text;
                     }
-                    var insurance_info = commonjs.hstoreParse(repo.insurance_info);
                     var markup = "<table><tr>";
-                    markup += "<td  data-id='" + repo.id +  " ' title='" + repo.insurance_code + "(" + repo.insurance_name + ")'> <div>" + repo.insurance_code + "(" + repo.insurance_name + ")" + "</div>";
-                   
+                    markup += "<td  data-id='" + repo.id + " ' title='" + repo.user_id + "(" + repo.user_name + ")'> <div>" + repo.user_id + "(" + repo.user_name + ")" + "</div>";
+
                     markup += "</td></tr></table>";
                     return markup;
 
@@ -645,95 +441,102 @@ define([
                 }
             },
 
-            setEvents: function () {
-                $('#btnAddUsers').unbind('click').click(function () {
-                    if ($('#s2id_txtUsers > a.select2-default').length > 0) {
-                        commonjs.showWarning('Please select one user to add');
+            // Common Click Events
+            setEvents: function (fieldId, fieldName, ulList) {
+                $('#' + fieldId).unbind('click').click(function () {
+                    var uListIds = $('#' + ulList).data('id') || [];                    
+
+                    if ($('#s2id_' + fieldName +'  > a.select2-default').length > 0) {                  
+                        commonjs.showWarning('Please select one  to add');
                         return false;
                     }
-                    if ($('#ulListUsers li a[data-id="' +$('#txtUsers').select2('data')[0].id + '"]').length) {
-                        commonjs.showWarning("User is already selected");
+
+                    if ($('#' + ulList + 'li a[data-id="' + $('#' + fieldName).select2('data')[0].id + '"]').length) {
+                        commonjs.showWarning("Already selected");
                         return false;
                     }
-                    var data_id = $('#txtUsers').select2('data')[0].id;
-                    var bind_text = $('#txtUsers').select2('data')[0].insurance_name;
-                    $('#ulListUsers').append('<li id="' + data_id + '"><span>' + bind_text + '</span><a class="remove" data-id="' + $('#txtUsers').select2('data')[0].id + '"><span class="icon-ic-close"></span></a></li>')
-                    $('#txtUsers a span').html('Select User');
+                    var data_id = $('#' + fieldName).select2('data')[0].id;
+                    var bind_text = $('#' + fieldName).select2('data')[0].text;
+                    $('#' + ulList).append('<li id="' + data_id + '"><span style="background:#3c91f0; color:white; border:1px solid black">' + bind_text + '</span><a class="remove" data-id="' + $('#' + fieldName).select2('data')[0].id + '"><span class="icon-ic-close" style="margin-left:8px;"></span></a></li>')
+                    $('#' + fieldName + 'a span').html('Select Any One');
                 });
 
-
-                $('#ulListUsers').delegate('a.remove', 'click', function () {
+                $('#' + ulList).delegate('a.remove', 'click', function () {
                     $(this).closest('li').remove();
+                    return;
                 });
             },
 
             bindPatient: function (fieldID, userMessage, btnAdd, ulList) {
                 var self = this;
-                commonjs.setAutocompleteInfinite({
-                    containerID: '#' + fieldID,
-                    placeHolder: userMessage,
-                    inputLength: 0,
-                    URL: "/patientAutoComplete",
-                    data: function (term, page) {
-                        return {
-                            pageNo: page,
-                            pageSize: 10,
-                            q: term,
-                            from: 'autocomplete',
-                            sortField: "patients.id",
-                            sortOrder: "ASC",
-                            flag: 'reports',
-                            providercontact_ids: app.providercontact_ids
-                        };
+                var self = this;
+                $('#txtPatient a span').html('Select Patient');
+                $("#txtPatient").select2({
+                    ajax: {
+                        url: "/exa_modules/billing/autoCompleteRouter/patients",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                page: params.page || 20,
+                                q: params.term || '',
+                                pageSize: 10,
+                                sortField: "",
+                                sortOrder: "ASC",
+                                company_id: 1
+                            };
+                        },
+                        processResults: function (data, params) {
+                            params.page = params.page || 1;
+                            return {
+                                results: data,
+                                pagination: {
+                                    more: (params.page * 30) < data[0].total_records
+                                }
+                            };
+                        },
+                        cache: true
                     },
-                    results: function (data, page) {
-                        var more = data.result.length > 0 ? (page * 10) < data.result[0].total_records : false;
-                        return { results: data.result, more: more };
-                    },
-                    formatID: function (obj) {
-                        return obj.id;
-                    },
-                    formatResult: function (res) {
-                        return commonjs.formatPatientAutoComplete(res.full_name, res.gender, res.birth_date ? commonjs.getFormattedDate(res.birth_date) : '', res.account_no, res.is_active);
-                    },
-                    formatSelection: function (res) {
-                        $('#' + btnAdd).data('patientIdAdded', ~~res.id);
-                        $('#' + btnAdd).data('patientNameAdded', res.full_name);
+                    placeholder: 'Select Patient',
+                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 0,
+                    templateResult: formatRepo,
+                    templateSelection: formatRepoSelection
+                });
+                function formatRepo(repo) {
+                    if (repo.loading) {
+                        return repo.full_name;
+                    }
+                    var markup = "<table><tr>";
+                    markup += "<td data-id='" + repo.id + " ' title='" + repo.full_name + "(" + repo.account_no + ")'> <div>" + repo.full_name + "(" + repo.account_no + ")" + "</div>";
+                    markup += "</td></tr></table>";
+                    return markup;
+
+                }
+                function formatRepoSelection(res) {
+                    if (res && res.id) {
                         return res.full_name;
                     }
-                });
+                }
 
-                $('#' + btnAdd).click(function () {
-                    if ($('#s2id_' + fieldID + ' > a.select2-default').length > 0) {
+                $('#btnAddPatient').unbind('click').click(function () {
+                    if ($('#s2id_txtPatient > a.select2-default').length > 0) {
+                        commonjs.showWarning('Please select one patient to add');
                         return false;
                     }
-
-                    // Check to see if this patient already exists in the box
-                    var patientIdsList = $('#' + ulList).data('patientIds') || [],
-                        patientIdAdded = $(this).data('patientIdAdded');
-                    patientNameAdded = $(this).data('patientNameAdded');
-
-                    // Check to see if patients already exists in the box
-                    if (_.indexOf(patientIdsList, patientIdAdded) !== -1) {
-                        commonjs.showError("Patient Already Added");
+                    if ($('#ulListPatients li a[data-id="' + $('#txtPatient').select2('data')[0].id + '"]').length) {
+                        commonjs.showWarning("Patient is already selected");
                         return false;
-                    } else {
-                        $('#' + ulList).append('<li><span>' + patientNameAdded + '</span><a class="remove" data-id="' + patientIdAdded + '" id="' + patientIdAdded + '" data-value="' + patientNameAdded + '"><span class="icon-ic-close"></span></a></li>');
-
-                        patientIdsList.push(~~patientIdAdded);
-                        $('#' + ulList).data('patientIds', patientIdsList);
                     }
+                    var data_id = $('#txtPatient').select2('data')[0].id;
+                    var bind_text = $('#txtPatient').select2('data')[0].full_name;
+                    $('#ulListPatients').append('<li id="' + data_id + '"><span style="background:#3c91f0; color:white; border:1px solid black">' + bind_text + '</span><a class="remove" data-id="' + $('#txtPatient').select2('data')[0].id + '"><span class="icon-ic-close" style="margin-left:8px;"></span></a></li>')
+                    $('#txtPatient a span').html('Select User');
                 });
 
-                $('#' + ulList).on('click', 'a.remove', function () {
-                    var patientIdsList = $('#' + ulList).data('patientIds') || [],
-                        patientIdRemoved = $(this).attr('data-id');
-                    patientIdsList = _.without(patientIdsList, ~~patientIdRemoved);
-                    $('#' + ulList).data('patientIds', patientIdsList);
+                $('#ulListPatients').delegate('a.remove', 'click', function () {
                     $(this).closest('li').remove();
-                    return;
                 });
-                $('#' + ulList).data('patientIds', []);
             },
 
             bindProviderGroupAutoComplete: function (fieldID, userMessage, btnAdd, ulList) {
@@ -803,87 +606,6 @@ define([
                 });
 
                 $('#' + ulList).data('ids', []);
-            },
-
-            /**
-             * Fetch all the modalities for a facility. 'active modalities and 'all' modalities is passed to a callback
-             *
-             * @param callback
-             */
-            fetchModalities: function (callback) {
-                var modalityList = new ModalityList;
-                modalityList.fetch({
-                    data: {
-                        'sortField': 'modality_code',
-                        'sortOrder': 'asc',
-                        'pageSize': 1000,
-                        'pageNo': 1,
-                        'filterCol': '[]',
-                        'filterData': '[]'
-                    },
-                    processData: true,
-                    success: function (model, response) {
-                        var active = [];
-                        var modalities = response.result;
-                        if (!_.isEmpty(modalities)) {
-                            active = _.filter(modalities, function (modality) {
-                                return modality.is_active;
-                            });
-                        }
-
-                        callback(null, {
-                            'active': active,
-                            'all': !_.isEmpty(modalities) ? modalities : []
-                        });
-                    }
-                });
-            },
-
-            /**
-             * Helper function used in multiple reporting views to easily replace the dropdown option values in a select
-             * for a list of modality codes, given the select box id, the array of options, and the val and the text
-             * attribute that is used in the array of options for the value and text html properties
-             *
-             * @param {String} select id of the select box
-             * @param {object[]} options An array of new options
-             * @param {String} val The value to access on the option object for setting the option value
-             * @param {String} text The value to access on the options object for setting the option text
-             */
-            replaceModalityOptions: function (select, options, val, text) {
-                var $select = $('#' + select);
-                $select.empty();
-
-                _.each(options, function (option) {
-                    var $option = $("<option data-attr-id='" + option.id + "'></option>")
-                        .attr("value", option[val])
-                        .text(option[text]);
-
-                    if (!option.is_active) {
-                        $option.addClass('report__inactive-modality');
-                    }
-
-                    $select.append($option);
-                });
-            },
-
-            /**
-             * Get the list of inactive modality codes from the modality select box we use everywhere (#ddlModalities)
-             *
-             * @returns {Array}
-             */
-            getInactiveModalityCodes: function () {
-                var inactiveModalityCodes = [];
-                var selectedModalities = $('#ddlModalities').find(':selected');
-
-                _.each(selectedModalities, function (modality) {
-                    var $modality = $(modality);
-
-                    if ($modality.hasClass('report__inactive-modality')) {
-                        inactiveModalityCodes.push($modality.val());
-                    }
-                });
-
-                return inactiveModalityCodes;
             }
         };
 

@@ -20,16 +20,12 @@ module.exports = {
         INNER JOIN public.patients pp on pp.id = bc.patient_id 
         INNER JOIN billing.charges bch on bch.claim_id = bc.id
         INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
-
         WHERE NOT EXISTS (SELECT 1 FROM billing.payment_applications bpa 
             INNER JOIN billing.payments bp ON bp.id = bpa.payment_id
             WHERE  bpa.charge_id = bch.id
             AND payment_id = ${params.customArgs.paymentID})
-     
-
         AND (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) > 0::money 
         group by bc.id, bc.invoice_no, bc.claim_dt, pp.account_no, get_full_name(pp.last_name,pp.first_name), bch.id
-
         LIMIT ${params.pageSize} OFFSET ${((params.pageNo - 1) * params.pageSize)} 
         `);
     },
@@ -58,7 +54,6 @@ module.exports = {
         INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
         WHERE bp.id = ${params.customArgs.paymentID}
         GROUP BY bc.id, bc.invoice_no, get_full_name(pp.last_name,pp.first_name), bc.claim_dt, bch.id 
-        
         LIMIT ${params.pageSize} OFFSET ${((params.pageNo - 1) * params.pageSize)} 
         `);
     },
@@ -67,7 +62,7 @@ module.exports = {
         let joinQuery = '';
         let selectQuery = ``;
         let groupByQuery = '';
-        
+
         if (params.paymentStatus && params.paymentStatus == 'applied') {
             joinQuery = ` LEFT JOIN billing.payment_applications ppa ON ppa.charge_id = ${params.charge_id} AND payment_id =  ${params.paymentId} `; //-- bch.id AND payment_id =  ${params.paymentId} `;
             selectQuery = ` , ppa.id AS payment_application_id, adjustment_code_id, amount AS payment_application_amount, amount_type AS payment_application_amount_type `;
@@ -212,44 +207,5 @@ module.exports = {
                 payment_application_id = ${params.paymentApplicationId}
             `
         );
-    },
-
-    getAdjustmentCodesAndPayerType: async function () {
-        return await query(`   
-        WITH payer_types AS
-        (
-            SELECT Json_agg(Row_to_json(payer_types)) payer_types
-                FROM   (
-		            SELECT bc.patient_id, 
-                        bc.facility_id, 
-                        bc.primary_patient_insurance_id AS primary, 
-                        bc.ordering_facility_id AS order_facility_id, 
-                        bc.referring_provider_contact_id, 
-                        payer_type 
-		            FROM billing.claims bc
-                        LEFT JOIN public.patients ON patients.id = bc.patient_id
-                        LEFT JOIN public.facilities ON facilities.id = bc.facility_id
-                        LEFT JOIN public.insurance_providers ON insurance_providers.id = bc.primary_patient_insurance_id
-                        LEFT JOIN provider_groups ON provider_groups.id = bc.ordering_facility_id
-                        LEFT JOIN public.providers ON providers.id = bc.referring_provider_contact_id 
-                    WHERE bc.id = 1
-                        )
-                AS payer_types ),
-                    adjustment_codes AS(
-            SELECT Json_agg(Row_to_json(adjustment_codes)) adjustment_codes
-                FROM  (
-                    SELECT code,
-                       description,
-                       accounting_entry_type 
-                FROM billing.adjustment_codes 
-                WHERE company_id = 1
-                    ) 
-                AS adjustment_codes)
-            SELECT *
-                FROM   
-                payer_types,                      
-                adjustment_codes   
-        `
-        );
-    },
+    }
 };

@@ -1,5 +1,6 @@
 define('grid', [
     'jquery',
+    'underscore',
     'change-grid',
     'shared/utils',
     'models/pager',
@@ -8,8 +9,9 @@ define('grid', [
     'collections/claim-workbench',
     'views/claims/index',
     'views/user-settings',
-    'views/setup/study-filter'
-], function (jQuery, initChangeGrid, utils, Pager, StudyFields, Studies, claimWorkbench, claimsView, UserSettingsView, StudyFilterView) {
+    'views/setup/study-filter',
+    'text!templates/setup/study-filter-grid.html'
+], function (jQuery, _, initChangeGrid, utils, Pager, StudyFields, Studies, claimWorkbench, claimsView, UserSettingsView, StudyFilterView, studyFilterGrid) {
     var $ = jQuery;
     var isTrue = utils.isTrue;
     var isFalse = utils.isFalse;
@@ -83,19 +85,90 @@ define('grid', [
             var studyIds = studyArray.join();
             if (isClaimGrid) {
 
-                var liClaimStatus = '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.flagAs">Change Claim Status</a><ul id="ul_change_claim_status" style="float:right;" class="dropdown-menu"></ul></li>';
+                var liClaimStatus = '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.flagAs" class="dropdown-item">Change Claim Status</a><ul id="ul_change_claim_status" style="float:right;" class="dropdown-menu"></ul></li>';
                 $divObj.append(liClaimStatus);
+                var liArray = [];
+                $.each(app.claim_status, function (index, claimStatus) {                   
+                        var $claimStatusLink = $('<li><a class="dropdown-item" id="ancclaimStatus_' + claimStatus.id + '"  data-d_claim_status="' + claimStatus.description + '" href="javascript: void(0)" >' + claimStatus.description + '</a></li>');
+                        $claimStatusLink.click(function () {
 
-                var liBillingCode = '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.flagAs">Change Billing Code</a><ul id="ul_change_billing_code" style="float:right;" class="dropdown-menu"></ul></li>';
+                            $.ajax({
+                                url: '/exa_modules/billing/claimWorkbench/update',
+                                type: 'PUT',
+                                data: {
+                                    claimIds: studyIds,
+                                    claim_status_id:claimStatus.id
+                                },
+                                success: function (data, response) {
+                                    commonjs.showStatus('Claim Status has been changed');
+                                },
+                                error: function (err, response) {
+                                    commonjs.handleXhrError(err, response);
+                                }
+                            });
+                        });
+                        liArray[liArray.length] = $claimStatusLink;
+                });
+                $('#ul_change_claim_status').append(liArray);
+
+                var liBillingCode = '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.flagAs" class="dropdown-item">Change Billing Code</a><ul id="ul_change_billing_code" style="float:right;" class="dropdown-menu"></ul></li>';
                 $divObj.append(liBillingCode);
+                var liArrayBillingCode = [];
+                $.each(app.billing_codes, function (index, billing_code) {                   
+                        var $billingCodeLink = $('<li><a class="dropdown-item" id="ancBillingCode_' + billing_code.id + '"  data-d_billing_code="' + billing_code.description + '" href="javascript: void(0)" >' + billing_code.description + '</a></li>');
+                        $billingCodeLink.click(function () {
+                            $.ajax({
+                                url: '/exa_modules/billing/claimWorkbench/update',
+                                type: 'PUT',
+                                data: {
+                                    claimIds: studyIds,
+                                    billing_code_id:billing_code.id
+                                },
+                                success: function (data, response) {
+                                    commonjs.showStatus('Billing Code has been changed');
+                                },
+                                error: function (err, response) {
+                                    commonjs.handleXhrError(err, response);
+                                }
+                            });
+                        });
+                        liArrayBillingCode[liArrayBillingCode.length] = $billingCodeLink;
+                });
+                $('#ul_change_billing_code').append(liArrayBillingCode);
 
-                var liBillingClass = '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.flagAs">Change Billing Class</a><ul id="ul_change_billing_class" style="float:right;" class="dropdown-menu"></ul></li>';
+
+                 
+                var liBillingClass = '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.flagAs" class="dropdown-item">Change Billing Class</a><ul id="ul_change_billing_class" style="float:right;" class="dropdown-menu"></ul></li>';
                 $divObj.append(liBillingClass);
+                var liArrayBillingClass = [];
+                $.each(app.billing_classes, function (index, billing_class) {                   
+                        var $BillingClassLink = $('<li><a class="dropdown-item" id="ancBillingClass_' + billing_class.id + '"  data-d_billing_class="' + billing_class.description + '" href="javascript: void(0)" >' + billing_class.description + '</a></li>');
+                        $BillingClassLink.click(function () {
+                                $.ajax({
+                                    url: '/exa_modules/billing/claimWorkbench/update',
+                                    type: 'PUT',
+                                    data: {
+                                        claimIds: studyIds,
+                                        billing_class_id:billing_class.id
+                                    },
+                                    success: function (data, response) {
+                                        commonjs.showStatus('Billing Classes has been changed');
+                                    },
+                                    error: function (err, response) {
+                                        commonjs.handleXhrError(err, response);
+                                    }
+                                });
+                            });
+                       
+                        liArrayBillingClass[liArrayBillingClass.length] = $BillingClassLink;
+                });
+                $('#ul_change_billing_class').append(liArrayBillingClass);
 
-                var liPayerType = '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.flagAs">Change Payer type</a><ul id="ul_change_payer_type" style="float:right;" class="dropdown-menu"></ul></li>';
+              
+                var liPayerType = '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.flagAs" class="dropdown-item">Change Payer type</a><ul id="ul_change_payer_type" style="float:right;" class="dropdown-menu"></ul></li>';
                 $divObj.append(liPayerType);
 
-                var liEditClaim = '<li><a id="anc_edit_claim" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log">Edit Claim</a></li>';
+                var liEditClaim = '<li><a id="anc_edit_claim" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log" class="dropdown-item">Edit Claim</a></li>';
                 $divObj.append(liEditClaim);
                 $('#anc_edit_claim').off().click(function () {
 
@@ -103,27 +176,26 @@ define('grid', [
                     self.claimView.showEditClaimForm(studyIds);
                 });
 
-                var liClaimInquiry = '<li><a id="anc_claim_inquiry" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log">Claim Inquiry</a></li>';
+                var liClaimInquiry = '<li><a id="anc_claim_inquiry" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log" class="dropdown-item">Claim Inquiry</a></li>';
                 $divObj.append(liClaimInquiry);
                 $('#anc_claim_inquiry').click(function () {
                     alert(studyIds)
                 });
 
-                var liSplitOrders = '<li><a id="anc_split_orders" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log">Create/split Orders</a></li>';
+                var liSplitOrders = '<li><a id="anc_split_orders" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log" class="dropdown-item">Create/split Orders</a></li>';
                 $divObj.append(liSplitOrders);
                 $('#anc_split_orders').click(function () {
                     alert(studyIds)
                 });
 
             } else {
-                var liCreateClaim = '<li><a id="anc_create_claim" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log">Create Claim</a></li>';
+                var liCreateClaim = '<li><a id="anc_create_claim" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log" class="dropdown-item">Create Claim</a></li>';
                 $divObj.append(liCreateClaim);
                 $('#anc_create_claim').off().click(function () {
                     window.localStorage.setItem('selected_studies', null);
                     window.localStorage.setItem('selected_studies', JSON.stringify(study));
                     self.claimView = new claimsView();
                     self.claimView.showClaimForm(studyIds);
-                   
                 });
             }
 
@@ -181,12 +253,12 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 (options.isClaimGrid ? '<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />' : ''),
-                '', '', '', '', ''
+                '', '', '', '', '',''
 
             ]);
 
             i18nName = i18nName.concat([
-                '', '', '', '', '', ''
+                '', '', '', '', '', '',''
             ]);
 
             colModel = colModel.concat([
@@ -209,18 +281,30 @@ define('grid', [
                     sortable: false,
                     resizable: false,
                     search: false,
-                    hidden: true,
+                    hidden: !options.isClaimGrid,
                     isIconCol: true,
                     formatter: function () {
                         return "<i class='icon-ic-edit' title='Edit'></i>"
                     },
-                    customAction: function (rowID, e, that) {
-                        if (true) {
-                            var gridData = getData(rowID, studyStore, gridID);
-                            if (gridData === null || isTrue(gridData.has_deleted)) {
-                                return false;
-                            }
-                        }
+                    customAction: function (rowID, e, that) { 
+                        self.claimView = new claimsView();
+                        self.claimView.showEditClaimForm(rowID);
+                        return false;
+                    }
+                },
+                {
+                    name: 'as_claim_inquiry',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: !options.isClaimGrid,
+                    isIconCol: true,
+                    formatter: function () {
+                        return "<i class='icon-ic-raw-transctipt' title='Claim Inquiry'></i>"
+                    },
+                    customAction: function (rowID, e, that) {  
+                        alert('Claim Inquiry is In-progress')                      
                         return false;
                     }
                 },
@@ -362,10 +446,19 @@ define('grid', [
             });
 
             $('#btnStudyFilter').unbind().click(function (e) {
-                self.StudyFilterView = new StudyFilterView();
-                self.StudyFilterView.showForm();
-            });
-
+                
+                                commonjs.showDialog(
+                                    {
+                                        "width": "75%",
+                                        "height": "75%",
+                                        "header": "Study Filter",
+                                        "needShrink": true
+                                    });
+                
+                                    self.StudyFilterView = new StudyFilterView({el: $('#modal_div_container')});
+                                    self.StudyFilterView.showGrid();
+                                    $('#tblStudyFilterGrid').append(self.template);
+                            });
             claimsTable.render({
                 gridelementid: gridID,
                 custompager: new Pager(),

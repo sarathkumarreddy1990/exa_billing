@@ -1,35 +1,106 @@
-const {SQL, query } = require('../index');
+const { SQL, query } = require('../index');
 
 
 module.exports = {
 
-    save: async function (args) { 
-        let insert_study_filter = SQL` INSERT INTO billing.grid_filters (
-            user_id
-            ,filter_order
-            ,filter_type
-            ,filter_name
-            ,filter_info
-            ,display_as_tab
-            ,is_global_filter
-            ,display_in_ddl
-            ,is_active
+    save: async function (args) {
+
+        args.userId = args.userId ? args.userId : 1;
+        let insert_update_study_filter = SQL` WITH insert_grid_filter AS
+        (
+            INSERT INTO billing.grid_filters (
+                user_id
+                ,filter_order
+                ,filter_type
+                ,filter_name
+                ,filter_info
+                ,display_as_tab
+                ,is_global_filter
+                ,display_in_ddl
+                ,is_active
+            )
+            SELECT        
+                ${args.userId}
+                ,${args.filterOrder}
+                ,${args.filterType}
+                ,${args.filterName}
+                ,${args.jsonData}
+                ,${args.isDisplayAsTab}
+                ,${args.isGlobal}
+                ,${args.isDisplayInDropDown}
+                ,${args.isActive}
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM billing.grid_filters WHERE filter_name ILIKE ${args.filterName} LIMIT 1
+                )
+                RETURNING id
+        ),
+        update_grid_filter AS
+        (
+            UPDATE
+            billing.grid_filters 
+            SET
+            filter_order = ${args.filterOrder}
+            ,filter_type = ${args.filterType}
+            ,filter_name = ${args.filterName}
+            ,filter_info = ${args.jsonData}
+            ,display_as_tab = ${args.isDisplayAsTab}
+            ,is_global_filter = ${args.isGlobal}
+            ,display_in_ddl = ${args.isDisplayInDropDown}
+            ,is_active = ${args.isActive}
+            WHERE
+            id = ${args.id}
+            AND NOT EXISTS (
+                SELECT 1 FROM  billing.grid_filters 
+                WHERE filter_name ILIKE ${args.filterName}
+                AND id !=  ${args.id}
+                LIMIT 1
+            )
+            RETURNING id
         )
-        SELECT        
-            ${args.userId}
-            ,${args.filterOrder}
-            ,${args.filterType}
-            ,${args.filterName}
-            ,${args.jsonData}
-            ,${args.isDisplayAsTab}
-            ,${args.isGlobal}
-            ,${args.isDisplayInDropDown}
-            ,${args.isActive}
-            FROM 
-            billing.grid_filters
-            WHERE user_id != ${args.userId}
+        SELECT id FROM insert_grid_filter
+        UNION
+        SELECT id FROM update_grid_filter
          `;
-        
-        return await query(insert_study_filter);
+
+
+        return await query(insert_update_study_filter);
+    },
+
+    get: async function () {
+        let get_all = SQL` SELECT 
+        id
+        ,filter_order
+        ,filter_type
+        ,filter_name
+        ,filter_info
+        ,display_as_tab
+        ,is_global_filter
+        ,display_in_ddl
+        ,is_active
+        FROM  billing.grid_filters WHERE deleted_dt IS NULL `;
+
+        return await query(get_all);
+    },
+
+    getById: async function (params) {
+
+        let get_data = SQL` SELECT 
+        id
+        ,filter_order
+        ,filter_type
+        ,filter_name
+        ,filter_info
+        ,display_as_tab
+        ,is_global_filter
+        ,display_in_ddl
+        ,is_active FROM billing.grid_filters WHERE id =${params.id} `;
+
+        return await query(get_data);
+    },
+
+    delete: async function (params) {
+        let delete_data = SQL` DELETE FROM billing.grid_filters WHERE id = ${params.id} `;
+
+        return await query(delete_data);
     }
 };
