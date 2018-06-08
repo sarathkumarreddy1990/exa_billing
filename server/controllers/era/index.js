@@ -1,4 +1,4 @@
-const data = require('../../data/era/era');
+const data = require('../../data/era/index');
 
 module.exports = {
 
