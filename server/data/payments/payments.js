@@ -15,7 +15,7 @@ module.exports = {
                         , accounting_dt AS accounting_date
                         , payment_dt AS payment_date
                         , alternate_payment_id AS display_id
-                        , created_by AS payer_name
+                        , get_full_name(users.last_name,users.first_name) AS payer_name
                         , payment_dt
                         , invoice_no
                         , alternate_payment_id
@@ -113,6 +113,8 @@ module.exports = {
             payment_mode,
             credit_card_name,
             credit_card_number } = params;
+
+        payer_type = payer_type == 'provider' ? 'ordering_provider' : payer_type;
 
         const sql = SQL`WITH insert_data as (INSERT INTO billing.payments
                                                 (   company_id

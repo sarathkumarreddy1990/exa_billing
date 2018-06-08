@@ -162,7 +162,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             setPayerFields: function (e, obj) {
                 var srcElement = obj ? obj : $(e.target || e.srcElement);
                 $('.payerFields').hide();
-                
+
                 this.payer_id = 0;
                 if (srcElement.is('#chkpayerInsurance')) {
                     $('#select2-txtautoPayerPIP-container').html('Select Insurance');
@@ -477,7 +477,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
 
             setPayerName: function (payerType, payerNames) {
                 this.setPayerFields(null, $("input:radio[name=payertype][value=" + payerType + "]"));
-                
+
                 if (payerType === 'insurance') {
                     $('#select2-txtautoPayerPIP-container').html(payerNames.insurance_name);
                 }
@@ -584,38 +584,24 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     var balance = (parseFloat(amountValue).toFixed(2) - parseFloat(appliedValue).toFixed(2)) + 0.00;
                     var totalbalance = balance ? parseFloat(balance).toFixed(2) : '0.00';
                     this.model.set({
-                        display_id: $.trim($('#referencePaymentID').val()) || 0,
-                        paid_facility_id: $.trim($('#ddlPaidLocation').val()),
+                        paymentId: self.payment_id,
+                        company_id: app.companyID,
                         facility_id: $.trim($('#ddlPaidLocation').val()),
+                        display_id: $.trim($('#referencePaymentID').val()) || null,
                         payer_type: $('input:radio[name=payertype]:checked').val(),
-                        billing_office_id: $.trim($('#ddlBillingOffice').val()) ? $.trim($('#ddlBillingOffice').val()) : 0,
-                        amount: $.trim($('#txtAmount').val().replace(',', '')),
-                        applied: applied ? applied : 0.00,
-                        available_balance: balance ? balance : 0.00,
-                        is_refund: false,
-                        payer: self.payerType,
-                        payer_name: self.payerName,
-                        current_status: 'UnApplied',
-                        invoice_no: $('#txtInvoice').val(),
-                        // accounting_date: self.dtpAccountingDate && self.dtpAccountingDate.date() ? self.dtpAccountingDate.date().format('YYYY-MM-DD') : null,
-                        accounting_date: moment($('#txtAccountingDate').val()).format('L'),
+                        amount: $.trim($('#txtAmount').val().replace(',', '')) || 0.00,
+                        invoice_no: $('#txtInvoice').val() || null,
+                        accounting_date: moment($('#txtAccountingDate').val()).format('L') || null,
                         patient_id: self.patient_id,
-                        payer_id: self.payer_id,
-                        provider_id: self.provider_id,
+                        provider_contact_id: self.provider_id,
                         provider_group_id: self.provider_group_id,
-                        credit_card_type: $("#ddlCardType").val(),
-                        security_code: $("#txtCVN").val() || '',
-                        credit_card_number: $("#txtCheque").val() || '',
-                        credit_card_name: $("#txtCardName").val() || '',
+                        insurance_provider_id: self.insurance_provider_id,
+                        credit_card_number: $("#txtCheque").val() || null,
+                        credit_card_name: $("#txtCardName").val() || null,
                         payment_mode: $("input:radio[name=payerMode]:checked").val() ? $("input:radio[name=payerMode]:checked").val() : '',
                         payment_reason_id: $("#ddlpaymentReason").val(),
-                        is_copay: $("#ddlpaymentReason").attr('data-copay'),
-                        user_name: app.userInfo.userFullName,
                         user_id: app.userID,
-                        notes: ($("#txtNotes").val()).replace(/(\r\n|\n|\r)/gm, ""),
-                        paymentId: self.payment_id,
-                        insurance_provider_id: self.insurance_provider_id,
-                        company_id: app.companyID
+                        notes: ($("#txtNotes").val()).replace(/(\r\n|\n|\r)/gm, "") || null
                     });
                     this.model.save({
                     }, {
@@ -880,7 +866,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                             var balance = parseFloat(paymentDet.bill_fee) - (parseFloat(paymentDet.other_payment) + parseFloat(paymentDet.other_adjustment) + parseFloat(paymentDet.adjustment) + parseFloat(paymentDet.payment_amount)).toFixed(2);
                             paymentDet.balance = parseFloat(balance).toFixed(2);
 
-                            var applyPaymentRow = self.applyPaymentTemplate({ payment: paymentDet});
+                            var applyPaymentRow = self.applyPaymentTemplate({ payment: paymentDet });
 
                             $('#tBodyApplyPendingPayment').append(applyPaymentRow);
 
@@ -898,7 +884,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         });
                         self.setFeeFields({});
                         $.each(adjustmentCodes, function (index, adjustmentCode) {
-                            $('#ddlAdjustmentCode_fast').append($('<option/>', { value: adjustmentCode.id, text: adjustmentCode.description}));
+                            $('#ddlAdjustmentCode_fast').append($('<option/>', { value: adjustmentCode.id, text: adjustmentCode.description }));
                         });
                         $('#ddlAdjustmentCode_fast').select2({});
                         $.each(payerTypes, function (index, payerType) {
@@ -914,13 +900,13 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
 
                             if (payerType.tertiary && payerType.tertiary != 'null')
                                 $('#ddlResponsible').append($('<option/>', { value: payerType.primary, text: payerType.tertiary_ins_provider_name + '(' + payerType.tertiary_ins_provider_code + ')', 'data-payerType': 'tertiary_insurance' }));
-                            
+
                             if (payerType.order_facility_id)
-                                $('#ddlResponsible').append($('<option/>', { value: payerType.order_facility_id, text: payerType.ordering_facility_name , 'data-payerType': 'ordering_facility'}));
+                                $('#ddlResponsible').append($('<option/>', { value: payerType.order_facility_id, text: payerType.ordering_facility_name, 'data-payerType': 'ordering_facility' }));
                             if (payerType.referring_provider_contact_id)
-                                $('#ddlResponsible').append($('<option/>', { value: payerType.referring_provider_contact_id, text: payerType.provider_name , 'data-payerType': 'referring_provider'}));
+                                $('#ddlResponsible').append($('<option/>', { value: payerType.referring_provider_contact_id, text: payerType.provider_name, 'data-payerType': 'referring_provider' }));
                         });
-                        $("#ddlResponsible option[data-payerType=" + payerTypes[0].payer_type + "]").attr('selected','selected');
+                        $("#ddlResponsible option[data-payerType=" + payerTypes[0].payer_type + "]").attr('selected', 'selected');
                         $('#ddlResponsible').select2({});
                         $('#tBodyApplyPendingPayment').find('.applyCAS').on('click', function (e) {
                             self.getPayemntApplications(e);
@@ -1085,7 +1071,8 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                             deductible: deduction,
                             billingNotes: billingNotes,
                             payerType: payerType,
-                            adjestmentId: adjustmentType
+                            adjestmentId: adjustmentType,
+                            paymentStatus : paymentStatus
                         },
                         success: function (model, response) {
                             alert('Payment has been applied successfully');
@@ -1095,7 +1082,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                             commonjs.handleXhrError(err, response);
                         }
                     });
-                }    
+                }
             },
 
             addNewPayemnt: function () {
