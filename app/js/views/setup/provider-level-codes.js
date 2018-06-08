@@ -28,13 +28,8 @@ define(['jquery',
             providerLevelCodesList : [],
             model: null,
             providerLevelCodesTable :null,
-            events: {
-                'click #btnAddProviderLevelCodes' : 'addNewProviderLevelCodes',
-                'click #btnSaveProviderLevelCodes' : 'saveProviderLevelCodes',
-                'click #btnBackToProviderLevelCodes': 'backToProviderLevelCodesGrid',
-                'click #btnRefresh' : 'refreshProviderLevelCodesGrid'
-
-            },
+            pager: null,
+            events: { },
             initialize: function (options) {
                 var self = this;
                 this.options = options;
@@ -122,8 +117,21 @@ define(['jquery',
                     disablepaging: false,
                     showcaption: false,
                     disableadd: true,
-                    disablereload: true
+                    disablereload: true,
+                    pager: '#gridPager_ProviderLevelCodes'
                 });
+
+                commonjs.initializeScreen({header: {screen: 'ProviderLevelCodes', ext: 'providerLevelCodes'}, grid: {id: '#tblProviderLevelCodesGrid'}, buttons: [
+                    {value: 'Add', class: 'btn btn-danger', i18n: 'shared.buttons.add', clickEvent: function () {
+                        Backbone.history.navigate('#setup/provider_level_codes/new', true);
+                    }},
+                    {value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
+                        self.pager.set({"PageNo": 1});
+                        self.providerLevelCodesTable.refreshAll();
+                        commonjs.showStatus("Reloaded Successfully");
+                    }}
+                ]});
+
             },
             showGrid: function () {
                 this.render();
@@ -135,6 +143,7 @@ define(['jquery',
             },
 
             renderForm: function(id) {
+                var self = this;
                 $('#divProviderLevelCodesForm').html(this.providerLevelCodesFormTemplate());
                 if(id > 0) {
                     this.model.set({id: id});
@@ -154,32 +163,29 @@ define(['jquery',
                     });
                 } else {
                     this.model = new ProviderLevelCodesModel();
-
                 }
+
+                commonjs.initializeScreen({header: {screen: 'ProviderLevelCodes', ext: 'providerLevelCodes'}, buttons: [
+                    {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
+                        self.saveProviderLevelCodes();
+                    }},
+                    {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
+                        Backbone.history.navigate('#setup/provider_level_codes/list', true);
+                    }}
+                ]});
+
                 $('#divProviderLevelCodesGrid').hide();
                 $('#divProviderLevelCodesForm').show();
                 commonjs.processPostRender();
             },
 
-            addNewProviderLevelCodes: function() {
-                location.href = "#setup/provider_level_codes/new";
-            },
-
-            backToProviderLevelCodesGrid: function() {
-                location.href = "#setup/provider_level_codes/list";
-            },
-
-            refreshProviderLevelCodesGrid: function() {
-                this.providerLevelCodesTable.refresh();
-            },
-
             saveProviderLevelCodes: function() {
                 this.model.set({
-                    "company_id" : app.companyID,
-                    "is_active" : !$('#chkActive').prop('checked'),
+                    "companyId" : app.companyID,
+                    "isActive" : !$('#chkActive').prop('checked'),
                     "code": $.trim($('#txtCode').val()),
                     "description": $.trim($('#txtDescription').val()),
-                    "reading_provider_percent_level": $.trim($('#txtReadProvPercLvl').val())
+                    "readingProviderPercentLevel": $.trim($('#txtReadProvPercLvl').val())
                 });
                 this.model.save({
                 }, {

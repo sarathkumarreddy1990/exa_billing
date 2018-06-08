@@ -25,9 +25,26 @@ define([
             },
 
             render: function () {
-                this.$el.html(_.template(userSettingsTemplate));
-                var ulColumnList = $('#ulSortList');
-                ulColumnList.sortable();
+                // this.$el.html(_.template(userSettingsTemplate));
+                // var ulColumnList = $('#ulSortList');
+                // ulColumnList.sortable();
+
+                var self = this;
+                userID = app.userID;
+                this.$el.html(template);
+
+                $('#divForm_Mysettings').css({
+                    top: '10%',
+                    height: '80%'
+                });
+                $('#divForm_Mysettings').css("left", '5%');
+
+                this.bindSettingColumns(userID);
+
+                $('#save_settings').click(function (e) {
+                    self.saveUserSettingsBilling(userID);
+                    commonjs.hideDialog();
+                });
             },
 
             saveUserSettingsBilling: function (userId) {
@@ -47,11 +64,11 @@ define([
                         billingClaimGridFields.push({ "name": input.val(), "id": input.attr('id').split('~')[1], "width": $(this).find('input[type=hidden]')[0].value });
                     }
                 });
-                if(window.location && window.location.hash.split('/')[1] == 'studies'){
+                if (window.location && window.location.hash.split('/')[1] == 'studies') {
                     var grid_name = 'studies';
-                    var default_tab = 'All Studies'; 
+                    var default_tab = 'All Studies';
                 }
-                if(window.location && window.location.hash.split('/')[1] == 'claim_workbench'){
+                if (window.location && window.location.hash.split('/')[1] == 'claim_workbench') {
                     var grid_name = 'claims';
                     var default_tab = 'All Claims';
                 }
@@ -66,7 +83,7 @@ define([
                     claimSettingFields: claimSettingFields
                 });
                 this.model.save({},
-                     {
+                    {
                         success: function (model, response) {
                             commonjs.hideLoading();
                         },
@@ -100,7 +117,7 @@ define([
                     newLi.append(newCB);
                     newLi.append(inputText);
                     $('#' + listID).append(newLi);
-                    if(_.contains(checkedGridFields,field_order[i].id)){
+                    if (_.contains(checkedGridFields, field_order[i].id)) {
                         newCB.find('input[type=checkbox]').attr('data_name', screenName).addClass('chkBillFields').attr('checked', true);
                     }
                 }
@@ -110,21 +127,21 @@ define([
             showForm: function () {
                 var self = this;
                 userID = app.userID;
-                $('#site_modal_div_container').empty();
+                $('#modal_div_container').empty();
                 $('#divForm_Mysettings').css({
                     top: '10%',
                     height: '80%'
                 });
                 $('#divForm_Mysettings').css("left", '5%');
-                $('#site_modal_div_container').append(template);
-                $('#site_modal_div_container').show();
-                    this.bindSettingColumns(userID);
+                $('#modal_div_container').append(template);
+                $('#modal_div_container').show();
+                this.bindSettingColumns(userID);
                 $('#close_settings').click(function (e) {
-                    $('#site_modal_div_container').hide();
+                    $('#modal_div_container').hide();
                 });
                 $('#save_settings').click(function (e) {
                     self.saveUserSettingsBilling(userID);
-                    $('#site_modal_div_container').hide();
+                    $('#modal_div_container').hide();
                 });
             },
 
@@ -132,21 +149,20 @@ define([
                 var self = this;
                 $.ajax({
                     url: '/exa_modules/billing/user_settings',
-                    data:{
-                        userID:userID
+                    data: {
+                        userID: userID
                     },
                     success: function (data, response) {
                         var displayFields = [];
                         self.billingDisplayFields = [];
                         self.displayFieldChecked = [];
-                        if(window.location && window.location.hash.split('/')[1]=='claim_workbench')
-                        {
+                        if (window.location && window.location.hash.split('/')[1] == 'claim_workbench') {
                             self.billingDisplayFields = JSON.parse(data[0]).claim_management;
                         }
-                        if(window.location && window.location.hash.split('/')[1]=='studies'){
+                        if (window.location && window.location.hash.split('/')[1] == 'studies') {
                             self.billingDisplayFields = JSON.parse(data[0]).study_fields;
                         }
-                        self.checkedBillingDisplayFields = data[1].rows[0] ? data[1].rows[0].field_order : 0 ;
+                        self.checkedBillingDisplayFields = data[1].rows[0] ? data[1].rows[0].field_order : 0;
                         var checkedGridFields = self.checkedBillingDisplayFields;
                         var gridFieldArray = [],
                             field_order = [];
@@ -160,7 +176,7 @@ define([
                             });
                         }
                         gridFieldArray = displayFields;
-                        self.ulListBinding(displayFields, 'ulSortList',checkedGridFields);
+                        self.ulListBinding(displayFields, 'ulSortList', checkedGridFields);
                         for (var i = 0; i < self.billingDisplayFields.length; i++) {
                             $('<option/>').val(self.billingDisplayFields[i].field_name).html(self.billingDisplayFields[i].field_name).appendTo('#ddlBillingDefaultColumns');
                         }

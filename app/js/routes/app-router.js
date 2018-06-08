@@ -5,9 +5,7 @@ define([
     'views/claims/claim-workbench',
     'routes/app/index',
     'routes/setup/index',
-    'routes/reports/index',   
-    'views/app/payments',
-    'views/app/payment-edit',
+    'routes/reports/index',
     'views/claim-inquiry'
 ], function (Backbone,
     WorklistView,
@@ -16,9 +14,6 @@ define([
     AppRoute,
     SetupRoute,
     ReportsRoute,
-    ReportingRoute,   
-    PaymentsView,
-    EditPaymentView,
     claimInquiryScreenView
     ) {
         var AppRouter = Backbone.Router.extend({
@@ -30,10 +25,8 @@ define([
                 "billing/*subroute": "startApp",
                 "setup/*subroute": "startSetup",
                 "app/payments": "startPayments",
-                "app/payments/edit/:id": "editPayment",
                 "reports/*subroute": "startReporting",
-                "app/claim-inquiry": "startClaimInquiry",
-                "app/payments/new": "editPayment"
+                "app/claim-inquiry": "startClaimInquiry"
             },
             
             startApp: function (subroute) {
@@ -56,7 +49,7 @@ define([
 
             startAppStudies: function (subroutes) {
                 if (!this.appRoute) {
-                    this.appRoute = new StudiesView({ el: $('#root') });
+                 this.appRoute = new StudiesView({ el: $('#root') });
                 }
             },
 
@@ -66,20 +59,7 @@ define([
                 }
             },
 
-         
-            startPayments: function (subroutes) {
-                if (!this.appRoute) {
-                    this.appRoute = new PaymentsView({ el: $('#root') });
-                }
-            },
-
-            editPayment: function (paymentId) {
-                if (!this.appRoute) {
-                    this.appRoute = new EditPaymentView({ el: $('#root'), id: paymentId });
-                }
-            },
-
-            startClaimInquiry: function(){
+            startClaimInquiry: function(subroutes){
                 if(!this.appRoute){
                     this.appRoute = new claimInquiryScreenView({ el: $('#root') });
                 }

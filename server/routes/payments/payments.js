@@ -1,8 +1,8 @@
 const Router = require('express-promise-router');
 const router = new Router();
 
-const paymentsController = require('../controllers/payments');
-const httpHandler = require('../shared/http');
+const paymentsController = require('../../controllers/payments/payments');
+const httpHandler = require('../../shared/http');
 
 router.get('/', async function (req, res) {
     const data = await paymentsController.getPayments(req.query);
@@ -20,7 +20,7 @@ router.put('/', async function (req, res) {
 });
 
 router.post('/applyPayments', async function (req, res) {
-    const data = await paymentsController.createPaymentapplications(req.body);
+    const data = await paymentsController.createOrUpdatePaymentapplications(req.body);
     httpHandler.sendRows(req, res, data);
 });
 

@@ -84,7 +84,7 @@ describe(' billingProviders', () => {
                 qualifierId = qualifierData.rows[0].id;
                 const data = await providerIdCodesController.create({
                     qualifierId: qualifierId,
-                    providerId: id,
+                    provider_id: id,
                     insuranceProviderId: 1,
                     payerAssignedProviderId: 'TestCreate11'
                 });

@@ -138,7 +138,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         };
 
         // ADDING A NEW WORKLIST COLUMN <-- Search for this
-        if(filterType=="Claims"){
+        if(filterType=="claims"){
             return Immutable.Map({
                 "Claim Date": {
                     "id": 1,
@@ -146,7 +146,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "Claim Date",
                     "i18n_name": "shared.fields.claimDate",
                     "field_info": {
-                        "name": "claim_date",
+                        "name": "claim_dt",
                         "searchFlag": "datetime",
                         "formatter": dateFormatter,
                         "width": 200
@@ -240,8 +240,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "i18n_name": "billing.COB.billingFee",
                     "field_info": {
                         "name": "billing_fee",
-                        "width": 200,
-                        "formatter": "self.billFeeFormatter"
+                        "width": 200
                     }                    
                 },
                 "Cpt Description": {
@@ -291,8 +290,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_info": {
                         "name": "payer_name",
                         "width": 150,
-                        "sortable": "true",
-                        "formatter": "self.payerNameFormatter"
+                        "sortable": "true"
                     }
                 },
                 "Balance": {
@@ -302,8 +300,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "i18n_name": "billing.fileInsurance.balance",
                     "field_info": {
                         "name": "claim_balance",
-                        "width": 100,
-                        "formatter": "self.balanceFormatter"
+                        "width": 100
                     }
                 },
                 "Billing Class": {
@@ -359,7 +356,6 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_info": {
                         "name": "claim_notes",
                         "width": 100,
-                        "formatter": "self.billingNotesFormatter",
                         "defaultValue": ""
                     }
 
@@ -374,15 +370,14 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "width": 75
                     }
                 },
-                "Claim Date": {
+                "Gender": {
                     "id": 20,
-                    "field_code": "claim_dt",
-                    "field_name": "Claim Date",
-                    "i18n_name": "billing.fileInsurance.submittedDateGrid",
+                    "field_code": "gender",
+                    "field_name": "Gender",
+                    "i18n_name": "shared.fields.gender",
                     "field_info": {
-                        "name": "claim_dt",
-                        "formatter": "self.submittedDateFormatter",
-                        "width": 150
+                        "name": "gender",
+                        "width": 200
                     }
                 },
                 "Invoice": {
@@ -418,7 +413,9 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "i18n_name": "billing.fileInsurance.followUpDate",
                     "field_info": {
                         "name": "followup_date",
-                        "formatter": "self.followUpDateFormatter",
+                        "formatter": function ( cellvalue ) {
+                            return commonjs.checkNotEmpty(cellvalue) ? commonjs.getFormattedUtcDate(cellvalue) : '';
+                        },
                         "width": "150"
                     }
                 },
@@ -429,7 +426,9 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "i18n_name": "billing.fileInsurance.dateOfInjury",
                     "field_info": {
                         "name": "current_illness_date",
-                        "formatter": "self.dateOfInjuryFormatter",
+                        "formatter":  function ( cellvalue ) {
+                            return commonjs.checkNotEmpty(cellvalue) ? commonjs.getFormattedUtcDate(cellvalue) : '';
+                        },
                         "width": 200
                     }
                 },
@@ -440,7 +439,6 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "i18n_name": "billing.fileInsurance.policyNumber",
                     "field_info": {
                         "name": "policy_number",
-                        "formatter": "self.policyNumberFormatter",
                         "width": 200
                     }
                 },
@@ -451,7 +449,6 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "i18n_name": "billing.fileInsurance.groupNumber",
                     "field_info": {
                         "name": "group_number",
-                        "formatter": "self.groupNumberFormatter",
                         "width": 200
                     }
                 },
@@ -462,20 +459,9 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "i18n_name": "shared.fields.billingProvider",
                     "field_info": {
                         "name": "billing_provider",
-                        "formatter": "self.billingProviderFormatter",
                         "width": 200
                     }
-                },
-                "Gender": {
-                    "id": 28,
-                    "field_code": "gender",
-                    "field_name": "Gender",
-                    "i18n_name": "shared.fields.gender",
-                    "field_info": {
-                        "name": "gender",
-                        "width": 200
-                    }
-                }
+                }               
 
 
             });   

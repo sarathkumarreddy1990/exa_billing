@@ -4,7 +4,8 @@
             "code": "Code",
             "name": "Name",
             "description": "Description",
-            "readProvPercLvl" : "Reading Provider Percent Level"
+            "readProvPercLvl" : "Reading Provider Percent Level",
+            "reasons" : "Reasons"
         },
         "adjustmentcodes": {
             "credit": "Credit",
@@ -70,9 +71,44 @@
         },
         "providerIdCodeQualifiers" : {
             "qualifierCode": "Qualifier Code"
-        } ,
-        "paymentReasons" : {
-            "reasons" : "Reasons"
+        },
+        "ediClearingHouses": {
+            "name": "clearing houses name",
+            "receiverName": "Receiver Name",
+            "receiverID": "Receiver ID",
+            "clearingHouseControlHeader"  : "Clearing House Control Header",
+            "authInfo": "Auth. Info",
+            "securityinfo":"Security. Info",
+            "senderID" : "Sender ID",
+            "ireceiverID" : "Receiver ID",
+            "ctrlStandID" : "Inter.Ctrl.Stand.ID",
+            "ctrlVersionNo" : "Inter.Ctrl.Version Number",
+            "repetitionSeperator" : "Repetition Seperator(5010)",
+            "delimiter":"Element/Sub-Element Delimiter",
+            "segmentTerminator" : "Segment Terminator",
+            "acknowledgmentRequested" : "Acknowledgement Requested?",
+            "usage":"Usage",
+            "production":"Production",
+            "testing":"Testing",
+            "functionalControlHeader" : "Functional Control Header",
+            "transactionSetHeader" : "Transaction Set Header",
+            "clearingHouseInfo" : "Clearing House info",
+            "conventionReference" : "Impl. Convention  Reference",
+            "appSenderCode" : "Application Sender Code",
+            "responsibleAgencyCode" : "Responsible Agency Code",
+            "appReceiverCode" : "Application Receiver Code",
+            "verRelIndIDCode" : "Ver.Rel.Ind.ID Code",
+            "requestUrl" : "Request Url",
+            "enableB2B" : "Enable B2B",
+            "backupRootFolder" : "Backup Root Folder",
+            "apiDetails" : "API Details",
+            "rawEDI" : "--Raw EDI--",
+            "availity": "Availity",
+            "unitedHealthCare" : "United HealthCare",
+            "username" : "Username",
+            "password" : "Password",
+            "xmlTemplateSyntax" : "Xml Template Syntax",
+            "providerOffice" : "Provider Office"
         }
     }
 }

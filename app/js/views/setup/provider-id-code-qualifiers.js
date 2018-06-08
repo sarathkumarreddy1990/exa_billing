@@ -17,17 +17,15 @@ define([
             providerIdCodeQualifiersList: [],
             model: null,
             providerIdCodeQualifiersTable: null,
+            pager: null,
             events: {
-                'click #btnAddProviderIdCodeQualifiers': 'addNewProviderIdCodeQualifiers',
-                'click #btnSaveProviderIdCodeQualifiers': 'saveProviderIdCodeQualifiers',
-                'click #btnBackToProviderIdCodeQualifiers': 'backToProviderIdCodeQualifiersGrid',
-                'click #btnProviderIdCodeQualifiersRefresh': 'refreshProviderIdCodeQualifiersGrid'
             },
 
             initialize: function (options) {
                 var self = this;
                 this.options = options;
                 this.model = new ProviderIdCodeQualifiersModel();
+                this.pager = new Pager();
                 this.providerIdCodeQualifiersList = new ProviderIdCodeQualifiersCollections();
             },
 
@@ -59,10 +57,10 @@ define([
                             className: 'icon-ic-edit',
                             route: '#setup/provider_id_code_qualifiers/edit/',
                             formatter: function (e, model, data) {
-                                return `<span>Edit</span>`;
+                                return `<span class='icon-ic-edit' title='click Here to Edit'></span>`;
                             },
                             cellattr: function () {
-                                return 'style=text-align:center;text-decoration: underline;cursor:pointer;'
+                                return 'style=text-align:center;cursor:pointer;'
                             }
                         },
                         {
@@ -84,11 +82,11 @@ define([
                             },
 
                             formatter: function (e, model, data) {
-                                return `<span>Delete</span>`;
+                                return `<span class='icon-ic-delete' title='click Here to Delete'></span>`;
                             },
 
                             cellattr: function () {
-                                return 'style=text-align:center;text-decoration: underline;cursor:pointer;';
+                                return 'style=text-align:center;cursor:pointer;';
                             }
                         },
                         {
@@ -104,6 +102,8 @@ define([
                     container: self.el,
                     customizeSort: true,
                     offsetHeight: 01,
+                    sortname: "id",
+                    sortorder: "desc",
                     sortable: {
                         exclude: '#jqgh_tblProviderIdCodeQualifiersGrid,#jqgh_tblProviderIdCodeQualifiersGrid_edit,#jqgh_tblProviderIdCodeQualifiersGrid_del'
                     },
@@ -115,6 +115,19 @@ define([
                     disableadd: true,
                     disablereload: true
                 });
+
+                commonjs.initializeScreen({header: {screen: 'ProviderIdCodeQualifiers', ext: 'providerIdCodeQualifiers'}, grid: {id: '#tblProviderIdCodeQualifiersGrid'}, buttons: [
+                    {value: 'Add', class: 'btn btn-danger', i18n: 'shared.buttons.add', clickEvent: function () {
+                        Backbone.history.navigate('#setup/provider_id_code_qualifiers/new', true);
+                    }},
+                    {value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
+                        self.pager.set({"PageNo": 1});
+                        self.providerIdCodeQualifiersTable.refreshAll();
+                        commonjs.showStatus("Reloaded Successfully");
+                    }}
+                ]});
+
+
             },
 
             showGrid: function () {
@@ -127,6 +140,7 @@ define([
             },
 
             renderForm: function (id) {
+                var self=this;
                 $('#divProviderIdCodeQualifiersForm').html(this.providerIdCodeQualifiersFormTemplate());
                 if (id > 0) {
                     this.model.set({id: id});
@@ -144,28 +158,24 @@ define([
                 } else {
                     this.model = new ProviderIdCodeQualifiersModel();
                 }
+                commonjs.initializeScreen({header: {screen: 'ProviderIdCodeQualifiers', ext: 'providerIdCodeQualifiers'}, buttons: [
+                    {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
+                        self.saveProviderIdCodeQualifiers();
+                    }},
+                    {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
+                        Backbone.history.navigate('#setup/provider_id_code_qualifiers/list', true);
+                    }}
+                ]});
                 $('#divProviderIdCodeQualifiersGrid').hide();
                 $('#divProviderIdCodeQualifiersForm').show();
                 commonjs.processPostRender();
-            },
-
-            addNewProviderIdCodeQualifiers: function () {
-                location.href = "#setup/provider_id_code_qualifiers/new";
-            },
-
-            backToProviderIdCodeQualifiersGrid: function () {
-                location.href = "#setup/provider_id_code_qualifiers/list";
-            },
-
-            refreshProviderIdCodeQualifiersGrid: function () {
-                this.providerIdCodeQualifiersTable.refresh();
             },
 
             saveProviderIdCodeQualifiers: function () {
                 this.model.set({
                     "code": $.trim($('#txtQualifierCode').val()),
                     "description": $.trim($('#txtDescription').val()),
-                    "is_active": $('#chkActive').prop('checked'),
+                    "isActive": !($('#chkActive').prop('checked')),
                     "company_id" : app.companyID
                 });
                 this.model.save({

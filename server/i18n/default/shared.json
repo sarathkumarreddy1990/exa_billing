@@ -146,7 +146,8 @@
         },
         "screens": {},
         "fields": {
-            "inactive" : "Inactive"
+            "inactive" : "Inactive",
+            "isSystemStatus": "System Status"
         }
     }
 }

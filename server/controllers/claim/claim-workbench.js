@@ -10,5 +10,10 @@ module.exports = {
     getDataCount: function (params) {
         params.isCount=true;
         return data.getData(params);
+    },
+
+    updateClaimStatus: function (params) {
+        return data.updateClaimStatus(params);
     }
+
 };

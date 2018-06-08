@@ -11,7 +11,9 @@ define([
     'routes/setup/provider-id-code-qualifiers',
     'routes/setup/billing-codes',
     'routes/setup/billing-classes',
-    'routes/setup/payment-reasons'
+    'routes/setup/payment-reasons',
+    'routes/setup/claim-status',
+    'routes/setup/edi-clearinghouses'
 ], function (
     Backbone,
     BackboneSubroute,
@@ -25,7 +27,9 @@ define([
     ProvierIdCodeQualifiersRoute,
     BillingCodesRoute,
     BillingClassesRoute,
-    PaymentReasonsRoute
+    PaymentReasonsRoute,
+    ClaimStatusRoute,
+    EdiClearingHousesRoute
 ) {
         return Backbone.SubRoute.extend({
             routes: {
@@ -37,7 +41,9 @@ define([
                 "provider_id_code_qualifiers/*subroute": "startProviderIdCodeQualifiers",
                 "billing_codes/*subroute": "startBillingCodes",
                 "billing_classes/*subroute": "startBillingClasses",
-                "payment_reasons/*subroute" : "startPaymentReasons"
+                "payment_reasons/*subroute" : "startPaymentReasons",
+                "claim_status/*subroute" : "startClaimStatus",
+                "edi_clearinghouses/*subroute" : "startEDIClearingHouses"
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -71,7 +77,7 @@ define([
             },
 
             startCasReasonCodes: function (subroute) {
-                if (this.checkLicense('CasReasonCodes') && !this.billingProviderRouter) {
+                if (this.checkLicense('CasReasonCodes') && !this.casReasonCodesRouter) {
                     this.defaultArgs.routePrefix = 'setup/cas_reason_codes/';
                     this.casReasonCodesRouter = new CasReasonCodesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
@@ -128,6 +134,24 @@ define([
                 if (this.checkLicense('PaymentReasons') && !this.paymentReasons) {
                     this.defaultArgs.routePrefix = 'setup/payment_reasons/';
                     this.paymentReasons = new PaymentReasonsRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startClaimStatus: function(){
+                if (this.checkLicense('ClaimStatus') && !this.claimStatus) {
+                    this.defaultArgs.routePrefix = 'setup/claim_status/';
+                    this.claimStatus = new ClaimStatusRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startEDIClearingHouses: function () {
+                if (this.checkLicense('EDIClearingHouse') && !this.paymentReasons) {
+                    this.defaultArgs.routePrefix = 'setup/edi_clearinghouses/';
+                    this.ediClearingHouses = new EdiClearingHousesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }

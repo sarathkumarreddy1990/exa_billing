@@ -16,11 +16,11 @@ block content
         #navbarNavAltMarkup.collapse.navbar-collapse
             ul.navbar-nav
                 li.nav-item
-                    a.nav-link.active(href='#app/studies') Home
+                    a.nav-link.active(href='#billing/studies/list') Home
                 li.nav-item
-                    a.nav-link(href='#app/claim_workbench') Claims
+                    a.nav-link(href='#billing/claim_workbench/list') Claims
                 li.nav-item
-                    a.nav-link(href='#app/payments') Payments
+                    a.nav-link(href='#billing/payments/list') Payments
                     
                 li.nav-item.dropdown
                     a.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Reports
@@ -48,7 +48,7 @@ block content
                         a.dropdown-item(href='#setup/adjustment_codes/list') Adjustment Codes
                         a.dropdown-item(href='#setup/billing_codes/list') Billing codes
                         a.dropdown-item(href='#setup/billing_classes/list') Billing Classes
-                        a.dropdown-item(href='#') Claim Status
+                        a.dropdown-item(href='#setup/claim_status/list') Claim Status
                         .dropdown-divider
                         a.dropdown-item(href='#setup/billing_providers/list') Billing Providers
                         a.dropdown-item(href='#setup/provider_id_code_qualifiers/list') Provider ID Code Qualifiers
@@ -58,6 +58,8 @@ block content
                         a.dropdown-item(href='#setup/cas_group_codes/list') CAS Group Codes
                         a.dropdown-item(href='#setup/cas_reason_codes/list') CAS Reason Codes
                         a.dropdown-item(href='#setup/provider_level_codes/list') Provider Level Codes
+                        .dropdown-divider
+                        a.dropdown-item(href='#setup/edi_clearinghouses/list') EDI ClearingHouses
                 li.nav-item
                     a.nav-link(href='#') Audit Log
                 li.nav-item
