@@ -1,4 +1,4 @@
-const { query, SQL } = require('./index');
+const { query, SQL } = require('./../index');
 
 module.exports = {
 
@@ -217,7 +217,7 @@ module.exports = {
                                     , amount_type
                                     , created_by
                                     , applied_dt)
-                                    SELECT
+                                    (SELECT
                                       payment_id
                                     , adjestment_id
                                     , charge_id
@@ -225,7 +225,10 @@ module.exports = {
                                     , amount_type
                                     , created_by
                                     , now()
-                                    FROM application_details),
+                                    FROM application_details)
+                                    RETURNING id AS application_id
+                                                  , charge_id
+                                                  , amount_type),
                              update_claims AS(
                                     UPDATE billing.claims
                                     SET
@@ -249,8 +252,25 @@ module.exports = {
                                     , created_by
                                     , now()
                                     FROM claim_comment_details)
-                                    SELECT true`;
+                                    SELECT * FROM insert_application`;
 
+        return await query(sql);
+    },
+
+    saveCasDetails: async function (params) {
+
+        const sql = `INSERT INTO billing.cas_payment_application_details
+                                            (   payment_application_id
+                                              , cas_group_code_id
+                                              , cas_reason_code_id
+                                              , amount
+                                            )
+                                            (SELECT
+                                                ${params.application_id}
+                                              , ${params.group_code}
+                                              , ${params.reason_code}
+                                              , ${params.amount})
+                                              RETURNING id`;
         return await query(sql);
     }
 

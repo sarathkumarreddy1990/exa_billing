@@ -811,8 +811,8 @@ var commonjs = {
         }
         var defaultOptions = {
             format: "L LT",
-            locale: browserLocale,
-            timeZone: null,//this.getCompanyTimeZone(),
+            //locale: browserLocale,
+            //timeZone: null,//this.getCompanyTimeZone(),
             showClose: true,
             showClear: true,
             //keepInvalid: true,
@@ -3739,6 +3739,7 @@ var commonjs = {
             var topnavHieght = $('.header').outerHeight() + $('.top-nav').outerHeight()
             switch (commonjs.currentModule) {
                 case 'Home':
+                case 'app':
                 default:
                     height = $(window).height() - (topnavHieght + $('.ui-jqgrid-htable:visible').height() + $('#divPager').outerHeight() + 5);
                     break;

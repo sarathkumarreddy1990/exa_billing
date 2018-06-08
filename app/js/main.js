@@ -17,7 +17,7 @@ require.config({
         'jqgridlocale': '../libs/jqgrid/js/i18n/grid.locale-en',
         'immutable': '../node_modules/immutable/dist/immutable',
         'jstorage': '../node_modules/jstorage/jstorage.min',
-        'datetimepicker': '../node_modules/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min',
+        'datetimepicker': '../node_modules/eonasdan-bootstrap-datetimepicker/src/js/bootstrap-datetimepicker',
         'daterangepicker': '../node_modules/bootstrap-daterangepicker/daterangepicker',
         'commonscript': 'shared/common',
         'layout': 'shared/layout',
@@ -113,6 +113,7 @@ require([
     MomentTimezone,
     jqueryvalidate,
     ) {
+        window.browserLocale = typeof browserLocale == 'undefined' ? 'en-US' : browserLocale;
         window.Immutable = Immutable;
 
         require([

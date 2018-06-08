@@ -183,6 +183,8 @@ define(['jquery',
             statusCode: [],
             userSettings: "",
             events: {
+                "click #btnClearAllStudy": "clearAllSelectedRows",
+                "click #btnSelectAllStudy": "selectAllRows",
             },
 
             initialize: function (options) {
@@ -343,7 +345,26 @@ define(['jquery',
                     });
                 }); // end _.each
             },
-
+            clearAllSelectedRows: function () {
+                var filterID = commonjs.currentStudyFilter;
+                var filter = commonjs.loadedStudyFilters.get(filterID);
+                ( filter.customGridTable || $(document.getElementById(filter.options.gridelementid)) ).find('input:checkbox').each(function () {
+                    this.checked = false;
+                    $(this).closest('tr').removeClass('customRowSelect');
+                });
+                $('#chkStudyHeader_' + filterID).prop('checked', false);
+                commonjs.setFilter(filterID, filter);
+            },
+            selectAllRows: function () {
+                var filterID = commonjs.currentStudyFilter;
+                var filter = commonjs.loadedStudyFilters.get(filterID);
+                ( filter.customGridTable || $(document.getElementById(filter.options.gridelementid)) ).find('input:checkbox').each(function () {
+                    this.checked = true;
+                    $(this).closest('tr').addClass('customRowSelect');
+                });
+                $('#chkStudyHeader_' + filterID).prop('checked', true);
+                commonjs.setFilter(filterID, filter);
+            },
             setFiltertabs: function (filters) {
                 var self = this;
                 commonjs.showLoading('Fetching data..');
@@ -840,7 +861,7 @@ define(['jquery',
                             });
                             commonjs.resizeHomeScreen();
                             //  self.setTabContents(id, true);
-                            commonjs.docResize();
+                            //commonjs.docResize();
 
                             var updateStudiesPager = function (model, gridObj) {
                                 $('#chkclaimsHeader_' + filterID).prop('checked', false);
@@ -962,7 +983,7 @@ define(['jquery',
                                // if (filterID === commonjs.currentStudyFilter) {
                                     self.setFooter(filterObj);
                                     commonjs.setFilter(filterID, filterObj);
-                                    commonjs.docResize();
+                                   // commonjs.docResize();
                                // }
 
                             }

@@ -65,6 +65,7 @@ define([
                 });
                 this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
                 this.$el.html(this.mainTemplate(this.viewModel));
+                // For Facility Filter with Multiple Select
                 $('#ddlFacilityFilter').multiselect({
                     maxHeight: 200,
                     buttonWidth: '300px',
@@ -72,6 +73,13 @@ define([
                     enableFiltering: true,
                     includeSelectAllOption: true,
                     enableCaseInsensitiveFiltering: true
+                });
+
+                // For Payment Option select without Multiple filter
+                $('#ddlPaymentOption, #ddlUsersOption').multiselect({
+                    maxHeight: '200px',
+                    buttonWidth: '220px',
+                    width: '200px'                   
                 });
                 // Binding Billing Provider MultiSelect
                 UI.bindBillingProvider();
@@ -121,10 +129,10 @@ define([
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = openInNewTab && rFormat === 'html';
                 this.viewModel.paymentOptions = $('#ddlPaymentOption').val();
-               if (this.hasValidViewModel()) {
+//if (this.hasValidViewModel()) {
                     var urlParams = this.getReportParams();
                     UI.showReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
-                }             
+                //}             
             },
           
 
@@ -241,10 +249,13 @@ define([
                     // 'userIds': $('#ddlUsersOption').val() == 'S' ? usersArray : '',
                     // 'userName': $('#ddlUsersOption').val() == 'S' ? userNameArray : ''
                     
-                'facilityIds':  ['1'],             
-                'fromDate':  '2000-10-10',
-                'toDate':  '2020-10-10' ,
-                'billingProvider' : ['1']
+                    'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
+                    'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
+                    'fromDate': moment($('#txtDateRangeFrom').val()).format('L'),
+                    'toDate': moment($('#txtDateRangeTo').val()).format('L'),
+                    'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
+                    'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
+                    'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
                 };
             }
         });
