@@ -856,6 +856,7 @@ var commonjs = {
                 break;
             default:
         }
+
         dtpTarget.datetimepicker(options);
         dtpTarget.on("dp.change", function (e) {
             if (e && e.date) {
@@ -965,7 +966,7 @@ var commonjs = {
             showDropdowns: true
         }
         var options = $.extend(true, {}, defaultOptions, drpOptions);
-        // drpTarget.daterangepicker(options, callback);
+        drpTarget.daterangepicker(options, callback);
         //since DRP is attached to text input element, trigger 'filter mode' setup
         drpTarget.on("apply.daterangepicker", function (ev, drp) {
             var fmt = drp.locale.format;
@@ -10748,6 +10749,7 @@ var facilityModules = {
         referringPhysicianStudyCount: 'Referring Physician Study Count',
         completedSchedules: 'Completed Schedules',
         patientStatement: 'Patient Statement',
+        patientActivityStatement: 'Patient Statement',
         claimTransaction: 'Claim Transaction',
         insuranceVsLOP: 'Insurance Vs. LOP',
         claimInquiry: 'Claim Inquiry',

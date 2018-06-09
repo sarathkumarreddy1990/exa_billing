@@ -11,6 +11,10 @@ module.exports = {
         return data.createOrUpdatePayment(params);
     },
 
+    deletePayment: function (params) {
+        return data.deletePayment(params);
+    },
+
     createOrUpdatePaymentapplications: function (args) {
 
         applications(args);
@@ -22,28 +26,27 @@ module.exports = {
             line_items = JSON.parse(line_items);
             const save_cas_details = [];
 
-            _.each(line_items, function (value) {
-                if (value.payment != 0) {
-                    appliedPaymets.push({
-                        payment_id: paymentId,
-                        charge_id: value.chargeId,
-                        amount: value.payment,
-                        amount_type: 'payment',
-                        adjestment_id: null,
-                        created_by: user_id
-                    });
-                }
 
-                if (value.adjustment != 0) {
-                    appliedPaymets.push({
-                        payment_id: paymentId,
-                        charge_id: value.chargeId,
-                        amount: value.adjustment,
-                        amount_type: 'adjustment',
-                        adjestment_id: adjestmentId,
-                        created_by: user_id
-                    });
-                }
+            _.each(line_items, function (value) {
+
+                appliedPaymets.push({
+                    payment_id: paymentId,
+                    charge_id: value.chargeId,
+                    amount: value.payment == null ? 0.00 : value.payment,
+                    amount_type: 'payment',
+                    adjestment_id: null,
+                    created_by: user_id
+                });
+
+                appliedPaymets.push({
+                    payment_id: paymentId,
+                    charge_id: value.chargeId,
+                    amount: value.adjustment == null ? 0.00 : value.adjustment,
+                    amount_type: 'adjustment',
+                    adjestment_id: adjestmentId,
+                    created_by: user_id
+                });
+
 
             });
 
