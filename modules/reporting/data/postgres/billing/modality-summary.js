@@ -42,12 +42,12 @@ GROUP BY
     ROLLUP (m.modality_name)
 )
 SELECT 
-    modality_name AS "MODALITY NAME",
-    order_count AS "ORDR COUNT", 
-    study_count AS "STUDY COUNT",
-    studies_count AS "CSTUDIES COUNT",
-    charges_count AS "CHARGES COUNT",
-    charges_bill_fee_total AS "TOTAL BILL FEE"
+    modality_name AS "Modality Name",
+    order_count AS "Claim Count", 
+    study_count AS "Study Count",
+    studies_count AS "Studies Count",
+    charges_count AS "Charges Count",
+    charges_bill_fee_total AS "Total Bill Fee"
 FROM
      modalitySummary 
 `);
