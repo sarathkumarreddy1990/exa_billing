@@ -10749,6 +10749,7 @@ var facilityModules = {
         referringPhysicianStudyCount: 'Referring Physician Study Count',
         completedSchedules: 'Completed Schedules',
         patientStatement: 'Patient Statement',
+        patientActivityStatement: 'Patient Statement',
         claimTransaction: 'Claim Transaction',
         insuranceVsLOP: 'Insurance Vs. LOP',
         claimInquiry: 'Claim Inquiry',

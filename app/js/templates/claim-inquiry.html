@@ -1,30 +1,43 @@
 <style>
-    .line_height{
+    .line_height {
         line-height: 0.5;
     }
-    .form-list .form-group .col-form-label{
+
+    .form-list .form-group .col-form-label {
         width: 140px;
     }
-    .alignLeft{
+
+    .alignLeft {
         margin-right: 10px;
     }
-    .ui-jqgrid .ui-jqgrid-bdiv { overflow-y: scroll }
+
+    .ui-jqgrid .ui-jqgrid-bdiv {
+        overflow-y: scroll
+    }
+
     .fit {
-    position: absolute;
-    top: 60px;
-    left: 10px;
-    bottom: 10px;
-    right: 10px; 
-    overflow-y: scroll;
-    overflow-x: scroll;
-}
+        position: absolute;
+        top: 60px;
+        left: 10px;
+        bottom: 10px;
+        right: 10px;
+        overflow-y: scroll;
+        overflow-x: scroll;
+    }
 </style>
 <form class="form-horizontal form-list fit">
+
     <div id="inquiryInvoice">
-        <input type="button" value="patientInquiry" id="btnCIPatientInquiry">
-        <input type="button" value="printInvoice" id="btnCIPrintInvoice">
+        <button type="button" class="btn btn-primary" id="btnCIPatientInquiry" data-rformat="pdf">
+            Patient Inquiry
+            <i class="fa fa-external-link"></i>
+        </button>
+        <button type="button" class="btn btn-primary" id="btnCIPrintInvoice" data-rformat="pdf">
+            Patient Invoice
+            <i class="fa fa-external-link"></i>
+        </button>
     </div>
-    <div id="encounterDetails"> 
+    <div id="encounterDetails">
         <legend class="viztekLegend" i18n="order.chargePayment.encounterDetails" style="font-weight: bold;font-size: 15px">Encounter Details</legend>
         <div>
             <div class="col-xs-4">
@@ -62,64 +75,64 @@
                 </div>
             </div>
             <div class="col-xs-4">
-                    <div class="form-group form-inline line-height">
-                        <div class="col-form-label alignRight">
-                            <label class="font-weight">Claim Status</label>
-                        </div>
-                        <div>
-                            <label id="lblCIStatus">: </label>
-                        </div>
+                <div class="form-group form-inline line-height">
+                    <div class="col-form-label alignRight">
+                        <label class="font-weight">Claim Status</label>
                     </div>
-                    <div class="form-group form-inline line-height">
-                        <div class="col-form-label alignRight">
-                            <label class="font-weight">Patient Paid</label>
-                        </div>
-                        <div>
-                            <label id="lblCIPatientPaid">: </label>
-                        </div>
+                    <div>
+                        <label id="lblCIStatus">: </label>
                     </div>
-                    <div class="form-group form-inline line-height">
-                        <div class="col-form-label alignRight">
-                            <label class="font-weight">Others Paid</label>
-                        </div>
-                        <div>
-                            <label id="lblCIOthersPaid">: </label>
-                        </div>
+                </div>
+                <div class="form-group form-inline line-height">
+                    <div class="col-form-label alignRight">
+                        <label class="font-weight">Patient Paid</label>
                     </div>
-                    <div class="form-group form-inline line-height">
-                        <div class="col-form-label alignRight">
-                            <label class="font-weight">Bill Fee</label>
-                        </div>
-                        <div>
-                            <label id="lblCIBillFee">: </label>
-                        </div>
+                    <div>
+                        <label id="lblCIPatientPaid">: </label>
                     </div>
+                </div>
+                <div class="form-group form-inline line-height">
+                    <div class="col-form-label alignRight">
+                        <label class="font-weight">Others Paid</label>
+                    </div>
+                    <div>
+                        <label id="lblCIOthersPaid">: </label>
+                    </div>
+                </div>
+                <div class="form-group form-inline line-height">
+                    <div class="col-form-label alignRight">
+                        <label class="font-weight">Bill Fee</label>
+                    </div>
+                    <div>
+                        <label id="lblCIBillFee">: </label>
+                    </div>
+                </div>
             </div>
             <div class="col-xs-4">
-                    <div class="form-group form-inline line-height">
-                        <div class="col-form-label alignRight">
-                            <label class="font-weight">Adjustment</label>
-                        </div>
-                        <div>
-                            <label id="lblCIAdj">: </label>
-                        </div>
+                <div class="form-group form-inline line-height">
+                    <div class="col-form-label alignRight">
+                        <label class="font-weight">Adjustment</label>
                     </div>
-                    <div class="form-group form-inline line-height">
-                        <div class="col-form-label alignRight">
-                            <label class="font-weight">Balance</label>
-                        </div>
-                        <div>
-                            <label id="lblCIBalance">: </label>
-                        </div>
+                    <div>
+                        <label id="lblCIAdj">: </label>
                     </div>
-                    <div class="form-group form-inline line-height">
-                        <div class="col-form-label alignRight">
-                            <label class="font-weight">Allowed</label>
-                        </div>
-                        <div>
-                            <label id="lblCIAllowed">: </label>
-                        </div>
+                </div>
+                <div class="form-group form-inline line-height">
+                    <div class="col-form-label alignRight">
+                        <label class="font-weight">Balance</label>
                     </div>
+                    <div>
+                        <label id="lblCIBalance">: </label>
+                    </div>
+                </div>
+                <div class="form-group form-inline line-height">
+                    <div class="col-form-label alignRight">
+                        <label class="font-weight">Allowed</label>
+                    </div>
+                    <div>
+                        <label id="lblCIAllowed">: </label>
+                    </div>
+                </div>
             </div>
         </div>
         <legend class="viztekLegend" style="font-size: 15px;font-weight: bold">Diagnosis</legend>
@@ -139,26 +152,26 @@
             </div>
         </div>
         <div>
-        <div class="col-xs-12">
-                    <div class="col-xs-6">
-                        <div class="form-group form-inline">
-                            <div class="col-xs-3">
-                                <label class="control-label" style="font-weight: bold">FollowUp Date</label>
-                            </div>
-                            <div class="col-xs-6">
-                                <div id="divFollowUpDate" class="input-group" style="float:right">
-                                    <input type="text" id="txtCIFollowUpDate"class="form-control maskDateMonth" name="followUpDate">
-                                    <span class="input-group-addon add-on"> <i class="icon-ic-schedule"></i> </span>
-                                </div>
+            <div class="col-xs-12">
+                <div class="col-xs-6">
+                    <div class="form-group form-inline">
+                        <div class="col-xs-3">
+                            <label class="control-label" style="font-weight: bold">FollowUp Date</label>
+                        </div>
+                        <div class="col-xs-6">
+                            <div id="divFollowUpDate" class="input-group" style="float:right">
+                                <input type="text" id="txtCIFollowUpDate" class="form-control maskDateMonth" name="followUpDate">
+                                <span class="input-group-addon add-on">
+                                    <i class="icon-ic-schedule"></i>
+                                </span>
                             </div>
                         </div>
                     </div>
-                    <div class="col-xs-6">
-                        <input type="button" id="btnCISaveIsInternal" class=" btn btn-primary" value="Save"
-                            i18n="shared.buttons.save" style="float: right;line-height: 1">
-                        <input type="button" id="btnCIAddComment" class=" btn btn-danger" value="Save" i18n="shared.buttons.add"
-                            style="float:right;margin-right: 5px;line-height: 1">
-                    </div>
+                </div>
+                <div class="col-xs-6">
+                    <input type="button" id="btnCISaveIsInternal" class=" btn btn-primary" value="Save" i18n="shared.buttons.save" style="float: right;line-height: 1">
+                    <input type="button" id="btnCIAddComment" class=" btn btn-danger" value="Save" i18n="shared.buttons.add" style="float:right;margin-right: 5px;line-height: 1">
+                </div>
             </div>
             <div class="col-xs-12" style="margin-left: 0px !important;margin-top: 5px; padding-left: 0;">
                 <div style="min-height:150px;">
@@ -174,12 +187,11 @@
         <div class="col-xs-12" id="divCIclaimComment" style="margin-top: 10px">
             <div class="col-xs-10">
                 <div class="form-group">
-                    <textarea id="txtCIAddComment" class="form-control"  rows="3"></textarea>
+                    <textarea id="txtCIAddComment" class="form-control" rows="3"></textarea>
                 </div>
             </div>
             <div class="col-xs-2" style="margin-top:4%">
-                <input type="button" id="btnCICommentSave" class="btn btnCommentSave  btn-primary" value="Save"
-                       i18n="shared.buttons.save">
+                <input type="button" id="btnCICommentSave" class="btn btnCommentSave  btn-primary" value="Save" i18n="shared.buttons.save">
             </div>
         </div>
     </div>

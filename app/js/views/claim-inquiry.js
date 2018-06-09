@@ -6,7 +6,8 @@ define([
     'jqgridlocale',
     'models/pager',
     'text!templates/claim-inquiry.html',
-    'collections/claim-inquiry'
+    'collections/claim-inquiry',
+    'views/reports/patient-activity-statement' 
 ], function (
     $,
     _,
@@ -15,7 +16,8 @@ define([
     JGridLocale,
     Pager,
     claimInquiryTemplate,
-    claimCommentsList) {
+    claimCommentsList,
+    patientActivityStatement) {
         return Backbone.View.extend({
             el: null,
             pager: null,
@@ -25,7 +27,8 @@ define([
                 "blur #txtCIFollowUpDate": "saveFollowUpDate",
                 "click #btnCIAddComment": "showCommentPopup",
                 "click #btnCISaveComment": "saveComment",
-                "click #btnCISaveIsInternal": "saveIsInternalComment"
+                "click #btnCISaveIsInternal": "saveIsInternalComment",
+                "click #btnCIPatientInquiry": "patientInquiryForm"
             },
 
             initialize: function (options) {
@@ -402,6 +405,12 @@ define([
             commentDateFormatter: function (cellvalue, options, rowObject) {
                 var colValue = (commonjs.checkNotEmpty(rowObject.commented_dt) ? moment(rowObject.commented_dt).format('L') : '');
                 return colValue;
+            },
+
+            patientInquiryForm: function (e) {
+                var self = this;
+                self.patientActivityStatement = new patientActivityStatement({el: $('#modal_div_container')});
+                self.patientActivityStatement.onReportViewClick(e);                         
             }
         })
 
