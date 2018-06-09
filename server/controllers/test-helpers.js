@@ -36,6 +36,14 @@ module.exports = {
 
     getUserId: function () {
         return data.getUserId();
+    },
+
+    getClaimId: function () {
+        return data.getClaimId();
+    },
+
+    getAdjustmentCodeId: function () {
+        return data.getAdjustmentCodeId();
     }
 
 };

@@ -16,6 +16,8 @@ describe('Payments', () => {
     let company_id = null;
     let facility_id = null;
     let user_id = null;
+    let claim_id = null;
+    let adjustment_code_id = null;
 
     describe('getPayments', () => {
         it('should return array of rows', async () => {
@@ -63,6 +65,14 @@ describe('Payments', () => {
             const userData = await testHelpersController.getUserId();
             user_id = userData.rows[0].id;
             user_id = user_id ? user_id : null;
+
+            const claimData = await testHelpersController.getClaimId();
+            claim_id = claimData.rows[0].claim_id;
+            claim_id = claim_id ? claim_id : null;
+
+            const adjustmentCodeData = await testHelpersController.getAdjustmentCodeId();
+            adjustment_code_id = adjustmentCodeData.rows[0].id;
+            adjustment_code_id = adjustment_code_id ? adjustment_code_id : null;
 
         };
 
@@ -160,6 +170,28 @@ describe('Payments', () => {
 
                 should.exist(data);
                 data.rowCount.should.equal(1);
+            });
+        });
+
+        describe('Create payment applications', () => {
+            it('should array of rows', async () => {
+                const data = await paymentsController.createOrUpdatePaymentapplications({
+                    paymentId: paymentId,
+                    claimId: claim_id,
+                    line_items: JSON.stringify([{ "chargeId": 7740, "payment": 300, "adjustment": 300, "cas_details": [{ "group_code_id": 1, "reason_code_id": 1, "amount": 100 }, { "group_code_id": 2, "reason_code_id": 2, "amount": 100 }, { "group_code_id": 1, "reason_code_id": 3, "amount": 100 }, { "group_code_id": 1, "reason_code_id": 4, "amount": 100 }] }]),
+                    adjestmentId: adjustment_code_id,
+                    user_id: user_id,
+                    coPay: 100,
+                    coInsurance: 100,
+                    deductible: 100,
+                    billingNotes: 'test',
+                    payerType: 'patient',
+                    paymentStatus: 'pending'
+                });
+
+                should.exist(data);
+                data.rows.should.be.an('array');
+                data.rows.should.have.lengthOf.above(0);
             });
         });
 

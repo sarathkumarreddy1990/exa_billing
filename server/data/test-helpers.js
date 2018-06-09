@@ -107,6 +107,27 @@ module.exports = {
 
         return await query(sql);
 
+    },
+
+    getClaimId: async function () {
+
+        const sql = `SELECT 
+                        MAX(bc.id) as claim_id
+                     FROM billing.claims bc
+                     INNER JOIN billing.charges bch on bc.id = bch.claim_id`;
+
+        return await query(sql);
+
+    },
+
+    getAdjustmentCodeId: async function () {
+
+        const sql = `SELECT 
+                        MAX(id) as id
+                     FROM billing.adjustment_codes`;
+
+        return await query(sql);
+
     }
 
 };
