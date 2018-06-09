@@ -38,7 +38,6 @@ pool.on('error', (err) => {
 const pgData = {
 
     query: async function (text, values, preparedName) {
-console.log(text, values)
         let queryObj = {};
 
         if (typeof text === 'object') {
