@@ -116,7 +116,7 @@ module.exports = {
 
         payer_type = payer_type == 'provider' ? 'ordering_provider' : payer_type;
 
-        const sql = SQL`WITH insert_data as (INSERT INTO billing.payments
+        const sql = SQL`WITH insert_data as ( INSERT INTO billing.payments
                                                 (   company_id
                                                   , facility_id
                                                   , patient_id
@@ -154,8 +154,8 @@ module.exports = {
                                                   , ${payment_mode}
                                                   , ${credit_card_name}
                                                   , ${credit_card_number}
-                                                WHERE NOT EXISTS(SELECT 1 FROM billing.payments where id = ${paymentId})
-                                                RETURNING id),
+                                                WHERE NOT EXISTS( SELECT 1 FROM billing.payments where id = ${paymentId})
+                                                RETURNING id ),
                                                 payment_update as(UPDATE billing.payments SET
                                                     facility_id = ${facility_id}
                                                   , patient_id = ${patient_id}
@@ -174,9 +174,24 @@ module.exports = {
                                                   , card_number = ${credit_card_number}
                                                   WHERE 
                                                     id = ${paymentId}
-                                                  AND NOT EXISTS(SELECT 1 FROM insert_data))
-                                                  SELECT id from insert_data`;
+                                                  AND NOT EXISTS(SELECT 1 FROM insert_data) 
+                                                  RETURNING id
+                                                )
+                                                  SELECT id from insert_data
+                                                  UNION 
+                                                  SELECT id from payment_update `;
 
+        return await query(sql);
+    },
+
+    deletePayment: async function (params) {
+
+        let { id } = params;
+
+        const sql = SQL` DELETE FROM
+                             billing.payments
+                         WHERE
+                             id = ${id}`;
         return await query(sql);
     },
 
