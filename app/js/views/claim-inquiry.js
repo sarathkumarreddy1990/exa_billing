@@ -32,50 +32,53 @@ define([
             },
 
             initialize: function (options) {
-                var self = this;
-                self.options = options;
-                self.pager = new Pager();
-                self.claimCommentsList = new claimCommentsList();
-                self.render();
-                self.encounterDetails();
+                this.options = options;
+                this.pager = new Pager();
+                this.claimCommentsList = new claimCommentsList();
             },
 
-            render: function () {
-                this.$el.html(this.inquiryTemplate());
+            render: function (cid) {
+              this.rendered = true;
+              this.$el.html(this.inquiryTemplate());
                 commonjs.bindDateTimePicker("divFollowUpDate", { format: 'L' }); //to bind date picker to followup date
+                this.encounterDetails(cid)
             },
 
-            encounterDetails: function () {
-                this.claim_id = 1512;
+            encounterDetails: function (claimID) {
                 var self = this;
+                self.claim_id = claimID;
+                if (!self.rendered)
+                self.render();
                 $.ajax({
                     url: '/exa_modules/billing/claim_inquiry',
                     type: 'GET',
                     data: {
-                        'claim_id': 4262
+                        'claim_id': self.claim_id  
                     },
                     success: function (data, response) {
                         if (data) {
                             data = data[0];
-                            var encounter = data.encounter_details[0];
+                            var encounter = data.encounter_details && data.encounter_details.length > 0 ? data.encounter_details : '[]';
+                            if(encounter.length > 0){
+                                encounter = encounter[0];
+                                //binding the values from data base
+                                $('#lblCIReadPhy').text(encounter.rend_provider_name);
+                                $('#lblCIRefPhy').text(encounter.ref_provider_name);
+                                $('#lblCIOrdFac').text(encounter.group_name);
+                                $('#lblCIfac').text(encounter.facility_name);
+                                $('#lblCIStatus').text(encounter.claim_status);
+                                $('#lblCIPatientPaid').text(encounter.patient_paid);
+                                $('#lblCIOthersPaid').text(encounter.others_paid);
+                                $('#lblCIBillFee').text(encounter.bill_fee);
+                                $('#lblCIAdj').text(encounter.adjustment_amount);
+                                $('#lblCIBalance').text(encounter.claim_balance);
+                                $('#lblCIAllowed').text(encounter.allowed_fee);
+                            }
 
-                            //binding the values from data base
-                            $('#lblCIReadPhy').text(encounter.rend_provider_name);
-                            $('#lblCIRefPhy').text(encounter.ref_provider_name);
-                            $('#lblCIOrdFac').text(encounter.group_name);
-                            $('#lblCIfac').text(encounter.facility_name);
-                            $('#lblCIStatus').text(encounter.claim_status);
-                            $('#lblCIPatientPaid').text(encounter.patient_paid);
-                            $('#lblCIOthersPaid').text(encounter.others_paid);
-                            $('#lblCIBillFee').text(encounter.bill_fee);
-                            $('#lblCIAdj').text(encounter.adjustment_amount);
-                            $('#lblCIBalance').text(encounter.claim_balance);
-                            $('#lblCIAllowed').text(encounter.allowed_fee);
-
-                            self.insuranceGrid(data.insurance_details);
-                            self.diagnosisGrid(data.icdcode_details);
+                            self.showInsuranceGrid(data.insurance_details);
+                            self.showDiagnosisGrid(data.icdcode_details);
                             self.getFollowupDate();
-                            self.claimCommentsGrid();
+                            self.showClaimCommentsGrid();
                         }
                     },
                     error: function (err) {
@@ -85,10 +88,10 @@ define([
                 })
             },
 
-            insuranceGrid: function (data) {
+            showInsuranceGrid: function (data) {
                 $('#tblCIInsurance').jqGrid({
                     datatype: 'local',
-                    data: data,
+                    data: data !=null ? data : [],
                     colNames: ['', 'code', 'description'],
                     colModel: [
                         { name: 'id', hidden: true },
@@ -103,10 +106,10 @@ define([
                 $('#gview_tblCIInsurance').find('.ui-jqgrid-bdiv').css('max-height', '180px')
             },
 
-            diagnosisGrid: function (data) {
+            showDiagnosisGrid: function (data) {
                 $("#tblCIDiagnosis").jqGrid({
                     datatype: 'local',
-                    data: data,
+                    data: data !=null ? data : [],
                     colNames: ['', 'Code', 'Description'],
                     colModel: [
                         { name: '', index: 'id', key: true, hidden: true },
@@ -121,9 +124,8 @@ define([
                 $('#gview_tblCIDiagnosis').find('.ui-jqgrid-bdiv').css('max-height', '180px')
             },
 
-            claimCommentsGrid: function () {
+            showClaimCommentsGrid: function () {
                 var self = this;
-               // self.claim_id = 1512;
                 var commentType = ["payment", "adjustment", "charge"]
                 var payCmtGrid;
                 payCmtGrid = new customGrid();
@@ -140,25 +142,10 @@ define([
                         {name: 'del', width: 20, search: false, sortable: false,
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
-                                commonjs.helpConfirm({
-                                    icon: "fa fa-trash",
-                                    head: "Delete",
-                                    hi18n: "messages.confirm.delete",
-                                    body: "Are you sure that you want to delete?",
-                                    bi18n: "messages.confirm.deleteAreYouSure",
-                                    buttons: [
-                                        {
-                                            text: "Yes",
-                                            click: function () {
-                                                var gridData = $('#tblPaymentComments').jqGrid('getRowData', rowID);
-                                                self.deleteClaimComment(gridData.id);
-                                            }
-                                        },
-                                        {
-                                            text: "No"
-                                        }
-                                    ]
-                                });
+                                if (confirm("Are you sure that you want to delete?")) {
+                                    var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
+                                    self.deleteClaimComment(gridData.id);
+                                } 
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.type && commentType.indexOf(rowObject.type) == -1)
@@ -208,7 +195,7 @@ define([
                     disablesearch: false,
                     disablesort: false,
                     disablepaging: false,
-                    showcaption: false,
+                    showcaption: true,
                     disableadd: true,
                     disablereload: true,
                     shrinkToFit: true,
@@ -226,7 +213,6 @@ define([
                 var currentDate = moment().format('L');
                 if (moment(selectedFollowUpDate).format('MM/DD/YYYY') < currentDate) {
                     commonjs.showWarning('Cannot Select Past date');
-                    // commonjs.showWarning("messages.warning.shared.alreadyexists");
                     return;
                 }
                 if (e.eventPhase && self.previousFollowUpDate != selectedFollowUpDate) {
@@ -282,7 +268,9 @@ define([
 
             showCommentPopup: function (from, comment, commentId) {
                 var self = this;
-                commonjs.showDialog({ header: 'Add Comment', i18nHeader: 'menuTitles.patient.addComment', width: '60%', height: '25%', html: $('#divCIFormComment').html() });
+               // commonjs.showDialog({ header: 'Add Comment', i18nHeader: 'menuTitles.patient.addComment', width: '60%', height: '25%', html: $('#divCIFormComment').html() });
+               $('#divCIFormComment').css({ top: '10%', height: '20%' });
+               $('#divCIFormComment').show();
                 if (from == 'edit') {
                     $('#siteModal').find('#txtCIAddComment').val(comment);
                 }
@@ -300,6 +288,7 @@ define([
             },
 
             deleteClaimComment: function (commentId) {
+                var self = this;
                 $.ajax({
                     url: '/exa_modules/billing/claim_inquiry',
                     type: 'DELETE',
@@ -307,7 +296,8 @@ define([
                         'id': commentId
                     },
                     success: function (data, response) {
-
+                        commonjs.showStatus('Comment Deleted Successfully');
+                        self.showClaimCommentsGrid();
                     },
                     error: function (err) {
                         commonjs.handleXhrError(err);
@@ -347,8 +337,8 @@ define([
                             'from': 'tmt'
                         },
                         success: function (data, response) {
-                            commonjs.hideDialog();
                             commonjs.showStatus('Record Saved Successfully');
+                            self.showClaimCommentsGrid();
 
                         },
                         error: function (err) {
@@ -366,7 +356,7 @@ define([
                         },
                         success: function (data, response) {
                             commonjs.showStatus('Record Saved Successfully');
-
+                            self.showClaimCommentsGrid();
                         },
                         error: function (err) {
                             commonjs.handleXhrError(err);
@@ -392,7 +382,6 @@ define([
                         'from': 'cb'
                     },
                     success: function (data, response) {
-                        commonjs.hideDialog();
                         commonjs.showStatus('Record Saved Successfully');
 
                     },

@@ -26,7 +26,7 @@ define([
                 "setup/*subroute": "startSetup",
                 "app/payments": "startPayments",
                 "reports/*subroute": "startReporting",
-                "app/claim-inquiry": "startClaimInquiry"
+                "app/claim_inquiry": "startClaimInquiry"
             },
             
             startApp: function (subroute) {
