@@ -11,6 +11,10 @@ module.exports = {
         return data.createOrUpdatePayment(params);
     },
 
+    deletePayment: function (params) {
+        return data.deletePayment(params);
+    },
+
     createOrUpdatePaymentapplications: function (args) {
 
         applications(args);
