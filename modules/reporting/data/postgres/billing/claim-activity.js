@@ -122,7 +122,7 @@ SELECT
     payment_date AS "PAYMENT DATE",
     accounting_date AS "ACC. DATE",
     code AS "CODE",
-    description AS "PAYER TYPE" ,
+    description AS "DESCRIPTION" ,
     modifiers AS "MODIFIERS",
     amount AS "AMOUNT",
     created_on AS "CREATED ON",

@@ -10707,7 +10707,7 @@ var facilityModules = {
         procedureanalysisbyinsurance: 'Procedure Analysis By Insurance',
         'appointmentListDateRange': 'Appointment List Date Range',
         facilityinvoices: 'Facility Invoices',
-        payermix: 'Payer Mix',
+        payerMix: 'Payer Mix',
         referringprovidersummary: 'Referring Provider Summary',
         chargedetails: 'Claim Activity',
         facilitysummary: 'Facility Summary',
