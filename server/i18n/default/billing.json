@@ -65,7 +65,12 @@
             "defaultOrderType": "Default Order Type",
             "defaultServiceLoc": "Default Service Location",
             "refundAdjustment": "Refund Adjustment",
-            "insurancePayerType": "Insurance Payer Type"
+            "insurancePayerType": "Insurance Payer Type",
+            "claimInquiryDetails": "Claim Inquiry Details",
+            "readPhy": "Reading Physician",
+            "refPhy": "Referring Physician",
+            "ordFacility": "Ordering Facility",
+            "diagnosis": "Diagnosis"
         },
         "payments": {
             "postingDate": "Posting Date",

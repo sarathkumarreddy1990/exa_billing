@@ -10,8 +10,9 @@ define('grid', [
     'views/claims/index',
     'views/user-settings',
     'views/setup/study-filter',
-    'text!templates/setup/study-filter-grid.html'
-], function (jQuery, _, initChangeGrid, utils, Pager, StudyFields, Studies, claimWorkbench, claimsView, UserSettingsView, StudyFilterView, studyFilterGrid) {
+    'text!templates/setup/study-filter-grid.html',
+    'views/claim-inquiry'
+], function (jQuery, _, initChangeGrid, utils, Pager, StudyFields, Studies, claimWorkbench, claimsView, UserSettingsView, StudyFilterView, studyFilterGrid, claimInquiryView) {
     var $ = jQuery;
     var isTrue = utils.isTrue;
     var isFalse = utils.isFalse;
@@ -23,7 +24,6 @@ define('grid', [
     var updateReorderColumn = utils.updateReorderColumn;
     var updateResizeColumn = utils.updateResizeColumn;
     var setScrollHandler = utils.setScrollHandler;
-
     return function (options) {
         var self = this;
         var filterID = options.filterid;
@@ -57,6 +57,7 @@ define('grid', [
             var target = event.currentTarget;
             var $target = $(target);
             let studyArray = [];
+            let selectedStudies = [];
             let divObj = 'studyRightMenu';
             let $divObj = $(document.getElementById(divObj));
             $divObj.empty();
@@ -81,6 +82,7 @@ define('grid', [
                     patient_dob: _storeEle.birth_date,
                     accession_no: _storeEle.accession_no,
                 };
+                selectedStudies.push(study);
             }
             var studyIds = studyArray.join();
             if (isClaimGrid) {
@@ -169,7 +171,10 @@ define('grid', [
                 $divObj.append(liPayerType);
 
                 var liEditClaim = '<li><a id="anc_edit_claim" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log" class="dropdown-item">Edit Claim</a></li>';
-                $divObj.append(liEditClaim);
+                
+                if(studyArray.length == 1)
+                    $divObj.append(liEditClaim);
+
                 $('#anc_edit_claim').off().click(function () {
 
                     self.claimView = new claimsView();
@@ -179,7 +184,14 @@ define('grid', [
                 var liClaimInquiry = '<li><a id="anc_claim_inquiry" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log" class="dropdown-item">Claim Inquiry</a></li>';
                 $divObj.append(liClaimInquiry);
                 $('#anc_claim_inquiry').click(function () {
-                    alert(studyIds)
+                     commonjs.showDialog({
+                    'header': 'Claim Inquiry',
+                    'width': '95%',
+                    'height': '85%',
+                    'needShrink': true
+                });
+                self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
+                self.claimInquiryView.render(studyIds);
                 });
 
                 var liSplitOrders = '<li><a id="anc_split_orders" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log" class="dropdown-item">Create/split Orders</a></li>';
@@ -193,7 +205,9 @@ define('grid', [
                 $divObj.append(liCreateClaim);
                 $('#anc_create_claim').off().click(function () {
                     window.localStorage.setItem('selected_studies', null);
-                    window.localStorage.setItem('selected_studies', JSON.stringify(study));
+                    window.localStorage.setItem('first_study_details', null);
+                    window.localStorage.setItem('primary_study_details', JSON.stringify(selectedStudies[0]));
+                    window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
                     self.claimView = new claimsView();
                     self.claimView.showClaimForm(studyIds);
                 });
@@ -524,11 +538,19 @@ define('grid', [
 
                 onRightClickRow: function (rowID, iRow, iCell, event, options) {
                     if (disableRightClick()) {
+                        var _selectEle = $(event.currentTarget).find('#' + rowID).find('input:checkbox');
+                            _selectEle.attr('checked', true);
                         openCreateClaim(rowID, event, options.isClaimGrid, studyStore);
                     }
                     else {
                         event.stopPropagation();
                     }
+                },
+                beforeSelectRow: function (rowID, e) {
+                    var _selectEle = $(e.currentTarget).find('#' + rowID).find('input:checkbox');
+                    var enableField = _selectEle.is(':checked')
+                    _selectEle.attr('checked', !enableField);
+                  
                 },
                 beforeSearch: function () {
                     commonjs.scrollLeft = $('.ui-jqgrid-bdiv').scrollLeft();

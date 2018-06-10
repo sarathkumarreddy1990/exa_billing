@@ -4,7 +4,7 @@ module.exports = {
 
     getLineItemsDetails: async function (params) {
 
-        const studyIds = params.study_ids.split('~').map(Number);
+        const studyIds = params.study_ids.split(',').map(Number);
 
         const firstStudyId = studyIds.length > 0 ? studyIds[0] : null;
         
