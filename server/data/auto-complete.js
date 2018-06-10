@@ -41,11 +41,14 @@ module.exports = {
         insur_sql.append(SQL` ORDER BY  ${params.sortField} `)
             .append(params.sortOrder)
             .append(SQL` LIMIT ${params.pageSize}`)
-            .append(SQL` OFFSET ${((params.page * params.pageSize) - params.pageSize)}`);
+            .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
 
         return await query(insur_sql);
     },
     getProviders: async function (params) {
+
+        let provider_search = ` AND (p.full_name ILIKE '%${params.q}%' OR p.provider_code ILIKE '%${params.q}%' ) `;
+
         const sql_provider = SQL`SELECT
                                       pc.id AS id
                                     , p.first_name
@@ -62,14 +65,21 @@ module.exports = {
                                     provider_contacts pc ON pc.provider_id = p.id
                             WHERE NOT p.has_deleted AND NOT pc.has_deleted AND p.is_active AND p.company_id = ${params.company_id} AND p.provider_type = ${params.provider_type} `;
 
+        if (params.q != '') {
+            sql_provider.append(provider_search);
+        }
+
         sql_provider.append(SQL` ORDER BY  ${params.sortField} `)
             .append(params.sortOrder)
             .append(SQL` LIMIT ${params.pageSize}`)
-            .append(SQL` OFFSET ${((params.page * params.pageSize) - params.pageSize)}`);
+            .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
 
         return await query(sql_provider);
     },
     getICDcodes: async function (params) {
+
+        let ics_search = ` AND (code ILIKE '%${params.q}%' OR description ILIKE '%${params.q}%' ) `;
+
         const icd_sql = SQL`SELECT
                                        id
                                      , code
@@ -80,15 +90,22 @@ module.exports = {
                                 WHERE 
                                     icd.is_active AND NOT icd.has_deleted AND icd.company_id = ${params.company_id} `;
 
+        if (params.q != '') {
+            icd_sql.append(ics_search);
+        }
+
         icd_sql.append(SQL` ORDER BY  ${params.sortField} `)
             .append(params.sortOrder)
             .append(SQL` LIMIT ${params.pageSize}`)
-            .append(SQL` OFFSET ${((params.page * params.pageSize) - params.pageSize)}`);
+            .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
 
         return await query(icd_sql);
     },
     getProviderGroups: async function (params) {
-        const icd_sql = SQL`SELECT
+
+        let provider_group_q = ` AND (group_code ILIKE '%${params.q}%' OR group_name ILIKE '%${params.q}%' ) `;
+
+        const provider_group_sql = SQL`SELECT
                                      id
                                      ,id As provider_group_id
                                      ,group_code
@@ -102,14 +119,21 @@ module.exports = {
                                     NOT provider_groups.has_deleted AND (provider_groups.group_type = ${params.groupType}  OR provider_groups.group_type IS NULL) 
                                     AND provider_groups.company_id = ${params.company_id} AND is_active `;
 
-        icd_sql.append(SQL` ORDER BY  ${params.sortField} `)
+        if (params.q != '') {
+            provider_group_sql.append(provider_group_q);
+        }
+
+        provider_group_sql.append(SQL` ORDER BY  ${params.sortField} `)
             .append(params.sortOrder)
             .append(SQL` LIMIT ${params.pageSize}`)
-            .append(SQL` OFFSET ${((params.page * params.pageSize) - params.pageSize)}`);
+            .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
 
-        return await query(icd_sql);
+        return await query(provider_group_sql);
     },
     getInsurances: async function (params) {
+
+        let insurance_q = ` AND (insurance_name ILIKE '%${params.q}%' OR insurance_code ILIKE '%${params.q}%' ) `;
+
         const insurance_sql = SQL`SELECT
                                 id
                                 , insurance_code
@@ -120,11 +144,15 @@ module.exports = {
                                 insurance_providers
                             WHERE 
                                 NOT has_deleted AND company_id = ${params.company_id} AND is_active `;
-                                
+
+        if (params.q != '') {
+            insurance_sql.append(insurance_q);
+        }
+
         insurance_sql.append(SQL` ORDER BY  ${params.sortField} `)
             .append(params.sortOrder)
             .append(SQL` LIMIT ${params.pageSize}`)
-            .append(SQL` OFFSET ${((params.page * params.pageSize) - params.pageSize)}`);
+            .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
 
         return await query(insurance_sql);
     },
@@ -151,15 +179,19 @@ module.exports = {
                 AND is_active          
                 ORDER BY patients.id ASC 
                 LIMIT ${params.pageSize}
-                OFFSET ${((params.page * params.pageSize) - params.pageSize)}   
+                OFFSET ${((params.page - 1) * params.pageSize)}   
                 ) 
             AS finalPatients INNER JOIN patients ON finalPatients.patients_id = patients.id                  
             ORDER BY patients.id ASC
         `;
+
         return await query(sql_patient);
     },
 
     getOrderingFacility: async function (params) {
+
+        let facility_q = ` AND (group_code ILIKE '%${params.q}%' OR group_name ILIKE '%${params.q}%' ) `;
+
         const sqlOrderingFacility = SQL`
             SELECT
                 id
@@ -180,15 +212,24 @@ module.exports = {
             WHERE
                 provider_groups.has_deleted = false
                 AND (provider_groups.group_type = 'OF'  OR provider_groups.group_type IS NULL)
-                AND provider_groups.company_id = 1 AND is_active = TRUE   
-            ORDER BY group_name 
-            LIMIT ${params.pageSize}
-            OFFSET ${((params.page * params.pageSize) - params.pageSize)}        
-            `;
+                AND provider_groups.company_id = 1 AND is_active = TRUE `;
+
+        if (params.q != '') {
+            sqlOrderingFacility.append(facility_q);
+        }
+
+        sqlOrderingFacility.append(SQL` ORDER BY group_name `)
+            .append(params.sortOrder)
+            .append(SQL` LIMIT ${params.pageSize}`)
+            .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
+
         return await query(sqlOrderingFacility);
     },
 
     getProvidersAc: async function (params) {
+
+        let providers_q = ` AND (p.provider_code ILIKE '%${params.q}%' OR p.full_name ILIKE '%${params.q}%' ) `;
+
         const sqlProvides = SQL`
             SELECT
             p.id,
@@ -228,11 +269,16 @@ module.exports = {
                 AND p.sys_provider = FALSE
                 AND pc.is_active = TRUE
                 AND pc.has_deleted = FALSE
-                AND p.company_id = ${params.company_id}
-                ORDER BY last_name ASC
-            LIMIT ${params.pageSize}
-            OFFSET ${((params.page * params.pageSize) - params.pageSize)}
-    `;
+                AND p.company_id = ${params.company_id} `;
+
+        if (params.q != '') {
+            sqlProvides.append(providers_q);
+        }
+
+        sqlProvides.append(SQL` ORDER BY last_name ASC `)
+            .append(SQL` LIMIT ${params.pageSize}`)
+            .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
+
         return await query(sqlProvides);
     }
 };
