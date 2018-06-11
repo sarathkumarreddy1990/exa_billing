@@ -390,6 +390,12 @@ define(['jquery',
                     claimIds.push(rowId);
                 }
 
+
+                if(claimIds&&claimIds.length==0){
+                    commonjs.showWarning('Please select claims with same type of billing method and electronic billing method');
+                    return false;
+                }
+
                 self.ediResultTemplate = _.template(ediResultHTML);
 
                 jQuery.ajax({
