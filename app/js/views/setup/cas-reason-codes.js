@@ -73,9 +73,11 @@ define([
                                     self.model.destroy({
                                         data: $.param({ id: self.model.id, code: gridData.code, description: gridData.description }),
                                         success: function (model, response) {
+                                            commonjs.showStatus("Deleted Successfully");
                                             self.casReasonCodesTable.refresh();
                                         },
                                         error: function (model, response) {
+                                            commonjs.handleXhrError(model, response);
                                         }
                                     });
                                 }
@@ -113,7 +115,8 @@ define([
                     disablepaging: false,
                     showcaption: false,
                     disableadd: true,
-                    disablereload: true
+                    disablereload: true,
+                    pager: '#gridPager_CasReasonCodes'
                 });
 
                 commonjs.initializeScreen({header: {screen: 'CasReasonCodes', ext: 'casReasonCodes'}, grid: {id: '#tblCasReasonCodesGrid'}, buttons: [
@@ -171,6 +174,29 @@ define([
             },
 
             saveCasReasonCodes: function () {
+                var self = this;
+                commonjs.validateForm({
+                    rules: {
+                        code: {
+                            required: true
+                        },
+                        description: {
+                            required: true
+                        }
+                    },
+                    messages: {
+                        code: commonjs.getMessage("*", "Code"),
+                        description: commonjs.getMessage("*", "Description")
+                    },
+                    submitHandler: function () {
+                        self.save();
+                    },
+                    formID: '#formCasReasonCodes'
+                });
+                $('#formCasReasonCodes').submit();
+            },
+
+            save: function() {
                 this.model.set({
                     "code": $.trim($('#txtCode').val()),
                     "description": $.trim($('#txtDescription').val()),
@@ -178,10 +204,10 @@ define([
                     "company_id" : app.companyID
                 });
                 this.model.save({
-
                 }, {
                     success: function (model, response) {
-                        if (response) {
+                        if(response) {
+                            commonjs.showStatus("Saved Successfully");
                             location.href = "#setup/cas_reason_codes/list";
                         }
                     },
