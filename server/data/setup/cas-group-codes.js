@@ -4,12 +4,8 @@ module.exports = {
 
     getData: async function (params) {
 
-        params.code = '';
-        params.name = '';
-        params.description = '';
         params.pageNo = 1;
         params.pageSize = 10;
-        params.sortField = ' code ';
         params.sortOrder = params.sortOrder || ' DESC';
         let {
             code,
@@ -28,7 +24,7 @@ module.exports = {
         }
 
         if (name) {
-            whereQuery.push(` code ILIKE '%${name}%'`);
+            whereQuery.push(` name ILIKE '%${name}%'`);
         }
 
         if (description) {
