@@ -82,7 +82,8 @@ define([
                     width: '200px'                   
                 });
                 // Binding Billing Provider MultiSelect
-                UI.bindBillingProvider();
+                UI.bindBillingProvider();               
+                UI.listUsersAutoComplete('Select Users', 'btnAddUsers', 'ulListUsers');       
                
             },
 
@@ -103,9 +104,6 @@ define([
                     $("#ddlUsersBox").show();
                     $("#divUsers").show();
                     $('#txtUsers').text("Select User");
-                    UI.listUsersAutoComplete();
-                    UI.setEvents();
-
                 }
                 else {
                     $("#ddlUsersBox").hide();
@@ -246,9 +244,9 @@ define([
                     // 'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
                     // 'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
                     // 'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
-                    // 'userIds': $('#ddlUsersOption').val() == 'S' ? usersArray : '',
-                    // 'userName': $('#ddlUsersOption').val() == 'S' ? userNameArray : ''
                     
+                     'userIds': $('#ddlUsersOption').val() == 'S' ? usersArray : '',
+                     'userName': $('#ddlUsersOption').val() == 'S' ? userNameArray : '',                    
                     'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
                     'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
                     'fromDate': moment($('#txtDateRangeFrom').val()).format('L'),

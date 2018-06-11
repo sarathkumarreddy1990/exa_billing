@@ -284,47 +284,47 @@ define([
             // Binding Report Params
             getReportParams: function () {
                 return urlParams = {
-                    'allFacilities': this.viewModel.allFacilities,
-                    'facilityIds': this.viewModel.facilityIds,
+                    // 'allFacilities': this.viewModel.allFacilities,
+                    // 'facilityIds': this.viewModel.facilityIds,
 
-                    'workedBy': $('#workedBy').prop('checked'),
-                    'workedByAll': $('#workedByAll').prop('checked'),
+                    // 'workedBy': $('#workedBy').prop('checked'),
+                    // 'workedByAll': $('#workedByAll').prop('checked'),
 
-                    'facilityIds': ['1'], //$('#facilityChk').prop('checked') && this.selectedFacilityList ? this.selectedFacilityList : 
-                    'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
-
-
-                    'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
-                    'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
-                     billingProFlag : this.viewModel.allBillingProvider == 'true' ? true : false,
-
-                    'fromDate': ($('#chkServiceDateBill').attr('checked')) ? this.viewModel.dateFrom.format('YYYY-MM-DD') : '',
-                    'toDate': ($('#chkServiceDateBill').attr('checked')) ? this.viewModel.dateTo.format('YYYY-MM-DD') : '',
-
-                    'cmtFromDate': ($('#chkServicePayDateCPT').attr('checked')) ? this.viewModel.cmtFromDate.format('YYYY-MM-DD') : '',
-                    'cmtToDate': ($('#chkServicePayDateCPT').attr('checked')) ? this.viewModel.cmtToDate.format('YYYY-MM-DD') : '',
+                    // 'facilityIds': ['1'], //$('#facilityChk').prop('checked') && this.selectedFacilityList ? this.selectedFacilityList : 
+                    // 'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
 
 
-                    'billCreatedDateFrom': ($('#billCreatedDate').attr('checked')) ? this.viewModel.billCreatedDateFrom.format('YYYY-MM-DD') : '',
-                    'billCreatedDateTo': ($('#billCreatedDate').attr('checked')) ? this.viewModel.billCreatedDateTo.format('YYYY-MM-DD') : '',
+                    // 'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
+                    // 'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
+                    //  billingProFlag : this.viewModel.allBillingProvider == 'true' ? true : false,
 
-                    insuranceIds: this.viewModel.insuranceIds,
-                    insuranceOption: this.viewModel.insuranceOption ? this.viewModel.insuranceOption : '',
+                    // 'fromDate': ($('#chkServiceDateBill').attr('checked')) ? this.viewModel.dateFrom.format('YYYY-MM-DD') : '',
+                    // 'toDate': ($('#chkServiceDateBill').attr('checked')) ? this.viewModel.dateTo.format('YYYY-MM-DD') : '',
 
-                    allInsuranceGroup: this.viewModel.allInsGrpSelection ? this.viewModel.allInsGrpSelection : '',
-                    insuranceGroupList: this.selectedInsGrpList ? this.selectedInsGrpList : '',
+                    // 'cmtFromDate': ($('#chkServicePayDateCPT').attr('checked')) ? this.viewModel.cmtFromDate.format('YYYY-MM-DD') : '',
+                    // 'cmtToDate': ($('#chkServicePayDateCPT').attr('checked')) ? this.viewModel.cmtToDate.format('YYYY-MM-DD') : '',
 
-                    userIds: this.viewModel.userIds ? this.viewModel.userIds : '',
 
-                    claimLists: this.selectedClaimList ? this.selectedClaimList : '',
-                    allClaimSelection: this.viewModel.allClaimSelection ? this.viewModel.allClaimSelection : '',
+                    // 'billCreatedDateFrom': ($('#billCreatedDate').attr('checked')) ? this.viewModel.billCreatedDateFrom.format('YYYY-MM-DD') : '',
+                    // 'billCreatedDateTo': ($('#billCreatedDate').attr('checked')) ? this.viewModel.billCreatedDateTo.format('YYYY-MM-DD') : '',
 
-                    claimFrom: $('#claimIdFrom').val() ? parseInt($('#claimIdFrom').val()) : '',
-                    claimTo: $('#claimIdTo').val() ? parseInt($('#claimIdTo').val()) : '',
+                    // insuranceIds: this.viewModel.insuranceIds,
+                    // insuranceOption: this.viewModel.insuranceOption ? this.viewModel.insuranceOption : '',
 
-                    cptCodeLists: this.viewModel.cptCodeLists ? this.viewModel.cptCodeLists : '',
+                    // allInsuranceGroup: this.viewModel.allInsGrpSelection ? this.viewModel.allInsGrpSelection : '',
+                    // insuranceGroupList: this.selectedInsGrpList ? this.selectedInsGrpList : '',
 
-                    orderBy: $('#ddlOrderBySelection').val() ? $('#ddlOrderBySelection').val() : ''
+                    // userIds: this.viewModel.userIds ? this.viewModel.userIds : '',
+
+                    // claimLists: this.selectedClaimList ? this.selectedClaimList : '',
+                    // allClaimSelection: this.viewModel.allClaimSelection ? this.viewModel.allClaimSelection : '',
+
+                    // claimFrom: $('#claimIdFrom').val() ? parseInt($('#claimIdFrom').val()) : '',
+                    // claimTo: $('#claimIdTo').val() ? parseInt($('#claimIdTo').val()) : '',
+
+                    // cptCodeLists: this.viewModel.cptCodeLists ? this.viewModel.cptCodeLists : '',
+
+                    // orderBy: $('#ddlOrderBySelection').val() ? $('#ddlOrderBySelection').val() : ''
 
                 };
             },

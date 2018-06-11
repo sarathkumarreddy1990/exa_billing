@@ -7,7 +7,8 @@ define([
     'models/pager',
     'text!templates/claim-inquiry.html',
     'collections/claim-inquiry',
-    'views/reports/patient-activity-statement' 
+    'views/reports/patient-activity-statement' ,
+    'views/reports/payment-invoice' 
 ], function (
     $,
     _,
@@ -17,7 +18,8 @@ define([
     Pager,
     claimInquiryTemplate,
     claimCommentsList,
-    patientActivityStatement) {
+    patientActivityStatement,
+    paymentInvoice) {
         return Backbone.View.extend({
             el: null,
             pager: null,
@@ -28,7 +30,8 @@ define([
                 "click #btnCIAddComment": "showCommentPopup",
                 "click #btnCISaveComment": "saveComment",
                 "click #btnCISaveIsInternal": "saveIsInternalComment",
-                "click #btnCIPatientInquiry": "patientInquiryForm"
+                "click #btnCIPatientInquiry": "patientInquiryForm",
+                "click #btnCIPrintInvoice": "printPaymentInvoice"
             },
 
             initialize: function (options) {
@@ -400,6 +403,12 @@ define([
                 var self = this;
                 self.patientActivityStatement = new patientActivityStatement({el: $('#modal_div_container')});
                 self.patientActivityStatement.onReportViewClick(e);                         
+            },
+
+            printPaymentInvoice: function (e) {
+                var self = this;
+                self.paymentInvoice = new paymentInvoice({el: $('#modal_div_container')});
+                self.paymentInvoice.onReportViewClick(e);                         
             }
         })
 
