@@ -85,7 +85,7 @@ const pgData = {
                         ${screenName},
                         ${moduleName},
                         ${logDescription},
-                        ${clientIp || 'localhost'},
+                        ${clientIp || '127.0.0.1'},
                         json_build_object(
                             'old_values', (SELECT COALESCE(old_values, '{}') FROM cte),
                             'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM cte) temp_row)

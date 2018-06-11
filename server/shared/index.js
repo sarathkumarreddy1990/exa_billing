@@ -14,7 +14,7 @@ module.exports = {
     },
 
     getScreenDetails: function (routeParams) {
-        let moduleName = 'Billing';
+        let moduleName = 'setup';
         let screenName = 'UI';
 
         let apiPath = routeParams.split(/\/exa_modules\/billing\/|\/|\?/g).filter(routePrefix => !!routePrefix);
