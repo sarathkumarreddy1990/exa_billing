@@ -416,7 +416,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "formatter": function ( cellvalue ) {
                             return commonjs.checkNotEmpty(cellvalue) ? commonjs.getFormattedUtcDate(cellvalue) : '';
                         },
-                        "width": "150"
+                        "width": "150",
+                        "searchFlag":"datetime"
                     }
                 },
                 "Date of Injury": {
@@ -782,6 +783,9 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         }
                         return '';
                     },
+                    "cellattr": function ( id, cellvalue, rowObject ) {
+                        return 'style="background:' + (app.stat_level[ cellvalue ] && app.stat_level[ cellvalue ].color || 'transparent') + ';"';
+                    },                    
                     "searchoptions": {
                         "value": statLevelValue,
                         "tempvalue": statLevelValue

@@ -34,9 +34,9 @@ module.exports = {
                             let lineAdjudication =serviceLine[i].lineAdjudication[j];
                             let lineAdjustmentJson={}; 
 
-                            if(lineAdjudication[j].lineAdjustment){
-                                for(let k=0;k<lineAdjudication[j].lineAdjustment.length;k++){
-                                    let lineAdjustment=lineAdjudication[j].lineAdjustment[k];
+                            if(lineAdjudication.lineAdjustment){
+                                for(let k=0;k<lineAdjudication.lineAdjustment.length;k++){
+                                    let lineAdjustment=lineAdjudication.lineAdjustment[k];
                                     lineAdjustmentJson['adjustmentGroupCode' + (k?k + 1:'')] =lineAdjustment.adjustmentGroupCode ;
                                     lineAdjustmentJson['reasonCode' + (k?k + 1:'')] =lineAdjustment.reasonCode;
                                     lineAdjustmentJson['monetaryAmount' + (k?k + 1:'')] =lineAdjustment.monetaryAmount;
