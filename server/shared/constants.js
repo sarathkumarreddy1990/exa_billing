@@ -1,7 +1,12 @@
 module.exports = {
     moduleNames: {
-        setup: 'Setup',
-        claim: 'Claim',
+        setup: 'setup',
+        claim: 'claims',
+        claims: 'claims',
+        payment: 'payments',
+        payments: 'payments',
+        era: 'era',
+        edi: 'edi',
     },
 
     screenNames: {

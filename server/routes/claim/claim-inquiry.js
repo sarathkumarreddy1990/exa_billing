@@ -1,8 +1,8 @@
 const Router = require('express-promise-router');
 const router = new Router();
 
-const inquiryController = require('../controllers/claim-inquiry');
-const httpHandler = require('../shared/http');
+const inquiryController = require('../../controllers/claim/claim-inquiry');
+const httpHandler = require('../../shared/http');
 
 router.get('/', async (req, res) => {
     const data = await inquiryController.getData(req.query);
