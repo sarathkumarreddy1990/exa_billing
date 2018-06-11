@@ -18,7 +18,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 { payer_type: "PIP_S", payer_type_name: "secondary_insurance", payer_id: null, coverage_level: "S", payer_name: null, billing_method: null },
                 { payer_type: "PIP_T", payer_type_name: "tertiary_insurance", payer_id: null, coverage_level: "T", payer_name: null, billing_method: null },
                 { payer_type: "POF", payer_type_name: "ordering_facility", payer_id: null, payer_name: null },
-                { payer_type: "PR", payer_type_name: "referring_provider", payer_id: null, payer_name: null },
+                { payer_type: "RF", payer_type_name: "referring_provider", payer_id: null, payer_name: null },
                 { payer_type: "PF", payer_type_name: "facility", payer_id: null, payer_name: null }
             ],
             usermessage: {
@@ -218,13 +218,13 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
 
                 var renderingProvider = claim_data.reading_phy_full_name || self.usermessage.selectStudyReadPhysician;
                 var referringProvider = claim_data.ref_prov_full_name || self.usermessage.selectStudyRefProvider;
-                var orderingFacility = claim_data.service_facility_name || self.usermessage.selectOrdFacility;
+                var orderingFacility = claim_data.ordering_facility_name || self.usermessage.selectOrdFacility;
 
                 self.ACSelect.readPhy.contact_id = claim_data.rendering_provider_contact_id || null;
                 self.ACSelect.refPhy.contact_id = claim_data.referring_provider_contact_id || null;
                 self.ACSelect.refPhy.Code = claim_data.ref_prov_code || null;
                 self.ACSelect.refPhy.Desc = referringProvider;
-                self.group_id = claim_data.service_facility_id ? parseInt(claim_data.service_facility_id) : null;
+                self.group_id = claim_data.ordering_facility_id ? parseInt(claim_data.ordering_facility_id) : null;
                 self.group_name = orderingFacility;
 
                 $('#ddlBillingProvider').val(claim_data.billing_provider_id || '');
@@ -288,7 +288,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
 
                 if (self.ACSelect.refPhy.contact_id || null) {
                     self.updateResponsibleList({
-                        payer_type: 'PR',
+                        payer_type: 'RF',
                         payer_id: self.ACSelect.refPhy.contact_id,
                         payer_name: self.ACSelect.refPhy.Desc + '(Referring Provider)'
                     });
@@ -484,9 +484,11 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 $("#chkSecMedicarePayer").off().change(function (e) {
                     $('#selectMedicalPayer').toggle($('#chkSecMedicarePayer').is(':checked')).val('');
                 });
-                $("#tab_menu a").off().click(function (e) {
-                    self.urlNavigation();
+              
+                $("#btnResetPriInsurance, #btnResetSecInsurance, #btnResetTerInsurance").off().click(function (e) {
+                    self.resetInsurances(e);
                 });
+               
 
             },
             getLineItemsAndBind: function (selectedStudyIds) {
@@ -579,7 +581,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
 
                 /* Bind charge table data*/
                 if (data.cpt_code || data.display_description) {
-                    $('#select2-txtCptCode_' + index + '-container').html(data.cpt_code).prop('title', data.cpt_code).attr({ 'data_code': data.cpt_code, 'data_description': data.display_description, 'data_id': data.cpt_id }).css('min-width', '80');
+                    $('#select2-txtCptCode_' + index + '-container').html(data.cpt_code).prop('title', data.cpt_code).attr({ 'data_code': data.cpt_code, 'data_description': data.display_description, 'data_id': data.cpt_code_id }).css('min-width', '80');
                     $('#select2-txtCptDescription_' + index + '-container').html(data.display_description).prop('title', data.display_description).attr({ 'data_code': data.cpt_code, 'data_description': data.display_description, 'data_id': data.cpt_id });
                     $('#txtCptCode_' + index).removeClass('cptIsExists');
                 }
@@ -987,6 +989,11 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                         self.ACSelect.refPhy.Desc = res.full_name;
                         self.ACSelect.refPhy.Code = res.provider_code;
                         self.ACSelect.refPhy.contact_id = res.provider_contact_id;
+                        self.updateResponsibleList({
+                            payer_type: 'RF',
+                            payer_id: res.id,
+                            payer_name: res.full_name + '(Referring Provider)'
+                        });
                     }
                     return res.full_name;
                 }
@@ -1478,7 +1485,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                             self.priInsCode = result.insurance_code;
                             self.priInsName = result.insurance_name;
                             flag = 'Pri';
-                            //commonjs.checkNotEmpty(result.subscriber_dob) ? self.dtpPriDOBDate.date(result.subscriber_dob) : self.dtpPriDOBDate.clear();
+                            document.querySelector('#txtPriDOB').value = result.subscriber_dob ? moment(result.subscriber_dob).format('YYYY-MM-DD') : '';
                             // append to ResponsibleList
                             self.updateResponsibleList({
                                 payer_type: 'PIP_P',
@@ -1494,7 +1501,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                             self.secInsCode = result.insurance_code;
                             self.SecInsName = result.insurance_name;
                             flag = 'Sec';
-                            //commonjs.checkNotEmpty(result.subscriber_dob) ? self.dtpSecDOBDate.date(result.subscriber_dob) : self.dtpSecDOBDate.clear();
+                            document.querySelector('#txtSecDOB').value = result.subscriber_dob ? moment(result.subscriber_dob).format('YYYY-MM-DD') : '';
                             // append to ResponsibleList
                             self.updateResponsibleList({
                                 payer_type: 'PIP_S',
@@ -1510,7 +1517,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                             self.terInsCode = result.insurance_code;
                             self.terInsName = result.insurance_name;
                             flag = 'Ter';
-                            //commonjs.checkNotEmpty(result.sub_dob) ? self.dtpTerDOBDate.date(result.sub_dob) : self.dtpTerDOBDate.clear();
+                            document.querySelector('#txtTerDOB').value = result.subscriber_dob ? moment(result.subscriber_dob).format('YYYY-MM-DD') : '';
                             // append to ResponsibleList
                             self.updateResponsibleList({
                                 payer_type: 'PIP_T',
@@ -1670,15 +1677,15 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     claim_notes: $.trim($('#txtClaimNotes').val()),
                     original_reference: $.trim($('#txtOriginalRef').val()),
                     authorization_no: $.trim($('#txtAuthorization').val()),
-                    frequency: $('#ddlFrequencyCode option:selected').val() != '' ? $('#ddlFrequencyCode option:selected').val() != '' : null,
+                    frequency: $('#ddlFrequencyCode option:selected').val() != '' ? $('#ddlFrequencyCode option:selected').val() : null,
                     is_auto_accident: $('#chkAutoAccident').is(':checked'),
                     is_other_accident: $('#chkOtherAccident').is(':checked'),
                     is_employed: $('#chkEmployment').is(':checked'),
                     service_by_outside_lab: $('#chkOutSideLab').is(':checked'),
                     claim_status_id: $('#ddlClaimStatus option:selected').val() != '' ? parseInt($('#ddlClaimStatus option:selected').val()) : null,
-                    primary_patient_insurance_id: self.priClaimInsID ? parseInt(self.priClaimInsID) : null,
-                    secondary_patient_insurance_id: self.secClaimInsID ? parseInt(self.secClaimInsID) : null,
-                    tertiary_patient_insurance_id: self.terClaimInsID ? parseInt(self.terClaimInsID) : null
+                    primary_patient_insurance_id: self.is_primary_available && self.priClaimInsID ? parseInt(self.priClaimInsID) : null,
+                    secondary_patient_insurance_id: self.is_secondary_available && self.secClaimInsID ? parseInt(self.secClaimInsID) : null,
+                    tertiary_patient_insurance_id: self.is_tertiary_available && self.terClaimInsID ? parseInt(self.terClaimInsID) : null
 
                 }
 
@@ -1964,7 +1971,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                                 self.city = contactInfo.c1City;
                                 self.state = contactInfo.c1State;
                                 self.zipCode = contactInfo.c1Zip;
-                                //commonjs.checkNotEmpty(response.birth_date) ? self.dtpDOBDate.date(response.birth_date) : self.dtpDOBDate.clear();
+                                document.querySelector('#txt'+_targetFlag+'DOB').value = response.birth_date ? moment(response.birth_date).format('YYYY-MM-DD') : '';
                                 self.homePhone = contactInfo.c1HomePhone;
                                 self.workPhone = contactInfo.c1WorkPhone;
                                 self.empStatus = contactInfo.empStatus;
@@ -2015,17 +2022,89 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     document.querySelector('#txt' + flag + 'DOB').value = ""
             },
             checkAddressDetails: function (flag) {
-                var chkaddress1 = $('#txt' + flag + 'Address1').val();
-                var chkaddress2 = $('#txt' + flag + 'Address2').val();
+                var chkaddress1 = $('#txt' + flag + 'SubPriAddr').val();
+                var chkaddress2 = $('#txt' + flag + 'SubSecAddr').val();
                 var chkcity = $('#txt' + flag + 'City').val();
-                var chkstate = $('#ddl' + flag + 'State').val();
+                var chkstate = $('#ddl' + flag + 'State option:selected').val();
                 var chkzipcode = $('#txt' + flag + 'ZipCode').val();
-                if (chkaddress1 == '' && chkaddress2 == '' && chkcity == '' && chkstate == '' && chkzipcode == '') {
+                if (chkaddress1 == '' && chkaddress2 == '' && chkcity == '' && ( chkstate == '' || chkstate == '0' ) && chkzipcode == '') {
                     return false;
                 }
                 else {
                     return true;
                 }
+            },
+
+            resetInsurances: function (e) {
+
+                var self = this, flag, payer_type;
+                var id = e.target.id;
+
+                if (id == 'btnResetPriInsurance') {
+                    flag = 'Pri'
+                    payer_type = 'PIP_P';
+                    self.priInsID = '';
+                    self.priInsName = '';
+                    document.querySelector('#txtPriDOB').value ='';
+                    self.is_primary_available = false;
+                   
+                }
+                else if (id == 'btnResetSecInsurance') {
+                    flag = 'Sec'
+                    payer_type = 'PIP_S';
+                    self.secInsID = '';
+                    self.secInsName = '';
+                    document.querySelector('#txtSecDOB').value ='';
+                    $('#chkSecMedicarePayer').prop('checked', false);
+                    $('#selectMedicalPayer').toggle(false);
+                    self.is_secondary_available = false;
+                   
+                }
+                else if (id == 'btnResetTerInsurance') {
+                    flag = 'Ter'
+                    payer_type = 'PIP_P';
+                    self.terInsID = '';
+                    self.terInsName = '';
+                    document.querySelector('#txtTerDOB').value ='';
+                    self.is_tertiary_available = false;
+                   
+                }
+
+                if (flag && payer_type) {
+
+                    $('#txt' + flag + 'Insurance').val('');
+                    $('#select2-ddl' + flag + 'Insurance-container').html(self.usermessage.selectCarrier);
+                    
+                    $('#chk' + flag + 'AcptAsmt').prop('checked', false);
+                    $('#lbl' + flag + 'InsPriAddr').html('');
+                    $('#lbl' + flag + 'InsCityStateZip').html('');
+                    $('#lbl' + flag + 'InsCityStateZip').show()
+                    $('#lbl' + flag + 'InsPriAddr').show()
+                    $('#txt' + flag + 'PolicyNo').val('');
+                    $('#txt' + flag + 'GroupNo').val('');
+                    $('#ddl' + flag + 'PlanName').val('');
+                    $('#ddl' + flag + 'EmpStatus').val('');
+                    $('#ddl' + flag + 'RelationShip').val('');
+                    $('#txt' + flag + 'SubFirstName').val('');
+                    $('#txt' + flag + 'SubMiName').val('');
+                    $('#txt' + flag + 'SubLastName').val('');
+                    $('#txt' + flag + 'SubSuffix').val('');
+                    $('#ddl' + flag + 'Gender').val('');
+                    $('#txt' + flag + 'SubPriAddr').val('');
+                    $('#txt' + flag + 'SubSecAddr').val('');
+                    $('#txt' + flag + 'City').val('');
+                    $('#ddl' + flag + 'State').val('');
+                    $('#txt' + flag + 'ZipCode').val('');
+
+                    // remove from ResponsibleList
+                    self.updateResponsibleList({
+                        payer_type: payer_type,
+                        payer_id: null,
+                        payer_name: null,
+                        billing_method: null
+                    });
+                }
+
             }
 
         });
