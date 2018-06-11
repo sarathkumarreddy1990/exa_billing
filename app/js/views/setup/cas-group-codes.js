@@ -28,6 +28,7 @@ define(['jquery',
             casGroupCodesList : [],
             model: null,
             casGroupCodesTable :null,
+            pager: null,
             events: {
             },
             initialize: function (options) {
@@ -35,6 +36,7 @@ define(['jquery',
                 this.options = options;
                 this.model = new CasGroupCodesModel();
                 this.casGroupCodesList = new CasGroupCodesCollections();
+                this.pager = new Pager();
             },
 
             render: function() {
@@ -82,7 +84,7 @@ define(['jquery',
                                             self.casGroupCodesTable.refresh();
                                         },
                                         error: function (model, response) {
-
+                                            commonjs.handleXhrError(model, response);
                                         }
                                     });
                                 }
@@ -119,7 +121,8 @@ define(['jquery',
                     disablepaging: false,
                     showcaption: false,
                     disableadd: true,
-                    disablereload: true
+                    disablereload: true,
+                    pager: '#gridPager_CasGroupCodes'
                 });
                 commonjs.initializeScreen({header: {screen: 'CasGroupCodes', ext: 'casGroupCodes'}, grid: {id: '#tblCasGroupCodesGrid'}, buttons: [
                     {value: 'Add', class: 'btn btn-danger', i18n: 'shared.buttons.add', clickEvent: function () {
@@ -217,7 +220,7 @@ define(['jquery',
                 $('#formCasGroupCodes').submit();
             },
 
-            save : function() {
+            save: function() {
                 this.model.set({
                     "code": $.trim($('#txtCode').val()),
                     "description": $.trim($('#txtDescription').val()),

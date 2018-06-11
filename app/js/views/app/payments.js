@@ -17,7 +17,9 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             paymentsGridTemplate: _.template(paymentsGrid),
 
             events: {
-                'click #btnPaymentAdd': 'addNewPayemnt'
+                'click #btnPaymentAdd': 'addNewPayemnt',
+                'click #btnStatusSearch': 'searchPayments',
+                'click #btnPaymentRefresh': 'refreshPayments'
             },
 
             initialize: function (options) {
@@ -63,14 +65,30 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 this.pendPaymtPager = new ModelPaymentsPager();
                 this.appliedPager = new ModelPaymentsPager();
                 this.patientPager = new ModelPaymentsPager();
-                // this.model = new ModelPayments();
                 this.paymentsList = new paymentsLists();
-                // this.pendingPayments = new pendingPayments();
-                // this.folowupPendingPayments = new followupPendingPayments();
-                // this.appliedPayments = new appliedPayments();
-                // this.paymentspatientList = new paymentspatient();
                 this.adjustmentCodeList = new modelCollection(adjustment_codes);
                 this.claimStatusList = new modelCollection(claim_status);
+            },
+
+            initializeDateTimePickers: function () {
+                var self = this;
+
+                // Payments Tab
+                var companyCurrentDateTime = commonjs.getCompanyCurrentDateTime();
+                var startFrom = moment(companyCurrentDateTime).subtract(2, 'months');
+                var endTo = companyCurrentDateTime;
+                self.dtpPayFrom = commonjs.bindDateTimePicker("divPaymentFromDate", { format: 'L', useCurrent: false });
+                self.dtpPayTo = commonjs.bindDateTimePicker("divPaymentToDate", { format: 'L', useCurrent: false });
+                self.dtpPayFrom.date(startFrom);
+                self.dtpPayTo.date(endTo);
+
+                // Pending Payments Tab
+                // startFrom = moment(companyCurrentDateTime).subtract(1, 'year');
+                // endTo = moment(companyCurrentDateTime).add(1, 'day');
+                // self.dtpPendFrom = commonjs.bindDateTimePicker("divPendPaymentFromDate", { format: 'L', useCurrent: false });
+                // self.dtpPendTo = commonjs.bindDateTimePicker("divPendPaymentToDate", { format: 'L', useCurrent: false });
+                // self.dtpPendFrom.date(startFrom);
+                // self.dtpPendTo.date(endTo);
             },
 
             render: function (opener) {
@@ -87,6 +105,40 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 $('#btnTabNavPayRight').click(function () {
                     $('#divPaymentTabsContainer').scrollTo({ top: '0px', left: '+=70' }, 300);
                 });
+                self.initializeDateTimePickers();
+            },
+
+            validateFromAndToDate: function (objFromDate, objToDate) {
+                var validationResult = commonjs.validateDateTimePickerRange(objFromDate, objToDate, false, 'day');
+
+                if (!validationResult.valid) {
+                    commonjs.showWarning(validationResult.message);
+                    return false;
+                }
+
+                return true;
+            },
+
+            refreshPayments: function () {
+                var self = this;
+                self.pager.set({ "PageNo": 1 });
+                self.paymentTable.refreshAll();                
+            },
+
+            searchPayments: function () {
+                var self = this;
+
+                if (self.validateFromAndToDate(self.dtpPayFrom, self.dtpPayTo)) {
+                    self.paymentTable.options.customargs = {
+                        filterByDateType: $('input[name=filterByDateType]:checked').val(),
+                        fromDate: self.dtpPayFrom.date().format('YYYY-MM-DD'),
+                        toDate: self.dtpPayTo.date().format('YYYY-MM-DD'),
+                        paymentStatus: $("#ulPaymentStatus").val(),
+                        facility_id: $("#ddlPaymentFacility").val()
+                    };
+                    self.pager.set({ "PageNo": 1 });
+                    self.paymentTable.refresh();
+                }
             },
 
             showGrid: function (opener) {
