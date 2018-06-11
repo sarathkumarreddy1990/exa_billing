@@ -14,4 +14,4 @@ module.exports = {
     getDataById: (params) => {
         return data.getDataById(params);
     }
-}
+};
