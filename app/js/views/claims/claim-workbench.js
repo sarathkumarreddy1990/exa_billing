@@ -292,10 +292,9 @@ define(['jquery',
             bindDateRangeOnSearchBox: function (gridObj, tabtype) {
                 var self = this;
                 var drpTabColumnSet = [
-                    {
-                        // ALL STUDIES
-                        forTab: "study",
-                        columns: ["study_received_dt", "claim_dt", "check_indate", "approved_dt", "mu_last_updated", "scheduled_dt", "status_last_changed_dt", "birth_date"]
+                    {                        
+                        forTab: "claims",
+                        columns: ["current_illness_date", "claim_dt", "followup_date"]
                     }
                 ];
                 var columnsToBind = _.find(drpTabColumnSet,function (val) {
@@ -933,7 +932,7 @@ define(['jquery',
                             var updateStudiesPager = function (model, gridObj) {
                                 $('#chkclaimsHeader_' + filterID).prop('checked', false);
                                 self.setGridPager(filterID, gridObj, false);
-                                //self.bindDateRangeOnSearchBox(gridObj, 'claims');
+                                self.bindDateRangeOnSearchBox(gridObj, 'claims');
                                 self.afterGridBindclaims(model, gridObj);
                                 self.initializeStatusCodes(gridObj, 'claims');
                                 commonjs.nextRowID = 0;
