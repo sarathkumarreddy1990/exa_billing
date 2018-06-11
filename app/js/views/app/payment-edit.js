@@ -26,7 +26,9 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 'click #btnPaymentSave': 'savePayment',
                 'click #btnApplyCAS': 'getPayemntApplications',
                 'change .payerType': 'setPayerFields',
-                'click #btnPaymentAddNew': 'addNewPayemnt'
+                'click #btnPaymentAddNew': 'addNewPayemnt',
+                'click #btnPaymentBack': 'goBackToPayments',
+                'click #btnPaymentClear': 'clearPayemntForm'
             },
 
             initialize: function (options) {
@@ -116,10 +118,21 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 ipForm1.html(this.paymentsGridTemplate());
             },
 
+            bindNewDTP: function (paymentID, setDate) {
+                var self = this;
+                var accObj = $("#divAccountingDate");
+
+                if (accObj.length) {
+                    self.dtpAccountingDate = commonjs.bindDateTimePicker(accObj, { format: 'L' });
+                    commonjs.checkNotEmpty(setDate) ? self.dtpAccountingDate.date(setDate) : self.dtpAccountingDate.clear();
+                }
+            },
+
             showBillingForm: function (paymentID) {
                 var self = this;
                 self.clearPayemntForm();
                 self.setAcs();
+                self.bindNewDTP();
                 if (paymentID == 0) {
                     this.model = new ModelPayments();
                     $('#btnPaymentClear').show();
@@ -147,9 +160,14 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             },
 
             clearPayemntForm: function () {
+                this.payer_id = 0;
                 $('#PaymentForm input[type=radio]').prop('ckecked', false);
                 $('#PaymentForm select').val('');
                 $('#PaymentForm input[type=text]').val('');
+                $('#select2-txtautoPayerPIP-container').html('Select Insurance');
+                $('#select2-txtautoPayerPP-container').html('Select Patient');
+                $('#select2-txtautoPayerPOF-container').html('Select Ordering facility');
+                $('#select2-txtautoPayerPR-container').html('Select Provider');
             },
 
             setAcs: function () {
@@ -487,7 +505,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 else if (payerType === 'ordering_facility') {
                     $('#select2-txtautoPayerPOF-container').html(payerNames.ordering_facility_name);
                 }
-                else if (payerType === 'provider') {
+                else if (payerType === 'ordering_provider') {
                     $('#select2-txtautoPayerPR-container').html(payerNames.provider_full_name);
                 }
             },
@@ -607,7 +625,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     }, {
                             success: function (model, response) {
                                 if (self.payment_id) {
-                                    alert('Payment has been updated successfully');
+                                    commonjs.showStatus('Payment has been updated successfully');
                                     self.render(self.payment_id);
                                     commonjs.hideLoading();
                                 }
@@ -1012,7 +1030,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     });
                 }
                 else
-                    alert('Payment Application Id not found');
+                    commonjs.showWarning('Payment Application Id not found');
             },
 
             closePaymentsCAS: function (e) {
@@ -1087,6 +1105,11 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
 
             addNewPayemnt: function () {
                 Backbone.history.navigate('#billing/payments/new', true);
+                this.render(0);
+            },
+            
+            goBackToPayments: function () {
+                Backbone.history.navigate('#billing/payments/list', true);
             }
         });
     });
