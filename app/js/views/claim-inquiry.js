@@ -31,7 +31,8 @@ define([
                 "click #btnCISaveComment": "saveComment",
                 "click #btnCISaveIsInternal": "saveIsInternalComment",
                 "click #btnCIPatientInquiry": "patientInquiryForm",
-                "click #btnCIPrintInvoice": "printPaymentInvoice"
+                "click #btnCIPrintInvoice": "printPaymentInvoice",
+                "click #btnCICommentCancel": "closeSaveComment"
             },
 
             initialize: function (options) {
@@ -409,6 +410,10 @@ define([
                 var self = this;
                 self.paymentInvoice = new paymentInvoice({el: $('#modal_div_container')});
                 self.paymentInvoice.onReportViewClick(e);                         
+            },
+            closeSaveComment: function(e){
+                $('#divCIFormComment').hide();
+                $('#txtCIAddComment').val('');
             }
         })
 
