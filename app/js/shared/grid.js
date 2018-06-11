@@ -11,7 +11,7 @@ define('grid', [
     'views/user-settings',
     'views/setup/study-filter',
     'text!templates/setup/study-filter-grid.html',
-    'views/claim-inquiry'
+    'views/claims/claim-inquiry'
 ], function (jQuery, _, initChangeGrid, utils, Pager, StudyFields, Studies, claimWorkbench, claimsView, UserSettingsView, StudyFilterView, studyFilterGrid, claimInquiryView) {
     var $ = jQuery;
     var isTrue = utils.isTrue;

@@ -2,7 +2,7 @@ const {
     SQL,
     query,
     queryWithAudit
-} = require('./index');
+} = require('../index');
 
 module.exports = {
     getData: async (params) => {

@@ -5,7 +5,7 @@ define([
     'jqgrid',
     'jqgridlocale',
     'models/pager',
-    'text!templates/claim-inquiry.html',
+    'text!templates/claims/claim-inquiry.html',
     'collections/claim-inquiry',
     'views/reports/patient-activity-statement' ,
     'views/reports/payment-invoice' 

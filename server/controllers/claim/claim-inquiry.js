@@ -1,4 +1,4 @@
-const data = require('../data/claim-inquiry');
+const data = require('../../data/claim/claim-inquiry');
 
 module.exports = {
     getData: (params)=>{
