@@ -7878,7 +7878,7 @@ var commonjs = {
     },
 
     getColorCodeForStatus: function (facility_id, code, screenName) {
-        var statusCodes = commonjs.statusCodes.length && commonjs.statusCodes ||parent.commonjs.statusCodes;
+        var statusCodes = app.study_status.length && app.study_status ||parent.app.study_status;
         if (statusCodes && statusCodes.length > 0) {
             return $.grep(statusCodes, function (currentObj) {
                 return ((currentObj.facility_id == facility_id) && (currentObj.status_code == code));

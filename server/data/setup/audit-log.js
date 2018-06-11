@@ -35,7 +35,7 @@ module.exports = {
         }
 
         if(fromDate && toDate){
-            whereQuery.push(`al.created_dt BETWEEN  ${fromDate}::::timestamptz AND ${toDate}::::timestamptz`);
+            whereQuery.push(`al.created_dt BETWEEN  ${fromDate}::timestamptz AND ${toDate}::timestamptz`);
         }
 
         const sql = SQL`SELECT 

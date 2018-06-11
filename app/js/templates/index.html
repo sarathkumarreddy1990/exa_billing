@@ -1,5 +1,23 @@
 <header class="header">
 </header>
+<style>
+#divStatusSearch {
+    position: fixed;
+    display: none;
+    max-height: 400px;
+    max-width: 420px;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  .statusMenu {
+  height: auto;
+  border: 2px #d4d4d4 solid;
+  background-color: #F6F6F6;
+  z-index: 110000;
+  position: absolute;
+  font-size: 1em !important;
+}
+</style>
 
 <div class="controls" style="float">    
 </div>
@@ -87,14 +105,14 @@
 
 </div>
 
-<div class="col-xs-7 col-md-7 col-lg-7" style="margin-top: 5px !important;display:none;">
-    <span class="onlineText" style="text-decoration: underline;cursor: pointer; cursor: hand;" i18n="shared.fields.exceedstime" id="spLabelExceedsTime"></span> <span
+<div class="col-xs-7 col-md-7 col-lg-7" style="margin-top: 5px !important;">
+    <!-- <span class="onlineText" style="text-decoration: underline;cursor: pointer; cursor: hand;" i18n="shared.fields.exceedstime" id="spLabelExceedsTime"></span> <span
         id='spnExceedsTime'>
         <i style="width: auto !important;" class="icon-ic-white icon-ic-spin icon-ic-spinner"></i>
         </span>
 
     <button id="btnCompleteRefresh" style="display: none;"></button>
-    <button id="btnStudyTabRefresh" style="display: none;"></button>
+    <button id="btnStudyTabRefresh" style="display: none;"></button> -->
 
 
     <div class="statusMenu" id="divStatusSearch">

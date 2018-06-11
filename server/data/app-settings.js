@@ -76,7 +76,8 @@ module.exports = {
                                           status_desc,
                                           facility_id,
                                           order_related,
-                                          waiting_time
+                                          waiting_time,
+                                          color_code
                                     FROM   study_status
                                     WHERE  NOT has_deleted ) AS study_status)
                 , cte_claim_status AS(

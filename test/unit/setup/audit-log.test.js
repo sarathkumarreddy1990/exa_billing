@@ -1,17 +1,18 @@
 const should = require('chai').should();
 
 const config = require('../../../server/config');
+const moment = require('moment');
 config.initialize();
 
-const userLogController = require('../../../server/controllers/setup/user-log');
+const auditLogController = require('../../../server/controllers/setup/audit-log');
 
 describe('AuditLog', () => {
     let log_id = null;
     describe('getData', () => {
         it('should return array of rows', async () => {
 
-            const data = await userLogController.getData({
-                sortField:'id',
+            const data = await auditLogController.getData({
+                sortField:'al.id',
                 pageNo:1,
                 pageSize:10
             });
@@ -26,12 +27,12 @@ describe('AuditLog', () => {
     describe('getData', () => {
         it('should return array of  between range of logged In date(created date)', async () => {
 
-            const data = await userLogController.getData({
+            const data = await auditLogController.getData({
                 sortField:'id',
                 pageNo:1,
                 pageSize:10,
-                fromDate: '2017-01-03T00:00:00-08:00',
-                toDate: '2018-06-05T23:59:59-07:00'
+                fromDate: ' 2017-01-03T00:00:00-08:00', 
+                toDate: ' 2018-01-03T00:00:00-08:00'  
             });
 
             should.exist(data);
@@ -42,7 +43,7 @@ describe('AuditLog', () => {
 
     describe('getDataById', () => {
         it('should return data of a row', async () => {
-            const data = await userLogController.getDataById({
+            const data = await auditLogController.getDataById({
                 id:log_id
             });
 
