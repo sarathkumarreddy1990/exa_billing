@@ -30,7 +30,7 @@ module.exports = {
                                 , sc.authorization_info->'authorization_no' AS authorization_no
                                 , display_description
                                 , additional_info
-                                , sc.cpt_code_id
+                                , sc.cpt_code_id AS cpt_id
                             FROM public.study_cpt sc
                             INNER JOIN public.studies s ON s.id = sc.study_id
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
