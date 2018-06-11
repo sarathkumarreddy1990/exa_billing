@@ -1412,5 +1412,24 @@
                 }
             }
         }
+    },
+    {
+        "id": "payment-invoice",
+        "category": "billing",
+        "title": "Payment Invoice",
+        "description": "",
+        "jsreport": {
+            "html": {
+                "template": {
+                    "name": "billing-payment-invoice-html"
+                }
+            },
+            "pdf": {
+                "template": {
+                    "name": "billing-payment-invoice-pdf"
+                }
+            }          
+           
+        }
     }
 ]

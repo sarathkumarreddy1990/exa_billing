@@ -25,5 +25,8 @@ module.exports = {
     },
     getProvidersAc: function (params) {
         return data.getProvidersAc(params);
+    },
+    getUsers: function (params) {
+        return data.getUsers(params);
     }
 };

@@ -280,5 +280,34 @@ module.exports = {
             .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
 
         return await query(sqlProvides);
+    },
+
+    getUsers: async function (params) {
+        const user_sql = SQL`SELECT
+                            users.id AS id, 
+                            username AS user_name, 
+                            first_name AS first_name, 
+                            last_name AS last_name,
+                            middle_initial AS middle_name, 
+                            suffix AS suffix, 
+                            users.user_group_id AS users_group_id,
+                            users.user_type AS users_type, 
+                            users.password_changed_dt AS change_pwd_dt,
+                            COUNT(1) OVER (range unbounded preceding) AS total_records
+                         FROM
+                            public.users
+                        WHERE
+                             users.has_deleted=FALSE AND
+                             users.is_active AND
+                             users.company_id= ${params.company_id} `;
+
+        user_sql.append(SQL`ORDER BY  ${params.sortField}`)
+            .append(SQL` `)
+            .append(params.sortOrder)
+            .append(SQL` LIMIT ${params.pageSize}`)
+            .append(SQL` OFFSET ${((params.page * params.pageSize) - params.pageSize)}`);       
+                        
+        return await query(user_sql);
     }
+
 };
