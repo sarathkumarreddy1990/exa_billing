@@ -443,6 +443,9 @@ define(['jquery',
                 }
                 commonjs.setFilter(null, null);
 
+                $('#divStudyTabsContainer').hide();
+                $('#divclaimsTabsContainer').show();
+
                 // cache jQuery objects
                 var $divclaimsTabsContainer = $(document.getElementById('divclaimsTabsContainer'));
                 var $claimsTabs = $divclaimsTabsContainer.find('#claimsTabs');
@@ -835,7 +838,7 @@ define(['jquery',
                             (!data.display_as_tab ?
                                 ' style="display:none"' :
                                 ''),
-                            ' class="nav-item',
+                            //' class="nav-item',
                             (info ? ' can-merge' : ''),
                             '"><a href="#divClaimGridContainer',
                             id,

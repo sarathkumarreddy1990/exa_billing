@@ -3644,9 +3644,10 @@ var commonjs = {
         else $('#studyTabs').css({ width: (ul_width + 50) + 'px' });
 
         var $divStudyTabsContainer = $('#divStudyTabsContainer');
+        var $divclaimsTabsContainer = $('#divclaimsTabsContainer');
         var $subMenu = $divStudyTabsContainer.closest('nav.top-nav');
         // SMH - Fixed the size of the tab menu to fill more of the available space, and also to scroll properly.
-        var divUseableSpace = $subMenu.width() - 40;  // 40 pixels space between controls
+        var divUseableSpace = $subMenu.width() - 140;  // 140 pixels space between controls
         var headerIconsWidth = $subMenu.find('ul.tn-menu-right').width();
         var retries = ~~retryCount;
         if (divUseableSpace === headerIconsWidth) {
@@ -3657,6 +3658,7 @@ var commonjs = {
         }
         var divStudyTabsContainerWidth = divUseableSpace - headerIconsWidth;
         $divStudyTabsContainer.css({ width: divStudyTabsContainerWidth });
+        $divclaimsTabsContainer.css({ width: divStudyTabsContainerWidth });
 
         //set gadget Width on window Resize
         var _ww = $(window).width() - 50,

@@ -343,6 +343,9 @@ define(['jquery',
                 }
                 commonjs.setFilter(null, null);
 
+                $('#divStudyTabsContainer').show();
+                $('#divclaimsTabsContainer').hide();
+
                 // cache jQuery objects
                 var $divStudyTabsContainer = $(document.getElementById('divStudyTabsContainer'));
                 var $studyTabs = $divStudyTabsContainer.find('#studyTabs');
