@@ -20,7 +20,7 @@ module.exports = {
     },
 
     updateTemplate: (params) => {
-        return ediConnect.updateTemplate(params.flag, params.name, params.tempBody);
+        return ediConnect.updateTemplate(params.flag, params.name, params.templateBody);
     },
 
     deleteTemplate: (params) => {

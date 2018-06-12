@@ -9,7 +9,7 @@ router.get('/', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
-router.get('/:name', async function (req, res) {
+router.get('/:name/:flag', async function (req, res) {
     const data = await ediController.getTemplate(req.params);
     httpHandler.sendRows(req, res, data);
 });
