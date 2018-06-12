@@ -1,33 +1,54 @@
-const { query } = require('./../index');
+const { query, SQL } = require('./../index');
 
 module.exports = {
 
     getPendingPayments: async function (params) {
-        return await query(`                                            
-        SELECT 
-            bc.id AS claim_id,
-            bch.id AS charge_id,
-            patient_id,
-            bc.id,
-            bc.invoice_no,
-            get_full_name(pp.last_name,pp.first_name) AS full_name,
-            bc.claim_dt,
-            pp.account_no,
-            array_agg(pcc.display_description) AS display_description,
-            (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) AS billing_fee,
-            (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) AS balance
-        FROM billing.claims bc
-        INNER JOIN public.patients pp on pp.id = bc.patient_id 
-        INNER JOIN billing.charges bch on bch.claim_id = bc.id
-        INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
-        WHERE NOT EXISTS (SELECT 1 FROM billing.payment_applications bpa 
+
+        let joinQuery = ' ';
+        let whereQuery = ` WHERE NOT EXISTS (SELECT 1 FROM billing.payment_applications bpa 
             INNER JOIN billing.payments bp ON bp.id = bpa.payment_id
             WHERE  bpa.charge_id = bch.id
             AND payment_id = ${params.customArgs.paymentID})
-        AND (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) > 0::money 
-        group by bc.id, bc.invoice_no, bc.claim_dt, pp.account_no, get_full_name(pp.last_name,pp.first_name), bch.id
-        LIMIT ${params.pageSize} OFFSET ${((params.pageNo - 1) * params.pageSize)} 
-        `);
+            AND (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) > 0::money `;
+
+        whereQuery = params.customArgs.payerType == 'patient' ? whereQuery + ` AND bc.patient_id = ${params.customArgs.payerId} ` : whereQuery;
+        whereQuery = params.customArgs.payerType == 'ordering_facility' ? whereQuery + ` AND bc.ordering_facility_id = ${params.customArgs.payerId}  AND bc.payer_type = 'ordering_facility'` : whereQuery;
+        whereQuery = params.customArgs.payerType == 'ordering_provider' ? whereQuery + ` AND bc.referring_provider_contact_id = ${params.customArgs.payerId}  AND bc.payer_type = 'referring_provider'` : whereQuery;
+
+        if (params.customArgs.payerType == 'insurance') {
+            joinQuery = ` 
+            LEFT  JOIN public.patient_insurances AS pip ON pip.id = CASE WHEN bc.payer_type = 'primary_insurance' THEN bc.primary_patient_insurance_id
+											     WHEN bc.payer_type = 'secondary_insurance' THEN bc.secondary_patient_insurance_id
+											     WHEN bc.payer_type = 'tertiary_insurance' THEN bc.tertiary_patient_insurance_id
+                                            END`;
+
+            whereQuery = whereQuery + ` AND pip.insurance_provider_id = ${params.customArgs.payerId} `;
+        }
+
+        const sql = SQL`SELECT 
+                        bc.id AS claim_id,
+                        bc.patient_id,
+                        bc.id,
+                        bc.invoice_no,
+                        get_full_name(pp.last_name,pp.first_name) AS full_name,
+                        bc.claim_dt,
+                        pp.account_no,
+                        array_agg(pcc.display_description) AS display_description,
+                        (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) AS billing_fee,
+                        (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) AS balance
+                    FROM billing.claims bc
+                    INNER JOIN public.patients pp on pp.id = bc.patient_id 
+                    INNER JOIN billing.charges bch on bch.claim_id = bc.id
+                    INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id `;
+
+
+        sql.append(joinQuery)
+            .append(whereQuery)
+            .append(SQL` group by bc.id, bc.invoice_no, bc.claim_dt, pp.account_no, get_full_name(pp.last_name, pp.first_name) `)
+            .append(SQL` LIMIT ${params.pageSize} OFFSET ${((params.pageNo - 1) * params.pageSize)} `);
+
+
+        return await query(sql);
     },
 
     getAppliedPayments: async function (params) {
@@ -60,13 +81,13 @@ module.exports = {
 
     getClaimBasedCharges: async function (params) {
         let joinQuery = '';
-        let selectQuery = ``;
+        let selectQuery = ' ';
         let groupByQuery = '';
 
         if (params.paymentStatus && params.paymentStatus == 'applied') {
             joinQuery = ` LEFT JOIN billing.payment_applications ppa ON ppa.charge_id = ${params.charge_id} AND payment_id =  ${params.paymentId} `; //-- bch.id AND payment_id =  ${params.paymentId} `;
-            selectQuery = ` , ppa.id AS payment_application_id, adjustment_code_id, amount AS payment_application_amount, amount_type AS payment_application_amount_type `;
-            groupByQuery = ` , ppa.id, adjustment_code_id, amount , amount_type `;
+            selectQuery = ' , ppa.id AS payment_application_id, adjustment_code_id, amount AS payment_application_amount, amount_type AS payment_application_amount_type ';
+            groupByQuery = ' , ppa.id, adjustment_code_id, amount , amount_type ';
         }
 
         return await query(`  
@@ -102,9 +123,9 @@ module.exports = {
                         LEFT JOIN public.patients ON patients.id = bc.patient_id
                         LEFT JOIN public.facilities ON facilities.id = bc.facility_id
 
-                        LEFT  JOIN patient_insuarances AS pip ON pip.id = bc.primary_patient_insurance_id
-                        LEFT  JOIN patient_insuarances AS sip ON pip.id = bc.secondary_patient_insurance_id
-                        LEFT  JOIN patient_insuarances AS tip ON pip.id = bc.tertiary_patient_insurance_id
+                        LEFT  JOIN public.patient_insurances AS pip ON pip.id = bc.primary_patient_insurance_id
+                        LEFT  JOIN public.patient_insurances AS sip ON pip.id = bc.secondary_patient_insurance_id
+                        LEFT  JOIN public.patient_insurances AS tip ON pip.id = bc.tertiary_patient_insurance_id
                   
                         LEFT JOIN public.insurance_providers pips ON pips.id = pip.insurance_provider_id
                         LEFT JOIN public.insurance_providers sips ON sips.id = sip.insurance_provider_id

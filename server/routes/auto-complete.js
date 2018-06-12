@@ -44,4 +44,9 @@ router.get('/getProvidersAc', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/getUsers', async function (req, res) {
+    const data = await autoCompleteController.getUsers(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;

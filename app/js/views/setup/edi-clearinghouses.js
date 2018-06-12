@@ -188,11 +188,11 @@ define(['jquery',
                                     $('#chkEnableB2B').prop('checked', info.IsB2bEnabled ? true : false);
                                     $('#ddlXmlTemplateSyntax').val(info.XmlSyntaxTag ? info.XmlSyntaxTag : "");
                                     if (info.XmlSyntaxTag != '1' && info.XmlSyntaxTag != '') {
-                                        $('#divXMLTemplateSyntaxAuth').show();
+                                        $('.xmlTemplateSyntaxAuth').show();
+                                        $('#ProviderOfficeNumber').val(info.txtProviderOfficeNo ? info.txtProviderOfficeNo : '');
                                         $('#txtUserName').val(info.txtUserName ? info.txtUserName : '');
                                         $('#txtPassword').val(info.Password ? info.Password : '');
                                     }
-                                    $('#ProviderOfficeNumber').val(info.txtProviderOfficeNo ? info.txtProviderOfficeNo : '');
                                 }
                             }     
                         }
@@ -328,9 +328,9 @@ define(['jquery',
             changeXmlTemplateSyntax: function(e) {
                 var templateSyntaxValue = $('#ddlXmlTemplateSyntax').val();
                 if(templateSyntaxValue == 1) {
-                    $('#divXMLTemplateSyntaxAuth').hide();
+                    $('.xmlTemplateSyntaxAuth').hide();
                 } else {
-                    $('#divXMLTemplateSyntaxAuth').show();
+                    $('.xmlTemplateSyntaxAuth').show();
                 }
              }
         });

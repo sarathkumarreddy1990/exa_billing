@@ -9,7 +9,8 @@ define(['jquery',
     'text!templates/index.html',
     'models/claim-filters',
     'grid',
-    'shared/fields'],
+    'shared/fields',
+    'text!templates/claims/ediResult.html'],
     function ($,
               Immutable,
               _,
@@ -21,7 +22,8 @@ define(['jquery',
               IndexHTML,
               ModelClaimsFilters,
               ClaimsGrid,
-              ListFields) {
+              ListFields,
+              ediResultHTML) {
         var MergeQueueBase = Immutable.Record({
             'filterIndexSet': Immutable.OrderedSet(),
             /**
@@ -185,6 +187,7 @@ define(['jquery',
             events: {
                 "click #btnClearAllStudy": "clearAllSelectedRows",
                 "click #btnSelectAllStudy": "selectAllRows",
+                "click #btnInsuranceClaim": "createClaims",
             },
 
             initialize: function (options) {
@@ -289,10 +292,9 @@ define(['jquery',
             bindDateRangeOnSearchBox: function (gridObj, tabtype) {
                 var self = this;
                 var drpTabColumnSet = [
-                    {
-                        // ALL STUDIES
-                        forTab: "study",
-                        columns: ["study_received_dt", "claim_dt", "check_indate", "approved_dt", "mu_last_updated", "scheduled_dt", "status_last_changed_dt", "birth_date"]
+                    {                        
+                        forTab: "claims",
+                        columns: ["current_illness_date", "claim_dt", "followup_date"]
                     }
                 ];
                 var columnsToBind = _.find(drpTabColumnSet,function (val) {
@@ -365,6 +367,70 @@ define(['jquery',
                 $('#chkStudyHeader_' + filterID).prop('checked', true);
                 commonjs.setFilter(filterID, filter);
             },
+            createClaims:function () {
+                let self=this;
+                let filterID = commonjs.currentStudyFilter;
+                let filter = commonjs.loadedStudyFilters.get(filterID);
+
+                let claimIds =[],existingBillingMethod='';       
+
+                for (let i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
+                    let rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;                   
+                    
+                    var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'billing_method');
+                    if (existingBillingMethod == '') existingBillingMethod = billingMethod
+                    if (existingBillingMethod != billingMethod||(billingMethod !='electronic_billing')) {
+                        commonjs.showWarning('Please select claims with same type of billing method and electronic billing method');
+                        return false;
+                    }
+                    else {
+                        existingBillingMethod = billingMethod;
+                    }
+                    claimIds.push(rowId);
+                }
+
+
+                if(claimIds&&claimIds.length==0){
+                    commonjs.showWarning('Please select claims with same type of billing method and electronic billing method');
+                    return false;
+                }
+
+                self.ediResultTemplate = _.template(ediResultHTML);
+
+                jQuery.ajax({
+                    url: "/exa_modules/billing/claimWorkbench/submitClaim",
+                    type: "GET",
+                    data: {
+                        claimIds:claimIds
+                    },
+                    success: function (data, textStatus, jqXHR) {
+                        if (data && data.ediText.length) {
+                            let str='';
+                            $.each(data.ediText.split('~'), function (index, val) {
+                                if (val != '') {
+                                    if (index == 0 || index == 1) {
+                                        str += "<tr><td style='width: 20px; padding-bottom: 0px;'>" + (0) + "</td><td style='padding-bottom: 0px; border-right: none;'>" + val + "</td></tr>";
+                                    }
+                                    else {
+                                        str += "<tr><td style='width: 20px; padding-bottom: 0px;'>" + (index - 1) + "</td><td style='padding-bottom: 0px; border-right: none;'>" + val + "</td></tr>";
+                                    }
+                                }
+                            })
+                            
+                            commonjs.showDialog({
+                                header: 'EDI Claim',
+                                width: '95%',
+                                height: '75%',
+                                html: self.ediResultTemplate()
+                            });
+                            $('#tblEDIResp').append(str);
+                        }
+                    },
+                    error: function (err) {
+                        commonjs.handleXhrError(err);
+                    }
+                });
+            },
             setFiltertabs: function (filters) {
                 var self = this;
                 commonjs.showLoading('Fetching data..');
@@ -375,6 +441,9 @@ define(['jquery',
                     });
                 }
                 commonjs.setFilter(null, null);
+
+                $('#divStudyTabsContainer').hide();
+                $('#divclaimsTabsContainer').show();
 
                 // cache jQuery objects
                 var $divclaimsTabsContainer = $(document.getElementById('divclaimsTabsContainer'));
@@ -768,7 +837,7 @@ define(['jquery',
                             (!data.display_as_tab ?
                                 ' style="display:none"' :
                                 ''),
-                            ' class="nav-item',
+                            //' class="nav-item',
                             (info ? ' can-merge' : ''),
                             '"><a href="#divClaimGridContainer',
                             id,
@@ -866,7 +935,7 @@ define(['jquery',
                             var updateStudiesPager = function (model, gridObj) {
                                 $('#chkclaimsHeader_' + filterID).prop('checked', false);
                                 self.setGridPager(filterID, gridObj, false);
-                                //self.bindDateRangeOnSearchBox(gridObj, 'claims');
+                                self.bindDateRangeOnSearchBox(gridObj, 'claims');
                                 self.afterGridBindclaims(model, gridObj);
                                 self.initializeStatusCodes(gridObj, 'claims');
                                 commonjs.nextRowID = 0;

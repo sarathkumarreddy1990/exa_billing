@@ -73,9 +73,11 @@ define([
                                     self.model.destroy({
                                         data: $.param({ id: self.model.id}),
                                         success: function (model, response) {
+                                            commonjs.showStatus("Deleted Successfully");
                                             self.providerIdCodeQualifiersTable.refresh();
                                         },
                                         error: function (model, response) {
+                                            commonjs.handleXhrError(model, response);
                                         }
                                     });
                                 }
@@ -113,7 +115,8 @@ define([
                     disablepaging: false,
                     showcaption: false,
                     disableadd: true,
-                    disablereload: true
+                    disablereload: true,
+                    pager: '#gridPager_ProviderIdCodeQualifiers'
                 });
 
                 commonjs.initializeScreen({header: {screen: 'ProviderIdCodeQualifiers', ext: 'providerIdCodeQualifiers'}, grid: {id: '#tblProviderIdCodeQualifiersGrid'}, buttons: [
@@ -172,6 +175,29 @@ define([
             },
 
             saveProviderIdCodeQualifiers: function () {
+                var self = this;
+                commonjs.validateForm({
+                    rules: {
+                        qualifierCode: {
+                            required: true
+                        },
+                        description: {
+                            required: true
+                        }
+                    },
+                    messages: {
+                        qualifierCode: commonjs.getMessage("*", "Qualifier Code"),
+                        description: commonjs.getMessage("*", "Description")
+                    },
+                    submitHandler: function () {
+                        self.save();
+                    },
+                    formID: '#formProviderIdCodeQualifiers'
+                });
+                $('#formProviderIdCodeQualifiers').submit();
+            },
+
+            save: function() {
                 this.model.set({
                     "code": $.trim($('#txtQualifierCode').val()),
                     "description": $.trim($('#txtDescription').val()),
@@ -179,10 +205,10 @@ define([
                     "company_id" : app.companyID
                 });
                 this.model.save({
-
                 }, {
                     success: function (model, response) {
-                        if (response) {
+                        if(response) {
+                            commonjs.showStatus("Saved Successfully");
                             location.href = "#setup/provider_id_code_qualifiers/list";
                         }
                     },

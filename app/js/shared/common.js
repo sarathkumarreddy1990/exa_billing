@@ -856,6 +856,7 @@ var commonjs = {
                 break;
             default:
         }
+
         dtpTarget.datetimepicker(options);
         dtpTarget.on("dp.change", function (e) {
             if (e && e.date) {
@@ -965,7 +966,7 @@ var commonjs = {
             showDropdowns: true
         }
         var options = $.extend(true, {}, defaultOptions, drpOptions);
-        // drpTarget.daterangepicker(options, callback);
+        drpTarget.daterangepicker(options, callback);
         //since DRP is attached to text input element, trigger 'filter mode' setup
         drpTarget.on("apply.daterangepicker", function (ev, drp) {
             var fmt = drp.locale.format;
@@ -3643,9 +3644,10 @@ var commonjs = {
         else $('#studyTabs').css({ width: (ul_width + 50) + 'px' });
 
         var $divStudyTabsContainer = $('#divStudyTabsContainer');
+        var $divclaimsTabsContainer = $('#divclaimsTabsContainer');
         var $subMenu = $divStudyTabsContainer.closest('nav.top-nav');
         // SMH - Fixed the size of the tab menu to fill more of the available space, and also to scroll properly.
-        var divUseableSpace = $subMenu.width() - 40;  // 40 pixels space between controls
+        var divUseableSpace = $subMenu.width() - 140;  // 140 pixels space between controls
         var headerIconsWidth = $subMenu.find('ul.tn-menu-right').width();
         var retries = ~~retryCount;
         if (divUseableSpace === headerIconsWidth) {
@@ -3656,6 +3658,7 @@ var commonjs = {
         }
         var divStudyTabsContainerWidth = divUseableSpace - headerIconsWidth;
         $divStudyTabsContainer.css({ width: divStudyTabsContainerWidth });
+        $divclaimsTabsContainer.css({ width: divStudyTabsContainerWidth });
 
         //set gadget Width on window Resize
         var _ww = $(window).width() - 50,
@@ -7875,7 +7878,7 @@ var commonjs = {
     },
 
     getColorCodeForStatus: function (facility_id, code, screenName) {
-        var statusCodes = commonjs.statusCodes.length && commonjs.statusCodes ||parent.commonjs.statusCodes;
+        var statusCodes = app.study_status.length && app.study_status ||parent.app.study_status;
         if (statusCodes && statusCodes.length > 0) {
             return $.grep(statusCodes, function (currentObj) {
                 return ((currentObj.facility_id == facility_id) && (currentObj.status_code == code));
@@ -10706,7 +10709,7 @@ var facilityModules = {
         procedureanalysisbyinsurance: 'Procedure Analysis By Insurance',
         'appointmentListDateRange': 'Appointment List Date Range',
         facilityinvoices: 'Facility Invoices',
-        payermix: 'Payer Mix',
+        payerMix: 'Payer Mix',
         referringprovidersummary: 'Referring Provider Summary',
         chargedetails: 'Claim Activity',
         facilitysummary: 'Facility Summary',
@@ -10748,6 +10751,7 @@ var facilityModules = {
         referringPhysicianStudyCount: 'Referring Physician Study Count',
         completedSchedules: 'Completed Schedules',
         patientStatement: 'Patient Statement',
+        patientActivityStatement: 'Patient Statement',
         claimTransaction: 'Claim Transaction',
         insuranceVsLOP: 'Insurance Vs. LOP',
         claimInquiry: 'Claim Inquiry',

@@ -11,6 +11,10 @@ module.exports = {
         return data.createOrUpdatePayment(params);
     },
 
+    deletePayment: function (params) {
+        return data.deletePayment(params);
+    },
+
     createOrUpdatePaymentapplications: function (args) {
 
         applications(args);
@@ -18,32 +22,31 @@ module.exports = {
         async function applications(params) {
             let appliedPaymets = [];
             let coPaycoInsDeductdetails = [];
-            let { paymentId, line_items, user_id, coPay, coInsurance, deductible, claimId, adjestmentId, appliedStatus } = params;
+            let { paymentId, line_items, user_id, coPay, coInsurance, deductible, claimId, adjestmentId, paymentStatus } = params;
             line_items = JSON.parse(line_items);
             const save_cas_details = [];
 
-            _.each(line_items, function (value) {
-                if (value.payment != 0) {
-                    appliedPaymets.push({
-                        payment_id: paymentId,
-                        charge_id: value.chargeId,
-                        amount: value.payment,
-                        amount_type: 'payment',
-                        adjestment_id: null,
-                        created_by: user_id
-                    });
-                }
 
-                if (value.adjustment != 0) {
-                    appliedPaymets.push({
-                        payment_id: paymentId,
-                        charge_id: value.chargeId,
-                        amount: value.adjustment,
-                        amount_type: 'adjustment',
-                        adjestment_id: adjestmentId,
-                        created_by: user_id
-                    });
-                }
+            _.each(line_items, function (value) {
+
+                appliedPaymets.push({
+                    payment_id: paymentId,
+                    charge_id: value.chargeId,
+                    amount: value.payment == null ? 0.00 : value.payment,
+                    amount_type: 'payment',
+                    adjestment_id: null,
+                    created_by: user_id
+                });
+
+                appliedPaymets.push({
+                    payment_id: paymentId,
+                    charge_id: value.chargeId,
+                    amount: value.adjustment == null ? 0.00 : value.adjustment,
+                    amount_type: 'adjustment',
+                    adjestment_id: adjestmentId,
+                    created_by: user_id
+                });
+
 
             });
 
@@ -77,7 +80,7 @@ module.exports = {
             params.coPaycoInsDeductdetails = coPaycoInsDeductdetails;
             params.appliedPaymets = appliedPaymets;
 
-            if (appliedStatus == 'pending') {
+            if (paymentStatus == 'pending') {
                 const appliedValues = await data.createPaymentapplications(params);
 
                 for (const value of line_items) {
@@ -103,7 +106,7 @@ module.exports = {
                 return await Promise.all(save_cas_details);
             }
 
-            /*         if (appliedStatus == 'applied') {
+            /*         if (paymentStatus == 'applied') {
                 return data.updatePaymentapplications(params);
             } */
         }

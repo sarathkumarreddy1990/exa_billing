@@ -5,16 +5,14 @@ define([
     'views/claims/claim-workbench',
     'routes/app/index',
     'routes/setup/index',
-    'routes/reports/index',
-    'views/claim-inquiry'
+    'routes/reports/index'
 ], function (Backbone,
     WorklistView,
     StudiesView,
     ClaimWorkBenchView,
     AppRoute,
     SetupRoute,
-    ReportsRoute,
-    claimInquiryScreenView
+    ReportsRoute
     ) {
         var AppRouter = Backbone.Router.extend({
             routes: {
@@ -25,8 +23,7 @@ define([
                 "billing/*subroute": "startApp",
                 "setup/*subroute": "startSetup",
                 "app/payments": "startPayments",
-                "reports/*subroute": "startReporting",
-                "app/claim-inquiry": "startClaimInquiry"
+                "reports/*subroute": "startReporting"
             },
             
             startApp: function (subroute) {
@@ -56,12 +53,6 @@ define([
             startClaimWorkBench: function (subroutes) {
                 if (!this.appClaimWorkBenchRoute) {
                     this.appClaimWorkBenchRoute = new ClaimWorkBenchView({ el: $('#root') });
-                }
-            },
-
-            startClaimInquiry: function(subroutes){
-                if(!this.appRoute){
-                    this.appRoute = new claimInquiryScreenView({ el: $('#root') });
                 }
             },
 

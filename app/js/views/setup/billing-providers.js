@@ -29,6 +29,7 @@ define(['jquery',
             model: null,
             billingProvidersTable: null,
             editedInsuraceIDCode : null,
+            pager: null,
             events: {
                 'change #chkEnableFTP': 'showFTPDetails',
                 'click #btnSaveICDCode': 'saveProviderIDCodes',
@@ -42,6 +43,7 @@ define(['jquery',
                 this.options = options;
                 this.model = new BillingProvidersModel();
                 this.billingProvidersList = new BillingProvidersCollections();
+                this.pager = new Pager();
             },
 
             render: function () {
@@ -49,8 +51,8 @@ define(['jquery',
                 $('#divBillingProvidersGrid').show();
                 $('#divBillingProvidersForm').hide();
                 $(this.el).html(this.billingProvidersGridTemplate());
-                this.BillingProvidersTable = new customGrid();
-                this.BillingProvidersTable.render({
+                this.billingProvidersTable = new customGrid();
+                this.billingProvidersTable.render({
                     gridelementid: '#tblBillingProvidersGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
@@ -89,7 +91,7 @@ define(['jquery',
                                             self.billingProvidersTable.refresh();
                                         },
                                         error: function (model, response) {
-
+                                            commonjs.handleXhrError(model, response);
                                         }
                                     });
                                 }
@@ -113,7 +115,7 @@ define(['jquery',
                             width: 400,
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject) {
-                                    return `${rowObject.address_line1}${rowObject.address_line2}`;
+                                    return `${rowObject.address_line1}, ${rowObject.address_line2}`;
                                 }
                             },
                             searchFlag: '%'
@@ -128,6 +130,8 @@ define(['jquery',
                     container: self.el,
                     customizeSort: true,
                     offsetHeight: 01,
+                    sortname: "id",
+                    sortorder: "desc",
                     sortable: {
                         exclude: '#jqgh_tblBillingProvidersGrid,#jqgh_tblBillingProvidersGrid_edit,#jqgh_tblBillingProvidersGrid_del'
                     },
@@ -137,7 +141,8 @@ define(['jquery',
                     disablepaging: false,
                     showcaption: false,
                     disableadd: true,
-                    disablereload: true
+                    disablereload: true,
+                    pager: '#gridPager_BillingProviders'
                 });
                 commonjs.initializeScreen({header: {screen: 'BillingProviders', ext: 'billingProviders'}, grid: {id: '#tblBillingProvidersGrid'}, buttons: [
                     {value: 'Add', class: 'btn btn-danger', i18n: 'shared.buttons.add', clickEvent: function () {

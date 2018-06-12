@@ -4,7 +4,7 @@ module.exports = {
 
     getLineItemsDetails: async function (params) {
 
-        const studyIds = params.study_ids.split('~').map(Number);
+        const studyIds = params.study_ids.split(',').map(Number);
 
         const firstStudyId = studyIds.length > 0 ? studyIds[0] : null;
         
@@ -30,7 +30,7 @@ module.exports = {
                                 , sc.authorization_info->'authorization_no' AS authorization_no
                                 , display_description
                                 , additional_info
-                                , sc.cpt_code_id
+                                , sc.cpt_code_id AS cpt_id
                             FROM public.study_cpt sc
                             INNER JOIN public.studies s ON s.id = sc.study_id
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
@@ -72,8 +72,8 @@ module.exports = {
                                             ORDER BY studies.order_id DESC LIMIT 1 ) AS
                                         referring_pro_study_desc,
                                         providers.full_name AS reading_phy_full_name,
-                                        order_info -> 'ordering_facility_id' AS service_facility_id,
-                                        order_info -> 'ordering_facility' AS service_facility_name,
+                                        order_info -> 'ordering_facility_id' AS ordering_facility_id,
+                                        order_info -> 'ordering_facility' AS ordering_facility_name,
                                         order_info -> 'pos' AS pos_type,
                                         orders.order_status AS order_status, (
                                             SELECT
@@ -424,8 +424,6 @@ module.exports = {
 
     saveCharges: async function (params) {
 
-        //console.log('inside data',params)
-
         const sql = SQL`WITH save_charges AS (
                                 INSERT INTO billing.charges 
                                     ( claim_id     
@@ -526,11 +524,11 @@ module.exports = {
                     , rend_pr.full_name AS reading_phy_full_name
                     , rend_pr.provider_info->'NPI' AS rendering_prov_npi_no
                     , pg.group_info->'AddressLine1' AS service_facility_addressLine1
-                    , pg.group_info->'City' AS service_facility_city
-                    , pg.group_name AS service_facility_name
-                    , pg.group_info->'npi_no' AS service_facility_npi_no
-                    , pg.group_info->'State' AS service_facility_state
-                    , pg.group_info->'Zip' AS service_facility_zip
+                    , pg.group_info->'City' AS ordering_facility_city
+                    , pg.group_name AS ordering_facility_name
+                    , pg.group_info->'npi_no' AS ordering_facility_npi_no
+                    , pg.group_info->'State' AS ordering_facility_state
+                    , pg.group_info->'Zip' AS ordering_facility_zip
                     , ipp.insurance_info->'Address1' AS p_address1
                     , ipp.insurance_info->'PayerID' AS p_payer_id
                     , ipp.insurance_info->'City' AS p_city
@@ -691,6 +689,7 @@ module.exports = {
             , charges
         } = args;
 
+        
         const sqlQry = SQL`
         WITH insurance_details AS (
                   SELECT

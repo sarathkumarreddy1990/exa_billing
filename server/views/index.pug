@@ -14,13 +14,15 @@ block content
         button.navbar-toggler(type='button', data-toggle='collapse', data-target='#navbarNavAltMarkup', aria-controls='navbarNavAltMarkup', aria-expanded='false', aria-label='Toggle navigation')
             span.navbar-toggler-icon
         #navbarNavAltMarkup.collapse.navbar-collapse
-            ul.navbar-nav
+            ul.navbar-nav.ml-auto
                 li.nav-item
                     a.nav-link.active(href='#billing/studies/list') Home
                 li.nav-item
                     a.nav-link(href='#billing/claim_workbench/list') Claims
                 li.nav-item
                     a.nav-link(href='#billing/payments/list') Payments
+                li.nav-item
+                    a.nav-link(href='#billing/era/list') EOB
                     
                 li.nav-item.dropdown
                     a.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Reports

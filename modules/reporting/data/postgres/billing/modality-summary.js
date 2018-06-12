@@ -28,7 +28,7 @@ FROM
     <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
 WHERE 1=1
 AND <%= companyId %>
-AND <%= claimDate %>
+AND <%= studyDate %>
 <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
 <% if(billingProID) { %> AND <% print(billingProID); } %>
 AND  <%= companyId %>
@@ -42,12 +42,11 @@ GROUP BY
     ROLLUP (m.modality_name)
 )
 SELECT 
-    modality_name AS "MODALITY NAME",
-    order_count AS "ORDR COUNT", 
-    study_count AS "STUDY COUNT",
-    studies_count AS "CSTUDIES COUNT",
-    charges_count AS "CHARGES COUNT",
-    charges_bill_fee_total AS "TOTAL BILL FEE"
+    modality_name AS "Modality Name",
+    order_count AS "Claim Count", 
+    study_count AS "Study Count",  
+    charges_count AS "Charges Count",
+    charges_bill_fee_total AS "Total Bill Fee"
 FROM
      modalitySummary 
 `);
@@ -145,7 +144,7 @@ const api = {
         const params = [];
         const filters = {
             companyId: null,
-            claimDate: null,
+            studyDate: null,
             facilityIds: null,
             billingProID: null
 
@@ -164,11 +163,11 @@ const api = {
         //  scheduled_dt
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);
-            filters.claimDate = queryBuilder.whereDate('bc.claim_dt', '=', [params.length], 'f.time_zone');
+            filters.studyDate = queryBuilder.whereDate('s.study_dt', '=', [params.length], 'f.time_zone');
         } else {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
-            filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.studyDate = queryBuilder.whereDateBetween('s.study_dt', [params.length - 1, params.length], 'f.time_zone');
         }
 
         // billingProvider single or multiple

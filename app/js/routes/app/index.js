@@ -5,7 +5,8 @@ define([
     'text!templates/access-denied.html',
     'routes/app/studies',
     'routes/app/claims',
-    'routes/app/payments'
+    'routes/app/payments',
+    'routes/app/era'
 ], function (
     Backbone,
     BackboneSubroute,
@@ -13,13 +14,15 @@ define([
     AccessDeniedTemplate,
     StudiesRoute,
     ClaimWorkBenchRoute,
-    PaymentsRoute
+    PaymentsRoute,
+    EraRoute
 ) {
         return Backbone.SubRoute.extend({
             routes: {
                 "studies/*subroute": "startStudies",
                 "claim_workbench/*subroute": "startClaimWorkbench",
-                "payments/*subroute": "startPayments"
+                "payments/*subroute": "startPayments",
+                "era/*subroute": "startEra"
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -56,6 +59,15 @@ define([
                 if (this.checkLicense('Payments') && !this.paymentsRouter) {
                     this.defaultArgs.routePrefix = 'billing/payments/';
                     this.paymentsRouter = new PaymentsRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startEra: function (subroute) {
+                if (this.checkLicense('Era') && !this.eraRouter) {
+                    this.defaultArgs.routePrefix = 'billing/era/';
+                    this.eraRouter = new EraRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }
