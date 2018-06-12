@@ -5,7 +5,7 @@ define([
     'jqgrid',
     'jqgridlocale',
     'models/pager',
-    'text!templates/claim-inquiry.html',
+    'text!templates/claims/claim-inquiry.html',
     'collections/claim-inquiry',
     'views/reports/patient-activity-statement' ,
     'views/reports/payment-invoice' 
@@ -31,7 +31,8 @@ define([
                 "click #btnCISaveComment": "saveComment",
                 "click #btnCISaveIsInternal": "saveIsInternalComment",
                 "click #btnCIPatientInquiry": "patientInquiryForm",
-                "click #btnCIPrintInvoice": "printPaymentInvoice"
+                "click #btnCIPrintInvoice": "printPaymentInvoice",
+                "click #btnCICommentCancel": "closeSaveComment"
             },
 
             initialize: function (options) {
@@ -409,6 +410,10 @@ define([
                 var self = this;
                 self.paymentInvoice = new paymentInvoice({el: $('#modal_div_container')});
                 self.paymentInvoice.onReportViewClick(e);                         
+            },
+            closeSaveComment: function(e){
+                $('#divCIFormComment').hide();
+                $('#txtCIAddComment').val('');
             }
         })
 

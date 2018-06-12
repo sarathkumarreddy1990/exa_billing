@@ -292,10 +292,9 @@ define(['jquery',
             bindDateRangeOnSearchBox: function (gridObj, tabtype) {
                 var self = this;
                 var drpTabColumnSet = [
-                    {
-                        // ALL STUDIES
-                        forTab: "study",
-                        columns: ["study_received_dt", "claim_dt", "check_indate", "approved_dt", "mu_last_updated", "scheduled_dt", "status_last_changed_dt", "birth_date"]
+                    {                        
+                        forTab: "claims",
+                        columns: ["current_illness_date", "claim_dt", "followup_date"]
                     }
                 ];
                 var columnsToBind = _.find(drpTabColumnSet,function (val) {
@@ -390,6 +389,12 @@ define(['jquery',
                     claimIds.push(rowId);
                 }
 
+
+                if(claimIds&&claimIds.length==0){
+                    commonjs.showWarning('Please select claims with same type of billing method and electronic billing method');
+                    return false;
+                }
+
                 self.ediResultTemplate = _.template(ediResultHTML);
 
                 jQuery.ajax({
@@ -436,6 +441,9 @@ define(['jquery',
                     });
                 }
                 commonjs.setFilter(null, null);
+
+                $('#divStudyTabsContainer').hide();
+                $('#divclaimsTabsContainer').show();
 
                 // cache jQuery objects
                 var $divclaimsTabsContainer = $(document.getElementById('divclaimsTabsContainer'));
@@ -829,7 +837,7 @@ define(['jquery',
                             (!data.display_as_tab ?
                                 ' style="display:none"' :
                                 ''),
-                            ' class="nav-item',
+                            //' class="nav-item',
                             (info ? ' can-merge' : ''),
                             '"><a href="#divClaimGridContainer',
                             id,
@@ -927,7 +935,7 @@ define(['jquery',
                             var updateStudiesPager = function (model, gridObj) {
                                 $('#chkclaimsHeader_' + filterID).prop('checked', false);
                                 self.setGridPager(filterID, gridObj, false);
-                                //self.bindDateRangeOnSearchBox(gridObj, 'claims');
+                                self.bindDateRangeOnSearchBox(gridObj, 'claims');
                                 self.afterGridBindclaims(model, gridObj);
                                 self.initializeStatusCodes(gridObj, 'claims');
                                 commonjs.nextRowID = 0;

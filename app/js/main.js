@@ -17,7 +17,7 @@ require.config({
         'jqgridlocale': '../libs/jqgrid/js/i18n/grid.locale-en',
         'immutable': '../node_modules/immutable/dist/immutable',
         'jstorage': '../node_modules/jstorage/jstorage.min',
-        'datetimepicker': '../node_modules/eonasdan-bootstrap-datetimepicker/src/js/bootstrap-datetimepicker',
+        'datetimepicker': '../libs/datetimepicker/js/bootstrap-datetimepicker',
         'daterangepicker': '../node_modules/bootstrap-daterangepicker/daterangepicker',
         'commonscript': 'shared/common',
         'layout': 'shared/layout',

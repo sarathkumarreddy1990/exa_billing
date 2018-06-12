@@ -25,7 +25,7 @@ app.use(function (req, res, next) {
         req.body = {
             ...req.body,
             ...ids,
-            clientIp: 'localhost',
+            clientIp: '127.0.0.1',
             screenName: screenName,
             moduleName: moduleName,
         };

@@ -73,9 +73,11 @@ define([
                                     self.model.destroy({
                                         data: $.param({ id: self.model.id, code: gridData.code, description: gridData.description }),
                                         success: function (model, response) {
+                                            commonjs.showStatus("Deleted Successfully");
                                             self.claimStatusTable.refresh();
                                         },
                                         error: function (model, response) {
+                                            commonjs.handleXhrError(model, response);
                                         }
                                     });
                                 }
@@ -113,7 +115,8 @@ define([
                     disablepaging: false,
                     showcaption: false,
                     disableadd: true,
-                    disablereload: true
+                    disablereload: true,
+                    pager: '#gridPager_ClaimStatus'
                 });
 
                 commonjs.initializeScreen({header: {screen: 'ClaimStatus', ext: 'claimStatus'}, grid: {id: '#tblClaimStatusGrid'}, buttons: [
@@ -172,7 +175,30 @@ define([
                 commonjs.processPostRender();
             },
 
-            saveClaimStatus: function () {
+            saveClaimStatus: function() {
+                var self = this;
+                commonjs.validateForm({
+                    rules: {
+                        code: {
+                            required: true
+                        },
+                        description: {
+                            required: true
+                        }
+                    },
+                    messages: {
+                        code: commonjs.getMessage("*", "Code"),
+                        description: commonjs.getMessage("*", "Description")
+                    },
+                    submitHandler: function () {
+                        self.save();
+                    },
+                    formID: '#formClaimStatus'
+                });
+                $('#formClaimStatus').submit();
+            },
+
+            save: function () {
                 this.model.set({
                     "code": $.trim($('#txtCode').val()),
                     "description": $.trim($('#txtDescription').val()),
@@ -181,10 +207,10 @@ define([
                     "company_id": app.companyID
                 });
                 this.model.save({
-
                 }, {
                     success: function (model, response) {
-                        if (response) {
+                        if(response) {
+                            commonjs.showStatus("Saved Successfully");
                             location.href = "#setup/claim_status/list";
                         }
                     },
