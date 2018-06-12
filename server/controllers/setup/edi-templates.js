@@ -3,27 +3,27 @@ ediConnect.init('http://192.168.1.102:5581/edi/api');
 
 module.exports = {
 
-    getData: (params) => {
+    getTemplatesList: (params) => {
         if (params.name) {
-            return ediConnect.getDataByname(params);
+            return ediConnect.getTemplate(params.name, params.flag);
         }
 
-        return ediConnect.getData(params);
+        return ediConnect.getTemplatesList(params.flag);
     },
 
-    getDataById: (params) => {
-        return ediConnect.getDataByName(params);
+    getTemplate: (params) => {
+        return ediConnect.getTemplate(params.name);
     },
 
-    create: (params) => {
-        return ediConnect.create(params);
+    createTemplate: (params) => {
+        return ediConnect.createTemplate(params.flag, params.name);
     },
 
-    update: (params) => {
-        return ediConnect.update(params);
+    updateTemplate: (params) => {
+        return ediConnect.updateTemplate(params.flag, params.name, params.tempBody);
     },
 
-    delete: (params) => {
-        return ediConnect.delete(params);
+    deleteTemplate: (params) => {
+        return ediConnect.deleteTemplate(params.flag, params.name);
     }
 };
