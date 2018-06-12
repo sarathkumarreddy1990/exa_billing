@@ -87,7 +87,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var imageDeliveryValue = commonjs.makeValue(imageDeliveryOptions, ':All;', 'type', 'label');
         var deletedValue = ":All;true:Only;false:None";
         var verifiedValue = ":All;true:Yes;false:No";
-        var billingMethodValue =  ":All;electronic_billing:Electronic Billing;paper_claim:Paper Claim;patient_payment:Patient Payment,direct_billing:Direct Billing";
+        var billingMethodValue =  ":All;electronic_billing:Electronic Billing;paper_claim:Paper Claim;patient_payment:Patient Payment;direct_billing:Direct Billing";
         var payerTypeValue =  `:All;primary_insurance:Primary Insurance;secondary_insurance:Secondary Insurance;
                                 teritary_insurance:Teritary Insurance;Patient:Patient`;
 
@@ -265,9 +265,12 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                             "value": payerTypeValue,
                             "defaultValue":payerTypeValue
                         },
-                        "formatter":
-                            "self.payerFormatter",
-                        "width": 80,
+                        "formatter": function ( cellvalue ) {
+                            return commonjs.checkNotEmpty(cellvalue) ?
+                                   commonjs.getPayerType(cellvalue) :
+                                   '';
+                        },
+                        "width": 150,
                         "sortable": " true"
                     }
                 },
@@ -397,7 +400,11 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "i18n_name": "billing.fileInsurance.billingmethod",
                     "field_info": {
                         "name": "billing_method",
-                        "formatter": "self.billingMethodFormatter",
+                        "formatter": function ( cellvalue ) {
+                            return commonjs.checkNotEmpty(cellvalue) ?
+                                   commonjs.getBillingMethod(cellvalue) :
+                                   '';
+                        },
                         "width": 150,
                         "stype": "select",
                         "searchoptions": { 
@@ -416,7 +423,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "formatter": function ( cellvalue ) {
                             return commonjs.checkNotEmpty(cellvalue) ? commonjs.getFormattedUtcDate(cellvalue) : '';
                         },
-                        "width": "150"
+                        "width": "150",
+                        "searchFlag":"datetime"
                     }
                 },
                 "Date of Injury": {
@@ -782,6 +790,9 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         }
                         return '';
                     },
+                    "cellattr": function ( id, cellvalue, rowObject ) {
+                        return 'style="background:' + (app.stat_level[ cellvalue ] && app.stat_level[ cellvalue ].color || 'transparent') + ';"';
+                    },                    
                     "searchoptions": {
                         "value": statLevelValue,
                         "tempvalue": statLevelValue

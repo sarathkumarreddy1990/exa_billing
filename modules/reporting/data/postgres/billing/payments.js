@@ -33,11 +33,13 @@ const summaryQueryTemplate = _.template(`
                 INNER JOIN billing.claims bc on bc.id = bch.claim_id
                 INNER JOIN facilities f on f.id = bc.facility_id
                 <% if (billingProID) { %>  INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id <% } %>
+                <% if (userIds) { %>  INNER join public.users on users.id = bp.created_by    <% } %>
                 WHERE 1=1 
                     AND  <%= companyId %>
                     AND <%= claimDate %>
                 <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
                 <% if(billingProID) { %> AND <% print(billingProID); } %>
+                <% if (userIds) { %>AND <% print(userIds); } %>
                 GROUP BY
                      bp.payer_type, bp.id
           )
@@ -64,6 +66,7 @@ const detailQueryTemplate = _.template(`
                 bc.id  claim_id,
                 SUM(CASE WHEN amount_type= 'payment' then bpa.amount  else 0::money end) as applied_amount,
                 SUM(CASE WHEN amount_type= 'adjustment' then bpa.amount  else 0::money end) as adjustment
+                <% if (userIds) { %> , MAX(users.username) AS user_name    <% } %>
             FROM 
                 billing.payments bp 
             LEFT JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
@@ -71,11 +74,14 @@ const detailQueryTemplate = _.template(`
             LEFT Join billing.claims  bc on bc.id = bch.claim_id
             INNER JOIN facilities f on f.id = bc.facility_id
             <% if (billingProID) { %>  INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id <% } %>
+            <% if (userIds) { %>  INNER join public.users  users on users.id = bp.created_by    <% } %>
             WHERE 1=1 
             AND  <%= companyId %>
             AND <%= claimDate %>
             <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
-            <% if(billingProID) { %> AND <% print(billingProID); } %>group by bp.id,bc.id )
+            <% if(billingProID) { %> AND <% print(billingProID); } %>
+            <% if (userIds) { %>AND <% print(userIds); } %>
+            GROUP BY bp.id,bc.id )
                 SELECT
                     p.accounting_dt::date AS "Accounting Date",
                     f.facility_name  AS "Facility Name",
@@ -108,7 +114,8 @@ const detailQueryTemplate = _.template(`
                     (p.amount - payment_totals.payments_applied_total) AS "Balance",
                     cs.code AS "Code",
                     pd.applied_amount AS "Applied Amount",
-         	        pd.adjustment AS "Adjustment Amount"	
+                    pd.adjustment AS "Adjustment Amount"
+                    <% if (userIds) { %>, user_name AS "User Name"   <% } %>
                 FROM 
                     payment_data pd
                 INNER join billing.payments p on p.id = pd.payment_id
@@ -129,6 +136,10 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
+        if (initialReportData.report.params.userIds && initialReportData.report.params.userIds.length > 0) {
+            initialReportData.report.params.userIds = initialReportData.report.params.userIds.map(Number);
+        }
+
         return Promise.join(
             api.createSummaryDataSet(initialReportData.report.params),
             api.createDetailDataSet(initialReportData.report.params),
@@ -174,6 +185,15 @@ const api = {
             filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
         }
 
+        // User Filter
+        if (params.userIds && params.userIds.length > 0) {
+            filtersUsed.push({ name: 'users', label: 'Users', value: params.userName });
+        }
+        else {
+            filtersUsed.push({ name: 'users', label: 'Users', value: 'All' });
+        }
+
+
         filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
         filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
         return filtersUsed;
@@ -191,7 +211,8 @@ const api = {
             companyId: null,
             claimDate: null,
             facilityIds: null,
-            billingProID: null
+            billingProID: null,
+            userIds: null
         };
 
         // company id
@@ -220,6 +241,15 @@ const api = {
             filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
         }
 
+        // User id
+        if (reportParams.userIds && reportParams.userIds.length > 0) {
+            if (reportParams.userIds) {
+                params.push(reportParams.userIds);
+                filters.userIds = queryBuilder.whereIn('bp.created_by', [params.length]);
+            }
+        }
+
+
         return {
             queryParams: params,
             templateData: filters
@@ -242,7 +272,8 @@ const api = {
             companyId: null,
             claimDate: null,
             facilityIds: null,
-            billingProID: null
+            billingProID: null,
+            userIds: null
         };
 
         // company id
@@ -269,6 +300,14 @@ const api = {
         if (reportParams.billingProvider) {
             params.push(reportParams.billingProvider);
             filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
+        }
+
+        // User id
+        if (reportParams.userIds && reportParams.userIds.length > 0) {
+            if (reportParams.userIds) {
+                params.push(reportParams.userIds);
+                filters.userIds = queryBuilder.whereIn('bp.created_by', [params.length]);
+            }
         }
         return {
             queryParams: params,

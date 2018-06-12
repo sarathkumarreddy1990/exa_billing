@@ -92,8 +92,7 @@ define([
                 });
             },
 
-            // Insurance Auto Complete
-
+            // Insurance Auto Complete           
             bindInsuranceAutocomplete: function (userMessage, btnAdd, ulList) {
                 var self = this;
                 $("#txtInsuranceName").select2({
@@ -165,12 +164,10 @@ define([
                 $('#ulListInsurance').delegate('a.remove', 'click', function () {
                     $(this).closest('li').remove();
                 });
-				
-				
             },
 
             bindInsuranceProviderAutocomplete: function (userMessage, btnAdd, ulList) {
-              $("#txtInsuranceProviderName").select2({
+                $("#txtInsuranceProviderName").select2({
                     ajax: {
                         url: "/exa_modules/billing/autoCompleteRouter/provider_group",
                         dataType: 'json',
@@ -218,7 +215,7 @@ define([
                     self.group_id = res.provider_group_id;
                     if (res && res.id) {
                         return res.group_name;
-                    }                    
+                    }
                 }
                 $('#btnAddInsuranceProvider').unbind('click').click(function () {
                     if ($('#select2-txtInsuranceProviderName-container > a.select2-default').length > 0) {
@@ -349,7 +346,7 @@ define([
                 });
             },
 
-            
+
             bindBillingProvider: function () {
                 $.ajax({
                     type: 'GET',
@@ -389,7 +386,7 @@ define([
 
             // Users Auto Complete
 
-            listUsersAutoComplete: function () {
+            listUsersAutoComplete: function (userMessage, btnAdd, ulList) {
                 var self = this;
                 $("#txtUsers").select2({
                     ajax: {
@@ -398,7 +395,7 @@ define([
                         delay: 250,
                         data: function (params) {
                             return {
-                                page: params.page || 20,
+                                page: params.page || 6,
                                 q: params.term || '',
                                 pageSize: 10,
                                 sortField: "user_name",
@@ -417,7 +414,7 @@ define([
                         },
                         cache: true
                     },
-                    placeholder: 'Select carrier',
+                    placeholder: 'Select users',
                     escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
                     minimumInputLength: 0,
                     templateResult: formatRepo,
@@ -425,28 +422,50 @@ define([
                 });
                 function formatRepo(repo) {
                     if (repo.loading) {
-                        return repo.text;
+                        return repo.user_name;
                     }
                     var markup = "<table><tr>";
-                    markup += "<td  data-id='" + repo.id + " ' title='" + repo.user_id + "(" + repo.user_name + ")'> <div>" + repo.user_id + "(" + repo.user_name + ")" + "</div>";
-
+                    markup += "<td  data-id='" + repo.id + " ' title='" + repo.user_name + "(" + repo.user_name + ")'> <div>" + repo.id + "(" + repo.user_name + ")" + "</div>";
                     markup += "</td></tr></table>";
                     return markup;
 
                 }
                 function formatRepoSelection(res) {
                     if (res && res.id) {
-                        return res.insurance_name;
+                        return res.user_name;
                     }
                 }
+
+                $('#btnAddUsers').unbind('click').click(function () {
+                    if ($('#select2-txtUsers-container > a.select2-default').length > 0) {
+                        commonjs.showWarning('Please select one Users to add');
+                        return false;
+                    }
+                    if ($('#ulListUsers li a[data-id="' + $('#txtUsers').select2('data')[0].id + '"]').length) {
+                        commonjs.showWarning("User is already selected");
+                        return false;
+                    }
+
+                    var data_id = $('#txtUsers').select2('data')[0].id;
+                    var bind_text = $('#txtUsers').select2('data')[0].user_name;
+                    $('#ulListUsers').append('<li id="' + data_id + '"><span style="background:#3c91f0; color:white; border:1px solid black">' + bind_text + '</span><a class="remove" data-id="' + $('#txtUsers').select2('data')[0].id + '"><span class="icon-ic-close" style="margin-left:8px;"></span></a></li>')
+                    $('#txtUsers a span').html('Select User');
+                });
+
+                $('#ulListUsers').delegate('a.remove', 'click', function () {
+                    $(this).closest('li').remove();
+                });
+
+
+
             },
 
             // Common Click Events
             setEvents: function (fieldId, fieldName, ulList) {
                 $('#' + fieldId).unbind('click').click(function () {
-                    var uListIds = $('#' + ulList).data('id') || [];                    
+                    var uListIds = $('#' + ulList).data('id') || [];
 
-                    if ($('#s2id_' + fieldName +'  > a.select2-default').length > 0) {                  
+                    if ($('#s2id_' + fieldName + '  > a.select2-default').length > 0) {
                         commonjs.showWarning('Please select one  to add');
                         return false;
                     }

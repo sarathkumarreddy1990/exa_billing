@@ -10,8 +10,9 @@ define('grid', [
     'views/claims/index',
     'views/user-settings',
     'views/setup/study-filter',
-    'text!templates/setup/study-filter-grid.html'
-], function (jQuery, _, initChangeGrid, utils, Pager, StudyFields, Studies, claimWorkbench, claimsView, UserSettingsView, StudyFilterView, studyFilterGrid) {
+    'text!templates/setup/study-filter-grid.html',
+    'views/claims/claim-inquiry'
+], function (jQuery, _, initChangeGrid, utils, Pager, StudyFields, Studies, claimWorkbench, claimsView, UserSettingsView, StudyFilterView, studyFilterGrid, claimInquiryView) {
     var $ = jQuery;
     var isTrue = utils.isTrue;
     var isFalse = utils.isFalse;
@@ -23,7 +24,6 @@ define('grid', [
     var updateReorderColumn = utils.updateReorderColumn;
     var updateResizeColumn = utils.updateResizeColumn;
     var setScrollHandler = utils.setScrollHandler;
-
     return function (options) {
         var self = this;
         var filterID = options.filterid;
@@ -57,6 +57,7 @@ define('grid', [
             var target = event.currentTarget;
             var $target = $(target);
             let studyArray = [];
+            let selectedStudies = [];
             let divObj = 'studyRightMenu';
             let $divObj = $(document.getElementById(divObj));
             $divObj.empty();
@@ -81,15 +82,15 @@ define('grid', [
                     patient_dob: _storeEle.birth_date,
                     accession_no: _storeEle.accession_no,
                 };
+                selectedStudies.push(study);
             }
             var studyIds = studyArray.join();
             if (isClaimGrid) {
-
-                var liClaimStatus = '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.flagAs" class="dropdown-item">Change Claim Status</a><ul id="ul_change_claim_status" style="float:right;" class="dropdown-menu"></ul></li>';
+                var liClaimStatus = commonjs.getRightClickMenu('ul_change_claim_status','menuTitles.rightClickMenu.billingStatus',false,'Change Billing Status',true); 
                 $divObj.append(liClaimStatus);
                 var liArray = [];
-                $.each(app.claim_status, function (index, claimStatus) {                   
-                        var $claimStatusLink = $('<li><a class="dropdown-item" id="ancclaimStatus_' + claimStatus.id + '"  data-d_claim_status="' + claimStatus.description + '" href="javascript: void(0)" >' + claimStatus.description + '</a></li>');
+                $.each(app.claim_status, function (index, claimStatus) {                      
+                    var $claimStatusLink = $(commonjs.getRightClickMenu('ancclaimStatus_' + claimStatus.id,'menuTitles.rightClickMenu.billingCode',true,claimStatus.description ,false));                        
                         $claimStatusLink.click(function () {
 
                             $.ajax({
@@ -111,11 +112,13 @@ define('grid', [
                 });
                 $('#ul_change_claim_status').append(liArray);
 
-                var liBillingCode = '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.flagAs" class="dropdown-item">Change Billing Code</a><ul id="ul_change_billing_code" style="float:right;" class="dropdown-menu"></ul></li>';
+                var liBillingCode = commonjs.getRightClickMenu('ul_change_billing_code','menuTitles.rightClickMenu.billingCode',false,'Change Billing Code',true);       
                 $divObj.append(liBillingCode);
                 var liArrayBillingCode = [];
+
                 $.each(app.billing_codes, function (index, billing_code) {                   
-                        var $billingCodeLink = $('<li><a class="dropdown-item" id="ancBillingCode_' + billing_code.id + '"  data-d_billing_code="' + billing_code.description + '" href="javascript: void(0)" >' + billing_code.description + '</a></li>');
+                        var $billingCodeLink = $(commonjs.getRightClickMenu('ancBillingCode_' + billing_code.id,'menuTitles.rightClickMenu.billingCode',true,billing_code.description ,false));
+                       
                         $billingCodeLink.click(function () {
                             $.ajax({
                                 url: '/exa_modules/billing/claimWorkbench/update',
@@ -137,12 +140,12 @@ define('grid', [
                 $('#ul_change_billing_code').append(liArrayBillingCode);
 
 
-                 
-                var liBillingClass = '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.flagAs" class="dropdown-item">Change Billing Class</a><ul id="ul_change_billing_class" style="float:right;" class="dropdown-menu"></ul></li>';
+                var liBillingClass = commonjs.getRightClickMenu('ul_change_billing_class','menuTitles.rightClickMenu.billingClass',false,'Change Billing Class',true);                 
                 $divObj.append(liBillingClass);
                 var liArrayBillingClass = [];
-                $.each(app.billing_classes, function (index, billing_class) {                   
-                        var $BillingClassLink = $('<li><a class="dropdown-item" id="ancBillingClass_' + billing_class.id + '"  data-d_billing_class="' + billing_class.description + '" href="javascript: void(0)" >' + billing_class.description + '</a></li>');
+                $.each(app.billing_classes, function (index, billing_class) {       
+                    var $BillingClassLink = $(commonjs.getRightClickMenu('ancBillingClass_' + billing_class.id,'menuTitles.rightClickMenu.billingClass',true,billing_class.description ,false));                                   
+                        
                         $BillingClassLink.click(function () {
                                 $.ajax({
                                     url: '/exa_modules/billing/claimWorkbench/update',
@@ -163,37 +166,48 @@ define('grid', [
                         liArrayBillingClass[liArrayBillingClass.length] = $BillingClassLink;
                 });
                 $('#ul_change_billing_class').append(liArrayBillingClass);
+               
+                var liPayerType =  commonjs.getRightClickMenu('ul_change_payer_type','menuTitles.rightClickMenu.billingPayerType',false,'Change Billing PayerType',true);                 
+                $divObj.append(liPayerType);                        
 
-              
-                var liPayerType = '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.flagAs" class="dropdown-item">Change Payer type</a><ul id="ul_change_payer_type" style="float:right;" class="dropdown-menu"></ul></li>';
-                $divObj.append(liPayerType);
+                var liEditClaim = commonjs.getRightClickMenu('anc_edit_claim','menuTitles.rightClickMenu.editClaim',false,'Edit Claim',false);         
+                
+                if(studyArray.length == 1)
+                    $divObj.append(liEditClaim);
 
-                var liEditClaim = '<li><a id="anc_edit_claim" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log" class="dropdown-item">Edit Claim</a></li>';
-                $divObj.append(liEditClaim);
                 $('#anc_edit_claim').off().click(function () {
 
                     self.claimView = new claimsView();
                     self.claimView.showEditClaimForm(studyIds);
                 });
-
-                var liClaimInquiry = '<li><a id="anc_claim_inquiry" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log" class="dropdown-item">Claim Inquiry</a></li>';
+                         
+                var liClaimInquiry = commonjs.getRightClickMenu('anc_claim_inquiry','menuTitles.rightClickMenu.claimInquiry',false,'Claim Inquiry',false);
                 $divObj.append(liClaimInquiry);
                 $('#anc_claim_inquiry').click(function () {
-                    alert(studyIds)
+                     commonjs.showDialog({
+                    'header': 'Claim Inquiry',
+                    'width': '95%',
+                    'height': '85%',
+                    'needShrink': true
                 });
-
-                var liSplitOrders = '<li><a id="anc_split_orders" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log" class="dropdown-item">Create/split Orders</a></li>';
+                self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
+                self.claimInquiryView.render(studyIds);
+                });
+                
+                var liSplitOrders = commonjs.getRightClickMenu('anc_split_orders','menuTitles.rightClickMenu.splitOrders',false,'Split Orders',false);
                 $divObj.append(liSplitOrders);
                 $('#anc_split_orders').click(function () {
                     alert(studyIds)
                 });
 
-            } else {
-                var liCreateClaim = '<li><a id="anc_create_claim" href="javascript: void(0)" i18n="menuTitles.rightClickMenu.log" class="dropdown-item">Create Claim</a></li>';
+            } else {                
+                var liCreateClaim = commonjs.getRightClickMenu('anc_create_claim','menuTitles.rightClickMenu.createClaim',false,'Create Claim',false);
                 $divObj.append(liCreateClaim);
                 $('#anc_create_claim').off().click(function () {
                     window.localStorage.setItem('selected_studies', null);
-                    window.localStorage.setItem('selected_studies', JSON.stringify(study));
+                    window.localStorage.setItem('first_study_details', null);
+                    window.localStorage.setItem('primary_study_details', JSON.stringify(selectedStudies[0]));
+                    window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
                     self.claimView = new claimsView();
                     self.claimView.showClaimForm(studyIds);
                 });
@@ -253,12 +267,12 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 (options.isClaimGrid ? '<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />' : ''),
-                '', '', '', '', '',''
+                '', '', '', '', '','',''
 
             ]);
 
             i18nName = i18nName.concat([
-                '', '', '', '', '', '',''
+                '', '', '', '', '', '','',''
             ]);
 
             colModel = colModel.concat([
@@ -303,9 +317,15 @@ define('grid', [
                     formatter: function () {
                         return "<i class='icon-ic-raw-transctipt' title='Claim Inquiry'></i>"
                     },
-                    customAction: function (rowID, e, that) {  
-                        alert('Claim Inquiry is In-progress')                      
-                        return false;
+                    customAction: function (rowID, e, that) {
+                        commonjs.showDialog({
+                            'header': 'Claim Inquiry',
+                            'width': '95%',
+                            'height': '85%',
+                            'needShrink': true
+                        });
+                        self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
+                        self.claimInquiryView.render(rowID);                       
                     }
                 },
                 {
@@ -343,7 +363,16 @@ define('grid', [
                     search: false,
                     hidden: true,
                     isIconCol: true
-                }
+                },
+                {
+                    name: 'billing_method',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true
+                },
             ]);
 
             if (app.showserial) {
@@ -447,18 +476,18 @@ define('grid', [
 
             $('#btnStudyFilter').unbind().click(function (e) {
                 
-                                commonjs.showDialog(
-                                    {
-                                        "width": "75%",
-                                        "height": "75%",
-                                        "header": "Study Filter",
-                                        "needShrink": true
-                                    });
-                
-                                    self.StudyFilterView = new StudyFilterView({el: $('#modal_div_container')});
-                                    self.StudyFilterView.showGrid();
-                                    $('#tblStudyFilterGrid').append(self.template);
-                            });
+                commonjs.showDialog(
+                    {
+                        "width": "75%",
+                        "height": "75%",
+                        "header": "Study Filter",
+                        "needShrink": true
+                    });
+
+                    self.StudyFilterView = new StudyFilterView({el: $('#modal_div_container')});
+                    self.StudyFilterView.showGrid();
+                    $('#tblStudyFilterGrid').append(self.template);
+            });
             claimsTable.render({
                 gridelementid: gridID,
                 custompager: new Pager(),
@@ -515,11 +544,19 @@ define('grid', [
 
                 onRightClickRow: function (rowID, iRow, iCell, event, options) {
                     if (disableRightClick()) {
+                        var _selectEle = $(event.currentTarget).find('#' + rowID).find('input:checkbox');
+                            _selectEle.attr('checked', true);
                         openCreateClaim(rowID, event, options.isClaimGrid, studyStore);
                     }
                     else {
                         event.stopPropagation();
                     }
+                },
+                beforeSelectRow: function (rowID, e) {
+                    var _selectEle = $(e.currentTarget).find('#' + rowID).find('input:checkbox');
+                    var enableField = _selectEle.is(':checked')
+                    _selectEle.attr('checked', !enableField);
+                  
                 },
                 beforeSearch: function () {
                     commonjs.scrollLeft = $('.ui-jqgrid-bdiv').scrollLeft();

@@ -9,8 +9,8 @@ const _ = require('lodash')
 const referringProviderSummaryDataSetQueryTemplate = _.template(`
 WITH referringProviderSummary as (
     SELECT
-        pp.provider_code,
-        pp.full_name,
+        pp.provider_code AS provider_code,
+        pp.full_name AS provider_name,
         COUNT(pp.id) AS orderCount,
         SUM(bch.bill_fee * units) AS BillingFee,
         SUM(bch.allowed_amount * units) AS AllowedFee
@@ -33,6 +33,8 @@ WITH referringProviderSummary as (
         pp.full_name ASC
  )
     SELECT 
+        provider_code AS "PROVIDER CODE",
+        provider_name AS "PROVIDER NAME",
         orderCount AS "COUNT" ,
         BillingFee AS "BILL FEE", 
         AllowedFee AS "ALLOWED FEE"

@@ -760,6 +760,39 @@
         }
     },
     {
+        "id": "patient-activity-statement",
+        "category": "billing",
+        "title": "Patient Statement",
+        "description": "Report shows Patient Statement.",
+        "jsreport": {
+            "html": {
+                "template": {
+                    "name": "billing-patient-statement-html"
+                }
+            },
+            "pdf": {
+                "template": {
+                    "name": "billing-patient-statement-pdf"
+                }
+            },
+            "xlsx": {
+                "template": {
+                    "name": "default-table-excel"
+                }
+            },
+            "csv": {
+                "template": {
+                    "name": "default-table-csv"
+                }
+            },
+            "xml": {
+                "template": {
+                    "name": "default-table-xml"
+                }
+            }
+        }
+    },
+    {
         "id": "referring-provider-count",
         "category": "billing",
         "title": "Referring Provider Count",
@@ -1063,7 +1096,7 @@
         }
     },
     {
-        "id": "monthlyRecap",
+        "id": "monthly-recap",
         "category": "billing",
         "title": "Monthly Recap",
         "description": "Report shows monthly Recap.",
@@ -1376,6 +1409,37 @@
             "xml": {
                 "template": {
                     "name": "default-table-xml"
+                }
+            }
+        }
+    },
+    {
+        "id": "payment-invoice",
+        "category": "billing",
+        "title": "Payment Invoice",
+        "description": "",
+        "jsreport": {
+            "html": {
+                "template": {
+                    "name": "billing-payment-invoice-html"
+                }
+            },
+            "pdf": {
+                "template": {
+                    "name": "billing-payment-invoice-pdf"
+                }
+            }
+        }
+    },
+    {
+        "id": "payments-pdf",
+        "category": "billing",
+        "title": "Payment Received",
+        "description": "",
+        "jsreport": {
+            "pdf": {
+                "template": {
+                    "name": "default-table-pdf"
                 }
             }
         }

@@ -30,18 +30,19 @@ WITH payerMixDetails AS (
         AND <%= claimDate %>
         <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
         <% if(billingProID) { %> AND <% print(billingProID); } %>
-    GROUP BY  
-          pcc.display_code,
-          pip.insurance_code,
-          pip.insurance_name,
-          pf.facility_name,
-          bc.claim_dt
+        GROUP BY grouping sets(
+            ( pip.insurance_name ),
+            ( pcc.display_code,
+              pip.insurance_code,
+              pip.insurance_name,
+              pf.facility_name,
+              bc.claim_dt))
     ORDER BY 
         insurance_name,
         facility_name
     )
     SELECT
-        display_code AS "DISPLAY CODE",
+        display_code AS "CPT CODE",
         insurance_code AS "INSURANCE CODE",
         insurance_name AS "INSURANCE NAME",
         facility_name AS "FACILITY NAME",

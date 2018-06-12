@@ -1,4 +1,8 @@
-const { query, SQL } = require('./index');
+const {
+    SQL,
+    query,
+    queryWithAudit
+} = require('../index');
 
 module.exports = {
     getData: async (params) => {
@@ -97,12 +101,13 @@ module.exports = {
             claim_id
         } = params;
 
-        let sql = SQL`SELECT
+        let sql = SQL`WITH agg AS (SELECT
                           cc.id AS id
                         , null AS payment_id
                         , type
-                        , note as comments
+                        , note AS comments
                         , created_dt::date as commented_dt
+                        , is_internal 
                     FROM 
                         billing.claim_comments cc
                     WHERE cc.claim_id = ${claim_id}   
@@ -113,6 +118,7 @@ module.exports = {
                         , 'charge' as type
                         , cpt.short_description as comments
                         , ch.charge_dt::date as commented_dt
+                        , false AS is_internal
                     FROM billing.charges ch
                     INNER JOIN cpt_codes cpt on cpt.id = ch.cpt_id 
                     WHERE ch.claim_id = ${claim_id}
@@ -120,7 +126,7 @@ module.exports = {
                     SELECT
                           bp.id AS id
                         , bp.id::text AS payment_id
-                        , amount_type as type
+                        , pa.amount_type as type
                         , CASE WHEN bp.payer_type = 'patient' THEN
                                     pp.full_name
                             WHEN bp.payer_type = 'insurance' THEN
@@ -129,8 +135,9 @@ module.exports = {
                                     pg.group_name
                             WHEN bp.payer_type = 'ordering_provider' THEN
                                     p.full_name
-                        END as comments,
-                        bp.accounting_dt::date as commented_dt
+                            END as comments
+                        , bp.accounting_dt::date as commented_dt
+                        , false AS is_internal
                     FROM billing.payments bp
                     INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
                     INNER JOIN billing.charges ch on ch.id = pa.charge_id 
@@ -139,23 +146,178 @@ module.exports = {
                     LEFT JOIN public.provider_groups  pg on pg.id = bp.provider_group_id
                     LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
                     LEFT JOIN public.providers p on p.id = pc.provider_id
-                    WHERE ch.claim_id = ${claim_id} `;
+                    WHERE ch.claim_id = ${claim_id} 
+                )
+                SELECT
+                      id
+                    , payment_id
+                    , type
+                    , comments
+                    , commented_dt
+                    , is_internal
+                    , COUNT(1) OVER (range unbounded preceding) AS total_records
+                FROM agg`;
 
         return await query(sql);
     },
 
     getClaimComment: async (params) => {
         let {
-            comment_id
+            commentId
         } = params;
 
         let sql = `SELECT 
                       id
                     , note AS comments
+                    , is_internal
                     FROM 
                         billing.claim_comments
-                    WHERE id = ${comment_id}`;
+                    WHERE id = ${commentId}`;
 
         return await query(sql);
+    },
+
+    updateClaimComment: async (params) =>{
+        let {
+            commentId,
+            note,
+            comments,
+            from
+        } = params;
+        let sql; 
+
+        if(from == 'cb'){
+            sql = SQL`WITH agg_cmt AS (
+                        SELECT * FROM json_to_recordset(${comments}) AS data
+                            (
+                                isinternal boolean,
+                                commentid bigint
+                            )
+                        )
+                        UPDATE 
+                            billing.claim_comments cc
+                        SET 
+                            is_internal = agg_cmt.isInternal
+                        FROM agg_cmt
+                        WHERE 
+                            id = commentid `;
+        } else {   
+            sql = SQL`UPDATE 
+                        billing.claim_comments
+                    SET 
+                        note = ${note}
+                    WHERE
+                        id = ${commentId} `;
+        }
+
+        return await query(sql);
+    },
+
+    saveClaimComment: async (params) => {
+        let {
+            note,
+            type,
+            claim_id,
+            userId
+        } = params;
+
+        let sql = SQL`INSERT INTO billing.claim_comments
+            (
+                  note
+                , type
+                , claim_id
+                , created_by
+                , created_dt
+            ) 
+            VALUES(
+                  ${note}
+                , ${type}
+                , ${claim_id}
+                , ${userId}
+                , now()
+            ) RETURNING *, '{}'::jsonb old_values`;
+
+
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: `Created ${note}(${claim_id})`
+        });
+    },
+
+    deleteClaimComment: async (params) => {
+        let {
+            id
+        } = params;
+
+        let sql = SQL`DELETE 
+                    FROM 
+                        billing.claim_comments 
+                    WHERE id = ${id}
+                    RETURNING *, '{}'::jsonb old_values `;
+
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: 'Deleted.'
+        });
+    },
+
+    saveFollowUpDate: async (params) => {
+        let followup_query = '';
+
+        let {
+            claim_id,
+            followupDate,
+            assignedTo
+        } = params;
+
+        if (followupDate == '') {
+            followup_query = SQL`DELETE FROM 
+                                    billing.claim_followups
+                                WHERE 
+                                    claim_id = ${claim_id}`;
+        }
+        else {
+            followup_query = SQL`WITH 
+                                update_followup AS(
+                                    UPDATE 
+                                        billing.claim_followups 
+                                    SET 
+                                          followup_date = ${followupDate} 
+                                        , assigned_to= ${assignedTo} 
+                                    WHERE 
+                                        claim_id = ${claim_id}
+                                    RETURNING *
+                                ), 
+                                insert_followup AS(
+                                    INSERT INTO billing.claim_followups(
+                                          claim_id
+                                        , followup_date
+                                        , assigned_to
+                                    )
+                                    SELECT
+                                          ${claim_id}
+                                        , ${followupDate}
+                                        , ${assignedTo}
+                                    WHERE 
+                                    NOT EXISTS(SELECT * FROM update_followup) 
+                                    RETURNING *
+                                    )
+                            SELECT * FROM update_followup UNION SELECT * FROM insert_followup `;
+
+        }
+
+        return await query(followup_query);
+    },
+
+    getFollowupDate: async (params) => {
+        let {
+            claim_id
+        } = params;
+
+        return await query(SQL`SELECT 
+                                followup_date 
+                            FROM 
+                                billing.claim_followups 
+                            WHERE claim_id = ${claim_id}`);
     }
 };

@@ -1,8 +1,10 @@
-define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale', 'text!templates/app/payment-edit.html', 'models/app/payment', 'models/pager', 'text!templates/payments-payer.html', 'collections/app/pending-payments', 'collections/app/applied-payments', 'text!templates/app/payment-apply-cas.html', 'text!templates/app/apply-payment.html'],
-    function (jQuery, Immutable, _, Backbone, JGrid, JGridLocale, editPayment, ModelPayments, ModelPaymentsPager, paymentsGridHtml, pendingPayments, appliedPayments, ApplyCasHtml, ApplyPaymentTemplate) {
+define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale', 'text!templates/app/payment-edit.html', 'models/app/payment', 'models/pager', 'text!templates/app/payments-payer.html', 'collections/app/pending-payments', 'collections/app/applied-payments', 'text!templates/app/payment-apply-cas.html', 'text!templates/app/apply-payment.html', 'collections/app/patientsearch', 'text!templates/app/patientSearchResult.html'],
+    function (jQuery, Immutable, _, Backbone, JGrid, JGridLocale, editPayment, ModelPayments, ModelPaymentsPager, paymentsGridHtml, pendingPayments, appliedPayments, ApplyCasHtml, ApplyPaymentTemplate, patientCollection, patSearchContent) {
         return Backbone.View.extend({
             el: null,
             pager: null,
+            patientsPager: null,
+            patientTotalRecords: 0,
             model: null,
             pendPager: null,
             pendPaymtPager: null,
@@ -21,12 +23,23 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             applyCasTemplate: _.template(ApplyCasHtml),
             applyPaymentTemplate: _.template(ApplyPaymentTemplate),
             casSegmentsSelected: [],
+            patSearchContentTemplate: _.template(patSearchContent),
 
             events: {
                 'click #btnPaymentSave': 'savePayment',
                 'click #btnApplyCAS': 'getPayemntApplications',
                 'change .payerType': 'setPayerFields',
-                'click #btnPaymentAddNew': 'addNewPayemnt'
+                'click #btnPaymentAddNew': 'addNewPayemnt',
+                'click #btnPaymentBack': 'goBackToPayments',
+                'click #btnPaymentClear': 'clearPayemntForm',
+                "keyup #searchPatient .search-field": "applySearch",
+                "click #anc_first": "onpaging",
+                "click #anc_previous": "onpaging",
+                "click #anc_next": "onpaging",
+                "click #anc_last": "onpaging",
+                "dblclick .selectionpatient": "selectPatient",
+                "click #btnBackToPatient": "backToPatient",
+                "click #anc_search": "showPatientOrders",
             },
 
             initialize: function (options) {
@@ -80,7 +93,8 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 this.patientPager = new ModelPaymentsPager();
                 this.pendingPayments = new pendingPayments();
                 this.appliedPayments = new appliedPayments();
-
+                this.patientsPager = new ModelPaymentsPager();
+                this.patientListcoll = new patientCollection();
             },
 
             returnDoubleDigits: function (str) {
@@ -109,17 +123,29 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 self.showBillingForm(paymentId);
                 self.showPaymentsGrid(paymentId);
                 commonjs.processPostRender();
+                commonjs.validateControls();
             },
 
             showPaymentsGrid: function () {
                 var ipForm1 = $('#divPendingPay');
-                ipForm1.html(this.paymentsGridTemplate());
+                ipForm1.html(this.paymentsGridTemplate({ facilities: this.paidlocation.toJSON() }));
+            },
+
+            bindNewDTP: function (paymentID, setDate) {
+                var self = this;
+                var accObj = $("#divAccountingDate");
+
+                if (accObj.length) {
+                    self.dtpAccountingDate = commonjs.bindDateTimePicker(accObj, { format: 'L' });
+                    commonjs.checkNotEmpty(setDate) ? self.dtpAccountingDate.date(setDate) : self.dtpAccountingDate.clear();
+                }
             },
 
             showBillingForm: function (paymentID) {
                 var self = this;
                 self.clearPayemntForm();
                 self.setAcs();
+                self.bindNewDTP();
                 if (paymentID == 0) {
                     this.model = new ModelPayments();
                     $('#btnPaymentClear').show();
@@ -147,9 +173,14 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             },
 
             clearPayemntForm: function () {
+                this.payer_id = 0;
                 $('#PaymentForm input[type=radio]').prop('ckecked', false);
                 $('#PaymentForm select').val('');
                 $('#PaymentForm input[type=text]').val('');
+                $('#select2-txtautoPayerPIP-container').html('Select Insurance');
+                $('#select2-txtautoPayerPP-container').html('Select Patient');
+                $('#select2-txtautoPayerPOF-container').html('Select Ordering facility');
+                $('#select2-txtautoPayerPR-container').html('Select Provider');
             },
 
             setAcs: function () {
@@ -162,7 +193,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             setPayerFields: function (e, obj) {
                 var srcElement = obj ? obj : $(e.target || e.srcElement);
                 $('.payerFields').hide();
-                
+
                 this.payer_id = 0;
                 if (srcElement.is('#chkpayerInsurance')) {
                     $('#select2-txtautoPayerPIP-container').html('Select Insurance');
@@ -477,7 +508,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
 
             setPayerName: function (payerType, payerNames) {
                 this.setPayerFields(null, $("input:radio[name=payertype][value=" + payerType + "]"));
-                
+
                 if (payerType === 'insurance') {
                     $('#select2-txtautoPayerPIP-container').html(payerNames.insurance_name);
                 }
@@ -487,7 +518,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 else if (payerType === 'ordering_facility') {
                     $('#select2-txtautoPayerPOF-container').html(payerNames.ordering_facility_name);
                 }
-                else if (payerType === 'provider') {
+                else if (payerType === 'ordering_provider') {
                     $('#select2-txtautoPayerPR-container').html(payerNames.provider_full_name);
                 }
             },
@@ -584,44 +615,30 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     var balance = (parseFloat(amountValue).toFixed(2) - parseFloat(appliedValue).toFixed(2)) + 0.00;
                     var totalbalance = balance ? parseFloat(balance).toFixed(2) : '0.00';
                     this.model.set({
-                        display_id: $.trim($('#referencePaymentID').val()) || 0,
-                        paid_facility_id: $.trim($('#ddlPaidLocation').val()),
-                        facility_id: $.trim($('#ddlPaidLocation').val()),
-                        payer_type: $('input:radio[name=payertype]:checked').val(),
-                        billing_office_id: $.trim($('#ddlBillingOffice').val()) ? $.trim($('#ddlBillingOffice').val()) : 0,
-                        amount: $.trim($('#txtAmount').val().replace(',', '')),
-                        applied: applied ? applied : 0.00,
-                        available_balance: balance ? balance : 0.00,
-                        is_refund: false,
-                        payer: self.payerType,
-                        payer_name: self.payerName,
-                        current_status: 'UnApplied',
-                        invoice_no: $('#txtInvoice').val(),
-                        // accounting_date: self.dtpAccountingDate && self.dtpAccountingDate.date() ? self.dtpAccountingDate.date().format('YYYY-MM-DD') : null,
-                        accounting_date: moment($('#txtAccountingDate').val()).format('L'),
-                        patient_id: self.patient_id,
-                        payer_id: self.payer_id,
-                        provider_id: self.provider_id,
-                        provider_group_id: self.provider_group_id,
-                        credit_card_type: $("#ddlCardType").val(),
-                        security_code: $("#txtCVN").val() || '',
-                        credit_card_number: $("#txtCheque").val() || '',
-                        credit_card_name: $("#txtCardName").val() || '',
-                        payment_mode: $("input:radio[name=payerMode]:checked").val() ? $("input:radio[name=payerMode]:checked").val() : '',
-                        payment_reason_id: $("#ddlpaymentReason").val(),
-                        is_copay: $("#ddlpaymentReason").attr('data-copay'),
-                        user_name: app.userInfo.userFullName,
-                        user_id: app.userID,
-                        notes: ($("#txtNotes").val()).replace(/(\r\n|\n|\r)/gm, ""),
                         paymentId: self.payment_id,
+                        company_id: app.companyID,
+                        facility_id: $.trim($('#ddlPaidLocation').val()),
+                        display_id: $.trim($('#referencePaymentID').val()) || null,
+                        payer_type: $('input:radio[name=payertype]:checked').val(),
+                        amount: $.trim($('#txtAmount').val().replace(',', '')) || 0.00,
+                        invoice_no: $('#txtInvoice').val() || null,
+                        accounting_date: moment($('#txtAccountingDate').val()).format('L') || null,
+                        patient_id: self.patient_id,
+                        provider_contact_id: self.provider_id,
+                        provider_group_id: self.provider_group_id,
                         insurance_provider_id: self.insurance_provider_id,
-                        company_id: app.companyID
+                        credit_card_number: $("#txtCheque").val() || null,
+                        credit_card_name: $("#txtCardName").val() || null,
+                        payment_mode: $("input:radio[name=payerMode]:checked").val() ? $("input:radio[name=payerMode]:checked").val() : '',
+                        payment_reason_id: $("#ddlpaymentReason").val() || null,
+                        user_id: app.userID,
+                        notes: ($("#txtNotes").val()).replace(/(\r\n|\n|\r)/gm, "") || null
                     });
                     this.model.save({
                     }, {
                             success: function (model, response) {
                                 if (self.payment_id) {
-                                    alert('Payment has been updated successfully');
+                                    commonjs.showStatus('Payment has been updated successfully');
                                     self.render(self.payment_id);
                                     commonjs.hideLoading();
                                 }
@@ -635,7 +652,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 }
             },
 
-            showPendingPaymentsGrid: function (paymentID, payerType, payerId) {
+            showPendingPaymentsGrid: function (paymentID, payerType, payerId, patientId, claimId) {
                 var self = this;
                 this.pendPaymentTable = new customGrid();
                 this.pendPaymentTable.render({
@@ -704,23 +721,38 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     showcaption: false,
                     disableadd: true,
                     disablereload: true,
-                    onbeforegridbind: self.updateCollection,
+                    // // onbeforegridbind: self.updateCollection,
+                    onaftergridbind: function (model, gridObj) {
+                        self.afterGridBind(model, gridObj);
+                    },
                     customargs: {
                         gridFlag: 'pendingPayments',
                         paymentID: paymentID,
                         payerId: payerId,
-                        payerType: payerType
+                        payerType: payerType,
+                        patientId: patientId,
+                        invoice_no: claimId
                     }
                 });
+            },
 
-                if (self.options.customargs) {
-                    self.options.customargs.fromDate = null;
-                    self.options.customargs.toDate = null;
-                    self.options.customargs.facility_id = null;
-                    self.options.customargs.payer_type = payerFlag;
-                    self.options.customargs.payer_id = payer_id;
-                    self.options.invoice_no = invoice_no ? invoice_no : 0
+            afterGridBind: function (dataset, e, pager) {
+                if (e.options.customargs.patientId || e.options.customargs.invoice_no) {
+                    $('#btnBackToPatient').show();
+                    $('#diVPatient').hide();
+                    $('#divPendingRecords').show();                    
                 }
+                else {
+                    if (dataset && dataset.length) {
+                        $('#btnBackToPatient').hide();
+                        $('#divPendingRecords').show();
+                        $('#diVPatient').hide();
+                    }
+                    else {
+                        $('#divPendingRecords').hide();
+                        $('#diVPatient').show();
+                    }
+                }    
             },
 
             showAppliedByPaymentsGrid: function (paymentID, payerType, payerId) {
@@ -805,9 +837,10 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             showApplyAndCas: function (claimId, paymentID, paymentStatus, chargeId) {
                 var self = this;
                 self.defalutCASArray = [0, 1, 2, 3, 4, 5, 6];
-                commonjs.showDialog({ header: 'Claim Charges', width: '85%', height: '70%', html: self.applyCasTemplate({adjustmentCodes: self.adjustmentCodeList.toJSON(), 'claimStatusList': this.claimStatusList.toJSON(), cas_group_codes: self.cas_group_codes, cas_reason_codes: self.cas_reason_codes }) });
+                commonjs.showDialog({ header: 'Claim Charges', width: '85%', height: '70%', html: self.applyCasTemplate({ adjustmentCodes: self.adjustmentCodeList.toJSON(), 'claimStatusList': this.claimStatusList.toJSON(), cas_group_codes: self.cas_group_codes, cas_reason_codes: self.cas_reason_codes }) });
                 $('#divPaymentCAS select').select2();
                 commonjs.processPostRender();
+                commonjs.validateControls();
 
                 $('#btnCloseAppliedPendingPayments,#btnCloseApplyPaymentPopup').unbind().bind('click', function (e) {
                     $('#divPaymentApply').remove();
@@ -863,6 +896,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                             var paymentDet = {}
                             paymentDet.index = index;
                             paymentDet.id = payment.id ? payment.id : null;
+                            paymentDet.charge_id = payment.id ? payment.id : null;
                             paymentDet.study_id = payment.study_id ? payment.study_id : null;
                             paymentDet.payment_id = paymentId;
                             paymentDet.claimId = claimId;
@@ -880,7 +914,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                             var balance = parseFloat(paymentDet.bill_fee) - (parseFloat(paymentDet.other_payment) + parseFloat(paymentDet.other_adjustment) + parseFloat(paymentDet.adjustment) + parseFloat(paymentDet.payment_amount)).toFixed(2);
                             paymentDet.balance = parseFloat(balance).toFixed(2);
 
-                            var applyPaymentRow = self.applyPaymentTemplate({ payment: paymentDet});
+                            var applyPaymentRow = self.applyPaymentTemplate({ payment: paymentDet });
 
                             $('#tBodyApplyPendingPayment').append(applyPaymentRow);
 
@@ -892,20 +926,23 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                                 self.closePaymentsCAS(paymentStatus);
                             });
 
-                            $('#btnSaveCAS').unbind().on('click', function () {
+                            $('#btnSaveCAS').unbind().on('click', function (e) {
                                 self.savePaymentsCAS(claimId, paymentId, paymentStatus, payment.payment_application_id);
                             });
                         });
+                        commonjs.validateControls();
                         self.setFeeFields({});
+
                         $.each(adjustmentCodes, function (index, adjustmentCode) {
-                            $('#ddlAdjustmentCode_fast').append($('<option/>', { value: adjustmentCode.id, text: adjustmentCode.description}));
+                            $('#ddlAdjustmentCode_fast').append($('<option/>', { value: adjustmentCode.id, text: adjustmentCode.description }));
                         });
+
                         $('#ddlAdjustmentCode_fast').select2({});
+
                         $.each(payerTypes, function (index, payerType) {
                             if (payerType.patient_id)
                                 $('#ddlResponsible').append($('<option/>', { value: payerType.patient_id, text: payerType.patient_name, 'data-payerType': 'patient' }));
-                            // if (payerType.facility_id)
-                            //     $('#ddlResponsible').append($('<option/>', { value: payerType.facility_id, text: payerType.facility_name, 'data-payerType': 'patient' }));
+                            
                             if (payerType.primary && payerType.primary != 'null')
                                 $('#ddlResponsible').append($('<option/>', { value: payerType.primary, text: payerType.primary_ins_provider_name + '(' + payerType.primary_ins_provider_code + ')', 'data-payerType': 'primary_insurance' }));
 
@@ -914,20 +951,26 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
 
                             if (payerType.tertiary && payerType.tertiary != 'null')
                                 $('#ddlResponsible').append($('<option/>', { value: payerType.primary, text: payerType.tertiary_ins_provider_name + '(' + payerType.tertiary_ins_provider_code + ')', 'data-payerType': 'tertiary_insurance' }));
-                            
+
                             if (payerType.order_facility_id)
-                                $('#ddlResponsible').append($('<option/>', { value: payerType.order_facility_id, text: payerType.ordering_facility_name , 'data-payerType': 'ordering_facility'}));
+                                $('#ddlResponsible').append($('<option/>', { value: payerType.order_facility_id, text: payerType.ordering_facility_name, 'data-payerType': 'ordering_facility' }));
+                            
                             if (payerType.referring_provider_contact_id)
-                                $('#ddlResponsible').append($('<option/>', { value: payerType.referring_provider_contact_id, text: payerType.provider_name , 'data-payerType': 'referring_provider'}));
+                                $('#ddlResponsible').append($('<option/>', { value: payerType.referring_provider_contact_id, text: payerType.provider_name, 'data-payerType': 'referring_provider' }));
                         });
-                        $("#ddlResponsible option[data-payerType=" + payerTypes[0].payer_type + "]").attr('selected','selected');
+                        $("#ddlResponsible option[data-payerType=" + payerTypes[0].payer_type + "]").attr('selected', 'selected');
                         $('#ddlResponsible').select2({});
+
                         $('#tBodyApplyPendingPayment').find('.applyCAS').on('click', function (e) {
+                            var selectedRow = $(e.target || e.srcElement).closest('tr');
+                            var chargeId = selectedRow.attr('data_charge_id_id');
                             self.getPayemntApplications(e);
                         });
+
                         $('#applyPaymentContent').find('#btnSaveAppliedPendingPayments').unbind().on('click', function (e) {
                             self.saveAllPayments(e, claimId, paymentId, paymentStatus, chargeId);
                         });
+
                         $('#btnClearAppliedPendingPayments').unbind().on('click', function (e) {
                             self.clearPayments(e, paymentId, claimId);
                         });
@@ -946,31 +989,18 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
 
             savePaymentsCAS: function (claimId, paymentId, paymentStatus, payment_application_id) {
                 var self = this;
-                var cas = self.vaidateCasCodeAndReason();
-                self.casSegmentsSelected[payment_application_id] = cas;
-
-                var self = this;
-                $.ajax({
-                    url: '/exa_modules/billing/pending_payments/savePaymentApplicationDetails',
-                    type: 'GET',
-                    data: {
-                        cas: cas,
-                        companyID: app.companyID
-                    },
-                    success: function (data, response) {
-                    },
-                    error: function (err, response) {
-                        commonjs.handleXhrError(err, response);
-                    }
-                });
+                var charge_id = $('#divPaymentCAS').attr('data-charge_id');
+                var cas = self.vaidateCasCodeAndReason(payment_application_id);
+                self.casSegmentsSelected[charge_id] = cas;
             },
 
-            vaidateCasCodeAndReason: function () {
+            vaidateCasCodeAndReason: function (payment_application_id) {
                 var self = this;
                 var hasReturned = false;
                 var casObj = [];
                 var emptyCasObj = {};
                 for (var k = 1; k <= 7; k++) {
+                    var emptyCasObj = {};
                     var groupCode = $('#selectGroupCode' + k).val()
                     var reasonCode = $('#selectReason' + k).val()
                     var amount = $('#txtAmount' + k).val()
@@ -979,6 +1009,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         emptyCasObj['group_code' + k] = groupCode;
                         emptyCasObj['group_reason' + k] = reasonCode;
                         emptyCasObj['amount' + k] = amount;
+                        emptyCasObj['payment_application_id'] = payment_application_id;
                         casObj.push(emptyCasObj);
                         hasReturned = true;
                     }
@@ -1018,15 +1049,24 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                                 $('#txtAmount' + rowVal).val(appln.amount.substr(1));
                             });
 
-                            $('#divPaymentCAS').show();
+                            $('#divPaymentCAS').attr('data-charge_id', chargeId).show();
+                            commonjs.validateControls();
                         },
                         error: function (err, response) {
-
+                            commonjs.handleXhrError(err, response);
                         }
                     });
                 }
-                else
-                    alert('Payment Application Id not found');
+                else {
+                    $.each([], function (index, appln) {
+                        var rowVal = index + 1;
+                        $('#selectGroupCode' + rowVal).val('');
+                        $('#selectReason' + rowVal).val('');
+                        $('#txtAmount' + rowVal).val('');
+                    });
+                    $('#divPaymentCAS').attr('data-charge_id', chargeId).show();
+                    commonjs.validateControls();
+                }
             },
 
             closePaymentsCAS: function (e) {
@@ -1054,6 +1094,8 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 if (this.validatePayerDetails()) {
                     var lineItems = $("#tBodyApplyPendingPayment tr"), dataLineItems = [], orderPayment = 0.00, orderAdjustment = 0.00;
                     var line_items = [];
+                    
+                    var cas = self.casSegmentsSelected;
 
                     $.each(lineItems, function (index) {
                         var _line_item = {};
@@ -1063,7 +1105,6 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         line_items.push(_line_item);
                     });
 
-                    // var payerType = $('#ddlResponsible').val();
                     var payerType = $('#ddlResponsible').find(':selected').attr('data-payerType');
                     var adjustmentType = $('#ddlAdjustmentCode_fast').val();
                     var billingNotes = $('#txtResponsibleNotes').val();
@@ -1085,7 +1126,9 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                             deductible: deduction,
                             billingNotes: billingNotes,
                             payerType: payerType,
-                            adjestmentId: adjustmentType
+                            adjestmentId: adjustmentType,
+                            paymentStatus: paymentStatus,
+                            cas: cas
                         },
                         success: function (model, response) {
                             alert('Payment has been applied successfully');
@@ -1095,11 +1138,317 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                             commonjs.handleXhrError(err, response);
                         }
                     });
-                }    
+                }
             },
 
             addNewPayemnt: function () {
                 Backbone.history.navigate('#billing/payments/new', true);
+                this.render(0);
+            },
+
+            goBackToPayments: function () {
+                Backbone.history.navigate('#billing/payments/list', true);
+            },
+
+            applySearch: _.debounce(function (e) {
+                var $divPatientSearchResults = $('#divPatientSearchResults');
+                var isNotEmpty = false;
+                var canSearch = true;
+                $('#searchPatient').find('.search-field').each(function () {
+                    if ($(this).val()) {
+                        isNotEmpty = true;
+                        return false;
+                    }
+                });
+
+                if (isNotEmpty) {
+                    var dobVal = $('#dob').val();
+
+                    if (dobVal) {
+                        canSearch = moment(dobVal).isValid();
+                    }
+
+                    if (canSearch) {
+                        $divPatientSearchResults.html('<span style="text-align:center;display:block;font-size:20px;">Searching...</span>');
+                        commonjs.showLoading('Searching...');
+                        this.patientsPager.set({ "pageNo": 1 });
+                        this.patientsPager.set({ "searchId": 0 });
+                        this.patientsPager.set({ "symbol": '>' });
+                        this.patientsPager.set({ "sortOrder": 'ASC' });
+                        var user_options = commonjs.getCookieOptions(1);
+
+                        if ($('#chk_isActiveNeeded').is(':checked')) {
+                            user_options = 'yes';
+                        } else {
+                            user_options = 'no';
+                        }
+                        commonjs.setCookieOptions(1, user_options);
+                        this.patientsPager.set('pageNo', 1);
+                        this.reqId = Date.now();
+                        this.bindGrid(true);
+                    }
+                }
+                else {
+                    $divPatientSearchResults.empty();
+                    $('#divPatientPaging').hide();
+                    $('#divEmptySearch').hide();
+                    $('#divNoPatients').hide();
+                    $("#ulChangeMenu").hide();
+                }
+            }, 500),
+
+            bindGrid: function (isTotalRecordNeeded) {
+                $('#divPatientPaging').hide();
+                var self = this;
+                var pagesize = this.patientsPager.get('pageSize');
+                var user_info = commonjs.hstoreParse(app.userInfo.user_settings);
+
+                this.patientListcoll = new patientCollection();
+                this.patientListcoll.fetch({
+                    data: {
+                        fromPTSL: true,
+                        combined: true,
+                        pageNo: this.patientsPager.get('pageNo'),
+                        pageSize: pagesize,
+                        facility_id: $('#ddlFacilitySearch').val(),
+                        fields: this.getSearchFields(),
+                        showInactive: $('#chk_isActiveNeeded').prop('checked'),
+                        type: $('#ddlSearchType').val(),
+                        showOwner: $('#chk_PatOwner').prop('checked'),
+                        sortField: (commonjs.checkNotEmpty(this.patientsPager.get("sortField"))) ? this.patientsPager.get("sortField") : 'patients.last_name',
+                        company_id: app.companyID
+                    },
+                    processData: true,
+                    success: function (model, response) {
+                        if (response){
+                            self.renderGrid(response, isTotalRecordNeeded);
+                        }
+                    },
+                    error: function (model, response) {
+                        commonjs.handleXhrError(model, response);
+                    }
+                });
+            },
+
+            getSearchFields: function () {
+                var obj = {};
+                $('#searchPatient').find('.search-field').each(function () {
+                    var el = $(this);
+                    var val = $.trim(el.val());
+                    if (val) {
+                        obj[el.attr('id')] = val;
+                    }
+                });
+
+                return obj;
+            },
+
+            renderGrid: function (patients, isTotalRecordNeeded) {
+                var self = this;
+
+                if (!isTotalRecordNeeded) {
+                    this.patientsPager.set({ "patientTotalRecords": this.patientTotalRecords });
+                    this.patientsPager.set({"LastPageNo": Math.ceil(this.patientTotalRecords / this.patientsPager.get('pageSize')) });
+                    this.setPaging();
+                    commonjs.hideLoading();
+                } else {
+                    var pagesize = this.patientsPager.get('pageSize');
+                    var user_info = commonjs.hstoreParse(app.userInfo.user_settings);
+                    jQuery.ajax({
+                        url: "/exa_modules/billing/pending_payments/patient_count",
+                        type: "GET",
+                        data: {
+                            fromPTSL: true,
+                            combined: true,
+                            pageNo: this.patientsPager.get('pageNo'),
+                            pageSize: pagesize,
+                            facility_id: $('#ddlFacilitySearch').val() ? $('#ddlFacilitySearch').val() : "",
+                            flag: self.currentElementID,
+                            fields: this.getSearchFields(),
+                            showInactive: $('#chk_isActiveNeeded').prop('checked') ? $('#chk_isActiveNeeded').prop('checked') : false,
+                            showOwner: $('#chk_PatOwner').prop('checked') ? $('#chk_PatOwner').prop('checked') : false,
+                            type: $('#ddlSearchType').val(),
+                            sortField: (commonjs.checkNotEmpty(this.patientsPager.get("sortField"))) ? this.patientsPager.get("sortField") : 'patients.id',
+                            company_id: app.companyID
+                        },
+                        success: function (data, textStatus, jqXHR) {
+                            if (data) {
+                                self.patientTotalRecords = (data && data.length > 0) ? data[0].total_records : 0;
+                                self.lastId = (data && data.length > 0) ? data[0].lastid : 0;
+                                self.patientsPager.set({ "lastPageNo": Math.ceil(self.patientTotalRecords / self.patientsPager.get('pageSize')) });
+                                self.setPaging();
+                            }
+                            commonjs.hideLoading();
+                        },
+                        error: function (err) {
+                            commonjs.handleXhrError(err);
+                        }
+                    });
+                }
+
+                var content = '';
+
+                for (var j = 0; j < patients.length; j++) {
+                    var patientList = patients[j];
+                    patientList.birth_date = commonjs.getDateFormat(patientList.birth_date);
+                    var patient_info = commonjs.hstoreParse(patientList.patient_info);
+                    var owner_info = commonjs.hstoreParse(patientList.owner_info);
+                    patientList.phone = (patient_info.c1HomePhone) ? patient_info.c1HomePhone : '';
+                    patientList.address1 = (patient_info.c1AddressLine1) ? patient_info.c1AddressLine1 : '';
+                    patientList.address2 = (patient_info.c1AddressLine2) ? patient_info.c1AddressLine2 : '';
+                    patientList.zip = (patient_info.c1Zip) ? patient_info.c1Zip : '';
+                    patientList.city = (patient_info.c1City) ? patient_info.c1City : '';
+                    patientList.state = (patient_info.c1State) ? patient_info.c1State : '';
+                    patientList.home = (patient_info.c1HomePhone) ? patient_info.c1HomePhone : '';
+                    patientList.work = (patient_info.c1WorkPhone) ? patient_info.c1WorkPhone : '';
+                    patientList.mobile = (patient_info.c1MobilePhone) ? patient_info.c1MobilePhone : '';
+                    patientList.owner_address1 = (owner_info.owner_address1) ? owner_info.owner_address1 : '';
+                    patientList.owner_address2 = (owner_info.owner_address2) ? owner_info.owner_address2 : '';
+                    patientList.owner_city = (owner_info.owner_city) ? owner_info.owner_city : '';
+                    patientList.owner_state = (owner_info.owner_state) ? owner_info.owner_state : '';
+                    patientList.owner_zip = (owner_info.owner_zip) ? owner_info.owner_zip : '';
+                    patientList.owner_id = patientList.owner_id > 0 ? parseInt(patientList.owner_id) : 0;
+                    patientList.showOwner = $('#chk_PatOwner').prop('checked');
+                    content += this.patSearchContentTemplate({ patient: patientList });
+                }
+                var $results = $('#divPatientSearchResults');
+                $results.html(content).show();
+
+                $('.inactiveSpanClick').dblclick(function () {
+                    return false;
+                });
+
+                var currentSearchValue = '';
+
+                // build up 'error' text based on the user's search query
+                $('#searchPatient').find('.search-field').each(function () {
+                    var el = $(this);
+                    if (el.val()) {
+                        if (currentSearchValue) {
+                            currentSearchValue += ', '
+                        }
+                        currentSearchValue += el.attr('placeholder') + ': ' + $.trim(el.val());
+                    }
+                });
+
+                if (patients.length < 1) {
+                    $('#divEmptySearch').hide();
+                    $('#ulChangeMenu').hide();
+                    $('#divPatientPaging').hide();
+                    $('#em_SearchValue').text($.trim(currentSearchValue));
+                    $('#divNoPatients').show();
+                }
+                else {
+                    $('#divPatientPaging').show();
+                    $('#ulChangeMenu').show();
+                    $('#divNoPatients').hide();
+                    $('#divEmptySearch').hide();
+                    $results.show();
+                }
+            },
+
+            setPaging: function () {
+                if (parseInt(this.patientsPager.get('pageNo')) == 1) {
+                    this.patientsPager.set({ "previousPageNo": 1 });
+                }
+                else {
+                    this.patientsPager.set({ "previousPageNo": (parseInt(this.patientsPager.get('pageNo'))) - 1 });
+                }
+
+                if (parseInt(this.patientsPager.get('pageNo')) >= this.patientsPager.get('lastPageNo')) {
+                    this.patientsPager.set({ "nextPageNo": this.patientsPager.get('lastPageNo') });
+                }
+                else {
+                    this.patientsPager.set({ "nextPageNo": (parseInt(this.patientsPager.get('pageNo'))) + 1 });
+                }
+
+                if (this.patientsPager.get('pageNo') == 1) {
+                    $('#li_first').addClass('disabled').attr('disabled', 'disabled');
+                    $('#li_previous').addClass('disabled').attr('disabled', 'disabled');
+                }
+                else {
+                    $('#li_first').removeClass('disabled').removeAttr('disabled');
+                    $('#li_previous').removeClass('disabled').removeAttr('disabled');
+                }
+
+                if (this.patientsPager.get('pageNo') == this.patientsPager.get('lastPageNo')) {
+                    $('#li_next').addClass('disabled').attr('disabled', 'disabled');
+                    $('#li_last').addClass('disabled').attr('disabled', 'disabled');
+                }
+                else {
+                    $('#li_next').removeClass('disabled').removeAttr('disabled');
+                    $('#li_last').removeClass('disabled').removeAttr('disabled');
+                }
+
+                $('#spnPatientTotalRecords').html(this.patientTotalRecords);
+                $('#spnPatientCurrentPage').html(this.patientsPager.get('pageNo'));
+                $('#spnPatientTotalPage').html(this.patientsPager.get('lastPageNo'));
+            },
+
+            onpaging: function (e) {
+                var self = this;
+                var id = ((e.target || e.srcElement).tagName == 'I') ? (e.target || e.srcElement).parentElement.id : (e.target || e.srcElement).id;
+                if ($('#' + id).closest("li").attr('disabled') != 'disabled') {
+                    switch (id) {
+                        case "anc_first":
+                            self.patientsPager.set({ "pageNo": 1 });
+                            break;
+                        case "anc_previous":
+                            if ((self.patientsPager.get("pageNo") - 1) == 1) {
+                                self.patientsPager.set({ "pageNo": 1 });
+                            }
+                            else {
+                                self.patientsPager.set({ "pageNo": self.patientsPager.get('previousPageNo') });
+                            }
+                            break;
+
+                        case "anc_next":
+                            if ((self.patientsPager.get("pageNo") + 1) == self.patientsPager.get('lastPageNo')) {
+                                self.patientsPager.set({ "pageNo": self.patientsPager.get('lastPageNo') });
+                            }
+                            else {
+                                self.patientsPager.set({ "pageNo": self.patientsPager.get('nextPageNo') });
+                            }
+
+                            break;
+                        case "anc_last":
+                            self.patientsPager.set({ "pageNo": self.patientsPager.get('lastPageNo') });
+                            break;
+                    }
+                    self.bindGrid(false);
+                }
+            },
+
+            selectPatient: function (e) {                
+                var tagName = commonjs.getElementFromEventTarget(e).tagName;
+                var self = this;
+                var patientId = (tagName == 'P') ? (e.target || e.srcElement).parentElement.id.split('_')[2] : (e.target || e.srcElement).id.split('_')[2];
+                var patient_name = $(e.target || e.srcElement).closest('.selectionpatient').data('name');
+                var account_no = $(e.target || e.srcElement).closest('.selectionpatient').data('value');
+                var dicom_patient_id = $(e.target || e.srcElement).closest('.selectionpatient').data('dicom_patient_id');
+
+                this.patientId = patientId;
+                this.showPatientForm(patientId);
+            },
+
+            showPatientForm: function (patientId) {
+                this.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, patientId);                
+            },
+
+            showPatientOrders: function (e) {
+                let target = $(e.target || e.srcElement);
+                if ($('#claimId').val()) {
+                    this.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, 0, $('#claimId').val());
+                }
+                else
+                    commonjs.showWarning('Please enter invoice number');
+            },
+
+            backToPatient: function (e) {
+                $('#btnBackToPatient').hide();
+                $('#diVPatient').show();
+                $('#divPendingRecords').hide();                              
             }
+
         });
     });

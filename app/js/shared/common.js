@@ -856,6 +856,7 @@ var commonjs = {
                 break;
             default:
         }
+
         dtpTarget.datetimepicker(options);
         dtpTarget.on("dp.change", function (e) {
             if (e && e.date) {
@@ -965,7 +966,7 @@ var commonjs = {
             showDropdowns: true
         }
         var options = $.extend(true, {}, defaultOptions, drpOptions);
-        // drpTarget.daterangepicker(options, callback);
+        drpTarget.daterangepicker(options, callback);
         //since DRP is attached to text input element, trigger 'filter mode' setup
         drpTarget.on("apply.daterangepicker", function (ev, drp) {
             var fmt = drp.locale.format;
@@ -3255,6 +3256,7 @@ var commonjs = {
     },
 
     showLoading: function (msg) {
+        return commonjs.showLoading_v1(msg);
         if (!msg) {
             msg = 'messages.loadingMsg.default';
             if (i18n.get(msg) != app.currentCulture + '.' + msg) {
@@ -3643,9 +3645,10 @@ var commonjs = {
         else $('#studyTabs').css({ width: (ul_width + 50) + 'px' });
 
         var $divStudyTabsContainer = $('#divStudyTabsContainer');
+        var $divclaimsTabsContainer = $('#divclaimsTabsContainer');
         var $subMenu = $divStudyTabsContainer.closest('nav.top-nav');
         // SMH - Fixed the size of the tab menu to fill more of the available space, and also to scroll properly.
-        var divUseableSpace = $subMenu.width() - 40;  // 40 pixels space between controls
+        var divUseableSpace = $subMenu.width() - 140;  // 140 pixels space between controls
         var headerIconsWidth = $subMenu.find('ul.tn-menu-right').width();
         var retries = ~~retryCount;
         if (divUseableSpace === headerIconsWidth) {
@@ -3656,6 +3659,7 @@ var commonjs = {
         }
         var divStudyTabsContainerWidth = divUseableSpace - headerIconsWidth;
         $divStudyTabsContainer.css({ width: divStudyTabsContainerWidth });
+        $divclaimsTabsContainer.css({ width: divStudyTabsContainerWidth });
 
         //set gadget Width on window Resize
         var _ww = $(window).width() - 50,
@@ -3741,7 +3745,7 @@ var commonjs = {
                 case 'Home':
                 case 'app':
                 default:
-                    height = $(window).height() - (topnavHieght + $('.ui-jqgrid-htable:visible').height() + $('#divPager').outerHeight() + 5);
+                    height = $(window).height() - (topnavHieght + $('.ui-jqgrid-htable:visible').height() + $('#divPager').outerHeight() + 50);
                     break;
                 case 'Billing':
                     height = $(window).height() - ($('body>.topbar').outerHeight() + $('body>header').outerHeight() + $('body>.top-nav').outerHeight() + 235);
@@ -4589,17 +4593,17 @@ var commonjs = {
     getBillingMethod: function (billingMethod) {
         var billing = "";
         switch (billingMethod) {
-            case "DB":
-                billing = "Direct Billing(invoice)";
+            case "direct_billing":
+                billing = "Direct Billing";
                 break;
-            case "PC":
-                billing = "PaperClaim";
+            case "paper_claim":
+                billing = "Paper Claim";
                 break;
-            case "EB":
+            case "electronic_billing":
                 billing = "Electronic Billing";
                 break;
             default:
-                billing = "Patient";
+                billing = "Patient Payment";
                 break;
         }
         return billing;
@@ -4607,25 +4611,23 @@ var commonjs = {
     getPayerType: function (payerType) {
         var payer = "";
         switch (payerType) {
-            case "PPP":
-            case "Patient":
+            case "patient":
                 payer = "Patient";
                 break;
-            case "PIP":
-            case "Insurance":
-                payer = "Insurance";
+            case "referring_provider":
+                payer = "Referring Provider";
                 break;
-            case "PR":
-            case "Referring physician":
-                payer = "Referring physician";
-                break;
-            case "POF":
-            case "Ordering Facility":
+            case "ordering_facility":
                 payer = "Ordering Facility";
+                break;                
+            case "primary_insurance":
+                payer = "Primary Insurance";
                 break;
-            case "PF":
-            case "Facility":
-                payer = "Facility";
+            case "secondary_insurance":
+                payer = "Secondary Insurance";
+                break;
+            case "teritary_insurance":
+                payer = "Teritary Insurance";
                 break;
             default:
                 payer = "";
@@ -7874,8 +7876,21 @@ var commonjs = {
 
     },
 
+    getRightClickMenu:function(elementID,i18n,isSubMenu,elementName,isULMenu){  
+        if(isULMenu){
+            return '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n='+i18n+' class="dropdown-item">'+elementName+'</a><ul id='+elementID+' style="float:right;" class="dropdown-menu"></ul></li>';
+        }
+        else if(isSubMenu){
+            return '<li><a class="dropdown-item" id=' + elementID + '  href="javascript: void(0)" >' + elementName + '</a></li>'
+        }
+        else{
+            return '<li><a id='+elementID+' href="javascript: void(0)" i18n='+i18n+' class="dropdown-item">'+elementName+'</a></li>';
+        }   
+        
+    },
+
     getColorCodeForStatus: function (facility_id, code, screenName) {
-        var statusCodes = commonjs.statusCodes.length && commonjs.statusCodes ||parent.commonjs.statusCodes;
+        var statusCodes = app.study_status.length && app.study_status ||parent.app.study_status;
         if (statusCodes && statusCodes.length > 0) {
             return $.grep(statusCodes, function (currentObj) {
                 return ((currentObj.facility_id == facility_id) && (currentObj.status_code == code));
@@ -10706,7 +10721,7 @@ var facilityModules = {
         procedureanalysisbyinsurance: 'Procedure Analysis By Insurance',
         'appointmentListDateRange': 'Appointment List Date Range',
         facilityinvoices: 'Facility Invoices',
-        payermix: 'Payer Mix',
+        payerMix: 'Payer Mix',
         referringprovidersummary: 'Referring Provider Summary',
         chargedetails: 'Claim Activity',
         facilitysummary: 'Facility Summary',
@@ -10748,6 +10763,7 @@ var facilityModules = {
         referringPhysicianStudyCount: 'Referring Physician Study Count',
         completedSchedules: 'Completed Schedules',
         patientStatement: 'Patient Statement',
+        patientActivityStatement: 'Patient Statement',
         claimTransaction: 'Claim Transaction',
         insuranceVsLOP: 'Insurance Vs. LOP',
         claimInquiry: 'Claim Inquiry',
@@ -10756,7 +10772,8 @@ var facilityModules = {
         monthlyRecap: 'Monthly Recap',
         readingProviderFees: 'Reading Provider Fees',
         transactionSummary: 'Transaction Summary',
-        agedARDetail: 'Aged AR Detail'
+        agedARDetail: 'Aged AR Detail',
+        paymentPDF: 'Payments Received'
     },
     portalRegUsersScreen: {
         regUsers: 'Portal Registered Users'

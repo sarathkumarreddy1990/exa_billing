@@ -49,8 +49,8 @@
     </div>
     <!--users -->
     <div class="col-xs-12 col-md-12 col-lg-12" style="height: 135px;">
-        <div class="col-xs-4">
-            <div class="form-group form-inline">
+        <div class="col-xs-4 col-md-4 col-lg-4">
+            <div class="form-group form-inline" style="display:none;">
                 <div class="col-form-label" style="max-width: 110px">
                     <label class="control-label">Select Payment</label>
                 </div>
@@ -77,14 +77,15 @@
                     </div>
                 </div>
             </div>
-            <div class="form-group form-inline">
-                <div id="ddlUsersBox" class="form-group form-inline" style="display: none;padding-left: 0 !important;">
-                    <div style="margin-top:60px;">
-                        <select id="txtUsers" style="width: 250px; border:1px solid;margin-top:10px"> </select>
-                        <a class="btn btn-primary" id="btnAddUsers" title="Add Users">
-                            <i class="icon-ic-plus"></i>
-                        </a>
-                    </div>
+            <div id="ddlUsersBox" class="form-group form-inline" style="display:none;width :700px;">
+                <div>
+                    <label class="control-label" i18n="report.reportFilter.users"></label>
+                </div>
+                <div>
+                    <select id="txtUsers" style="width: 250px; border:1px solid;margin-top:10px"> </select>
+                    <a class="btn btn-primary" id="btnAddUsers" title="Add Users">
+                        <i class="icon-ic-plus"></i>
+                    </a>
                 </div>
             </div>
         </div>

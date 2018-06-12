@@ -2,141 +2,200 @@
     .hideProp {
         display: none;
     }
-    .paymentMethod{
+
+    .paymentMethod {
         margin-left: 10px;
     }
+
+    .result-part {
+        border-top: 2px solid #538dd0;
+        background: #e5eef5;
+        color: black;
+        padding: 0 10px 0 20px;
+    }
+
+    .result-part p {
+        margin-bottom: 5px;
+    }
+
+    .pagination ul>li {
+        display: inline;
+    }
+
+    .payerType {
+        display: inline;
+    }
+
+    #root {
+        margin-top: 60px;
+    }
+
+    .payerFieldsRadio .payerFields {
+        display: inline;
+    }
 </style>
-<div id="PaymentForm">
-    <div class="form-horizontal form-list">
-        <div class="">
-            <div class="col-md-12">
-                <div class="form-group form-inline">
-                    <div class="col-form-label-wide">
-                        <label for="lblPayerID" class="control-label" i18n="billing.payments.paymentID"></label>
+
+<div class="form-group row">
+    <div class="col-lg-12">
+        <form id="PaymentForm" class="form-horizontals">
+            <div class="row">
+                <div class="col">
+                    <div class="form-group row">
+                        <label for="lblPayerID" class="control-label col-sm-2" i18n="billing.payments.paymentID"></label>
+                        <div class="col-sm-3">
+                            <label class="pad-top-6 w70 rt-offset10" id="lblPayerID"></label>
+                        </div>
                     </div>
-                    <div class="col-form-content-wide">
-                        <label class="pad-top-6 w70 rt-offset10" id="lblPayerID"></label>
+                    <div class="form-group row">
+                        <label for="referencePaymentID" class="control-label col-sm-2 " i18n="billing.payments.referencePaymentID"></label>
+
+                        <div class="col-sm-2">
+                            <input type="text" id="referencePaymentID" class="form-control">
+                        </div>
                     </div>
-                </div>
-                <div class="form-group form-inline">
-                    <div class="col-form-label-wide">
-                        <label for="referencePaymentID" class="control-label" i18n="billing.payments.referencePaymentID"></label>
-                    </div>
-                    <div class="col-form-content-wide">
-                        <input type="text" id="referencePaymentID" class="form-control">
-                    </div>
-                </div>
-                <div class="form-group form-inline">
-                    <div class="col-form-label-wide">
-                        <label for="chkpayerInsurance" class="control-label field-required" i18n="billing.payments.payer"></label>
-                    </div>
-                    <div class="col-form-content-wide">
-                        <label class="radio-inline" for='chkpayerInsurance'>
-                            <input id='chkpayerInsurance' type='radio' class="payerType" name="payertype" value='insurance'>
-                            <label for="chkpayerInsurance" class="field-chk" style="min-width: 20px!important;" i18n="billing.payments.insurance"></label>
+                    <div class="form-group row">
+                        <label for="chkpayerInsurance" class="control-label field-required col-sm-2" i18n="billing.payments.payer">
                         </label>
-                        <label class="radio-inline paymentMethod" for='chkpayerPatient'>
-                            <input id='chkpayerPatient' type='radio' class="payerType" name="payertype" value='patient'>
-                            <label for="chkpayerPatient" class="field-chk" style="min-width: 20px!important;" i18n="billing.payments.patient"></label>
-                        </label>
-                        <label class="radio-inline paymentMethod" for='chkpayerOrdering'>
-                            <input id='chkpayerOrdering' type='radio' class="payerType" name="payertype" value='ordering_facility'>
-                            <label for="chkpayerOrdering" class="field-chk" style="min-width: 20px!important;" i18n="billing.payments.orderingFacility"></label>
-                        </label>
-                        <label class="radio-inline paymentMethod" for='chkpayerProvider'>
-                            <input id='chkpayerProvider' type='radio' class="payerType" name="payertype" value='provider'>
-                            <label for="chkpayerProvider" class="field-chk" style="min-width: 20px!important;" i18n="billing.payments.provider"></label>
-                        </label>
+                        <div class="col-sm-5 payerFieldsRadio">
+                            <label class="radio-inline" for='chkpayerInsurance'>
+                                <input id='chkpayerInsurance' type='radio' class="payerType" name="payertype" value='insurance'>
+                                <label for="chkpayerInsurance" class="payerFields" style="min-width: 20px!important;" i18n="billing.payments.insurance"></label>
+                            </label>
+                            <label class="radio-inline paymentMethod" for='chkpayerPatient'>
+                                <input id='chkpayerPatient' type='radio' class="payerType" name="payertype" value='patient'>
+                                <label for="chkpayerPatient" class="field-chk" style="min-width: 20px!important;" i18n="billing.payments.patient"></label>
+                            </label>
+                            <label class="radio-inline paymentMethod" for='chkpayerOrdering'>
+                                <input id='chkpayerOrdering' type='radio' class="payerType" name="payertype" value='ordering_facility'>
+                                <label for="chkpayerOrdering" class="field-chk" style="min-width: 20px!important;" i18n="billing.payments.orderingFacility"></label>
+                            </label>
+                            <label class="radio-inline paymentMethod" for='chkpayerProvider'>
+                                <input id='chkpayerProvider' type='radio' class="payerType" name="payertype" value='ordering_provider'>
+                                <label for="chkpayerProvider" class="field-chk" style="min-width: 20px!important;" i18n="billing.payments.provider"></label>
+                            </label>
+                        </div>
                     </div>
-                    
-                        <div class="col-form-content-wide" style="margin-left: 0;">
-                            <div id="divMethodInsurance" class="payerFields">
-                                <label class="radio-inline divInvoice" style="display: none" id='chkDirectingBillingCon' for='chkDirectingBilling'>
-                                    <label class="field-chk" for='chkDirectingBilling' style="margin-left: 30px; min-width:20px !important;">Invoice :</label>
-                                    <input type="text" id="txtInvoice" class="form-control invoiceNo" />
-                                </label>
+                    <div class="form-group row">
+                        <label for="chkpayerInsurance" class="control-label col-sm-2"></label>
+                        <div class="col-sm-3">
+                            <div id="divPayerInsurnace" class="payerFields">
+                                <input type="hidden" id="hdnPayerID" class="form-control">
+                                <select id="txtautoPayerPIP" style="width:350px;"></select>
+                                <div class="hideProp">
+                                    <a disabled='disabled' class="btn btn-primary selectInsurance" id="spnSearchPayerInsurance" title="Search">
+                                        <i class="icon-ic-search"></i>Search</a>
+                                    <input type="button" class="btnInsuranceSelectSave" style="display: none;" id="btnInsuranceSelectSave">
+                                    <span id="lblAutoInsurance>" disabled> </span>
+                                </div>
                             </div>
-                            <div id="divMethodPatient" style="display:none;" class="payerFields">
-                                <label class="radio-inline" for='chkMethodPatPayment'>
-                                    <input id='chkMethodPatPayment' type='radio' name="billingPPMethod" value='PP'>
-                                    <label for="chkMethodPatPayment" class="field-chk" style="min-width: 20px!important;" i18n="billing.payments.patientPayment"></label>
-                                </label>
+                            <div id="divPayerPatient" style="display:none;" class="payerFields">
+                                <select id="txtautoPayerPP" style="width:350px;"></select>
+                                <div class="hideProp">
+                                    <select id="txtautoPayerPP" style="width:350px"></select>
+                                    <a disabled='disabled' class="btn btn-primary selectPatientSave" id="spnSearchPayerPatient" title="Search">
+                                        <i class="icon-ic-search"></i>
+                                    </a>
+                                    <span id="lblAutoPatient"> </span>
+                                </div>
                             </div>
-                            <div id="divMethodProvider" style="display:none;" class="payerFields">
-                                <label class="radio-inline" for='txtPRInvoice' class="payerFields">
-                                    <label class="field-chk " for='txtPRInvoice>' style="margin-left: 30px; min-width:20px !important;">Invoice :</label>
-                                    <input type="text" id="txtPRInvoice" class="form-control invoiceNo" />
-                                </label>
+                            <div id="divPayerOrderFacility" style="display:none;" class="payerFields">
+                                <select id="txtautoPayerPOF" style="width:350px;"></select>
+                                <div class="hideProp">
+                                    <a disabled='disabled' class="btn btn-primary selectOrderingFac" id="spnSearchPayerPOF" title="Search">
+                                        <i class="icon-ic-search"></i>
+                                    </a>
+                                    <input type="button" class="btnOFSelectSave" style="display: none;" id="btnOFSelectSave">
+                                </div>
+                            </div>
+                            <div id="divPayerProvider" style="display:none;" class="payerFields">
+                                <select id="txtautoPayerPR" style="width:350px;"></select>
+                                <div class="hideProp">
+                                    <a disabled='disabled' class="btn btn-primary searchProvider" id="spnSearchPayerPR" title="Search">
+                                        <i class="icon-ic-search"></i>
+                                    </a>
+                                    <input type="button" class="btnRefProviderSelectSave" style="display: none;" id="btnRefProviderSelectSave">
+                                </div>
                             </div>
                         </div>
                     </div>
-                <div class="form-group form-inline">
-                    <div class="col-form-label-wide">
-                        <label class="control-label"> </label>
-                    </div>
-                    <div class="col-form-content-wide">
-                        <div id="divPayerInsurnace" class="payerFields">
-                            <input type="hidden" id="hdnPayerID" class="form-control">
-                            <select id="txtautoPayerPIP" style="width:350px;"></select>
-                            <div class="hideProp">
-                                <a disabled='disabled' class="btn btn-primary selectInsurance" id="spnSearchPayerInsurance" title="Search">
-                                <i class="icon-ic-search"></i>Search</a>
-                                <input type="button" class="btnInsuranceSelectSave" style="display: none;" id="btnInsuranceSelectSave">
-                                <span id="lblAutoInsurance>" disabled> </span>
-                            </div>
-                        </div>
-                        <div id="divPayerPatient" style="display:none;" class="payerFields">
-                            <select id="txtautoPayerPP" style="width:350px;"></select>
-                            <div class="hideProp">
-                                <select id="txtautoPayerPP" style="width:350px"></select>
-                                <a disabled='disabled' class="btn btn-primary selectPatientSave" id="spnSearchPayerPatient" title="Search">
-                                    <i class="icon-ic-search"></i>
-                                </a>
-                                <span id="lblAutoPatient"> </span>
-                            </div>
-                        </div>
-                        <div id="divPayerOrderFacility" style="display:none;" class="payerFields">
-                            <select id="txtautoPayerPOF" style="width:350px;"></select>
-                            <div class="hideProp">
-                                <a disabled='disabled' class="btn btn-primary selectOrderingFac" id="spnSearchPayerPOF" title="Search">
-                                    <i class="icon-ic-search"></i>
-                                </a>
-                                <input type="button" class="btnOFSelectSave" style="display: none;" id="btnOFSelectSave">
-                            </div>
-                        </div>
-                        <div id="divPayerProvider" style="display:none;" class="payerFields">
-                            <select id="txtautoPayerPR" style="width:350px;"></select>
-                            <div class="hideProp">
-                                <a disabled='disabled' class="btn btn-primary searchProvider" id="spnSearchPayerPR" title="Search">
-                                    <i class="icon-ic-search"></i>
-                                </a>
-                                <input type="button" class="btnRefProviderSelectSave" style="display: none;" id="btnRefProviderSelectSave">
-                            </div>
+                    <div class="form-group row payerFields" id="divMethodInsurance">
+                        <label for="chkpayerInsurance" class="control-label col-sm-2" for="txtInvoice">Invoice</label>
+
+                        <div class="col-sm-2">
+                            <input type="text" id="txtInvoice" class="form-control invoiceNo" />
                         </div>
                     </div>
-                </div>
-                <div class="form-group form-inline">
-                    <div class="col-form-label-wide">
-                        <label for="ddlpaymentReason" class="control-label" i18n="billing.payments.paymentReason"></label>
+                    <div class="form-group row payerFields" id="divMethodProvider">
+                        <label for="chkpayerInsurance" class="control-label col-sm-2" for="txtPRInvoice">Invoice</label>
+
+                        <div class="col-sm-3">
+                            <input type="text" id="txtPRInvoice" class="form-control invoiceNo" />
+                        </div>
                     </div>
-                    <div class="col-form-content-wide">
-                        <select class="form-control" id="ddlpaymentReason">
-                            <option value="">Select</option>
-                            <option value="1" data-reason="COPAY" data-copay="true">Self-Pay</option>
-                            <option value="2" data-reason="PRE" data-copay="false">Insurance</option>
-                            <option value="3" data-reason="REF" data-copay="false">Co-Pay</option>
-                            <option value="4" data-reason="REF" data-copay="false">Account Payment</option>
-                        </select>
-                    </div>
+                    <!-- <div class="form-group form-inline">
+                        <div class="col-form-label-wide">
+                            <label class="control-label"> </label>
+                        </div>
+                        <div class="col-sm-3">
+                            <div id="divPayerInsurnace" class="payerFields">
+                                <input type="hidden" id="hdnPayerID" class="form-control">
+                                <select id="txtautoPayerPIP" style="width:350px;"></select>
+                                <div class="hideProp">
+                                    <a disabled='disabled' class="btn btn-primary selectInsurance" id="spnSearchPayerInsurance" title="Search">
+                                        <i class="icon-ic-search"></i>Search</a>
+                                    <input type="button" class="btnInsuranceSelectSave" style="display: none;" id="btnInsuranceSelectSave">
+                                    <span id="lblAutoInsurance>" disabled> </span>
+                                </div>
+                            </div>
+                            <div id="divPayerPatient" style="display:none;" class="payerFields">
+                                <select id="txtautoPayerPP" style="width:350px;"></select>
+                                <div class="hideProp">
+                                    <select id="txtautoPayerPP" style="width:350px"></select>
+                                    <a disabled='disabled' class="btn btn-primary selectPatientSave" id="spnSearchPayerPatient" title="Search">
+                                        <i class="icon-ic-search"></i>
+                                    </a>
+                                    <span id="lblAutoPatient"> </span>
+                                </div>
+                            </div>
+                            <div id="divPayerOrderFacility" style="display:none;" class="payerFields">
+                                <select id="txtautoPayerPOF" style="width:350px;"></select>
+                                <div class="hideProp">
+                                    <a disabled='disabled' class="btn btn-primary selectOrderingFac" id="spnSearchPayerPOF" title="Search">
+                                        <i class="icon-ic-search"></i>
+                                    </a>
+                                    <input type="button" class="btnOFSelectSave" style="display: none;" id="btnOFSelectSave">
+                                </div>
+                            </div>
+                            <div id="divPayerProvider" style="display:none;" class="payerFields">
+                                <select id="txtautoPayerPR" style="width:350px;"></select>
+                                <div class="hideProp">
+                                    <a disabled='disabled' class="btn btn-primary searchProvider" id="spnSearchPayerPR" title="Search">
+                                        <i class="icon-ic-search"></i>
+                                    </a>
+                                    <input type="button" class="btnRefProviderSelectSave" style="display: none;" id="btnRefProviderSelectSave">
+                                </div>
+                            </div>
+                        </div>
+                    </div> -->
                 </div>
             </div>
-            <div class="col-md-12" style="height: 210px;">
-                <div class="col-md-6" style="float: left;padding-left: 0;">
-                    <div class="form-group form-inline">
-                        <div class="col-form-label-wide">
-                            <label for="ddlPaidLocation" class="control-label" i18n="billing.payments.paidLocation"></label>
+            <div class="row">
+                <div class="col">
+                    <div class="form-group row">
+                        <label for="ddlpaymentReason" class="control-label col-sm-4" i18n="billing.payments.paymentReason"></label>
+                        <div class="col-sm-3">
+                            <select class="form-control" id="ddlpaymentReason">
+                                <option value="">Select</option>
+                                <option value="1" data-reason="COPAY" data-copay="true">Self-Pay</option>
+                                <option value="2" data-reason="PRE" data-copay="false">Insurance</option>
+                                <option value="3" data-reason="REF" data-copay="false">Co-Pay</option>
+                                <option value="4" data-reason="REF" data-copay="false">Account Payment</option>
+                            </select>
                         </div>
-                        <div class="col-form-content-wide">
+                    </div>
+                    <div class="form-group row">
+                        <label for="ddlPaidLocation" class="control-label col-sm-4" i18n="billing.payments.paidLocation"></label>
+                        <div class="col-sm-3">
                             <select class="form-control" id="ddlPaidLocation" class="paidLocation">
                                 <% _.each(paidlocation, function(facility) { %>
                                     <option value="<%= facility.id %>">
@@ -146,20 +205,9 @@
                             </select>
                         </div>
                     </div>
-                    <div class="form-group form-inline" style="display:none">
-                        <div class="col-form-label-wide">
-                            <label for="ddlBillingOffice" class="control-label" i18n="billing.payments.billingOffice"></label>
-                        </div>
-                        <div class="col-form-content-wide">
-                            <select class="form-control" id="ddlBillingOffice" class="billingOffice">
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group form-inline">
-                        <div class="col-form-label-wide">
-                            <label class="control-label  field-required" for="txtAccountingDate" i18n="billing.payments.accountingDate"></label>
-                        </div>
-                        <div class="col-form-content-wide">
+                    <div class="form-group row">
+                        <label class="control-label  field-required col-sm-4" for="txtAccountingDate" i18n="billing.payments.accountingDate"></label>
+                        <div class="col-sm-3">
                             <div id="divAccountingDate" class="input-group">
                                 <input type="text" id="txtAccountingDate" class="form-control form-control-date maskDateLocale" name="accountingDate">
                                 <span class="input-group-addon add-on">
@@ -168,37 +216,29 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-group form-inline">
-                        <div class="col-form-label-wide">
-                            <label class="control-label field-required" for="txtAmount" i18n="billing.payments.amount"></label>
-                        </div>
-                        <div class="col-form-content-wide">
+                    <div class="form-group row">
+                        <label class="control-label field-required col-sm-4" for="txtAmount" i18n="billing.payments.amount"></label>
+                        <div class="col-sm-3">
                             <input type="text" id="txtAmount" class="form-control negativeFloatBox" />
                         </div>
                     </div>
-                    <div class="form-group form-inline">
-                        <div class="col-form-label-wide">
-                            <label for="lblApplied" class="control-label" i18n="billing.payments.applied"></label>
-                        </div>
-                        <div class="col-form-content-wide">
+                    <div class="form-group row">
+                        <label for="lblApplied" class="control-label col-sm-4" i18n="billing.payments.applied"></label>
+                        <div class="col-sm-3">
                             <label class="pad-top-6 w70 rt-offset10" id="lblApplied"></label>
                         </div>
                     </div>
-                    <div class="form-group form-inline">
-                        <div class="col-form-label-wide">
-                            <label for="lblBalance" class="control-label" i18n="billing.payments.balance"></label>
-                        </div>
-                        <div class="col-form-content-wide">
+                    <div class="form-group row">
+                        <label for="lblBalance" class="control-label col-sm-4" i18n="billing.payments.balance"></label>
+                        <div class="col-sm-3">
                             <label class="pad-top-6 w70 rt-offset10" id="lblBalance"></label>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6" style="float: right" ;>
-                    <div class="form-group form-inline">
-                        <div class="col-form-label-wide">
-                            <label for="chkModeCash" class="control-label field-required" i18n="billing.payments.paymentmode"></label>
-                        </div>
-                        <div class="col-form-content-wide">
+                <div class="col">
+                    <div class="form-group row">
+                        <label for="chkModeCash" class="control-label field-required col-sm-3" i18n="billing.payments.paymentmode"></label>
+                        <div class="col-sm-5">
                             <div id="divPayerMode">
                                 <input id='chkModeCash' type='radio' class="payerMode" name="payerMode" value='cash'>
                                 <label for="chkModeCash" class="field-chk" style="min-width: 20px!important; padding-left:8px;" i18n="billing.payments.cash">
@@ -218,53 +258,54 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-group form-inline">
-                        <div class="col-form-label-wide">
-                            <label class="control-label" for="txtCheque" i18n="billing.payments.chequeCardNo"></label>
-                        </div>
-                        <div class="col-form-content-wide">
+                    <div class="form-group row">
+                        <label class="control-label  col-sm-3 " for="txtCheque" i18n="billing.payments.chequeCardNo"></label>
+                        <div class="col-sm-3">
                             <input type="text" id="txtCheque" class="form-control" />
                         </div>
                     </div>
-                    <div class="form-group form-inline">
-                        <div class="col-form-label-wide">
-                            <label class="control-label" for="txtCardName" i18n="billing.payments.cardName"></label>
-                        </div>
-                        <div class="col-form-content-wide">
+
+                    <div class="form-group row">
+                        <label class="control-label  col-sm-3 " for="txtCheque" i18n="billing.payments.cardName"></label>
+                        <div class="col-sm-3">
                             <input type="text" id="txtCardName" class="form-control" />
                         </div>
                     </div>
-                    <div class="form-group form-inline">
-                        <div class="col-form-label-wide">
-                            <label class="control-label" for="txtNotes">Notes</label>
-                        </div>
-                        <div class="col-form-content-wide">
+
+                    <div class="form-group row">
+                        <label class="control-label  col-sm-3" for="txtNotes">Notes</label>
+                        <div class="col-sm-3">
                             <textarea class="form-control" id="txtNotes" rows="4" style="height: 40px;"></textarea>
                         </div>
                     </div>
                 </div>
-
-                <input type="hidden" id="hdnOldPayerFlag>">
-                <input type="hidden" id="hdnOldInvoiceNo">
-                <input type="hidden" id="hdnOldPayerId">
             </div>
+        </form>
+    </div>
+</div>
+<div id="PaymentForm">
+    <div class="form-horizontal form-list">
+        <div class="">
+            <input type="hidden" id="hdnOldPayerFlag>">
+            <input type="hidden" id="hdnOldInvoiceNo">
+            <input type="hidden" id="hdnOldPayerId">
+        </div>
 
-            <div class="col-md-12">
-                <div class="col-form-content">
-                    <input type="button" id="btnPaymentSave" class="btn btn-default btn-primary savePayment" i18n="shared.buttons.save">
-                    <input type="button" id="btnPaymentInvoice" class="btn btn-default" i18n="shared.buttons.invoice " style="display: none">
-                    <input type="button" id="btnPaymentAddNew" class="btn btn-default addnew" i18n="shared.buttons.addNew">
-                    <input type="button" id="btnPaymentClear" class="btn btn-default clearAdd" i18n="shared.buttons.clear">
-                    <input type="button" id="btnPaymentPrint" class="btn btn-default printPayment" i18n="shared.buttons.print">
-                    <input type="button" id="btnPrintReceipt" class="btn btn-default printReceipt" i18n="order.chargePayment.printReceipt">
-                    <input type="button" id="btnPaymentRefClick" class="btn btn-default paymentRefresh" i18n="shared.buttons.refresh" style="display:none;">
-                    <input type="button" id="btnPaymentDelete" class="btn btn-default paymentDelete" i18n="shared.buttons.delete">
-                </div>
-            </div>
-            <br/>
-            <br/>
-            <div id="divPendingPay" class="col-xs-12">
+        <div class="col-md-12">
+            <div class="col-form-content">
+                <input type="button" id="btnPaymentSave" class="btn btn-default btn-primary savePayment" i18n="shared.buttons.save">
+                <input type="button" id="btnPaymentInvoice" class="btn btn-default" i18n="shared.buttons.invoice " style="display: none">
+                <input type="button" id="btnPaymentAddNew" class="btn btn-default addnew" i18n="shared.buttons.addNew">
+                <input type="button" id="btnPaymentClear" class="btn btn-default clearAdd" i18n="shared.buttons.clear">
+                <input type="button" id="btnPaymentPrint" class="btn btn-default printPayment" i18n="shared.buttons.print">
+                <input type="button" id="btnPrintReceipt" class="btn btn-default printReceipt" i18n="order.chargePayment.printReceipt">
+                <input type="button" id="btnPaymentRefClick" class="btn btn-default paymentRefresh" i18n="shared.buttons.refresh" style="display:none;">
+                <input type="button" id="btnPaymentDelete" class="btn btn-default paymentDelete" i18n="shared.buttons.delete">
+                <input type="button" id="btnPaymentBack" class="btn btn-default paymentDelete" i18n="shared.buttons.back">
             </div>
         </div>
+        <div id="divPendingPay" class="col-xs-12">
+        </div>
     </div>
+</div>
 </div>

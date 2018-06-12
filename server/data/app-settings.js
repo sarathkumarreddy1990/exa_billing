@@ -26,7 +26,8 @@ module.exports = {
                                             company_code,
                                             company_name,
                                             time_zone,
-                                            sys_config
+                                            sys_config,
+                                            file_store_id
                                     FROM   companies
                                     WHERE  id=${companyID}
                                     AND    NOT has_deleted )AS company )
@@ -76,7 +77,8 @@ module.exports = {
                                           status_desc,
                                           facility_id,
                                           order_related,
-                                          waiting_time
+                                          waiting_time,
+                                          color_code
                                     FROM   study_status
                                     WHERE  NOT has_deleted ) AS study_status)
                 , cte_claim_status AS(

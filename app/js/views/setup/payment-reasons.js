@@ -73,9 +73,11 @@ define([
                                     self.model.destroy({
                                         data: $.param({ id: self.model.id, code: gridData.code, description: gridData.description }),
                                         success: function (model, response) {
+                                            commonjs.showStatus("Deleted Successfully");
                                             self.paymentReasonsTable.refresh();
                                         },
                                         error: function (model, response) {
+                                            commonjs.handleXhrError(model, response);
                                         }
                                     });
                                 }
@@ -113,7 +115,8 @@ define([
                     disablepaging: false,
                     showcaption: false,
                     disableadd: true,
-                    disablereload: true
+                    disablereload: true,
+                    pager: '#gridPager_PaymentReasons'
                 });
 
                 commonjs.initializeScreen({header: {screen: 'PaymentReasons', ext: 'paymentReasons'}, grid: {id: '#tblPaymentReasonsGrid'}, buttons: [
@@ -171,6 +174,29 @@ define([
             },
 
             savePaymentReasons: function () {
+                var self = this;
+                commonjs.validateForm({
+                    rules: {
+                        name: {
+                            required: true
+                        },
+                        description: {
+                            required: true
+                        }
+                    },
+                    messages: {
+                        name: commonjs.getMessage("*", "Reason"),
+                        description: commonjs.getMessage("*", "Description")
+                    },
+                    submitHandler: function () {
+                        self.save();
+                    },
+                    formID: '#formPaymentReasons'
+                });
+                $('#formPaymentReasons').submit();
+            },
+
+            save: function() {
                 this.model.set({
                     "code": $.trim($('#txtCode').val()),
                     "description": $.trim($('#txtDescription').val()),
@@ -178,10 +204,10 @@ define([
                     "company_id": app.companyID
                 });
                 this.model.save({
-
                 }, {
                     success: function (model, response) {
-                        if (response) {
+                        if(response) {
+                            commonjs.showStatus("Saved Successfully");
                             location.href = "#setup/payment_reasons/list";
                         }
                     },

@@ -1,5 +1,5 @@
-define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale', 'text!templates/app/payments.html', 'collections/app/payments', 'models/pager'],
-    function (jQuery, Immutable, _, Backbone, JGrid, JGridLocale, paymentsGrid, paymentsLists, ModelPaymentsPager) {
+define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale', 'text!templates/app/payments.html', 'collections/app/payments', 'models/pager', 'views/reports/payments-pdf'],
+    function (jQuery, Immutable, _, Backbone, JGrid, JGridLocale, paymentsGrid, paymentsLists, ModelPaymentsPager, paymentPDF) {
         var paymentsView = Backbone.View.extend({
             el: null,
             pager: null,
@@ -17,7 +17,12 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             paymentsGridTemplate: _.template(paymentsGrid),
 
             events: {
-                'click #btnPaymentAdd': 'addNewPayemnt'
+                'click #btnPaymentAdd': 'addNewPayemnt',
+                'click #btnStatusSearch': 'searchPayments',
+                'click #btnPaymentRefresh': 'refreshPayments',
+                "click #btnGenerateExcel": "exportExcel",
+                "click #btnGeneratePDF": "generatePDF"
+
             },
 
             initialize: function (options) {
@@ -63,14 +68,30 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 this.pendPaymtPager = new ModelPaymentsPager();
                 this.appliedPager = new ModelPaymentsPager();
                 this.patientPager = new ModelPaymentsPager();
-                // this.model = new ModelPayments();
                 this.paymentsList = new paymentsLists();
-                // this.pendingPayments = new pendingPayments();
-                // this.folowupPendingPayments = new followupPendingPayments();
-                // this.appliedPayments = new appliedPayments();
-                // this.paymentspatientList = new paymentspatient();
                 this.adjustmentCodeList = new modelCollection(adjustment_codes);
                 this.claimStatusList = new modelCollection(claim_status);
+            },
+
+            initializeDateTimePickers: function () {
+                var self = this;
+
+                // Payments Tab
+                var companyCurrentDateTime = commonjs.getCompanyCurrentDateTime();
+                var startFrom = moment(companyCurrentDateTime).subtract(2, 'months');
+                var endTo = companyCurrentDateTime;
+                self.dtpPayFrom = commonjs.bindDateTimePicker("divPaymentFromDate", { format: 'L', useCurrent: false });
+                self.dtpPayTo = commonjs.bindDateTimePicker("divPaymentToDate", { format: 'L', useCurrent: false });
+                self.dtpPayFrom.date(startFrom);
+                self.dtpPayTo.date(endTo);
+
+                // Pending Payments Tab
+                // startFrom = moment(companyCurrentDateTime).subtract(1, 'year');
+                // endTo = moment(companyCurrentDateTime).add(1, 'day');
+                // self.dtpPendFrom = commonjs.bindDateTimePicker("divPendPaymentFromDate", { format: 'L', useCurrent: false });
+                // self.dtpPendTo = commonjs.bindDateTimePicker("divPendPaymentToDate", { format: 'L', useCurrent: false });
+                // self.dtpPendFrom.date(startFrom);
+                // self.dtpPendTo.date(endTo);
             },
 
             render: function (opener) {
@@ -87,6 +108,40 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 $('#btnTabNavPayRight').click(function () {
                     $('#divPaymentTabsContainer').scrollTo({ top: '0px', left: '+=70' }, 300);
                 });
+                self.initializeDateTimePickers();
+            },
+
+            validateFromAndToDate: function (objFromDate, objToDate) {
+                var validationResult = commonjs.validateDateTimePickerRange(objFromDate, objToDate, false, 'day');
+
+                if (!validationResult.valid) {
+                    commonjs.showWarning(validationResult.message);
+                    return false;
+                }
+
+                return true;
+            },
+
+            refreshPayments: function () {
+                var self = this;
+                self.pager.set({ "PageNo": 1 });
+                self.paymentTable.refreshAll();
+            },
+
+            searchPayments: function () {
+                var self = this;
+
+                if (self.validateFromAndToDate(self.dtpPayFrom, self.dtpPayTo)) {
+                    self.paymentTable.options.customargs = {
+                        filterByDateType: $('input[name=filterByDateType]:checked').val(),
+                        fromDate: self.dtpPayFrom.date().format('YYYY-MM-DD'),
+                        toDate: self.dtpPayTo.date().format('YYYY-MM-DD'),
+                        paymentStatus: $("#ulPaymentStatus").val(),
+                        facility_id: $("#ddlPaymentFacility").val()
+                    };
+                    self.pager.set({ "PageNo": 1 });
+                    self.paymentTable.refresh();
+                }
             },
 
             showGrid: function (opener) {
@@ -129,7 +184,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                                 name: 'edit', width: 50, sortable: false, search: false,
                                 className: 'icon-ic-edit',
                                 formatter: function (a, b, c) {
-                                    return "<span class='icon-ic-edit' title='click Here to Edit'></span>"                                    
+                                    return "<span class='icon-ic-edit' title='click Here to Edit'></span>"
                                     // var url = "#billing/payments/edit/" + b.rowId;
                                     // return '<a href=' + url + '> Edit'
                                 },
@@ -232,13 +287,13 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             editPayment: function (rowId) {
                 Backbone.history.navigate('#billing/payments/edit/' + rowId, true);
             },
-            
+
             paymentDateFormatter: function (cellvalue, options, rowObject) {
                 var colValue;
                 colValue = (commonjs.checkNotEmpty(rowObject.payment_date) ? moment(rowObject.payment_date).format('L') : '');
                 return colValue;
             },
-            
+
             paymentAccountingDateFormatter: function (cellvalue, options, rowObject) {
                 var colValue;
                 colValue = (commonjs.checkNotEmpty(rowObject.accounting_date) ? moment(rowObject.accounting_date).format('L') : '');
@@ -267,7 +322,83 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
 
             addNewPayemnt: function () {
                 Backbone.history.navigate('#billing/payments/new', true);
+            },
+
+            generatePDF: function (e) {
+                var self = this;
+                var paymentListDetails = self.paymentsList;
+                self.paymentInvoice = new paymentInvoice({ el: $('#modal_div_container') });
+                self.paymentInvoice.onReportViewClick(paymentListDetails);
+            },
+
+            prepareValueForCSV(val) {
+                val = '' + val;
+                val = val.replace(/"/g, '""');
+                return '"' + val + '"';
+            },
+
+            exportExcel: function () {
+                var self = this;
+                var responseJSON = self.paymentsList;
+                var ReportTitle = 'Payment';
+                var ShowLabel = 'Payment';
+                var paymentExcelData = typeof responseJSON != 'object' ? JSON.parse(responseJSON) : responseJSON;
+                var CSV = '';
+                CSV += ReportTitle + '\r';
+                if (ShowLabel) {
+                    var row = "";
+
+                    row += 'PAYMENT ID' + ',';
+                    row += 'PAYMENT DATE' + ',';
+                    row += 'ACCOUNTING DATE' + ',';
+                    row += 'PAYER TYPE' + ',';
+                    row += 'PAYER NAME' + ',';
+                    row += 'PAYMENT AMOUNT' + ',';
+                    row += 'PAYMENT APPLIED' + ',';
+                    row += 'BALANCE' + ',';
+                    row += 'ADJUSTMENT' + ',';
+                    row += 'POSTED BY' + ',';
+                    row += 'PAYMENT MODE' + ',';
+                    row += 'FACILITY' + ',';
+                }
+                row = row.slice(0, -1);
+                CSV += row + '\r\n';
+
+                for (var i = 0; i < paymentExcelData.models.length; i++) {
+                    var row = "";
+                    var paymentResult = paymentExcelData.models[i].attributes;
+                    row += '"' + paymentResult.id + '",';
+                    row += '"' + paymentResult.payment_date + '",';
+                    row += '"' + moment(paymentResult.accounting_date).format('L') + '",';
+                    row += '"' + paymentResult.payer_type + '",';
+                    row += '"' + paymentResult.payer_name + '",';
+                    row += '"' + paymentResult.amount + '",';
+                    row += '"' + paymentResult.applied + '",';
+                    row += '"' + paymentResult.available_balance + '",';
+                    row += '"' + paymentResult.adjustment_amount + '",';
+                    row += '"' + paymentResult.user_full_name + '",';
+                    row += '"' + paymentResult.payment_mode + '",';
+                    row += '"' + paymentResult.facility_name + '",';
+                    row.slice(0, row.length - 1);
+                    CSV += row + '\r\n';
+                }
+
+                if (CSV == '') {
+                    alert("Invalid data");
+                    return;
+                }
+                var fileName = "";
+                fileName += ReportTitle.replace(/ /g, "_");
+                var uri = 'data:text/csv;charset=utf-8,' + escape(CSV);
+                var link = document.createElement("a");
+                link.href = uri;
+                link.style = "visibility:hidden";
+                link.download = fileName + ".csv";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
             }
+
         });
 
         return paymentsView;

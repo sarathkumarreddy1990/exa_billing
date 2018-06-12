@@ -12,9 +12,10 @@ const paymentsRouter = require('../routes/payments');
 const claimsRouters = require('../routes/claims');
 const userSettingRouter = require('../routes/user-settings');
 const claimsWorkbenchRouters = require('../routes/claim/claim-workbench');
-const claimInquiry = require('../routes/claim-inquiry');
+const claimInquiry = require('../routes/claim/claim-inquiry');
 const patientRouter = require('../routes/patients');
 const studyFilterRouter = require('../routes/setup/study-filter');
+const eraRouter = require('../routes/era');
 
 const router = function (app) {
 
@@ -38,6 +39,7 @@ const router = function (app) {
     app.use('/exa_modules/billing/claim_inquiry', claimInquiry);
     app.use('/exa_modules/billing/patient', patientRouter);
     app.use('/exa_modules/billing/setup/study_filters', studyFilterRouter);
+    app.use('/exa_modules/billing/era', eraRouter);
 };
 
 module.exports = router;

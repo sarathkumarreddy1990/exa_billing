@@ -113,10 +113,10 @@ define([
                     return false;
                 }
                 
-                if (isNaN(this.viewModel.minAmount) || this.viewModel.minAmount === '') {
-                     commonjs.showWarning('Please enter minimum amount!');
-                    return false;
-                }
+                // if (isNaN(this.viewModel.minAmount) || this.viewModel.minAmount === '') {
+                //      commonjs.showWarning('Please enter minimum amount!');
+                //     return false;
+                // }
                 if (this.viewModel.minAmount < 0) {
                      commonjs.showWarning('Please enter minimum amount greater than or equal to 0!');
                     return false;
