@@ -17,18 +17,47 @@
   position: absolute;
   font-size: 1em !important;
 }
+.header-status {
+  background-color: #5A5A5A !important;
+  color: #FFFFFF !important;
+  line-height: 25px;
+}
+
+.statusList li {
+    padding: 0px;
+}
+
+.statusList li label {
+  font-size: 0.8em !important;
+}
+
+.statusList {
+  margin-left: 0px !important;
+  margin-bottom: 4px !important;
+}
+
+.statusList .inline {
+  padding-top: 0px !important;
+}
+
+div.multiStudyColumnList input[type=checkbox] {
+  display: block;
+}
+.multiStudyColumnList {
+  column-count: 3;
+  -moz-column-count: 3; /* Firefox */
+  -webkit-column-count: 3; /* Safari and Chrome */
+  padding: 0px;
+}
+
 </style>
 
-<div class="controls" style="float">    
+<div class="controls" style="float:left;">    
 </div>
 <nav class="top-nav">
-    <div id="divStudyTabsContainer" style="float:left;">
+    <div id="divTabsContainer" style="float:left;">
         <div>
             <ul id="studyTabs" class="nav tn-menu"></ul>
-        </div>
-    </div>
-    <div id="divclaimsTabsContainer" style="float:left;">
-        <div>
             <ul id="claimsTabs" class="nav tn-menu"></ul>
         </div>
     </div>
@@ -105,14 +134,7 @@
 
 </div>
 
-<div class="col-xs-7 col-md-7 col-lg-7" style="margin-top: 5px !important;">
-    <!-- <span class="onlineText" style="text-decoration: underline;cursor: pointer; cursor: hand;" i18n="shared.fields.exceedstime" id="spLabelExceedsTime"></span> <span
-        id='spnExceedsTime'>
-        <i style="width: auto !important;" class="icon-ic-white icon-ic-spin icon-ic-spinner"></i>
-        </span>
-
-    <button id="btnCompleteRefresh" style="display: none;"></button>
-    <button id="btnStudyTabRefresh" style="display: none;"></button> -->
+<div class="col-xs-7 col-md-7 col-lg-7" style="margin-top: 5px !important;">  
 
 
     <div class="statusMenu" id="divStatusSearch">
@@ -223,11 +245,6 @@
             </tbody>
         </table>
     </div>
-
-
-
-
-    <input type="button" id="btnShowEditEncounter" style="display: none;">
     <button class="btn btn-primary" id="btnClearAllStudy" title="Deselect all" i18n="shared.buttons.none"style="display: none;"></button>
     <button class="btn btn-primary" id="btnSelectAllStudy" title="Select all studies" i18n="setup.dbTotals.all"style="display: none;"></button>
 </div>

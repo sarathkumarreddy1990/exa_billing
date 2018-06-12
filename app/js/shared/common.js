@@ -4592,17 +4592,17 @@ var commonjs = {
     getBillingMethod: function (billingMethod) {
         var billing = "";
         switch (billingMethod) {
-            case "DB":
-                billing = "Direct Billing(invoice)";
+            case "direct_billing":
+                billing = "Direct Billing";
                 break;
-            case "PC":
-                billing = "PaperClaim";
+            case "paper_claim":
+                billing = "Paper Claim";
                 break;
-            case "EB":
+            case "electronic_billing":
                 billing = "Electronic Billing";
                 break;
             default:
-                billing = "Patient";
+                billing = "Patient Payment";
                 break;
         }
         return billing;
@@ -4610,25 +4610,23 @@ var commonjs = {
     getPayerType: function (payerType) {
         var payer = "";
         switch (payerType) {
-            case "PPP":
-            case "Patient":
+            case "patient":
                 payer = "Patient";
                 break;
-            case "PIP":
-            case "Insurance":
-                payer = "Insurance";
+            case "referring_provider":
+                payer = "Referring Provider";
                 break;
-            case "PR":
-            case "Referring physician":
-                payer = "Referring physician";
-                break;
-            case "POF":
-            case "Ordering Facility":
+            case "ordering_facility":
                 payer = "Ordering Facility";
+                break;                
+            case "primary_insurance":
+                payer = "Primary Insurance";
                 break;
-            case "PF":
-            case "Facility":
-                payer = "Facility";
+            case "secondary_insurance":
+                payer = "Secondary Insurance";
+                break;
+            case "teritary_insurance":
+                payer = "Teritary Insurance";
                 break;
             default:
                 payer = "";
@@ -7875,6 +7873,19 @@ var commonjs = {
 
         }
 
+    },
+
+    getRightClickMenu:function(elementID,i18n,isSubMenu,elementName,isULMenu){  
+        if(isULMenu){
+            return '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n='+i18n+' class="dropdown-item">'+elementName+'</a><ul id='+elementID+' style="float:right;" class="dropdown-menu"></ul></li>';
+        }
+        else if(isSubMenu){
+            return '<li><a class="dropdown-item" id=' + elementID + '  href="javascript: void(0)" >' + elementName + '</a></li>'
+        }
+        else{
+            return '<li><a id='+elementID+' href="javascript: void(0)" i18n='+i18n+' class="dropdown-item">'+elementName+'</a></li>';
+        }   
+        
     },
 
     getColorCodeForStatus: function (facility_id, code, screenName) {
