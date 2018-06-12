@@ -16,9 +16,8 @@ module.exports = {
     },
 
     processERAFile: async function (params) {
-        let self = this, 
-            InsuranceDetails,
-            paymentResult;
+        let self = this,
+            InsuranceDetails;
         let eraPath = path.join('D:/ERA');
         let templateName = '835_template_1';
 
@@ -40,20 +39,22 @@ module.exports = {
 
             const eraResponseJson = await ediConnect.parseEra(templateName, eraRequestText);
 
-
             //await writeFile(filename, JSON.stringify(eraResponseJson), 'utf8');
 
-            if(params.status == 'pending'){
-             
+            if (params.status == 'pending') {
+
                 InsuranceDetails = await self.checkExistInsurance(eraResponseJson);
             }
             else {
-                
-                paymentResult = await self.createPaymentFromERA(params.payer_details, eraResponseJson);
+
+                let paymentResult = await self.createPaymentFromERA(params.payer_details, params.file_id, eraResponseJson);
 
                 let orderLists = eraResponseJson.length && eraResponseJson[0].headerNumber ? eraResponseJson[0].headerNumber : {};
 
-                await data.getLineItems(orderLists);
+                let LineItemsAndClaimLists = await self.getFormatedLineItemsAndClaims(orderLists, params.file_id);
+
+                await self.processPayments(LineItemsAndClaimLists, paymentResult);
+
             }
 
             return InsuranceDetails;
@@ -70,9 +71,10 @@ module.exports = {
         let reassociation = eraResponseJson.length ? eraResponseJson[0].reassociationTraceNumber : {};
         let payerIdentification = reassociation.originatingCompanyID ? reassociation.originatingCompanyID : '';
 
-        const existsInsurance = await data.selectInsuranceEOB({ 
-            payer_id : payerIdentification
-            , company_id : 1 });
+        const existsInsurance = await data.selectInsuranceEOB({
+            payer_id: payerIdentification
+            , company_id: 1
+        });
 
         if (existsInsurance && existsInsurance.rows && existsInsurance.rows.length) {
 
@@ -81,23 +83,24 @@ module.exports = {
             payerDetails.payer_code = existsInsurance.rows[0].insurance_code;
             payerDetails.payer_name = existsInsurance.rows[0].insurance_name;
             payerDetails.payer_Identification = payerIdentification;
-            
+
         }
-        else{
+        else {
             payerDetails.type = 'none';
         }
 
         return payerDetails;
     },
-    createPaymentFromERA: async function (payerDetails, eraResponseJson) {
+    createPaymentFromERA: async function (payerDetails, file_id, eraResponseJson) {
 
         payerDetails = JSON.parse(payerDetails);
+
         let reassociation = eraResponseJson.length ? eraResponseJson[0].reassociationTraceNumber : {};
-        let financialInfo = eraResponseJson.length  && eraResponseJson[0].financialInformation  && eraResponseJson[0].financialInformation.length ? eraResponseJson[0].financialInformation[0] : {};
+        let financialInfo = eraResponseJson.length && eraResponseJson[0].financialInformation && eraResponseJson[0].financialInformation.length ? eraResponseJson[0].financialInformation[0] : {};
 
         let monetoryAmount = financialInfo.monetoryAmount ? parseFloat(financialInfo.monetoryAmount).toFixed(2) : 0.00;
         let notes = 'Amount shown in EOB:' + monetoryAmount;
-        
+
         payerDetails.paymentId = null;
         payerDetails.company_id = payerDetails.company_id;
         payerDetails.user_id = payerDetails.created_by;
@@ -117,15 +120,64 @@ module.exports = {
         payerDetails.credit_card_name = null;
         payerDetails.credit_card_number = reassociation.referenceIdent || null; // card_number
 
-        const paymentResult = await paymentController.createOrUpdatePayment(payerDetails);
-        
+        let paymentResult = await paymentController.createOrUpdatePayment(payerDetails);
+
+        paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
+        paymentResult.file_id = file_id;
+        paymentResult.created_by = payerDetails.created_by;
+
+        await data.createEdiPayment(paymentResult);
+
         return paymentResult;
     },
 
-    getLineItems: async function(){
+    getFormatedLineItemsAndClaims: async function (orderLists, file_id) {
 
-        //let orderLists = eraResponseJson.length && eraResponseJson[0].headerNumber ? eraResponseJson[0].headerNumber : {};
-      
+        let ediFileClaims = [];
+        let lineItems = [];
 
+        await _.each(orderLists, function (value) {
+            value = value.claimPaymentInformation && value.claimPaymentInformation.length ? value.claimPaymentInformation[0] : {};
+
+            _.each(value.servicePaymentInformation, function (val) {
+                lineItems.push({
+                    bill_fee: val.billFee,
+                    this_pay: val.paidamount,
+                    units: val.units,
+                    cpt_code: val.qualifierData.cptCode,
+                    modifier1: val.qualifierData.modifier1 || '',
+                    modifier2: val.qualifierData.modifier2 || '',
+                    modifier3: val.qualifierData.modifier3 || '',
+                    modifier4: val.qualifierData.modifier4 || '',
+                    cas_obj: val.serviceAdjustment,
+                    claim_date: value.claimDate && value.claimDate.claimDate ? value.claimDate.claimDate : '',
+                    claim_number: value.claimNumber,
+                    claim_status_code: value.claimStatusCode,
+                    total_paid_amount: value.paidAmount,
+                    total_billfee: value.totalBillFee,
+                    claim_frequency_code: value.claimFrequencyCode
+                });
+            });
+
+            ediFileClaims.push({
+                claim_number: value.claimNumber,
+                edi_file_id : file_id
+            });
+
+        });
+
+        return {
+            lineItems: lineItems,
+            ediFileClaims: ediFileClaims
+        };
+
+    },
+
+    processPayments: async function(claimLists, paymentDetails){
+
+        console.log(JSON.stringify(claimLists.lineItems))
+        console.log('----------->', paymentDetails)
+
+        return await data.createPaymentApplication(claimLists, paymentDetails);
     }
 };

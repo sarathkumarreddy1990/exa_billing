@@ -108,11 +108,11 @@ define([
                         companyID: app.companyID
                     },
                     beforeSearch: function () {
-                        self.setSearchQuery();
+                        //self.setSearchQuery();
                     },
                     ondblClickRow: function (rowID) {
                         var gridData = $('#tblEOBFileList').jqGrid('getRowData', rowID);
-                        self.processFile(gridData, null);
+                        self.processFile(rowID, gridData, null);
                     }
                 });
             },
@@ -129,7 +129,7 @@ define([
                 return rowObject.updated_date_time ? moment(rowObject.updated_date_time).format('L, h:mm a') : ''
             },
 
-            processFile: function(gridData, currentStatus){
+            processFile: function(file_id, gridData, currentStatus){
                 var self = this
 
                 var $InsuranceProvider = $('#select2-ddlInsuranceProviders-container') || null;
@@ -149,13 +149,14 @@ define([
                     data: {
                         status: currentStatus || gridData.current_status,
                         file_store_id: gridData.file_store_id,
+                        file_id: file_id || null,
                         payer_details: payerDetails
                     },
                     success: function (model, response) {
                         console.log(model);
                         if (model && model.payer_id) {
                             model.file_store_id = gridData.file_store_id;
-                            self.showProgressDialog(model, 'initialize');
+                            self.showProgressDialog(file_id, model, 'initialize');
                         } else {
                             alert('Error on progressing era file')
                         }
@@ -165,7 +166,7 @@ define([
                     }
                 });
             },
-            showProgressDialog: function (payerDetails, isFrom) {
+            showProgressDialog: function (file_id, payerDetails, isFrom) {
                 var self = this;
                 if (isFrom == 'initialize') {
 
@@ -187,7 +188,7 @@ define([
                     commonjs.hideDialog();
                 });
                 $('#btnProcessPayment').off().click(function (e) {
-                    self.processFile(payerDetails, 'applypayments');
+                    self.processFile(file_id, payerDetails, 'applypayments');
                 });
 
             },

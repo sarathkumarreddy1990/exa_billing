@@ -1,4 +1,4 @@
-const { query } = require('./../index');
+const { query, SQL } = require('./../index');
 
 module.exports = {
 
@@ -41,8 +41,78 @@ module.exports = {
         return await query(paymentSQL);
     },
 
-    getLineItems: async function(params){
+    createEdiPayment: async function(params){
 
-        console.log(JSON.stringify(params))
+        const sql = `INSERT INTO billing.edi_file_payments
+                                            (   edi_file_id
+                                              , payment_id
+                                            )
+                                            (SELECT
+                                                ${params.file_id}
+                                              , ${params.id}
+                                            )
+                                            RETURNING id`;
+        return await query(sql);
+    },
+
+    createPaymentApplication: async function(params, paymentDetails){
+
+        const sql =SQL` WITH application_details AS (
+                             SELECT 
+                                  *
+                             FROM json_to_recordset(${JSON.stringify(params.lineItems)}) AS (
+                                 claim_number bigint
+                                ,claim_date date
+                                ,claim_status_code bigint
+                                ,total_paid_amount money 
+                                ,total_billfee money 
+                                ,claim_frequency_code bigint
+                                ----------line items-------------------
+	                            ,bill_fee money
+	                            ,this_pay money
+	                            ,units numeric(7,3)
+	                            ,cpt_code text
+	                            ,modifier1 text
+	                            ,modifier2 text
+	                            ,modifier3 text
+	                            ,modifier4 text
+	                            ,cas_obj jsonb
+                             )
+                            ),
+                           selected_Items AS (
+                                SELECT 
+                                    application_details.*
+                                    , 'payment' as amount_type
+                                    , ch.id as charge_id
+                                FROM 
+                                application_details  
+                                INNER JOIN billing.claims c on c.id = application_details.claim_number
+                                INNER JOIN billing.charges ch on ch.claim_id = c.id
+                                INNER JOIN cpt_codes on cpt_codes.id = ch.cpt_id AND application_details.cpt_code = cpt_codes.display_code
+                                WHERE NOT cpt_codes.has_deleted AND cpt_codes.is_active
+                           ), 
+                           insert_application AS (
+                                  INSERT INTO billing.payment_applications
+                                  ( payment_id
+                                  , charge_id
+                                  , amount
+                                  , amount_type
+                                  , created_by
+                                  , applied_dt )
+                                  (
+                                    SELECT
+                                    ${paymentDetails.id}
+                                  , charge_id
+                                  , this_pay
+                                  , amount_type
+                                  , ${paymentDetails.created_by}
+                                  , now()
+                                  FROM selected_Items )
+                                  RETURNING id AS application_id, charge_id , amount_type )
+                            SELECT * FROM insert_application `;
+
+        console.log(sql.text, sql.values)
+
+        return await query(sql);
     }
 };
