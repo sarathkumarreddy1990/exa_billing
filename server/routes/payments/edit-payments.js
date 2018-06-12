@@ -24,12 +24,12 @@ router.get('/getPayemntApplications', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
-router.get('/patientsearch', async function (req, res) {
+router.get('/patient_search', async function (req, res) {
     const data = await paymentsController.getAllPatients(req.query);
     httpHandler.sendRows(req, res, data);
 });
 
-router.get('/getTotalPatients', async function (req, res) {
+router.get('/patient_count', async function (req, res) {
     const data = await paymentsController.getTotalPatients(req.query);
     httpHandler.sendRows(req, res, data);
 });

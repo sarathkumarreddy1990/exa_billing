@@ -1255,7 +1255,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     var pagesize = this.patientsPager.get('pageSize');
                     var user_info = commonjs.hstoreParse(app.userInfo.user_settings);
                     jQuery.ajax({
-                        url: "/exa_modules/billing/pending_payments/getTotalPatients",
+                        url: "/exa_modules/billing/pending_payments/patient_count",
                         type: "GET",
                         data: {
                             fromPTSL: true,
