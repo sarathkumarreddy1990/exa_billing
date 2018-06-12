@@ -1,5 +1,7 @@
 const data = require('../data/claims');
 const Promise = require('bluebird');
+const PokitDok = require('pokitdok-nodejs');
+const moment = require('moment');
 
 module.exports = {
 
@@ -47,18 +49,18 @@ module.exports = {
 
     update: async (params) => {
 
-        
+
         update_charges(params);
 
         async function update_charges(objects) {
 
             const charge_arr = [];
-            
+
             await data.update(params);
-        
+
             for (const obj1 of objects.charges) {
 
-        
+
                 if (!obj1.id) {
 
                     charge_arr.push(data.saveCharges(obj1));
@@ -71,5 +73,51 @@ module.exports = {
         }
 
     },
-    getData: async (params) => { return await data.getClaimData(params); }
+    getData: async (params) => { return await data.getClaimData(params); },
+
+    eligibility: async (params) => {
+        const model = await data.getFolderPath(params);
+        model.account_no = model.rows[0].account_no;
+        let pokitdokSecretKey = await data.getKeys();
+        let insEligibility = pokitdokSecretKey.rows[0].info.value;
+        let pokitdok_client_id = pokitdokSecretKey.rows[1].info.value;
+        let pokitdok_client_secret = pokitdokSecretKey.rows[2].info.value;
+
+        let pokitdok = new PokitDok(pokitdok_client_id, pokitdok_client_secret);
+        const birthDate = moment(params.BirthDate);
+        model.BirthDate = birthDate.format('YYYY-MM-DD');
+
+        return await new Promise((resolve, reject ) => {
+
+            pokitdok.eligibility({
+                member: {
+                    birth_date: moment(model.BirthDate).format('YYYY-MM-DD'),
+                    first_name: params.FirstName,
+                    last_name: params.LastName,
+                    id: params.PolicyNo
+                },
+                provider: {
+                    organization_name: params.InsuranceCompanyName,
+                    npi: params.NpiNo
+                },
+                service_types: params.ServiceTypes, 
+                trading_partner_id: params.tradingPartnerId
+            }, function (err, res) {
+                res.insPokitdok = insEligibility;
+                let eligibility_response =  res;
+
+                if(err){
+                    eligibility_response = err;                    
+                    reject(eligibility_response);
+                }
+                
+                
+                resolve(eligibility_response);
+            });
+
+        }).catch(function(result){
+
+            return result;
+        });
+    }
 };

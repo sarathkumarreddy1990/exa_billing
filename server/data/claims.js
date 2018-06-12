@@ -2,6 +2,15 @@ const { query, SQL } = require('./index');
 
 module.exports = {
 
+    getKeys: async function () {
+        const sql = SQL`SELECT * FROM
+         ( 
+             SELECT json_array_elements(web_config) AS info from sites)AS info_tab 
+            WHERE info->>'id' IN('insPokitdok' , 'pokitdok_client_id' , 'pokitdok_client_secret') `;
+
+        return await query(sql);
+    },
+
     getLineItemsDetails: async function (params) {
 
         const studyIds = params.study_ids.split('~').map(Number);
@@ -112,6 +121,7 @@ module.exports = {
                             , ip.insurance_info->'State' AS ins_state
                             , ip.insurance_info->'ZipCode' AS ins_zip_code
                             , ip.insurance_info->'Address1' AS ins_pri_address
+                            , ip.insurance_info->'partner_id' AS ins_partner_id
                             , pi.coverage_level
                             , pi.subscriber_relationship_id   
                             , pi.valid_to_date
@@ -135,8 +145,14 @@ module.exports = {
                             , pi.subscriber_state
                             , pi.subscriber_zipcode
                             , pi.assign_benefits_to_patient
+                            , f.facility_info -> 'npino' as npi_no
+                            , f.facility_info -> 'federal_tax_id' as federal_tax_id
+                            , f.facility_info -> 'enable_insurance_eligibility' as enable_insurance_eligibility
+                            , f.facility_info -> 'enable_insurance_eligibility' as enable_insurance_eligibility
                         FROM public.patient_insurances pi
-                        INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id                                  
+                        INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id                                                          
+                        LEFT JOIN public.patients p ON p.id= pi.patient_id
+                        LEFT JOIN public.facilities f ON p.facility_id = f.id
                         WHERE 
                             pi.patient_id = ${params.patient_id}
                         ORDER BY pi.id asc `;
@@ -182,7 +198,7 @@ module.exports = {
                             , pi.subscriber_zipcode
                             , pi.assign_benefits_to_patient
                            FROM public.patient_insurances pi
-                           INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id                                   
+                           INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id                             
                            WHERE 
                                 pi.id = ${id}  `;
 
@@ -1032,5 +1048,13 @@ module.exports = {
         RETURNING id    `;
 
         return await query(sqlQry);
-    }    
+    },
+
+    getFolderPath: async(params) => {
+
+        let sqlQry = SQL`
+        SELECT account_no, facility_info->'pokitdok_response' as filepath from public.patients p INNER JOIN public.facilities f on f.id = p.facility_id where p.id = ${params.patient_id} `;
+
+        return await query(sqlQry);
+    }
 };
