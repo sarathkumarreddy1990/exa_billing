@@ -2,228 +2,196 @@
     #divDatePeriod label {
         display: inline;
     }
+
+    #root {
+        margin-top: 60px;
+    }
 </style>
-<form class="form-horizontal form-list">
+<form id="formBillingProviders" class="form-horizontals">
     <div class="tabbable flex-parent-vert">
-        <div class="tab-content row" id="divTabContent">
-            <!-- Payments Tab-->
-            <div class="tab-pane active" id="divPayments">
-                <div id="search-formPayment" class="form-inline" style="margin-bottom:10px;">
-                    <div class="row" style="margin-left: 0;">
-                        <div class="col-sm">
-                            <div class="col-form-label">
-                                <label for="txtPaymentFromDate" class="control-labels" i18n="setup.studyFilters.dateFrom"></label>
-                            </div>
-                            <div class="col-form-content" style="text-align: right;">
-                                <!-- <div id="divPaymentFromDate" class="input-group">
-                                                <span class="input-group-addon add-on">  <span class="icon-ic-schedule"></span> </span>
-                                                <input type="date" id="txtPaymentFromDate" class="form-control form-control-date maskDateLocale" required="required" name="paymentFromDate">
-                                                <input type="date" id="txtPaymentToDate" class="form-control form-control-date maskDateLocale" name="paymentToDate">
-                                            </div> -->
-                                <div id="divPaymentFromDate" class="input-group">
-                                    <span class="input-group-addon add-on">
-                                        <span class="icon-ic-schedule"></span>
-                                    </span>
-                                    <input type="text" id="txtPaymentFromDate" class="form-control form-control-date maskDateLocale" required="required" name="paymentFromDate">
-                                </div>
-                                <div id="divPaymentToDate" class="input-group">
-                                    <span class="input-group-addon add-on"> <span class="icon-ic-schedule"></span> </span>
-                                    <input type="text" id="txtPaymentToDate" class="form-control form-control-date maskDateLocale" name="paymentToDate">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-sm">
-                            <div class="col-form-label" style="width: 150px;    margin-top: 30px;">
-                                <input type="radio" name="filterByDateType" value="accounting_date" id="filterByAccountingDt">
-                                <label class="inline field-chk" for="filterByAccountingDt" i18n="billing.payments.accountingDate"></label>
-                            </div>
-                            <div class="col-form-label">
-                                <input type="radio" name="filterByDateType" value="payment_date" id="filterByPostingDt" checked="checked">
-                                <label class="inline field-chk" for="filterByPostingDt" i18n="billing.payments.paymentDate"></label>
-                            </div>
-                        </div>
-                        <div class="col-sm">
-                            <div class="col-form-label" id='divDatePeriod' style="margin-left: 10px;">
-                                <div class="col-form-label" style="width: 150px;">
-                                    <label for="ulPaymentStatus" class="control-labels" i18n="billing.payments.paymentStatus"></label>
-                                </div>
-                                <div class="col-form-label">
-                                    <select id="ulPaymentStatus" class="multiselect" multiple="multiple" maxHeight=5>
-                                        <% _.each(paymentStatus, function(status) { %>
-                                            <option value="<%= status.value %>">
-                                                <%= status.text %>
-                                            </option>
-                                            <% }); %>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row" style="float: right;">
-                            <div class="BillingBtnGroup" style="text-align: center;">
-                                <input type="button" value="Search" id="btnStatusSearch" i18n="shared.buttons.search" class="btn btn-primary">
-                                <input type="button" value="Add New" id="btnPaymentAdd" i18n="shared.buttons.addNew" class="btn btn-danger addnew">
-                                <input type="button" value="Refresh" id="btnPaymentRefresh" i18n="shared.buttons.refresh" class="btn btn-primary">
-                                <input type="button" value="Export To Excel" i18n="report.reportFilter.exportToExel" id="btnGenerateExcel" class="btn btn-primary"
-                                    autocomplete="off">
-                                <input type="button" value="Generate PDF" class="btn btn-primary" i18n="report.reportFilter.generatePDF" id="btnGeneratePDF">
-                            </div>
-                        </div>
+        <div class="row">
+            <div class="col">
+                <div class="col-form-label">
+                    <label for="txtPaymentFromDate" class="control-labels" i18n="setup.studyFilters.dateFrom"></label>
+                </div>
+                <div class="col-form-content" style="text-align: right;">
+                    <div id="divPaymentFromDate" class="input-group">
+                        <span class="input-group-addon add-on">
+                            <span class="icon-ic-schedule"></span>
+                        </span>
+                        <input type="text" id="txtPaymentFromDate" class="form-control form-control-date maskDateLocale" required="required" name="paymentFromDate">
                     </div>
-                    <div>
-                        <div class="col-xs-12" id="payementsFilter" style="margin-bottom: 10px;">
-                            <!-- 3rd column end -->
-                            <div class="col-xs-6 col-md-6 col-lg-6">
-                                <div class="row" style="text-align: center;">
-                                    <div class="col-xs-4 col-md-4 col-lg-4">
-                                        <div class="form-group form-inline" style="margin-left: 10px">
-                                            <div class="col-form-label text-center" style="width: 200px">
-                                                <label for="ddlPaymentFacility" class="control-labels" i18n="Payment Amount Total"></label>
-                                            </div>
-                                            <div id="divAmountTotal" class="text-center"></div>
-                                        </div>
-                                    </div>
-                                    <div class="col-xs-4 col-md-4 col-lg-4">
-                                        <div class="form-group form-inline">
-                                            <div class="col-form-label text-center" style="width: 200px">
-                                                <label for="ddlPaymentFacility" class="control-labels" i18n="Applied Amount Total"></label>
-                                            </div>
-                                            <div id="divAppliedTotal" class="text-center"></div>
-                                        </div>
-                                    </div>
-                                    <div class="col-xs-4 col-md-4 col-lg-4">
-                                        <div class="form-group form-inline">
-                                            <div class="col-form-label text-center" style="width: 200px">
-                                                <label for="ddlPaymentFacility" class="control-labels" i18n="Adjustment Amount Total"></label>
-                                            </div>
-                                            <div id="divAdjTotal" class="text-center"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="showColor" class="lightDivBackGroundColor" style="border:1px solid #B0B2B4;background-color: #f8f8f8;display:none;">
-                            <div style="margin:10px">
-                                <div>
-                                    <span class="applied" style="width: 30px; height: 15px; display:inline-block;;border: 1px solid #F1EFFD;"></span>
-                                    <span style="margin-left:20px;font-weight: bold;" i18n="billing.payments.applied"></span>
-                                </div>
-                                <div>
-                                    <span class="unApplied" style="width: 30px; height: 15px; display:inline-block;;border: 1px solid #F1EFFD;"></span>
-                                    <span style="margin-left:20px;font-weight: bold;" i18n="billing.payments.unapplied"></span>
-                                </div>
-                                <div>
-                                    <span class="partialApplied" style="width: 30px; height: 15px; display:inline-block;border: 1px solid #F1EFFD;"></span>
-                                    <span style="margin-left:20px;font-weight: bold;" i18n="billings.payments.partialApplied"></span>
-                                </div>
-                                <div>
-                                    <span class="overApplied" style="width: 30px; height: 15px; display:inline-block; border: 1px solid #EADAEE;"></span>
-                                    <span style="margin-left:20px;font-weight: bold;" i18n="billings.payments.overApplied"></span>
-                                </div>
-                                <div>
-                                    <span class="refund" style="width: 30px; height: 15px; display:inline-block;border: 1px solid #FFF3F3;"></span>
-                                    <span style="margin-left:20px;font-weight: bold;" i18n="billings.paymetns.refund"></span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-xs-12">
-                            <div class='Grid' id='divGrid_payments'>
-                                <table id="tblpaymentsGrid"></table>
-                                <div id="gridPager_payments"></div>
-                            </div>
-
-                            <div class='Form' id='divForm_payments'>
-                            </div>
-                        </div>
+                    <div id="divPaymentToDate" class="input-group">
+                        <span class="input-group-addon add-on">
+                            <span class="icon-ic-schedule"></span>
+                        </span>
+                        <input type="text" id="txtPaymentToDate" class="form-control form-control-date maskDateLocale" name="paymentToDate">
                     </div>
                 </div>
-
-                <div id="divForReportIframe" style="display: none; box-shadow: inset -7px 0 9px -7px rgba(0,0,0,0.4);overflow: auto;">
-                    <div class="row">
-                        <div class="col-sm-12 col-md-12 col-lg-12" style="margin-top: 10px !important;">
-                            <h5>
-                                <input type="button" style="float: right; margin-right: 10px !important;" value="Back" id="btnBackReport" class="btn btn-primary"
-                                    i18n="shared.buttons.back">
-                                <label style="font-weight: bold; margin-left: 10px !important;" i18n="report.reportFilter.reportPreview"></label>
-                            </h5>
-                            <hr>
-                        </div>
+            </div>
+            <div class="col">
+                <div class="col-form-label" style="margin-top: 30px;">
+                    <input type="radio" name="filterByDateType" value="accounting_date" id="filterByAccountingDt">
+                    <label class="inline field-chk" for="filterByAccountingDt" i18n="billing.payments.accountingDate"></label>
+                </div>
+                <div class="col-form-label">
+                    <input type="radio" name="filterByDateType" value="payment_date" id="filterByPostingDt" checked="checked">
+                    <label class="inline field-chk" for="filterByPostingDt" i18n="billing.payments.paymentDate"></label>
+                </div>
+            </div>
+            <div class="col">
+                <div class="col-form-label" id='divDatePeriod' style="margin-left: 10px;">
+                    <div class="col-form-label" style="width: 150px;">
+                        <label for="ulPaymentStatus" class="control-labels" i18n="billing.payments.paymentStatus"></label>
                     </div>
-                    <div class="col-sm-12 col-md-12 col-lg-12" id="divReportResult" style="overflow: auto;">
-                        <iframe id="ifrPaymentReport" style="width: 99%;"></iframe>
+                    <div class="col-form-label">
+                        <select id="ulPaymentStatus" class="multiselect" multiple="multiple" maxHeight=5>
+                            <% _.each(paymentStatus, function(status) { %>
+                                <option value="<%= status.value %>">
+                                    <%= status.text %>
+                                </option>
+                                <% }); %>
+                        </select>
                     </div>
                 </div>
             </div>
 
-            <!-- Pending Payments Tab-->
-            <div class="tab-pane" id="divPendPayments">
-                <div id="search-formPendingPayments" class="form-inline" style="margin-bottom:10px;">
-                    <div>
-                        <div class="col-xs-12">
-                            <div class="col-xs-2">
-                                <div class="form-group form-inline">
-                                    <div class="col-form-label">
-                                        <label for="txtPendPaymentFromDate" i18n="setup.studyFilters.dateFrom"></label>
-                                    </div>
-                                    <div id="divPendPaymentFromDate" class="input-group">
-                                        <input type="text" id="txtPendPaymentFromDate" class="form-control form-control-date maskDateLocale" name="paymentFromDate">
-                                        <span class="input-group-addon add-on">
-                                            <span class="icon-ic-schedule"></span>
-                                        </span>
-                                    </div>
-                                </div>
+            <div class="row" style="float: right;">
+                <div class="BillingBtnGroup" style="text-align: center;">
+                    <input type="button" value="Search" id="btnStatusSearch" i18n="shared.buttons.search" class="btn btn-primary">
+                    <input type="button" value="Add New" id="btnPaymentAdd" i18n="shared.buttons.addNew" class="btn btn-danger addnew">
+                    <input type="button" value="Refresh" id="btnPaymentRefresh" i18n="shared.buttons.refresh" class="btn btn-primary">
+                    <button type="button" class="btn btn-primary" id="btnGenerateExcel" i18n="shared.buttons.export" i18n="report.reportFilter.exportToExel"
+                        data-rformat="xlsx">
+                        <i class="fa fa-file-excel-o"></i> Export</button>
+                    <button type="button" class="btn btn-primary" id="btnGeneratePDF" i18n="shared.buttons.generatepdf" i18n="report.reportFilter.generatepdf"
+                        data-rformat="pdf">
+                        <i class="fa fa-file-excel-o"></i> Generate PDF </button>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="col-xs-12" id="payementsFilter" style="margin-bottom: 10px;">
+                <!-- 3rd column end -->
+                <div class="row" style="text-align: center;">
+                    <div class="col-xs-4 col-md-4 col-lg-4">
+                        <div class="form-group form-inline" style="margin-left: 10px">
+                            <div class="col-form-label text-center" style="width: 200px">
+                                <label for="ddlPaymentFacility" class="control-labels" i18n="Payment Amount Total"></label>
                             </div>
-                            <div class="col-xs-2">
-                                <div class="form-group form-inline">
-                                    <div class="col-form-label">
-                                        <label for="txtPendPaymentToDate" i18n="setup.studyFilters.dateTo"></label>
-                                    </div>
-                                    <div id="divPendPaymentToDate" class="input-group">
-                                        <input type="text" id="txtPendPaymentToDate" class="form-control form-control-date maskDateLocale">
-                                        <span class="input-group-addon add-on">
-                                            <span class="icon-ic-schedule"></span>
-                                        </span>
-                                    </div>
-                                </div>
+                            <div id="divAmountTotal" class="text-center"></div>
+                        </div>
+                    </div>
+                    <div class="col-xs-4 col-md-4 col-lg-4">
+                        <div class="form-group form-inline">
+                            <div class="col-form-label text-center" style="width: 200px">
+                                <label for="ddlPaymentFacility" class="control-labels" i18n="Applied Amount Total"></label>
                             </div>
-                            <div class="col-xs-3">
-                                <div class="form-group form-inline">
-                                    <div class="col-form-label">
-                                        <label for="ddlPendPaymentFacility" i18n="shared.fields.facility"></label>
-                                    </div>
-                                    <select id="ddlPendPaymentFacility" class="form-control">
-                                        <% _.each(facilityList, function(facility) { %>
-                                            <option value="<%= facility.id %>">
-                                                <%= facility.text %>
-                                            </option>
-                                            <% }); %>
-                                    </select>
-                                </div>
+                            <div id="divAppliedTotal" class="text-center"></div>
+                        </div>
+                    </div>
+                    <div class="col-xs-4 col-md-4 col-lg-4">
+                        <div class="form-group form-inline">
+                            <div class="col-form-label text-center" style="width: 200px">
+                                <label for="ddlPaymentFacility" class="control-labels" i18n="Adjustment Amount Total"></label>
                             </div>
-                            <div class="col-xs-5">
-                                <div class="BillingBtnGroup form-group form-inline">
-                                    <input type="button" value="Search" id="btnPendStatusSearch" i18n="shared.buttons.search" class="btn btn-primary">
-                                    <input type="button" value="Refresh" id="btnPendPaymentRefresh" i18n="shared.buttons.refresh" class="btn btn-primary">
+                            <div id="divAdjTotal" class="text-center"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-12">
+                <div class='Grid' id='divGrid_payments'>
+                    <table id="tblpaymentsGrid"></table>
+                    <div id="gridPager_payments"></div>
+                </div>
+
+                <div class='Form' id='divForm_payments'>
+                </div>
+            </div>
+        </div>
+
+        <div id="divForReportIframe" style="display: none; box-shadow: inset -7px 0 9px -7px rgba(0,0,0,0.4);overflow: auto;">
+            <div class="row">
+                <div class="col-sm-12 col-md-12 col-lg-12" style="margin-top: 10px !important;">
+                    <h5>
+                        <input type="button" style="float: right; margin-right: 10px !important;" value="Back" id="btnBackReport" class="btn btn-primary"
+                            i18n="shared.buttons.back">
+                        <label style="font-weight: bold; margin-left: 10px !important;" i18n="report.reportFilter.reportPreview"></label>
+                    </h5>
+                    <hr>
+                </div>
+            </div>
+            <div class="col-sm-12 col-md-12 col-lg-12" id="divReportResult" style="overflow: auto;">
+                <iframe id="ifrPaymentReport" style="width: 99%;"></iframe>
+            </div>
+        </div>
+
+        <!-- Pending Payments Tab-->
+        <div class="tab-pane" id="divPendPayments">
+            <div id="search-formPendingPayments" class="form-inline" style="margin-bottom:10px;">
+                <div>
+                    <div class="col-xs-12">
+                        <div class="col-xs-2">
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    <label for="txtPendPaymentFromDate" i18n="setup.studyFilters.dateFrom"></label>
+                                </div>
+                                <div id="divPendPaymentFromDate" class="input-group">
+                                    <input type="text" id="txtPendPaymentFromDate" class="form-control form-control-date maskDateLocale" name="paymentFromDate">
+                                    <span class="input-group-addon add-on">
+                                        <span class="icon-ic-schedule"></span>
+                                    </span>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-xs-12" style="margin-top: 10px !important;">
-                            <div class='Grid' id='divGrid_pendPayments'>
-                                <table id="tblpendPaymentsGrid"></table>
-                                <div id="gridPager_pendPayments"></div>
-                                <div id="pendPaymentsBalSummary" align="center" style="margin-top:10px;">
-                                    <table id="tblPendPaymentBal" class="table table-bordered" style="width:50%!important;">
-
-                                    </table>
+                        <div class="col-xs-2">
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    <label for="txtPendPaymentToDate" i18n="setup.studyFilters.dateTo"></label>
                                 </div>
+                                <div id="divPendPaymentToDate" class="input-group">
+                                    <input type="text" id="txtPendPaymentToDate" class="form-control form-control-date maskDateLocale">
+                                    <span class="input-group-addon add-on">
+                                        <span class="icon-ic-schedule"></span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xs-3">
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    <label for="ddlPendPaymentFacility" i18n="shared.fields.facility"></label>
+                                </div>
+                                <select id="ddlPendPaymentFacility" class="form-control">
+                                    <% _.each(facilityList, function(facility) { %>
+                                        <option value="<%= facility.id %>">
+                                            <%= facility.text %>
+                                        </option>
+                                        <% }); %>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-xs-5">
+                            <div class="BillingBtnGroup form-group form-inline">
+                                <input type="button" value="Search" id="btnPendStatusSearch" i18n="shared.buttons.search" class="btn btn-primary">
+                                <input type="button" value="Refresh" id="btnPendPaymentRefresh" i18n="shared.buttons.refresh" class="btn btn-primary">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-12" style="margin-top: 10px !important;">
+                        <div class='Grid' id='divGrid_pendPayments'>
+                            <table id="tblpendPaymentsGrid"></table>
+                            <div id="gridPager_pendPayments"></div>
+                            <div id="pendPaymentsBalSummary" align="center" style="margin-top:10px;">
+                                <table id="tblPendPaymentBal" class="table table-bordered" style="width:50%!important;">
+
+                                </table>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="col-xs-12 form-top-padding" id="divReadyToValidateReport" style="overflow: auto;display:none">
-        <iframe id="ifrReadyToValidateReport" frameBorder="0" style="width: 99%;height: 98%;"></iframe>
     </div>
 </form>

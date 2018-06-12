@@ -351,6 +351,7 @@ module.exports = {
                                                           , service_by_outside_lab
                                                           , payer_type
                                                           , claim_status_id
+                                                          , rendering_provider_contact_id
                                                           , primary_patient_insurance_id
                                                           , secondary_patient_insurance_id
                                                           , tertiary_patient_insurance_id
@@ -386,6 +387,7 @@ module.exports = {
                                                             , ${claims.service_by_outside_lab}
                                                             , ${claims.payer_type}
                                                             , ${claims.claim_status_id}
+                                                            , ${claims.rendering_provider_contact_id}::bigint                     
                                                             , (SELECT id FROM save_patient_insurances WHERE coverage_level = 'primary')
                                                             , (SELECT id FROM save_patient_insurances WHERE coverage_level = 'secondary')
                                                             , (SELECT id FROM save_patient_insurances WHERE coverage_level = 'tertiary')

@@ -125,7 +125,7 @@
             <div class="col-lg-6">
                 <div class="form-group row">
                     <label for="txtClaimDate" class="col-sm-3 col-form-label field-required" i18n="billing.claims.claimDate"></label>
-                    <div class="col-sm-5">
+                    <div class="col-sm-3">
                         <input type="date" class="form-control maskDateLocale" id="txtClaimDate" name="ClaimDate">
                     </div>
                 </div>
@@ -149,28 +149,28 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="ddlRenderingProvider" class="col-sm-3 col-form-label field-required" i18n="billing.claims.renderingProvider"></label>
+                    <label for="ddlRenderingProvider" class="col-sm-3 col-form-label" i18n="billing.claims.renderingProvider"></label>
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlRenderingProvider">
                         </select>
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="ddlReferringProvider" class="col-sm-3 col-form-label field-required" i18n="billing.claims.referringProvider"></label>
+                    <label for="ddlReferringProvider" class="col-sm-3 col-form-label" i18n="billing.claims.referringProvider"></label>
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlReferringProvider">
                         </select>
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="ddlOrdFacility" class="col-sm-3 col-form-label field-required" i18n="billing.claims.serviceFacitlity"></label>
+                    <label for="ddlOrdFacility" class="col-sm-3 col-form-label" i18n="billing.claims.serviceFacitlity"></label>
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlOrdFacility">
                         </select>
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="ddlPOSType" class="col-sm-3 col-form-label field-required" i18n="billing.claims.posType"></label>
+                    <label for="ddlPOSType" class="col-sm-3 col-form-label" i18n="billing.claims.posType"></label>
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlPOSType" style="height:32px;">
                             <option value='0'>Select</option>
@@ -180,7 +180,7 @@
             </div>
             <div class="col-lg-6">
                 <div class="form-group row">
-                    <label for="ddlMultipleDiagCodes" class="col-sm-3 col-form-label field-required" i18n="billing.claims.diagnosticsCodes"></label>
+                    <label for="ddlMultipleDiagCodes" class="col-sm-3 col-form-label" i18n="billing.claims.diagnosticsCodes"></label>
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlMultipleDiagCodes">
                             <option value='0'>Select</option>
@@ -201,15 +201,6 @@
     </section>
     <section id="tab_3">
         <div class="row" id="divInsurances" style="margin-top:10px;">
-            <div class="col-lg-12">
-                <div class="form-group row">
-                    <legend>
-                        <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
-                            <label i18n="billing.claims.insurance"></label>
-                        </h5>
-                    </legend>
-                </div>
-            </div>
             <div class="col-lg-6">
                 <div class="form-group row">
                     <legend style="width:98%;">
@@ -220,7 +211,7 @@
                     </legend>
                 </div>
                 <div class="form-group row">
-                    <label for="ddlExistPriIns" class="col-sm-3 col-form-label field-required" i18n="billing.claims.existingInsurances"></label>
+                    <label for="ddlExistPriIns" class="col-sm-3 col-form-label" i18n="billing.claims.existingInsurances"></label>
                     <div class="col-sm-4">
                         <select class="form-control select-box" id="ddlExistPriIns" style="height:32px;">
                             <option value='0'>Select</option>
@@ -234,7 +225,7 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="ddlPriInsurance" class="col-sm-3 col-form-label field-required" i18n="billing.claims.carrier"></label>
+                    <label for="ddlPriInsurance" class="col-sm-3 col-form-label" i18n="billing.claims.carrier"></label>
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlPriInsurance" name="priInsurance">
                         </select>
@@ -246,31 +237,19 @@
                 <div class="form-group row">
                     <label for="txtPriPolicyNo" class="col-sm-3 col-form-label field-required" i18n="billing.claims.policyNo"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtPriPolicyNo">
+                        <input type="text" class="form-control" id="txtPriPolicyNo" placeholder="PolicyNo">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="txtPriGroupNo" class="col-sm-3 col-form-label field-required" i18n="billing.claims.groupNo"></label>
+                    <label for="txtPriGroupNo" class="col-sm-3 col-form-label" i18n="billing.claims.groupNo"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtPriGroupNo">
+                        <input type="text" class="form-control" id="txtPriGroupNo" placeholder="Group No">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="ddlPriPlanName" class="col-sm-3 col-form-label field-required" i18n="billing.claims.planName"></label>
+                    <label for="ddlPriPlanName" class="col-sm-3 col-form-label" i18n="billing.claims.planName"></label>
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlPriPlanName" style="height:32px;">
-                            <% _.each(planname, function(plan) { %>
-                                <option value='<%= plan.value %>'>
-                                    <%= plan.text %>
-                                </option>
-                                <% }); %>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label for="ddlPriEmpStatus" class="col-sm-3 col-form-label field-required" i18n="billing.claims.employeeStatus"></label>
-                    <div class="col-sm-5">
-                        <select class="form-control select-box" id="ddlPriEmpStatus" style="height:32px;">
                             <% _.each(planname, function(plan) { %>
                                 <option value='<%= plan.value %>'>
                                     <%= plan.text %>
@@ -307,7 +286,7 @@
                 </div>
                 <div class="form-group row">
                     <label for="txtPriDOB" class="col-sm-3 col-form-label field-required" i18n="billing.claims.dob"></label>
-                    <div class="col-sm-5">
+                    <div class="col-sm-3">
                         <input type="date" class="form-control maskDateLocale" name="dob1" id="txtPriDOB" placeholder="Date of Birth">
                     </div>
                 </div>
@@ -326,19 +305,19 @@
                 <div class="form-group row">
                     <label for="txtPriSubPriAddr" class="col-sm-3 col-form-label field-required" i18n="billing.claims.addressline1"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtPriSubPriAddr">
+                        <input type="text" class="form-control" id="txtPriSubPriAddr" placeholder="Address Line1">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="txtPriSubSecAddr" class="col-sm-3 col-form-label field-required" i18n="billing.claims.addressline2"></label>
+                    <label for="txtPriSubSecAddr" class="col-sm-3 col-form-label" i18n="billing.claims.addressline2"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtPriSubSecAddr">
+                        <input type="text" class="form-control" id="txtPriSubSecAddr" placeholder="Address Line2">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="txtPriCity" class="col-sm-3 col-form-label" i18n="setup.billingprovider.citystatezip"></label>
+                    <label for="txtPriCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.citystatezip"></label>
                     <div class="col-sm-3">
-                        <input type="text" class="form-control" id="txtPriCity" name="payCity">
+                        <input type="text" class="form-control" id="txtPriCity" name="payCity" placeholder="City">
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
                         <select id="ddlPriState" class="form-control" style="height:32px;">
@@ -352,7 +331,20 @@
                         </select>
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
-                        <input type="text" class="form-control" id="txtPriZipCode">
+                        <input type="text" class="form-control" id="txtPriZipCode" placeholder="ZipCode">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlPriEmpStatus" class="col-sm-3 col-form-label field-required" i18n="billing.claims.employeeStatus"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlPriEmpStatus" style="height:32px;">
+                            <option value=''>Select</option>
+                            <% _.each(empStatus, function(empStatus) { %>
+                                <option value='<%= empStatus.id %>'>
+                                    <%= empStatus.description %>
+                                </option>
+                                <% }); %>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -366,7 +358,7 @@
                     </legend>
                 </div>
                 <div class="form-group row">
-                    <label for="ddlExistSecIns" class="col-sm-3 col-form-label field-required" i18n="billing.claims.existingInsurances"></label>
+                    <label for="ddlExistSecIns" class="col-sm-3 col-form-label" i18n="billing.claims.existingInsurances"></label>
                     <div class="col-sm-4">
                         <select class="form-control select-box" id="ddlExistSecIns" style="height:32px;">
                             <option value='0'>Select</option>
@@ -401,7 +393,7 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="ddlSecInsurance" class="col-sm-3 col-form-label field-required" i18n="billing.claims.carrier"></label>
+                    <label for="ddlSecInsurance" class="col-sm-3 col-form-label" i18n="billing.claims.carrier"></label>
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlSecInsurance" name="secInsurance" style="height:32px;">
                         </select>
@@ -413,31 +405,19 @@
                 <div class="form-group row">
                     <label for="txtSecPolicyNo" class="col-sm-3 col-form-label field-required" i18n="billing.claims.policyNo"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtSecPolicyNo">
+                        <input type="text" class="form-control" id="txtSecPolicyNo" placeholder="PolicyNo">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="txtSecGroupNo" class="col-sm-3 col-form-label field-required" i18n="billing.claims.groupNo"></label>
+                    <label for="txtSecGroupNo" class="col-sm-3 col-form-label" i18n="billing.claims.groupNo"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtSecGroupNo">
+                        <input type="text" class="form-control" id="txtSecGroupNo" placeholder="Group No">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="ddlSecPlanName" class="col-sm-3 col-form-label field-required" i18n="billing.claims.planName"></label>
+                    <label for="ddlSecPlanName" class="col-sm-3 col-form-label" i18n="billing.claims.planName"></label>
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlSecPlanName" style="height:32px;">
-                            <% _.each(planname, function(plan) { %>
-                                <option value='<%= plan.value %>'>
-                                    <%= plan.text %>
-                                </option>
-                                <% }); %>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label for="ddlSecEmpStatus" class="col-sm-3 col-form-label field-required" i18n="billing.claims.employeeStatus"></label>
-                    <div class="col-sm-5">
-                        <select class="form-control select-box" id="ddlSecEmpStatus" style="height:32px;">
                             <% _.each(planname, function(plan) { %>
                                 <option value='<%= plan.value %>'>
                                     <%= plan.text %>
@@ -474,7 +454,7 @@
                 </div>
                 <div class="form-group row">
                     <label for="txtSecDOB" class="col-sm-3 col-form-label field-required" i18n="billing.claims.dob"></label>
-                    <div class="col-sm-5">
+                    <div class="col-sm-3">
                         <input type="date" class="form-control maskDateLocale" name="dob2" id="txtSecDOB" placeholder="Date of Birth">
                     </div>
                 </div>
@@ -491,21 +471,21 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="txtSecSubSecAddr" class="col-sm-3 col-form-label field-required" i18n="billing.claims.addressline1"></label>
+                    <label for="txtSecSubPriAddr" class="col-sm-3 col-form-label field-required" i18n="billing.claims.addressline1"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtSecSubSecAddr">
+                        <input type="text" class="form-control" id="txtSecSubPriAddr" placeholder="Address Line1">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="txtPriSubSecAddr" class="col-sm-3 col-form-label field-required" i18n="billing.claims.addressline2"></label>
+                    <label for="txtSecSubSecAddr" class="col-sm-3 col-form-label" i18n="billing.claims.addressline2"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtPriSubSecAddr">
+                        <input type="text" class="form-control" id="txtSecSubSecAddr" placeholder="Address Line2">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="txtSecCity" class="col-sm-3 col-form-label" i18n="setup.billingprovider.citystatezip"></label>
+                    <label for="txtSecCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.citystatezip"></label>
                     <div class="col-sm-3">
-                        <input type="text" class="form-control" id="txtSecCity" name="payCity">
+                        <input type="text" class="form-control" id="txtSecCity" name="payCity" placeholder="City">
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
                         <select id="ddlSecState" class="form-control" style="height:32px;">
@@ -519,7 +499,20 @@
                         </select>
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
-                        <input type="text" class="form-control" id="txtSecZipCode">
+                        <input type="text" class="form-control" id="txtSecZipCode" placeholder="ZipCode">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlSecEmpStatus" class="col-sm-3 col-form-label field-required" i18n="billing.claims.employeeStatus"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlSecEmpStatus" style="height:32px;">
+                            <option value=''>Select</option>
+                            <% _.each(empStatus, function(empStatus) { %>
+                                <option value='<%= empStatus.id %>'>
+                                    <%= empStatus.description %>
+                                </option>
+                                <% }); %>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -537,7 +530,7 @@
             </div>
             <div class="col-lg-6">
                 <div class="form-group row">
-                    <label for="ddlExistTerIns" class="col-sm-3 col-form-label field-required" i18n="billing.claims.existingInsurances"></label>
+                    <label for="ddlExistTerIns" class="col-sm-3 col-form-label" i18n="billing.claims.existingInsurances"></label>
                     <div class="col-sm-4">
                         <select class="form-control select-box" id="ddlExistTerIns" style="height:32px;">
                             <option value='0'>Select</option>
@@ -551,7 +544,7 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="ddlTerInsurance" class="col-sm-3 col-form-label field-required" i18n="billing.claims.carrier"></label>
+                    <label for="ddlTerInsurance" class="col-sm-3 col-form-label" i18n="billing.claims.carrier"></label>
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlTerInsurance" name="priInsurance">
                         </select>
@@ -563,31 +556,19 @@
                 <div class="form-group row">
                     <label for="txtTerPolicyNo" class="col-sm-3 col-form-label field-required" i18n="billing.claims.policyNo"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtTerPolicyNo">
+                        <input type="text" class="form-control" id="txtTerPolicyNo" placeholder="Policy No">
                     </div>
                 </div>
                 <div class="form-group row">
                     <label for="txtTerGroupNo" class="col-sm-3 col-form-label field-required" i18n="billing.claims.groupNo"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtTerGroupNo">
+                        <input type="text" class="form-control" id="txtTerGroupNo" placeholder="Group No">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="ddlTerPlanName" class="col-sm-3 col-form-label field-required" i18n="billing.claims.planName"></label>
+                    <label for="ddlTerPlanName" class="col-sm-3 col-form-label" i18n="billing.claims.planName"></label>
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlTerPlanName" style="height:32px;">
-                            <% _.each(planname, function(plan) { %>
-                                <option value='<%= plan.value %>'>
-                                    <%= plan.text %>
-                                </option>
-                                <% }); %>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label for="ddlTerEmpStatus" class="col-sm-3 col-form-label field-required" i18n="billing.claims.employeeStatus"></label>
-                    <div class="col-sm-5">
-                        <select class="form-control select-box" id="ddlTerEmpStatus" style="height:32px;">
                             <% _.each(planname, function(plan) { %>
                                 <option value='<%= plan.value %>'>
                                     <%= plan.text %>
@@ -624,8 +605,8 @@
                 </div>
                 <div class="form-group row">
                     <label for="divTerDOBDate" class="col-sm-3 col-form-label field-required" i18n="billing.claims.dob"></label>
-                    <div class="col-sm-5">
-                        <input type="date" class="form-control maskDateLocale" name="dob3" id="divTerDOBDate" placeholder="Date of Birth">
+                    <div class="col-sm-3">
+                        <input type="date" class="form-control maskDateLocale" name="dob3" id="txtTerDOB" placeholder="Date of Birth">
                     </div>
                 </div>
                 <div class="form-group row">
@@ -643,19 +624,19 @@
                 <div class="form-group row">
                     <label for="txtTerSubPriAddr" class="col-sm-3 col-form-label field-required" i18n="billing.claims.addressline1"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtTerSubPriAddr">
+                        <input type="text" class="form-control" id="txtTerSubPriAddr" placeholder="Address Line1">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="txtTerSubSecAddr" class="col-sm-3 col-form-label field-required" i18n="billing.claims.addressline2"></label>
+                    <label for="txtTerSubSecAddr" class="col-sm-3 col-form-label" i18n="billing.claims.addressline2"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtTerSubSecAddr">
+                        <input type="text" class="form-control" id="txtTerSubSecAddr" placeholder="Address Line2">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="txtTerCity" class="col-sm-3 col-form-label" i18n="setup.billingprovider.citystatezip"></label>
+                    <label for="txtTerCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.citystatezip"></label>
                     <div class="col-sm-3">
-                        <input type="text" class="form-control" id="txtTerCity" name="payCity">
+                        <input type="text" class="form-control" id="txtTerCity" name="payCity" placeholder="City">
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
                         <select id="ddlTerState" class="form-control" style="height:32px;">
@@ -669,7 +650,20 @@
                         </select>
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
-                        <input type="text" class="form-control" id="txtTerZipCode">
+                        <input type="text" class="form-control" id="txtTerZipCode" placeholder="ZipCode">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlTerEmpStatus" class="col-sm-3 col-form-label field-required" i18n="billing.claims.employeeStatus"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlTerEmpStatus" style="height:32px;">
+                            <option value=''>Select</option>
+                            <% _.each(empStatus, function(empStatus) { %>
+                                <option value='<%= empStatus.id %>'>
+                                    <%= empStatus.description %>
+                                </option>
+                                <% }); %>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -716,14 +710,14 @@
                 </div>
             </div>
             <div class="form-group row">
-                <label for="txtDate" class="col-sm-3 col-form-label field-required" i18n="billing.claims.date"></label>
-                <div class="col-sm-5">
+                <label for="txtDate" class="col-sm-3 col-form-label" i18n="billing.claims.date"></label>
+                <div class="col-sm-3">
                     <input type="date" class="form-control maskDateLocale" id="txtDate">
                 </div>
             </div>
             <div class="form-group row">
-                <label for="txtOtherDate" class="col-sm-3 col-form-label field-required" i18n="billing.claims.otherDate"></label>
-                <div class="col-sm-5">
+                <label for="txtOtherDate" class="col-sm-3 col-form-label" i18n="billing.claims.otherDate"></label>
+                <div class="col-sm-3">
                     <input type="date" class="form-control maskDateLocale" id="txtOtherDate">
                 </div>
             </div>
@@ -734,14 +728,14 @@
                 </div>
             </div>
             <div class="form-group row">
-                <label for="txtWCF" class="col-sm-3 col-form-label field-required" i18n="billing.claims.fromDate"></label>
-                <div class="col-sm-5">
+                <label for="txtWCF" class="col-sm-3 col-form-label" i18n="billing.claims.fromDate"></label>
+                <div class="col-sm-3">
                     <input type="date" class="form-control maskDateLocale" id="txtWCF">
                 </div>
             </div>
             <div class="form-group row">
-                <label for="txtWCT" class="col-sm-3 col-form-label field-required" i18n="billing.claims.toDate"></label>
-                <div class="col-sm-5">
+                <label for="txtWCT" class="col-sm-3 col-form-label" i18n="billing.claims.toDate"></label>
+                <div class="col-sm-3">
                     <input type="date" class="form-control maskDateLocale" id="txtWCT">
                 </div>
             </div>
@@ -752,19 +746,19 @@
                 </div>
             </div>
             <div class="form-group row">
-                <label for="txtHCF" class="col-sm-3 col-form-label field-required" i18n="billing.claims.fromDate"></label>
-                <div class="col-sm-5">
+                <label for="txtHCF" class="col-sm-3 col-form-label" i18n="billing.claims.fromDate"></label>
+                <div class="col-sm-3">
                     <input type="date" class="form-control maskDateLocale" id="txtHCF">
                 </div>
             </div>
             <div class="form-group row">
-                <label for="txtHCT" class="col-sm-3 col-form-label field-required" i18n="billing.claims.toDate"></label>
-                <div class="col-sm-5">
+                <label for="txtHCT" class="col-sm-3 col-form-label" i18n="billing.claims.toDate"></label>
+                <div class="col-sm-3">
                     <input type="date" class="form-control maskDateLocale" id="txtHCT">
                 </div>
             </div>
             <div class="form-group row">
-                <label for="txtHCT" class="col-sm-3 col-form-label field-required" i18n="billing.claims.claimNotes"></label>
+                <label for="txtHCT" class="col-sm-3 col-form-label" i18n="billing.claims.claimNotes"></label>
                 <div class="col-sm-5">
                     <textarea id="txtClaimNotes" name="claimNotes" class="form-control form-control-lg"></textarea>
                     <div class="form-check form-check-inline">
@@ -774,19 +768,19 @@
                 </div>
             </div>
             <div class="form-group row">
-                <label for="txtOriginalRef" class="col-sm-3 col-form-label field-required" i18n="billing.claims.originalRef"></label>
+                <label for="txtOriginalRef" class="col-sm-3 col-form-label" i18n="billing.claims.originalRef"></label>
                 <div class="col-sm-5">
-                    <input type="text" class="form-control" id="txtOriginalRef">
+                    <input type="text" class="form-control" id="txtOriginalRef" placeholder="OutsideRef">
                 </div>
             </div>
             <div class="form-group row">
-                <label for="txtAuthorization" class="col-sm-3 col-form-label field-required" i18n="billing.claims.authNo"></label>
+                <label for="txtAuthorization" class="col-sm-3 col-form-label" i18n="billing.claims.authNo"></label>
                 <div class="col-sm-5">
-                    <input type="text" class="form-control" id="txtAuthorization">
+                    <input type="text" class="form-control" id="txtAuthorization" placeholder="Authorization No">
                 </div>
             </div>
             <div class="form-group row">
-                <label for="ddlFrequencyCode" class="col-sm-3 col-form-label field-required" i18n="billing.claims.frequencyCode"></label>
+                <label for="ddlFrequencyCode" class="col-sm-3 col-form-label" i18n="billing.claims.frequencyCode"></label>
                 <div class="col-sm-5">
                     <select class="form-control select-box" id="ddlFrequencyCode" style="height:32px;">
                         <option value="" i18n="shared.buttons.select">Select</option>
@@ -811,25 +805,25 @@
         <div class="form-group row">
             <div class="col-lg-6">
                 <div class="form-group row">
-                    <label for="spBillFee" class="col-sm-3 col-form-label field-required" i18n="billing.claims.billFee"></label>
+                    <label for="spBillFee" class="col-sm-3 col-form-label" i18n="billing.claims.billFee"></label>
                     <div class="col-sm-5">
                         <span id="spBillFee" class="maskFee control-label w70"></span>
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="spPatientPaid" class="col-sm-3 col-form-label field-required" i18n="billing.claims.patientPaid"></label>
+                    <label for="spPatientPaid" class="col-sm-3 col-form-label" i18n="billing.claims.patientPaid"></label>
                     <div class="col-sm-5">
                         <span id="spPatientPaid" class="maskFee control-label w70"></span>
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="spAdjustment" class="col-sm-3 col-form-label field-required" i18n="billing.claims.adjustment"></label>
+                    <label for="spAdjustment" class="col-sm-3 col-form-label" i18n="billing.claims.adjustment"></label>
                     <div class="col-sm-5">
                         <span id="spAdjustment" class="maskFee control-label w70"></span>
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="spBalance" class="col-sm-3 col-form-label field-required" i18n="billing.claims.balance"></label>
+                    <label for="spBalance" class="col-sm-3 col-form-label" i18n="billing.claims.balance"></label>
                     <div class="col-sm-5">
                         <span id="spBalance" class="maskFee control-label w70"></span>
                     </div>
@@ -848,7 +842,7 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="txtResponsibleNotes" class="col-sm-3 col-form-label field-required" i18n="billing.claims.billingNotes"></label>
+                    <label for="txtResponsibleNotes" class="col-sm-3 col-form-label" i18n="billing.claims.billingNotes"></label>
                     <div class="col-sm-5">
                         <textarea id="txtResponsibleNotes" class="form-control form-control-lg" rows="2"></textarea>
                     </div>
@@ -856,25 +850,25 @@
             </div>
             <div class="col-lg-6">
                 <div class="form-group row">
-                    <label for="spAllowed" class="col-sm-3 col-form-label field-required" i18n="billing.claims.allowed"></label>
+                    <label for="spAllowed" class="col-sm-3 col-form-label" i18n="billing.claims.allowed"></label>
                     <div class="col-sm-5">
                         <span id="spAllowed" class="maskFee control-label w70"></span>
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="spOthersPaid" class="col-sm-3 col-form-label field-required" i18n="billing.claims.othersPaid"></label>
+                    <label for="spOthersPaid" class="col-sm-3 col-form-label" i18n="billing.claims.othersPaid"></label>
                     <div class="col-sm-5">
                         <span id="spOthersPaid" class="maskFee control-label w70"></span>
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="spRefund" class="col-sm-3 col-form-label field-required" i18n="billing.claims.refund"></label>
+                    <label for="spRefund" class="col-sm-3 col-form-label" i18n="billing.claims.refund"></label>
                     <div class="col-sm-5">
                         <span id="spRefund" class="maskFee control-label w70"></span>
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="ddlBillingCode" class="col-sm-3 col-form-label field-required" i18n="billing.claims.billingCodes"></label>
+                    <label for="ddlBillingCode" class="col-sm-3 col-form-label" i18n="billing.claims.billingCodes"></label>
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlBillingCode" style="height:32px;">
                             <option value="">Select</option>
@@ -887,7 +881,7 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="ddlBillingClass" class="col-sm-3 col-form-label field-required" i18n="billing.claims.billingClass"></label>
+                    <label for="ddlBillingClass" class="col-sm-3 col-form-label" i18n="billing.claims.billingClass"></label>
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlBillingClass" style="height:32px;">
                             <option value="">Select</option>
@@ -908,7 +902,6 @@
                     </div>
                 </div>
             </div>
-        </div>
         </div>
     </section>
 </main>
