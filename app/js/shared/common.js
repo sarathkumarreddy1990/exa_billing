@@ -10760,7 +10760,8 @@ var facilityModules = {
         monthlyRecap: 'Monthly Recap',
         readingProviderFees: 'Reading Provider Fees',
         transactionSummary: 'Transaction Summary',
-        agedARDetail: 'Aged AR Detail'
+        agedARDetail: 'Aged AR Detail',
+        paymentPDF: 'Payments Received'
     },
     portalRegUsersScreen: {
         regUsers: 'Portal Registered Users'

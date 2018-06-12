@@ -1096,7 +1096,7 @@
         }
     },
     {
-        "id": "monthlyRecap",
+        "id": "monthly-recap",
         "category": "billing",
         "title": "Monthly Recap",
         "description": "Report shows monthly Recap.",
@@ -1428,8 +1428,20 @@
                 "template": {
                     "name": "billing-payment-invoice-pdf"
                 }
-            }          
-           
+            }
+        }
+    },
+    {
+        "id": "payments-pdf",
+        "category": "billing",
+        "title": "Payment Received",
+        "description": "",
+        "jsreport": {
+            "pdf": {
+                "template": {
+                    "name": "default-table-pdf"
+                }
+            }
         }
     }
 ]

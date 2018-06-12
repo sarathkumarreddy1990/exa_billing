@@ -1,5 +1,5 @@
-define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale', 'text!templates/app/payments.html', 'collections/app/payments', 'models/pager', 'views/reports/payment-invoice'],
-    function (jQuery, Immutable, _, Backbone, JGrid, JGridLocale, paymentsGrid, paymentsLists, ModelPaymentsPager, paymentInvoice) {
+define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale', 'text!templates/app/payments.html', 'collections/app/payments', 'models/pager', 'views/reports/payments-pdf'],
+    function (jQuery, Immutable, _, Backbone, JGrid, JGridLocale, paymentsGrid, paymentsLists, ModelPaymentsPager, paymentPDF) {
         var paymentsView = Backbone.View.extend({
             el: null,
             pager: null,
