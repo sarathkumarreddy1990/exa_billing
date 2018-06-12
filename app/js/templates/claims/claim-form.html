@@ -124,13 +124,13 @@
             </div>
             <div class="col-lg-6">
                 <div class="form-group row">
-                    <label for="txtClaimDate" class="col-sm-3 col-form-label" i18n="billing.claims.claimDate"></label>
-                    <div class="col-sm-5">
+                    <label for="txtClaimDate" class="col-sm-3 col-form-label field-required" i18n="billing.claims.claimDate"></label>
+                    <div class="col-sm-3">
                         <input type="date" class="form-control maskDateLocale" id="txtClaimDate" name="ClaimDate">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="ddlFacility" class="col-sm-3 col-form-label" i18n="billing.claims.facilityName"></label>
+                    <label for="ddlFacility" class="col-sm-3 col-form-label field-required" i18n="billing.claims.facilityName"></label>
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlFacility" style="height:32px;">
                             <% _.each(facilities, function(facility) { %>
@@ -142,7 +142,7 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="ddlBillingProvider" class="col-sm-3 col-form-label" i18n="billing.claims.billingProvider"></label>
+                    <label for="ddlBillingProvider" class="col-sm-3 col-form-label field-required" i18n="billing.claims.billingProvider"></label>
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlBillingProvider" style="height:32px;">
                         </select>
@@ -237,13 +237,13 @@
                 <div class="form-group row">
                     <label for="txtPriPolicyNo" class="col-sm-3 col-form-label field-required" i18n="billing.claims.policyNo"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtPriPolicyNo">
+                        <input type="text" class="form-control" id="txtPriPolicyNo" placeholder="PolicyNo">
                     </div>
                 </div>
                 <div class="form-group row">
                     <label for="txtPriGroupNo" class="col-sm-3 col-form-label" i18n="billing.claims.groupNo"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtPriGroupNo">
+                        <input type="text" class="form-control" id="txtPriGroupNo" placeholder="Group No">
                     </div>
                 </div>
                 <div class="form-group row">
@@ -286,7 +286,7 @@
                 </div>
                 <div class="form-group row">
                     <label for="txtPriDOB" class="col-sm-3 col-form-label field-required" i18n="billing.claims.dob"></label>
-                    <div class="col-sm-5">
+                    <div class="col-sm-3">
                         <input type="date" class="form-control maskDateLocale" name="dob1" id="txtPriDOB" placeholder="Date of Birth">
                     </div>
                 </div>
@@ -305,19 +305,19 @@
                 <div class="form-group row">
                     <label for="txtPriSubPriAddr" class="col-sm-3 col-form-label field-required" i18n="billing.claims.addressline1"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtPriSubPriAddr">
+                        <input type="text" class="form-control" id="txtPriSubPriAddr" placeholder="Address Line1">
                     </div>
                 </div>
                 <div class="form-group row">
                     <label for="txtPriSubSecAddr" class="col-sm-3 col-form-label" i18n="billing.claims.addressline2"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtPriSubSecAddr">
+                        <input type="text" class="form-control" id="txtPriSubSecAddr" placeholder="Address Line2">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="txtPriCity" class="col-sm-3 col-form-label" i18n="setup.billingprovider.citystatezip"></label>
+                    <label for="txtPriCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.citystatezip"></label>
                     <div class="col-sm-3">
-                        <input type="text" class="form-control" id="txtPriCity" name="payCity">
+                        <input type="text" class="form-control" id="txtPriCity" name="payCity" placeholder="City">
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
                         <select id="ddlPriState" class="form-control" style="height:32px;">
@@ -331,7 +331,7 @@
                         </select>
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
-                        <input type="text" class="form-control" id="txtPriZipCode">
+                        <input type="text" class="form-control" id="txtPriZipCode" placeholder="ZipCode">
                     </div>
                 </div>
                 <div class="form-group row">
@@ -405,13 +405,13 @@
                 <div class="form-group row">
                     <label for="txtSecPolicyNo" class="col-sm-3 col-form-label field-required" i18n="billing.claims.policyNo"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtSecPolicyNo">
+                        <input type="text" class="form-control" id="txtSecPolicyNo" placeholder="PolicyNo">
                     </div>
                 </div>
                 <div class="form-group row">
                     <label for="txtSecGroupNo" class="col-sm-3 col-form-label" i18n="billing.claims.groupNo"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtSecGroupNo">
+                        <input type="text" class="form-control" id="txtSecGroupNo" placeholder="Group No">
                     </div>
                 </div>
                 <div class="form-group row">
@@ -454,7 +454,7 @@
                 </div>
                 <div class="form-group row">
                     <label for="txtSecDOB" class="col-sm-3 col-form-label field-required" i18n="billing.claims.dob"></label>
-                    <div class="col-sm-5">
+                    <div class="col-sm-3">
                         <input type="date" class="form-control maskDateLocale" name="dob2" id="txtSecDOB" placeholder="Date of Birth">
                     </div>
                 </div>
@@ -471,21 +471,21 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="txtSecSubSecAddr" class="col-sm-3 col-form-label field-required" i18n="billing.claims.addressline1"></label>
+                    <label for="txtSecSubPriAddr" class="col-sm-3 col-form-label field-required" i18n="billing.claims.addressline1"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtSecSubSecAddr">
+                        <input type="text" class="form-control" id="txtSecSubPriAddr" placeholder="Address Line1">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="txtPriSubSecAddr" class="col-sm-3 col-form-label" i18n="billing.claims.addressline2"></label>
+                    <label for="txtSecSubSecAddr" class="col-sm-3 col-form-label" i18n="billing.claims.addressline2"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtPriSubSecAddr">
+                        <input type="text" class="form-control" id="txtSecSubSecAddr" placeholder="Address Line2">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="txtSecCity" class="col-sm-3 col-form-label" i18n="setup.billingprovider.citystatezip"></label>
+                    <label for="txtSecCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.citystatezip"></label>
                     <div class="col-sm-3">
-                        <input type="text" class="form-control" id="txtSecCity" name="payCity">
+                        <input type="text" class="form-control" id="txtSecCity" name="payCity" placeholder="City">
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
                         <select id="ddlSecState" class="form-control" style="height:32px;">
@@ -499,7 +499,7 @@
                         </select>
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
-                        <input type="text" class="form-control" id="txtSecZipCode">
+                        <input type="text" class="form-control" id="txtSecZipCode" placeholder="ZipCode">
                     </div>
                 </div>
                 <div class="form-group row">
@@ -556,13 +556,13 @@
                 <div class="form-group row">
                     <label for="txtTerPolicyNo" class="col-sm-3 col-form-label field-required" i18n="billing.claims.policyNo"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtTerPolicyNo">
+                        <input type="text" class="form-control" id="txtTerPolicyNo" placeholder="Policy No">
                     </div>
                 </div>
                 <div class="form-group row">
                     <label for="txtTerGroupNo" class="col-sm-3 col-form-label field-required" i18n="billing.claims.groupNo"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtTerGroupNo">
+                        <input type="text" class="form-control" id="txtTerGroupNo" placeholder="Group No">
                     </div>
                 </div>
                 <div class="form-group row">
@@ -605,8 +605,8 @@
                 </div>
                 <div class="form-group row">
                     <label for="divTerDOBDate" class="col-sm-3 col-form-label field-required" i18n="billing.claims.dob"></label>
-                    <div class="col-sm-5">
-                        <input type="date" class="form-control maskDateLocale" name="dob3" id="divTerDOBDate" placeholder="Date of Birth">
+                    <div class="col-sm-3">
+                        <input type="date" class="form-control maskDateLocale" name="dob3" id="txtTerDOB" placeholder="Date of Birth">
                     </div>
                 </div>
                 <div class="form-group row">
@@ -624,19 +624,19 @@
                 <div class="form-group row">
                     <label for="txtTerSubPriAddr" class="col-sm-3 col-form-label field-required" i18n="billing.claims.addressline1"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtTerSubPriAddr">
+                        <input type="text" class="form-control" id="txtTerSubPriAddr" placeholder="Address Line1">
                     </div>
                 </div>
                 <div class="form-group row">
                     <label for="txtTerSubSecAddr" class="col-sm-3 col-form-label" i18n="billing.claims.addressline2"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtTerSubSecAddr">
+                        <input type="text" class="form-control" id="txtTerSubSecAddr" placeholder="Address Line2">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="txtTerCity" class="col-sm-3 col-form-label" i18n="setup.billingprovider.citystatezip"></label>
+                    <label for="txtTerCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.citystatezip"></label>
                     <div class="col-sm-3">
-                        <input type="text" class="form-control" id="txtTerCity" name="payCity">
+                        <input type="text" class="form-control" id="txtTerCity" name="payCity" placeholder="City">
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
                         <select id="ddlTerState" class="form-control" style="height:32px;">
@@ -650,7 +650,7 @@
                         </select>
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
-                        <input type="text" class="form-control" id="txtTerZipCode">
+                        <input type="text" class="form-control" id="txtTerZipCode" placeholder="ZipCode">
                     </div>
                 </div>
                 <div class="form-group row">
@@ -711,13 +711,13 @@
             </div>
             <div class="form-group row">
                 <label for="txtDate" class="col-sm-3 col-form-label" i18n="billing.claims.date"></label>
-                <div class="col-sm-5">
+                <div class="col-sm-3">
                     <input type="date" class="form-control maskDateLocale" id="txtDate">
                 </div>
             </div>
             <div class="form-group row">
                 <label for="txtOtherDate" class="col-sm-3 col-form-label" i18n="billing.claims.otherDate"></label>
-                <div class="col-sm-5">
+                <div class="col-sm-3">
                     <input type="date" class="form-control maskDateLocale" id="txtOtherDate">
                 </div>
             </div>
@@ -729,13 +729,13 @@
             </div>
             <div class="form-group row">
                 <label for="txtWCF" class="col-sm-3 col-form-label" i18n="billing.claims.fromDate"></label>
-                <div class="col-sm-5">
+                <div class="col-sm-3">
                     <input type="date" class="form-control maskDateLocale" id="txtWCF">
                 </div>
             </div>
             <div class="form-group row">
                 <label for="txtWCT" class="col-sm-3 col-form-label" i18n="billing.claims.toDate"></label>
-                <div class="col-sm-5">
+                <div class="col-sm-3">
                     <input type="date" class="form-control maskDateLocale" id="txtWCT">
                 </div>
             </div>
@@ -747,13 +747,13 @@
             </div>
             <div class="form-group row">
                 <label for="txtHCF" class="col-sm-3 col-form-label" i18n="billing.claims.fromDate"></label>
-                <div class="col-sm-5">
+                <div class="col-sm-3">
                     <input type="date" class="form-control maskDateLocale" id="txtHCF">
                 </div>
             </div>
             <div class="form-group row">
                 <label for="txtHCT" class="col-sm-3 col-form-label" i18n="billing.claims.toDate"></label>
-                <div class="col-sm-5">
+                <div class="col-sm-3">
                     <input type="date" class="form-control maskDateLocale" id="txtHCT">
                 </div>
             </div>
@@ -770,13 +770,13 @@
             <div class="form-group row">
                 <label for="txtOriginalRef" class="col-sm-3 col-form-label" i18n="billing.claims.originalRef"></label>
                 <div class="col-sm-5">
-                    <input type="text" class="form-control" id="txtOriginalRef">
+                    <input type="text" class="form-control" id="txtOriginalRef" placeholder="OutsideRef">
                 </div>
             </div>
             <div class="form-group row">
                 <label for="txtAuthorization" class="col-sm-3 col-form-label" i18n="billing.claims.authNo"></label>
                 <div class="col-sm-5">
-                    <input type="text" class="form-control" id="txtAuthorization">
+                    <input type="text" class="form-control" id="txtAuthorization" placeholder="Authorization No">
                 </div>
             </div>
             <div class="form-group row">
