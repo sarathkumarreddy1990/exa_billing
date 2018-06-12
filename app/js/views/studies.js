@@ -539,15 +539,15 @@ define(['jquery',
                             $uiJQHTableKids.first().height('40px');
                             $uiJQHTableKids.last().css('line-height', '2');
 
-//                            fastdom.measure(function () {
-//                                if ( this.getState('isScrolling') === true || this.getState('isMeasuring') === true ) {
-//                                    return;
-//                                }
-//                                this.setState('isMeasuring', true);
-//
-//                                commonjs.docResize();
-//                                this.setState('isMeasuring', false);
-//                            }.bind(navState));
+                           fastdom.measure(function () {
+                               if ( this.getState('isScrolling') === true || this.getState('isMeasuring') === true ) {
+                                   return;
+                               }
+                               this.setState('isMeasuring', true);
+
+                               commonjs.docResize();
+                               this.setState('isMeasuring', false);
+                           }.bind(navState));
 
                             // SMH Bug #2606 - Hides icons if necessary when setting up the table.
                             // setTimeout(function () {
@@ -878,7 +878,7 @@ define(['jquery',
                             });
                             commonjs.resizeHomeScreen();
                             //  self.setTabContents(id, true);
-                           // commonjs.docResize();
+                            commonjs.docResize();
 
                             var updateStudiesPager = function (model, gridObj) {
                                 $('#chkStudyHeader_' + filterID).prop('checked', false);
@@ -996,7 +996,7 @@ define(['jquery',
                                 if (filterID === commonjs.currentStudyFilter) {
                                     self.setFooter(filterObj);
                                     commonjs.setFilter(filterID, filterObj);
-                                   // commonjs.docResize();
+                                    commonjs.docResize();
                                 }
 
                             }
