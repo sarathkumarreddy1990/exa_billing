@@ -38,4 +38,4 @@ app.use('/edi_clearinghouses', ediClearinghouseRouter);
 app.use('/status_color_codes', colorCode);
 app.use('/user_log', userLog);
 app.use('/audit_log', auditLog);
-app.use('/edi_template', ediTemplate);
+app.use('/x12', ediTemplate);
