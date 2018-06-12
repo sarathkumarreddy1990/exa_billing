@@ -2,22 +2,22 @@ define([
     'jquery',
     'backbone',
     'backbonesubroute',
-    'views/reports/patient-activity-statement'
+    'views/reports/monthly-recap'
 ],
     function (
         $,
         Backbone,
         SubRoute,
-        paymentInvoiceView
+        MonthlyRecapView
     ) {
         return Backbone.SubRoute.extend({
             routes: {
-                'payment-invoice': 'showDefaultView' 
+                'monthly-recap': 'showDefaultView'
             },
 
             showDefaultView: function () {
                 this.initializeRouter();
-                this.paymentInvoiceScreenScreen.showForm();
+                this.monthlyRecapScreen.showForm();
             },
 
             initialize: function (options) {
@@ -25,12 +25,12 @@ define([
             },
 
             initializeRouter: function () {
-                this.options.screen = facilityModules.reportScreens.paymentInvoice;
-                this.options.currentView = this.paymentInvoiceScreen;
+                this.options.screen = facilityModules.reportScreens.monthlyRecap;
+                this.options.currentView = this.monthlyRecapScreen;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
-                    this.paymentInvoiceScreen = new paymentInvoiceView(this.options);
+                    this.monthlyRecapScreen = new MonthlyRecapView(this.options);
                 }
             }
         });
