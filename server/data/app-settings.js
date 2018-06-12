@@ -26,7 +26,8 @@ module.exports = {
                                             company_code,
                                             company_name,
                                             time_zone,
-                                            sys_config
+                                            sys_config,
+                                            file_store_id
                                     FROM   companies
                                     WHERE  id=${companyID}
                                     AND    NOT has_deleted )AS company )
