@@ -351,6 +351,7 @@ module.exports = {
                                                           , service_by_outside_lab
                                                           , payer_type
                                                           , claim_status_id
+                                                          , rendering_provider_contact_id
                                                           , primary_patient_insurance_id
                                                           , secondary_patient_insurance_id
                                                           , tertiary_patient_insurance_id
@@ -386,21 +387,12 @@ module.exports = {
                                                             , ${claims.service_by_outside_lab}
                                                             , ${claims.payer_type}
                                                             , ${claims.claim_status_id}
-                                                            ,( SELECT CASE WHEN 'primary_insurance' =  ${claims.payer_type} THEN (SELECT id FROM save_patient_insurances WHERE coverage_level = 'primary')
-                                                                ELSE NULL
-                                                                END )
-                                                            ,( SELECT CASE WHEN 'secondary_insurance' =  ${claims.payer_type} THEN (SELECT id FROM save_patient_insurances WHERE coverage_level = 'secondary')
-                                                                ELSE NULL
-                                                            END )
-                                                            ,( SELECT CASE WHEN 'tertiary_insurance' =  ${claims.payer_type} THEN (SELECT id FROM save_patient_insurances WHERE coverage_level = 'tertiary')
-                                                                ELSE NULL
-                                                                END )
-                                                            ,( SELECT CASE WHEN 'ordering_facility' =  ${claims.payer_type} THEN  ${claims.ordering_facility_id}::bigint
-                                                                ELSE NULL
-                                                                END )
-                                                            ,( SELECT CASE WHEN 'referring_provider' =  ${claims.payer_type} THEN ${claims.referring_provider_contact_id}::bigint
-                                                                ELSE NULL
-                                                                END )
+                                                            , ${claims.rendering_provider_contact_id}::bigint                     
+                                                            , (SELECT id FROM save_patient_insurances WHERE coverage_level = 'primary')
+                                                            , (SELECT id FROM save_patient_insurances WHERE coverage_level = 'secondary')
+                                                            , (SELECT id FROM save_patient_insurances WHERE coverage_level = 'tertiary')
+                                                            , ${claims.ordering_facility_id}::bigint
+                                                            , ${claims.referring_provider_contact_id}::bigint
                                                         ) RETURNING id
                                                     ),
                                                     save_claim_icds AS (
