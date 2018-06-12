@@ -386,21 +386,11 @@ module.exports = {
                                                             , ${claims.service_by_outside_lab}
                                                             , ${claims.payer_type}
                                                             , ${claims.claim_status_id}
-                                                            ,( SELECT CASE WHEN 'primary_insurance' =  ${claims.payer_type} THEN (SELECT id FROM save_patient_insurances WHERE coverage_level = 'primary')
-                                                                ELSE NULL
-                                                                END )
-                                                            ,( SELECT CASE WHEN 'secondary_insurance' =  ${claims.payer_type} THEN (SELECT id FROM save_patient_insurances WHERE coverage_level = 'secondary')
-                                                                ELSE NULL
-                                                            END )
-                                                            ,( SELECT CASE WHEN 'tertiary_insurance' =  ${claims.payer_type} THEN (SELECT id FROM save_patient_insurances WHERE coverage_level = 'tertiary')
-                                                                ELSE NULL
-                                                                END )
-                                                            ,( SELECT CASE WHEN 'ordering_facility' =  ${claims.payer_type} THEN  ${claims.ordering_facility_id}::bigint
-                                                                ELSE NULL
-                                                                END )
-                                                            ,( SELECT CASE WHEN 'referring_provider' =  ${claims.payer_type} THEN ${claims.referring_provider_contact_id}::bigint
-                                                                ELSE NULL
-                                                                END )
+                                                            , (SELECT id FROM save_patient_insurances WHERE coverage_level = 'primary')
+                                                            , (SELECT id FROM save_patient_insurances WHERE coverage_level = 'secondary')
+                                                            , (SELECT id FROM save_patient_insurances WHERE coverage_level = 'tertiary')
+                                                            , ${claims.ordering_facility_id}::bigint
+                                                            , ${claims.referring_provider_contact_id}::bigint
                                                         ) RETURNING id
                                                     ),
                                                     save_claim_icds AS (
@@ -682,6 +672,7 @@ module.exports = {
     update: async function (args) {
      
         let self = this;
+        let result;
         let {
             claims
             , insurances
@@ -1013,10 +1004,18 @@ module.exports = {
                     ) AS icd_insertion
          ) AS icd_insertion `;
 
-        await query(sqlQry);
+        if (claims.payer_type == 'patient') {
 
-        return await self.updateIns_claims(claims);
+            await self.updateIns_claims(claims);
+            result = await query(sqlQry);
 
+        } else {
+
+            await query(sqlQry);
+            result =  await self.updateIns_claims(claims);
+        }
+
+        return result;
     },
 
     updateIns_claims: async (params) => {

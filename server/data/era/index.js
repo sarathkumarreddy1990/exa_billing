@@ -21,5 +21,28 @@ module.exports = {
                 company_id =  ${params.customArgs.companyID};
         `;
         return await query(sql);
+    },
+
+    selectInsuranceEOB: async function (params) {
+
+        const paymentSQL = `
+                        SELECT
+                            id
+                          , insurance_code
+                          , insurance_name
+                          , insurance_info 
+                        FROM 
+                            insurance_providers 
+                        WHERE 
+                            has_deleted = false AND 
+                            company_id = ${params.company_id} AND 
+                            insurance_info->'PayerID' = ${params.payer_id}::text `;
+
+        return await query(paymentSQL);
+    },
+
+    getLineItems: async function(params){
+
+        console.log(JSON.stringify(params))
     }
 };

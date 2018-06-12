@@ -142,7 +142,8 @@
             "insert": "Insert",
             "addFields": "Add Fields",
             "ascOrder": "Ascending Order",
-            "descOrder": "Descending Order"
+            "descOrder": "Descending Order",
+            "processPayement":"Process Payments"
         },
         "screens": {},
         "fields": {
