@@ -53,7 +53,7 @@ module.exports = {
 
                 let LineItemsAndClaimLists = await self.getFormatedLineItemsAndClaims(orderLists, params.file_id);
 
-                await self.processPayments(LineItemsAndClaimLists, paymentResult);
+                InsuranceDetails = await self.processPayments(LineItemsAndClaimLists, paymentResult);
 
             }
 
@@ -140,6 +140,26 @@ module.exports = {
             value = value.claimPaymentInformation && value.claimPaymentInformation.length ? value.claimPaymentInformation[0] : {};
 
             _.each(value.servicePaymentInformation, function (val) {
+
+                let serviceAdjustment = _.reject(val.serviceAdjustment, { groupCode: 'PR' });
+                let adjustmentAmount = _.map(serviceAdjustment, function (obj) {
+                    let amountArray = [];
+
+                    for (let i = 1; i <= 7; i++) {
+
+                        if (obj['monetaryAmount' + i]) {
+                            amountArray.push(parseFloat(obj['monetaryAmount' + i]));
+                        }
+                    }
+
+                    return _.sum(amountArray);
+                });
+                /**
+                *  Condition : Apply adjustment only for primary payer
+                *  DESC : Primary payers are defined via the claim status of 1 or 19
+                */
+                adjustmentAmount = ['1', '19'].indexOf(value.claimStatusCode) == -1 ? 0 : adjustmentAmount[0];
+
                 lineItems.push({
                     bill_fee: val.billFee,
                     this_pay: val.paidamount,
@@ -149,19 +169,21 @@ module.exports = {
                     modifier2: val.qualifierData.modifier2 || '',
                     modifier3: val.qualifierData.modifier3 || '',
                     modifier4: val.qualifierData.modifier4 || '',
-                    cas_obj: val.serviceAdjustment,
                     claim_date: value.claimDate && value.claimDate.claimDate ? value.claimDate.claimDate : '',
                     claim_number: value.claimNumber,
                     claim_status_code: value.claimStatusCode,
                     total_paid_amount: value.paidAmount,
                     total_billfee: value.totalBillFee,
-                    claim_frequency_code: value.claimFrequencyCode
+                    claim_frequency_code: value.claimFrequencyCode,
+                    cas_obj: val.serviceAdjustment,
+                    this_adj: adjustmentAmount
+                    
                 });
             });
 
             ediFileClaims.push({
                 claim_number: value.claimNumber,
-                edi_file_id : file_id
+                edi_file_id: file_id
             });
 
         });
@@ -173,10 +195,7 @@ module.exports = {
 
     },
 
-    processPayments: async function(claimLists, paymentDetails){
-
-        console.log(JSON.stringify(claimLists.lineItems))
-        console.log('----------->', paymentDetails)
+    processPayments: async function (claimLists, paymentDetails) {
 
         return await data.createPaymentApplication(claimLists, paymentDetails);
     }

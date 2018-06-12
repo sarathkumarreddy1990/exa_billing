@@ -57,19 +57,24 @@ module.exports = {
 
     createPaymentApplication: async function(params, paymentDetails){
 
+        let {
+            lineItems
+            , ediFileClaims
+        } = params;
+
         const sql =SQL` WITH application_details AS (
                              SELECT 
                                   *
-                             FROM json_to_recordset(${JSON.stringify(params.lineItems)}) AS (
+                             FROM json_to_recordset(${JSON.stringify(lineItems)}) AS (
                                  claim_number bigint
                                 ,claim_date date
                                 ,claim_status_code bigint
                                 ,total_paid_amount money 
                                 ,total_billfee money 
                                 ,claim_frequency_code bigint
-                                ----------line items-------------------
-	                            ,bill_fee money
-	                            ,this_pay money
+                                ,bill_fee money
+                                ,this_pay money
+                                ,this_adj money
 	                            ,units numeric(7,3)
 	                            ,cpt_code text
 	                            ,modifier1 text
@@ -82,7 +87,6 @@ module.exports = {
                            selected_Items AS (
                                 SELECT 
                                     application_details.*
-                                    , 'payment' as amount_type
                                     , ch.id as charge_id
                                 FROM 
                                 application_details  
@@ -91,7 +95,7 @@ module.exports = {
                                 INNER JOIN cpt_codes on cpt_codes.id = ch.cpt_id AND application_details.cpt_code = cpt_codes.display_code
                                 WHERE NOT cpt_codes.has_deleted AND cpt_codes.is_active
                            ), 
-                           insert_application AS (
+                           insert_payment AS (
                                   INSERT INTO billing.payment_applications
                                   ( payment_id
                                   , charge_id
@@ -104,15 +108,50 @@ module.exports = {
                                     ${paymentDetails.id}
                                   , charge_id
                                   , this_pay
-                                  , amount_type
+                                  , 'payment'
                                   , ${paymentDetails.created_by}
                                   , now()
                                   FROM selected_Items )
-                                  RETURNING id AS application_id, charge_id , amount_type )
-                            SELECT * FROM insert_application `;
-
-        console.log(sql.text, sql.values)
-
+                                  RETURNING id AS application_id, charge_id , amount_type
+                            ),
+                            insert_adjustment AS (
+                                  INSERT INTO billing.payment_applications
+                                  ( payment_id
+                                  , charge_id
+                                  , amount
+                                  , amount_type
+                                  , created_by
+                                  , applied_dt )
+                                  (
+                                    SELECT
+                                    ${paymentDetails.id}
+                                  , charge_id
+                                  , this_adj
+                                  , 'adjustment'
+                                  , ${paymentDetails.created_by}
+                                  , now()
+                                  FROM selected_Items )
+                                  RETURNING id AS application_id, charge_id , amount_type 
+                            ),
+                            insert_edi_file_claims AS (
+                                INSERT INTO billing.edi_file_claims
+                                (
+                                    claim_id
+                                    ,edi_file_id
+                                )
+                                SELECT 
+                                    claim_number 
+                                    ,edi_file_id
+                                FROM 
+                                    json_to_recordset(${JSON.stringify(ediFileClaims)}) AS edi_claims
+                                    (
+                                        claim_number bigint
+                                        ,edi_file_id bigint
+                                    )
+                                INNER JOIN billing.claims c on c.id = edi_claims.claim_number
+                                )
+                            SELECT * FROM insert_adjustment `;
+        
         return await query(sql);
     }
 };
