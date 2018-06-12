@@ -1,0 +1,21 @@
+<section class="selectionpatient result-part" data-name="<%= patient.full_name %>" data-facility_id="<%= patient.facility_id %>" data-value="<%= patient.account_no %>" data-rcopia="<%= patient.rcopia_id %>" style="position: relative;" id="div_p_<%= patient.id %>" data-dicom_patient_id="<%= patient.dicom_patient_id %>">
+    <% if (patient.is_active) { %>
+    <p style="font-weight: bold;overflow-wrap: break-word;"><%= patient.full_name %>&nbsp;&nbsp;<%= patient.account_no %>,<%= patient.alt_account_no %>,<%= patient.dicom_patient_id %></p>
+    <% }  else { %>
+    <p style="font-weight: bold;overflow-wrap: break-word;"><%= patient.full_name %>&nbsp;&nbsp;<%= patient.account_no %>,<%= patient.alt_account_no %>,<%= patient.dicom_patient_id %><span class="inactiveSpanClick"  id="sp_<%= patient.id %>" style="margin-left: 20px;padding:3px;border: 1px solid #f89406;border-radius:4px;font-size: x-small;font-weight:normal;">Inactive</span></p>
+    <% } %>
+    <% if (patient.home != '' || patient.work != '' || patient.mobile != '') { %>
+    <p style="overflow-wrap: break-word;">DOB: <%= patient.birth_date %> ph: <%= patient.home %>,<%= patient.work %>,<%= patient.mobile %></p>
+    <% } else { %>
+    <p style="overflow-wrap: break-word;">DOB: <%= patient.birth_date %></p>
+    <% } %>
+    <% if (patient.address1 != '' || patient.address2 != '') { %>
+    <p style="overflow-wrap: break-word;"><%= patient.address1 %>,<%= patient.address2 %></p>
+    <% } %>
+    <% if (patient.city != '' || patient.state != '' || patient.zip != '') { %>
+    <p style="overflow-wrap: break-word;"><%= patient.city %>,<%= patient.state %>,<%= patient.zip %></p>
+    <% } %>
+    <% if (patient.owner_id > 0&&patient.showOwner) { %>
+    <p style="overflow-wrap: break-word;">owner: <%= patient.owner_first_name %>,<%= patient.owner_last_name %>&nbsp;&nbsp;<%= patient.owner_address1 %>,<%= patient.owner_address2 %>,<%= patient.owner_city %>,<%= patient.owner_state %>,<%= patient.owner_zip %></p>
+    <% } %>
+</section>
