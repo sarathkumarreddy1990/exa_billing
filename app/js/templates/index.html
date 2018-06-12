@@ -1,25 +1,26 @@
 <header class="header">
 </header>
 <style>
-#divStatusSearch {
-    position: fixed;
-    display: none;
-    max-height: 400px;
-    max-width: 420px;
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
-  .statusMenu {
-  height: auto;
-  border: 2px #d4d4d4 solid;
-  background-color: #F6F6F6;
-  z-index: 110000;
-  position: absolute;
-  font-size: 1em !important;
-}
+    #divStatusSearch {
+        position: fixed;
+        display: none;
+        max-height: 400px;
+        max-width: 420px;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    .statusMenu {
+        height: auto;
+        border: 2px #d4d4d4 solid;
+        background-color: #F6F6F6;
+        z-index: 110000;
+        position: absolute;
+        font-size: 1em !important;
+    }
 </style>
 
-<div class="controls" style="float">    
+<div class="controls" style="float">
 </div>
 <nav class="top-nav">
     <div id="divStudyTabsContainer" style="float:left;">
@@ -55,9 +56,9 @@
                     <input type="button" value="Validate" id="btnValidateOrder" class="btn btn-primary" i18n="shared.buttons.validate">
                 </li>
                 <li>
-                    <a>
-                        <i title="Export" id="btnValidateExport" class="icon-ic-reset"></i>
-                    </a>
+                    <button type="button" class="btn btn-primary" id="btnValidateExport" i18n="shared.buttons.export" i18n="report.reportFilter.exportToExel"
+                        data-rformat="xlsx">
+                        <i class="fa fa-file-excel-o"></i> Export</button>
                 </li>
                 <li>
                     <a>
@@ -86,7 +87,8 @@
 <div class="tabbable" id="diveHomeIndex" style="display:none;">
     <div class="row" id="divStudyHeader" style="float: left; display: none; width:100%;">
         <i class="icon-ic-calendar icon-ic-large"></i>
-        <span style="padding-left: 10px;"></span><b class="caret pull-right" style="margin-top: 8px;"></b>
+        <span style="padding-left: 10px;"></span>
+        <b class="caret pull-right" style="margin-top: 8px;"></b>
     </div>
 </div>
 
@@ -94,13 +96,12 @@
     <div class="tab-pane " style="height: auto!important" id="Summary">
         <div id="divGadgetSummary" style="display: none">
         </div>
-        <div id="divGadgetSummaryNew"
-             style="position: absolute; top: 90px; bottom: 10px; left: 10px; right: 10px; overflow: auto;">
+        <div id="divGadgetSummaryNew" style="position: absolute; top: 90px; bottom: 10px; left: 10px; right: 10px; overflow: auto;">
         </div>
     </div>
 </div>
 <div id="divReprocessConflicts" style="display:none; margin-top: 5px !important;">
-    <input type="button" value="Reprocess conflicts" id="btnReprocessConflicts" class="btn btn-primary"/>
+    <input type="button" value="Reprocess conflicts" id="btnReprocessConflicts" class="btn btn-primary" />
 </div>
 
 </div>
@@ -117,92 +118,147 @@
 
     <div class="statusMenu" id="divStatusSearch">
         <div class="header-status">
-            <label style="padding-left: 25px !important;" class="checkbox"><input id="chkAppointmentStatus" type="checkbox">
-                <span i18n="home.worklist.appointmentStatus"></span></label>
+            <label style="padding-left: 25px !important;" class="checkbox">
+                <input id="chkAppointmentStatus" type="checkbox">
+                <span i18n="home.worklist.appointmentStatus"></span>
+            </label>
         </div>
         <div class="multiStudyColumnList">
             <ul id="ulAppointmentStatus" style="list-style: none;" class='statusList'>
                 <li>
-                    <label class="checkbox-inline"><input class="status" data-value="SCHEDULED" type="checkbox" value="SCH"><span i18n="home.worklist.scheduled"></span></label>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="SCHEDULED" type="checkbox" value="SCH">
+                        <span i18n="home.worklist.scheduled"></span>
+                    </label>
                 </li>
                 <li>
-                    <label class="checkbox-inline"><input class="status" data-value="RESCHEDULED" type="checkbox" value="RSCH"><span i18n="home.worklist.rescheduled"></span></label>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="RESCHEDULED" type="checkbox" value="RSCH">
+                        <span i18n="home.worklist.rescheduled"></span>
+                    </label>
                 </li>
 
                 <li>
-                    <label class="checkbox-inline"><input class="status" data-value="CONFIRMED" type="checkbox" value="CON"><span i18n="home.worklist.confirmed"></span></label>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="CONFIRMED" type="checkbox" value="CON">
+                        <span i18n="home.worklist.confirmed"></span>
+                    </label>
                 </li>
 
                 <li>
-                    <label class="checkbox-inline"><input class="status" data-value="CHECKEDIN" type="checkbox" value="CHI"><span i18n="home.worklist.checkedin"></span></label>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="CHECKEDIN" type="checkbox" value="CHI">
+                        <span i18n="home.worklist.checkedin"></span>
+                    </label>
                 </li>
                 <li>
-                    <label class="checkbox-inline"><input class="status" data-value="CHECKEDOUT" type="checkbox"
-                                                          value="CHO"><span i18n="home.worklist.checkedout"></span></label>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="CHECKEDOUT" type="checkbox" value="CHO">
+                        <span i18n="home.worklist.checkedout"></span>
+                    </label>
                 </li>
                 <li>
-                    <label class="checkbox-inline"><input class="status" data-value="CANCELED" type="checkbox" value="CAN"><span i18n="home.worklist.cancelled"></span></label>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="CANCELED" type="checkbox" value="CAN">
+                        <span i18n="home.worklist.cancelled"></span>
+                    </label>
                 </li>
                 <li>
-                    <label class="checkbox-inline"><input class="status" data-value="ABORTED" type="checkbox" value="ABRT"><span i18n="home.worklist.aborted"></span></label>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="ABORTED" type="checkbox" value="ABRT">
+                        <span i18n="home.worklist.aborted"></span>
+                    </label>
                 </li>
                 <li>
-                    <label class="checkbox-inline"><input class="status" data-value="NOSHOWS" type="checkbox" value="NOS"><span i18n="home.worklist.noshows"></span></label>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="NOSHOWS" type="checkbox" value="NOS">
+                        <span i18n="home.worklist.noshows"></span>
+                    </label>
 
                 </li>
                 <li>
-                    <label class="checkbox-inline"><input class="status" data-value="PRECHECKIN" type="checkbox" value="PR"><span i18n="home.worklist.precheckin"></span></label>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="PRECHECKIN" type="checkbox" value="PR">
+                        <span i18n="home.worklist.precheckin"></span>
+                    </label>
                 </li>
             </ul>
         </div>
 
 
         <div class="header-status">
-            <label style="padding-left: 25px !important;" class="checkbox"><input id="chkStudyProgress" type="checkbox"><span i18n="home.worklist.studyProgress"></span></label>
+            <label style="padding-left: 25px !important;" class="checkbox">
+                <input id="chkStudyProgress" type="checkbox">
+                <span i18n="home.worklist.studyProgress"></span>
+            </label>
         </div>
         <div class="multiStudyColumnList">
             <ul id="ulStudyProgress" style="list-style: none;" class='statusList'>
                 <li>
-                    <label class="checkbox-inline"><input class="status" data-value="START" type="checkbox"
-                                                          value="TS"><span i18n="home.worklist.start"></span></label>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="START" type="checkbox" value="TS">
+                        <span i18n="home.worklist.start"></span>
+                    </label>
                 </li>
                 <li>
-                    <label class="checkbox-inline"><input class="status" data-value="END" type="checkbox"
-                                                          value="TE"><span i18n="home.worklist.end"></span></label>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="END" type="checkbox" value="TE">
+                        <span i18n="home.worklist.end"></span>
+                    </label>
                 </li>
             </ul>
         </div>
 
 
         <div class="header-status">
-            <label style="padding-left: 25px !important;" class="checkbox"><input id="chkRadStatus" type="checkbox"><span i18n="home.worklist.radStatus"></span></label>
+            <label style="padding-left: 25px !important;" class="checkbox">
+                <input id="chkRadStatus" type="checkbox">
+                <span i18n="home.worklist.radStatus"></span>
+            </label>
         </div>
         <div class="multiStudyColumnList">
             <ul id="ulRadStatus" style="list-style: none;" class='statusList'>
                 <li>
-                    <label class="checkbox-inline"><input class="status" data-value="INCOMPLETE" type="checkbox"
-                                                          value="INC"><span i18n="home.worklist.incomplete"></span></label>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="INCOMPLETE" type="checkbox" value="INC">
+                        <span i18n="home.worklist.incomplete"></span>
+                    </label>
                 </li>
                 <li>
-                    <label class="checkbox-inline"><input class="status" data-value="UNREAD" type="checkbox" value="UNR"><span i18n="home.worklist.unread"></span></label>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="UNREAD" type="checkbox" value="UNR">
+                        <span i18n="home.worklist.unread"></span>
+                    </label>
                 </li>
                 <li>
-                    <label class="checkbox-inline"><input class="status" data-value="READ" type="checkbox"
-                                                          value="RE"><span i18n="home.worklist.read"></span></label>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="READ" type="checkbox" value="RE">
+                        <span i18n="home.worklist.read"></span>
+                    </label>
                 </li>
                 <li>
-                    <label class="checkbox-inline"><input class="status" data-value="DICTATED" type="checkbox" value="DIC"><span i18n="home.worklist.dictated"></span></label>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="DICTATED" type="checkbox" value="DIC">
+                        <span i18n="home.worklist.dictated"></span>
+                    </label>
                 </li>
                 <li>
-                    <label class="checkbox-inline"><input class="status" data-value="DRAFT" type="checkbox"
-                                                          value="DRFT"><span i18n="home.worklist.draft"></span></label>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="DRAFT" type="checkbox" value="DRFT">
+                        <span i18n="home.worklist.draft"></span>
+                    </label>
                 </li>
                 <li>
-                    <label class="checkbox-inline"><input class="status" data-value="TRANSCRIBED" type="checkbox"
-                                                          value="TRAN"><span i18n="home.worklist.transcribed"></span></label>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="TRANSCRIBED" type="checkbox" value="TRAN">
+                        <span i18n="home.worklist.transcribed"></span>
+                    </label>
                 </li>
                 <li>
-                    <label class="checkbox-inline"><input class="status" data-value="APPROVED" type="checkbox" value="APP"><span i18n="home.worklist.approved"></span></label>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="APPROVED" type="checkbox" value="APP">
+                        <span i18n="home.worklist.approved"></span>
+                    </label>
                 </li>
 
             </ul>
@@ -210,16 +266,16 @@
 
         <table class="table" style="width: 100%;margin-bottom:0px !important;">
             <tbody>
-            <tr>
-                <td>
-                    <input id="chkAllStatus" type="checkbox">
-                    <label for="chkAllStatus" class="checkbox-inline" i18n="shared.fields.all"></label>
-                </td>
-                <td style="text-align: right;">
-                    <button type="button" class="btn btn-primary" id="btnCancelStatusSearch" i18n="shared.buttons.cancel"></button>
-                    <button id="btnStatusApply" class="btn btn-primary" type="button" i18n="shared.buttons.applyFilter"></button>
-                </td>
-            </tr>
+                <tr>
+                    <td>
+                        <input id="chkAllStatus" type="checkbox">
+                        <label for="chkAllStatus" class="checkbox-inline" i18n="shared.fields.all"></label>
+                    </td>
+                    <td style="text-align: right;">
+                        <button type="button" class="btn btn-primary" id="btnCancelStatusSearch" i18n="shared.buttons.cancel"></button>
+                        <button id="btnStatusApply" class="btn btn-primary" type="button" i18n="shared.buttons.applyFilter"></button>
+                    </td>
+                </tr>
             </tbody>
         </table>
     </div>
@@ -228,17 +284,18 @@
 
 
     <input type="button" id="btnShowEditEncounter" style="display: none;">
-    <button class="btn btn-primary" id="btnClearAllStudy" title="Deselect all" i18n="shared.buttons.none"style="display: none;"></button>
-    <button class="btn btn-primary" id="btnSelectAllStudy" title="Select all studies" i18n="setup.dbTotals.all"style="display: none;"></button>
+    <button class="btn btn-primary" id="btnClearAllStudy" title="Deselect all" i18n="shared.buttons.none" style="display: none;"></button>
+    <button class="btn btn-primary" id="btnSelectAllStudy" title="Select all studies" i18n="setup.dbTotals.all" style="display: none;"></button>
 </div>
 
-<div id="divPager"
-     class="recordPagerDiv">
+<div id="divPager" class="recordPagerDiv">
     <span id="spanPagerSpan">
         <span i18n="home.inbox.showing"></span>
         <span id="spnTotalPage">
             <i class="fa fa-spinner loading-spinner"></i>
-        </span> <span i18n="home.inbox.of"></span> <span id="spnTotalRecords">
+        </span>
+        <span i18n="home.inbox.of"></span>
+        <span id="spnTotalRecords">
             <i class="fa fa-spinner loading-spinner"></i>
         </span>
     </span>
@@ -246,4 +303,3 @@
 
 <ul class="dropdown-menu rightmenu" id="studyRightMenu" data-toggle="context" data-target="#context-menu">
 </ul>
-
