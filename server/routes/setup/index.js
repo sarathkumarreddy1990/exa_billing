@@ -17,6 +17,7 @@ const ediClearinghouseRouter = require('./edi-clearinghouses');
 const colorCode = require('./status-color-codes');
 const userLog = require('./user-log');
 const auditLog = require('./audit-log');
+const ediTemplate = require('./edi-templates');
 
 const app = module.exports = express();
 app.use('/cas_group_codes', casGroupRouter);
@@ -37,3 +38,4 @@ app.use('/edi_clearinghouses', ediClearinghouseRouter);
 app.use('/status_color_codes', colorCode);
 app.use('/user_log', userLog);
 app.use('/audit_log', auditLog);
+app.use('/edi_template', ediTemplate);
