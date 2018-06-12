@@ -3256,6 +3256,7 @@ var commonjs = {
     },
 
     showLoading: function (msg) {
+        return commonjs.showLoading_v1(msg);
         if (!msg) {
             msg = 'messages.loadingMsg.default';
             if (i18n.get(msg) != app.currentCulture + '.' + msg) {
@@ -3744,7 +3745,7 @@ var commonjs = {
                 case 'Home':
                 case 'app':
                 default:
-                    height = $(window).height() - (topnavHieght + $('.ui-jqgrid-htable:visible').height() + $('#divPager').outerHeight() + 5);
+                    height = $(window).height() - (topnavHieght + $('.ui-jqgrid-htable:visible').height() + $('#divPager').outerHeight() + 50);
                     break;
                 case 'Billing':
                     height = $(window).height() - ($('body>.topbar').outerHeight() + $('body>header').outerHeight() + $('body>.top-nav').outerHeight() + 235);
