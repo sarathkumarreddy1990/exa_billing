@@ -15,5 +15,13 @@ module.exports = {
 
     getPayemntApplications: function (params) {
         return data.getPayemntApplications(params);
+    },
+
+    getAllPatients: function (params) {
+        return data.getAll(params);
+    },
+
+    getTotalPatients: function (params) {
+        return data.getTotalPatients(params);
     }
 };

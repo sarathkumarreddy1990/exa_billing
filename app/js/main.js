@@ -1,6 +1,7 @@
 require.config({
     waitSeconds: 0,
     paths: {
+        'fastdom': '../node_modules/fastdom/fastdom.min',
         'jquery': '../node_modules/jquery/dist/jquery',
         'jquery.validate': '../node_modules/jquery-validation/dist/jquery.validate',
         'jqueryvalidateadditional': '../node_modules/jquery-validation/dist/additional-methods',
@@ -119,6 +120,7 @@ require([
         require([
             'jquery',
             'underscore',
+            'fastdom',
             'jqueryvalidateadditional',
             'jstorage',
             'bootstrap',
@@ -138,6 +140,7 @@ require([
         ], function (
             $,
             _,
+            fastdom,
             jqueryvalidateadditional,
             jstorage,
             Bootstrap,

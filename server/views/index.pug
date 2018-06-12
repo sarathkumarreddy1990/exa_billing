@@ -10,13 +10,13 @@ block content
     div(class="loadingMsg", id="divSuccess", style="display:none")
         span(class="badge badge-success" id="divSuccessMsg")
     nav.navbar.fixed-top.navbar-expand-lg.navbar-dark.bg-primary
-        a.navbar-brand(href='#') #{title}
+        a.navbar-brand(href='#billing/studies/list') #{title}
         button.navbar-toggler(type='button', data-toggle='collapse', data-target='#navbarNavAltMarkup', aria-controls='navbarNavAltMarkup', aria-expanded='false', aria-label='Toggle navigation')
             span.navbar-toggler-icon
         #navbarNavAltMarkup.collapse.navbar-collapse
             ul.navbar-nav.ml-auto
                 li.nav-item
-                    a.nav-link.active(href='#billing/studies/list') Home
+                    a.nav-link.active(href='#billing/studies/list') Studies
                 li.nav-item
                     a.nav-link(href='#billing/claim_workbench/list') Claims
                 li.nav-item
@@ -63,8 +63,13 @@ block content
                         a.dropdown-item(href='#setup/provider_level_codes/list') Provider Level Codes
                         .dropdown-divider
                         a.dropdown-item(href='#setup/edi_clearinghouses/list') EDI ClearingHouses
-                li.nav-item
-                    a.nav-link(href='#') Audit Log
+
+                li.nav-item.dropdown
+                    a.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Log
+                    .dropdown-menu
+                        a.dropdown-item(href='#setup/audit_log/list') Audit Log
+                        a.dropdown-item(href='#setup/user_log/list') User Log
+
                 li.nav-item
                     a.nav-link(href='#') Logout
 
