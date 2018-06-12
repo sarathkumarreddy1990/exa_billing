@@ -148,7 +148,6 @@ module.exports = {
                             , f.facility_info -> 'npino' as npi_no
                             , f.facility_info -> 'federal_tax_id' as federal_tax_id
                             , f.facility_info -> 'enable_insurance_eligibility' as enable_insurance_eligibility
-                            , f.facility_info -> 'enable_insurance_eligibility' as enable_insurance_eligibility
                         FROM public.patient_insurances pi
                         INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id                                                          
                         LEFT JOIN public.patients p ON p.id= pi.patient_id
