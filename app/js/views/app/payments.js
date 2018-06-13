@@ -26,20 +26,19 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             },
 
             initialize: function (options) {
-                var self = this;
+
                 this.options = options;
                 var paymentStatus = [
-                    { 'value': 'Applied', 'text': 'Applied' },
-                    { 'value': 'UnApplied', 'text': 'UnApplied' },
-                    { 'value': 'PartialApplied', 'text': 'PartialApplied' },
-                    { 'value': 'OverApplied', 'text': 'OverApplied' },
-                    { 'value': 'Refund', 'text': 'Refund' }
+                    { 'value': 'fully_applied', 'text': 'Applied' },
+                    { 'value': 'unapplied', 'text': 'UnApplied' },
+                    { 'value': 'partially_applied', 'text': 'PartialApplied' },
+                    { 'value': 'over_applied', 'text': 'OverApplied' }
                 ];
                 this.payer_type = [
-                    { 'value': "PPP", 'text': "Patient" },
-                    { 'value': "POF", 'text': "Ordering Facility" },
-                    { 'value': "PIP", 'text': "Insurance" },
-                    { 'value': "PRP", 'text': "Provider" }
+                    { 'value': "patient", 'text': "Patient" },
+                    { 'value': "ordering_facility", 'text': "Ordering Facility" },
+                    { 'value': "insurance", 'text': "Insurance" },
+                    { 'value': "provider", 'text': "Provider" }
                 ];
                 this.billing_method = [
                     { 'value': "DB", 'text': "Direct Billing(Invoice)" },
@@ -199,8 +198,8 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                             { name: 'current_status', hidden: true },
                             { name: 'invoice_no', hidden: true },
                             { name: 'display_id', width: 215, searchFlag: '%' },
-                            { name: 'payment_date', width: 215, searchFlag: 'date_pure', formatter: self.paymentDateFormatter },
-                            { name: 'accounting_date', width: 215, searchFlag: 'date_pure', formatter: self.paymentAccountingDateFormatter },
+                            { name: 'payment_dt', width: 215, searchFlag: 'date_pure', formatter: self.paymentDateFormatter },
+                            { name: 'accounting_dt', width: 215, searchFlag: 'date_pure', formatter: self.paymentAccountingDateFormatter },
                             { name: 'payer_type', width: 215, searchFlag: '%', stype: 'select', formatter: self.payerTypeFormatter, searchoptions: { value: payerTypeValue } },
                             { name: 'payer_name', width: 300, searchFlag: 'hstore' },
                             { name: 'amount', width: 215, searchFlag: '%' },
@@ -290,13 +289,13 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
 
             paymentDateFormatter: function (cellvalue, options, rowObject) {
                 var colValue;
-                colValue = (commonjs.checkNotEmpty(rowObject.payment_date) ? moment(rowObject.payment_date).format('L') : '');
+                colValue = (commonjs.checkNotEmpty(rowObject.payment_dt) ? moment(rowObject.payment_dt).format('L') : '');
                 return colValue;
             },
 
             paymentAccountingDateFormatter: function (cellvalue, options, rowObject) {
                 var colValue;
-                colValue = (commonjs.checkNotEmpty(rowObject.accounting_date) ? moment(rowObject.accounting_date).format('L') : '');
+                colValue = (commonjs.checkNotEmpty(rowObject.accounting_dt) ? moment(rowObject.accounting_dt).format('L') : '');
                 return colValue;
             },
 
