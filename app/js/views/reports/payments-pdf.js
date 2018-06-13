@@ -33,11 +33,11 @@ define([
             selectedBillingProList: [],
             selectedFacilityList: [],
             defaultyFacilityId: null,
-           
-          
+
+
             initialize: function (options) {
                 this.showForm();
-                this.$el.html(this.mainTemplate(this.viewModel));               
+                this.$el.html(this.mainTemplate(this.viewModel));
                 UI.initializeReportingViewModel(options, this.viewModel);
 
                 this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(1);
@@ -56,10 +56,10 @@ define([
                 var modelCollection = Backbone.Collection.extend({
                     model: Backbone.Model.extend({})
                 });
-               
-            },         
-           
-            onReportViewClick: function (e) {
+
+            },
+
+            onReportViewClick: function (e,reportArgs) {
                 var btnClicked = e && e.target ? $(e.target) : null;
                 this.getSelectedFacility();
                 this.getBillingProvider();
@@ -71,8 +71,12 @@ define([
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = openInNewTab && rFormat === 'pdf';
                 this.viewModel.paymentOptions = $('#ddlPaymentOption').val();
-                    var urlParams = this.getReportParams();
-                    UI.showReport('payments-pdf', this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
+                var urlParams = {
+                    'fromDate': reportArgs.txtPaymentFromDate,
+                    'toDate': reportArgs.txtPaymentToDate,
+                    'isDateFlag': reportArgs.isDateFlag
+                }
+                UI.showReport('payments-pdf', this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
             },
 
             getSelectedFacility: function (e) {
@@ -97,18 +101,18 @@ define([
             },
             getReportParams: function () {
                 var usersArray = [], userNameArray = [];
-                 $('#ulListUsers li a').each(function () {
-                     usersArray.push(~~$(this).attr('data-id'));
-                     userNameArray.push($(this).closest('li').find('span').text());
-                 });
+                $('#ulListUsers li a').each(function () {
+                    usersArray.push(~~$(this).attr('data-id'));
+                    userNameArray.push($(this).closest('li').find('span').text());
+                });
                 return urlParams = {
-                 'companyId':1,
+                    'companyId': 1,
                     'facilityIds': ['1'],
                     'allFacilities': true,
                     'fromDate': '05/12/2017',
-                    'toDate':'05/30/2018',
-                    'billingProvider':['3']                 
-                   
+                    'toDate': '05/30/2018',
+                    'billingProvider': ['3']
+
                 };
             }
         });

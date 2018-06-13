@@ -7,42 +7,50 @@ const _ = require('lodash')
 
 // generate query template ***only once*** !!!
 
-const diagnosisCountDataSetQueryTemplate = _.template(`
-WITH diagnosisCount as (
-  SELECT
-    icd.code  AS code
-   , COALESCE(f.facility_name, 'Total') AS facility_name
-   , CASE
-      WHEN COALESCE(f.facility_name, 'Total')  !=   'Total' THEN max(icd.description)
-      ELSE  NULL
-      END AS  description,  
-    COUNT(1) AS icd_code_count
-  FROM 
-     billing.claim_icds claim_icd
-    INNER JOIN billing.claims cl ON cl.id = claim_icd.claim_id
-    INNER JOIN public.icd_codes icd ON icd.id = claim_icd.icd_id
-    INNER JOIN public.facilities f ON f.id = cl.facility_id
-    INNER JOIN billing.providers p ON p.id = cl.billing_provider_id
-    <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = cl.billing_provider_id <% } %>
-    WHERE 1 = 1
-    AND <%=companyId%>
-    AND <%= claimDate %>
-    <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
-    <% if(billingProID) { %> AND <% print(billingProID); } %>
-    GROUP BY
-        ROLLUP(icd.code, f.facility_name)
-    ORDER BY
-         icd.code
-        , f.facility_name
-        , icd_code_count
+const paymentsPDFDataSetQueryTemplate = _.template(`
+WITH paymentsPDF as (
+    SELECT 
+    bp.id AS payment_id,
+    get_full_name(pu.first_name,pu.last_name) as user_full_name,
+    get_full_name(pp.first_name,pp.last_name) as patient_full_name,
+    get_full_name(ppr.first_name,ppr.last_name) as provider_full_name,
+    pip.insurance_name,
+    pip.insurance_code,
+    bp.alternate_payment_id,
+    bp.facility_id,
+    bp.payment_dt,
+    bp.accounting_dt,
+    bp.payer_type,
+    bp.invoice_no,
+    bp.amount,
+    (SELECT payments_applied_total FROM billing.get_payment_totals(bp.id)) AS applied,
+    (SELECT adjustments_applied_total FROM billing.get_payment_totals(bp.id)) AS adjustments,
+    (SELECT payment_balance_total FROM billing.get_payment_totals(bp.id)) AS balance,
+    (SELECT payment_status FROM billing.get_payment_totals(bp.id)) AS status,
+    CASE WHEN payer_type = 'patient' THEN  get_full_name(pp.first_name,pp.last_name) 
+         WHEN payer_type = 'insurance' THEN pip.insurance_name
+         WHEN payer_type = 'ordering_facility' THEN ppg.group_name
+         WHEN payer_type = 'ordering_provider' THEN get_full_name(ppr.first_name,ppr.last_name)
+    END payer_name,
+    pf.facility_name
+FROM billing.payments bp
+INNER JOIN public.users pu ON pu.id = bp.created_by
+LEFT JOIN public.patients pp ON pp.id = bp.patient_id
+LEFT JOIN public.insurance_providers pip ON pip.id = bp.insurance_provider_id
+LEFT JOIN public.provider_groups ppg ON ppg.id = bp.provider_group_id
+LEFT JOIN public.provider_contacts ppc ON ppc.id = bp.provider_contact_id
+LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
+LEFT JOIN public.facilities pf ON pf.id = bp.facility_id
+WHERE 1=1
+AND <%= paymentDate %>
+
+
+    
   )
   SELECT 
-        code AS "ICD CODE",
-        facility_name AS "FAC. NAME",
-        description AS "DESCRIPTION",
-        icd_code_count  AS "COUNT"
+     *
   FROM
-        diagnosisCount
+        paymentsPDF
 `);
 
 const api = {
@@ -53,14 +61,14 @@ const api = {
      */
     getReportData: (initialReportData) => {
         return Promise.join(
-            api.creatediagnosisCountDataSet(initialReportData.report.params),
+            api.createpaymentsPDFDataSet(initialReportData.report.params),
             // other data sets could be added here...
-            (diagnosisCountDataSet) => {
+            (paymentsPDFDataSet) => {
                 // add report filters                
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 // add report specific data sets
-                initialReportData.dataSets.push(diagnosisCountDataSet);
+                initialReportData.dataSets.push(paymentsPDFDataSet);
                 initialReportData.dataSetCount = initialReportData.dataSets.length;
                 return initialReportData;
             });
@@ -96,22 +104,9 @@ const api = {
         const lookups = initialReportData.lookups;
         const params = initialReportData.report.params;
         const filtersUsed = [];
-        filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
+        filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });  
 
-        if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
-            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
-        else {
-            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
-            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
-        }
-
-        // // Billing provider Filter
-        if (params.allBillingProvider == 'true')
-            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
-        else {
-            const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
-            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
-        }
+       
 
         filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
         filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
@@ -119,56 +114,46 @@ const api = {
     },
 
     // ================================================================================================================
-    // --- DATA SET - diagnosisCount count
+    // --- DATA SET - paymentsPDF count
 
-    creatediagnosisCountDataSet: (reportParams) => {
+    createpaymentsPDFDataSet: (reportParams) => {
         // 1 - build the query context. Each report will 'know' how to do this, based on report params and query/queries to be executed...
-        const queryContext = api.getdiagnosisCountDataSetQueryContext(reportParams);
+        const queryContext = api.getpaymentsPDFDataSetQueryContext(reportParams);
         console.log('context__', queryContext)
         // 2 - geenrate query to execute
-        const query = diagnosisCountDataSetQueryTemplate(queryContext.templateData);
+        const query = paymentsPDFDataSetQueryTemplate(queryContext.templateData);
         // 3a - get the report data and return a promise
         return db.queryForReportData(query, queryContext.queryParams);
     },
 
     // query context is all about query building: 1 - query parameters and 2 - query template data
     // every report and/or query may have a different logic to build a query context...
-    getdiagnosisCountDataSetQueryContext: (reportParams) => {
+    getpaymentsPDFDataSetQueryContext: (reportParams) => {
         const params = [];
         const filters = {
-            companyId: null,
-            claimDate: null,
-            facilityIds: null,
-            billingProID: null
+          paymentDate : null
+            
+           
+
+            
 
         };
 
-        // company id
-        params.push(reportParams.companyId);
-        filters.companyId = queryBuilder.where('cl.company_id', '=', [params.length]);
-
-        //claim facilities
-        if (!reportParams.allFacilities && reportParams.facilityIds) {
-            params.push(reportParams.facilityIds);
-            filters.facilityIds = queryBuilder.whereIn('cl.facility_id', [params.length]);
-        }
-
+      
+        
+        
         //  scheduled_dt
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);
-            filters.claimDate = queryBuilder.whereDate('cl.claim_dt', '=', [params.length], 'f.time_zone');
+            filters.paymentDate = queryBuilder.whereDate('bp.payment_dt', '=', [params.length], 'f.time_zone');
         } else {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
-            filters.claimDate = queryBuilder.whereDateBetween('cl.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.paymentDate = queryBuilder.whereDateBetween('bp.payment_dt', [params.length - 1, params.length], 'f.time_zone');
         }
 
-        // billingProvider single or multiple
-        if (reportParams.billingProvider) {
-            params.push(reportParams.billingProvider);
-            filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
-        }
-
+      
+        
         return {
             queryParams: params,
             templateData: filters

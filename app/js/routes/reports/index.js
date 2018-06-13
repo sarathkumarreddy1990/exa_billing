@@ -19,7 +19,9 @@ define([
     'routes/reports/patients-by-insurance-company',
     'routes/reports/procedure-count',
     'routes/reports/reading-provider-fees',
-    'routes/reports/monthly-recap'
+    'routes/reports/monthly-recap',
+    'routes/reports/claim-transaction',
+    'routes/reports/procedure-analysis-by-insurance'
 ], function (
     Backbone,
     BackboneSubroute,
@@ -41,7 +43,9 @@ define([
     PatientsByInsuranceCompanyRoute,
     ProcedureCountRoute,
     ReadingProviderFeesRoute,
-    MonthlyRecapRoute
+    MonthlyRecapRoute,
+    ClaimTransactionRoute,
+    ProcedureAnalysisByInsuranceRoute
 ) {
         return Backbone.SubRoute.extend({
             routes: {
@@ -62,6 +66,8 @@ define([
                 "r/procedure-count": "startProcedureCountViewReporting",
                 "r/reading-provider-fees": "startReadingProviderFeesReporting",
                 "r/monthly-recap": "startMonthlyRecapReporting",
+                "r/claim-transaction": "startClaimTransactionReporting",
+                "r/procedure-analysis-by-insurance": "startProcedureAnalysisByInsuranceReporting",
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -225,6 +231,24 @@ define([
                 if (this.checkLicense('Monthly Recap') && !this.monthlyRecapRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.monthlyRecapRouter = new MonthlyRecapRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startClaimTransactionReporting: function (subroute) {
+                if (this.checkLicense('Claim Trancation') && !this.claimTrancationRouter) {
+                    this.defaultArgs.routePrefix = 'reports/r/';
+                    this.claimTrancationRouter = new ClaimTransactionRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startProcedureAnalysisByInsuranceReporting: function (subroute) {
+                if (this.checkLicense('Procedure Analysis By Insurance') && !this.procedureAnalysisByInsuranceRouter) {
+                    this.defaultArgs.routePrefix = 'reports/r/';
+                    this.procedureAnalysisByInsuranceRouter = new ProcedureAnalysisByInsuranceRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }
