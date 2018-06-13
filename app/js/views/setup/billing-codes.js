@@ -147,7 +147,6 @@ define(['jquery',
                 if(id > 0) {
                     this.model.set({id: id});
                     this.model.fetch({
-                        data: { id: this.model.id},
                         success: function (model, response) {
                             if (response && response.length > 0) {
                                 var data = response[0];
