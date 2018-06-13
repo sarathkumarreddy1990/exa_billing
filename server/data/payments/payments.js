@@ -3,19 +3,114 @@ const { query, SQL } = require('./../index');
 module.exports = {
 
     getPayments: async function (params) {
-        const sql = `SELECT
+        let whereQuery = [];
+        params.sortOrder = params.sortOrder || ' ASC';
+        let {
+            id,
+            display_id,
+            payment_dt,
+            payer_type,
+            payer_name,
+            accounting_dt,
+            amount,
+            available_balance,
+            applied,
+            adjustment_amount,
+            user_full_name,
+            payment_mode,
+            facility_name,
+            sortOrder,
+            sortField,
+            pageNo,
+            pageSize,
+            fromDate,
+            toDate,
+            filterByDateType,
+            paymentStatus
+        } = params;
+
+        if(fromDate && toDate){
+            whereQuery.push(`${filterByDateType} BETWEEN  '${fromDate}'::date AND '${toDate}'::date`);
+        }
+
+        if(paymentStatus){
+            whereQuery.push(`(select payment_status from billing.get_payment_totals(payments.id))=ANY(string_to_array('${params.paymentStatus}',','))`);          
+        }
+
+        if (id) {
+            whereQuery.push(` payments.id =${id}`);
+        }
+
+        if (display_id) {
+            whereQuery.push(` alternate_payment_id ILIKE '%${display_id}%'`);
+        }
+
+        if (payment_dt) {
+            whereQuery.push(` payment_dt::date = '${payment_dt}'::date`);
+        }
+
+        if (accounting_dt) {
+            whereQuery.push(` accounting_dt::date ='${accounting_dt}'::date`);
+        }
+
+        if (payer_type) {
+            whereQuery.push(` payer_type = replace('${payer_type}', '\\', '')`);
+        }
+
+        if (payer_name) {
+            whereQuery.push(`  (  CASE payer_type 
+                WHEN 'insurance' THEN insurance_providers.insurance_name
+                WHEN 'ordering_facility' THEN provider_groups.group_name
+                WHEN 'provider' THEN ref_provider.full_name
+                WHEN 'patient' THEN patients.full_name        END)  ILIKE '%${payer_name}%' `);
+        }
+
+        if (amount) {
+            whereQuery.push(`amount = ${amount}::money`);
+        }
+
+        if (available_balance) {
+            whereQuery.push(`(select payment_balance_total from billing.get_payment_totals(payments.id))=${available_balance}::money`);        
+        }
+
+        if (applied) {
+            whereQuery.push(`(select payments_applied_total from billing.get_payment_totals(payments.id))=${applied}::money`);       
+        }
+
+        if (adjustment_amount) {
+            whereQuery.push(`(select adjustments_applied_total from billing.get_payment_totals(payments.id))=${adjustment_amount}::money`); 
+            
+        }
+
+        if (user_full_name) {
+            whereQuery.push(`get_full_name(users.last_name, users.first_name)  ILIKE '%${user_full_name}%' `);
+        }
+
+        if (payment_mode) {
+            whereQuery.push(`mode ILIKE '%${payment_mode}%'`);
+        }
+
+        if (facility_name) {
+            whereQuery.push(`facility_name  ILIKE '%${facility_name}%' `);
+        }
+      
+        const sql = SQL`SELECT
                           payments.id
                         , payments.facility_id
                         , patient_id
                         , insurance_provider_id
-                        , provider_group_id
+                        , payments.provider_group_id
                         , provider_contact_id
                         , payment_reason_id
                         , amount MONEY
-                        , accounting_dt AS accounting_date
-                        , payment_dt AS payment_date
+                        , accounting_dt 
+                        , payment_dt 
                         , alternate_payment_id AS display_id
-                        , get_full_name(users.last_name,users.first_name) AS payer_name
+                        , (  CASE payer_type 
+                                WHEN 'insurance' THEN insurance_providers.insurance_name
+	                            WHEN 'ordering_facility' THEN provider_groups.group_name
+	                            WHEN 'provider' THEN ref_provider.full_name
+	                            WHEN 'patient' THEN patients.full_name        END) AS payer_name
                         , payment_dt
                         , invoice_no
                         , alternate_payment_id
@@ -32,13 +127,28 @@ module.exports = {
                         , (select payments_applied_total from billing.get_payment_totals(payments.id)) AS applied       
                         , (select adjustments_applied_total from billing.get_payment_totals(payments.id)) AS adjustment_amount
                         , (select payment_status from billing.get_payment_totals(payments.id)) AS current_status
+                        , COUNT(1) OVER (range unbounded preceding) AS total_records
                     FROM billing.payments
                     INNER JOIN public.users ON users.id = payments.created_by
                     LEFT JOIN public.patients ON patients.id = payments.patient_id
-                    LEFT JOIN public.facilities ON facilities.id = payments.facility_id
-                    ORDER BY id ASC
-                    LIMIT ${params.pageSize}
-                    OFFSET ${((params.pageNo * params.pageSize) - params.pageSize)}`;
+                    LEFT JOIN public.provider_groups ON provider_groups.id = payments.provider_group_id
+                    LEFT JOIN public.provider_contacts ON provider_contacts.id = payments.provider_contact_id
+                    LEFT JOIN public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
+                    LEFT JOIN public.insurance_providers  ON insurance_providers.id = payments.insurance_provider_id
+                    LEFT JOIN public.facilities ON facilities.id = payments.facility_id`;
+
+        if (whereQuery.length) {
+            sql.append(SQL` WHERE `)
+                .append(whereQuery.join(' AND '));
+        }
+            
+
+        sql.append(SQL` ORDER BY  `)
+            .append(sortField)
+            .append(' ')
+            .append(sortOrder)
+            .append(SQL` LIMIT ${pageSize}`)
+            .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
 
         return await query(sql);
     },
