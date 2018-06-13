@@ -62,6 +62,7 @@ module.exports = {
             , ediFileClaims
         } = params;
 
+        console.log(JSON.stringify(lineItems))
         const sql =SQL` WITH application_details AS (
                              SELECT 
                                   *
@@ -149,9 +150,54 @@ module.exports = {
                                         ,edi_file_id bigint
                                     )
                                 INNER JOIN billing.claims c on c.id = edi_claims.claim_number
+                                RETURNING claim_id, edi_file_id
                                 )
-                            SELECT * FROM insert_adjustment `;
+                            SELECT
+	                            ( SELECT json_agg(row_to_json(insert_adjustment)) insert_adjustment
+                                            FROM (
+                                                    SELECT
+                                                          *
+                                                    FROM
+                                                    insert_adjustment
+                                            
+                                                ) AS insert_adjustment
+                                     ) AS insert_adjustment,
+	                            ( SELECT json_agg(row_to_json(insert_edi_file_claims)) insert_edi_file_claims
+                                            FROM (
+                                                    SELECT
+                                                        claim_id as claim_number
+                                                        ,edi_file_id
+                                                        ,true AS applied
+                                                    FROM
+                                                    insert_edi_file_claims
+                                            
+                                                ) AS insert_edi_file_claims
+                                     ) AS insert_edi_file_claims
+                            `;
         
+        return await query(sql);
+    },
+
+    getcasReasonGroupCode: async function(params){
+
+        let { company_id } = params;
+
+        const sql = ` WITH cas_group as 
+                        ( SELECT
+                            array_agg(code) as cas_groups
+                        FROM
+                            billing.cas_group_codes
+                        WHERE inactivated_dt IS NULL AND company_id =  ${company_id}
+                        ) ,
+                        cas_reason as
+                        ( SELECT
+                            array_agg(code) as cas_reasons
+                        FROM
+                            billing.cas_reason_codes
+                        WHERE inactivated_dt IS NULL AND  company_id =  ${company_id}
+                        )
+                    SELECT * FROM cas_group,cas_reason `;
+
         return await query(sql);
     }
 };

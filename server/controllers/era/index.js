@@ -17,7 +17,7 @@ module.exports = {
 
     processERAFile: async function (params) {
         let self = this,
-            InsuranceDetails;
+            processDetails;
         let eraPath = path.join('D:/ERA');
         let templateName = '835_template_1';
 
@@ -43,21 +43,21 @@ module.exports = {
 
             if (params.status == 'pending') {
 
-                InsuranceDetails = await self.checkExistInsurance(eraResponseJson);
+                processDetails = await self.checkExistInsurance(eraResponseJson);
             }
             else {
 
                 let paymentResult = await self.createPaymentFromERA(params.payer_details, params.file_id, eraResponseJson);
 
-                let orderLists = eraResponseJson.length && eraResponseJson[0].headerNumber ? eraResponseJson[0].headerNumber : {};
+                let claimLists = eraResponseJson.length && eraResponseJson[0].headerNumber ? eraResponseJson[0].headerNumber : {};
 
-                let LineItemsAndClaimLists = await self.getFormatedLineItemsAndClaims(orderLists, params.file_id);
+                let LineItemsAndClaimLists = await self.getFormatedLineItemsAndClaims(claimLists, params.file_id, params.payer_details);
 
-                InsuranceDetails = await self.processPayments(LineItemsAndClaimLists, paymentResult);
+                processDetails = await self.processPayments(LineItemsAndClaimLists, paymentResult);
 
             }
 
-            return InsuranceDetails;
+            return processDetails;
 
         } catch (err) {
             throw err;
@@ -131,15 +131,38 @@ module.exports = {
         return paymentResult;
     },
 
-    getFormatedLineItemsAndClaims: async function (orderLists, file_id) {
+    getFormatedLineItemsAndClaims: async function (claimLists, file_id, payer_details) {
 
         let ediFileClaims = [];
         let lineItems = [];
 
-        await _.each(orderLists, function (value) {
+        payer_details = JSON.parse(payer_details);
+
+        let casReasonGroupCode = await data.getcasReasonGroupCode(payer_details);
+
+        casReasonGroupCode = casReasonGroupCode.rows && casReasonGroupCode.rows.length ? casReasonGroupCode.rows[0] : {};
+
+        await _.each(claimLists, function (value) {
             value = value.claimPaymentInformation && value.claimPaymentInformation.length ? value.claimPaymentInformation[0] : {};
+            let co_pay = 0;
+            let co_insurance = 0;
+            let deductible = 0;
+
 
             _.each(value.servicePaymentInformation, function (val) {
+
+                /**
+                *  Functionality  : To get co_pay, co_insurance and deductible
+                *  DESC : SUM of CAS groups code (Ex:'PR')
+                */
+                let PatientResponsibility = _.pickBy(val.serviceAdjustment, { groupCode: 'PR' });
+
+                if (Object.keys(PatientResponsibility).length) {
+
+                    co_pay += PatientResponsibility && PatientResponsibility[0].monetaryAmount1 ? parseFloat(PatientResponsibility[0].monetaryAmount1) : 0;
+                    deductible += PatientResponsibility && PatientResponsibility[0].monetaryAmount3 ? parseFloat(PatientResponsibility[0].monetaryAmount3) : 0;
+                    co_insurance += PatientResponsibility && PatientResponsibility[0].monetaryAmount2 ? parseFloat(PatientResponsibility[0].monetaryAmount2) : 0;
+                }
 
                 let serviceAdjustment = _.reject(val.serviceAdjustment, { groupCode: 'PR' });
                 let adjustmentAmount = _.map(serviceAdjustment, function (obj) {
@@ -154,6 +177,36 @@ module.exports = {
 
                     return _.sum(amountArray);
                 });
+
+                /**
+                *  Condition : Check valid CAS group and reason codes
+                *  DESC : CAS group and reason codes not matched means shouldn't apply adjustment (Ex: adjustment = 0)
+                */
+                let validGroupCodes = _.filter(val.serviceAdjustment, function (obj) {
+
+                    for (let j = 1; j <= 7; j++) {
+
+                        if (obj['reasonCode' + j] && (casReasonGroupCode.cas_reasons.indexOf(obj['reasonCode' + j]) == -1)) {
+
+                            return false;
+
+                        }
+                    }
+
+                    if (casReasonGroupCode.cas_groups.indexOf(obj.groupCode) == -1) {
+
+                        return false;
+                    }
+
+                    return true;
+
+                });
+
+                if (val.serviceAdjustment && (validGroupCodes.length != val.serviceAdjustment.length)) {
+
+                    adjustmentAmount = 0;
+                }
+
                 /**
                 *  Condition : Apply adjustment only for primary payer
                 *  DESC : Primary payers are defined via the claim status of 1 or 19
@@ -177,13 +230,16 @@ module.exports = {
                     claim_frequency_code: value.claimFrequencyCode,
                     cas_obj: val.serviceAdjustment,
                     this_adj: adjustmentAmount
-                    
+
                 });
             });
 
             ediFileClaims.push({
                 claim_number: value.claimNumber,
-                edi_file_id: file_id
+                edi_file_id: file_id,
+                co_pay: co_pay,
+                co_insurance: co_insurance,
+                deductible: deductible
             });
 
         });
@@ -197,6 +253,18 @@ module.exports = {
 
     processPayments: async function (claimLists, paymentDetails) {
 
-        return await data.createPaymentApplication(claimLists, paymentDetails);
+        //console.log(JSON.stringify(claimLists))
+        let processedClaims = await data.createPaymentApplication(claimLists, paymentDetails);
+        
+        // if(processedClaims && processedClaims.rows.length){
+        //     console.log('Before merge-->', processedClaims.rows[0].insert_edi_file_claims);
+        //     let result = _.map(claimLists.ediFileClaims, function (obj) {
+        //         if(processedClaims.rows[0].insert_edi_file_claims && ( processedClaims.rows[0].insert_edi_file_claims.indexOf(parseInt(obj.claim_number)) > -1 ) ){
+        //         }
+        //     });
+        //     console.log('After merge-->', processedClaims.rows[0].insert_edi_file_claims);
+        // }
+
+        return processedClaims;
     }
 };
