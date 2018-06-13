@@ -1,6 +1,7 @@
 const express = require('express');
 const config = require('../../config');
 
+const sessionMiddleware = require('./session-middleware');
 const gridsMiddleware = require('./grid-middleware');
 const auditsMiddleware = require('./audit-middleware');
 const rightsMiddleware = require('./rights-middleware');
@@ -23,6 +24,7 @@ app.use(function (req, res, next) {
     next();
 });
 
+app.use(sessionMiddleware);
 app.use(gridsMiddleware);
 app.use(auditsMiddleware);
 app.use(rightsMiddleware);

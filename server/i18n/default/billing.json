@@ -308,7 +308,11 @@
             "refund" : "Refund",
             "billingCodes" : "Billing Codes",
             "billingClass": "Billing Class",
-            "responsible" : "Responsible"
+            "responsible" : "Responsible",
+            "serviceType" : "Service Type",
+            "benefitOnDate" : "BenefitOnDate",
+            "checkEligibility" : "Check Eligibility",
+            "viewReport" : "View Report"
         } 
     }
 }

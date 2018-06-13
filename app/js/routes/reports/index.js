@@ -19,6 +19,7 @@ define([
     'routes/reports/patients-by-insurance-company',
     'routes/reports/procedure-count',
     'routes/reports/reading-provider-fees',
+    'routes/reports/monthly-recap'
 ], function (
     Backbone,
     BackboneSubroute,
@@ -39,7 +40,8 @@ define([
     DiagnosisCountRoute,
     PatientsByInsuranceCompanyRoute,
     ProcedureCountRoute,
-    ReadingProviderFeesRoute
+    ReadingProviderFeesRoute,
+    MonthlyRecapRoute
 ) {
         return Backbone.SubRoute.extend({
             routes: {
@@ -59,6 +61,7 @@ define([
                 "r/patients-by-insurance-company": "startPatientsByInsuranceCompanyViewReporting",
                 "r/procedure-count": "startProcedureCountViewReporting",
                 "r/reading-provider-fees": "startReadingProviderFeesReporting",
+                "r/monthly-recap": "startMonthlyRecapReporting",
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -213,6 +216,15 @@ define([
                 if (this.checkLicense('Reading Provider Fees') && !this.readingProviderFeesRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.readingProviderFeesRouter = new ReadingProviderFeesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startMonthlyRecapReporting: function (subroute) {
+                if (this.checkLicense('Monthly Recap') && !this.monthlyRecapRouter) {
+                    this.defaultArgs.routePrefix = 'reports/r/';
+                    this.monthlyRecapRouter = new MonthlyRecapRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }

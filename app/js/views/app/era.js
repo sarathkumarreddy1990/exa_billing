@@ -1,8 +1,19 @@
-define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale', 'text!templates/app/eraGrid.html', 'collections/app/era', 'models/pager'],
-    function (jQuery, Immutable, _, Backbone, JGrid, JGridLocale, eraGrid, eraLists, EobFilesPager) {
+define([
+    'jquery', 
+    'immutable', 
+    'underscore', 
+    'backbone', 
+    'jqgrid', 
+    'jqgridlocale', 
+    'text!templates/app/eraGrid.html', 
+    'text!templates/app/era-progress.html', 
+    'collections/app/era', 
+    'models/pager'],
+    function (jQuery, Immutable, _, Backbone, JGrid, JGridLocale, eraGrid, eraProgress, eraLists, EobFilesPager) {
         var eraView = Backbone.View.extend({
 
             eraGridTemplate: _.template(eraGrid),
+            eraProgressTemplate: _.template(eraProgress),
             subGridFilesTable: null,
             subGridPager: null,
             eobStatus: {"": "All", "P": "Pending", "IP": "In Progress", "S": "Success", "RP": "Ready for Processing"},
@@ -12,7 +23,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 'click #btnProcessERA': 'processERAFile',
                 'click #btnReloadERA': 'reloadERAFiles',
                 'click #btnReloadERALocal': 'reloadERAFilesLocal',
-                'click #btnImportERA': 'processSelectedERAFile'
+                'change #myFile': 'processSelectedERAFile'
             },
 
             initialize: function ( options ) {
@@ -20,14 +31,12 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 var _self = this;
                 this.pager = new EobFilesPager();
                 this.eraLists = new eraLists();
+                app.fileStoreId = 1;
+                app.settings.eraInboxPath = 'D:eraInbox';
             },
             
             showGrid: function () {
                 var self = this;
-                    // setTimeout(function () {
-                    //     document.getElementById("ifrEOBselect").contentWindow.document.getElementById('xMLInput').disabled = true;
-                    //     commonjs.showWarning('ERA Inbox path not yet set.', '', true);
-                    // }, 500);
                 commonjs.showLoading();
                 $(this.el).html(this.eraGridTemplate());
                 self.getEobFilesList();
@@ -97,7 +106,11 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         companyID: app.companyID
                     },
                     beforeSearch: function () {
-                        self.setSearchQuery();
+                        //self.setSearchQuery();
+                    },
+                    ondblClickRow: function (rowID) {
+                        var gridData = $('#tblEOBFileList').jqGrid('getRowData', rowID);
+                        self.processFile(rowID, gridData, null);
                     }
                 });
             },
@@ -107,13 +120,161 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             },
             
             fileSizeTypeFormatter: function (cellvalue, options, rowObject) {
-                return rowObject.size ? rowObject.size + ' KB' : ''
+                var i = parseInt(Math.floor(Math.log(rowObject.size) / Math.log(1024)));
+                var sizes = ['Bytes', 'KB'];
+                return Math.round(rowObject.size / Math.pow(1024, i), 2) + ' ' + sizes[i];
             },
 
             eobStatusFormatter: function (cellvalue, options, rowObject) {
                 return rowObject.updated_date_time ? moment(rowObject.updated_date_time).format('L, h:mm a') : ''
-            }
+            },
 
+            processFile: function(file_id, gridData, currentStatus){
+                var self = this
+
+                var $InsuranceProvider = $('#select2-ddlInsuranceProviders-container') || null;
+                
+                var payerDetails = JSON.stringify({ 
+                    payer_id: $InsuranceProvider.attr('data_id') || null, 
+                    payer_name: $InsuranceProvider.attr('data_description') || null, 
+                    payer_code: $InsuranceProvider.attr('data_code') || null,
+                    created_by : app.userID,
+                    company_id : app.companyID
+                });
+
+                $.ajax({
+                    url: '/exa_modules/billing/era/process-file',
+                    type: "POST",
+                    dataType: 'json',
+                    data: {
+                        status: currentStatus || gridData.current_status,
+                        file_store_id: gridData.file_store_id,
+                        file_id: file_id || null,
+                        payer_details: payerDetails
+                    },
+                    success: function (model, response) {
+                        console.log(model);
+                        if (model && model.payer_id) {
+                            model.file_store_id = gridData.file_store_id;
+                            self.showProgressDialog(file_id, model, 'initialize');
+                        } else {
+                            alert('Error on progressing era file')
+                        }
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
+            },
+            showProgressDialog: function (file_id, payerDetails, isFrom) {
+                var self = this;
+                if (isFrom == 'initialize') {
+
+                    commonjs.hideLoading();
+                    commonjs.showDialog({ header: 'EOB', width: '55%', height: '60%', html: self.eraProgressTemplate() });
+                    $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr for select2 search text can't editable
+                    self.setAutoComplete();
+
+                    $('#eobpaymentIdentifier').text(payerDetails.payer_Identification);
+                    self.paymentIdentifier = payerDetails.payer_Identification;
+
+                    if (payerDetails.payer_code || payerDetails.payer_name) {
+                        $('#select2-ddlInsuranceProviders-container').html(payerDetails.payer_name).prop('title', payerDetails.payer_name).attr({ 'data_code': payerDetails.payer_code, 'data_description': payerDetails.payer_name, 'data_id': payerDetails.payer_id });
+                    }
+                }
+
+
+                $('#btnProcessPaymentCancel').off().click(function (e) {
+                    commonjs.hideDialog();
+                });
+                $('#btnProcessPayment').off().click(function (e) {
+                    self.processFile(file_id, payerDetails, 'applypayments');
+                });
+
+            },
+            setAutoComplete: function () {
+                var self = this;
+
+                $("#ddlInsuranceProviders").select2({
+                    ajax: {
+                        url: "/exa_modules/billing/autoCompleteRouter/insurances",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                page: params.page || 1,
+                                q: params.term || '',
+                                pageSize: 10,
+                                sortField: "insurance_code",
+                                sortOrder: "ASC",
+                                company_id: 1
+                            };
+                        },
+                        processResults: function (data, params) {
+                            params.page = params.page || 1;
+                            return {
+                                results: data,
+                                pagination: {
+                                    more: (params.page * 30) < data[0].total_records
+                                }
+                            };
+                        },
+                        cache: true
+                    },
+                    placeholder: 'Select carrier',
+                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 0,
+                    templateResult: formatRepo,
+                    templateSelection: formatRepoSelection
+                });
+                function formatRepo(repo) {
+                    if (repo.loading) {
+                        return repo.text;
+                    }
+                    var insurance_info = commonjs.hstoreParse(repo.insurance_info);
+                    var markup = "<table><tr>";
+                    markup += "<td title='" + repo.insurance_code + "(" + repo.insurance_name + ")'> <div>" + repo.insurance_code + "(" + repo.insurance_name + ")" + "</div><div>" + insurance_info.Address1 + "</div>";
+                    markup += "<div>" + insurance_info.City + ", " + insurance_info.State + " " + insurance_info.ZipCode + "</div>";
+                    markup += "</td></tr></table>";
+                    return markup;
+
+                }
+                function formatRepoSelection(res) {
+                    if(res.id){
+                        $('#select2-ddlInsuranceProviders-container').html(res.insurance_name).prop('title', res.insurance_name).attr({ 'data_code': res.insurance_code, 'data_description': res.insurance_name, 'data_id': res.id });
+                    }
+                    return res.insurance_name;
+                }
+            },
+ 
+            reloadERAFiles: function () {
+                commonjs.filterData = {};
+                var iframeObj = document.getElementById("ifrEobFileUpload") && document.getElementById("ifrEobFileUpload").contentWindow ? document.getElementById("ifrEobFileUpload").contentWindow : null;
+                var inputObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('eraFile');
+                if (!app.settings.eraInboxPath) {
+                    inputObj.disabled = true;
+                    commonjs.showWarning('ERA Inbox path not yet set.', '', true);
+                }
+                else {
+                    if (inputObj.getAttribute('data-isDuplicate') == 'true')
+                        commonjs.showWarning('File already processed');
+                    else {
+                        this.pager.set({ "PageNo": 1 });
+                        $('.ui-jqgrid-htable:visible').find('input, select').val('');
+                        if (inputObj.getAttribute('data-uploaded') == 'true') {
+                            this.eobFilesTable.refresh();
+                        }
+                        else
+                            this.eobFilesTable.refreshAll();
+                        inputObj.setAttribute('data-isDuplicate', '');
+                    }
+                    if (iframeObj && inputObj) {
+                        inputObj.style.display = 'block'
+                        inputObj.value = '';
+                    }
+                    inputObj.setAttribute('data-isDuplicate', '');
+                }
+            }
         });
         return eraView;
     });
