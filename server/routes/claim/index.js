@@ -39,19 +39,11 @@ router.get('/', async function (req, res) {
 
 router.post('/', async function (req, res) {
     if(req.body.id) {
-
-        console.log("update called");
-
-        console.log(req.body.id);
-
-        const data= await claimsController.update(req.body);
-        
+        const data= await claimsController.update(req.body);        
         return  httpHandler.send(req, res, data);
-
     }
 
     const data = await claimsController.save(req.body);
-
     httpHandler.sendRows(req, res, data);
 });
 
@@ -60,9 +52,7 @@ router.put('/:id', async function (req, res) {
     const data = await claimsController.update(req.body);
 
     if (data && !data.rows) {
-
         return  httpHandler.send(req, res, data);
-
     }
 
     httpHandler.sendRows(req, res, data);

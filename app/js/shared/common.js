@@ -3580,6 +3580,7 @@ var commonjs = {
         var currentModule = commonjs.currentModule;
         switch (currentModule) {
             case 'Home':
+            case 'Claims':
                 commonjs.resizeHomeScreen();
                 break;
             case 'Setup':
@@ -3750,6 +3751,7 @@ var commonjs = {
             var topnavHieght = $('.header').outerHeight() + $('.top-nav').outerHeight()
             switch (commonjs.currentModule) {
                 case 'Home':
+                case 'Claims':
                 case 'app':
                 default:
                     height = $(window).height() - (topnavHieght + $('.ui-jqgrid-htable:visible').height() + $('#divPager').outerHeight() + 50);
@@ -3761,7 +3763,7 @@ var commonjs = {
                     height = $(window).height() - ($('#formBillingProviders').outerHeight() + $('body>nav').outerHeight() + 160);
                     break;
                 case 'Setup':
-                    height = $(window).height() - ($('header.header').outerHeight() + $('.title-panel').outerHeight() + $('nav.sub-top-nav').outerHeight() + 50);
+                    height = $(window).height() - ($('body>nav').outerHeight() + $('#divPageHeaderButtons').outerHeight() + 100);
                     break;
                 case 'Patient':
                     height = $(window).height() - ($('header.header').outerHeight() + $('#patientDocHeader').outerHeight() + 200);
