@@ -327,9 +327,13 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
 
             generatePDF: function (e) {
                 var self = this;
-                var paymentListDetails = self.paymentsList;
-                self.paymentInvoice = new paymentInvoice({ el: $('#modal_div_container') });
-                self.paymentInvoice.onReportViewClick(paymentListDetails);
+                self.paymentPDF = new paymentPDF({ el: $('#modal_div_container') });
+                var paymentPDFArgs = {
+                    'txtPaymentFromDate': $('#txtPaymentFromDate').val(),
+                    'txtPaymentToDate': $('#txtPaymentToDate').val(),
+                    'isDateFlag': $('#filterByPostingDt').prop('checked') ? true : false
+                }
+                self.paymentPDF.onReportViewClick(e, paymentPDFArgs);
             },
 
             prepareValueForCSV(val) {

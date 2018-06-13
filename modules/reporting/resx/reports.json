@@ -589,7 +589,7 @@
         }
     },
     {
-        "id": "procedureAnalysisByInsurance",
+        "id": "procedure-analysis-by-insurance",
         "category": "billing",
         "title": "Procedure Analysis By Insurance / Referring Provider",
         "description": "Report shows order's procedure codes per primary insurances and Referring Provider",
@@ -622,7 +622,7 @@
         }
     },
     {
-        "id": "claimTransaction",
+        "id": "claim-transaction",
         "category": "billing",
         "title": "Claim Transaction",
         "description": "Report shows all submitted claims and order payment/balance.",
