@@ -89,6 +89,7 @@ module.exports = {
 
         return payerDetails;
     },
+    
     createPaymentFromERA: async function (payerDetails, file_id, eraResponseJson) {
 
         payerDetails = JSON.parse(payerDetails);

@@ -13,7 +13,7 @@ router.get('/list', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
-router.get('/upload-era-src', function (req, res) {
+router.get('/upload', function (req, res) {
     return res.render('../server/views/era-file-upload.pug',
         {
             'companyID': 1,
@@ -45,7 +45,7 @@ const storage = multer.diskStorage({
 
 let uploader = multer({ storage: storage }).single('displayImage');
 
-router.post('/iframe-era-file', uploader, async function (req, res) {
+router.post('/upload', uploader, async function (req, res) {
     if (req.file && req.file.path) {
         let filePath = req.file.path;
         const file_ext = req.file.originalname.slice(-3);
@@ -108,7 +108,6 @@ router.post('/iframe-era-file', uploader, async function (req, res) {
 });
 
 router.post('/process-file', async function (req, res) {
-    
     const data = await eraController.processERAFile(req.body);
     httpHandler.send(req, res, data);
 });
