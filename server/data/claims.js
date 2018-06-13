@@ -1047,13 +1047,5 @@ module.exports = {
         RETURNING id    `;
 
         return await query(sqlQry);
-    },
-
-    getFolderPath: async(params) => {
-
-        let sqlQry = SQL`
-        SELECT account_no, facility_info->'pokitdok_response' as filepath from public.patients p INNER JOIN public.facilities f on f.id = p.facility_id where p.id = ${params.patient_id} `;
-
-        return await query(sqlQry);
     }
 };

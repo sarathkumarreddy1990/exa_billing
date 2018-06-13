@@ -39,7 +39,8 @@
 
 <div id="divForm_PokiDok" style="width: 100%;margin-left: 0px">
     <h5>Pokidok Response</h5>
-    <input type="button" id="btnClosePokidokPopup" value="close" class="btn btn-primary" i18n="order.newOrder.buttons.close" style="margin-right: -90%">    
+    <input type="button" id="btnClosePokidokPopup" value="close" class="btn btn-primary" i18n="order.newOrder.buttons.close"
+        style="margin-right: -90%">
     <div class='Form' id='divPokitdok' style="padding-top: 5px;overflow: auto">
         <form class="form-group row" id="formAllergyInfo">
             <div class="col-xs-12">
@@ -302,7 +303,7 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                                <label for="txtName" class="col-form-label" i18n="setup.common.PlanDescription">Plan Description</label>
+                            <label for="txtName" class="col-form-label" i18n="setup.common.PlanDescription">Plan Description</label>
 
                             <div class="col-form-label">
                                 <label class="logFields1">
@@ -311,8 +312,8 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                                <label for="txtName" class="col-form-label" i18n="setup.common.PlanNumber">Plan Number</label>
-                            
+                            <label for="txtName" class="col-form-label" i18n="setup.common.PlanNumber">Plan Number</label>
+
                             <div class="col-form-label">
                                 <label class="logFields1">
                                     <%= InsuranceData && InsuranceData.coverage && InsuranceData.coverage.plan_number ? InsuranceData.coverage.plan_number : '-' %>
@@ -320,8 +321,8 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                                <label for="txtName" class="col-form-label" i18n="setup.common.ServiceDate">Service Date</label>
-                            
+                            <label for="txtName" class="col-form-label" i18n="setup.common.ServiceDate">Service Date</label>
+
                             <div class="col-form-label">
                                 <label class="logFields1">
                                     <%= InsuranceData && InsuranceData.coverage && InsuranceData.coverage.service_date ? InsuranceData.coverage.service_date : '-' %>
@@ -329,8 +330,8 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                                <label for="txtName" class="col-form-label" i18n="setup.common.Messages">Messages</label>
-                            
+                            <label for="txtName" class="col-form-label" i18n="setup.common.Messages">Messages</label>
+
                             <div class="col-form-label">
                                 <% var v_msgs = [{message: '-'}]; %>
                                     <% v_msgs = (InsuranceData && InsuranceData.coverage && InsuranceData.coverage.messages) ? InsuranceData.coverage.messages : v_msgs; %>
@@ -767,8 +768,8 @@
                                 <h6> SUBSCRIBER INFORMATION</h6>
                             </legend>
                             <div class="form-group row">
-                                    <label for="txtName" class="col-sm-3 col-form-label" i18n="setup.common.SubscriberID">Subscriber ID</label>
-                                
+                                <label for="txtName" class="col-sm-3 col-form-label" i18n="setup.common.SubscriberID">Subscriber ID</label>
+
                                 <div class="col-form-label">
                                     <label class="logFields1">
                                         <%= InsuranceData && InsuranceData.subscriber && InsuranceData.subscriber.id ? InsuranceData.subscriber.id : '-' %>
@@ -776,8 +777,8 @@
                                 </div>
                             </div>
                             <div class="form-group row">
-                                    <label for="txtName" class="col-sm-3 col-form-label" i18n="setup.common.SubscriberFirstName">Subscriber First Name</label>
-                                
+                                <label for="txtName" class="col-sm-3 col-form-label" i18n="setup.common.SubscriberFirstName">Subscriber First Name</label>
+
                                 <div class="col-form-label">
                                     <label class="logFields1">
                                         <%= InsuranceData && InsuranceData.subscriber && InsuranceData.subscriber.first_name ? InsuranceData.subscriber.first_name : '-' %>
@@ -786,7 +787,7 @@
                             </div>
                             <div class="form-group row">
                                 <label for="txtName" class="col-sm-3 col-form-label" i18n="setup.common.SubscriberLastName">Subscriber Last Name</label>
-                                
+
                                 <div class="col-form-label">
                                     <label class="logFields1">
                                         <%= InsuranceData && InsuranceData.subscriber && InsuranceData.subscriber.last_name ? InsuranceData.subscriber.last_name : '-' %>
@@ -795,7 +796,7 @@
                             </div>
                             <div class="form-group row">
                                 <label for="txtName" class="col-sm-3 col-form-label" i18n="setup.common.SubscriberBirthDate">Subscriber Birth Date</label>
-                                
+
                                 <div class="col-form-label">
                                     <label class="logFields1">
                                         <%= InsuranceData && InsuranceData.subscriber && InsuranceData.subscriber.birth_date ? InsuranceData.subscriber.birth_date : '-' %>
@@ -804,7 +805,7 @@
                             </div>
                             <div class="form-group row">
                                 <label for="txtName" class="col-sm-3 col-form-label" i18n="setup.common.SubscriberGender">Subscriber Gender</label>
-                                
+
                                 <div class="col-form-label">
                                     <label class="logFields1">
                                         <%= InsuranceData && InsuranceData.subscriber && InsuranceData.subscriber.gender ? InsuranceData.subscriber.gender : '-' %>
@@ -813,7 +814,7 @@
                             </div>
                             <div class="form-group row">
                                 <label for="txtName" class="col-sm-3 col-form-label" i18n="setup.common.Subscriber Address Lines">Subscriber Address Lines</label>
-                                
+
                                 <div class="col-form-label">
                                     <label class="logFields1">
                                         <%= (InsuranceData && InsuranceData.subscriber && InsuranceData.subscriber.address &&
@@ -823,7 +824,7 @@
                             </div>
                             <div class="form-group row">
                                 <label for="txtName" class="col-sm-3 col-form-label" i18n="setup.common.Subscriber City">Subscriber City</label>
-                                
+
                                 <div class="col-form-label">
                                     <label class="logFields1">
                                         <%= (InsuranceData && InsuranceData.subscriber && InsuranceData.subscriber.address &&
@@ -833,7 +834,7 @@
                             </div>
                             <div class="form-group row">
                                 <label for="txtName" class="col-sm-3 col-form-label" i18n="setup.common.SubscriberState">Subscriber State</label>
-                                
+
                                 <div class="col-form-label">
                                     <label class="logFields1">
                                         <%= (InsuranceData && InsuranceData.subscriber && InsuranceData.subscriber.address &&
@@ -843,7 +844,7 @@
                             </div>
                             <div class="form-group row">
                                 <label for="txtName" class="col-sm-3 col-form-label" i18n="setup.common.SubscriberZipcode">Subscriber Zipcode</label>
-                                
+
                                 <div class="col-form-label">
                                     <label class="logFields1">
                                         <%= (InsuranceData && InsuranceData.subscriber && InsuranceData.subscriber.address &&
@@ -853,7 +854,7 @@
                             </div>
                             <div class="form-group row">
                                 <label for="txtName" class="col-sm-3 col-form-label" i18n="setup.common.Valid Request">Valid Request</label>
-                                
+
                                 <div class="col-form-label">
                                     <label class="logFields1">
                                         <%= InsuranceData && InsuranceData.valid_request ? (InsuranceData.valid_request ? 'Yes' : 'No') : '-' %>
@@ -862,7 +863,7 @@
                             </div>
                             <div class="form-group row">
                                 <label for="txtName" class="col-sm-3 col-form-label" i18n="setup.common.ServiceTypeCodes">Service Type Codes</label>
-                                
+
                                 <div class="col-form-label">
                                     <label class="logFields1" style="width: 100px">
                                         <%= InsuranceData && InsuranceData.service_type_codes ? InsuranceData.service_type_codes : '-' %>
@@ -871,7 +872,7 @@
                             </div>
                             <div class="form-group row">
                                 <label for="txtName" class="col-sm-3 col-form-label" i18n="setup.common.TraceNumber">Trace Number</label>
-                                
+
                                 <div class="col-form-label">
                                     <label class="logFields1" style="width: 100px">
                                         <%= InsuranceData && InsuranceData.trace_number ? InsuranceData.trace_number : '-' %>
@@ -880,7 +881,7 @@
                             </div>
                             <div class="form-group row">
                                 <label for="txtName" class="col-sm-3 col-form-label" i18n="setup.common.OriginationCompanyID">Origination Company ID</label>
-                                
+
                                 <div class="col-form-label">
                                     <label class="logFields1">
                                         <%= InsuranceData && InsuranceData.originating_company_id ? InsuranceData.originating_company_id : '-' %>
