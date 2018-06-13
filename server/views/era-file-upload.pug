@@ -1,0 +1,27 @@
+doctype html
+html
+    head
+        meta(http-equiv="Content-Type", content="text/html;charset=Windows-1252")
+        title EOB FIle Upload
+    script.
+               function seletImportProviders(e){
+                 if (!/edi|era|835|txt/i.test(e.target.files[0].name.slice(-3))) {
+                   parent.commonjs.showError('Allowed file extensions: era,835,txt');
+                   e.target.form.reset();
+                   return;
+                 }
+
+                  parent.commonjs.showLoading('Uploading file. please wait..');
+                  document.getElementById("inSubmit").click();
+                  var btns = parent.document.getElementsByClassName('eobControls');
+                  for(var i = 0; i < btns.length; i++){
+                    btns[i].style.display = 'block';
+                  }
+               }
+    body(class="exportFrame" style="background-color: transparent !important;")
+        form#eraFileUpload(name='formEraUpload', action='/exa_modules/billing/era/upload-era-file/file?companyID=#{companyID}', method='post',style="float:right;", enctype="multipart/form-data")
+            input#eraFile(type="file", name="displayImage", data-isDuplicate="#{duplicate_file}", data-fileNameUploaded="#{fileNameUploaded}", onchange="seletImportProviders(event);" )
+            input#inSubmit(type="submit", style="visibility:hidden;height:0px")
+    script.
+        parent.commonjs.hideLoading();
+        parent.document.getElementById('btnReloadERA').click();
