@@ -1,4 +1,4 @@
-define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-insurance', 'models/patient-details', 'text!templates/claims/claim-form.html', 'text!templates/claims/charge-row.html', 'text!templates/claims/insurance-pokitdok-popup.html'],
+define(['jquery', 'underscore', 'backbone', 'models/claim/index', 'models/patient-insurance', 'models/patient-details', 'text!templates/claims/claim-form.html', 'text!templates/claims/charge-row.html', 'text!templates/claims/insurance-pokitdok-popup.html'],
     function ($, _, Backbone, newClaimModel, modelPatientInsurance, patientModel, claimCreationTemplate, chargeRowTemplate, insurancePokitdokForm) {
         var claimView = Backbone.View.extend({
             el: null,
@@ -241,6 +241,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     'rd': 'Ready To File',
                     'st': 'Submitted'
                 };
+                self.model.set({ id: claim_Id });
                 self.claim_Id = claim_Id;
                 self.isEdit = true;
                 self.claimICDLists = [];
@@ -266,7 +267,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                             self.priClaimInsID = claimDetails.primary_patient_insurance_id || null;
                             self.secClaimInsID = claimDetails.secondary_patient_insurance_id || null;
                             self.terClaimInsID = claimDetails.tertiary_patient_insurance_id || null;
-
+                            self.claim_row_version = claimDetails.claim_row_version || null;
                             self.initializeClaimEditForm();
                             /* Header Details */
                             $(parent.document).find('#spanModalHeader').html('Edit: <STRONG>' + claimDetails.patient_full_name + '</STRONG> (Acc#:' + claimDetails.patient_account_no + '), <i>' + claimDetails.patient_dob + '</i>  ');
@@ -365,10 +366,10 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 document.querySelector('#txtDate').value = claim_data.current_illness_date ? moment(claim_data.current_illness_date).format('YYYY-MM-DD') : '';
                 document.querySelector('#txtClaimDate').value = claim_data.claim_dt ? moment(claim_data.claim_dt).format('YYYY-MM-DD') : '';
 
-                $('input[name="outSideLab"]').attr('checked', claim_data.service_by_outside_lab);
-                $('input[name="employment"]').attr('checked', claim_data.is_employed);
-                $('input[name="autoAccident"]').attr('checked', claim_data.is_auto_accident);
-                $('input[name="otherAccident"]').attr('checked', claim_data.is_other_accident);
+                $('input[name="outSideLab"]').prop('checked', claim_data.service_by_outside_lab);
+                $('input[name="employment"]').prop('checked', claim_data.is_employed);
+                $('input[name="autoAccident"]').prop('checked', claim_data.is_auto_accident);
+                $('input[name="otherAccident"]').prop('checked', claim_data.is_other_accident);
                 $('#txtOriginalRef').val(claim_data.original_reference ? claim_data.original_reference : '');
                 $('#txtAuthorization').val(claim_data.authorization_no ? claim_data.authorization_no : '');
                 $('#frequency').val(claim_data.frequency ? claim_data.frequency : '');
@@ -493,7 +494,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     $('#ddlSecEmpStatus').val(claimData.s_subscriber_employment_status_id);
                     $("#ddlSecRelationShip").val(claimData.s_subscriber_relationship_id);
                     $('#txtSecSubFirstName').val(claimData.s_subscriber_firstname);
-                    $('#txtSubMiName').val(claimData.s_subscriber_middlename);
+                    $('#txtSecSubMiName').val(claimData.s_subscriber_middlename);
                     $('#ddlSecGender').val(claimData.s_subscriber_gender);
                     $('#txtSecSubLastName').val(claimData.s_subscriber_lastname);
                     $('#txtSecSubSuffix').val(claimData.s_subscriber_name_suffix);
@@ -1737,9 +1738,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
             setClaimDetails: function () {
                 var self = this;
                 var claim_model = {}, billingMethod;
-                self.claimModel = new newClaimModel();
                 claim_model.insurances = [];
-
                 var currentResponsible = _.find(self.responsible_list, d => d.payer_type == $('#ddlResponsible').val());
                 var currentPayer_type = $('#ddlResponsible').val().split('_')[0];
                 var facility_id = $('#ddlFacility option:selected').val() != '' ? parseInt($('#ddlFacility option:selected').val()) : null;
@@ -1906,7 +1905,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 claim_model.claim_icds = self.claimICDLists || [];
 
                 // set claims details
-                self.claimModel.set({
+                self.model.set({
+                    claim_row_version : self.isEdit ? self.claim_row_version : null,
                     insurances: claim_model.insurances,
                     charges: claim_model.charges,
                     claims: claim_model.claims,
@@ -1923,16 +1923,17 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 if (self.validateClaimData()) {
                     self.setClaimDetails();
 
-                    if (self.isEdit) {
-                        this.claimModel.set({ id: self.claim_Id })
-                    }
                     // save function
-                    self.claimModel.save({}, {
+                    self.model.save({}, {
                         success: function (model, response) {
                             //if (response && response.length > 0) {
-                            alert('Successfully completed');
-                            commonjs.hideDialog();
-                            //}
+                            if (response && response.message) {
+                                alert(response.message);
+                            } else {
+                                alert('Successfully completed');
+                                commonjs.hideDialog();
+                            }
+                            
                         },
                         error: function (model, response) {
                             commonjs.handleXhrError(model, response);
