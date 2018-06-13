@@ -80,7 +80,6 @@ define(['jquery',
                                     var gridData = $('#tblAdjustmentCodesGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
-                                        data: $.param({ id: self.model.id }),
                                         success: function (model, response) {
                                             commonjs.showStatus("Deleted Successfully");
                                             self.adjustmentCodesTable.refresh();
@@ -141,9 +140,8 @@ define(['jquery',
                         Backbone.history.navigate('#setup/adjustment_codes/new', true);
                     }},
                     {value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
-                        self.pager.set({"PageNo": 1});
-                        self.adjustmentCodesTable.refreshAll();
-                        commonjs.showStatus("Reloaded Successfully");
+                        self.pager.set({"PageNo": 1}); 
+                        self.adjustmentCodesTable.refreshAll(); 
                     }}
                 ]});
             },
@@ -162,7 +160,6 @@ define(['jquery',
                 if (id > 0) {
                     this.model.set({ id: id });
                     this.model.fetch({
-                        data: { id: this.model.id }, 
                         success: function (model, response) {
                             if (response && response.length > 0) {
                                 var data = response[0];
@@ -177,8 +174,8 @@ define(['jquery',
                     });
                 } else {
                     this.model = new AdjustmentCodesModel();
-
                 }
+
                 commonjs.initializeScreen({header: {screen: 'AdjustmentCodes', ext: 'adjustmentCode'}, buttons: [
                     {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
                         self.saveAdjustmentCodes();
@@ -191,6 +188,7 @@ define(['jquery',
                 $('#divAdjustmentCodesForm').show();
                 commonjs.processPostRender();
             },
+
             saveAdjustmentCodes : function() {
                 var self = this;
                 commonjs.validateForm({
@@ -226,6 +224,7 @@ define(['jquery',
                     "type": $('#ddlEntryType').val(),
                     "companyId": app.companyID
                 });
+
                 this.model.save({
                 }, {
                         success: function (model, response) {

@@ -165,6 +165,8 @@ require([
             daterangepicker,
             jquerysortable
         ) {
+                Backbone.emulateHTTP = false;
+
                 new Appserver(function () {
                     App.initialize();
                 });
