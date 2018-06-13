@@ -116,8 +116,7 @@ module.exports = {
                                     FROM   (SELECT * 
                                             FROM   billing.adjustment_codes 
                                             WHERE  id = ${id}) old_row 
-                                ) old_values
-                        `;
+                                ) old_values`;
 
         return await queryWithAudit(sql, {
             ...params,
