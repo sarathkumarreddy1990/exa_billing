@@ -19,7 +19,7 @@ html
                   }
                }
     body(class="exportFrame" style="background-color: transparent !important;")
-        form#eraFileUpload(name='formEraUpload', action='/exa_modules/billing/era/upload-era-file/file?companyID=#{companyID}', method='post',style="float:right;", enctype="multipart/form-data")
+        form#eraFileUpload(name='formEraUpload', action='/exa_modules/billing/era/upload-era-file?companyID=#{companyID}', method='post',style="float:right;", enctype="multipart/form-data")
             input#eraFile(type="file", name="displayImage", data-isDuplicate="#{duplicate_file}", data-fileNameUploaded="#{fileNameUploaded}", onchange="seletImportProviders(event);" )
             input#inSubmit(type="submit", style="visibility:hidden;height:0px")
     script.
