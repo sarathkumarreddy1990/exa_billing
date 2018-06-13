@@ -91,8 +91,9 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
 
                 self.bindDetails();
                 // Hide non-edit tabs
-                // if (!self.isEdit) 
-                $('.editClaimRelated').hide();
+                if (!self.isEdit) 
+                    $('.editClaimRelated').hide();
+                    
                 $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr for select2 search text can't editable
 
                 $('#aCheckEligibility, #aCheckEligibility2, #aCheckEligibility3').unbind().click(function () {
@@ -604,11 +605,11 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 $("#chkSecMedicarePayer").off().change(function (e) {
                     $('#selectMedicalPayer').toggle($('#chkSecMedicarePayer').is(':checked')).val('');
                 });
-              
+
                 $("#btnResetPriInsurance, #btnResetSecInsurance, #btnResetTerInsurance").off().click(function (e) {
                     self.resetInsurances(e);
                 });
-               
+
 
             },
             getLineItemsAndBind: function (selectedStudyIds) {
@@ -1147,7 +1148,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                         },
                         cache: true
                     },
-                    
+
                     escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
                     minimumInputLength: 0,
                     templateResult: formatRepo,
@@ -1250,7 +1251,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                         })
                     });
                 }
-                else{
+                else {
                     alert("Cannot add more that 12 ICD");
                 }
             },
@@ -1921,7 +1922,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 saveButton.attr('disabled', true);
                 if (self.validateClaimData()) {
                     self.setClaimDetails();
-                    
+
                     if (self.isEdit) {
                         this.claimModel.set({ id: self.claim_Id })
                     }
@@ -2150,7 +2151,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                                 self.city = contactInfo.c1City;
                                 self.state = contactInfo.c1State;
                                 self.zipCode = contactInfo.c1Zip;
-                                document.querySelector('#txt'+_targetFlag+'DOB').value = response.birth_date ? moment(response.birth_date).format('YYYY-MM-DD') : '';
+                                document.querySelector('#txt' + _targetFlag + 'DOB').value = response.birth_date ? moment(response.birth_date).format('YYYY-MM-DD') : '';
                                 self.homePhone = contactInfo.c1HomePhone;
                                 self.workPhone = contactInfo.c1WorkPhone;
                                 self.empStatus = contactInfo.empStatus;
@@ -2206,7 +2207,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 var chkcity = $('#txt' + flag + 'City').val();
                 var chkstate = $('#ddl' + flag + 'State option:selected').val();
                 var chkzipcode = $('#txt' + flag + 'ZipCode').val();
-                if (chkaddress1 == '' && chkaddress2 == '' && chkcity == '' && ( chkstate == '' || chkstate == '0' ) && chkzipcode == '') {
+                if (chkaddress1 == '' && chkaddress2 == '' && chkcity == '' && (chkstate == '' || chkstate == '0') && chkzipcode == '') {
                     return false;
                 }
                 else {
@@ -2224,36 +2225,36 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     payer_type = 'PIP_P';
                     self.priInsID = '';
                     self.priInsName = '';
-                    document.querySelector('#txtPriDOB').value ='';
+                    document.querySelector('#txtPriDOB').value = '';
                     self.is_primary_available = false;
-                   
+
                 }
                 else if (id == 'btnResetSecInsurance') {
                     flag = 'Sec'
                     payer_type = 'PIP_S';
                     self.secInsID = '';
                     self.secInsName = '';
-                    document.querySelector('#txtSecDOB').value ='';
+                    document.querySelector('#txtSecDOB').value = '';
                     $('#chkSecMedicarePayer').prop('checked', false);
                     $('#selectMedicalPayer').toggle(false);
                     self.is_secondary_available = false;
-                   
+
                 }
                 else if (id == 'btnResetTerInsurance') {
                     flag = 'Ter'
-                    payer_type = 'PIP_P';
+                    payer_type = 'PIP_T';
                     self.terInsID = '';
                     self.terInsName = '';
-                    document.querySelector('#txtTerDOB').value ='';
+                    document.querySelector('#txtTerDOB').value = '';
                     self.is_tertiary_available = false;
-                   
+
                 }
 
                 if (flag && payer_type) {
 
                     $('#txt' + flag + 'Insurance').val('');
                     $('#select2-ddl' + flag + 'Insurance-container').html(self.usermessage.selectCarrier);
-                    
+
                     $('#chk' + flag + 'AcptAsmt').prop('checked', false);
                     $('#lbl' + flag + 'InsPriAddr').html('');
                     $('#lbl' + flag + 'InsCityStateZip').html('');
