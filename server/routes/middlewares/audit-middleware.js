@@ -40,7 +40,7 @@ app.use(function (req, res, next) {
         };
 
         req.params = {
-            ...req.query,
+            ...req.params,
             ...ids,
         };
 

@@ -2226,7 +2226,10 @@ var commonjs = {
     },
 
     handleXhrError: function (err, response) {
-        switch (err.status) {
+
+        commonjs.hideLoading();
+
+        switch (err.status || response.status) {
             case 0:
                 commonjs.showError('messages.errors.notconnected');
                 break;
@@ -2239,6 +2242,10 @@ var commonjs = {
             default:
                 commonjs.showError('messages.errors.someerror');
                 break;
+        }
+
+        if(response.responseText.indexOf('INVALID_SESSION') > -1) {
+            commonjs.showDialog({ header: 'Error', i18nHeader: 'messages.errors.serversideerror', width: '50%', height: '50%', html: response.responseText }, true);
         }
     },
 
