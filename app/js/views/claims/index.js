@@ -95,7 +95,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 $('.editClaimRelated').hide();
                 $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr for select2 search text can't editable
 
-                $('#aCheckEligibility, #aCheckEligibility2, #aCheckEligibility3').unbind().click(function () {
+                $('#btnCheckEligibility, #btnCheckEligibility2, #btnCheckEligibility3').unbind().click(function () {
                     self.checkInsuranceEligibility();
                 }); 
             },
@@ -150,7 +150,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     serviceTypes.push(serviceType.replace(/[^A-Z0-9]+/ig, "_"));
                 });
 
-                $('#aCheckEligibility').hide();
+                $('#btnCheckEligibility').hide();
                 $('#imgLoading').show();
                 commonjs.showLoading();
 
