@@ -25,6 +25,7 @@ module.exports = {
                 , COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient'),0::money) AS others_paid
                 , SUM(CASE WHEN amount_type = 'adjustment' THEN bpa.amount ELSE 0::money END) AS adjustment_amount
                 , (SELECT SUM(claim_balance_total) FROM billing.get_claim_totals(bc.id)) AS claim_balance
+                , bc.billing_notes
             FROM billing.claims bc
             INNER JOIN billing.claim_status st ON st.id = bc.claim_status_id
             INNER JOIN public.facilities f ON f.id = bc.facility_id
@@ -105,9 +106,14 @@ module.exports = {
                           cc.id AS id
                         , null AS payment_id
                         , type
+                        , type AS code
                         , note AS comments
                         , created_dt::date as commented_dt
                         , is_internal 
+                        , null AS charge_amount
+                        , null::text[] AS charge_pointer
+                        , null AS payment
+                        , null AS adjustment
                     FROM 
                         billing.claim_comments cc
                     WHERE cc.claim_id = ${claim_id}   
@@ -115,10 +121,15 @@ module.exports = {
                     SELECT  
                           ch.id AS id
                         , null AS payment_id
-                        , 'charge' as type
-                        , cpt.short_description as comments
+                        , cpt.display_code AS code
+                        , 'charge' AS type
+                        , cpt.short_description AS comments
                         , ch.charge_dt::date as commented_dt
                         , false AS is_internal
+                        , bill_fee AS charge_amount
+                        , ARRAY[pointer1, pointer2, pointer3, pointer4] AS charge_pointer
+                        , null AS payment
+                        , null AS adjustment
                     FROM billing.charges ch
                     INNER JOIN cpt_codes cpt on cpt.id = ch.cpt_id 
                     WHERE ch.claim_id = ${claim_id}
@@ -126,6 +137,7 @@ module.exports = {
                     SELECT
                           bp.id AS id
                         , bp.id::text AS payment_id
+                        , pa.amount_type as code
                         , pa.amount_type as type
                         , CASE WHEN bp.payer_type = 'patient' THEN
                                     pp.full_name
@@ -138,6 +150,10 @@ module.exports = {
                             END as comments
                         , bp.accounting_dt::date as commented_dt
                         , false AS is_internal
+                        , null AS charge_amount
+                        , null::text[] AS charge_pointer
+                        , (CASE WHEN pa.amount_type = 'payment' THEN pa.amount::text ELSE null::text END) payment
+                        , (CASE WHEN pa.amount_type = 'adjustment' THEN pa.amount::text  ELSE null::text END) adjustment 
                     FROM billing.payments bp
                     INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
                     INNER JOIN billing.charges ch on ch.id = pa.charge_id 
@@ -151,10 +167,15 @@ module.exports = {
                 SELECT
                       id
                     , payment_id
+                    , code
                     , type
                     , comments
                     , commented_dt
                     , is_internal
+                    , charge_amount
+                    , charge_pointer
+                    , payment
+                    , adjustment
                     , COUNT(1) OVER (range unbounded preceding) AS total_records
                 FROM agg`;
 
@@ -187,6 +208,7 @@ module.exports = {
         let sql; 
 
         if(from == 'cb'){
+            //TODO: Audit log bulk update
             sql = SQL`WITH agg_cmt AS (
                         SELECT * FROM json_to_recordset(${comments}) AS data
                             (
@@ -319,5 +341,62 @@ module.exports = {
                             FROM 
                                 billing.claim_followups 
                             WHERE claim_id = ${claim_id}`);
+    },
+
+    updateBillingNotes: async (params) => {
+        let {
+            claim_id,
+            notes
+        } = params;
+
+        let sql = SQL`UPDATE 
+                        billing.claims SET billing_notes  = ${notes}
+                    WHERE id = ${claim_id} 
+                    RETURNING *,
+                    (
+                        SELECT row_to_json(old_row) 
+                        FROM   (SELECT * 
+                                FROM   billing.claims 
+                                WHERE  id = ${claim_id}) old_row 
+                    ) old_values`;
+        // return await queryWithAudit(sql, {
+        //     ...params,
+        //     logDescription: `Updated ${notes}(${claim_id})`
+        // });
+
+        return await query(sql);
+        
+    },
+
+    viewPaymentDetails: async(params) => {
+        let {
+            claim_id,
+            pay_application_id
+        } = params;
+
+        let sql = `SELECT
+                          ch.id AS charge_id
+                        , ch.bill_fee
+                        , ch.allowed_amount
+                        , cas.cas_details
+                        , (CASE WHEN pa.amount_type = 'payment' THEN pa.amount ELSE 0::money END) payment
+                        , (CASE WHEN pa.amount_type = 'adjustment' THEN pa.amount  ELSE 0::money END) adjustment 
+                    FROM billing.payments bp             
+                    INNER JOIN billing.payment_applications pa ON pa.payment_id = bp.id
+                    INNER JOIN billing.charges ch on ch.id = pa.charge_id -- WHERE bp.id = 312 AND ch.claim_id = 28
+                    LEFT JOIN LATERAL (
+                        SELECT json_agg(row_to_json(cas)) AS cas_details
+                            FROM ( SELECT 
+                                    cas.amount, 
+                                    rc.code
+                                FROM billing.cas_payment_application_details cas 
+                                INNER JOIN billing.cas_reason_codes rc ON rc.id = cas.cas_reason_code_id
+                                WHERE  cas.payment_application_id = pa.id
+                                
+                                ) as cas
+                    ) cas on true 
+                    WHERE bp.id = ${pay_application_id} AND ch.claim_id = ${claim_id} 
+                    ORDER BY applied_dt ASC `;
+        return await query(sql);
     }
 };

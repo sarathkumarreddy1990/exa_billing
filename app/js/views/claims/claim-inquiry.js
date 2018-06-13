@@ -32,7 +32,9 @@ define([
                 "click #btnCISaveIsInternal": "saveIsInternalComment",
                 "click #btnCIPatientInquiry": "patientInquiryForm",
                 "click #btnCIPrintInvoice": "printPaymentInvoice",
-                "click #btnCICommentCancel": "closeSaveComment"
+                "click #btnCICommentCancel": "closeSaveComment",
+                "click #btnCIAddBillingComments": "billingCommentsReadonly",
+                "click #btnCISaveBillingNote": "saveBillingComment"
             },
 
             initialize: function (options) {
@@ -77,6 +79,7 @@ define([
                                 $('#lblCIAdj').text(encounter.adjustment_amount);
                                 $('#lblCIBalance').text(encounter.claim_balance);
                                 $('#lblCIAllowed').text(encounter.allowed_fee);
+                                $('#txtCIBillingComment').text(encounter.billing_notes)
                             }
 
                             self.showInsuranceGrid(data.insurance_details);
@@ -137,13 +140,42 @@ define([
                     gridelementid: '#tblCIClaimComments',
                     custompager: self.pager,
                     emptyMessage: 'No Records Found',
-                    colNames: ['', 'date', 'payment.id', 'comment', '', '', ''],
+                    colNames: ['', 'date', '', 'code', 'payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', ''],
                     colModel: [
                         { name: 'id', hidden: true },
-                        { name: 'commented_dt', width: 80, search: false, sortable: false, formatter: self.commentDateFormatter },
-                        { name: 'payment_id', width: 80, search: false, sortable: false },
+                        { name: 'commented_dt', width: 40, search: false, sortable: false, formatter: self.commentDateFormatter },
+                        { name: 'code', hidden: true},
+                        { name: 'type', width: 40, search: false, sortable: false },
+                        { name: 'payment_id', width: 80, search: false, sortable: false,
+                            customAction: function (rowID) {
+                                var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
+                                self.getPaymentofCharge(gridData.id);
+                            },
+                            formatter: function (cellvalue, options, rowObject) {
+                                if (rowObject.type && rowObject.code == 'charge')
+                                    return "<span class='icon-ic-raw-transctipt' rel='tooltip' title='View Pay details of this charge'></span>"
+                                else    
+                                    return rowObject.payment_id;
+                            }
+                        },
                         { name: 'comments', width: 50, search: false, sortable: false },
-                        {name: 'del', width: 20, search: false, sortable: false,
+                        { name: 'charge_pointer', width: 20,  search: false, sortable: false }, 
+                        { name: 'charge_amount', width: 20,  search: false, sortable: false },
+                        { name: 'payment', width: 20,  search: false, sortable: false },
+                        { name: 'adjustment', width: 30,  search: false, sortable: false }, 
+                        { name: 'view_payment', width: 20, sortable: false, search: false,
+                            customAction: function (rowID) {
+                                var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
+                                self.getDetailsOfPay(gridData.id);
+                            },
+                            formatter: function (cellvalue, options, rowObject) {
+                                if (rowObject.type && rowObject.code == 'payment')
+                                    return "<span class='fas fa-eye' rel='tooltip' title='view payment details'></span>"
+                                else
+                                    return "";
+                            }
+                        }, 
+                        { name: 'del', width: 20, search: false, sortable: false,
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
                                 if (confirm("Are you sure that you want to delete?")) {
@@ -272,7 +304,7 @@ define([
 
             showCommentPopup: function (from, comment, commentId) {
                 var self = this;
-               // commonjs.showDialog({ header: 'Add Comment', i18nHeader: 'menuTitles.patient.addComment', width: '60%', height: '25%', html: $('#divCIFormComment').html() });
+
                $('#divCIFormComment').css({ top: '10%', height: '20%' });
                $('#divCIFormComment').show();
                 if (from == 'edit') {
@@ -411,10 +443,70 @@ define([
                 self.paymentInvoice = new paymentInvoice({el: $('#modal_div_container')});
                 self.paymentInvoice.onReportViewClick(e);                         
             },
-            closeSaveComment: function(e){
+
+            closeSaveComment: function (e) {
                 $('#divCIFormComment').hide();
                 $('#txtCIAddComment').val('');
+            },
+
+            billingCommentsReadonly: function () {
+                var self = this;
+
+                if ($('#txtCIBillingComment').prop('readonly')) {
+                    $('#txtCIBillingComment').removeAttr('readonly');
+                    $('#btnCISaveBillingNote').show();
+                }
+                else {
+                    $('#txtCIBillingComment').attr('readonly', 'readonly');
+                    $('#btnCISaveBillingNote').hide();
+                }
+            },
+
+            saveBillingComment: function () {
+                var self = this;
+                var notes = $('#txtCIBillingComment').val();
+
+                $.ajax({
+                    url: '/exa_modules/billing/claim_inquiry/billing_note',
+                    type: 'PUT',
+                    data: {
+                        'claim_id': self.claim_id,
+                        'notes': notes
+                    },
+                    success: function (data, response) {
+                        $('#txtCIBillingComment').attr('readonly', 'readonly');
+                        $('#btnCISaveBillingNote').hide();
+                    },
+                    error: function (err) {
+                        commonjs.handleXhrError(err);
+                    }
+                })
+            },
+
+            getPaymentofCharge: function(charge_id) {
+                var self = this;
+                alert('Will show payment details of this charge')
+            },
+
+            getDetailsOfPay: function(pay_id) {
+                var self = this;
+                alert('Will Show payment details ');
+                console.log('getDetailsOfPay IDs -- ',  pay_id, self.claim_id)
+                $.ajax({
+                    url: '/exa_modules/billing/claim_inquiry/payment_details',
+                    type: 'GET',
+                    data: {
+                        'claim_id': self.claim_id,
+                        'pay_application_id': pay_id
+                    },
+                    success: function (data, response) {
+                        console.log('getDetailsOfPay --- ', data)
+                    },
+                    error: function (err) {
+                        commonjs.handleXhrError(err);
+                    }
+                })
             }
-        })
+        });
 
     });
