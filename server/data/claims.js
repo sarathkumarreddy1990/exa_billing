@@ -689,6 +689,7 @@ module.exports = {
     update: async function (args) {
      
         let self = this;
+        let result;
         let {
             claims
             , insurances
@@ -1020,10 +1021,18 @@ module.exports = {
                     ) AS icd_insertion
          ) AS icd_insertion `;
 
-        await query(sqlQry);
+        if (claims.payer_type == 'patient') {
 
-        return await self.updateIns_claims(claims);
+            await self.updateIns_claims(claims);
+            result = await query(sqlQry);
 
+        } else {
+
+            await query(sqlQry);
+            result =  await self.updateIns_claims(claims);
+        }
+
+        return result;
     },
 
     updateIns_claims: async (params) => {

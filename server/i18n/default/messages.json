@@ -4,6 +4,10 @@
             "validatedSuccessfully": "Validated Successfully"
         },
         "errors": {
+            "notconnected": "Not connected",
+            "requestnotfound": "Request not found",
+            "serversideerror": "Server error",
+            "someerror": "Internal error"
 		},
 		"warning": {
             "claims": {

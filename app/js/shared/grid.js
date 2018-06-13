@@ -464,10 +464,11 @@ define('grid', [
 
                 commonjs.showDialog(
                     {
-                        "width": "80%",
-                        "height": "80%",
+                        "width": "50%",
+                        "height": "70%",
                         "header": "User Settings",
-                        "needShrink": true
+                        "needShrink": true,
+                        "html": "<div/>"
                     });
 
                 self.UserSettingsView = new UserSettingsView({ el: $('#modal_div_container') });

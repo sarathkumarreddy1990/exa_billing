@@ -20,6 +20,7 @@
         "font-awesome": "^4.7.0",
         "immutable": "^3.8.2",
         "jquery": "^3.3.1",
+        "jquery-sortable": "^0.9.13",
         "jquery-validation": "^1.17.0",
         "jstorage": "^0.4.8",
         "moment": "^2.22.1",

@@ -8,7 +8,7 @@ const mkdirp = require('mkdirp');
 const fs = require('fs');
 const crypto = require('crypto');
 
-router.get('/', async function (req, res) {
+router.get('/list', async function (req, res) {
     const data = await eraController.getEraFiles(req.query);
     httpHandler.sendRows(req, res, data);
 });
@@ -102,9 +102,15 @@ router.post('/file', uploader, async function (req, res) {
                         });
                     }
                 });
-            }    
+            }
         });
     }
+});
+
+router.post('/process-file', async function (req, res) {
+    
+    const data = await eraController.processERAFile(req.body);
+    httpHandler.send(req, res, data);
 });
 
 module.exports = router;

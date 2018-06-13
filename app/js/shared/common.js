@@ -2226,7 +2226,10 @@ var commonjs = {
     },
 
     handleXhrError: function (err, response) {
-        switch (err.status) {
+
+        commonjs.hideLoading();
+
+        switch (err.status || response.status) {
             case 0:
                 commonjs.showError('messages.errors.notconnected');
                 break;
@@ -2239,6 +2242,10 @@ var commonjs = {
             default:
                 commonjs.showError('messages.errors.someerror');
                 break;
+        }
+
+        if(response.responseText.indexOf('INVALID_SESSION') > -1) {
+            commonjs.showDialog({ header: 'Error', i18nHeader: 'messages.errors.serversideerror', width: '50%', height: '50%', html: response.responseText }, true);
         }
     },
 
@@ -11226,13 +11233,13 @@ function launchOpalCDBurn(ids) {
 //}
 
 function CreateCheckBox(label, id, i18nLabel) {
-    return $('<div>').append($('<input>').attr({
+    return $('<div>').addClass('form-check form-check-inline').append($('<input>').attr({
         type: 'checkbox',
         id: id,
         name: id,
         value: label,
         checked: false
-    })).append($('<label>').attr({for: id, 'i18n': i18nLabel, 'value':label}).addClass('checkbox').text(label));
+    }).addClass('form-check-input')).append($('<label>').attr({for: id, 'i18n': i18nLabel, 'value':label}).addClass('form-check-label').text(label));
 }
 
 //function SetupCheckBoxes(p) {

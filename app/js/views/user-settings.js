@@ -2,12 +2,14 @@ define([
     'jquery',
     'underscore',
     'backbone',
+    'jquerysortable',
     'text!templates/user-settings.html',
     'models/user-settings'
 ], function (
     $,
     _,
     Backbone,
+    jquerysortable,
     userSettingsTemplate,
     ModelUserSetting) {
         return Backbone.View.extend({
@@ -33,14 +35,10 @@ define([
                 userID = app.userID;
                 this.$el.html(template);
 
-                $('#divForm_Mysettings').css({
-                    top: '10%',
-                    height: '80%'
-                });
-                $('#divForm_Mysettings').css("left", '5%');
-
+                var height = $('#modal_div_container').height() - 70;
+                $("#ulSortList").css('height', height);
                 this.bindSettingColumns(userID);
-
+                $(".simple_with_animation").sortable();
                 $('#save_settings').click(function (e) {
                     self.saveUserSettingsBilling(userID);
                     commonjs.hideDialog();
@@ -128,11 +126,6 @@ define([
                 var self = this;
                 userID = app.userID;
                 $('#modal_div_container').empty();
-                $('#divForm_Mysettings').css({
-                    top: '10%',
-                    height: '80%'
-                });
-                $('#divForm_Mysettings').css("left", '5%');
                 $('#modal_div_container').append(template);
                 $('#modal_div_container').show();
                 this.bindSettingColumns(userID);
