@@ -199,15 +199,15 @@ module.exports = {
         return await data.createPaymentApplication(claimLists, paymentDetails);
     },
     
-    checkERAFileIsProcessed: function (fileMd5) {
-        return data.checkERAFileIsProcessed(fileMd5);
+    checkERAFileIsProcessed: async function (fileMd5, company_id) {
+        return data.checkERAFileIsProcessed(fileMd5, company_id);
     },
 
-    saveERAFile: function (params) {
+    saveERAFile: async function (params) {
         return data.saveERAFile(params);
     },
     
-    getFileStorePath: function (params) {
+    getFileStorePath: async function (params) {
         return data.getFileStorePath(params);
     }
 
