@@ -271,6 +271,8 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         clearTimeout(self.appliedTimer);
                         self.appliedTimer = setTimeout(self.calculateAppliedTotal, 25);
                         // $('#tblpaymentsGrid').jqGrid('setGridHeight', '390px');
+
+                        commonjs.docResize();
                     });
                 }
                 else {

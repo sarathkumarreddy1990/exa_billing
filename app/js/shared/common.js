@@ -3757,6 +3757,9 @@ var commonjs = {
                 case 'Billing':
                     height = $(window).height() - ($('body>.topbar').outerHeight() + $('body>header').outerHeight() + $('body>.top-nav').outerHeight() + 235);
                     break;
+                case 'Payments':
+                    height = $(window).height() - ($('#formBillingProviders').outerHeight() + $('body>nav').outerHeight() + 160);
+                    break;
                 case 'Setup':
                     height = $(window).height() - ($('header.header').outerHeight() + $('.title-panel').outerHeight() + $('nav.sub-top-nav').outerHeight() + 50);
                     break;
