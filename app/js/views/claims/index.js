@@ -1,4 +1,4 @@
-define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-insurance', 'models/patient-details', 'text!templates/claims/claim-form.html', 'text!templates/claims/charge-row.html', 'text!templates/claims/insurance-pokitdok-popup.html'],
+define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-insurance', 'models/patient-details', 'text!templates/claims/claim-form.html', 'text!templates/claims/charge-row.html', 'text!templates/claims/insurance-eligibility.html'],
     function ($, _, Backbone, newClaimModel, modelPatientInsurance, patientModel, claimCreationTemplate, chargeRowTemplate, insurancePokitdokForm) {
         var claimView = Backbone.View.extend({
             el: null,
@@ -153,7 +153,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
 
                 $('#btnCheckEligibility').hide();
                 $('#imgLoading').show();
-                commonjs.showLoading();
+                
 
                 $.ajax({
                     url: '/exa_modules/billing/claims/eligibility',
@@ -188,26 +188,20 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     success: function (response) {
                         data = response.data;
 
-                        if (data.errors) {
-                            $('#bodyFailedReasons').empty();
-                            $('#divPokidokResponse').show();
-                            $('#divPokidokResponse').append(self.InsurancePokitdokTemplateForm);
-                            var containerData = '';
-                            var container = $('#bodyFailedReasons');
-                            $.each(data.errors.validation.provider, function (key, data) {
-                                containerData += key + ' ' + data;
-                            });
-                            var tr = $('<tr></tr>').append($('<td></td>').text(containerData));
-                            container.append(tr);
+                        if (data && data.errors) {
+                            commonjs.showWarning(data.errors.query);
+                            return;
                         }
-                        if (!data.errors && response.insPokitdok == true) {
-                            // self.InsurancePokitdokTemplateForm({'InsuranceData': response.data, 'InsuranceDatavalue': response.meta})
+                        else if(!data.errors && response.insPokitdok == true) {
                             $('#divPokidokResponse').append($(self.InsurancePokitdokTemplateForm({'InsuranceData': response.data, 'InsuranceDatavalue': response.meta})));
                             $('#divPokidokResponse').show();
                         }
                         $("#btnClosePokidokPopup").unbind().click(function (e) {
                             $('#divPokidokResponse').hide();
                         });
+                    },
+                    error: function (model, response) {
+                        commonjs.handleXhrError(model, response);
                     }
                 });
             },
@@ -1521,7 +1515,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 $('#ddlServiceType').empty();
                 $.ajax({
                     type: 'GET',
-                    url: '/exa_modules/billing/claims/get_service_facility',
+                    url: '/exa_modules/billing/claims/service_facilities',
                     data: {
                     },
                     success: function (model, response) {
