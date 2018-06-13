@@ -41,6 +41,7 @@ define([
             initializeRouter: function () {
                 this.options.screen = "Payments";
                 this.options.currentView = this.paymentsScreen;
+                this.options.module ="Payments";
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
@@ -51,6 +52,7 @@ define([
             initializeEditRouter: function () {
                 this.options.screen = "Edit Payments";
                 this.options.currentView = this.editPaymentsScreen;
+                this.options.module ="Payments";
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
