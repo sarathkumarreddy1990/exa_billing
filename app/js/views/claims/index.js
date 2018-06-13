@@ -1,5 +1,5 @@
-define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-insurance', 'models/patient-details', 'text!templates/claims/claim-form.html', 'text!templates/claims/charge-row.html'],
-    function ($, _, Backbone, newClaimModel, modelPatientInsurance, patientModel, claimCreationTemplate, chargeRowTemplate) {
+define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-insurance', 'models/patient-details', 'text!templates/claims/claim-form.html', 'text!templates/claims/charge-row.html', 'text!templates/claims/insurance-pokitdok-popup.html'],
+    function ($, _, Backbone, newClaimModel, modelPatientInsurance, patientModel, claimCreationTemplate, chargeRowTemplate, insurancePokitdokForm) {
         var claimView = Backbone.View.extend({
             el: null,
             rendered: false,
@@ -11,6 +11,10 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
             existingPrimaryInsurance: [],
             existingSecondaryInsurance: [],
             existingTriInsurance: [],
+            npiNo: '',
+            federalTaxId: '',
+            enableInsuranceEligibility: '',
+            tradingPartnerId: '',
             ACSelect: { refPhy: {}, readPhy: {} },
             responsible_list: [
                 { payer_type: "PPP", payer_type_name: "patient", payer_id: null, payer_name: null },
@@ -51,6 +55,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 this.claimStatusList = new modelCollection(app.claim_status);
                 this.billingCodesList = new modelCollection(app.billing_codes);
                 this.billingClassList = new modelCollection(app.billing_classes);
+                this.InsurancePokitdokTemplateForm = new _.template(insurancePokitdokForm);
 
             },
             urlNavigation: function () { //To restrict the change in URL based on tab selection. Maintain Same URL for every tab in claim creation screen
@@ -86,10 +91,124 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
 
                 self.bindDetails();
                 // Hide non-edit tabs
-                // if (!self.isEdit)
+                // if (!self.isEdit) 
                 $('.editClaimRelated').hide();
                 $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr for select2 search text can't editable
-                
+
+                $('#aCheckEligibility, #aCheckEligibility2, #aCheckEligibility3').unbind().click(function () {
+                    self.checkInsuranceEligibility();
+                }); 
+            },
+
+            checkInsuranceEligibility: function () {
+                var serviceTypeCodes = [], serviceTypes = [];
+                this.insRelationship = $('#ddlPriRelationShip').val();
+                this.existingInsId = $('#ddlExistPriIns').val() ? $('#ddlExistPriIns').val() : null;
+                self = this,
+                    relationshipCode = '34';
+
+                switch (this.insRelationship && this.insRelationship.toLowerCase()) {
+                    case 'self':
+                        relationshipCode = '18';
+                        break;
+                    case 'child':
+                        relationshipCode = '19';
+                        break;
+                    case 'spouse':
+                        relationshipCode = '01';
+                        break;
+                }                
+
+                if (!$('#ddlServiceType :selected').length) {
+                    commonjs.showWarning('messages.warning.shared.selectservicetype');
+                    return;
+                }
+
+                if (!$("#txtBenefitOnDate").val()) {
+                    commonjs.showWarning('messages.warning.patient.selectbenefitondate');
+                    return;
+                }
+
+                if (!self.npiNo) {
+                    commonjs.showWarning('messages.warning.patient.npinumbernotpresent');
+                    return;
+                }
+
+                if (!self.federalTaxId) {
+                    commonjs.showWarning('messages.warning.patient.federaltaxidnotpresent');
+                    return;
+                }
+
+                if (!self.enableInsuranceEligibility) {
+                    commonjs.showWarning('messages.warning.patient.eleigibilitycheckdisabled');
+                    return;
+                }
+
+                $.each($('#ddlServiceType :selected'), function (index, value) {
+                    serviceTypeCodes.push($(value).val())
+                    var serviceType = $(value).attr('title').toLowerCase();
+                    serviceTypes.push(serviceType.replace(/[^A-Z0-9]+/ig, "_"));
+                });
+
+                $('#aCheckEligibility').hide();
+                $('#imgLoading').show();
+                commonjs.showLoading();
+
+                $.ajax({
+                    url: '/exa_modules/billing/claims/eligibility',
+                    type: "POST",
+                    dataType: "json",
+                    data: {
+                        Sender: "",
+                        AuthKey: "",
+                        APIOrgCode: "",
+                        InsuranceCompanyCode: "-1",
+                        ProviderCode: "-1",
+                        EntityType: '1',
+                        NpiNo: self.npiNo,
+                        FederalTaxID: self.federalTaxId ? self.federalTaxId : '',
+                        BenefitOnDate: $("#txtBenefitOnDate").val() ? $("#txtBenefitOnDate").val() : null,
+                        BirthDate: self.cur_patient_dob,
+                        RelationshipCode: relationshipCode,
+                        ServiceTypeCodes: serviceTypeCodes.join('~'),
+                        ServiceTypes: serviceTypes,
+                        FromLocal: 'false',
+                        ResponseType: 'html',
+                        patient_id: self.cur_patient_id,
+                        isExistingInsurance: true,
+                        patient_insurance_id: self.existingInsId,
+                        LastName: self.subscriberLastName,
+                        FirstName: self.subscriberFirstName,
+                        address: self.subscriberAddress,
+                        PolicyNo: self.policyNumber,
+                        InsuranceCompanyName: self.insuranceName,
+                        tradingPartnerId: self.tradingPartnerId
+                    },
+                    success: function (response) {
+                        data = response.data;
+
+                        if (data.errors) {
+                            $('#bodyFailedReasons').empty();
+                            $('#divPokidokResponse').show();
+                            $('#divPokidokResponse').append(self.InsurancePokitdokTemplateForm);
+                            var containerData = '';
+                            var container = $('#bodyFailedReasons');
+                            $.each(data.errors.validation.provider, function (key, data) {
+                                containerData += key + ' ' + data;
+                            });
+                            var tr = $('<tr></tr>').append($('<td></td>').text(containerData));
+                            container.append(tr);
+                        }
+                        if (!data.errors && response.insPokitdok == true) {
+                            // self.InsurancePokitdokTemplateForm({'InsuranceData': response.data, 'InsuranceDatavalue': response.meta})
+                            $('#divPokidokResponse').append($(self.InsurancePokitdokTemplateForm({'InsuranceData': response.data, 'InsuranceDatavalue': response.meta})));
+                            $('#divPokidokResponse').show();
+                        }
+                        $("#btnClosePokidokPopup").unbind().click(function (e) {
+                            $('#divPokidokResponse').hide();
+                        });
+                    }
+                });
             },
 
             bindDetails: function () {
@@ -104,6 +223,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 self.bindInsuranceAutocomplete('ddlSecInsurance');
                 self.bindInsuranceAutocomplete('ddlTerInsurance');
                 self.bindBillingSummary();
+                self.bindServiceType();
             },
 
             initializeClaimEditForm: function () {
@@ -1117,8 +1237,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                                     self.removeAdjustPointers(removePointer + 1)
                                     self.sortDigCodes();
                                 })
+                                )
                             )
-                        )
                     );
                     var intId = $("#ulSelectedDiagCodes li").length;
                     $("#tBodyCharge").find("tr").each(function (i1, row) {
@@ -1171,6 +1291,16 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                         self.existingPrimaryInsurance = [];
                         self.existingSecondaryInsurance = [];
                         self.existingTriInsurance = [];
+                        self.npiNo = response[0].npi_no ? response[0].npi_no : '';
+                        self.federalTaxId = response[0].federal_tax_id ? response[0].federal_tax_id : '';
+                        self.enableInsuranceEligibility = response[0].enable_insurance_eligibility ? response[0].enable_insurance_eligibility : '';
+                        self.subscriberLastName = response[0].subscriber_lastname ? response[0].subscriber_lastname : '';
+                        self.subscriberFirstName = response[0].subscriber_firstname ? response[0].subscriber_firstname : '';
+                        self.subscriberAddress = response[0].subscriber_address_line1 ? response[0].subscriber_address_line1 : '';
+                        self.policyNumber = response[0].policy_number ? response[0].policy_number : '';
+                        self.insuranceName = response[0].insurance_name ? response[0].insurance_name : '';
+                        self.tradingPartnerId = response[0].ins_partner_id ? response[0].ins_partner_id : '';
+
                         if (response.length > 0) {
                             var existing_insurance = response || [];
                             $.each(existing_insurance, function (index, value) {
@@ -1382,6 +1512,55 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 else
                     $('#lbl' + level + 'InsCityStateZip').hide();
 
+            },
+            bindServiceType: function () {
+                var self = this;
+                var serviceTypeDescription = [];
+                var serviceTypeDropDown = $('#ddlServiceType');
+                $('#ddlServiceType').empty();
+                $.ajax({
+                    type: 'GET',
+                    url: '/exa_modules/billing/claims/get_service_facility',
+                    data: {
+                    },
+                    success: function (model, response) {
+                        var eligibilityServiceTypes = model.eligibility_service_types;
+
+                        $.each(eligibilityServiceTypes, function (index, val) {
+                            $('<option/>')
+                                .val(val.code)
+                                .text(val.description + '(' + val.code + ')')
+                                .attr('title', val.description)
+                                .appendTo('#ddlServiceType')
+                            $('<option/>')
+                                .val(val.code)
+                                .text(val.description + '(' + val.code + ')')
+                                .attr('title', val.description)
+                                .appendTo('#ddlServiceType2')
+                            $('<option/>')
+                                .val(val.code)
+                                .text(val.description + '(' + val.code + ')')
+                                .attr('title', val.description)
+                                .appendTo('#ddlServiceType3')
+                        });
+                        $('#ddlServiceType, #ddlServiceType2, #ddlServiceType3').multiselect({
+                            maxHeight: 200,
+                            buttonWidth: '250px',
+                            enableFiltering: true,
+                            enableCaseInsensitiveFiltering: true
+                        });
+                        $('.multiselect-container li').css('width', '300px');
+                        $('label').css('color', 'black');
+                        $('.multiselect-container li a').css('padding', '0');
+
+
+                        console.log(model);
+                    },
+                    error: function (model, response) {
+                        console.log(model);
+                        commonjs.handleXhrError(model, response);
+                    }
+                })
             },
 
             bindBillingSummary: function () {
