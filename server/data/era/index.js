@@ -155,16 +155,40 @@ module.exports = {
         return await query(sql);
     },
 
-    checkERAFileIsProcessed: async function (file_md5) {
-        const sql = `        
-        SELECT           
-            EXISTS(
-                    SELECT 1
+    checkERAFileIsProcessed: async function (file_md5, company_id) {
+        const sql = `
+        
+            WITH upload_info AS
+                (
+                    SELECT Json_agg(file_exists) file_exists
+                    FROM   (
+                        SELECT
+                            EXISTS(
+                                SELECT 1
+                                    FROM
+                                        billing.edi_files
+                                    WHERE
+                                file_md5 = '${file_md5}'
+                            )
+                        AS file_exists
+                )
+                    AS file_exists ),
+            file_store_info AS(
+                SELECT Json_agg(Row_to_json(file_store_info)) file_store_info
+                    FROM(
+                        Select  
+                            root_directory
+                        FROM 
+                            file_stores
+                            LEFT JOIN companies ON companies.file_store_id = file_stores.id
+                        WHERE
+                            companies.id = ${company_id}
+                        )
+                    AS file_store_info)
+            SELECT *
                 FROM
-                    billing.edi_files
-                WHERE
-                    file_md5 = '${file_md5}')
-                    AS file_exists ;
+                    upload_info,
+                    file_store_info   
         `;
         
         return await query(sql); 
