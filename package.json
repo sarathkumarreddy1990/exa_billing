@@ -34,6 +34,7 @@
         "nconf": "^0.10.0",
         "passport": "^0.4.0",
         "pg": "^7.4.3",
+        "pokitdok-nodejs": "0.0.11",
         "pug": "2.0.0-beta11",
         "request": "^2.87.0",
         "request-promise-native": "^1.0.5",

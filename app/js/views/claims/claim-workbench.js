@@ -294,7 +294,7 @@ define(['jquery',
                 var drpTabColumnSet = [
                     {                        
                         forTab: "claims",
-                        columns: ["current_illness_date", "claim_dt", "followup_date"]
+                        columns: ["current_illness_date", "claim_dt", "followup_date","birth_date"]
                     }
                 ];
                 var columnsToBind = _.find(drpTabColumnSet,function (val) {
@@ -441,13 +441,11 @@ define(['jquery',
                     });
                 }
                 commonjs.setFilter(null, null);
-
-                $('#divStudyTabsContainer').hide();
-                $('#divclaimsTabsContainer').show();
+                $('#divTabsContainer').show();
 
                 // cache jQuery objects
-                var $divclaimsTabsContainer = $(document.getElementById('divclaimsTabsContainer'));
-                var $claimsTabs = $divclaimsTabsContainer.find('#claimsTabs');
+                var $divTabsContainer = $(document.getElementById('divTabsContainer'));
+                var $claimsTabs = $divTabsContainer.find('#claimsTabs');
                 var $ulTabCollection = $(document.getElementById('ulTabCollection'));
                 var $dataContainer = $(document.getElementById('data_container_home'));
                 var $divTabsContainer = $(document.getElementById('divTabsContainer'));
@@ -682,7 +680,7 @@ define(['jquery',
                                     ulWidth += $(this).outerWidth();
                                 });
 
-                                var visible = $divclaimsTabsContainer.width();
+                                var visible = $divTabsContainer.width();
                                 // var currPos = $claimsTabs.position().left;
                                 var currPos = navState.getState('leftPosition');
                                 var remains = -currPos;
@@ -748,7 +746,7 @@ define(['jquery',
                                     ulWidth += $(this).outerWidth();
                                 });
 
-                                var visible = $divclaimsTabsContainer.width();
+                                var visible = $divTabsContainer.width();
                                 // var currPos = $claimsTabs.position().left;
                                 var currPos = navState.getState('leftPosition');
                                 var nextPos = getPosition($claimsTabs, currPos - visible * 0.8);
@@ -937,7 +935,6 @@ define(['jquery',
                                 self.setGridPager(filterID, gridObj, false);
                                 self.bindDateRangeOnSearchBox(gridObj, 'claims');
                                 self.afterGridBindclaims(model, gridObj);
-                                self.initializeStatusCodes(gridObj, 'claims');
                                 commonjs.nextRowID = 0;
                                 commonjs.previousRowID = 0;
                                 app.listStudies = gridObj.datastore.map(function (claims) {
@@ -1474,112 +1471,6 @@ define(['jquery',
                 $('#chkStudyHeader_' + filterID).prop('checked', true);
                 commonjs.setFilter(filterID, filter);
             },
-            initializeStatusCodes: function (gridObj, tabtype) {
-                var self = this;
-                $('.statusMenu').hide();
-                $('#divStatusSearch').find('input[type=checkbox]:checked').removeAttr('checked');
-                if (tabtype == "order") {
-                    var created_date = $(gridObj.options.gridelementid).closest("div.ui-jqgrid-view")
-                        .children("div.ui-jqgrid-hdiv").find('#gs_created_date');
-                    created_date.prop("readonly", true);
-                    created_date.css('cursor', 'pointer')
-                    var order_status = $(gridObj.options.gridelementid).closest("div.ui-jqgrid-view")
-                        .children("div.ui-jqgrid-hdiv").find('#gs_order_status');
-                    order_status.prop("readonly", true);
-                    order_status.css('cursor', 'pointer');
-                    order_status.click(function (e) {
-                        $("#divOrderStatusSearch").css({
-                            "top": order_status.offset().top + 25 + "px",
-                            "left": order_status.offset().left + "px",
-                            "position": "fixed"
-                        });
-                        $("#divOrderStatusSearch").show();
-                        $('div .multiOrderColumnList input[type="checkbox"]').css({'display': 'block'});
-                        $('#chkAllOrderStatus').css({'display': 'block', 'margin-left': '-16px'}).parent('label').css({'margin-left': '15px'});
-                        e.stopPropagation();
-                        return false;
-                    });
-                    self.scrolleventStudies1(commonjs.currentStudyFilter, 'divOrderStatusSearch', order_status);
-                }
-                else {
-                    var sch_date = $(gridObj.options.gridelementid).closest("div.ui-jqgrid-view")
-                        .children("div.ui-jqgrid-hdiv").find('#gs_scheduled_dt');
-                    sch_date.prop("readonly", true);
-                    sch_date.css('cursor', 'pointer')
-                    var study_status = $(gridObj.options.gridelementid).closest("div.ui-jqgrid-view")
-                        .children("div.ui-jqgrid-hdiv").find('#gs_study_status');
-                    study_status.prop("readonly", true);
-                    study_status.css('cursor', 'pointer');
-                    study_status.unbind('click').click(function (e) {
-                        if (gridObj.options.showEncOnly == "true" || gridObj.options.showEncOnly == true) {
-                            $("#divEncStatusSearch").show();
-                            $("#divEncStatusSearch").css({
-                                "top": study_status.offset().top + 25 + "px",
-                                "left": study_status.offset().left + "px",
-                                "position": "fixed"
-                            });
-                            //$('#divEncStatusSearch').find('input[type=checkbox]:checked').removeAttr('checked');
-                            $('div .multiEncColumnList input[type="checkbox"]').css({'display': 'block'});
-                            $('#chkAllEncStatus').css({'display': 'block', 'margin-left': '-16px'}).parent('label').css({'margin-left': '15px'});
-                        } else {
-                            $("#divStatusSearch").show();
-                            $("#divStatusSearch").css({
-                                "top": study_status.offset().top + 25 + "px",
-                                "left": study_status.offset().left + "px"
-                            });
-                            $('#divStatusSearch').find('input[type=checkbox]:checked').removeAttr('checked');
-                        }
-
-                        var filter = commonjs.loadedStudyFilters.get(commonjs.currentStudyFilter);
-                        var status = filter.options.customargs.statusCode || [];
-                        for (var j = 0; j < status.length; j++) {
-                            if (gridObj.options.showEncOnly == "true" || gridObj.options.showEncOnly == true) {
-                                $('#divEncStatusSearch').find('input[type=checkbox][value=' + status[j] + ']').prop("checked", true);
-                            } else {
-                                $('#divStatusSearch').find('input[type=checkbox][value=' + status[j] + ']').prop("checked", true);
-                            }
-
-                        }
-                        self.setStudyStatus();
-                        e.stopPropagation();
-                        return false;
-                    });
-
-                    if (gridObj.options.showEncOnly == "true" || gridObj.options.showEncOnly == true) {
-                        self.scrolleventStudies1(commonjs.currentStudyFilter, 'divEncStatusSearch', study_status);
-                    } else
-                        self.scrolleventStudies1(commonjs.currentStudyFilter, 'divStatusSearch', study_status);
-                }
-                $(".status").change(function () {
-                    self.setStudyStatus();
-                });
-            },
-            setStudyStatus: function () {
-                if ($('#ulAppointmentStatus .status').length == $('#ulAppointmentStatus .status:checked').length) {
-                    $('#chkAppointmentStatus').prop('checked', true);
-                }
-                else {
-                    $('#chkAppointmentStatus').prop('checked', false);
-                }
-                if ($('#ulStudyProgress .status').length == $('#ulStudyProgress .status:checked').length) {
-                    $('#chkStudyProgress').prop('checked', true);
-                }
-                else {
-                    $('#chkStudyProgress').prop('checked', false);
-                }
-                if ($('#ulRadStatus .status').length == $('#ulRadStatus .status:checked').length) {
-                    $('#chkRadStatus').prop('checked', true);
-                }
-                else {
-                    $('#chkRadStatus').prop('checked', false);
-                }
-                if ($('#divStatusSearch .status').length == $('#divStatusSearch .status:checked').length) {
-                    $('#chkAllStatus').prop('checked', true);
-                }
-                else {
-                    $('#chkAllStatus').prop('checked', false);
-                }
-            },
             scrolleventStudies1: function (filterid, divId, studyStatus) {
                 var self = this;
                 var divid = "#divClaimGrid" + filterid, scrolldiv = "";
@@ -1590,116 +1481,6 @@ define(['jquery',
                     $("#gs_study_status").focusout();
                     $("#" + divId).hide();
                 });
-            },
-            applyStatusFilter: function () {
-                var self = this;
-                var study_status;
-                var divID = "#divStatusSearch";
-                self.statusCode = [];
-
-                study_status = $('#tblClaimGrid' + commonjs.currentStudyFilter).closest("div.ui-jqgrid-view")
-                    .children("div.ui-jqgrid-hdiv").find('#gs_study_status');
-                study_status.val('');
-                var studyTabID = '#studyTabs a[href="#divClaimGridContainer' + commonjs.currentStudyFilter + '"]';
-                var showEncOnly = $(studyTabID).attr('data-showEncOnly') == "true";
-                if (showEncOnly) {
-                    divID = "#divEncStatusSearch";
-                }
-
-                $(divID + " .status:checked").each(function (index, obj) {
-                    if ($(".status:checked").length == 1) {
-                        study_status.val($(this).attr('data-value'));
-                    }
-                    else {
-                        if (commonjs.checkNotEmpty(study_status.val())) {
-                            var status = study_status.val() + ',' + $(this).attr('data-value');
-                        }
-                        else {
-                            var status = $(this).attr('data-value');
-                        }
-                        study_status.val(status);
-                    }
-                    if (commonjs.currentStudyFilter != "PS") {
-                        self.statusCode.push($(this).val());
-                    }
-                });
-
-                commonjs.setFilter(commonjs.currentStudyFilter, function (filter) {
-                    filter.options.customargs.statusCode = self.statusCode;
-                    return filter;
-                });
-                self.refreshStudies(true);
-                $('.statusMenu').hide();
-            },
-
-            cancelStatusFilterSearch: function () {
-                var self = this;
-                let study_status = $('#tblClaimGrid' + commonjs.currentStudyFilter).closest("div.ui-jqgrid-view")
-                    .children("div.ui-jqgrid-hdiv").find('#gs_study_status');
-                study_status.val('');
-                $('#divEncStatusSearch').find('input[type=checkbox]:checked').removeAttr('checked');
-                $('#divStatusSearch').find('input[type=checkbox]:checked').removeAttr('checked');
-                commonjs.setFilter(commonjs.currentStudyFilter, function (filter) {
-                    filter.options.customargs.statusCode = [];
-                    return filter;
-                });
-                $("#divEncStatusSearch").hide();
-                $("#divStatusSearch").hide();
-                $("#divTempStatusSearch").hide();
-                $("#divOrderStatusSearch").hide();
-                self.refreshStudies();
-            },
-            chooseStatusForFilter: function (e) {
-                var self = this;
-                var checkBoxContainerID = '';
-                switch ($(e.target || e.srcElement).attr('id')) {
-                    case 'chkAllStatus':
-                        checkBoxContainerID = 'divStatusSearch';
-                        break;
-                    case 'chkStudyProgress':
-                        checkBoxContainerID = 'ulStudyProgress';
-                        break;
-                    case 'chkRadStatus':
-                        checkBoxContainerID = 'ulRadStatus';
-                        break;
-                }
-                $('#' + checkBoxContainerID + ' :checkbox').prop("checked", $(e.target || e.srcElement).prop("checked"));
-                if ($('#divStatusSearch .status').length == $('#divStatusSearch .status:checked').length) {
-                    $('#chkAllStatus').prop('checked', true);
-                }
-                else {
-                    $('#chkAllStatus').prop('checked', false);
-                }
-            },
-            applyDateRangePickerQuery: function (colName) {
-                var self = this;
-                $(colName).daterangepicker({
-                        ranges: {
-                            'Today': [new Date(), new Date()],
-                            'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-                            'Last 7 Days': [moment().subtract(6, 'days'), new Date()],
-                            'Last 30 Days': [moment().subtract(29, 'days'), new Date()],
-                            'This Month': [moment().startOf('month'), moment().endOf('month')],
-                            'Last Month': [moment().subtract(1, 'months').startOf('month'), moment().subtract(1, 'months').endOf('month')],
-                            'This Year': [moment().startOf('year'), new Date()]
-                        },
-                        showDropdowns: true
-                    },
-                    function (start, end) {
-                        if (start && end) {
-                            var startdate = start.format('L');
-                            var enddate = end.format('L');
-                            if (startdate == enddate) {
-                                $(colName).val(startdate);
-                            }
-                            else {
-                                $(colName).val(startdate + ' - ' + enddate);
-                            }
-                            $('input[name=daterangepicker_start]').removeAttr("disabled");
-                            $('input[name=daterangepicker_end]').removeAttr("disabled");
-                        }
-                    });
             }
-
         });
     });
