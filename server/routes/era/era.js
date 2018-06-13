@@ -22,17 +22,6 @@ router.get('/upload', function (req, res) {
         });
 });
 
-// const data =  eraController.getFileStorePath({ company_id: 1 });
-
-const fileStorePath = 'D:/eraUploads';
-const currentTime = new Date();
-
-const dirPath = `${fileStorePath}/${currentTime.getFullYear()}/${currentTime.getMonth()}/${currentTime.getDate()}`;
-
-if (fileStorePath) {
-    mkdirp(dirPath);
-}
-
 const storage = multer.memoryStorage();
 const upload = multer({ 
     storage: storage
