@@ -43,5 +43,15 @@ router.get('/followup', async (req, res) => {
     const data = await inquiryController.getFollowupDate(req.query);
     httpHandler.sendRows(req, res, data);
 });
+
+router.put('/billing_note', async (req, res) => {
+    const data = await inquiryController.updateBillingNotes(req.body);
+    httpHandler.sendRows(req, res, data);
+});
+
+router.get('/payment_details', async (req, res) => {
+    const data = await inquiryController.viewPaymentDetails(req.query);
+    httpHandler.sendRows(req, res, data);
+});
     
 module.exports = router;
