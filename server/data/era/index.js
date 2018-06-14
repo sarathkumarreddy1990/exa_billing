@@ -278,5 +278,27 @@ module.exports = {
                     SELECT * FROM cas_group,cas_reason `;
 
         return await query(sql);
+    },
+
+    getERAFilePathById: async function (params) {
+        let {
+            file_id,
+            company_id
+        } = params;
+
+        const sql = `          
+                Select 
+                    ef.id
+				    ,ef.status
+				    ,ef.file_type
+				    ,ef.file_path 
+				    ,fs.root_directory
+                FROM 
+                    billing.edi_files ef
+                INNER JOIN file_stores fs on fs.id = ef.file_store_id
+                WHERE ef.id = ${file_id} AND ef.company_id = ${company_id}
+        `;
+        
+        return await query(sql); 
     }
 };

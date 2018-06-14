@@ -1,7 +1,7 @@
 const data = require('../../data/era/index');
 const fs = require('fs');
 const path = require('path');
-const _ = require('lodash');
+//const _ = require('lodash');
 const { promisify } = require('util');
 const readFile = promisify(fs.readFile);
 const ediConnect = require('../../../modules/edi');
@@ -16,21 +16,29 @@ module.exports = {
 
     processERAFile: async function (params) {
         let self = this,
-            processDetails;
-        let eraPath = path.join('D:/ERA');
+            processDetails,
+            eraPath,
+            rootDir;
         let templateName = '835_template_1';
+
+        const eraFileDir = await data.getERAFilePathById(params);
+
+        rootDir = eraFileDir.rows && eraFileDir.rows.length && eraFileDir.rows[0].root_directory ? eraFileDir.rows[0].root_directory : '';
+        eraPath = eraFileDir.rows && eraFileDir.rows.length && eraFileDir.rows[0].file_path ? eraFileDir.rows[0].file_path : '';
+        
+        eraPath = path.join(rootDir, eraPath);
 
         try {
             let dirExists = fs.existsSync(eraPath);
 
             if (!dirExists) {
 
-                return 'No file';
+                return 'Directory not found in file store';
             }
 
             //let filename = path.join(eraPath, '/297claims_parsed.json');
 
-            eraPath = path.join(eraPath, '/297claims.txt');
+            eraPath = path.join(eraPath, params.file_id);
 
             let eraRequestText = await readFile(eraPath, 'utf8');
 

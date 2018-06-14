@@ -148,9 +148,10 @@ define([
                     dataType: 'json',
                     data: {
                         status: currentStatus || gridData.current_status,
-                        file_store_id: gridData.file_store_id,
+                        //file_store_id: gridData.file_store_id,
                         file_id: file_id || null,
-                        payer_details: payerDetails
+                        payer_details: payerDetails,
+                        company_id: app.companyID
                     },
                     success: function (model, response) {
                         console.log(model);
