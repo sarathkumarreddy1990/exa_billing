@@ -10,6 +10,7 @@ const _ = require('lodash')
 const readingProviderFeesDataSetQueryTemplate = _.template(`
     WITH reading_provider_fees AS( 
         SELECT 
+        bc.id as claim_id,
               ch.cpt_id
             , pa.amount
             , pay.accounting_dt 
@@ -19,7 +20,7 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
                 WHEN 'insurance' THEN ip.insurance_name
                 WHEN 'ordering_provider' THEN pr.full_name
                 WHEN 'ordering_facility' THEN pg.group_name END AS payer_name
-            , pg_rp.group_name
+            , pg_rp.group_name AS group_name
         , plc.reading_provider_percent_level
         FROM
             billing.claims bc
@@ -44,6 +45,7 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
         <% if(billingProID) { %> AND <% print(billingProID); } %>
     )
     SELECT
+    MAX(claim_id) AS "Claim ID",
          CASE
             WHEN display_code !=' ' THEN
                 COALESCE(rpf.group_name, '- No Group Assigned -' )
@@ -137,13 +139,7 @@ const api = {
             const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
         }
-        // Billing provider Filter
-        if (params.allBillingProvider == 'true')
-            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
-        else {
-            const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
-            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
-        }
+      
 
         filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
         filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });

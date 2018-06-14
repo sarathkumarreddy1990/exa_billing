@@ -42,7 +42,7 @@ GROUP BY
     ROLLUP (m.modality_name)
 )
 SELECT 
-    modality_name AS "Modality Name",
+   COALESCE(modality_name , 'Total')AS "Modality Name",
     order_count AS "Claim Count", 
     study_count AS "Study Count",  
     charges_count AS "Charges Count",

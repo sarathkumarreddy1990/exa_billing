@@ -1,7 +1,7 @@
 const data = require('../../data/era/index');
 const fs = require('fs');
 const path = require('path');
-const _ = require('lodash');
+//const _ = require('lodash');
 const { promisify } = require('util');
 const readFile = promisify(fs.readFile);
 const ediConnect = require('../../../modules/edi');

@@ -63,7 +63,7 @@ const util = {
     },
     getConditionalOperator: function (condition, value, isKey, Filter) {
 
-        if (Filter == "patients" || Filter == "patientID" || Filter == "readPhy" || Filter == "study_desc" || Filter === "attorney") {
+        if (Filter == 'patients' || Filter == 'patientID' || Filter == 'readPhy' || Filter == 'study_desc' || Filter === 'attorney') {
             switch (condition) {
             case 'Is':
                 return ' ILIKE ' + (isKey ? value : '\'' + value + '\'');
@@ -76,7 +76,7 @@ const util = {
                 return ' NOT ILIKE ' + (isKey ? value : '\'%' + value + '%\'');
             }
         }
-        else if (Filter == "modalities") {
+        else if (Filter == 'modalities') {
             switch (condition) {
             case 'Is':
             case 'Contains':
@@ -123,7 +123,7 @@ const util = {
         duration = parseInt(duration);
 
         switch (condition.toLowerCase()) {
-        case "last":
+        case 'last':
             switch (type) {
             case 'Hour(s)':
                 fromDate = moment(fromDate).subtract(duration, 'hour');
@@ -148,7 +148,7 @@ const util = {
 
             break;
 
-        case "next":
+        case 'next':
             switch (type) {
             case 'Hour(s)':
                 toDate = moment(toDate).add(duration, 'hour');
@@ -183,7 +183,7 @@ const util = {
         
         if (filterObj) {
 
-            if (typeof filterObj != "object") {
+            if (typeof filterObj != 'object') {
                 filterObj = JSON.parse(filterObj);
             }
 
@@ -194,7 +194,7 @@ const util = {
             if (filterObj.ClaimInformation) {
                 if (filterObj.ClaimInformation.claimStatus) {
                     let obj = filterObj.ClaimInformation.claimStatus;
-                    let statusQuery = "",   
+                    let statusQuery = '',   
                         l = obj.list.length;
                        
 
@@ -214,11 +214,11 @@ const util = {
 
                         }
 
-                        if (obj.condition == "IsNot") {
+                        if (obj.condition == 'IsNot') {
                             statusQuery += ' OR claims.claim_status_id IS NULL';
                         }
 
-                        query += util.getRelationOperator(query) + "(" + statusQuery + ")";
+                        query += util.getRelationOperator(query) + '(' + statusQuery + ')';
                     }                    
                    
                 } 
@@ -237,11 +237,11 @@ const util = {
                             }
                         }
 
-                        if (obj.condition == "IsNot") {
+                        if (obj.condition == 'IsNot') {
                             billingMethodQuery += ' OR claims.billing_method IS NULL';
                         }
 
-                        query += util.getRelationOperator(query) + (l == 1 && !obj.condition ? billingMethodQuery : "(" + billingMethodQuery + ")");
+                        query += util.getRelationOperator(query) + (l == 1 && !obj.condition ? billingMethodQuery : '(' + billingMethodQuery + ')');
 
                     }
                 }
@@ -260,11 +260,11 @@ const util = {
                             }
                         }
 
-                        if (obj.condition == "IsNot") {
+                        if (obj.condition == 'IsNot') {
                             PayerTypeQuery += ' OR claims.payer_type IS NULL';
                         }
 
-                        query += util.getRelationOperator(query) + (l == 1 && !obj.condition ? PayerTypeQuery : "(" + PayerTypeQuery + ")");
+                        query += util.getRelationOperator(query) + (l == 1 && !obj.condition ? PayerTypeQuery : '(' + PayerTypeQuery + ')');
 
                     }
                 }  
@@ -290,7 +290,7 @@ const util = {
 
         if (filterObj) {
 
-            if (typeof filterObj != "object") {
+            if (typeof filterObj != 'object') {
                 filterObj = JSON.parse(filterObj);
             }
 
@@ -314,7 +314,7 @@ const util = {
                             }
                         }
 
-                        query += util.getRelationOperator(query) + (l == 1 && !obj.condition ? patientQuery : "(" + patientQuery + ")");
+                        query += util.getRelationOperator(query) + (l == 1 && !obj.condition ? patientQuery : '(' + patientQuery + ')');
                     }
                 }
 
@@ -332,11 +332,11 @@ const util = {
                             }
                         }
 
-                        if (obj.condition == "IsNot") {
+                        if (obj.condition == 'IsNot') {
                             accountQuery += ' OR patients.account_no IS NULL';
                         }
 
-                        query += util.getRelationOperator(query) + (l == 1 && !obj.condition ? accountQuery : "(" + accountQuery + ")");
+                        query += util.getRelationOperator(query) + (l == 1 && !obj.condition ? accountQuery : '(' + accountQuery + ')');
 
                     }
                 }
@@ -346,7 +346,7 @@ const util = {
                 if (filterObj.physician.readPhy) {
                     let obj = filterObj.physician.readPhy;
                     let l = obj.length;
-                    let readPhyQuery = "";
+                    let readPhyQuery = '';
 
                     if (l > 0) {
 
@@ -359,7 +359,7 @@ const util = {
                             }
                         }
 
-                        query += util.getRelationOperator(query) + "(" + readPhyQuery + ")";
+                        query += util.getRelationOperator(query) + '(' + readPhyQuery + ')';
                     }
 
 
@@ -368,8 +368,8 @@ const util = {
                 if (filterObj.physician.refPhy) {
                     let obj = filterObj.physician.refPhy;
                     let l = obj.length;
-                    let refPhyQuery1 = ``;
-                    let refPhyQuery2 = ``;
+                    let refPhyQuery1 = '';
+                    let refPhyQuery2 = '';
 
                     if (l > 0) {
 
@@ -389,8 +389,8 @@ const util = {
 
                         for (let condition in refPhyBlocks) {
                             if (ctrl++ != 0) {
-                                refPhyQuery1 += ` AND `;
-                                refPhyQuery2 += ` AND `;
+                                refPhyQuery1 += ' AND ';
+                                refPhyQuery2 += ' AND ';
                                 //refPhyQuery1 += ` ${util.getConditionalRelationOperator(condition)} `;
                                 //refPhyQuery2 += ` ${util.getConditionalRelationOperator(condition)} `
                             }
@@ -434,7 +434,7 @@ const util = {
                 if (filterObj.physician.imageDelivery) {
                     let obj = filterObj.physician.imageDelivery;
                     let l = obj.list.length;
-                    let imageDeliveryQuery = ``;
+                    let imageDeliveryQuery = '';
 
                     if (l > 0) {
                         const conditionalText = util.getConditionalOperator(obj.condition, true, false, '');
@@ -451,7 +451,7 @@ const util = {
                             }
                         }
 
-                        if (obj.condition === `IsNot`) {
+                        if (obj.condition === 'IsNot') {
                             imageDeliveryQuery += ` OR array_to_string(
                                 ARRAY [
                                     replace(
@@ -476,7 +476,7 @@ const util = {
                 if (filterObj.insurance.insProv) {
                     let obj = filterObj.insurance.insProv;
                     let l = obj.length;
-                    let insProvQuery = "";
+                    let insProvQuery = '';
 
                     if (l > 0) {
                         for (let i = 0; i < l; i++) {
@@ -487,7 +487,7 @@ const util = {
                             }
                         }
 
-                        query += util.getRelationOperator(query) + "(" + insProvQuery + ")";
+                        query += util.getRelationOperator(query) + '(' + insProvQuery + ')';
                     }
                 }
             }
@@ -496,7 +496,7 @@ const util = {
                 if (filterObj.studyInformation.facility) {
                     let obj = filterObj.studyInformation.facility;
                     let l = obj.list.length;
-                    let facilityQuery = "";
+                    let facilityQuery = '';
 
                     if (l > 0) {
 
@@ -509,11 +509,11 @@ const util = {
                             }
                         }
 
-                        if (obj.condition == "IsNot") {
+                        if (obj.condition == 'IsNot') {
                             facilityQuery += ' OR studies.facility_id IS NULL';
                         }
 
-                        query += util.getRelationOperator(query) + "(" + facilityQuery + ")";
+                        query += util.getRelationOperator(query) + '(' + facilityQuery + ')';
                     }
                 }
             }
@@ -522,7 +522,7 @@ const util = {
                 if (filterObj.studyInformation.modality) {
                     let obj = filterObj.studyInformation.modality;
                     let l = obj.list.length;
-                    let modalityQuery = "";
+                    let modalityQuery = '';
 
                     if (l > 0) {
                         for (let i = 0; i < l; i++) {
@@ -533,18 +533,18 @@ const util = {
                             }
                         }
 
-                        if (obj.condition == "IsNot") {
+                        if (obj.condition == 'IsNot') {
                             modalityQuery += ' OR studies.modalities IS NULL';
                         }
 
-                        query += util.getRelationOperator(query) + "(" + modalityQuery + ")";
+                        query += util.getRelationOperator(query) + '(' + modalityQuery + ')';
                     }
                 }
 
                 if (filterObj.studyInformation.modality_room_id) {
                     let obj = filterObj.studyInformation.modality_room_id;
                     let l = obj.list.length;
-                    let modalityRoomQuery = "";
+                    let modalityRoomQuery = '';
 
                     if (l > 0) {
                         for (let i = 0; i < l; i++) {
@@ -555,18 +555,18 @@ const util = {
                             }
                         }
 
-                        if (obj.condition == "IsNot") {
+                        if (obj.condition == 'IsNot') {
                             modalityRoomQuery += ' OR orders.modality_room_id IS NULL ';
                         }
 
-                        query += util.getRelationOperator(query) + "(" + modalityRoomQuery + ")";
+                        query += util.getRelationOperator(query) + '(' + modalityRoomQuery + ')';
                     }
                 }
 
                 if (filterObj.studyInformation.study_description) {
 
                     let obj = filterObj.studyInformation.study_description;
-                    let studyDescQuery = "";
+                    let studyDescQuery = '';
 
                     if (obj.list !== undefined) {
                         if (obj.list.length > 0) {
@@ -580,8 +580,8 @@ const util = {
                                 }
                             }
 
-                            if (obj.condition == "IsNot") {
-                                studyDescQuery = "(" + studyDescQuery + ' OR studies.study_description IS NULL' + " )";
+                            if (obj.condition == 'IsNot') {
+                                studyDescQuery = '(' + studyDescQuery + ' OR studies.study_description IS NULL' + ' )';
                             }
 
                             query += util.getRelationOperator(query) + '(' + studyDescQuery + ')';
@@ -593,7 +593,7 @@ const util = {
                 if (filterObj.studyInformation.ordering_facility) {
                     let obj = filterObj.studyInformation.ordering_facility;
                     let l = obj.list.length;
-                    let facilityQuery = "";
+                    let facilityQuery = '';
 
                     if (l > 0) {
 
@@ -610,18 +610,18 @@ const util = {
 
                         }
 
-                        if (obj.condition == "IsNot") {
+                        if (obj.condition == 'IsNot') {
                             facilityQuery += ' OR studies.provider_group_id IS NULL';
                         }
 
-                        query += util.getRelationOperator(query) + "(" + facilityQuery + ")";
+                        query += util.getRelationOperator(query) + '(' + facilityQuery + ')';
                     }
                 }
 
                 if (filterObj.studyInformation.vehicle) {
                     let obj = filterObj.studyInformation.vehicle;
                     let l = obj.list.length;
-                    let vehicleQuery = "";
+                    let vehicleQuery = '';
 
                     if (l > 0) {
                         for (let i = 0; i < l; i++) {
@@ -634,11 +634,11 @@ const util = {
                             }
                         }
 
-                        if (obj.condition == "IsNot") {
+                        if (obj.condition == 'IsNot') {
                             vehicleQuery += ' OR vehicles.vehicle_name IS NULL';
                         }
 
-                        query += util.getRelationOperator(query) + "(" + vehicleQuery + ")";
+                        query += util.getRelationOperator(query) + '(' + vehicleQuery + ')';
                     }
 
                 }
@@ -647,8 +647,8 @@ const util = {
                     let obj = filterObj.studyInformation.status;
                     let l = obj.list.length, 
                         isVisit = false;
-                    let statusQuery = "",
-                        byMeQuery = "";
+                    let statusQuery = '',
+                        byMeQuery = '';
 
                     if (obj.last_changed_by_me) {
                         byMeQuery = (filterObj.user_id || user_id) ? ' studies.status_last_changed_by = ' + (filterObj.user_id || user_id) : '';
@@ -659,7 +659,7 @@ const util = {
                         for (let i = 0; i < l; i++) {
 
                             if (i == 0) {
-                                if (obj.list[i].id == "TE" || obj.list[i].id == "INC") {
+                                if (obj.list[i].id == 'TE' || obj.list[i].id == 'INC') {
                                     if (!isVisit) {
                                         isVisit = true;
                                         let statusQry = ' (studies.study_status ' + util.getConditionalOperator(obj.condition, 'TE', false) + ' ' + util.getConditionalRelationOperator(obj.condition) + ' studies.study_status ' + util.getConditionalOperator(obj.condition, 'INC', false) + ')';
@@ -671,7 +671,7 @@ const util = {
                                 }
 
                             } else {
-                                if (obj.list[i].id == "TE" || obj.list[i].id == "INC") {
+                                if (obj.list[i].id == 'TE' || obj.list[i].id == 'INC') {
                                     if (!isVisit) {
                                         isVisit = true;
                                         statusQuery += util.getConditionalRelationOperator(obj.condition) + ' (studies.study_status ' + util.getConditionalOperator(obj.condition, 'TE', false) + util.getConditionalRelationOperator(obj.condition) + ' studies.study_status ' + util.getConditionalOperator(obj.condition, 'INC', false) + ')';
@@ -685,21 +685,21 @@ const util = {
 
                         }
 
-                        if (obj.condition == "IsNot") {
+                        if (obj.condition == 'IsNot') {
                             statusQuery += ' OR studies.study_status IS NULL';
                         }
 
-                        query += util.getRelationOperator(query) + "(" + statusQuery + ")";
+                        query += util.getRelationOperator(query) + '(' + statusQuery + ')';
                     }
 
-                    query += byMeQuery ? util.getRelationOperator(query) + "(" + byMeQuery + ")" : '';
+                    query += byMeQuery ? util.getRelationOperator(query) + '(' + byMeQuery + ')' : '';
 
                 }
 
                 if (filterObj.studyInformation.bodyPart) {
                     let obj = filterObj.studyInformation.bodyPart;
                     let l = obj.list.length;
-                    let bodyPartQuery = "";
+                    let bodyPartQuery = '';
 
                     if (l > 0) {
                         for (let i = 0; i < l; i++) {
@@ -712,23 +712,23 @@ const util = {
                             }
                         }
 
-                        if (obj.condition == "IsNot") {
+                        if (obj.condition == 'IsNot') {
                             bodyPartQuery += ' OR studies.body_part IS NULL';
                         }
 
-                        query += util.getRelationOperator(query) + "(" + bodyPartQuery + ")";
+                        query += util.getRelationOperator(query) + '(' + bodyPartQuery + ')';
                     }
                 }
 
                 if (filterObj.studyInformation.accession) {
                     let obj = filterObj.studyInformation.accession;
-                    let accessionQuery = "";
+                    let accessionQuery = '';
 
                     if (obj.value) {
                         accessionQuery = ' studies.accession_no' + util.getConditionalOperator(obj.condition, obj.value, false, '');
 
-                        if (obj.condition == "IsNot") {
-                            accessionQuery = "( " + accessionQuery + ' OR studies.accession_no IS NULL' + " )";
+                        if (obj.condition == 'IsNot') {
+                            accessionQuery = '( ' + accessionQuery + ' OR studies.accession_no IS NULL' + ' )';
 
                         }
 
@@ -739,7 +739,7 @@ const util = {
 
                 if (filterObj.studyInformation.attorney) {
                     let obj = filterObj.studyInformation.attorney;
-                    let attorneyQuery = ``;
+                    let attorneyQuery = '';
                     let l = obj.length;
 
                     if (l > 0) {
@@ -755,22 +755,23 @@ const util = {
                             }
                         }
 
-                        attorneyQuery += `) AND attorneys.provider_type = 'AT'`;
+                        attorneyQuery += `) 
+                        AND attorneys.provider_type = 'AT'`;
 
-                        query += util.getRelationOperator(query) + "(" + attorneyQuery + ")";
+                        query += util.getRelationOperator(query) + '(' + attorneyQuery + ')';
                     }
 
                 }
 
                 if (filterObj.studyInformation.studyID) {
                     let obj = filterObj.studyInformation.studyID;
-                    let dicomStudyQuery = "";
+                    let dicomStudyQuery = '';
 
                     if (obj.value) {
                         dicomStudyQuery = 'studies.dicom_study_id' + util.getConditionalOperator(obj.condition, obj.value, false, '');
 
-                        if (obj.condition == "IsNot") {
-                            dicomStudyQuery = "(" + dicomStudyQuery + ' OR studies.dicom_study_id IS NULL' + " )";
+                        if (obj.condition == 'IsNot') {
+                            dicomStudyQuery = '(' + dicomStudyQuery + ' OR studies.dicom_study_id IS NULL' + ' )';
                         }
 
                         query += util.getRelationOperator(query) + dicomStudyQuery;
@@ -781,7 +782,7 @@ const util = {
 
                     let obj = filterObj.studyInformation.stat;
                     let l = obj.list.length;
-                    let statQuery = "";
+                    let statQuery = '';
 
                     if (l > 0) {
 
@@ -797,18 +798,18 @@ const util = {
 
                         }
 
-                        if (obj.condition == "IsNot") {
+                        if (obj.condition == 'IsNot') {
                             statQuery += ' OR studies.stat_level IS NULL';
                         }
 
-                        query += util.getRelationOperator(query) + "(" + statQuery + ")";
+                        query += util.getRelationOperator(query) + '(' + statQuery + ')';
                     }
                 }
 
                 if (filterObj.studyInformation.flag) {
                     let obj = filterObj.studyInformation.flag;
                     let l = obj.list.length;
-                    let flagQuery = "";
+                    let flagQuery = '';
 
                     if (l > 0) {
 
@@ -824,11 +825,11 @@ const util = {
 
                         }
 
-                        if (obj.condition == "IsNot") {
+                        if (obj.condition == 'IsNot') {
                             flagQuery += 'OR ( study_flags.description) is null';
                         }
 
-                        query += util.getRelationOperator(query) + "(" + flagQuery + ")";
+                        query += util.getRelationOperator(query) + '(' + flagQuery + ')';
                     }
                 }
 
@@ -836,7 +837,7 @@ const util = {
 
                     let obj = filterObj.studyInformation.institution;
                     let l = obj.list.length;
-                    let institutionQuery = "";
+                    let institutionQuery = '';
 
                     if (l > 0) {
 
@@ -851,11 +852,11 @@ const util = {
                             }
                         }
 
-                        if (obj.condition == "IsNot") {
+                        if (obj.condition == 'IsNot') {
                             institutionQuery += 'OR (studies.institution) is null';
                         }
 
-                        query += util.getRelationOperator(query) + "(" + institutionQuery + ")";
+                        query += util.getRelationOperator(query) + '(' + institutionQuery + ')';
                     }
                 }
 
@@ -881,11 +882,11 @@ const util = {
         }, []);
 
         if (queries.length) {
-            const joinedQueries = queries.join(`) OR (`);
+            const joinedQueries = queries.join(') OR (');
             return `(( ${joinedQueries} ))`;
         }
 
-        return ``;
+        return '';
     },
 
     getPreformattedDateRange: function (option) {
@@ -894,36 +895,36 @@ const util = {
             fromDate = moment();
 
         switch (option) {
-        case "Yesterday":
+        case 'Yesterday':
             toDate = fromDate = moment().subtract(1, 'days');
             break;
-        case "Today":
+        case 'Today':
             toDate = fromDate = moment();
             break;
-        case "Tomorrow":
+        case 'Tomorrow':
             toDate = fromDate = moment().add(1, 'days');
             break;
-        case "Last 7 Days":
+        case 'Last 7 Days':
             fromDate = moment().subtract(6, 'days');
             break;
-        case "Last 30 Days":
+        case 'Last 30 Days':
             fromDate = moment().subtract(29, 'days');
             break;
-        case "Next 7 Days":
+        case 'Next 7 Days':
             toDate = moment().add(6, 'days');
             break;
-        case "Next 30 Days":
+        case 'Next 30 Days':
             toDate = moment().add(29, 'days');
             break;
-        case "This Month":
+        case 'This Month':
             fromDate = moment().startOf('month');
             toDate = moment().endOf('month');
             break;
-        case "Last Month":
+        case 'Last Month':
             fromDate = moment().subtract('month', 1).startOf('month');
             toDate = moment().subtract('month', 1).endOf('month');
             break;
-        case "This Year":
+        case 'This Year':
             fromDate = moment().startOf('year');
             toDate = moment().endOf('year');
             break;
@@ -950,29 +951,29 @@ const util = {
         if (filterObj.date&&filterObj.date.dateType) {
             //scheduleDtColumn = "timezone(facilities.time_zone, " + orders.ordersData.getSortFields(filterObj.date.dateType) + ")";
             switch (filterObj.date.dateType) {
-            case "scheduled_dt":
-            case "schedule_date":
-                scheduleDtColumn = "studies.schedule_dt";
+            case 'scheduled_dt':
+            case 'schedule_date':
+                scheduleDtColumn = 'studies.schedule_dt';
                 break;
-            case "study_dt":
-                scheduleDtColumn = "studies.study_dt";
+            case 'study_dt':
+                scheduleDtColumn = 'studies.study_dt';
                 break;
-            case "study_received_dt":
-                scheduleDtColumn = "studies.study_received_dt";
+            case 'study_received_dt':
+                scheduleDtColumn = 'studies.study_received_dt';
                 break;
-            case "claim_dt":
-                scheduleDtColumn = "claims.claim_dt";
+            case 'claim_dt':
+                scheduleDtColumn = 'claims.claim_dt';
                 break;
             }
         }
         else {
             //scheduleDtColumn = filterObj.date.isStudyDate ? " timezone(facilities.time_zone, studies.study_dt) " : " timezone(facilities.time_zone, studies.study_received_dt) ";
-            scheduleDtColumn = filterObj.date.isStudyDate ? " studies.study_dt " : " studies.study_received_dt ";
+            scheduleDtColumn = filterObj.date.isStudyDate ? ' studies.study_dt ' : ' studies.study_received_dt ';
         }
 
         switch (filterObj.date.condition) {
         // Preformatted Date Ranges
-        case "Preformatted":
+        case 'Preformatted':
             preformatted = util.getPreformattedDateRange(filterObj.date.preformatted);
             fromDate = preformatted.split('~')[0];
             toDate = preformatted.split('~')[1];
@@ -980,8 +981,8 @@ const util = {
             toTime = moment().endOf('day').format('HH:mm:ss');
             break;
         // Looking back a defined length of time
-        case "Last":
-        case "Next":
+        case 'Last':
+        case 'Next':
             duration = util.getFromToDuration(filterObj.date.durationValue, filterObj.date.duration, filterObj.date.condition);
             fromDate = duration.split('~')[0];
             toDate = duration.split('~')[1];
@@ -989,9 +990,9 @@ const util = {
             toTime = filterObj.date.toTime ? filterObj.date.toTime : moment().endOf('day').format('HH:mm:ss');
             break;
         // To and From Exact Dates
-        case "Date":
-            fromDate = filterObj.date.fromDate ? moment(filterObj.date.fromDate).format('YYYY-MM-DD') : "";
-            toDate = filterObj.date.toDate ? moment(filterObj.date.toDate).format('YYYY-MM-DD') : "";
+        case 'Date':
+            fromDate = filterObj.date.fromDate ? moment(filterObj.date.fromDate).format('YYYY-MM-DD') : '';
+            toDate = filterObj.date.toDate ? moment(filterObj.date.toDate).format('YYYY-MM-DD') : '';
             fromTime = filterObj.date.fromDateTime ? filterObj.date.fromDateTime : moment().startOf('day').format('HH:mm:ss');
             toTime = filterObj.date.toDateTime ? filterObj.date.toDateTime : moment().endOf('day').format('HH:mm:ss');
             break;
@@ -1006,12 +1007,12 @@ const util = {
             // Just compare date+time+tz string directly. For example:
             //      (studies.study_received_dt BETWEEN '2017-03-08T00:00:00-05:00' AND '2017-03-08T23:59:59-05:00')   -- preformatted, today
             if (filterObj.date.condition === 'Preformatted' && fromTime) {  // Handle special case for preformatted
-                drQuery = util.getRelationOperator(query) + " (" + scheduleDtColumn + " BETWEEN '" + fromDate + "' AND '" + toDate + "')";
+                drQuery = util.getRelationOperator(query) + ` (  ${scheduleDtColumn} BETWEEN ' ${fromDate} ' AND '${toDate}') `;
                 // time is IN THE timestamp !!!
                 //+ " AND  (";
                 //drQuery += (fromTime)?  scheduleDtColumn + "::time > '" + fromTime + "'::time AND " + scheduleDtColumn + "::time < '" + toTime + "'::time)" : scheduleDtColumn + "::time < '" + toTime + "'::time)";
             } else {
-                drQuery = util.getRelationOperator(query) + " (" + scheduleDtColumn + " BETWEEN '" + fromDate + "' AND '" + toDate + "')";
+                drQuery = util.getRelationOperator(query) + `( ${scheduleDtColumn} BETWEEN ' ${fromDate}' AND ' ${toDate} ') `;
             }
 
         } else {
