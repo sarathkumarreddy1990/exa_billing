@@ -1,0 +1,34 @@
+<%  _.each(rows, function(row){ %>
+    <tr  data_row_id="<%= row.charge_id %>">
+            <td>
+                <span id="spCIcharge_<%= row.charge_id %>"><%= row.bill_fee %></span>
+            </td>
+            <td>
+                <span id="spCIcharge_<%= row.charge_id %>"><%= row.payment %></span>
+            </td>
+            <td>
+                <span id="spCIallowed_<%= row.charge_id %>"><%= row.allowed_amount %></span>
+            </td>
+            <td>
+                <span id="spCIadj_<%= row.charge_id %>"><%= row.adjustment %></span>
+            </td>
+            <% for(var i=0; i<7; i++) { %> 
+                    <% if (row.cas_details && row.cas_details[i] != null) { %>
+                            <td>
+                                <span id="spCICasCode"><%= row.cas_details[i].code %></span>
+                            </td>
+                            <td>
+                                <span id="spCICas"><%= row.cas_details[i].amount %></span>
+                            </td>
+                    <% }
+                    else { %>
+                            <td>
+                                <span id="spCICasCode"></span>
+                            </td>
+                            <td>
+                                <span id="spCICas"></span>
+                            </td>
+                    <% } %>
+                <% }%>
+    </tr>
+<% }); %>
