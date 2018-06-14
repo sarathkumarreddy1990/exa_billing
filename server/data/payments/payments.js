@@ -5,8 +5,9 @@ module.exports = {
     getPayments: async function (params) {
         let whereQuery = [];
         params.sortOrder = params.sortOrder || ' ASC';
+        params.sortField = params.sortField =='id'?' payments.id ':params.sortField;
         let {
-            id,
+            payment_id,
             display_id,
             payment_dt,
             payer_type,
@@ -26,7 +27,8 @@ module.exports = {
             fromDate,
             toDate,
             filterByDateType,
-            paymentStatus
+            paymentStatus,
+            isGetTotal
         } = params;
 
         if(fromDate && toDate){
@@ -37,8 +39,8 @@ module.exports = {
             whereQuery.push(`(select payment_status from billing.get_payment_totals(payments.id))=ANY(string_to_array('${params.paymentStatus}',','))`);          
         }
 
-        if (id) {
-            whereQuery.push(` payments.id =${id}`);
+        if (payment_id) {
+            whereQuery.push(` payments.id =${payment_id}`);
         }
 
         if (display_id) {
@@ -93,9 +95,26 @@ module.exports = {
         if (facility_name) {
             whereQuery.push(`facility_name  ILIKE '%${facility_name}%' `);
         }
-      
-        const sql = SQL`SELECT
+
+        let joinQuery =` INNER JOIN public.users ON users.id = payments.created_by
+        LEFT JOIN public.patients ON patients.id = payments.patient_id
+        LEFT JOIN public.provider_groups ON provider_groups.id = payments.provider_group_id
+        LEFT JOIN public.provider_contacts ON provider_contacts.id = payments.provider_contact_id
+        LEFT JOIN public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
+        LEFT JOIN public.insurance_providers  ON insurance_providers.id = payments.insurance_provider_id
+        LEFT JOIN public.facilities ON facilities.id = payments.facility_id `;
+
+        let sql ='';
+
+        if(isGetTotal){
+            sql = SQL` SELECT SUM(amount) as total_amount,
+                        SUM((select payments_applied_total from billing.get_payment_totals(payments.id))::money) as total_applied,
+                        SUM((select adjustments_applied_total from billing.get_payment_totals(payments.id))::money) as total_adjustment
+                        FROM billing.payments `;
+        }else{
+            sql = SQL`SELECT
                           payments.id
+                        ,payments.id as payment_id
                         , payments.facility_id
                         , patient_id
                         , insurance_provider_id
@@ -128,27 +147,25 @@ module.exports = {
                         , (select adjustments_applied_total from billing.get_payment_totals(payments.id)) AS adjustment_amount
                         , (select payment_status from billing.get_payment_totals(payments.id)) AS current_status
                         , COUNT(1) OVER (range unbounded preceding) AS total_records
-                    FROM billing.payments
-                    INNER JOIN public.users ON users.id = payments.created_by
-                    LEFT JOIN public.patients ON patients.id = payments.patient_id
-                    LEFT JOIN public.provider_groups ON provider_groups.id = payments.provider_group_id
-                    LEFT JOIN public.provider_contacts ON provider_contacts.id = payments.provider_contact_id
-                    LEFT JOIN public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
-                    LEFT JOIN public.insurance_providers  ON insurance_providers.id = payments.insurance_provider_id
-                    LEFT JOIN public.facilities ON facilities.id = payments.facility_id`;
+                    FROM billing.payments`;
+
+        }
+      
+        sql.append(joinQuery);
 
         if (whereQuery.length) {
             sql.append(SQL` WHERE `)
                 .append(whereQuery.join(' AND '));
         }
             
-
-        sql.append(SQL` ORDER BY  `)
-            .append(sortField)
-            .append(' ')
-            .append(sortOrder)
-            .append(SQL` LIMIT ${pageSize}`)
-            .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+        if(!isGetTotal){
+            sql.append(SQL` ORDER BY  `)
+                .append(sortField)
+                .append(' ')
+                .append(sortOrder)
+                .append(SQL` LIMIT ${pageSize}`)
+                .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+        }
 
         return await query(sql);
     },
