@@ -5,7 +5,8 @@
             "name": "Name",
             "description": "Description",
             "readProvPercLvl" : "Reading Provider Percent Level",
-            "reasons" : "Reasons"
+            "reasons" : "Reasons",
+            "dateFrom":"Date From"
         },
         "adjustmentcodes": {
             "credit": "Credit",
@@ -112,6 +113,7 @@
         },
         "userSettings": {
             "accountNo": "Account#",
+            "accession": "Accession#",
             "id": "Id",
             "studyDescription": "Study Description",
             "station": "Station",
@@ -175,22 +177,17 @@
             "patientVisitNumber": "Patient Visit #",
             "claimDate": "Claim Date",
             "patientNameGrid": "Patient Name",
-            "accountNo": "Account No",
             "dateofBirth": "Date Of Birth",
             "ssn": "SSN",
             "placeOfService": "Place Of Service",
             "referringPhysician": "Referring Providers",
+            "renderingPhysician": "Rendering Providers",
             "billingFee": "Billing Fee",
             "cptDescription": "Cpt Description",
             "payerType": "Payer Type",
             "clearingHouse": "Clearing House",
             "balance": "Balance",
-            "billingClass": "Billing Class",
-            "billingCode": "Billing Code",
-            "claimStatus": "Claim Status",
-            "notes": "Notes",
             "responsibleParty": "Responsible Party",
-            "claimNo": "Claim No",
             "invoice": "Invoice",
             "billingmethod": "Billing Method",
             "followUpDate": "Follow-up Date",
@@ -199,7 +196,6 @@
             "policyNumber": "Policy Number",
             "groupNumber": "Group Number",
             "billingProvider": "Billing Provider",
-            "gender": "Gender",
             "defaultColumn": "Default Column",
             "defaultSortOrder": "Default Sort Order",
             "headings":{
@@ -207,6 +203,16 @@
               "columnSort":"Column Order"
             }
       },
+        "rightClickMenu":{
+            "billingStatus":"Change Billing Status",
+            "billingCode":"Change Billing Code",
+            "billingClass":"Change Billing Class",
+            "billingPayerType":"Change Billing Payer Type",
+            "editClaim":"Edit Claim",
+            "claimInquiry":"claim Inquiry",
+            "splitOrders":"split Orders",
+            "createClaim":"Create Claim"
+        },
         "validation":{
             "billingGrp": "Billing Provider",
             "billing_pro_addressLine1": "Billing Provider-AddressLine1",
