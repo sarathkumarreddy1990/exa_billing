@@ -270,7 +270,6 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         self.adjustmentTimer = setTimeout(self.calculateAdjustmentTotal, 25);
                         clearTimeout(self.appliedTimer);
                         self.appliedTimer = setTimeout(self.calculateAppliedTotal, 25);
-                        // $('#tblpaymentsGrid').jqGrid('setGridHeight', '390px');
 
                         commonjs.docResize();
                     });
@@ -278,10 +277,6 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 else {
                     this.paymentTable.refresh();
                 }
-
-                setTimeout(function () {
-                    // $('#tblpaymentsGrid').jqGrid('setGridHeight', '390px');
-                }, 100);
             },
 
 

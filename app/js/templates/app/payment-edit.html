@@ -197,6 +197,7 @@
                         <label for="ddlPaidLocation" class="control-label col-sm-4" i18n="billing.payments.paidLocation"></label>
                         <div class="col-sm-3">
                             <select class="form-control" id="ddlPaidLocation" class="paidLocation">
+                                <option value="0">Select</option>
                                 <% _.each(paidlocation, function(facility) { %>
                                     <option value="<%= facility.id %>">
                                         <%= facility.facility_name %>

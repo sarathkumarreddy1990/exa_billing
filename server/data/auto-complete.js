@@ -158,6 +158,9 @@ module.exports = {
     },
 
     getPatients: async function (params) {
+        
+        let patient_q = ` AND full_name ILIKE '%${params.q}%' `;
+
         const sql_patient = SQL`
               SELECT
               account_no,
@@ -178,13 +181,20 @@ module.exports = {
                     AND patients.company_id =  ${params.company_id}                                 
                 AND is_active          
                 ORDER BY patients.id ASC 
-                LIMIT ${params.pageSize}
-                OFFSET ${((params.page - 1) * params.pageSize)}   
                 ) 
-            AS finalPatients INNER JOIN patients ON finalPatients.patients_id = patients.id                  
-            ORDER BY patients.id ASC
+            AS finalPatients INNER JOIN patients ON finalPatients.patients_id = patients.id                 
+           
         `;
 
+        if (params.q != '') {
+            sql_patient.append(patient_q);
+        }
+        
+        sql_patient.append(SQL` ORDER BY full_name `)
+            .append(params.sortOrder)
+            .append(SQL` LIMIT ${params.pageSize}`)
+            .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
+        
         return await query(sql_patient);
     },
 
@@ -224,62 +234,6 @@ module.exports = {
             .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
 
         return await query(sqlOrderingFacility);
-    },
-
-    getProvidersAc: async function (params) {
-
-        let providers_q = ` AND (p.provider_code ILIKE '%${params.q}%' OR p.full_name ILIKE '%${params.q}%' ) `;
-
-        const sqlProvides = SQL`
-            SELECT
-            p.id,
-            p.full_name,
-            p.last_name,
-            p.first_name,
-            p.marketing_rep,
-            p.middle_initial,
-            p.is_active,
-            p.suffix,
-            p.provider_type,
-            p.provider_code,
-            pc.contact_info,
-            p.facilities, (
-                SELECT
-                    count(1)
-                FROM
-                    providers p
-                    JOIN provider_contacts pc ON p.id = pc.provider_id
-            WHERE
-                p.has_deleted = FALSE
-                AND p.is_active = TRUE
-                AND p.sys_provider = FALSE
-                AND pc.is_active = TRUE
-                AND pc.has_deleted = FALSE
-                AND p.company_id = ${params.company_id}
-                    ) AS total_records,
-                    pc.id,
-                    p.id as provider_id
-                    FROM
-                        providers p
-                    JOIN
-                        provider_contacts pc ON p.id = pc.provider_id
-            WHERE
-                p.has_deleted = FALSE
-                AND p.is_active = TRUE
-                AND p.sys_provider = FALSE
-                AND pc.is_active = TRUE
-                AND pc.has_deleted = FALSE
-                AND p.company_id = ${params.company_id} `;
-
-        if (params.q != '') {
-            sqlProvides.append(providers_q);
-        }
-
-        sqlProvides.append(SQL` ORDER BY last_name ASC `)
-            .append(SQL` LIMIT ${params.pageSize}`)
-            .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
-
-        return await query(sqlProvides);
     },
 
     getUsers: async function (params) {
