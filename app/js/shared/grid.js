@@ -295,15 +295,25 @@ define('grid', [
                     sortable: false,
                     resizable: false,
                     search: false,
-                    hidden: !options.isClaimGrid,
+                    hidden: false,
                     isIconCol: true,
                     formatter: function () {
                         return "<i class='icon-ic-edit' title='Edit'></i>"
                     },
                     customAction: function (rowID, e, that) { 
-                        self.claimView = new claimsView();
-                        self.claimView.showEditClaimForm(rowID);
-                        return false;
+                        if(options.isClaimGrid){
+                            self.claimView = new claimsView();
+                            self.claimView.showEditClaimForm(rowID);
+                            return false;
+                        }else{
+                            window.localStorage.setItem('selected_studies', null);
+                            window.localStorage.setItem('first_study_details', null);
+                            window.localStorage.setItem('primary_study_details', JSON.stringify(selectedStudies[0]));
+                            window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
+                            self.claimView = new claimsView();
+                            self.claimView.showClaimForm(studyIds);
+                            return false;
+                        }
                     }
                 },
                 {
