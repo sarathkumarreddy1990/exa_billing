@@ -71,7 +71,6 @@ define([
                                     var gridData = $('#tblPaymentReasonsGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
-                                        data: $.param({ id: self.model.id, code: gridData.code, description: gridData.description }),
                                         success: function (model, response) {
                                             commonjs.showStatus("Deleted Successfully");
                                             self.paymentReasonsTable.refresh();
@@ -146,7 +145,6 @@ define([
                 if (id > 0) {
                     this.model.set({id: id});
                     this.model.fetch({
-                        data: { id: this.model.id},
                         success: function (model, response) {
                             response = response[0];
                             if (response) {

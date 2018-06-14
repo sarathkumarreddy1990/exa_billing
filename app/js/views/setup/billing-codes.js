@@ -77,7 +77,6 @@ define(['jquery',
                                     var gridData = $('#tblBillingCodesGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
-                                        data: $.param({ id: self.model.id, code: gridData.code, description: gridData.description }),
                                         success: function (model, response) {
                                             commonjs.showStatus("Deleted Successfully");
                                             self.billingCodesTable.refresh();
@@ -131,6 +130,7 @@ define(['jquery',
                     }}
                 ]});
 
+                
             },
             showGrid: function () {
                 this.render();

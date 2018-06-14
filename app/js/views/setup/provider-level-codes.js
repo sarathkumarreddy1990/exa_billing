@@ -77,7 +77,6 @@ define(['jquery',
                                     var gridData = $('#tblProviderLevelCodesGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
-                                        data: $.param({ id: self.model.id, code: gridData.code, description: gridData.description }),
                                         success: function (model, response) {
                                             commonjs.showStatus("Deleted Successfully");
                                             self.providerLevelCodesTable.refresh();
@@ -151,7 +150,6 @@ define(['jquery',
                 if(id > 0) {
                     this.model.set({id: id});
                     this.model.fetch({
-                        data: { id: this.model.id},
                         success: function (model, response) {
                             if (response && response.length > 0) {
                                 var data = response[0];

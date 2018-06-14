@@ -1,6 +1,6 @@
 define(['backbone'], function (Backbone) {
     var PaymentReasonsModel = Backbone.Model.extend({
-        url: "/exa_modules/billing/setup/payment_reasons",
+        urlRoot: "/exa_modules/billing/setup/payment_reasons",
         defaults: {
             code: "",
             description: "",
