@@ -76,7 +76,6 @@ define(['jquery',
                             customAction: function (rowID) {
                                 if (confirm("Are you sure want to delete")) {
                                     var gridData = $('#tblCasGroupCodesGrid').jqGrid('getRowData', rowID);
-                                    self.model.set({ "id": rowID });
                                     self.model.destroy({
                                         data: $.param({ id: self.model.id }),
                                         success: function (model, response) {
@@ -150,7 +149,6 @@ define(['jquery',
                 if(id > 0) {
                     this.model.set({id: id});
                     this.model.fetch({
-                        data: { id: this.model.id},
                         success: function (model, response) {
                             if (response && response.length > 0) {
                                 var data = response[0];

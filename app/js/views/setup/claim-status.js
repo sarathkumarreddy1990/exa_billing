@@ -71,7 +71,6 @@ define([
                                     var gridData = $('#tblClaimStatusGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
-                                        data: $.param({ id: self.model.id, code: gridData.code, description: gridData.description }),
                                         success: function (model, response) {
                                             commonjs.showStatus("Deleted Successfully");
                                             self.claimStatusTable.refresh();
