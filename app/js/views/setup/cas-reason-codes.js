@@ -51,27 +51,23 @@ define([
                         },
                         {
                             name: 'edit',
-                            width: 50,
+                            width: 10,
                             sortable: false,
                             search: false,
                             className: 'icon-ic-edit',
                             route: '#setup/cas_reason_codes/edit/',
                             formatter: function (e, model, data) {
                                 return `<span class='icon-ic-edit' title='click Here to Edit'></span>`;
-                            },
-                            cellattr: function () {
-                                return 'style=text-align:center;cursor:pointer;'
                             }
                         },
                         {
-                            name: 'del', width: 50, sortable: false, search: false,
+                            name: 'del', width: 10, sortable: false, search: false,
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
                                 if (confirm("Are you sure want to delete")) {
                                     var gridData = $('#tblCasReasonCodesGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
-                                        data: $.param({ id: self.model.id, code: gridData.code, description: gridData.description }),
                                         success: function (model, response) {
                                             commonjs.showStatus("Deleted Successfully");
                                             self.casReasonCodesTable.refresh();
@@ -85,19 +81,13 @@ define([
 
                             formatter: function (e, model, data) {
                                 return `<span class='icon-ic-delete' title='click Here to Delete'></span>`;
-                            },
-
-                            cellattr: function () {
-                                return 'style=text-align:center;cursor:pointer;';
                             }
                         },
                         {
-                            name: 'code',
-                            width: 180
+                            name: 'code'
                         },
                         {
-                            name: 'description',
-                            width: 180
+                            name: 'description'
                         }
                     ],
                     datastore: self.casReasonCodesList,
@@ -147,7 +137,6 @@ define([
                 if (id > 0) {
                     this.model.set({id: id});
                     this.model.fetch({
-                        data: { id: this.model.id},
                         success: function (model, response) {
                             response = response[0];
                             if (response) {

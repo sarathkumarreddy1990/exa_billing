@@ -63,7 +63,7 @@ define(['jquery',
                         },
                         {
                             name: 'edit',
-                            width: 20,
+                            width: 15,
                             sortable: false,
                             search: false,
                             className: 'icon-ic-edit',
@@ -73,7 +73,7 @@ define(['jquery',
                             }
                         },
                         {
-                            name: 'del', width: 20, sortable: false, search: false,
+                            name: 'del', width: 15, sortable: false, search: false,
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
                                 if (confirm("Are you sure want to delete")) {
@@ -85,7 +85,7 @@ define(['jquery',
                                             self.adjustmentCodesTable.refresh();
                                         },
                                         error: function (model, response) {
-
+                                            commonjs.handleXhrError(model, response);
                                         }
                                     });
                                 }
@@ -96,12 +96,12 @@ define(['jquery',
                         },
                         {
                             name: 'code',
-                            width: 180,
+                         //   width: 180,
                             searchFlag: '%'
                         },
                         {
                             name: 'description',
-                            width: 180,
+                         //   width: 180,
                             searchFlag: '%'
                         },
                         {
@@ -113,7 +113,7 @@ define(['jquery',
                             searchoptions: {
                                 value: self.entryType
                             },
-                            width: 180
+                          //  width: 180
                         }
                     ],
                     datastore: self.adjustmentCodesList,
