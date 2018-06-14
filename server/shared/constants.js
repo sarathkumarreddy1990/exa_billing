@@ -1,4 +1,7 @@
 module.exports = {
+
+    staticAssetsRoot: '/exa_modules/billing/static',
+
     moduleNames: {
         setup: 'setup',
         claim: 'claims',
@@ -14,6 +17,6 @@ module.exports = {
     },
 
     permissionsMap: {
-        
+
     }
 };

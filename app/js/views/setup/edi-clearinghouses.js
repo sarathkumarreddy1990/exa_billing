@@ -63,7 +63,7 @@ define(['jquery',
                         },
                         {
                             name: 'edit',
-                            width: 20,
+                            width: 10,
                             sortable: false,
                             search: false,
                             className: 'icon-ic-edit',
@@ -73,20 +73,18 @@ define(['jquery',
                             }
                         },
                         {
-                            name: 'del', width: 20, sortable: false, search: false,
+                            name: 'del', width: 10, sortable: false, search: false,
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
                                 if (confirm("Are you sure want to delete")) {
-                                    var gridData = $('#tblEDIClearingHousesGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
-                                        data: $.param({ id: self.model.id }),
                                         success: function (model, response) {
+                                            self.ediClearingHousesTable.refreshAll();
                                             commonjs.showStatus("Deleted Successfully");
-                                            self.adjustmentCodesTable.refresh();
                                         },
                                         error: function (model, response) {
-
+                                            commonjs.handleXhrError(model, response);
                                         }
                                     });
                                 }
@@ -97,12 +95,10 @@ define(['jquery',
                         },
                         {
                             name: 'name',
-                            width: 180,
                             searchFlag: '%'
                         },
                         {
                             name: 'receiver_name',
-                            width: 180,
                             searchFlag: '%'
                         }
                     ],
@@ -151,16 +147,15 @@ define(['jquery',
                 if (id > 0) {
                     this.model.set({ id: id });
                     this.model.fetch({
-                        data: { id: this.model.id }, 
                         success: function (model, response) {
                             if (response && response.length > 0) {
                                 var data = response[0];
                                 if (data) {
                                     var info = data.communication_info;
                                     $('#txtName').val(data.name ? data.name : '');
-                                    $('#code').val(data.code ? data.code : '');
+                                    $('#txtCode').val(data.code ? data.code : '');
                                     $('#txtReceiverName').val(data.receiver_name ? data.receiver_name : '');
-                                    $('#txtReceiverID').val(data.txtReceiverID ? data.txtReceiverID : '');
+                                    $('#txtReceiverID').val(data.receiver_id ? data.receiver_id : '');
                                     $('#chkActive').prop('checked', data.inactivated_dt ? true : false);
                                     $('#txtAuthInfo').val(info.AuthorizationInformation ? info.AuthorizationInformation : '');
                                     $('#txtAuthInfoQualifier').val(info.AuthorizationInformationQualifier ? info.AuthorizationInformationQualifier : '');
@@ -189,8 +184,8 @@ define(['jquery',
                                     $('#ddlXmlTemplateSyntax').val(info.XmlSyntaxTag ? info.XmlSyntaxTag : "");
                                     if (info.XmlSyntaxTag != '1' && info.XmlSyntaxTag != '') {
                                         $('.xmlTemplateSyntaxAuth').show();
-                                        $('#ProviderOfficeNumber').val(info.txtProviderOfficeNo ? info.txtProviderOfficeNo : '');
-                                        $('#txtUserName').val(info.txtUserName ? info.txtUserName : '');
+                                        $('#txtProviderOfficeNo').val(info.ProviderOfficeNumber ? info.ProviderOfficeNumber : '');
+                                        $('#txtUserName').val(info.UserID ? info.UserID : '');
                                         $('#txtPassword').val(info.Password ? info.Password : '');
                                     }
                                 }

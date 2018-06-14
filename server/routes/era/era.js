@@ -36,7 +36,6 @@ router.post('/upload', upload.single('displayImage'), async function (req, res) 
     
         let tempString = buffer.toString();
         let bufferString = tempString.replace(/(?:\r\n|\r|\n)/g, '');
-        const file_ext = req.file.originalname.slice(-3);
 
         let fileMd5 = crypto.createHash('MD5').update(bufferString, 'utf8').digest('hex');
 
@@ -47,7 +46,8 @@ router.post('/upload', upload.single('displayImage'), async function (req, res) 
 
         const currentTime = new Date();
 
-        const dirPath = `${fileStorePath}\\${currentTime.getFullYear()}\\${currentTime.getMonth()}\\${currentTime.getDate()}`;
+        const localPath = `${currentTime.getFullYear()}\\${currentTime.getMonth()}\\${currentTime.getDate()}`;
+        const dirPath = `${fileStorePath}\\${localPath}`;
 
         if (fileStorePath) {
             if (!fs.exists(dirPath)) {
@@ -72,14 +72,14 @@ router.post('/upload', upload.single('displayImage'), async function (req, res) 
         req.company_id = '1';
         req.status = 'pending';
         req.file_type = '835';
-        req.file_path = dirPath;
+        req.file_path = localPath;
         req.file_size = fileSize;
         req.file_md5 = fileMd5;
 
         const dataResponse = await eraController.saveERAFile(req);
 
         if (dataResponse.rows && dataResponse.rows.length && dataResponse.rows[0].id) {
-            await fs.writeFile(dirPath + '/' + dataResponse.rows[0].id + '.' + file_ext, bufferString, 'binary', function (err) {
+            await fs.writeFile(dirPath + '/' + dataResponse.rows[0].id, bufferString, 'binary', function (err) {
                 if (err) {
                     throw err;
                 }

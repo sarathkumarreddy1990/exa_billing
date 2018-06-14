@@ -85,7 +85,6 @@ define(['jquery',
                                     var gridData = $('#tblBillingProvidersGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
-                                        data: $.param({ id: self.model.id }),
                                         success: function (model, response) {
                                             commonjs.showStatus("Deleted Successfully");
                                             self.billingProvidersTable.refresh();
@@ -102,17 +101,17 @@ define(['jquery',
                         },
                         {
                             name: 'code',
-                            width: 180,
+                           //  width: 180,
                             searchFlag: '%'
                         },
                         {
                             name: 'name',
-                            width: 400,
+                          //   width: 180,
                             searchFlag: '%'
                         },
                         {
                             name: 'address_line1',
-                            width: 400,
+                         //    width: 180,
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject) {
                                     return `${rowObject.address_line1}, ${rowObject.address_line2}`;
@@ -122,7 +121,7 @@ define(['jquery',
                         },
                         {
                             name: 'phone_number',
-                            width: 200,
+                          //   width: 180,
                             searchFlag: '%'
                         },
                     ],
@@ -194,7 +193,6 @@ define(['jquery',
                 if (id > 0) {
                     this.model.set({ id: id });
                     this.model.fetch({
-                        data: { id: this.model.id },
                         success: function (model, response) {
                             if (response && response.length > 0) {
                                 var data = response[0];
@@ -540,13 +538,11 @@ define(['jquery',
                                 $("#tblProviderIDCodesGrid").jqGrid('addRowData', data.id, { "id": data.id, "insurance_provider_id": data.insurance_provider_id, "insurance_name": data.insurance_name, "payer_assigned_provider_id": data.payer_assigned_provider_id, "qualifier_desc": data.qualifier_desc, "qualifier_id": data.qualifier_id });
                             }
                         }
-                        // TODO: Bind provider id code grid 
                     },
                     error: function (model, response) {
-
+                        commonjs.handleXhrError(model, response);
                     }
                 });
-                // TODO: Bind provider id code grid
             },
 
             editingProviderIDCodes: function (rowID) {

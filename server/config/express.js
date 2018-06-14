@@ -19,7 +19,7 @@ module.exports = function (app, express) {
 
         const lessMiddleware = require('less-middleware');
 
-        app.use(lessMiddleware(path.join(__dirname, '/../../app'), {
+        app.use('/exa_modules/billing/static', lessMiddleware(path.join(__dirname, '/../../app'), {
             debug: true,
             render: { compress: true }
         }));
@@ -29,7 +29,7 @@ module.exports = function (app, express) {
     app.use(express.json());
     app.use(express.urlencoded({ extended: false }));
     app.use(cookieParser());
-    app.use(express.static(path.join(__dirname, '../../app')));
+    app.use('/exa_modules/billing/static', express.static(path.join(__dirname, '../../app')));
 
     require('./session')(app);
     require('./routes')(app);
