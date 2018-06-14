@@ -1,7 +1,7 @@
 define(['backbone'], function (Backbone) {
     var casGroupCodesModel = Backbone.Model.extend({
 
-        url: "/exa_modules/billing/setup/cas_group_codes",
+        urlRoot: "/exa_modules/billing/setup/cas_group_codes",
 
         defaults: {
             code: "",

@@ -74,7 +74,7 @@ define([
                     flag: grid_name,
                     default_tab: default_tab,
                     userId: userId,
-                    claim_col_name: claim_col_name,
+                    claim_col_name: claim_col_name,                    
                     claim_sort_order: claim_sort_order,
                     billingClaimGridFields: billingClaimGridFields,
                     claimFieldOrder: JSON.stringify(claimFieldOrder),
@@ -140,39 +140,70 @@ define([
 
             bindSettingColumns: function (userID) {
                 var self = this;
+                if (window.location && window.location.hash.split('/')[1] == 'claim_workbench') 
+                    var grid_name = 'claims'
+                else
+                    var grid_name = 'studies'
                 $.ajax({
                     url: '/exa_modules/billing/user_settings',
                     data: {
-                        userID: userID
+                        userID: userID,
+                        gridName: grid_name
                     },
                     success: function (data, response) {
                         var displayFields = [];
                         self.billingDisplayFields = [];
                         self.displayFieldChecked = [];
-                        if (window.location && window.location.hash.split('/')[1] == 'claim_workbench') {
-                            self.billingDisplayFields = JSON.parse(data[0]).claim_management;
-                        }
-                        if (window.location && window.location.hash.split('/')[1] == 'studies') {
-                            self.billingDisplayFields = JSON.parse(data[0]).study_fields;
-                        }
-                        self.checkedBillingDisplayFields = data[1].rows[0] ? data[1].rows[0].field_order : 0;
+                        var result =  data && data.length ? JSON.parse(data[0]) : {};
+                        if (window.location && window.location.hash.split('/')[1] == 'claim_workbench') 
+                            self.billingDisplayFields = result.claim_management;                        
+                        if (window.location && window.location.hash.split('/')[1] == 'studies') 
+                            self.billingDisplayFields = result.study_fields;
+                        var result_data = data && data.length && data[1] && data[1].rows && data[1].rows.length ? data[1].rows[0] : {};
+                        self.checkedBillingDisplayFields = result_data.field_order;
                         var checkedGridFields = self.checkedBillingDisplayFields;
                         var gridFieldArray = [],
                             field_order = [];
                         var sortColumn, sortOrder;
+                        var displayField = [];
+
+                        for (var i = 0; i < self.checkedBillingDisplayFields.length; i++) {
+                            for (var j = 0; j < self.billingDisplayFields.length; j++) {
+                                if (self.checkedBillingDisplayFields[i] == self.billingDisplayFields[j].id) {
+                                    displayFields.push({
+                                        field_name: self.billingDisplayFields[j].field_name,
+                                        i18n_name: self.billingDisplayFields[j].i18n_name,
+                                        width: self.billingDisplayFields[j].field_info.width,
+                                        id: self.checkedBillingDisplayFields[i],
+                                        screen_name: opener
+                                    });
+                                    continue;
+                                }
+                            }
+                        }
+                        var gridNames = displayFields.map(function ( field ) {
+                            return field.id;
+                        });
+                        var remainingFields = $.grep(self.billingDisplayFields, function (obj) {
+                            if ($.inArray(obj.id, gridNames) == -1) {
+                                displayFields.push({
+                                    field_name: obj.field_name,
+                                    i18n_name: obj.i18n_name,
+                                    width: obj.field_info.width,
+                                    id: obj.id,
+                                    screen_name: opener
+                                });
+                            }
+                        });
+
+                        self.ulListBinding(displayFields, 'ulSortList', checkedGridFields);
 
                         for (var i = 0; i < self.billingDisplayFields.length; i++) {
-                            displayFields.push({
-                                field_name: self.billingDisplayFields[i].field_name,
-                                i18n_name: self.billingDisplayFields[i].i18n_name,
-                                id: self.billingDisplayFields[i].id
-                            });
+                            $('<option/>').val(self.billingDisplayFields[i].field_code).html(self.billingDisplayFields[i].field_name).appendTo('#ddlBillingDefaultColumns');
                         }
-                        gridFieldArray = displayFields;
-                        self.ulListBinding(displayFields, 'ulSortList', checkedGridFields);
-                        for (var i = 0; i < self.billingDisplayFields.length; i++) {
-                            $('<option/>').val(self.billingDisplayFields[i].field_name).html(self.billingDisplayFields[i].field_name).appendTo('#ddlBillingDefaultColumns');
-                        }
+
+                        $('#ddlBillingDefaultColumns').val(result_data.default_column);
+                        $('#ddlBillingSortOrder').val(result_data.default_column_order_by);                        
                     },
                     error: function (err, response) {
                         if (err)

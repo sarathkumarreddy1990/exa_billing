@@ -40,5 +40,9 @@ module.exports = {
 
     viewPaymentDetails: (params) => {
         return data.viewPaymentDetails(params); 
+    },
+
+    viewChargePaymentDetails: (params) => {
+        return data.viewChargePaymentDetails(params); 
     }
 };

@@ -21,7 +21,7 @@ module.exports = {
                  ,default_tab
                 )
             SELECT
-                ${args.userId}
+                  ${args.userId}
                 , ${args.claimSettingFields}
                 , ${args.flag}
                 , ${args.claim_sort_order}
@@ -56,11 +56,16 @@ module.exports = {
 
     getGridFieldById:async function(params){
 
-        let select_field = ` 
+        let select_field = SQL` 
         SELECT
-            field_order,grid_name 
+              field_order
+            , grid_name 
+            , default_column 
+            , default_column_order_by
         FROM 
-           billing.user_settings WHERE user_id = ${params.userID} `;
+           billing.user_settings WHERE user_id = ${params.userId} 
+           AND grid_name = ${params.gridName} `;
+
                 
         return await query(select_field);
     },

@@ -60,6 +60,7 @@ module.exports = {
         let {
             lineItems
             , ediFileClaims
+            , claimComments
         } = params;
 
         const sql =SQL` WITH application_details AS (
@@ -91,9 +92,18 @@ module.exports = {
                                 FROM 
                                 application_details  
                                 INNER JOIN billing.claims c on c.id = application_details.claim_number
-                                INNER JOIN billing.charges ch on ch.claim_id = c.id
-                                INNER JOIN cpt_codes on cpt_codes.id = ch.cpt_id AND application_details.cpt_code = cpt_codes.display_code
-                                WHERE NOT cpt_codes.has_deleted AND cpt_codes.is_active
+                                INNER JOIN LATERAL (
+                                    SELECT 
+                                       ch.id
+                                    FROM 
+                                        billing.charges ch	
+                                   INNER JOIN cpt_codes on cpt_codes.id = ch.cpt_id AND cpt_codes.display_code = application_details.cpt_code 
+                                   WHERE 
+                                    ch.claim_id = c.id 
+                                    AND NOT cpt_codes.has_deleted 
+                                    AND cpt_codes.is_active 
+                                    ORDER BY id ASC LIMIT 1
+                                ) AS charges ON true
                            ), 
                            insert_payment AS (
                                   INSERT INTO billing.payment_applications
@@ -149,8 +159,55 @@ module.exports = {
                                         ,edi_file_id bigint
                                     )
                                 INNER JOIN billing.claims c on c.id = edi_claims.claim_number
+                                RETURNING claim_id, edi_file_id
+                                ),
+                            insert_claim_comments AS (
+                                INSERT INTO billing.claim_comments
+                                (
+                                    claim_id
+                                    ,note
+                                    ,type
+                                    ,created_by
+                                    ,created_dt
                                 )
-                            SELECT * FROM insert_adjustment `;
+                                SELECT 
+                                    claim_number 
+                                    ,note
+                                    ,type
+                                    ,${paymentDetails.created_by}
+                                    ,'now()'
+                                FROM 
+                                    json_to_recordset(${JSON.stringify(claimComments)}) AS claim_notes
+                                    (
+                                        claim_number bigint
+                                        ,note text
+                                        ,type text
+                                    )
+                                INNER JOIN billing.claims c on c.id = claim_notes.claim_number
+                                RETURNING id AS claim_comment_id
+                                )
+                            SELECT
+	                            ( SELECT json_agg(row_to_json(insert_adjustment)) insert_adjustment
+                                            FROM (
+                                                    SELECT
+                                                          *
+                                                    FROM
+                                                    insert_adjustment
+                                            
+                                                ) AS insert_adjustment
+                                     ) AS insert_adjustment,
+	                            ( SELECT json_agg(row_to_json(insert_edi_file_claims)) insert_edi_file_claims
+                                            FROM (
+                                                    SELECT
+                                                        claim_id as claim_number
+                                                        ,edi_file_id
+                                                        ,true AS applied
+                                                    FROM
+                                                    insert_edi_file_claims
+                                            
+                                                ) AS insert_edi_file_claims
+                                     ) AS insert_edi_file_claims
+                            `;
         
         return await query(sql);
     },
@@ -230,6 +287,51 @@ module.exports = {
                 FROM file_stores 
                     LEFT JOIN companies ON companies.file_store_id = file_stores.id
                 WHERE companies.id = ${params.company_id} 
+        `;
+        
+        return await query(sql); 
+    },
+
+    getcasReasonGroupCode: async function(params){
+
+        let { company_id } = params;
+
+        const sql = ` WITH cas_group as 
+                        ( SELECT
+                            array_agg(code) as cas_groups
+                        FROM
+                            billing.cas_group_codes
+                        WHERE inactivated_dt IS NULL AND company_id =  ${company_id}
+                        ) ,
+                        cas_reason as
+                        ( SELECT
+                            array_agg(code) as cas_reasons
+                        FROM
+                            billing.cas_reason_codes
+                        WHERE inactivated_dt IS NULL AND  company_id =  ${company_id}
+                        )
+                    SELECT * FROM cas_group,cas_reason `;
+
+        return await query(sql);
+    },
+
+    getERAFilePathById: async function (params) {
+        let {
+            file_id,
+            company_id
+        } = params;
+
+        const sql = `          
+                Select 
+                    ef.id
+				    ,ef.status
+				    ,ef.file_type
+				    ,ef.file_path 
+				    ,fs.root_directory
+                FROM 
+                    billing.edi_files ef
+                INNER JOIN file_stores fs on fs.id = ef.file_store_id
+                WHERE ef.id = ${file_id} AND ef.company_id = ${company_id}
         `;
         
         return await query(sql); 

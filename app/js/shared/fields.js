@@ -144,7 +144,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "id": 1,
                     "field_code": "claim_dt",
                     "field_name": "Claim Date",
-                    "i18n_name": "shared.fields.claimDate",
+                    "i18n_name": "billing.claims.claimDate",
                     "field_info": {
                         "name": "claim_dt",
                         "searchFlag": "datetime",
@@ -177,7 +177,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "id": 4,
                     "field_code": "birth_date",
                     "field_name": "Date Of Birth",
-                    "i18n_name": "shared.fields.dateofBirth",
+                    "i18n_name": "setup.userSettings.dateofBirth",
                     "field_info": {
                         "name": "birth_date",
                         "width": 100,
@@ -216,7 +216,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "id":7,
                     "field_code": "referring_providers",
                     "field_name": "Referring Providers",
-                    "i18n_name": "order.patientOrderDetails.referringPhysician",
+                    "i18n_name": "setup.userSettings.referringPhysician",
                     "field_info": {
                         "name": "referring_providers",
                         "width": 200,
@@ -227,7 +227,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "id":8,
                     "field_code": "rendering_provider",
                     "field_name": "Rendering Providers",
-                    "i18n_name": "order.patientOrderDetails.renderingPhysician",
+                    "i18n_name": "setup.userSettings.renderingPhysician",
                     "field_info": {
                         "name": "rendering_provider",
                         "width": 200
@@ -289,7 +289,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_code": "payer_name",
                     "field_name": "Payer Name",
                     "field_name": "Payer Name",
-                    "i18n_name": "billing.fileInsurance.payerName",
+                    "i18n_name": "billing.fileInsurance.payerNameGrid",
                     "field_info": {
                         "name": "payer_name",
                         "width": 150,
@@ -300,7 +300,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "id": 14,
                     "field_code": "claim_balance",
                     "field_name": "Balance",
-                    "i18n_name": "billing.fileInsurance.balance",
+                    "i18n_name": "billing.claims.balance",
                     "field_info": {
                         "name": "claim_balance",
                         "width": 100
@@ -377,7 +377,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "id": 20,
                     "field_code": "gender",
                     "field_name": "Gender",
-                    "i18n_name": "shared.fields.gender",
+                    "i18n_name": "billing.claims.gender",
                     "field_info": {
                         "name": "gender",
                         "width": 200
@@ -444,7 +444,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "id": 25,
                     "field_code": "policy_number",
                     "field_name": "Policy Number",
-                    "i18n_name": "billing.fileInsurance.policyNumber",
+                    "i18n_name": "setup.userSettings.policyNumber",
                     "field_info": {
                         "name": "policy_number",
                         "width": 200
@@ -454,7 +454,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "id": 26,
                     "field_code": "group_number",
                     "field_name": "Group Number",
-                    "i18n_name": "billing.fileInsurance.groupNumber",
+                    "i18n_name": "setup.userSettings.groupNumber",
                     "field_info": {
                         "name": "group_number",
                         "width": 200
@@ -478,7 +478,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Account#": {
                 "id": 1,
                 "field_name": "Account#",
-                "i18n_name": "setup.studyFilters.accountNo",
+                "i18n_name": "setup.userSettings.accountNo",
                 "field_info": {
                     "custom_name": "Account#",
                     "name": "account_no",
@@ -503,7 +503,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Study Description": {
                 "id": 3,
                 "field_name": "Study Description",
-                "i18n_name": "setup.studyFilters.studyDescription",
+                "i18n_name": "setup.userSettings.studyDescription",
                 "field_info": {
                     "custom_name": "Study Description",
                     "name": "study_description",
@@ -515,7 +515,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Station": {
                 "id": 4,
                 "field_name": "Station",
-                "i18n_name": "order.newOrder.station",
+                "i18n_name": "setup.userSettings.station",
                 "field_info": {
                     "custom_name": "Station",
                     "name": "station",
@@ -527,7 +527,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Study Received Date": {
                 "id": 5,
                 "field_name": "Study Received Date",
-                "i18n_name": "setup.studyFilters.studyReceivedDate",
+                "i18n_name": "setup.userSettings.studyReceivedDate",
                 "field_info": {
                     "custom_name": "Study Received Date",
                     "name": "study_received_dt",
@@ -541,7 +541,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "BodyPart": {
                 "id": 6,
                 "field_name": "BodyPart",
-                "i18n_name": "setup.studyFilters.bodyPart",
+                "i18n_name": "setup.userSettings.bodyPart",
                 "field_info": {
                     "custom_name": "BodyPart",
                     "name": "body_part",
@@ -557,7 +557,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Department": {
                 "id": 7,
                 "field_name": "Department",
-                "i18n_name": "order.newOrder.department",
+                "i18n_name": "setup.userSettings.department",
                 "field_info": {
                     "custom_name": "Department",
                     "name": "department",
@@ -569,7 +569,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Reason for Study": {
                 "id": 8,
                 "field_name": "Reason for Study",
-                "i18n_name": "order.notes.reasonForStudy",
+                "i18n_name": "setup.userSettings.reasonForStudy",
                 "field_info": {
                     "custom_name": "Reason for Study",
                     "name": "reason_for_study",
@@ -581,7 +581,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Modality": {
                 "id": 9,
                 "field_name": "Modality",
-                "i18n_name": "shared.fields.modality",
+                "i18n_name": "setup.userSettings.modality",
                 "field_info": {
                     "custom_name": "Modality",
                     "name": "modalities",
@@ -597,7 +597,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Patient": {
                 "id": 10,
                 "field_name": "Patient",
-                "i18n_name": "shared.fields.patient",
+                "i18n_name": "setup.userSettings.patient",
                 "field_info": {
                     "custom_name": "Patient",
                     "name": "patient_name",
@@ -619,7 +619,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "DOB": {
                 "id": 11,
                 "field_name": "DOB",
-                "i18n_name": "shared.fields.dob",
+                "i18n_name": "setup.userSettings.dob",
                 "field_info": {
                     "custom_name": "DOB",
                     "name": "birth_date",
@@ -636,7 +636,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Gender": {
                 "id": 12,
                 "field_name": "Gender",
-                "i18n_name": "shared.fields.gender",
+                "i18n_name": "setup.userSettings.gender",
                 "field_info": {
                     "custom_name": "Gender",
                     "name": "gender",
@@ -651,7 +651,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Age-Time of Study": {
                 "id": 13,
                 "field_name": "Age-Time of Study",
-                "i18n_name": "setup.studyFilters.ageTimeOfStudy",
+                "i18n_name": "setup.userSettings.ageTimeOfStudy",
                 "field_info": {
                     "custom_name": "Age-Time of Study",
                     "name": "patient_age",
@@ -696,7 +696,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Ref.Physician": {
                 "id": 14,
                 "field_name": "Ref.Physician",
-                "i18n_name": "home.pendingStudies.refPhy",
+                "i18n_name": "setup.userSettings.refPhy",
                 "field_info": {
                     "custom_name": "Ref.Physician",
                     "name": "refphy_name",
@@ -723,7 +723,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Accession #": {
                 "id": 16,
                 "field_name": "Accession #",
-                "i18n_name": "setup.studyFilters.accession",
+                "i18n_name": "setup.userSettings.accession",
                 "field_info": {
                     "custom_name": "Accession #",
                     "name": "accession_no",
@@ -734,7 +734,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Facility": {
                 "id": 17,
                 "field_name": "Facility",
-                "i18n_name": "shared.fields.facility",
+                "i18n_name": "setup.userSettings.facility",
                 "field_info": {
                     "custom_name": "Facility",
                     "name": "facility_name",
@@ -750,7 +750,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Reading Physician": {
                 "id": 18,
                 "field_name": "Reading Physician",
-                "i18n_name": "home.pendingStudies.readPhy",
+                "i18n_name": "setup.userSettings.readPhy",
                 "field_info": {
                     "custom_name": "Reading Physician",
                     "name": "readphy_name",
@@ -762,7 +762,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Institution": {
                 "id": 19,
                 "field_name": "Institution",
-                "i18n_name": "setup.studyFilters.institution",
+                "i18n_name": "setup.userSettings.institution",
                 "field_info": {
                     "custom_name": "Institution",
                     "name": "institution",
@@ -774,7 +774,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Stat": {
                 "id": 20,
                 "field_name": "Stat",
-                "i18n_name": "setup.studyFilters.stat",
+                "i18n_name": "setup.userSettings.stat",
                 "field_info": {
                     "custom_name": "Stat",
                     "name": "stat_level",
@@ -819,7 +819,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "IMGS": {
                 "id": 22,
                 "field_name": "IMGS",
-                "i18n_name": "setup.studyFilters.imgs",
+                "i18n_name": "setup.userSettings.imgs",
                 "field_info": {
                     "custom_name": "IMGS",
                     "name": "no_of_instances",
@@ -832,7 +832,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Study Flag": {
                 "id": 23,
                 "field_name": "Study Flag",
-                "i18n_name": "order.assignVehicle.studyFlag",
+                "i18n_name": "setup.userSettings.studyFlag",
                 "field_info": {
                     "custom_name": "Study Flag",
                     "name": "study_flag",
@@ -851,7 +851,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Priority": {
                 "id": 24,
                 "field_name": "Priority",
-                "i18n_name": "order.additionalInfo.priority",
+                "i18n_name": "setup.userSettings.priority",
                 "field_info": {
                     "custom_name": "Priority",
                     "name": "priority",
@@ -867,7 +867,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Notes": {
                 "id": 25,
                 "field_name": "Notes",
-                "i18n_name": "shared.fields.notes",
+                "i18n_name": "setup.userSettings.notes",
                 "field_info": {
                     "custom_name": "Notes",
                     "name": "notes",
@@ -894,7 +894,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "CPT Codes": {
                 "id": 26,
                 "field_name": "CPT Codes",
-                "i18n_name": "order.summary.cptCodes",
+                "i18n_name": "setup.userSettings.cptCodes",
                 "field_info": {
                     "custom_name": "CPT Codes",
                     "name": "studies.cpt_codes",
@@ -913,7 +913,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "ICD Codes": {
                 "id": 27,
                 "field_name": "ICD Codes",
-                "i18n_name": "setup.customForms.icdCodes",
+                "i18n_name": "setup.userSettings.icdCodes",
                 "field_info": {
                     "custom_name": "ICD Codes",
                     "name": "icd_codes",
@@ -927,7 +927,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Insurance Providers": {
                 "id": 28,
                 "field_name": "Insurance Providers",
-                "i18n_name": "setup.cptCodes.insuranceProviders",
+                "i18n_name": "setup.userSettings.insuranceProviders",
                 "field_info": {
                     "custom_name": "Insurance Providers",
                     "name": "insurance_providers",
@@ -941,7 +941,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Ordered By": {
                 "id": 29,
                 "field_name": "Ordered By",
-                "i18n_name": "setup.studyFilters.orderedBy",
+                "i18n_name": "setup.userSettings.orderedBy",
                 "field_info": {
                     "custom_name": "Ordered By",
                     "name": "ordered_by",
@@ -962,7 +962,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Last Name": {
                 "id": 30,
                 "field_name": "Last Name",
-                "i18n_name": "shared.fields.lastName",
+                "i18n_name": "setup.userSettings.lastName",
                 "field_info": {
                     "custom_name": "Last Name",
                     "name": "last_name",
@@ -973,7 +973,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "First Name": {
                 "id": 31,
                 "field_name": "First Name",
-                "i18n_name": "shared.fields.firstName",
+                "i18n_name": "setup.userSettings.firstName",
                 "field_info": {
                     "custom_name": "First Name",
                     "name": "first_name",
@@ -984,7 +984,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Schedule Type": {
                 "id": 32,
                 "field_name": "Schedule Type",
-                "i18n_name": "setup.studyFilters.scheduleType",
+                "i18n_name": "setup.userSettings.scheduleType",
                 "field_info": {
                     "custom_name": "Schedule Type",
                     "name": "order_type",
@@ -1005,7 +1005,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Vehicle Name": {
                 "id": 33,
                 "field_name": "Vehicle Name",
-                "i18n_name": "setup.vehicleAudit.vehicleName",
+                "i18n_name": "setup.userSettings.vehicleName",
                 "field_info": {
                     "custom_name": "Vehicle Name",
                     "name": "vehicle_name",
@@ -1018,7 +1018,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Claim Status": {
                 "id": 34,
                 "field_name": "Claim Status",
-                "i18n_name": "order.chargePayment.claimStatus",
+                "i18n_name": "billing.fileInsurance.claimStatus",
                 "field_info": {
                     "custom_name": "Claim Status",
                     "name": "claim_status",
@@ -1031,7 +1031,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Responsible": {
                 "id": 35,
                 "field_name": "Responsible",
-                "i18n_name": "shared.fields.responsible",
+                "i18n_name": "setup.userSettings.responsible",
                 "field_info": {
                     "custom_name": "Responsible",
                     "name": "payer_name",
@@ -1049,7 +1049,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Technologist": {
                 "id": 36,
                 "field_name": "Technologist",
-                "i18n_name": "setup.modalityRooms.technologist",
+                "i18n_name": "setup.userSettings.technologist",
                 "field_info": {
                     "custom_name": "Technologist",
                     "name": "technologist_name",
@@ -1062,7 +1062,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Ordering Facility": {
                 "id": 37,
                 "field_name": "Ordering Facility",
-                "i18n_name": "shared.fields.orderingFacility",
+                "i18n_name": "setup.userSettings.orderingFacility",
                 "field_info": {
                     "custom_name": "Ordering Facility",
                     "name": "ordering_facility",
@@ -1074,7 +1074,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "MU Last Updated date": {
                 "id": 38,
                 "field_name": "MU Last Updated date",
-                "i18n_name": "setup.studyFilters.muLastUpdatedDate",
+                "i18n_name": "setup.userSettings.muLastUpdatedDate",
                 "field_info": {
                     "custom_name": "MU Last Updated date",
                     "name": "mu_last_updated",
@@ -1090,7 +1090,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "MU Last Updated By": {
                 "id": 39,
                 "field_name": "MU Last Updated By",
-                "i18n_name": "setup.studyFilters.muLastUpdatedBy",
+                "i18n_name": "setup.userSettings.muLastUpdatedBy",
                 "field_info": {
                     "custom_name": "MU Last Updated By",
                     "name": "mu_last_updated_by",
@@ -1105,7 +1105,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Send Status": {
                 "id": 40,
                 "field_name": "Send Status",
-                "i18n_name": "menuTitles.rightClickMenu.sendStatus",
+                "i18n_name": "setup.userSettings.sendStatus",
                 "field_info": {
                     "custom_name": "Send Status",
                     "name": "send_status",
@@ -1122,7 +1122,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Fax Status": {
                 "id": 41,
                 "field_name": "Fax Status",
-                "i18n_name": "menuTitles.rightClickMenu.faxStatus",
+                "i18n_name": "setup.userSettings.faxStatus",
                 "field_info": {
                     "custom_name": "Fax Status",
                     "name": "fax_status",
@@ -1139,7 +1139,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Check In Date": {
                 "id": 42,
                 "field_name": "Check In Date",
-                "i18n_name": "setup.studyFilters.checkInDate",
+                "i18n_name": "setup.userSettings.checkInDate",
                 "field_info": {
                     "custom_name": "Check In Date",
                     "name": "check_indate",
@@ -1176,7 +1176,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Status Changed Date": {
                 "id": 45,
                 "field_name": "Status Changed Date",
-                "i18n_name": "setup.studyFilters.statusChangedDate",
+                "i18n_name": "setup.userSettings.statusChangedDate",
                 "field_info": {
                     "custom_name": "Status Changed Date",
                     "name": "status_last_changed_dt",
@@ -1191,7 +1191,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Scheduled Date": {
                 "id": 46,
                 "field_name": "Scheduled Date",
-                "i18n_name": "setup.studyFilters.scheduledDate",
+                "i18n_name": "setup.userSettings.scheduledDate",
                 "field_info": {
                     "custom_name": "Scheduled Date",
                     "name": "scheduled_dt",
@@ -1206,7 +1206,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Approving Physician": {
                 "id": 47,
                 "field_name": "Approving Physician",
-                "i18n_name": "setup.studyFilters.approvingPhysician",
+                "i18n_name": "setup.userSettings.approvingPhysician",
                 "field_info": {
                     "custom_name": "Approving Physician",
                     "name": "approving_provider",
@@ -1217,7 +1217,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Approved Date": {
                 "id": 48,
                 "field_name": "Approved Date",
-                "i18n_name": "setup.dbTotals.approvedDate",
+                "i18n_name": "setup.userSettings.approvedDate",
                 "field_info": {
                     "custom_name": "Approved Date",
                     "name": "approved_dt",
@@ -1230,7 +1230,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "TAT": {
                 "id": 49,
                 "field_name": "TAT",
-                "i18n_name": "home.common.tat",
+                "i18n_name": "setup.userSettings.tat",
                 "field_info": {
                     "custom_name": "TAT",
                     "name": false ? "studies.study_created_dt" :
@@ -1257,7 +1257,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Status": {
                 "id": 50,
                 "field_name": "Status",
-                "i18n_name": "shared.fields.status",
+                "i18n_name": "setup.userSettings.status",
                 "field_info": {
                     "custom_name": "Status",
                     "name": false ? "dicom_status" :
@@ -1299,7 +1299,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Modality Room": {
                 "id": 52,
                 "field_name": "Modality Room",
-                "i18n_name": "setup.studyFilters.modalityRoom",
+                "i18n_name": "setup.userSettings.modalityRoom",
                 "field_info": {
                     "custom_name": "Modality Room",
                     "name": "modality_room_id",
@@ -1320,7 +1320,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Report Queue Status": {
                 "id": 53,
                 "field_name": "Report Queue Status",
-                "i18n_name": "setup.studyFilters.reportQueueStatus",
+                "i18n_name": "setup.userSettings.reportQueueStatus",
                 "field_info": {
                     "custom_name": "Report Queue Status",
                     "name": "report_queue_status",
@@ -1337,7 +1337,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Insurance Authorization" : {
                 "id": 54,
                 "field_name": "Insurance Authorization",
-                "i18n_name": "setup.studyFilters.insuranceAuthorization",
+                "i18n_name": "setup.userSettings.insuranceAuthorization",
                 "field_info": {
                     "custom_name": "Insurance Authorization",
                     "name": "as_authorization",
@@ -1390,7 +1390,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Deleted": {
                 "id": 55,
                 "field_name": "Deleted",
-                "i18n_name": "setup.studyFilters.deleted",
+                "i18n_name": "setup.userSettings.deleted",
                 "field_info": {
                     "custom_name": "Deleted",
                     "name": "has_deleted",
@@ -1414,7 +1414,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "MU": {
                 "id": 56,
                 "field_name": "MU",
-                "i18n_name": "setup.studyFilters.mu",
+                "i18n_name": "setup.userSettings.mu",
                 "field_info": {
                     "className": 'ui-icon icon ui-icon-flag',
                     "custom_name": "MU",
@@ -1459,7 +1459,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Eligibility": {
                 "id": 57,
                 "field_name": "Eligibility",
-                "i18n_name": "setup.ediRequestTemplate.eligibility",
+                "i18n_name": "setup.userSettings.eligibility",
                 "field_info": {
                     "custom_name": "Eligibility",
                     "name": "eligibility_verified",
@@ -1526,7 +1526,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Provider Alerts": {
                 "id": 58,
                 "field_name": "Provider Alerts",
-                "i18n_name": "order.newOrder.providerAlerts",
+                "i18n_name": "setup.userSettings.providerAlerts",
                 "field_info": {
                     "custom_name": "Provider Alerts",
                     "name": "providerAlerts",
@@ -1546,7 +1546,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Attorney": {
                 "id": 59,
                 "field_name": "Attorney",
-                "i18n_name": "order.studyInfo.attorney",
+                "i18n_name": "setup.userSettings.attorney",
                 "field_info": {
                     "custom_name": "Attorney",
                     "name": "attorney_name",
@@ -1581,7 +1581,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Pateint Room#": { //***For EXA-7148 -- Add Room Number colum to Facility Portal***//
                 "id": 61,
                 "field_name": "Pateint Room#",
-                "i18n_name": "order.newOrder.patientRoom",
+                "i18n_name": "setup.userSettings.patientRoom",
                 "field_info": {
                     "custom_id": 62,
                     "custom_name": "Pateint Room#",
@@ -1595,7 +1595,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Ins Provider Type": {
                 "id": 63,
                 "field_name": "Ins Provider Type",
-                "i18n_name": "order.assignVehicle.insProviderType",
+                "i18n_name": "setup.userSettings.insProviderType",
                 "field_info": {
                     "custom_id": 63,
                     "custom_name": "Ins Provider Type",
@@ -1614,7 +1614,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Patient Visit #": {
                 "id": 64,
                 "field_name": "Patient Visit #",
-                "i18n_name": "order.patientVisitNumber",
+                "i18n_name": "setup.userSettings.patientVisitNumber",
                 "field_info": {
                     "custom_id": 64,
                     "custom_name": "Patient Visit #",
