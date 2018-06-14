@@ -131,8 +131,7 @@ module.exports = {
 
         const sql = SQL` DELETE FROM
                              billing.provider_id_code_qualifiers
-                         WHERE
-                             id = ${id} 
+                       
                              WHERE id = ${id} RETURNING *, '{}'::jsonb old_values`;
 
         return await queryWithAudit(sql, {

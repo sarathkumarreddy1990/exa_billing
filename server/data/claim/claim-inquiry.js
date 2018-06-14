@@ -383,7 +383,7 @@ module.exports = {
                         , (CASE WHEN pa.amount_type = 'adjustment' THEN pa.amount  ELSE 0::money END) adjustment 
                     FROM billing.payments bp             
                     INNER JOIN billing.payment_applications pa ON pa.payment_id = bp.id
-                    INNER JOIN billing.charges ch on ch.id = pa.charge_id -- WHERE bp.id = 312 AND ch.claim_id = 28
+                    INNER JOIN billing.charges ch on ch.id = pa.charge_id 
                     LEFT JOIN LATERAL (
                         SELECT json_agg(row_to_json(cas)) AS cas_details
                             FROM ( SELECT 
@@ -397,6 +397,39 @@ module.exports = {
                     ) cas on true 
                     WHERE bp.id = ${pay_application_id} AND ch.claim_id = ${claim_id} 
                     ORDER BY applied_dt ASC `;
+        return await query(sql);
+    },
+
+    viewChargePaymentDetails: async(params) => {
+        let {
+            claim_id,
+            charge_id
+        } = params;
+
+        let sql = `SELECT
+                          ch.id AS charge_id
+                        , ch.bill_fee
+                        , ch.allowed_amount
+                        , cas.cas_details
+                        , (CASE WHEN pa.amount_type = 'payment' THEN pa.amount ELSE 0::money END) payment
+                        , (CASE WHEN pa.amount_type = 'adjustment' THEN pa.amount  ELSE 0::money END) adjustment 
+                    FROM billing.payments bp             
+                    INNER JOIN billing.payment_applications pa ON pa.payment_id = bp.id
+                    INNER JOIN billing.charges ch on ch.id = pa.charge_id 
+                    LEFT JOIN LATERAL (
+                        SELECT json_agg(row_to_json(cas)) AS cas_details
+                            FROM ( SELECT 
+                                    cas.amount, 
+                                    rc.code
+                                FROM billing.cas_payment_application_details cas 
+                                INNER JOIN billing.cas_reason_codes rc ON rc.id = cas.cas_reason_code_id
+                                WHERE  cas.payment_application_id = pa.id
+                                
+                                ) as cas
+                    ) cas on true 
+                    WHERE ch.id = ${charge_id} AND ch.claim_id = ${claim_id} 
+                    ORDER BY applied_dt ASC `;
+                    
         return await query(sql);
     }
 };

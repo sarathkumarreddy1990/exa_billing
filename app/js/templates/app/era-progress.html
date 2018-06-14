@@ -1,6 +1,18 @@
+<style>
+    .table>tbody>tr>td{
+    padding: 8px;
+    line-height: 1.42857143;
+    vertical-align: top;
+    }
+    .table>thead>tr>td{
+    padding: 8px;
+    line-height: 1.42857143;
+    vertical-align: top;
+    }
+</style>
 <div class="form-group row" id="divPaymentCreation">
 
-    <div class="col-lg-12" style="margin-top:10px;margin-left:5%;">
+    <div class="col-lg-12" style="margin-top:10px;">
 
         <div class="form-group row">
             <label class="col-sm-3 col-form-label">
@@ -29,6 +41,23 @@
             </div>
         </div>
 
+    </div>
+    <div class="col-lg-12" style="margin-top:10px;">
+        <div id="divEraProcess" style="display: none;">
+            <table class="table table-bordered table-hover" style="margin-bottom:0px !important">
+                <thead>
+                    <td>File id</td>
+                    <td>Claim ID</td>
+                    <td>Payment Status</td>
+                </thead>
+            </table>
+            <div style="height: 300px;overflow: auto;">
+                <table class="table table-bordered table-hover">
+                    <tbody id="eraProcessTable" class="table table-bordered table-hover">
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
 </div>

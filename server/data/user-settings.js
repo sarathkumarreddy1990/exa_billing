@@ -19,6 +19,7 @@ module.exports = {
                  ,default_column_order_by
                  ,default_column
                  ,default_tab
+                 ,company_id
                 )
             SELECT
                 ${args.userId}
@@ -27,6 +28,7 @@ module.exports = {
                 , ${args.claim_sort_order}
                 , ${args.claim_col_name}
                 , ${args.default_tab}
+                ,${args.companyId}
             WHERE NOT EXISTS (
                 SELECT * FROM billing.user_settings WHERE user_id = ${args.userId} AND grid_name = ${args.flag}
             )

@@ -490,7 +490,14 @@ const api = {
                             AND studies.study_status NOT IN ('CAN', 'NOS', 'ABRT') 
                             AND NOT orders.has_deleted
                             AND NOT studies.has_deleted
-                            AND COALESCE(study_info ->'ae_title','') != 'OPALIMPORT' `;     
+                            AND COALESCE(study_info ->'ae_title','') != 'OPALIMPORT'
+                            AND orders.order_status
+                             NOT IN ('SCH','NOS','ABRT','CAN','ORD','CON','AS','ASAC') 
+                             AND studies.schedule_dt IS NOT NULL
+                             AND studies.study_dt IS NOT NULL
+                             AND orders.has_deleted = False 
+                             AND orders.order_status 
+                             NOT IN (SELECT status_code FROM study_status WHERE can_delete = true AND order_related = true)  `;     
 
         
 
@@ -856,6 +863,7 @@ const api = {
         // optimization! convert INNER to LEFT OUTER joins and add relevant WHERE clauses
         args.filterQuery += ' AND studies.patient_id IS NOT NULL AND studies.order_id IS NOT NULL ';
         // TODO: switch these function calls into JOINS (perhaps)
+
         let columns = api.getWLQueryColumns();
         let sql = `
             SELECT
@@ -917,7 +925,7 @@ const api = {
 
         //studyfilterdata.getUserWLFilters(filter_options, function (err, response) {
 
-        const filter = response.rows[0];
+        const filter = response.rows[0] ||{};
 
         const {
             joined_filter_info
