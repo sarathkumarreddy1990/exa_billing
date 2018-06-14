@@ -767,12 +767,12 @@
         "jsreport": {
             "html": {
                 "template": {
-                    "name": "billing-patient-statement-html"
+                    "name": "billing-patient-activity-statement-html"
                 }
             },
             "pdf": {
                 "template": {
-                    "name": "billing-patient-statement-pdf"
+                    "name": "billing-patient-activity-statement-pdf"
                 }
             },
             "xlsx": {
@@ -925,7 +925,7 @@
         }
     },
     {
-        "id": "creditBalanceEncounters",
+        "id": "credit-balance-encounters",
         "category": "billing",
         "title": "Credit Balance Encounters",
         "description": "Credit Balance Encounters",

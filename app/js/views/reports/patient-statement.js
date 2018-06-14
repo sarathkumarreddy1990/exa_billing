@@ -105,21 +105,20 @@ define([
             hasValidViewModel: function () {
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
                     commonjs.showWarning('Please check report id, category, and/or format!');
-                    return false;
+                    return ;
                 }
-                if ($('#txtDateRangeFrom').val() == "" ) {
-                    alert('Please select date range!')
+                if ($('#txtDateRangeFrom').val() == "" ) {                   
                     commonjs.showWarning('Please select date range!');
-                    return false;
+                    return ;
                 }
                 
-                // if (isNaN(this.viewModel.minAmount) || this.viewModel.minAmount === '') {
-                //      commonjs.showWarning('Please enter minimum amount!');
-                //     return false;
-                // }
+                if (isNaN(this.viewModel.minAmount) || this.viewModel.minAmount === '') {
+                   //  commonjs.showWarning('Please enter minimum amount!');
+                    return false;
+                }
                 if (this.viewModel.minAmount < 0) {
                      commonjs.showWarning('Please enter minimum amount greater than or equal to 0!');
-                    return false;
+                    return;
                 }
                 return true;
             },

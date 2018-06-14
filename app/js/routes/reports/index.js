@@ -21,7 +21,8 @@ define([
     'routes/reports/reading-provider-fees',
     'routes/reports/monthly-recap',
     'routes/reports/claim-transaction',
-    'routes/reports/procedure-analysis-by-insurance'
+    'routes/reports/procedure-analysis-by-insurance',
+    'routes/reports/credit-balance-encounters'
 ], function (
     Backbone,
     BackboneSubroute,
@@ -45,7 +46,8 @@ define([
     ReadingProviderFeesRoute,
     MonthlyRecapRoute,
     ClaimTransactionRoute,
-    ProcedureAnalysisByInsuranceRoute
+    ProcedureAnalysisByInsuranceRoute,
+    CreditBalanceEncountersRoute
 ) {
         return Backbone.SubRoute.extend({
             routes: {
@@ -68,6 +70,7 @@ define([
                 "r/monthly-recap": "startMonthlyRecapReporting",
                 "r/claim-transaction": "startClaimTransactionReporting",
                 "r/procedure-analysis-by-insurance": "startProcedureAnalysisByInsuranceReporting",
+                "r/credit-balance-encounters": "startCreditBalanceEncountersReporting",
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -249,6 +252,15 @@ define([
                 if (this.checkLicense('Procedure Analysis By Insurance') && !this.procedureAnalysisByInsuranceRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.procedureAnalysisByInsuranceRouter = new ProcedureAnalysisByInsuranceRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startCreditBalanceEncountersReporting: function (subroute) {
+                if (this.checkLicense('Procedure Analysis By Insurance') && !this.creditBalanceEncounterRouter) {
+                    this.defaultArgs.routePrefix = 'reports/r/';
+                    this.creditBalanceEncounterRouter = new CreditBalanceEncountersRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }

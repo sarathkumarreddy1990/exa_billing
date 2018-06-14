@@ -439,8 +439,9 @@ define([
 
             patientInquiryForm: function (e) {
                 var self = this;
+                var claimID = self.claim_id;
                 self.patientActivityStatement = new patientActivityStatement({el: $('#modal_div_container')});
-                self.patientActivityStatement.onReportViewClick(e);                         
+                self.patientActivityStatement.onReportViewClick(e, claimID);                         
             },
 
             printPaymentInvoice: function (e) {

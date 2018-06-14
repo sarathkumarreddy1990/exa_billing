@@ -15,9 +15,9 @@ WITH paymentsByInsCompany as (
         ip.insurance_name AS insurance_name,
         f.facility_name AS facility_name,
         f.id AS facility_id,
-        (SELECT payment_balance_total FROM billing.get_payment_totals(bp.id)) AS payment_balance,
-        (SELECT payments_applied_total FROM billing.get_payment_totals(bp.id)) AS payment_applied_amount,
-        bp.amount AS amount,
+        SUM((SELECT payment_balance_total FROM billing.get_payment_totals(bp.id))) as payment_balance,
+        SUM((SELECT payments_applied_total FROM billing.get_payment_totals(bp.id))) as payment_applied_amount,
+        SUM(bp.amount) as amount,
         bp.card_number AS cheque_card_number,
         bp.mode AS payment_mode,
         timezone(f.time_zone,bp.payment_dt) AS payment_date
@@ -31,16 +31,17 @@ WITH paymentsByInsCompany as (
     AND <%= paymentDate %>
     <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
     <% if(billingProID) { %> AND <% print(billingProID); } %>
+    GROUP BY 
+      grouping sets( (ip.insurance_name) ,
+       (payment_id,insurance_code, ip.insurance_name,facility_name, f.id, bp.card_number, bp.mode,payment_date),())
   ORDER BY
     ip.insurance_name,
-    bp.id  
+    bp.id    
 )
     SELECT 
         payment_id AS "PAYMENT ID",
-        insurance_code AS "INSURANCE CODE",
         insurance_name AS "INSURANCE NAME",
-        facility_name AS "FACILITY NAME",
-        facility_id AS "FACILITY ID",
+        COALESCE(facility_name, 'TOTAL') AS "FACILITY NAME",
         payment_balance AS "PAYMENT BALANCE",
         payment_applied_amount AS "PAYMENT APPLIED AMOUNT",
         amount AS "AMOUNT",
