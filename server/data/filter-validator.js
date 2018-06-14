@@ -13,7 +13,7 @@
 const logger = require('../../logger');
 
 const validator = () => {
-    const queryMakers = require(`./query-maker-map`);
+    const queryMakers = require('./query-maker-map');
 
     const regQuote = /'/g;
     const regBackSlash = /\\/g;
@@ -22,7 +22,7 @@ const validator = () => {
         fieldValue,
         fieldType,
         extras) => {
-        fieldValue = fieldValue.replace(regQuote, `''`).replace(regBackSlash, ``);
+        fieldValue = fieldValue.replace(regQuote, '').replace(regBackSlash, '');
         const generator = queryMakers.get(fieldType);
 
         if (typeof generator !== 'function') {
@@ -43,17 +43,17 @@ const validator = () => {
     const generateClientQuery = (colModel, filterElements, filterData, options) => {
         let a = 0;
         const elementCount = filterElements.length;
-        let searchQuery = ``;
+        let searchQuery = '';
 
         for (; a < elementCount; ++a) {
             let filterColumn = filterElements[a];
             let fieldValue = filterData[a];
 
             if (filterColumn && fieldValue) {
-                let searchFlag = ``;
-                let defaultValue = ``;
+                let searchFlag = '';
+                let defaultValue = '';
                 let searchColumns = [];
-                let searchCondition = ` AND `;
+                let searchCondition = ' AND ';
                 let equalFlag = false;
 
                 let i = 0;
@@ -67,19 +67,19 @@ const validator = () => {
                     if (model && filterColumn === model.name) {
                         searchFlag = model.searchFlag;
 
-                        if (typeof model.defaultValue !== `undefined`) {
+                        if (typeof model.defaultValue !== 'undefined') {
                             defaultValue = model.defaultValue;
                         }
 
-                        if (typeof model.searchColumns !== `undefined`) {
+                        if (typeof model.searchColumns !== 'undefined') {
                             searchColumns = model.searchColumns;
                         }
 
-                        if (typeof model.searchCondition !== `undefined`) {
+                        if (typeof model.searchCondition !== 'undefined') {
                             searchCondition = ` ${model.searchCondition} `;
                         }
 
-                        if (typeof model.equalFlag !== `undefined` && model.equalFlag) {
+                        if (typeof model.equalFlag !== 'undefined' && model.equalFlag) {
                             equalFlag = model.equalFlag;
                         }
 
@@ -98,8 +98,8 @@ const validator = () => {
                         '_equal' :
                         ''}`;
 
-                    if (typeof fieldValue !== `undefined` && fieldValue != `` && fieldValue !== `Select`) {
-                        if (searchQuery && searchQuery !== `(`) {
+                    if (typeof fieldValue !== 'undefined' && fieldValue != '' && fieldValue !== 'Select') {
+                        if (searchQuery && searchQuery !== '(') {
                             searchQuery += searchCondition;
                         }
 
@@ -160,7 +160,7 @@ const validator = () => {
             filterData = JSON.parse(filterData);
 
             const searchQuery = generateClientQuery(colModel, filterElements, filterData, options);
-            let endQuery = ``;
+            let endQuery = '';
 
             if (searchQuery.length > 0) {
                 endQuery = ` WHERE ${searchQuery}`;
@@ -180,7 +180,7 @@ const validator = () => {
     };
 
     const buildSearchQuery = (fieldname, fieldvalue, isHstore) => {
-        fieldvalue = fieldvalue.replace(regQuote, "''");
+        fieldvalue = fieldvalue.replace(regQuote, '');
         return isHstore ?
             ` '${fieldname}' ILIKE '%${fieldvalue}%'` :
             ` ${fieldname} ILIKE '%${fieldvalue}%'`;
