@@ -62,7 +62,6 @@ module.exports = {
             , ediFileClaims
         } = params;
 
-        console.log(JSON.stringify(lineItems))
         const sql =SQL` WITH application_details AS (
                              SELECT 
                                   *
