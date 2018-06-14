@@ -1150,7 +1150,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     
                     $.each(lineItems, function (index) {
                         var _line_item = {};
-                        _line_item["chargeId"] = $(this).attr('data_charge_id_id');
+                        _line_item["charge_id"] = $(this).attr('data_charge_id_id');
                         _line_item["payment"] = $(this).find('td:nth-child(5)>input').val() ? parseFloat($(this).find('td:nth-child(5)>input').val()) : 0.00;
                         _line_item["adjustment"] = $(this).find('td:nth-child(8)>input').val() ? parseFloat($(this).find('td:nth-child(8)>input').val()) : 0.00;
                         _line_item["cas_details"] = cas;
