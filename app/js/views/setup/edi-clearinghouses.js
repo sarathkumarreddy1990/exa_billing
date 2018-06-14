@@ -63,7 +63,7 @@ define(['jquery',
                         },
                         {
                             name: 'edit',
-                            width: 20,
+                            width: 10,
                             sortable: false,
                             search: false,
                             className: 'icon-ic-edit',
@@ -73,7 +73,7 @@ define(['jquery',
                             }
                         },
                         {
-                            name: 'del', width: 20, sortable: false, search: false,
+                            name: 'del', width: 10, sortable: false, search: false,
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
                                 if (confirm("Are you sure want to delete")) {
@@ -84,7 +84,7 @@ define(['jquery',
                                             commonjs.showStatus("Deleted Successfully");
                                         },
                                         error: function (model, response) {
-
+                                            commonjs.handleXhrError(model, response);
                                         }
                                     });
                                 }
@@ -95,12 +95,10 @@ define(['jquery',
                         },
                         {
                             name: 'name',
-                            width: 180,
                             searchFlag: '%'
                         },
                         {
                             name: 'receiver_name',
-                            width: 180,
                             searchFlag: '%'
                         }
                     ],
