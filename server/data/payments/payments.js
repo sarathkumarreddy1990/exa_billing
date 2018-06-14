@@ -283,7 +283,7 @@ module.exports = {
                                                   , ${credit_card_number}
                                                 WHERE NOT EXISTS( SELECT 1 FROM billing.payments where id = ${paymentId})
                                                 RETURNING id ),
-                                                payment_update as(UPDATE billing.payments SET
+                                                payment_update AS(UPDATE billing.payments SET
                                                     facility_id = ${facility_id}
                                                   , patient_id = ${patient_id}
                                                   , insurance_provider_id = ${insurance_provider_id}
@@ -328,15 +328,15 @@ module.exports = {
                                     SELECT 
                                           payment_id
                                         , charge_id
-                                        , amount
-                                        , amount_type
+                                        , payment_amount
+                                        , adjustment_amount
                                         , adjestment_id
                                         , created_by
                                     FROM json_to_recordset(${JSON.stringify(params.appliedPaymets)}) AS details(
                                           payment_id BIGINT
                                         , charge_id BIGINT
-                                        , amount MONEY
-                                        , amount_type TEXT
+                                        , payment_amount MONEY
+                                        , adjustment_amount MONEY
                                         , adjestment_id BIGINT
                                         , created_by BIGINT)
                                     ),
@@ -353,26 +353,16 @@ module.exports = {
                                         , created_by BIGINT)
                                     ),
                              insert_application AS(
-                                    INSERT INTO billing.payment_applications
-                                    ( payment_id
-                                    , adjustment_code_id
-                                    , charge_id
-                                    , amount
-                                    , amount_type
-                                    , created_by
-                                    , applied_dt)
-                                    (SELECT
+                                SELECT billing.create_payment_application(
                                       payment_id
-                                    , adjestment_id
                                     , charge_id
-                                    , amount
-                                    , amount_type
+                                    , payment_amount
+                                    , adjustment_amount
+                                    , adjestment_id
                                     , created_by
-                                    , now()
-                                    FROM application_details)
-                                    RETURNING id AS application_id
-                                                  , charge_id
-                                                  , amount_type),
+                                )
+                                FROM application_details
+                             ),
                              update_claims AS(
                                     UPDATE billing.claims
                                     SET
@@ -397,6 +387,64 @@ module.exports = {
                                     , now()
                                     FROM claim_comment_details)
                                     SELECT * FROM insert_application`;
+
+        return await query(sql);
+    },
+
+    updatePaymentApplication: async function (params) {
+
+        const sql = SQL`WITH update_application_details AS(
+                            SELECT 
+                                payment_application_id
+                              , amount
+                              , adjestment_id
+                            FROM json_to_recordset(${JSON.stringify(params.updateAppliedPayments)}) AS details(
+                               payment_application_id BIGINT
+                             , amount MONEY
+                             , adjestment_id BIGINT)),
+                        claim_comment_details AS(
+                                SELECT 
+                                      claim_id
+                                    , note
+                                    , type
+                                    , created_by
+                                FROM json_to_recordset(${JSON.stringify(params.coPaycoInsDeductdetails)}) AS details(
+                                      claim_id BIGINT
+                                    , note TEXT
+                                    , type TEXT
+                                    , created_by BIGINT)
+                                ),
+                        update_applications as(
+                            UPDATE billing.payment_applications 
+                                SET
+                                    amount = uad.amount
+                                  , adjustment_code_id = uad.adjestment_id
+                            FROM update_application_details uad
+                            WHERE id = uad.payment_application_id),
+                        update_claim_details AS(
+                            UPDATE billing.claims
+                            SET
+                                billing_notes = ${params.billingNotes}
+                              , payer_type = ${params.payerType}
+                            WHERE
+                                id = ${params.claimId}),
+                        update_claim_comments AS(
+                            INSERT INTO billing.claim_comments
+                            ( claim_id
+                            , note
+                            , type
+                            , is_internal
+                            , created_by
+                            , created_dt)
+                            SELECT 
+                              claim_id
+                            , note
+                            , type
+                            , false
+                            , created_by
+                            , now()
+                            FROM claim_comment_details)
+                        SELECT true`;
 
         return await query(sql);
     },
