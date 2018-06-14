@@ -153,6 +153,7 @@ define([
                         { name: 'payment_id', width: 80, search: false, sortable: false,
                             customAction: function (rowID) {
                                 var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
+                                $("#tBodyCIPayment").empty();
                                 self.getPaymentofCharge(gridData.id);
                             },
                             formatter: function (cellvalue, options, rowObject) {
@@ -489,12 +490,34 @@ define([
 
             getPaymentofCharge: function(charge_id) {
                 var self = this;
-                alert('Will show payment details of this charge')
+
+                $.ajax({
+                    url: '/exa_modules/billing/claim_inquiry/charge_payment_details',
+                    type: 'GET',
+                    data: {
+                        'claim_id': self.claim_id,
+                        'charge_id': charge_id
+                },
+                    success: function (data, response) {
+                        $('#divCIpaymentDetails').show();
+
+                        if (data.length > 0) {
+                            var paymentCASRow = self.paymentTemplate({ rows: data });
+                            $('#tBodyCIPayment').append(paymentCASRow);
+                        }
+                        else {
+                            alert('Nothing to show');
+                        }
+                },
+                    error: function (err) {
+                        commonjs.handleXhrError(err);
+                    }
+                });
             },
 
             getDetailsOfPay: function(pay_id) {
                 var self = this;
-                alert('Will Show payment details ');
+
                 $.ajax({
                     url: '/exa_modules/billing/claim_inquiry/payment_details',
                     type: 'GET',
@@ -520,6 +543,7 @@ define([
 
             closePaymentDetails: function(e){
                 $('#divCIpaymentDetails').hide();
+                $("#tBodyCIPayment").empty();
             }
         });
 
