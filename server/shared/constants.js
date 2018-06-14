@@ -11,5 +11,9 @@ module.exports = {
 
     screenNames: {
         adjustment_codes: 'Adjustment Codes',
+    },
+
+    permissionsMap: {
+        
     }
 };

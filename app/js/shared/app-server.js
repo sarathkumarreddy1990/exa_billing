@@ -5,6 +5,7 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
             var self = this;
             var qs = commonjs.getParametersByName();
             var settingsData = qs.def_session ? { def_session: qs.def_session } : {};
+            
             new AppCollection().fetch({
                 data: settingsData,
                 processData: true,
@@ -23,6 +24,9 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                     app.companyID = app.company.id;
                     app.default_facility_id = app.userInfo.default_facility_id;
                     callback();
+                },
+                error: function (model, response) {
+                    commonjs.handleXhrError(model, response); 
                 }
             });
         }

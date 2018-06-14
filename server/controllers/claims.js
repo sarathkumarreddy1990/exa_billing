@@ -76,8 +76,6 @@ module.exports = {
     getData: async (params) => { return await data.getClaimData(params); },
 
     eligibility: async (params) => {
-        const model = await data.getFolderPath(params);
-        model.account_no = model.rows[0].account_no;
         let pokitdokSecretKey = await data.getKeys();
         let insEligibility = pokitdokSecretKey.rows[0].info.value;
         let pokitdok_client_id = pokitdokSecretKey.rows[1].info.value;
@@ -85,13 +83,12 @@ module.exports = {
 
         let pokitdok = new PokitDok(pokitdok_client_id, pokitdok_client_secret);
         const birthDate = moment(params.BirthDate);
-        model.BirthDate = birthDate.format('YYYY-MM-DD');
 
         return await new Promise((resolve, reject ) => {
 
             pokitdok.eligibility({
                 member: {
-                    birth_date: moment(model.BirthDate).format('YYYY-MM-DD'),
+                    birth_date: birthDate.format('YYYY-MM-DD'),
                     first_name: params.FirstName,
                     last_name: params.LastName,
                     id: params.PolicyNo
@@ -110,13 +107,11 @@ module.exports = {
                     eligibility_response = err;                    
                     reject(eligibility_response);
                 }
-                
-                
+
                 resolve(eligibility_response);
             });
 
         }).catch(function(result){
-
             return result;
         });
     }

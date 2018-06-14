@@ -20,14 +20,18 @@ router.post('/:provider_id', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
-router.put('/:provider_id', async function (req, res) {
+router.put('/:provider_id/:id', async function (req, res) {
     req.body.provider_id = req.params.provider_id;
     const data = await providerIdCodeControllers.update(req.body);
     httpHandler.sendRows(req, res, data);
 });
 
 router.delete('/:provider_id/:id', async function (req, res) {
-    const data = await providerIdCodeControllers.delete(req.params);
+    let params = {
+        ...req.params,
+        ...req.audit
+    };
+    const data = await providerIdCodeControllers.delete(params);
     httpHandler.sendRows(req, res, data);
 });
 

@@ -3,9 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('lodash');
 const { promisify } = require('util');
-//const readdir = promisify(fs.readdir);
 const readFile = promisify(fs.readFile);
-// const writeFile = promisify(fs.writeFile);
 const ediConnect = require('../../../modules/edi');
 const paymentController = require('../payments/payments');
 const eraParser = require('./era-parser');
@@ -92,6 +90,7 @@ module.exports = {
 
         return payerDetails;
     },
+    
     createPaymentFromERA: async function (payerDetails, file_id, eraResponseJson) {
 
         payerDetails = JSON.parse(payerDetails);
@@ -147,5 +146,18 @@ module.exports = {
         // }
 
         return processedClaims;
+    },
+    
+    checkERAFileIsProcessed: async function (fileMd5, company_id) {
+        return data.checkERAFileIsProcessed(fileMd5, company_id);
+    },
+
+    saveERAFile: async function (params) {
+        return data.saveERAFile(params);
+    },
+    
+    getFileStorePath: async function (params) {
+        return data.getFileStorePath(params);
     }
+
 };

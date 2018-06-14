@@ -1,4 +1,4 @@
-const { query, SQL } = require('../index');
+const { query, SQL, queryWithAudit } = require('../index');
 
 module.exports = {
 
@@ -64,10 +64,13 @@ module.exports = {
                                                     ${qualifierId}
                                                   , ${provider_id}
                                                   , ${insuranceProviderId}
-                                                  , ${payerAssignedProviderId}
-                                                ) RETURNING id`;
+                                                  , ${payerAssignedProviderId}) 
+                                                  RETURNING *, '{}'::jsonb old_values`;
 
-        return await query(sql);
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: `Created ${provider_id}(${qualifierId})`
+        });
     },
 
     update: async function (params) {
@@ -88,9 +91,19 @@ module.exports = {
                             , payer_assigned_provider_id = ${payerAssignedProviderId}
                          WHERE
                             id = ${id}
-                        AND billing_provider_id = ${provider_id}`;
+                        AND billing_provider_id = ${provider_id} 
+                        RETURNING *,
+                            (
+                                SELECT row_to_json(old_row) 
+                                FROM   (SELECT * 
+                                        FROM   billing.adjustment_codes 
+                                        WHERE  id = ${id}) old_row 
+                            ) old_values`;
 
-        return await query(sql);
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: `Updated ${provider_id}(${qualifierId})`
+        });
     },
 
     delete: async function (params) {
@@ -103,8 +116,12 @@ module.exports = {
                              billing.provider_id_codes
                          WHERE
                              id = ${id}
-                         AND billing_provider_id = ${provider_id}`;
+                         AND billing_provider_id = ${provider_id} 
+                         WHERE id = ${id} RETURNING *, '{}'::jsonb old_values`;
 
-        return await query(sql);
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: 'Deleted.'
+        });
     }
 };

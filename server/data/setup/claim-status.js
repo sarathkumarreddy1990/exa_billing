@@ -1,4 +1,4 @@
-const { query, SQL } = require('../index');
+const { query, SQL, queryWithAudit } = require('../index');
 
 module.exports = {
 
@@ -23,9 +23,9 @@ module.exports = {
             whereQuery.push(` description ILIKE '%${description}%'`);
         }
 
-        if(isSystemStatus == 'true'){
+        if (isSystemStatus == 'true') {
             whereQuery.push(' is_system_status ');
-        }else if(isSystemStatus == 'false'){
+        } else if (isSystemStatus == 'false') {
             whereQuery.push(' NOT is_system_status ');
         }
 
@@ -95,9 +95,12 @@ module.exports = {
                              , ${description}
                              , ${inactivated_date}
                              , ${isSystemStatus} )
-                        RETURNING id`;
+                             RETURNING *, '{}'::jsonb old_values`;
 
-        return await query(sql);
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: `Created ${description}(${code})`
+        });
     },
 
     update: async (params) => {
@@ -120,9 +123,19 @@ module.exports = {
                             , inactivated_dt = ${inactivated_date}
                             , is_system_status = ${isSystemStatus}
                         WHERE
-                            id = ${id} `;
+                            id = ${id}  
+                            RETURNING *,
+                                (
+                                    SELECT row_to_json(old_row) 
+                                    FROM   (SELECT * 
+                                            FROM   billing.adjustment_codes 
+                                            WHERE  id = ${id}) old_row 
+                                ) old_values`;
 
-        return await query(sql);
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: `Updated ${description}(${code})`
+        });
     },
 
     delete: async (params) => {
@@ -130,8 +143,11 @@ module.exports = {
 
         const sql = SQL`DELETE FROM 
                             billing.claim_status 
-                        WHERE id = ${id}`;
+                        WHERE id = ${id} RETURNING *, '{}'::jsonb old_values`;
 
-        return await query(sql);
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: 'Deleted.'
+        });
     }
 };

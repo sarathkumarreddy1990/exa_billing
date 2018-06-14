@@ -31,7 +31,8 @@ require.config({
         'grid': 'shared/grid',
         'grid-events': 'shared/events',
         'appserver_shared': 'shared/app-server',
-        'select2': '../node_modules/select2/dist/js/select2.full'
+        'select2': '../node_modules/select2/dist/js/select2.full',
+        'jquerysortable': '../node_modules/jquery-sortable/source/js/jquery-sortable'
     },
     shim: {
         'jquery.validate': {
@@ -100,7 +101,11 @@ require.config({
         },
         'select2': {
             deps: ["jquery"], exports: "select2"
-        }
+        },
+        'jquerysortable': {
+            deps: ['jquery'],
+            exports: "jquerysortable"
+        },
     }
 });
 
@@ -136,7 +141,8 @@ require([
             'bootstrapmultiselect',
             'select2',
             'datetimepicker',
-            'daterangepicker'
+            'daterangepicker',
+            'jquerysortable'
         ], function (
             $,
             _,
@@ -156,8 +162,11 @@ require([
             bootstrapmultiselect,
             select2,
             datetimepicker,
-            daterangepicker
+            daterangepicker,
+            jquerysortable
         ) {
+                Backbone.emulateHTTP = false;
+
                 new Appserver(function () {
                     App.initialize();
                 });

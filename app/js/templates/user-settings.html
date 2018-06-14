@@ -16,46 +16,70 @@
     }
 
     #ulSortList {
-        overflow: scroll;
+        overflow: auto;
+        list-style-type: none;
     }
+
+    ol.vertical li {
+        margin-bottom: 5px;
+        padding: 5px;
+        border: 1px solid;
+        border-color: #CCC;
+        font-weight: bold;
+    }
+
+    body.dragging, body.dragging * {
+        cursor: move !important;
+    }
+
+    .dragged {
+        position: absolute;
+        opacity: 0.5;
+        z-index: 2000;
+    }
+
+    ol.vertical li.placeholder {
+        position: relative;
+    }
+    ol.vertical li.placeholder:before {
+        position: absolute;
+    }
+
 </style>
 
 
-<div id="divForm_Mysettings" class="divBackgroundPayment form-horizontal form-list commonBorder" style="display: block; top: 10%; height: 80%; left: 5%;">
-    <h4 id="spanModalHeader" class="modal-title">User Settings</h4>
+<div id="divForm_Mysettings" class="divBackgroundPayment form-horizontal form-list commonBorder" style="display: block; height: 100%;overflow:hidden">
     <div style="text-align: right;width: 100%;">
         <input type="button" class="btn btn-danger" style="margin-top: 1px;margin-right: 2px" id="save_settings" name="save" value="save">
     </div>
     <div class="row">
-        <div class="col-xs-4 col-sm-4 col-md-4 col-lg-4 dragdropDiv flex-parent-vert" id="divBillingColumnOrdersList">
+        <div class="col-xs-5 col-sm-5 col-md-5 col-lg-5 dragdropDiv flex-parent-vert" id="divBillingColumnOrdersList">
             <legend class="viztekLegend">
-                <h5 i18n="setup.userSettings.headings.columnSort">Column Orders</h5>
+                <h5 i18n="setup.userSettings.headings.columnSort"></h5>
             </legend>
-            <ol id="ulSortList" class="ui-icon ui-icon-arrowthick-2-n-s simple_with_animation vertical flex-fill" style="list-style-type:none">
+            <ol id="ulSortList" class="ui-icon ui-icon-arrowthick-2-n-s simple_with_animation vertical flex-fill">
             </ol>
         </div>
-        <div class="col-xs-8 col-sm-8 col-md-8 col-lg-8 dragdropDiv flex-parent-vert" id="divBillingUserSettingsSummary">
+        <div class="col-xs-7 col-sm-7 col-md-7 col-lg-7 dragdropDiv flex-parent-vert" id="divBillingUserSettingsSummary">
             <legend class="viztekLegend">
-                <h5>
-                    <label i18n="setup.userSettings.headings.Settings">Settings</label>
-                </h5>
+                <h5 i18n="setup.userSettings.headings.Settings"></h5>
             </legend>
-            <div class="form-horizontal form-list">
-                <div class="form-group form-inline">
-                    <div class="col-form-label">
+            <div class="form-horizontals">
+                <div class="form-group row">
+                    <div class="col-sm-4 col-form-label">
                         <label class="control-label " for="ddlBillingDefaultColumns" i18n="setup.userSettings.defaultColumn"></label>
                     </div>
-                    <div class="col-form-content-wide">
+                    <div class="col-sm-5">
                         <select id="ddlBillingDefaultColumns" name="repeats" class="form-control selects">
                         </select>
                     </div>
                 </div>
-                <div class="form-group  form-inline">
-                    <div class="col-form-label">
+                <div class="form-group  row">
+                    <div class="col-form-label col-sm-4">
                         <label class="control-label " for="ddlBillingSortOrder" i18n="setup.userSettings.defaultSortOrder"></label>
                     </div>
 
-                    <div class="col-form-content-wide">
+                    <div class="col-sm-5">
                         <select id="ddlBillingSortOrder" name="repeats" class="form-control selects">
                             <option value="Desc">Desc</option>
                             <option value="Asc">Asc</option>

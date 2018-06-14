@@ -23,7 +23,7 @@ define([
                 'click #btnProcessERA': 'processERAFile',
                 'click #btnReloadERA': 'reloadERAFiles',
                 'click #btnReloadERALocal': 'reloadERAFilesLocal',
-                'click #btnImportERA': 'processSelectedERAFile'
+                'change #myFile': 'processSelectedERAFile'
             },
 
             initialize: function ( options ) {
@@ -31,14 +31,12 @@ define([
                 var _self = this;
                 this.pager = new EobFilesPager();
                 this.eraLists = new eraLists();
+                app.fileStoreId = 1;
+                app.settings.eraInboxPath = 'D:eraInbox';
             },
             
             showGrid: function () {
                 var self = this;
-                    // setTimeout(function () {
-                    //     document.getElementById("ifrEOBselect").contentWindow.document.getElementById('xMLInput').disabled = true;
-                    //     commonjs.showWarning('ERA Inbox path not yet set.', '', true);
-                    // }, 500);
                 commonjs.showLoading();
                 $(this.el).html(this.eraGridTemplate());
                 self.getEobFilesList();
@@ -122,7 +120,9 @@ define([
             },
             
             fileSizeTypeFormatter: function (cellvalue, options, rowObject) {
-                return rowObject.size ? rowObject.size + ' KB' : ''
+                var i = parseInt(Math.floor(Math.log(rowObject.size) / Math.log(1024)));
+                var sizes = ['Bytes', 'KB'];
+                return Math.round(rowObject.size / Math.pow(1024, i), 2) + ' ' + sizes[i];
             },
 
             eobStatusFormatter: function (cellvalue, options, rowObject) {
@@ -256,8 +256,36 @@ define([
                     }
                     return res.insurance_name;
                 }
+            },
+ 
+            reloadERAFiles: function () {
+                commonjs.filterData = {};
+                var iframeObj = document.getElementById("ifrEobFileUpload") && document.getElementById("ifrEobFileUpload").contentWindow ? document.getElementById("ifrEobFileUpload").contentWindow : null;
+                var inputObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('eraFile');
+                if (!app.settings.eraInboxPath) {
+                    inputObj.disabled = true;
+                    commonjs.showWarning('ERA Inbox path not yet set.', '', true);
+                }
+                else {
+                    if (inputObj.getAttribute('data-isDuplicate') == 'true')
+                        commonjs.showWarning('File already processed');
+                    else {
+                        this.pager.set({ "PageNo": 1 });
+                        $('.ui-jqgrid-htable:visible').find('input, select').val('');
+                        if (inputObj.getAttribute('data-uploaded') == 'true') {
+                            this.eobFilesTable.refresh();
+                        }
+                        else
+                            this.eobFilesTable.refreshAll();
+                        inputObj.setAttribute('data-isDuplicate', '');
+                    }
+                    if (iframeObj && inputObj) {
+                        inputObj.style.display = 'block'
+                        inputObj.value = '';
+                    }
+                    inputObj.setAttribute('data-isDuplicate', '');
+                }
             }
-
         });
         return eraView;
     });

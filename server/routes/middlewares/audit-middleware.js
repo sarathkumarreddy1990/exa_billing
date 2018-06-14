@@ -22,12 +22,16 @@ app.use(function (req, res, next) {
             return next();
         }
 
-        req.body = {
-            ...req.body,
+        req.audit = {
             ...ids,
             clientIp: '127.0.0.1',
             screenName: screenName,
             moduleName: moduleName,
+        };
+
+        req.body = {
+            ...req.body,
+            ...req.audit,
         };
 
         return next();
@@ -40,7 +44,7 @@ app.use(function (req, res, next) {
         };
 
         req.params = {
-            ...req.query,
+            ...req.params,
             ...ids,
         };
 

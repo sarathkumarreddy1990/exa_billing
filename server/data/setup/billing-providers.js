@@ -1,4 +1,4 @@
-const { query, SQL } = require('../index');
+const { query, SQL, queryWithAudit } = require('../index');
 
 module.exports = {
 
@@ -224,10 +224,13 @@ module.exports = {
                                                 , ${payToFaxNumber}
                                                 , ${communicationInfo}
                                                 , ${companyId}
-                                                , ${inactivated_dt}
-                                                ) RETURNING id`;
+                                                , ${inactivated_dt})
+                                            RETURNING *, '{}'::jsonb old_values`;
 
-        return await query(sql);
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: `Created ${shortDescription}(${name})`
+        });
     },
 
     update: async function (params) {
@@ -297,9 +300,19 @@ module.exports = {
                             , communication_info = ${communicationInfo}
                             , inactivated_dt = ${inactivated_dt}
                          WHERE
-                              id = ${id}`;
+                              id = ${id}
+                              RETURNING *,
+                                (
+                                    SELECT row_to_json(old_row) 
+                                    FROM   (SELECT * 
+                                            FROM   billing.adjustment_codes 
+                                            WHERE  id = ${id}) old_row 
+                                ) old_values`;
 
-        return await query(sql);
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: `Updated ${shortDescription}(${name})`
+        });
     },
 
     delete: async function (params) {
@@ -315,8 +328,11 @@ module.exports = {
                             DELETE FROM
                                 billing.providers
                             WHERE
-                                id = ${id}`;
+                                id = ${id}RETURNING *, '{}'::jsonb old_values`;
 
-        return await query(sql);
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: 'Deleted.'
+        });
     }
 };
