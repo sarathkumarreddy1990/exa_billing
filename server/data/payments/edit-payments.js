@@ -4,8 +4,66 @@ const moment = require('moment');
 module.exports = {
 
     getPendingPayments: async function (params) {
+
+        let whereQuery = [];
+        params.sortOrder = params.sortOrder || ' ASC';
+        let {
+            claim_id,
+            invoice_no,
+            full_name,
+            claim_dt,
+            account_no,
+            display_description,
+            billing_fee,
+            balance,            
+            sortOrder,
+            sortField,
+            pageNo,
+            pageSize
+        } = params;
+
+        
+        if (invoice_no) {
+            whereQuery.push(` bc.invoice_no = '${invoice_no}'`);
+        }
+        
+        if (claim_id) {
+            whereQuery.push(` bc.id = '${claim_id}'`);
+        }
+        
+        if (full_name) {
+            whereQuery.push(` pp.full_name  ILIKE '%${full_name}%' `);
+        }
+
+        if (claim_dt) {
+            whereQuery.push(` claim_dt::date ='${claim_dt}'::date`);
+        }
+
+        if (account_no) {
+            whereQuery.push(` pp.account_no ='${account_no}'`);
+        }
+
+        if (display_description) {
+            whereQuery.push(` display_description  ILIKE '%${display_description}%' `);
+        }
+
+        if (billing_fee) {
+            whereQuery.push(`(select charges_bill_fee_total from billing.get_claim_totals(bc.id))=${billing_fee}::money`);        
+        }
+
+        if (balance) {
+            whereQuery.push(`((SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) = ${balance}::money)`);
+        }
+
         if (params.customArgs.patientId && params.customArgs.patientId > 0) {
-            const sql = `
+
+            sql.append(SQL` WHERE bc.patient_id = ${params.customArgs.patientId}`);
+
+            if (whereQuery.length) {               
+                sql.append(whereQuery.join(' AND '));
+            }
+            
+            const sql =  SQL `
                     SELECT 
                     bc.id AS claim_id,
                     bc.patient_id,
@@ -21,14 +79,28 @@ module.exports = {
                 INNER JOIN public.patients pp on pp.id = bc.patient_id 
                 INNER JOIN billing.charges bch on bch.claim_id = bc.id
                 INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id 
-                WHERE bc.patient_id = ${params.customArgs.patientId}
-                GROUP BY  bc.id, pp.last_name, pp.first_name,  pp.account_no
+                --WHERE bc.patient_id = ${params.customArgs.patientId}
+                --GROUP BY  bc.id, pp.last_name, pp.first_name,  pp.account_no
                 `;
+            
+            sql.append(SQL ` GROUP BY  bc.id, pp.last_name, pp.first_name,  pp.account_no`)
+                .append(SQL` ORDER BY  `)
+                .append(sortField)
+                .append(' ')
+                .append(sortOrder)
+                .append(SQL` LIMIT ${pageSize}`)
+                .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
             
             return await query(sql);
         }
         else if (params.customArgs.invoice_no) {
-            const sql = `
+            sql.append(SQL`  WHERE bc.id = ${params.customArgs.invoice_no} `);
+
+            if (whereQuery.length) {               
+                sql.append(whereQuery.join(' AND '));
+            }
+
+            const sql = SQL`
                     SELECT 
                         bc.id AS claim_id,
                         bc.patient_id,
@@ -44,22 +116,31 @@ module.exports = {
                     INNER JOIN public.patients pp on pp.id = bc.patient_id 
                     INNER JOIN billing.charges bch on bch.claim_id = bc.id
                     INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id 
-                    WHERE bc.id = ${params.customArgs.invoice_no}
-                    GROUP BY  bc.id, pp.last_name, pp.first_name,  pp.account_no
+                    --WHERE bc.id = ${params.customArgs.invoice_no}
+                    --GROUP BY  bc.id, pp.last_name, pp.first_name,  pp.account_no
             `;
+
+            sql.append(SQL `GROUP BY  bc.id, pp.last_name, pp.first_name,  pp.account_no`)
+                .append(SQL` ORDER BY  `)
+                .append(sortField)
+                .append(' ')
+                .append(sortOrder)
+                .append(SQL` LIMIT ${pageSize}`)
+                .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+            
             return await query(sql);
         }  
         
         let joinQuery = ' ';
-        let whereQuery = ` WHERE NOT EXISTS (SELECT 1 FROM billing.payment_applications bpa 
+        let paymentWhereQuery = ` AND NOT EXISTS (SELECT 1 FROM billing.payment_applications bpa 
         INNER JOIN billing.payments bp ON bp.id = bpa.payment_id
         WHERE  bpa.charge_id = bch.id
         AND payment_id = ${params.customArgs.paymentID})
         AND (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) > 0::money `;
 
-        whereQuery = params.customArgs.payerType == 'patient' ? whereQuery + ` AND bc.patient_id = ${params.customArgs.payerId} ` : whereQuery;
-        whereQuery = params.customArgs.payerType == 'ordering_facility' ? whereQuery + ` AND bc.ordering_facility_id = ${params.customArgs.payerId}  AND bc.payer_type = 'ordering_facility'` : whereQuery;
-        whereQuery = params.customArgs.payerType == 'ordering_provider' ? whereQuery + ` AND bc.referring_provider_contact_id = ${params.customArgs.payerId}  AND bc.payer_type = 'referring_provider'` : whereQuery;
+        paymentWhereQuery = params.customArgs.payerType == 'patient' ? paymentWhereQuery + ` AND bc.patient_id = ${params.customArgs.payerId} ` : paymentWhereQuery;
+        paymentWhereQuery = params.customArgs.payerType == 'ordering_facility' ? paymentWhereQuery + ` AND bc.ordering_facility_id = ${params.customArgs.payerId}  AND bc.payer_type = 'ordering_facility'` : paymentWhereQuery;
+        paymentWhereQuery = params.customArgs.payerType == 'ordering_provider' ? paymentWhereQuery + ` AND bc.referring_provider_contact_id = ${params.customArgs.payerId}  AND bc.payer_type = 'referring_provider'` : paymentWhereQuery;
 
         if (params.customArgs.payerType == 'insurance') {
             joinQuery = ` 
@@ -68,7 +149,7 @@ module.exports = {
                                                 WHEN bc.payer_type = 'tertiary_insurance' THEN bc.tertiary_patient_insurance_id
                                         END`;
 
-            whereQuery = whereQuery + ` AND pip.insurance_provider_id = ${params.customArgs.payerId} `;
+            paymentWhereQuery = paymentWhereQuery + ` AND pip.insurance_provider_id = ${params.customArgs.payerId} `;
         }
 
         const sql = SQL`SELECT 
@@ -88,9 +169,16 @@ module.exports = {
                 INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id `;
 
 
-        sql.append(joinQuery)
-            .append(whereQuery)
-            .append(SQL` group by bc.id, bc.invoice_no, bc.claim_dt, pp.account_no, get_full_name(pp.last_name, pp.first_name) `)
+        sql.append(joinQuery);
+
+        if (whereQuery.length) {
+            sql.append(SQL` WHERE `)
+                .append(whereQuery.join(' AND '));
+        }
+
+        sql.append(paymentWhereQuery);
+        
+        sql.append(SQL` group by bc.id, bc.invoice_no, bc.claim_dt, pp.account_no, get_full_name(pp.last_name, pp.first_name) `)
             .append(SQL` LIMIT ${params.pageSize} OFFSET ${((params.pageNo - 1) * params.pageSize)} `);
 
         return await query(sql);
