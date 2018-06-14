@@ -9,23 +9,23 @@
 </style>
 <form id="formBillingProviders" class="form-horizontals">
     <div class="tabbable flex-parent-vert">
-        <div class="row">
+        <div class="row" style="margin: 0; width: 95%;">
             <div class="col">
                 <div class="col-form-label">
                         <label for="txtPaymentFromDate" class="control-labels" i18n="setup.common.dateFrom"></label>                        
                 </div>
                 <div class="col-form-content" style="text-align: right;">
                     <div id="divPaymentFromDate" class="input-group">
+                        <input type="text" id="txtPaymentFromDate" class="form-control form-control-date maskDateLocale" required="required" name="paymentFromDate">
                         <span class="input-group-addon add-on">
                             <span class="icon-ic-schedule"></span>
                         </span>
-                        <input type="text" id="txtPaymentFromDate" class="form-control form-control-date maskDateLocale" required="required" name="paymentFromDate">
                     </div>
                     <div id="divPaymentToDate" class="input-group">
+                        <input type="text" id="txtPaymentToDate" class="form-control form-control-date maskDateLocale" name="paymentToDate">
                         <span class="input-group-addon add-on">
                             <span class="icon-ic-schedule"></span>
                         </span>
-                        <input type="text" id="txtPaymentToDate" class="form-control form-control-date maskDateLocale" name="paymentToDate">
                     </div>
                 </div>
             </div>
