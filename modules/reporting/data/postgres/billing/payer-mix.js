@@ -36,7 +36,7 @@ WITH payerMixDetails AS (
               pip.insurance_code,
               pip.insurance_name,
               pf.facility_name,
-              bc.claim_dt))
+              bc.claim_dt),())
     ORDER BY 
         insurance_name,
         facility_name
@@ -45,7 +45,7 @@ WITH payerMixDetails AS (
         display_code AS "CPT CODE",
         insurance_code AS "INSURANCE CODE",
         insurance_name AS "INSURANCE NAME",
-        facility_name AS "FACILITY NAME",
+        COALESCE(facility_name,'---Total---') AS "FACILITY NAME",
         claim_date AS "CLAIM DATE",
         bill_fee AS "BILL FEE",
         claim_count AS "CLAIM COUNT"

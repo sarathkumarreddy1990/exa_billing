@@ -37,12 +37,12 @@ const colModel = [
     {
         name: 'billing_provider',
         searchFlag: '%',
-        searchColumns: [`billing_providers.name`]
+        searchColumns: ['billing_providers.name']
     },
     {
         name: 'place_of_service',
         searchFlag: '%',
-        searchColumns: [`places_of_service.description`]
+        searchColumns: ['places_of_service.description']
     },
     {
         name: 'referring_providers',
@@ -57,17 +57,17 @@ const colModel = [
     {
         name: 'billing_fee',
         searchFlag: 'money',
-        searchColumns: [`(select charges_bill_fee_total from BILLING.get_claim_totals(claims.id))`]
+        searchColumns: ['(select charges_bill_fee_total from BILLING.get_claim_totals(claims.id))']
     },
     {
         name: 'invoice_no',
         searchFlag: '%',
-        searchColumns: [`claims.invoice_no`]
+        searchColumns: ['claims.invoice_no']
     },
     {
         name: 'billing_method',
         searchFlag: '%',
-        searchColumns: [`claims.billing_method`]
+        searchColumns: ['claims.billing_method']
     },
     {
         name: 'followup_date',
@@ -116,7 +116,7 @@ const colModel = [
     },
     {
         name: 'claim_balance',
-        searchColumns: [`(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from BILLING.get_claim_totals(claims.id)) `],
+        searchColumns: ['(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from BILLING.get_claim_totals(claims.id)) '],
         searchFlag: 'money'
     },
     {
@@ -155,11 +155,11 @@ const api = {
         }, []);
 
         if (queries.length) {
-            const joinedQueries = queries.join(`) OR (`);
+            const joinedQueries = queries.join(') OR (');
             return `(( ${joinedQueries} ))`;
         }
 
-        return ``;
+        return '';
     },
 
 
@@ -179,28 +179,28 @@ const api = {
     getSortFields: function (args) {
         //console.log('getSortFields: ', args, screenName);
         switch (args) {
-        case "study_dt":
-        case "study_received_dt": return 'claims.claim_dt';
-        case "claim_status": return 'claim_status.description';
-        case "patient_name": return 'patients.full_name';
-        case "birth_date": return `patients.birth_date`;
-        case "account_no": return `patients.account_no`;
-        case "patient_ssn": return `patients.patient_info->'ssn'`;
-        case "billing_provider": return `billing_providers.name`;
-        case "place_of_service": return "places_of_service.description";
-        case "referring_providers": return "ref_provider.full_name";
-        case "rendering_provider": return "render_provider.full_name";
-        case "billing_fee": return "(select charges_bill_fee_total from BILLING.get_claim_totals(claims.id))";
-        case "invoice_no": return "claims.invoice_no";
-        case "billing_method": return "claims.billing_method";
-        case "followup_date": return "claim_followups.followup_date";
-        case "current_illness_date": return "claims.current_illness_date";
-        case "claim_no": return "claims.id";
-        case "policy_number": return "patient_insurances.policy_number";
-        case "group_number": return "patient_insurances.group_number";
-        case "payer_type":
-        case "ref_phy": return "claims.payer_type";
-        case "payer_name":
+        case 'study_dt':
+        case 'study_received_dt': return 'claims.claim_dt';
+        case 'claim_status': return 'claim_status.description';
+        case 'patient_name': return 'patients.full_name';
+        case 'birth_date': return 'patients.birth_date';
+        case 'account_no': return 'patients.account_no';
+        case 'patient_ssn': return `patients.patient_info->'ssn'`;
+        case 'billing_provider': return 'billing_providers.name';
+        case 'place_of_service': return 'places_of_service.description';
+        case 'referring_providers': return 'ref_provider.full_name';
+        case 'rendering_provider': return 'render_provider.full_name';
+        case 'billing_fee': return '(select charges_bill_fee_total from BILLING.get_claim_totals(claims.id))';
+        case 'invoice_no': return 'claims.invoice_no';
+        case 'billing_method': return 'claims.billing_method';
+        case 'followup_date': return 'claim_followups.followup_date';
+        case 'current_illness_date': return 'claims.current_illness_date';
+        case 'claim_no': return 'claims.id';
+        case 'policy_number': return 'patient_insurances.policy_number';
+        case 'group_number': return 'patient_insurances.group_number';
+        case 'payer_type':
+        case 'ref_phy': return 'claims.payer_type';
+        case 'payer_name':
             return `(  CASE payer_type 
                 WHEN 'primary_insurance' THEN insurance_providers.insurance_name
                 WHEN 'secondary_insurance' THEN insurance_providers.insurance_name
@@ -210,12 +210,12 @@ const api = {
 	            WHEN 'rendering_provider' THEN render_provider.full_name
 	            WHEN 'patient' THEN patients.full_name        END) 
                     `;
-        case "clearing_house": return `insurance_providers.insurance_info->'claimCHDescription'`;
-        case "claim_balance": return "(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from BILLING.get_claim_totals(claims.id))";
-        case "billing_code": return "billing_codes.description";
-        case "billing_class": return "billing_classes.description";
-        case "gender": return "patients.gender";
-        case "claim_notes": return "claims.claim_notes";
+        case 'clearing_house': return `insurance_providers.insurance_info->'claimCHDescription'`;
+        case 'claim_balance': return '(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM BILLING.get_claim_totals(claims.id))';
+        case 'billing_code': return 'billing_codes.description';
+        case 'billing_class': return 'billing_classes.description';
+        case 'gender': return 'patients.gender';
+        case 'claim_notes': return 'claims.claim_notes';
         }
 
         return args;
@@ -243,17 +243,17 @@ const api = {
     },
     getWLQueryJoin: function (columns, isInnerQuery, filterID) {
         let tables = isInnerQuery ? columns : api.getTables(columns);
-        let r = "";
+        let r = '';
         
-        if (tables.patients) { r += ` INNER JOIN patients ON claims.patient_id = patients.id `; }
+        if (tables.patients) { r += ' INNER JOIN patients ON claims.patient_id = patients.id '; }
 
-        if (tables.facilities) { r += ` INNER JOIN facilities ON facilities.id=claims.facility_id `; }
+        if (tables.facilities) { r += ' INNER JOIN facilities ON facilities.id=claims.facility_id '; }
 
-        if (tables.claim_status) { r += ` LEFT JOIN billing.claim_status  ON claim_status.id=claims.claim_status_id`; }
+        if (tables.claim_status) { r += ' LEFT JOIN billing.claim_status  ON claim_status.id=claims.claim_status_id'; }
 
-        if (tables.billing_providers) { r += ` LEFT JOIN billing.providers AS billing_providers ON billing_providers.id=claims.billing_provider_id`; }
+        if (tables.billing_providers) { r += ' LEFT JOIN billing.providers AS billing_providers ON billing_providers.id=claims.billing_provider_id'; }
 
-        if (tables.places_of_service) { r += ` LEFT JOIN places_of_service  ON places_of_service.id=claims.place_of_service_id `; }
+        if (tables.places_of_service) { r += ' LEFT JOIN places_of_service  ON places_of_service.id=claims.place_of_service_id '; }
 
         if (tables.ref_provider) {
             r += ` LEFT JOIN provider_contacts  ON provider_contacts.id=claims.referring_provider_contact_id 
@@ -265,10 +265,10 @@ const api = {
                                            LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.id`;
         }
 
-        if(filterID=="Follow_up_queue"){
-            r += ` INNER JOIN billing.claim_followups ON  claim_followups.claim_id=claims.id `;
+        if(filterID=='Follow_up_queue'){
+            r += ' INNER JOIN billing.claim_followups ON  claim_followups.claim_id=claims.id ';
         }else if (tables.claim_followups) {
-            r += ` LEFT JOIN billing.claim_followups  ON claim_followups.claim_id=claims.id`;
+            r += ' LEFT JOIN billing.claim_followups  ON claim_followups.claim_id=claims.id';
         }
 
         if (tables.patient_insurances || tables.insurance_providers) {
@@ -280,14 +280,14 @@ const api = {
                 WHEN 'teritary_insurance' THEN tertiary_patient_insurance_id
                 END)`;
 
-            r += ` LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id `;
+            r += ' LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id ';
         }
        
-        if (tables.provider_groups) { r += `  LEFT JOIN provider_groups ON claims.ordering_facility_id = provider_groups.id `; }
+        if (tables.provider_groups) { r += '  LEFT JOIN provider_groups ON claims.ordering_facility_id = provider_groups.id '; }
 
-        if (tables.billing_codes) { r += `  LEFT JOIN billing.billing_codes ON claims.billing_code_id = billing_codes.id `; }
+        if (tables.billing_codes) { r += '  LEFT JOIN billing.billing_codes ON claims.billing_code_id = billing_codes.id '; }
 
-        if (tables.billing_classes) { r += `  LEFT JOIN billing.billing_classes ON claims.billing_class_id = billing_classes.id `; }
+        if (tables.billing_classes) { r += '  LEFT JOIN billing.billing_classes ON claims.billing_class_id = billing_classes.id '; }
 
         return r;
     },
@@ -296,27 +296,29 @@ const api = {
 
         // ADDING A NEW WORKLIST COLUMN <-- Search for this
         let stdcolumns = [
-            `claims.id`,
-            `claims.id as claim_id`,
-            `claims.claim_dt`,
-            `claim_status.description as claim_status`,
-            `patients.full_name as patient_name`,
-            `patients.account_no`,
-            `patients.birth_date`,
-            `patients.patient_info->'ssn' as patient_ssn`,
-            `billing_providers.name as billing_provider`,
-            `places_of_service.description AS place_of_service`,
-            `ref_provider.full_name as   referring_providers`,
-            `render_provider.full_name as   rendering_provider`,
-            `(select charges_bill_fee_total from BILLING.get_claim_totals(claims.id)) as billing_fee`,
-            `claim_followups.followup_date`,
-            `claims.current_illness_date`,
-            `claims.id As claim_no`,
-            `patient_insurances.policy_number`,
-            `patient_insurances.group_number`,
-            `claims.payer_type`,
-            `claims.billing_method`,
-            `insurance_providers.insurance_info->'claimCHDescription' as clearing_house`,
+            'claims.id',
+            'claims.id as claim_id',
+            'claims.claim_dt',
+            'claim_status.description as claim_status',
+            'patients.full_name as patient_name',
+            'patients.account_no',
+            'patients.birth_date',
+            `patients.patient_info->'ssn' 
+            as patient_ssn`,
+            'billing_providers.name as billing_provider',
+            'places_of_service.description AS place_of_service',
+            'ref_provider.full_name as   referring_providers',
+            'render_provider.full_name as   rendering_provider',
+            '(select charges_bill_fee_total from BILLING.get_claim_totals(claims.id)) as billing_fee',
+            'claim_followups.followup_date',
+            'claims.current_illness_date',
+            'claims.id As claim_no',
+            'patient_insurances.policy_number',
+            'patient_insurances.group_number',
+            'claims.payer_type',
+            'claims.billing_method',
+            `insurance_providers.insurance_info->'claimCHDescription' 
+            as clearing_house`,
             `(  CASE payer_type 
             WHEN 'primary_insurance' THEN insurance_providers.insurance_name
             WHEN 'secondary_insurance' THEN insurance_providers.insurance_name
@@ -325,11 +327,11 @@ const api = {
             WHEN 'referring_provider' THEN ref_provider.full_name
             WHEN 'rendering_provider' THEN render_provider.full_name
             WHEN 'patient' THEN patients.full_name        END) as payer_name`,
-            `(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from BILLING.get_claim_totals(claims.id)) as claim_balance`,
-            `billing_codes.description as billing_code`,
-            `billing_classes.description as billing_class`,
-            `claims.claim_notes`,
-            `patients.gender`
+            '(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from BILLING.get_claim_totals(claims.id)) as claim_balance',
+            'billing_codes.description as billing_code',
+            'billing_classes.description as billing_class',
+            'claims.claim_notes',
+            'patients.gender'
         ];
         return stdcolumns;
     },
@@ -396,10 +398,10 @@ const api = {
     getWL: async function (args) {
         const AND = (a, q) => a + ((a.length > 0) ? '\nAND ' : '') + q;
         let whereClause = {
-            default: "",
-            query: "",
-            studyFilter: "",
-            userFilter: "",
+            default: '',
+            query: '',
+            studyFilter: '',
+            userFilter: '',
             permission_filter: ` claims.company_id = ${args.company_id} `
         };
 
@@ -410,7 +412,7 @@ const api = {
         const filter_id = (args.customArgs.filter_id > 0) ? args.customArgs.filter_id : 0;
         const filter_options = {
             id: filter_id,
-            flag: "claim_workbench",
+            flag: 'claim_workbench',
             user_id: args.user_id,
             statOverride: statOverride,
             directCall: true
@@ -487,7 +489,7 @@ const api = {
             const query_options = {
                 defaultwherefilter: whereClause.query,
                 statusCode: args.customArgs && args.customArgs.statusCode ? args.customArgs.statusCode : [],
-                isFrom: "Claims",
+                isFrom: 'Claims',
                 statOverride: statOverride
             };
             const response = await filterValidator.generateQuery(colModel, args.filterCol, args.filterData, query_options);
