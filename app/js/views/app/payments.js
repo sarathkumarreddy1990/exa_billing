@@ -176,8 +176,8 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         gridelementid: '#tblpaymentsGrid',
                         custompager: this.pager,
                         emptyMessage: 'No Record found',
-                        colNames: ['<span  id="spnStatus" class="icon-ic-worklist" onclick="commonjs.popOverActions(event)" ></span>', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                        i18nNames: ['', 'billing.payments.paymentID', '', '', 'billing.payments.referencePaymentID', 'billing.payments.paymentDate', 'billing.payments.accountingDate', 'billing.payments.payertype', 'billing.payments.payerName', 'billing.payments.paymentAmount', 'billing.payments.paymentApplied', 'billing.payments.balance', 'billing.payments.adjustment', 'billing.payments.postedBy', 'billing.payments.paymentmode', 'billing.payments.facility_name', '', '', ''],
+                        colNames: ['<span  id="spnStatus" class="icon-ic-worklist" onclick="commonjs.popOverActions(event)" ></span>','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                        i18nNames: ['','', '', 'billing.payments.paymentID', '', 'billing.payments.referencePaymentID', 'billing.payments.paymentDate', 'billing.payments.accountingDate', 'billing.payments.payertype', 'billing.payments.payerName', 'billing.payments.paymentAmount', 'billing.payments.paymentApplied', 'billing.payments.balance', 'billing.payments.adjustment', 'billing.payments.postedBy', 'billing.payments.paymentmode', 'billing.payments.facility_name', '', '', ''],
                         colModel: [
                             {
                                 name: 'edit', width: 50, sortable: false, search: false,
@@ -194,8 +194,9 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                                     return 'style=text-align:center;'
                                 }
                             },
-                            { name: 'id', index: 'id', key: true, searchFlag: 'int' },
+                            { name: 'id', index: 'id', key: true, searchFlag: 'int',hidden: true  },
                             { name: 'current_status', hidden: true },
+                            { name: 'payment_id',  searchFlag: 'int' },
                             { name: 'invoice_no', hidden: true },
                             { name: 'display_id', width: 215, searchFlag: '%' },
                             { name: 'payment_dt', width: 215, searchFlag: 'date_pure', formatter: self.paymentDateFormatter },
@@ -270,6 +271,33 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         self.adjustmentTimer = setTimeout(self.calculateAdjustmentTotal, 25);
                         clearTimeout(self.appliedTimer);
                         self.appliedTimer = setTimeout(self.calculateAppliedTotal, 25);
+                        let dataSet={
+                            filterByDateType: $('input[name=filterByDateType]:checked').val(),
+                            fromDate: self.dtpPayFrom && self.dtpPayFrom.date() ? self.dtpPayFrom.date().format('YYYY-MM-DD') : "",
+                            toDate: self.dtpPayTo && self.dtpPayTo.date() ? self.dtpPayTo.date().format('YYYY-MM-DD') : "",
+                            paymentStatus: $("#ulPaymentStatus").val(),
+                            facility_id: $("#ddlPaymentFacility").val(),
+                            filterData:JSON.stringify(self.pager.get("FilterData")),
+                            filterCol:JSON.stringify(self.pager.get("FilterCol")),
+                            sortField:self.pager.get("SortField"), 
+                            sortOrder:self.pager.get("SortOrder"), 
+                        };
+
+                        jQuery.ajax({
+                            url: "/exa_modules/billing/payments/totalAmount",
+                            type: "GET",
+                            data: dataSet,
+                            success: function (data, textStatus, jqXHR) {
+                               if(data &&data.length){
+                                $("#divAmountTotal").html(data[0].total_amount);
+                                $("#divAppliedTotal").html(data[0].total_applied);
+                                $("#divAdjTotal").html(data[0].total_adjustment);   
+                               }
+                            },
+                            error: function (err) {
+                                commonjs.handleXhrError(err);
+                            }
+                        });
                         // $('#tblpaymentsGrid').jqGrid('setGridHeight', '390px');
 
                         commonjs.docResize();
@@ -283,8 +311,6 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     // $('#tblpaymentsGrid').jqGrid('setGridHeight', '390px');
                 }, 100);
             },
-
-
             editPayment: function (rowId) {
                 Backbone.history.navigate('#billing/payments/edit/' + rowId, true);
             },

@@ -1,7 +1,7 @@
 define(['backbone'], function (Backbone) {
     var billingProviderModels = Backbone.Model.extend({
 
-        url: "/exa_modules/billing/setup/billing_providers",
+        urlRoot: "/exa_modules/billing/setup/billing_providers",
 
         defaults: {
             "name": "",

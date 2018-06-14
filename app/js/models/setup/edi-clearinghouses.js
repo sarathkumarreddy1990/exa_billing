@@ -1,7 +1,7 @@
 define(['backbone'], function (Backbone) {
     var EDIClearingHousesModel = Backbone.Model.extend({
 
-        url: "/exa_modules/billing/setup/edi_clearinghouses",
+        urlRoot: "/exa_modules/billing/setup/edi_clearinghouses",
 
         defaults: {
             "name": "",
