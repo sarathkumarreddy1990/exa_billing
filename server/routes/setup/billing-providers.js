@@ -19,18 +19,17 @@ router.post('/', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
-router.put('/', async function (req, res) {
+router.put('/:id', async function (req, res) {
     const data = await billingProviderControllers.update(req.body);
     httpHandler.sendRows(req, res, data);
 });
 
-router.delete('/', async function (req, res) {
-    const data = await billingProviderControllers.delete(req.body);
-    httpHandler.sendRows(req, res, data);
-});
-
 router.delete('/:id', async function (req, res) {
-    const data = await billingProviderControllers.delete(req.params);
+    let params = {
+        ...req.params,
+        ...req.audit
+    };
+    const data = await billingProviderControllers.delete(params);
     httpHandler.sendRows(req, res, data);
 });
 

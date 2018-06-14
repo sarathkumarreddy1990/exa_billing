@@ -239,111 +239,78 @@ define([
 
             // Referring Provider Auto Complete
 
-            bindReferringPhysicianAutoComplete: function (fieldID, userMessage, btnAdd, ulList) {
+            bindReferringPhysicianGroupAutoComplete: function () {
                 var self = this;
-                commonjs.setAutocompleteInfinite({
-                    containerID: '#' + fieldID,
-                    placeHolder: userMessage,
-                    inputLength: 0,
-                    URL: '/referringPhysiciansAutoComplete',
-                    data: function (term, page) {
-                        return {
-                            pageNo: page,
-                            pageSize: 10,
-                            q: term,
-                            sortField: 'name'
-                        };
+                $("#txtProviderGroupName").select2({
+                    ajax: {
+                        url: "/exa_modules/billing/autoCompleteRouter/provider_group",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                page: params.page || 1,
+                                q: params.term || '',
+                                pageSize: 10,
+                                sortField: "group_name",
+                                sortOrder: "ASC",
+                                groupType: 'OF',
+                                company_id: 1
+                            };
+                        },
+                        processResults: function (data, params) {
+                            params.page = params.page || 1;
+                            return {
+                                results: data,
+                                pagination: {
+                                    more: (params.page * 30) < data[0].total_records
+                                }
+                            };
+                        },
+                        cache: true
                     },
-                    results: function (data, page) {
-                        var more = data.result.length > 0 ? (page * 10) < data.result[0].total_records : false;
-                        return { results: data.result, more: more };
-                    },
-                    formatID: function (obj) {
-                        return obj.id;
-                    },
-                    formatResult: function (res) {
-                        var markup = "<table class='ref-result' style='width: 100%'><tr>";
-                        markup += "<td class='movie-info'><div class='movie-title'><b>" + res.name + "</b></div>";
-                        markup += "</td></tr></table>";
-                        return markup;
-                    },
-                    formatSelection: function (res) {
-                        $('#' + btnAdd).data('referringPhysicianIdAdded', ~~res.id);
-                        $('#' + btnAdd).data('referringPhysicianNameAdded', res.name);
-                        return res.name;
-                    }
+                    placeholder: 'selectStudyReadPhysician',
+                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 0,
+                    templateResult: formatRepo,
+                    templateSelection: formatRepoSelection
                 });
-                $('#' + btnAdd).click(function () {
-                    if ($('#s2id_' + fieldID + ' > a.select2-default').length > 0) {
+                function formatRepo(repo) {
+                    if (repo.loading) {
+                        return repo.text;
+                    }
+                    var markup = "<table class='ref-result' style='width: 100%'><tr>";
+                    markup += "<td class='movie-info'><div class='movie-title'><b>" + repo.group_name + "</b> data-id='" + repo.id + "'</div>";
+                    markup += "</td></tr></table>";
+                    return markup;
+
+                }
+                function formatRepoSelection(res) {
+                    self.group_name = res.group_name;
+                    self.group_id = res.provider_group_id;
+                    if (res && res.id) {
+                        return res.group_name;
+                    }
+                }
+                $('#btnAddProviderGroup').unbind('click').click(function () {
+                    if ($('#select2-txtProviderGroupName-container > a.select2-default').length > 0) {
+                        commonjs.showWarning('Please select one Ref. Physicia to add');
                         return false;
                     }
-                    var referringPhysicianIdsList = $('#' + ulList).data('referringPhysicianIds') || [],
-                        referringPhysicianIdAdded = $(this).data('referringPhysicianIdAdded'),
-                        referringPhysicianNameAdded = $(this).data('referringPhysicianNameAdded');
-
-                    // Check to see if patients already exists in the box
-                    if (_.indexOf(referringPhysicianIdsList, referringPhysicianIdAdded) !== -1) {
-                        commonjs.showError("Referring Physician Already Added");
+                    if ($('#ulListProviderGroup li a[data-id="' + $('#txtProviderGroupName').select2('data')[0].id + '"]').length) {
+                        commonjs.showWarning("Ref. Physician is already selected");
                         return false;
-                    } else {
-                        $('#' + ulList).append('<li><span>' + referringPhysicianNameAdded + '</span><a class="remove" data-id="' + referringPhysicianIdAdded + '" id="' + referringPhysicianIdAdded + '" data-value="' + referringPhysicianNameAdded + '"><span class="icon-ic-close"></span></a></li>');
-
-                        referringPhysicianIdsList.push(~~referringPhysicianIdAdded);
-                        $('#' + ulList).data('referringPhysicianIds', referringPhysicianIdsList);
                     }
+
+                    var data_id = $('#txtProviderGroupName').select2('data')[0].id;
+                    var bind_text = $('#txtProviderGroupName').select2('data')[0].group_name;
+                    $('#ulListProviderGroup').append('<li id="' + data_id + '"><span style="background:#3c91f0; color:white; border:1px solid black">' + bind_text + '</span><a class="remove" data-id="' + $('#txtProviderGroupName').select2('data')[0].id + '"><span class="icon-ic-close" style="margin-left:8px;"></span></a></li>')
+                    $('#txtProviderGroupName a span').html('Select Ref. Physician');
                 });
 
-                $('#' + ulList).on('click', 'a.remove', function () {
-                    var referringPhysicianIdsList = $('#' + ulList).data('referringPhysicianIds') || [],
-                        referringPhysicianIdRemoved = $(this).attr('data-id');
-
-                    referringPhysicianIdsList = _.without(referringPhysicianIdsList, ~~referringPhysicianIdRemoved);
-                    $('#' + ulList).data('referringPhysicianIds', referringPhysicianIdsList);
+                $('#ulListProviderGroup').delegate('a.remove', 'click', function () {
                     $(this).closest('li').remove();
-                    return;
                 });
 
-                $('#' + ulList).data('referringPhysicianIds', []);
-            },
-
-            // User Auto Complete
-
-            bindUsersAutoComplete: function (fieldID, userMessage, btnAdd, ulList) {
-                var self = this;
-                commonjs.setAutocompleteInfinite({
-                    containerID: '#' + fieldID,
-                    placeHolder: userMessage,
-                    inputLength: 0,
-                    URL: '/usersAutoComplete',
-                    data: function (term, page) {
-                        return {
-                            pageNo: page,
-                            pageSize: 10,
-                            q: term,
-                            sortField: 'username',
-                            sortOrder: 'Asc',
-                            from: 'provider'
-                        };
-                    },
-                    results: function (data, page) {
-                        var more = data.result.length > 0 ? (page * 10) < data.result[0].total_records : false;
-                        return { results: data.result, more: more };
-                    },
-                    formatID: function (obj) {
-                        return obj.id;
-                    },
-                    formatResult: function (res) {
-                        var markup = "<table class='ref-result' style='width: 100%'><tr>";
-                        markup += "<td class='movie-info'><div class='movie-title'><b>" + res.username + "</b></div>";
-                        markup += "</td></tr></table>";
-                        return markup;
-                    },
-                    formatSelection: function (res) {
-                        $('#' + btnAdd).data('userIdAdded', ~~res.id);
-                        $('#' + btnAdd).data('userNameAdded', res.username);
-                        return res.username;
-                    }
-                });
             },
 
 
@@ -395,7 +362,7 @@ define([
                         delay: 250,
                         data: function (params) {
                             return {
-                                page: params.page || 6,
+                                page: params.page || 9,
                                 q: params.term || '',
                                 pageSize: 10,
                                 sortField: "user_name",
@@ -558,73 +525,143 @@ define([
                 });
             },
 
-            bindProviderGroupAutoComplete: function (fieldID, userMessage, btnAdd, ulList) {
-                var self = this;
-                commonjs.setAutocompleteInfinite({
-                    containerID: '#' + fieldID,
-                    placeHolder: userMessage,
-                    inputLength: 0,
-                    URL: '/providerGroupAutoComplete',
-                    data: function (term, page) {
-                        return {
-                            pageNo: page,
-                            pageSize: 10,
-                            q: term,
-                            sortField: 'name'
-                        };
+            bindReferringProviderAutoComplete: function (txtprovider, btnProvider, ulListProvider) {
+                $("#" + txtprovider).select2({
+                    ajax: {
+                        url: "/exa_modules/billing/autoCompleteRouter/providers",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                page: params.page || 1,
+                                q: params.term || '',
+                                provider_type: 'PR',
+                                pageSize: 10,
+                                sortField: "p.last_name",
+                                sortOrder: "asc",
+                                company_id: 1
+                            };
+                        },
+                        processResults: function (data, params) {
+                            params.page = params.page || 1;
+                            return {
+                                results: data,
+                                pagination: {
+                                    more: (params.page * 30) < data[0].total_records
+                                }
+                            };
+                        },
+                        cache: true
                     },
-                    results: function (data, page) {
-                        var more = data.result.length > 0 ? (page * 10) < data.result[0].total_records : false;
-                        return { results: data.result, more: more };
-                    },
-                    formatID: function (obj) {
-                        return obj.id;
-                    },
-                    formatResult: function (res) {
-                        var markup = "<table class='ref-result' style='width: 100%'><tr>";
-                        markup += "<td class='movie-info'><div class='movie-title'><b>" + res.name + "</b></div>";
-                        markup += "</td></tr></table>";
-                        return markup;
-                    },
-                    formatSelection: function (res) {
-                        $('#' + btnAdd).data('idAdded', ~~res.id);
-                        $('#' + btnAdd).data('nameAdded', res.name);
-                        return res.name;
-                    }
+                    placeholder: 'self.usermessage.selectStudyReadPhysician',
+                    escapeMarkup: function (markup) { return markup; },
+                    minimumInputLength: 0,
+                    templateResult: formatRepo,
+                    templateSelection: formatRepoSelection
                 });
+                function formatRepo(repo) {
+                    if (repo.loading) {
+                        return repo.text;
+                    }
+                    var markup1 = "<table class='ref-result' style='width: 100%'><tr class='inActiveRow'>";
+                    markup1 += "<td data-id='" + repo.group_id + " ' title='" + repo.full_name + "'> <div>" + repo.full_name + "</div>";
+                    markup1 += "</td></tr></table>";
+                    return markup1;
 
-                $('#' + btnAdd).click(function () {
-                    if ($('#s2id_' + fieldID + ' > a.select2-default').length > 0) {
+                }
+                function formatRepoSelection(res) {
+                    if (res && res.id) {
+                        return res.full_name;
+                    }
+                }
+
+
+                // txtprovider, btnProvider, ulListProvider
+                $('#' + btnProvider).unbind('click').click(function () {
+                    if ($('#s2id_' + txtprovider + ' > a.select2-default').length > 0) {
+                        commonjs.showWarning('Please select one Provider to add');
                         return false;
                     }
-
-                    // Check to see if this patient already exists in the box
-                    var idsList = $('#' + ulList).data('ids') || [],
-                        idAdded = $(this).data('idAdded'),
-                        nameAdded = $(this).data('nameAdded');
-
-                    // Check to see if patients already exists in the box
-                    if (_.indexOf(idsList, idAdded) !== -1) {
-                        commonjs.showError(userMessage.replace('Search ', '') + ' Already Added');
+                    if ($('#' + ulListProvider + ' li a[data-id="' + $('#' + txtprovider).select2('data')[0].id + '"]').length) {
+                        commonjs.showWarning("Provider is already selected");
                         return false;
-                    } else {
-                        $('#' + ulList).append('<li><span>' + nameAdded + '</span><a class="remove" data-id="' + idAdded + '" id="' + idAdded + '" data-value="' + nameAdded + '"><span class="icon-ic-close"></span></a></li>');
-
-                        idsList.push(~~idAdded);
-                        $('#' + ulList).data('ids', idsList);
                     }
+                    var data_id = $('#' + txtprovider).select2('data')[0].id;
+                    var bind_text = $('#' + txtprovider).select2('data')[0].full_name;
+                    $('#' + ulListProvider).append('<li id="' + data_id + '"><span style="background:#3c91f0; color:white; border:1px solid black">' + bind_text + '</span><a class="remove" data-id="' + $('#' + txtprovider).select2('data')[0].id + '"><span class="icon-ic-close" style="margin-left:8px;"></span></a></li>')
+                    $('#' + txtprovider + 'a span').html('Select Provider');
                 });
 
-                $('#' + ulList).on('click', 'a.remove', function () {
-                    var idsList = $('#' + ulList).data('ids') || [],
-                        idRemoved = $(this).attr('data-id');
-                    idsList = _.without(idsList, ~~idRemoved);
-                    $('#' + ulList).data('ids', idsList);
+                $('#' + ulListProvider).delegate('a.remove', 'click', function () {
                     $(this).closest('li').remove();
-                    return;
+                });
+            },
+
+            bindCPTCodeInformations: function (txtCPTCode, btnCPTCode, ulListCPTCode) {
+                $("#" + txtCPTCode).select2({
+                    ajax: {
+                        url: "/exa_modules/billing/autoCompleteRouter",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                page: params.page || 1,
+                                q: params.term || '',
+                                pageSize: 10,
+                                sortField: "trim(display_description)",
+                                sortOrder: "asc",
+                                company_id: 1
+                            };
+                        },
+                        processResults: function (data, params) {
+                            params.page = params.page || 1;
+                            return {
+                                results: data,
+                                pagination: {
+                                    more: (params.page * 30) < data[0].total_records
+                                }
+                            };
+                        },
+                        cache: true
+                    },
+                    placeholder: 'select CPT Code',
+                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 0,
+                    templateResult: formatRepo,
+                    templateSelection: formatRepoSelection
+                });
+                function formatRepo(repo) {
+                    if (repo.loading) {
+                        return repo.text;
+                    }
+                    var markup1 = "<table><tr class='inActiveRow'>";
+                    markup1 += "<td data-id='" + repo.display_code + "' title='" + repo.display_code + "(" + repo.display_description + ")" + "'><div>" + repo.display_code + "(" + repo.display_description + ")" + "</div>";
+                    return markup1;
+                }
+                function formatRepoSelection(res) {
+                    if (res && res.id) {
+                        res.display_description
+                    }
+                }
+                //txtCPTCode, btnCPTCode, ulListCPTCode
+                $('#' + btnCPTCode).unbind('click').click(function () {
+                    if ($('#s2id_' + txtCPTCode + ' > a.select2-default').length > 0) {
+                        commonjs.showWarning('Please select one CPT to add');
+                        return false;
+                    }
+                    if ($('#' + ulListCPTCode + ' li a[data-id="' + $('#' + txtCPTCode).select2('data')[0].id + '"]').length) {
+                        commonjs.showWarning("Provider is already selected");
+                        return false;
+                    }
+                    var data_id = $('#' + txtCPTCode).select2('data')[0].id;
+                    var bind_text = $('#' + txtCPTCode).select2('data')[0].display_description;
+                    $('#' + ulListCPTCode).append('<li id="' + data_id + '"><span style="background:#3c91f0; color:white; border:1px solid black">' + bind_text + '</span><a class="remove" data-id="' + $('#' + txtCPTCode).select2('data')[0].id + '"><span class="icon-ic-close" style="margin-left:8px;"></span></a></li>')
+                    $('#' + txtCPTCode + 'a span').html('Select CPT');
                 });
 
-                $('#' + ulList).data('ids', []);
+                $('#' + ulListCPTCode).delegate('a.remove', 'click', function () {
+                    $(this).closest('li').remove();
+                });
             }
         };
 

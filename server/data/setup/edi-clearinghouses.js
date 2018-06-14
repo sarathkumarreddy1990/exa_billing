@@ -1,4 +1,4 @@
-const { query, SQL } = require('../index');
+const { query, SQL, queryWithAudit } = require('../index');
 
 module.exports = {
 
@@ -89,7 +89,7 @@ module.exports = {
             communicationInfo,
             isActive } = params;
         let inactivated_dt = isActive ? null : 'now()';
-        
+
         communicationInfo = JSON.parse(communicationInfo);
 
         const sql = SQL` INSERT INTO billing.edi_clearinghouses
@@ -108,10 +108,13 @@ module.exports = {
                                                   , ${name}
                                                   , ${receiverName}
                                                   , ${receiverId}
-                                                  , ${communicationInfo}
-                                                ) RETURNING id`;
+                                                  , ${communicationInfo} )
+                                                  RETURNING *, '{}'::jsonb old_values`;
 
-        return await query(sql);
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: `Created ${code}(${name})`
+        });
     },
 
     update: async function (params) {
@@ -137,9 +140,19 @@ module.exports = {
                             , communication_info = ${communicationInfo}
                             , inactivated_dt = ${inactivated_dt}
                          WHERE
-                              id = ${id}`;
+                              id = ${id}
+                              RETURNING *,
+                                (
+                                    SELECT row_to_json(old_row) 
+                                    FROM   (SELECT * 
+                                            FROM   billing.adjustment_codes 
+                                            WHERE  id = ${id}) old_row 
+                                ) old_values`;
 
-        return await query(sql);
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: `Updated ${code}(${name})`
+        });
     },
 
     delete: async function (params) {
@@ -149,8 +162,11 @@ module.exports = {
         const sql = SQL` DELETE FROM
                              billing.edi_clearinghouses
                          WHERE
-                             id = ${id}`;
+                             id = ${id} RETURNING *, '{}'::jsonb old_values`;
 
-        return await query(sql);
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: 'Deleted.'
+        });
     }
 };

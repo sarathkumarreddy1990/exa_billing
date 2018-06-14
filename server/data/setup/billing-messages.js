@@ -1,4 +1,4 @@
-const { query, SQL } = require('../index');
+const { query, SQL, queryWithAudit } = require('../index');
 
 module.exports = {
 
@@ -70,9 +70,12 @@ module.exports = {
                             , ${code}
                             , ${description} 
                         WHERE NOT EXISTS(SELECT * FROM update_message)
-                        RETURNING id `;
+                        RETURNING *, '{}'::jsonb old_values`;
 
-        return await query(sql);
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: `Created ${description}(${code})`
+        });
     },
 
     update: async (params) => {
@@ -89,8 +92,18 @@ module.exports = {
                               code = ${code}
                             , description = ${description}
                         WHERE
-                            id = ${id} `;
+                            id = ${id}  
+                            RETURNING *,
+                                (
+                                    SELECT row_to_json(old_row) 
+                                    FROM   (SELECT * 
+                                            FROM   billing.adjustment_codes 
+                                            WHERE  id = ${id}) old_row 
+                                ) old_values`;
 
-        return await query(sql);
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: `Updated ${description}(${code})`
+        });
     },
 };
