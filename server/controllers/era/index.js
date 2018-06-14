@@ -1,7 +1,7 @@
 const data = require('../../data/era/index');
 const fs = require('fs');
 const path = require('path');
-//const _ = require('lodash');
+const _ = require('lodash');
 const { promisify } = require('util');
 const readFile = promisify(fs.readFile);
 const ediConnect = require('../../../modules/edi');
@@ -36,8 +36,6 @@ module.exports = {
                 return 'Directory not found in file store';
             }
 
-            //let filename = path.join(eraPath, '/297claims_parsed.json');
-
             eraPath = path.join(eraPath, params.file_id);
 
             let eraRequestText = await readFile(eraPath, 'utf8');
@@ -46,18 +44,16 @@ module.exports = {
 
             const eraResponseJson = await ediConnect.parseEra(templateName, eraRequestText);
 
-            //await writeFile(filename, JSON.stringify(eraResponseJson), 'utf8');
-
             if (params.status == 'pending') {
 
                 processDetails = await self.checkExistInsurance(eraResponseJson);
             }
             else {
 
-                let paymentResult = await self.createPaymentFromERA(params.payer_details, params.file_id, eraResponseJson);
-
+                let paymentResult = await self.createPaymentFromERA(params, eraResponseJson);
+                
                 let claimLists = eraResponseJson.length && eraResponseJson[0].headerNumber ? eraResponseJson[0].headerNumber : {};
-
+                
                 let LineItemsAndClaimLists = await eraParser.getFormatedLineItemsAndClaims(claimLists, params.file_id, params.payer_details);
 
                 processDetails = await self.processPayments(LineItemsAndClaimLists, paymentResult);
@@ -99,9 +95,9 @@ module.exports = {
         return payerDetails;
     },
     
-    createPaymentFromERA: async function (payerDetails, file_id, eraResponseJson) {
+    createPaymentFromERA: async function (params, eraResponseJson) {
 
-        payerDetails = JSON.parse(payerDetails);
+        let payerDetails = JSON.parse(params.payer_details);
 
         let reassociation = eraResponseJson.length ? eraResponseJson[0].reassociationTraceNumber : {};
         let financialInfo = eraResponseJson.length && eraResponseJson[0].financialInformation && eraResponseJson[0].financialInformation.length ? eraResponseJson[0].financialInformation[0] : {};
@@ -109,6 +105,7 @@ module.exports = {
         let monetoryAmount = financialInfo.monetoryAmount ? parseFloat(financialInfo.monetoryAmount).toFixed(2) : 0.00;
         let notes = 'Amount shown in EOB:' + monetoryAmount;
 
+        notes += '\n \n'+params.file_id + '.ERA';
         payerDetails.paymentId = null;
         payerDetails.company_id = payerDetails.company_id;
         payerDetails.user_id = payerDetails.created_by;
@@ -131,7 +128,7 @@ module.exports = {
         let paymentResult = await paymentController.createOrUpdatePayment(payerDetails);
 
         paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
-        paymentResult.file_id = file_id;
+        paymentResult.file_id = params.file_id;
         paymentResult.created_by = payerDetails.created_by;
 
         await data.createEdiPayment(paymentResult);
@@ -141,18 +138,8 @@ module.exports = {
 
     processPayments: async function (claimLists, paymentDetails) {
 
-        //console.log(JSON.stringify(claimLists))
         let processedClaims = await data.createPaymentApplication(claimLists, paymentDetails);
         
-        // if(processedClaims && processedClaims.rows.length){
-        //     console.log('Before merge-->', processedClaims.rows[0].insert_edi_file_claims);
-        //     let result = _.map(claimLists.ediFileClaims, function (obj) {
-        //         if(processedClaims.rows[0].insert_edi_file_claims && ( processedClaims.rows[0].insert_edi_file_claims.indexOf(parseInt(obj.claim_number)) > -1 ) ){
-        //         }
-        //     });
-        //     console.log('After merge-->', processedClaims.rows[0].insert_edi_file_claims);
-        // }
-
         return processedClaims;
     },
     

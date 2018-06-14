@@ -6,6 +6,7 @@ module.exports = {
     getFormatedLineItemsAndClaims: async function (claimLists, file_id, payer_details) {
 
         let ediFileClaims = [];
+        let claimComments = [];
         let lineItems = [];
 
         payer_details = JSON.parse(payer_details);
@@ -114,11 +115,39 @@ module.exports = {
                 deductible: deductible
             });
 
+            if(co_pay !=''){
+
+                claimComments.push({
+                    claim_number: value.claimNumber,
+                    note: 'Co-Pay of ' + co_pay + ' is due',
+                    type:'co_pay'
+                });
+            }
+
+            if(co_insurance !=''){
+
+                claimComments.push({
+                    claim_number: value.claimNumber,
+                    note: 'Co-Insurance of ' + co_insurance + ' is due',
+                    type:'co_insurance'
+                });
+            }
+
+            if(deductible !=''){
+
+                claimComments.push({
+                    claim_number: value.claimNumber,
+                    note: 'Deductible of ' + deductible + ' is due',
+                    type:'deductible'
+                });
+            }
+
         });
 
         return {
             lineItems: lineItems,
-            ediFileClaims: ediFileClaims
+            ediFileClaims: ediFileClaims,
+            claimComments: claimComments
         };
 
     }

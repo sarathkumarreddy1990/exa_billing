@@ -60,6 +60,7 @@ module.exports = {
         let {
             lineItems
             , ediFileClaims
+            , claimComments
         } = params;
 
         const sql =SQL` WITH application_details AS (
@@ -91,9 +92,18 @@ module.exports = {
                                 FROM 
                                 application_details  
                                 INNER JOIN billing.claims c on c.id = application_details.claim_number
-                                INNER JOIN billing.charges ch on ch.claim_id = c.id
-                                INNER JOIN cpt_codes on cpt_codes.id = ch.cpt_id AND application_details.cpt_code = cpt_codes.display_code
-                                WHERE NOT cpt_codes.has_deleted AND cpt_codes.is_active
+                                INNER JOIN LATERAL (
+                                    SELECT 
+                                       ch.id
+                                    FROM 
+                                        billing.charges ch	
+                                   INNER JOIN cpt_codes on cpt_codes.id = ch.cpt_id AND cpt_codes.display_code = application_details.cpt_code 
+                                   WHERE 
+                                    ch.claim_id = c.id 
+                                    AND NOT cpt_codes.has_deleted 
+                                    AND cpt_codes.is_active 
+                                    ORDER BY id ASC LIMIT 1
+                                ) AS charges ON true
                            ), 
                            insert_payment AS (
                                   INSERT INTO billing.payment_applications
@@ -150,6 +160,31 @@ module.exports = {
                                     )
                                 INNER JOIN billing.claims c on c.id = edi_claims.claim_number
                                 RETURNING claim_id, edi_file_id
+                                ),
+                            insert_claim_comments AS (
+                                INSERT INTO billing.claim_comments
+                                (
+                                    claim_id
+                                    ,note
+                                    ,type
+                                    ,created_by
+                                    ,created_dt
+                                )
+                                SELECT 
+                                    claim_number 
+                                    ,note
+                                    ,type
+                                    ,${paymentDetails.created_by}
+                                    ,'now()'
+                                FROM 
+                                    json_to_recordset(${JSON.stringify(claimComments)}) AS claim_notes
+                                    (
+                                        claim_number bigint
+                                        ,note text
+                                        ,type text
+                                    )
+                                INNER JOIN billing.claims c on c.id = claim_notes.claim_number
+                                RETURNING id AS claim_comment_id
                                 )
                             SELECT
 	                            ( SELECT json_agg(row_to_json(insert_adjustment)) insert_adjustment
