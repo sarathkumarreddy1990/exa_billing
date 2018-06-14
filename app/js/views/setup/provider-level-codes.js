@@ -189,11 +189,15 @@ define(['jquery',
                         },
                         description: {
                             required: true
+                        },
+                        readProvPercLvl : {
+                            required: true
                         }
                     },
                     messages: {
                         code: commonjs.getMessage("*", "Code"),
-                        description: commonjs.getMessage("*", "Description")
+                        description: commonjs.getMessage("*", "Description"),
+                        readProvPercLvl: commonjs.getMessage("*", "Reading Provider Percent Level")
                     },
                     submitHandler: function () {
                         self.save();
@@ -204,6 +208,10 @@ define(['jquery',
             },
 
             save: function () {
+                if (!commonjs.checkInteger($('#txtReadProvPercLvl').val())) {
+                    $('#txtReadProvPercLvl').focus();
+                    return commonjs.showWarning("Please Enter a number");
+                }
                 this.model.set({
                     "companyId" : app.companyID,
                     "isActive" : !$('#chkActive').prop('checked'),

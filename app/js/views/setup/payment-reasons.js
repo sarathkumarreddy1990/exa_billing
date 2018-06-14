@@ -51,20 +51,17 @@ define([
                         },
                         {
                             name: 'edit',
-                            width: 50,
+                            width: 10,
                             sortable: false,
                             search: false,
                             className: 'icon-ic-edit',
                             route: '#setup/payment_reasons/edit/',
                             formatter: function (e, model, data) {
                                 return `<span class='icon-ic-edit' title='click Here to Edit'></span>`;
-                            },
-                            cellattr: function () {
-                                return 'style=text-align:center;cursor:pointer;'
                             }
                         },
                         {
-                            name: 'del', width: 50, sortable: false, search: false,
+                            name: 'del', width: 10, sortable: false, search: false,
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
                                 if (confirm("Are you sure want to delete")) {
@@ -81,22 +78,15 @@ define([
                                     });
                                 }
                             },
-
                             formatter: function (e, model, data) {
                                 return `<span class='icon-ic-delete' title='click Here to Delete'></span>`;
-                            },
-
-                            cellattr: function () {
-                                return 'style=text-align:center;cursor:pointer;';
                             }
                         },
                         {
-                            name: 'code',
-                            width: 180
+                            name: 'code'
                         },
                         {
-                            name: 'description',
-                            width: 180
+                            name: 'description'
                         }
                     ],
                     datastore: self.paymentReasonsList,
@@ -175,7 +165,7 @@ define([
                 var self = this;
                 commonjs.validateForm({
                     rules: {
-                        name: {
+                        code: {
                             required: true
                         },
                         description: {
@@ -183,7 +173,7 @@ define([
                         }
                     },
                     messages: {
-                        name: commonjs.getMessage("*", "Reason"),
+                        code: commonjs.getMessage("*", "Reason"),
                         description: commonjs.getMessage("*", "Description")
                     },
                     submitHandler: function () {
