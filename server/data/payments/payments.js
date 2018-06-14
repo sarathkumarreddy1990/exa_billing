@@ -5,7 +5,7 @@ module.exports = {
     getPayments: async function (params) {
         let whereQuery = [];
         params.sortOrder = params.sortOrder || ' ASC';
-        params.sortField = params.sortField =='id'?' payments.id ':params.sortField;
+        params.sortField = params.sortField == 'id' ? ' payments.id ' : params.sortField;
         let {
             payment_id,
             display_id,
@@ -31,12 +31,12 @@ module.exports = {
             isGetTotal
         } = params;
 
-        if(fromDate && toDate){
+        if (fromDate && toDate) {
             whereQuery.push(`${filterByDateType} BETWEEN  '${fromDate}'::date AND '${toDate}'::date`);
         }
 
-        if(paymentStatus){
-            whereQuery.push(`(select payment_status from billing.get_payment_totals(payments.id))=ANY(string_to_array('${params.paymentStatus}',','))`);          
+        if (paymentStatus) {
+            whereQuery.push(`(select payment_status from billing.get_payment_totals(payments.id))=ANY(string_to_array('${params.paymentStatus}',','))`);
         }
 
         if (payment_id) {
@@ -72,16 +72,16 @@ module.exports = {
         }
 
         if (available_balance) {
-            whereQuery.push(`(select payment_balance_total from billing.get_payment_totals(payments.id))=${available_balance}::money`);        
+            whereQuery.push(`(select payment_balance_total from billing.get_payment_totals(payments.id))=${available_balance}::money`);
         }
 
         if (applied) {
-            whereQuery.push(`(select payments_applied_total from billing.get_payment_totals(payments.id))=${applied}::money`);       
+            whereQuery.push(`(select payments_applied_total from billing.get_payment_totals(payments.id))=${applied}::money`);
         }
 
         if (adjustment_amount) {
-            whereQuery.push(`(select adjustments_applied_total from billing.get_payment_totals(payments.id))=${adjustment_amount}::money`); 
-            
+            whereQuery.push(`(select adjustments_applied_total from billing.get_payment_totals(payments.id))=${adjustment_amount}::money`);
+
         }
 
         if (user_full_name) {
@@ -96,7 +96,7 @@ module.exports = {
             whereQuery.push(`facility_name  ILIKE '%${facility_name}%' `);
         }
 
-        let joinQuery =` INNER JOIN public.users ON users.id = payments.created_by
+        let joinQuery = ` INNER JOIN public.users ON users.id = payments.created_by
         LEFT JOIN public.patients ON patients.id = payments.patient_id
         LEFT JOIN public.provider_groups ON provider_groups.id = payments.provider_group_id
         LEFT JOIN public.provider_contacts ON provider_contacts.id = payments.provider_contact_id
@@ -104,14 +104,14 @@ module.exports = {
         LEFT JOIN public.insurance_providers  ON insurance_providers.id = payments.insurance_provider_id
         LEFT JOIN public.facilities ON facilities.id = payments.facility_id `;
 
-        let sql ='';
+        let sql = '';
 
-        if(isGetTotal){
+        if (isGetTotal) {
             sql = SQL` SELECT SUM(amount) as total_amount,
                         SUM((select payments_applied_total from billing.get_payment_totals(payments.id))::money) as total_applied,
                         SUM((select adjustments_applied_total from billing.get_payment_totals(payments.id))::money) as total_adjustment
                         FROM billing.payments `;
-        }else{
+        } else {
             sql = SQL`SELECT
                           payments.id
                         ,payments.id as payment_id
@@ -150,15 +150,15 @@ module.exports = {
                     FROM billing.payments`;
 
         }
-      
+
         sql.append(joinQuery);
 
         if (whereQuery.length) {
             sql.append(SQL` WHERE `)
                 .append(whereQuery.join(' AND '));
         }
-            
-        if(!isGetTotal){
+
+        if (!isGetTotal) {
             sql.append(SQL` ORDER BY  `)
                 .append(sortField)
                 .append(' ')
@@ -323,24 +323,9 @@ module.exports = {
     },
 
     createPaymentapplications: async function (params) {
+        let { user_id, paymentId, line_items, adjestmentId } = params;
 
-        const sql = SQL`WITH application_details AS(
-                                    SELECT 
-                                          payment_id
-                                        , charge_id
-                                        , payment_amount
-                                        , adjustment_amount
-                                        , adjestment_id
-                                        , created_by
-                                    FROM json_to_recordset(${JSON.stringify(params.appliedPaymets)}) AS details(
-                                          payment_id BIGINT
-                                        , charge_id BIGINT
-                                        , payment_amount MONEY
-                                        , adjustment_amount MONEY
-                                        , adjestment_id BIGINT
-                                        , created_by BIGINT)
-                                    ),
-                             claim_comment_details AS(
+        const sql = SQL`WITH claim_comment_details AS(
                                     SELECT 
                                           claim_id
                                         , note
@@ -353,15 +338,7 @@ module.exports = {
                                         , created_by BIGINT)
                                     ),
                              insert_application AS(
-                                SELECT billing.create_payment_application(
-                                      payment_id
-                                    , charge_id
-                                    , payment_amount
-                                    , adjustment_amount
-                                    , adjestment_id
-                                    , created_by
-                                )
-                                FROM application_details
+                                SELECT billing.create_payment_applications(${paymentId},${adjestmentId},${user_id},(${line_items})::jsonb)
                              ),
                              update_claims AS(
                                     UPDATE billing.claims

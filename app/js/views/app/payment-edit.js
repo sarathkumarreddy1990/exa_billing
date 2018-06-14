@@ -1057,10 +1057,9 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     var amount = $('#txtAmount' + k).val()
 
                     if (groupCode != '' && reasonCode != '' && amount != '') {
-                        emptyCasObj['group_code' + k] = groupCode;
-                        emptyCasObj['group_reason' + k] = reasonCode;
-                        emptyCasObj['amount' + k] = amount;
-                        emptyCasObj['payment_application_id'] = payment_application_id;
+                        emptyCasObj['group_code_id'] = groupCode;
+                        emptyCasObj['reason_code_id'] = reasonCode;
+                        emptyCasObj['amount'] = amount;
                         casObj.push(emptyCasObj);
                         hasReturned = true;
                     }
