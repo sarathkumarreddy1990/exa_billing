@@ -110,18 +110,18 @@ define(['jquery',
                             searchFlag: '%'
                         },
                         {
-                            name: 'address_line1',
-                         //    width: 180,
+                            name: 'address',
+                            width: 400,
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject) {
-                                    return `${rowObject.address_line1}, ${rowObject.address_line2}`;
+                                    return `${rowObject.address}, ${rowObject.address_line2}`;
                                 }
                             },
                             searchFlag: '%'
                         },
                         {
-                            name: 'phone_number',
-                          //   width: 180,
+                            name: 'phoneNumber',
+                            width: 200,
                             searchFlag: '%'
                         },
                     ],

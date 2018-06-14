@@ -1,11 +1,12 @@
 const data = require('../../data/era/index');
 const fs = require('fs');
 const path = require('path');
-const _ = require('lodash');
+//const _ = require('lodash');
 const { promisify } = require('util');
 const readFile = promisify(fs.readFile);
 const ediConnect = require('../../../modules/edi');
 const paymentController = require('../payments/payments');
+const eraParser = require('./era-parser');
 
 module.exports = {
 
@@ -15,21 +16,27 @@ module.exports = {
 
     processERAFile: async function (params) {
         let self = this,
-            InsuranceDetails;
-        let eraPath = path.join('D:/ERA');
+            processDetails,
+            eraPath,
+            rootDir;
         let templateName = '835_template_1';
+
+        const eraFileDir = await data.getERAFilePathById(params);
+
+        rootDir = eraFileDir.rows && eraFileDir.rows.length && eraFileDir.rows[0].root_directory ? eraFileDir.rows[0].root_directory : '';
+        eraPath = eraFileDir.rows && eraFileDir.rows.length && eraFileDir.rows[0].file_path ? eraFileDir.rows[0].file_path : '';
+        
+        eraPath = path.join(rootDir, eraPath);
 
         try {
             let dirExists = fs.existsSync(eraPath);
 
             if (!dirExists) {
 
-                return 'No file';
+                return 'Directory not found in file store';
             }
 
-            //let filename = path.join(eraPath, '/297claims_parsed.json');
-
-            eraPath = path.join(eraPath, '/297claims.txt');
+            eraPath = path.join(eraPath, params.file_id);
 
             let eraRequestText = await readFile(eraPath, 'utf8');
 
@@ -37,25 +44,23 @@ module.exports = {
 
             const eraResponseJson = await ediConnect.parseEra(templateName, eraRequestText);
 
-            //await writeFile(filename, JSON.stringify(eraResponseJson), 'utf8');
-
             if (params.status == 'pending') {
 
-                InsuranceDetails = await self.checkExistInsurance(eraResponseJson);
+                processDetails = await self.checkExistInsurance(eraResponseJson);
             }
             else {
 
-                let paymentResult = await self.createPaymentFromERA(params.payer_details, params.file_id, eraResponseJson);
+                let paymentResult = await self.createPaymentFromERA(params, eraResponseJson);
+                
+                let claimLists = eraResponseJson.length && eraResponseJson[0].headerNumber ? eraResponseJson[0].headerNumber : {};
+                
+                let LineItemsAndClaimLists = await eraParser.getFormatedLineItemsAndClaims(claimLists, params.file_id, params.payer_details);
 
-                let orderLists = eraResponseJson.length && eraResponseJson[0].headerNumber ? eraResponseJson[0].headerNumber : {};
-
-                let LineItemsAndClaimLists = await self.getFormatedLineItemsAndClaims(orderLists, params.file_id);
-
-                InsuranceDetails = await self.processPayments(LineItemsAndClaimLists, paymentResult);
+                processDetails = await self.processPayments(LineItemsAndClaimLists, paymentResult);
 
             }
 
-            return InsuranceDetails;
+            return processDetails;
 
         } catch (err) {
             throw err;
@@ -90,9 +95,9 @@ module.exports = {
         return payerDetails;
     },
     
-    createPaymentFromERA: async function (payerDetails, file_id, eraResponseJson) {
+    createPaymentFromERA: async function (params, eraResponseJson) {
 
-        payerDetails = JSON.parse(payerDetails);
+        let payerDetails = JSON.parse(params.payer_details);
 
         let reassociation = eraResponseJson.length ? eraResponseJson[0].reassociationTraceNumber : {};
         let financialInfo = eraResponseJson.length && eraResponseJson[0].financialInformation && eraResponseJson[0].financialInformation.length ? eraResponseJson[0].financialInformation[0] : {};
@@ -100,6 +105,7 @@ module.exports = {
         let monetoryAmount = financialInfo.monetoryAmount ? parseFloat(financialInfo.monetoryAmount).toFixed(2) : 0.00;
         let notes = 'Amount shown in EOB:' + monetoryAmount;
 
+        notes += '\n \n'+params.file_id + '.ERA';
         payerDetails.paymentId = null;
         payerDetails.company_id = payerDetails.company_id;
         payerDetails.user_id = payerDetails.created_by;
@@ -122,7 +128,7 @@ module.exports = {
         let paymentResult = await paymentController.createOrUpdatePayment(payerDetails);
 
         paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
-        paymentResult.file_id = file_id;
+        paymentResult.file_id = params.file_id;
         paymentResult.created_by = payerDetails.created_by;
 
         await data.createEdiPayment(paymentResult);
@@ -130,73 +136,11 @@ module.exports = {
         return paymentResult;
     },
 
-    getFormatedLineItemsAndClaims: async function (orderLists, file_id) {
-
-        let ediFileClaims = [];
-        let lineItems = [];
-
-        await _.each(orderLists, function (value) {
-            value = value.claimPaymentInformation && value.claimPaymentInformation.length ? value.claimPaymentInformation[0] : {};
-
-            _.each(value.servicePaymentInformation, function (val) {
-
-                let serviceAdjustment = _.reject(val.serviceAdjustment, { groupCode: 'PR' });
-                let adjustmentAmount = _.map(serviceAdjustment, function (obj) {
-                    let amountArray = [];
-
-                    for (let i = 1; i <= 7; i++) {
-
-                        if (obj['monetaryAmount' + i]) {
-                            amountArray.push(parseFloat(obj['monetaryAmount' + i]));
-                        }
-                    }
-
-                    return _.sum(amountArray);
-                });
-                /**
-                *  Condition : Apply adjustment only for primary payer
-                *  DESC : Primary payers are defined via the claim status of 1 or 19
-                */
-                adjustmentAmount = ['1', '19'].indexOf(value.claimStatusCode) == -1 ? 0 : adjustmentAmount[0];
-
-                lineItems.push({
-                    bill_fee: val.billFee,
-                    this_pay: val.paidamount,
-                    units: val.units,
-                    cpt_code: val.qualifierData.cptCode,
-                    modifier1: val.qualifierData.modifier1 || '',
-                    modifier2: val.qualifierData.modifier2 || '',
-                    modifier3: val.qualifierData.modifier3 || '',
-                    modifier4: val.qualifierData.modifier4 || '',
-                    claim_date: value.claimDate && value.claimDate.claimDate ? value.claimDate.claimDate : '',
-                    claim_number: value.claimNumber,
-                    claim_status_code: value.claimStatusCode,
-                    total_paid_amount: value.paidAmount,
-                    total_billfee: value.totalBillFee,
-                    claim_frequency_code: value.claimFrequencyCode,
-                    cas_obj: val.serviceAdjustment,
-                    this_adj: adjustmentAmount
-                    
-                });
-            });
-
-            ediFileClaims.push({
-                claim_number: value.claimNumber,
-                edi_file_id: file_id
-            });
-
-        });
-
-        return {
-            lineItems: lineItems,
-            ediFileClaims: ediFileClaims
-        };
-
-    },
-
     processPayments: async function (claimLists, paymentDetails) {
 
-        return await data.createPaymentApplication(claimLists, paymentDetails);
+        let processedClaims = await data.createPaymentApplication(claimLists, paymentDetails);
+        
+        return processedClaims;
     },
     
     checkERAFileIsProcessed: async function (fileMd5, company_id) {

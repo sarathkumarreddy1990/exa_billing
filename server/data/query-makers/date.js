@@ -11,7 +11,7 @@ module.exports = (fieldID, fieldValue) => {
     const useToFacilityDate = ['studies.study_dt', 'studies.schedule_dt', 'studies.study_received_dt', 'studies.approved_dt'].includes(fieldID);  // This is a hack to force query planner to use specific index which is much faster
 
     if (fromToDates.length === 1) {
-        const date = moment(fromToDates[0], "YYYY-MM-DD");
+        const date = moment(fromToDates[0], 'YYYY-MM-DD');
 
         if (date.isValid()) {
             if (useToFacilityDate) {
@@ -21,8 +21,8 @@ module.exports = (fieldID, fieldValue) => {
             return ` ((${fieldID})::date = ('${date.format('YYYY-MM-DD')}')::date)`;
         }
     } else if (fromToDates.length === 2) {
-        const from = moment(fromToDates[0], "YYYY-MM-DD");
-        const to = moment(fromToDates[1], "YYYY-MM-DD");
+        const from = moment(fromToDates[0], 'YYYY-MM-DD');
+        const to = moment(fromToDates[1], 'YYYY-MM-DD');
 
         if (from.isValid() && to.isValid()) {
             if (useToFacilityDate) {
@@ -33,5 +33,5 @@ module.exports = (fieldID, fieldValue) => {
         }
     }
 
-    return ``;
+    return '';
 };

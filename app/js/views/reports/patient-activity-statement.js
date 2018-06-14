@@ -59,7 +59,7 @@ define([
                
             },         
            
-            onReportViewClick: function (e) {
+            onReportViewClick: function (e, claimInfo) {
                 var btnClicked = e && e.target ? $(e.target) : null;
                 this.getSelectedFacility();
                 this.getBillingProvider();
@@ -71,7 +71,9 @@ define([
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = openInNewTab && rFormat === 'pdf';
                 this.viewModel.paymentOptions = $('#ddlPaymentOption').val();
-                    var urlParams = this.getReportParams();
+                    var urlParams = {
+                        claimID : claimInfo
+                    }
                     UI.showReport('patient-activity-statement', this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
             },
           

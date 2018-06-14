@@ -43,7 +43,7 @@ const colModel = [
     {
         name: 'department',
         searchFlag: 'hstore',
-        searchColumns: ["study_info->'department'"]
+        searchColumns: [`study_info->'department'`]
     },
     {
         name: 'check_indate',
@@ -79,7 +79,7 @@ const colModel = [
     },
     {
         name: 'refphy_name',
-        searchColumns: [`providers_ref.full_name`],
+        searchColumns: ['providers_ref.full_name'],
         searchFlag: '%'
     },
     {
@@ -138,13 +138,13 @@ const colModel = [
     },
     {
         name: 'readphy_name',
-        searchColumns: ["study_info->'readDescription'", "study_details->>'name_phys_reading_study'"],
+        searchColumns: [`study_info->'readDescription'`, `study_details->>'name_phys_reading_study'`],
         searchFlag: ['hstore', 'json'],
         searchCondition: 'OR'
     },
     {
         name: 'patient_age',
-        searchColumns: [`dicom_age(extract(days from (studies.study_dt - patients.birth_date))::integer)`],
+        searchColumns: ['dicom_age(extract(days FROM (studies.study_dt - patients.birth_date))::integer)'],
         searchFlag: '%'
     },
     {
@@ -154,7 +154,7 @@ const colModel = [
     },
     {
         name: 'vehicle_name',
-        searchColumns: ["vehicles.vehicle_name"],
+        searchColumns: ['vehicles.vehicle_name'],
         searchFlag: '%'
     },
     {
@@ -164,7 +164,7 @@ const colModel = [
     },
     {
         name: 'claim_status',
-        searchColumns: ["adj1.description"],
+        searchColumns: ['adj1.description'],
         searchFlag: '%'
     },
     {
@@ -179,7 +179,7 @@ const colModel = [
     },
     {
         name: 'technologist_name',
-        searchColumns: ["providers.full_name"],
+        searchColumns: ['providers.full_name'],
         searchFlag: '%'
     },
     {
@@ -226,12 +226,12 @@ const colModel = [
     },
     {
         name: 'billing_code',
-        searchColumns: ["adj2.description"],
+        searchColumns: ['adj2.description'],
         searchFlag: '%'
     },
     {
         name: 'billing_class',
-        searchColumns: ["adj3.description"],
+        searchColumns: ['adj3.description'],
         searchFlag: '%'
     },
     {
@@ -273,7 +273,8 @@ const colModel = [
     },
     {
         name: 'eligibility_verified',
-        searchColumns: [`(eligibility.verified OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)`], 
+        searchColumns: [`(eligibility.verified OR 
+            COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)`], 
         searchFlag: 'bool_null'
     },
     {
@@ -283,7 +284,7 @@ const colModel = [
     },
     {
         name: 'stat_level',
-        searchColumns: [`studies.stat_level`],
+        searchColumns: ['studies.stat_level'],
         searchFlag: 'int'
     },
     {
@@ -318,7 +319,8 @@ const api = {
     `,
 
     getSettingsFilter: function () {
-        return ` COALESCE(dicom_status,'') in ('CO','IP','NA','') `;
+        return ` COALESCE(dicom_status,'') 
+        in ('CO','IP','NA','') `;
     },
 
     
@@ -356,37 +358,37 @@ const api = {
     getSortFields: function (args, screenName) {
         //console.log('getSortFields: ', args, screenName);
         switch (args) {
-        case "insurance_providers":     return  'orders.insurance_providers';
-        case "image_delivery":          return  'imagedelivery.image_delivery';
-        case "eligibility_verified": return `(COALESCE(eligibility.verified, false) OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)`;
-        case "station":                 return  "study_info->'station'";
-        case "has_deleted":             return  "studies.has_deleted";
-        case "send_status":             return  "studies.study_info->'send_status'";
-        case "billing_code":            return  "orders.order_info->'billing_code'";
-        case "billing_class":           return  "orders.order_info->'billing_class'";
-        case "fax_status":              return  "studies.study_info->'fax_status'";
-        case "no_of_instances":         return  "studies.no_of_instances";
-        case "department":              return  "studies.study_info->'department'";
-        case "created_date":            return  "orders.ordered_dt";
-        case "dicom_status": // this might not be needed any more
-        case "status_code":             return  "studies.study_status";
-        case "patient_name":            return  "patients.last_name";
-        case "last_name":               return  "patients.last_name";
-        case "first_name":              return  "patients.first_name";
-        case "full_name":               return  "patients.full_name";
-        case "birth_date":              return  "patients.birth_date::text";
-        case "refphy_name":
-        case "ref_phy":
-            if (screenName == "Encounter") {
-                return  "providers.full_name";
+        case 'insurance_providers':     return  'orders.insurance_providers';
+        case 'image_delivery':          return  'imagedelivery.image_delivery';
+        case 'eligibility_verified':    return `(COALESCE(eligibility.verified, false) OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)`;
+        case 'station':                 return  "study_info->'station'";
+        case 'has_deleted':             return  'studies.has_deleted';
+        case 'send_status':             return  "studies.study_info->'send_status'";
+        case 'billing_code':            return  "orders.order_info->'billing_code'";
+        case 'billing_class':           return  "orders.order_info->'billing_class'";
+        case 'fax_status':              return  "studies.study_info->'fax_status'";
+        case 'no_of_instances':         return  'studies.no_of_instances';
+        case 'department':              return  "studies.study_info->'department'";
+        case 'created_date':            return  'orders.ordered_dt';
+        case 'dicom_status': // this might not be needed any more
+        case 'status_code':             return  'studies.study_status';
+        case 'patient_name':            return  'patients.last_name';
+        case 'last_name':               return  'patients.last_name';
+        case 'first_name':              return  'patients.first_name';
+        case 'full_name':               return  'patients.full_name';
+        case 'birth_date':              return  'patients.birth_date::text';
+        case 'refphy_name':
+        case 'ref_phy':
+            if (screenName == 'Encounter') {
+                return  'providers.full_name';
             }
 
             if (screenName == 'Orders') {
-                return  "orders.referring_providers[1]";
+                return  'orders.referring_providers[1]';
             }
 
-            return "providers_ref.full_name";
-        case "attorney_name":
+            return 'providers_ref.full_name';
+        case 'attorney_name':
             return `(SELECT
                         get_full_name(last_name, first_name, middle_initial, NULL, suffix)
                     FROM
@@ -394,80 +396,80 @@ const api = {
                     WHERE
                         studies.attorney_provider_id = providers.id)
                     `;
-        case "study_description":
-        case "display_description":
-            if (screenName == "Encounter") {
-                return  "cpt_codes.display_description";
+        case 'study_description':
+        case 'display_description':
+            if (screenName == 'Encounter') {
+                return  'cpt_codes.display_description';
             }
 
             return 'studies.study_description';
-        case "readphy_name":            return  `study_info->'readDescription'`;
-        case "study_received_dt":       return  "studies.study_received_dt";
-        case "approved_dt":             return  "studies.approved_dt";
-        case "study_status_description":
-            if (screenName == "Encounter") {
-                return  "orders.order_status_desc";
+        case 'readphy_name':            return  `study_info->'readDescription'`;
+        case 'study_received_dt':       return  'studies.study_received_dt';
+        case 'approved_dt':             return  'studies.approved_dt';
+        case 'study_status_description':
+            if (screenName == 'Encounter') {
+                return  'orders.order_status_desc';
             }
 
-            return  "study_status.status_desc";
-        case "study_flag":              return  "study_flags.description";
-        case "priority":                return  "studies.priority";
-        case "modalities":
-            if (screenName == "Orders") {
-                return  "modalities.modality_code";
+            return  'study_status.status_desc';
+        case 'study_flag':              return  'study_flags.description';
+        case 'priority':                return  'studies.priority';
+        case 'modalities':
+            if (screenName == 'Orders') {
+                return  'modalities.modality_code';
             }
 
-            return  "studies.modalities";
-        case "body_part":               return  "studies.body_part";
-        case "status_last_changed_dt":  return  "studies.status_last_changed_dt";
-        case "scheduled_dt":
-        case "schedule_date":           return  "studies.schedule_dt";
-        case "study_dt":                return "studies.study_dt";
-        case "study_status":
-            if (screenName == "Encounter") {
-                return "orders.order_status_desc";
+            return  'studies.modalities';
+        case 'body_part':               return  'studies.body_part';
+        case 'status_last_changed_dt':  return  'studies.status_last_changed_dt';
+        case 'scheduled_dt':
+        case 'schedule_date':           return  'studies.schedule_dt';
+        case 'study_dt':                return 'studies.study_dt';
+        case 'study_status':
+            if (screenName == 'Encounter') {
+                return 'orders.order_status_desc';
             }
 
-            return  "studies.study_status";
-        case "patient_age":
-            if (screenName == "Encounter") {
+            return  'studies.study_status';
+        case 'patient_age':
+            if (screenName == 'Encounter') {
                 return  `order_info->'patient_age'`;
             }
 
-            return `extract(days from (studies.study_dt - patients.birth_date))`;
-        case "gender": return "patients.gender";
-        case "mu_last_updated_by":      return `orders.order_info->'lastMuUpdatedBy'`;
+            return 'extract(days from (studies.study_dt - patients.birth_date))';
+        case 'gender': return 'patients.gender';
+        case 'mu_last_updated_by':      return `orders.order_info->'lastMuUpdatedBy'`;
         case 'accession_no':
-            if (screenName == "Encounter") {
-                return  "orders.id";
+            if (screenName == 'Encounter') {
+                return  'orders.id';
             }
 
             return 'studies.accession_no';
-        case "requesting_date":         return  `to_timestamp(orders.order_info->'requestingDate', 'MM/DD/YYYY')`;
-        case "days_count":              return  "studies.study_info->'preOrderDays'";
-        case "days_left":               return  "studies.study_info->'preOrderDays'";
-        case "ordering_facility":       return  "orders.order_info->'ordering_facility'";
-        case "technologist_name":       return  "providers.full_name";
-        case "payer_name":              return  "orders.order_info->'payer_name'";
-        case "claim_status":            return  "orders.order_info->'claim_status'";
-        case "check_indate":            return  `text_to_isots(studies.study_info->'Check-InDt')`;             // optimization! use sutom immutable function (instead of timestamptz) and corresponding index to improve query time
-        case "approving_provider_ref":  return  "approving_provider_ref.full_name";
-        case "approving_provider":      return "approving_provider_ref.full_name";
-        case "claim_no":                return  "orders.id";
-        case "ordered_by":              return  "orders.ordered_by";
-        case "vehicle_name":            return  "vehicles.vehicle_name";
-        case "order_type":              return  "orders.order_type";
-        case "cpt_codes":               return  "studies.cpt_codes";
-        case "mu_last_updated":         return  "orders.mu_last_updated";
-        case "report_queue_status":     return 'report_queue_status_query';
-        case "account_no":              return "patients.account_no";
-        case "modality_room_id":        return 'orders.modality_room_id';
-        case "institution":             return 'studies.institution';
-        case "as_authorization":        return 'auth.as_authorization';
-        case "facility_name":           return 'facilities.facility_name';
-        case "tat_level":               return 'tat.level';
-        case "patient_room":        return  "orders.order_info->'patientRoom'"; //***For EXA-7148 -- Add Room Number colum to Facility Portal***//
-        case "visit_no":                return `orders.order_info->'visit_no'`;
+        case 'requesting_date':         return  `to_timestamp(orders.order_info->'requestingDate', 'MM/DD/YYYY')`;
+        case 'days_count':              return  `studies.study_info->'preOrderDays'`;
+        case 'days_left':               return  `studies.study_info->'preOrderDays'`;
+        case 'ordering_facility':       return  `orders.order_info->'ordering_facility'`;
+        case 'technologist_name':       return  'providers.full_name';
+        case 'payer_name':              return  `orders.order_info->'payer_name'`;
+        case 'claim_status':            return  `orders.order_info->'claim_status'`;
+        case 'check_indate':            return  `text_to_isots(studies.study_info->'Check-InDt')`;             // optimization! use sutom immutable function (instead of timestamptz) and corresponding index to improve query time
+        case 'approving_provider_ref':  return  'approving_provider_ref.full_name';
+        case 'approving_provider':      return 'approving_provider_ref.full_name';
+        case 'claim_no':                return  'orders.id';
+        case 'ordered_by':              return  'orders.ordered_by';
+        case 'vehicle_name':            return  'vehicles.vehicle_name';
+        case 'order_type':              return  'orders.order_type';
+        case 'cpt_codes':               return  'studies.cpt_codes';
+        case 'mu_last_updated':         return  'orders.mu_last_updated';
+        case 'report_queue_status':     return 'report_queue_status_query';
+        case 'account_no':              return 'patients.account_no';
+        case 'modality_room_id':        return 'orders.modality_room_id';
+        case 'institution':             return 'studies.institution';
+        case 'as_authorization':        return 'auth.as_authorization';
+        case 'facility_name':           return 'facilities.facility_name';
+        case 'tat_level':               return 'tat.level';
+        case 'patient_room':            return  `orders.order_info->'patientRoom'`; //***For EXA-7148 -- Add Room Number colum to Facility Portal***//
+        case 'visit_no':                return `orders.order_info->'visit_no'`;
         }
 
         return args;
@@ -480,9 +482,9 @@ const api = {
         
 
         if (args.filterQuery){
-            args.filterQuery += ` AND `;
+            args.filterQuery += ' AND ';
         }else{
-            args.filterQuery = ` WHERE `;
+            args.filterQuery = ' WHERE ';
         }
 
         args.filterQuery += ` studies.study_dt IS NOT NULL  
@@ -508,9 +510,9 @@ const api = {
             params.push(args.customArgs.provider_group_id);
 
             if (args.customArgs.currentFlag == 'scheduled_appointments'){
-                args.filterQuery += ` (orders.vehicle_id > 0 OR orders.technologist_id > 0) `; // TODO: why not null
+                args.filterQuery += ' (orders.vehicle_id > 0 OR orders.technologist_id > 0) '; // TODO: why not null
             }else{
-                args.filterQuery += ` ((orders.vehicle_id IS NULL OR orders.vehicle_id = 0) AND (orders.technologist_id IS NULL OR orders.technologist_id = 0) ) `;
+                args.filterQuery += ' ((orders.vehicle_id IS NULL OR orders.vehicle_id = 0) AND (orders.technologist_id IS NULL OR orders.technologist_id = 0) ) ';
        
             }
         }
@@ -534,19 +536,22 @@ const api = {
         let imp_orders = tables.vehicles || tables.users || tables.providers || tables.adj1 || tables.adj2 || tables.adj3 || tables.eligibility || tables.auth;
         let imp_provider_contacts = tables.imagedelivery || tables.providers_ref;
         let imp_facilities = tables.tat;
-        let r = "";
+        let r = '';
 
-        if (tables.facilities || imp_facilities) {r += ` INNER JOIN facilities ON studies.facility_id = facilities.id `;}//AND (facilities.is_active = true OR facilities.facility_info->'show_studies' = 'true') `;
+        if (tables.facilities || imp_facilities) {r += ' INNER JOIN facilities ON studies.facility_id = facilities.id ';}//AND (facilities.is_active = true OR facilities.facility_info->'show_studies' = 'true') `;
         
-        if (tables.patients) {r += ` INNER JOIN patients ON studies.patient_id = patients.id `;}
+        if (tables.patients) {r += ' INNER JOIN patients ON studies.patient_id = patients.id ';}
 
-        if (tables.orders || imp_orders){ r += ` INNER JOIN orders ON studies.order_id = orders.id `;}
+        if (tables.orders || imp_orders){ r += ' INNER JOIN orders ON studies.order_id = orders.id ';}
 
-        if (tables.tat) {r += ` LEFT JOIN LATERAL (SELECT get_study_tat_level(studies.study_unread_dt,facilities.max_tat) AS level)  tat ON studies.study_unread_dt IS NOT NULL AND studies.study_status NOT IN ('RE','APP','APCD','INC') `;}
+        if (tables.tat) {r += ` 
+                            LEFT JOIN LATERAL (
+                                SELECT get_study_tat_level(studies.study_unread_dt,facilities.max_tat) AS level)  tat ON studies.study_unread_dt IS NOT NULL 
+                                AND studies.study_status NOT IN ('RE','APP','APCD','INC') `;}
         
-        if (tables.modalities){ r += ` LEFT JOIN modalities ON studies.modality_id = modalities.id `; }// This should be inner
+        if (tables.modalities){ r += ' LEFT JOIN modalities ON studies.modality_id = modalities.id '; }// This should be inner
         
-        if (tables.cpt_codes) {r += ` LEFT JOIN cpt_codes ON studies.procedure_id = cpt_codes.id `;}
+        if (tables.cpt_codes) {r += ' LEFT JOIN cpt_codes ON studies.procedure_id = cpt_codes.id ';}
         
         if (tables.auth){
             r += `
@@ -591,13 +596,13 @@ const api = {
                   `;
         }
 
-        if (tables.vehicles) {r += ` LEFT JOIN vehicles ON orders.vehicle_id = vehicles.id `;}
+        if (tables.vehicles) {r += ' LEFT JOIN vehicles ON orders.vehicle_id = vehicles.id ';}
 
-        if (tables.providers){ r += ` LEFT JOIN providers ON orders.technologist_id = providers.id `;}
+        if (tables.providers){ r += ' LEFT JOIN providers ON orders.technologist_id = providers.id ';}
 
-        if (tables.attorneys) {r += ` LEFT JOIN providers AS attorneys ON attorneys.id = studies.attorney_provider_id `;}
+        if (tables.attorneys) {r += ' LEFT JOIN providers AS attorneys ON attorneys.id = studies.attorney_provider_id ';}
         
-        if (tables.users){ r += ` LEFT JOIN users ON orders.ordered_by = users.id `;}
+        if (tables.users){ r += ' LEFT JOIN users ON orders.ordered_by = users.id ';}
 
         if (tables.approving_provider_ref) {
             r += `
@@ -606,9 +611,9 @@ const api = {
                 ) `;
         }
 
-        if (tables.provider_contacts || imp_provider_contacts){ r += ` LEFT JOIN provider_contacts ON studies.referring_physician_id = provider_contacts.id `;}
+        if (tables.provider_contacts || imp_provider_contacts){ r += ' LEFT JOIN provider_contacts ON studies.referring_physician_id = provider_contacts.id ';}
         
-        if (tables.providers_ref){ r += ` LEFT JOIN providers AS providers_ref ON provider_contacts.provider_id = providers_ref.id `;}
+        if (tables.providers_ref){ r += ' LEFT JOIN providers AS providers_ref ON provider_contacts.provider_id = providers_ref.id ';}
         
         if (tables.imagedelivery){
             r += `
@@ -630,15 +635,24 @@ const api = {
                 `;
         }
 
-        if (tables.study_status){ r += ` LEFT JOIN study_status ON (CASE studies.study_status WHEN 'TE' THEN 'INC' ELSE studies.study_status END = study_status.status_code AND studies.facility_id = study_status.facility_id) `;}
+        if (tables.study_status){ r += ` LEFT JOIN study_status ON (
+            CASE studies.study_status WHEN 'TE' THEN 'INC' 
+            ELSE studies.study_status END = study_status.status_code AND studies.facility_id = study_status.facility_id) `;}
         
-        if (tables.adj1) {r += ` LEFT JOIN adjustment_codes adj1 ON (COALESCE (NULLIF (orders.order_info -> 'claim_status','' ),'0' )= adj1.id ::text  AND adj1.type = 'CLMSTS' AND adj1.has_deleted = FALSE) `;}
+        if (tables.adj1) {r += ` LEFT JOIN adjustment_codes adj1 ON 
+        (COALESCE (NULLIF (orders.order_info -> 'claim_status','' ),'0' )= adj1.id ::text  AND adj1.type = 'CLMSTS' AND adj1.has_deleted = FALSE) `;}
         
-        if (tables.adj2){ r += ` LEFT JOIN adjustment_codes adj2 ON (COALESCE (NULLIF (orders.order_info -> 'billing_code','' ),'0' )= adj2.id ::text  AND adj2.type = 'BILCDE' AND adj2.has_deleted = FALSE) `;}
+        if (tables.adj2){ 
+            r += ` 
+        LEFT JOIN adjustment_codes adj2 ON 
+        (COALESCE (NULLIF (orders.order_info -> 'billing_code','' ),'0' )= adj2.id ::text  AND adj2.type = 'BILCDE' AND adj2.has_deleted = FALSE) `;}
         
-        if (tables.adj3) {r += ` LEFT JOIN adjustment_codes adj3 ON (COALESCE (NULLIF (orders.order_info -> 'billing_class','' ),'0' )= adj3.id ::text  AND adj3.type = 'BILCLS' AND adj3.has_deleted = FALSE) `;}
+        if (tables.adj3) {r += ` 
+        LEFT JOIN adjustment_codes adj3 ON 
+        (COALESCE (NULLIF (orders.order_info -> 'billing_class','' ),'0' )= adj3.id ::text  AND adj3.type = 'BILCLS' AND adj3.has_deleted = FALSE) `;}
         
-        if (tables.study_flags){ r += ` LEFT JOIN study_flags ON study_flags.id = (studies.study_info->'study_flag_id')::int `;}
+        if (tables.study_flags){ r += ` LEFT JOIN study_flags 
+        ON study_flags.id = (studies.study_info->'study_flag_id')::int `;}
 
         if (tables.report_delivery){
             r += `
@@ -662,22 +676,32 @@ const api = {
 
         // ADDING A NEW WORKLIST COLUMN <-- Search for this
         let stdcolumns = [
-            `study_flags.description AS study_flag`,
-            `study_flags.color_code AS study_color_code`,
+            'study_flags.description AS study_flag',
+            'study_flags.color_code AS study_color_code',
             // Studies Table
             'studies.id as study_id',
             'studies.linked_study_id',
-            `studies.study_info-> 'Check-InDt' as check_indate`,
-            `studies.study_info-> 'current_status_waiting_time' as current_status_waiting_time`,
-            `providers_ref.full_name AS refphy_name`,
-            `studies.study_info-> 'readDescription' AS readphy_name`,
-            `studies.study_info-> 'station' as station`,
-            `studies.study_info-> 'study_description' as study_status_description`, // TODO: what is this ?? why is it different then study_description ?!
-            `studies.study_info-> 'department' as department`,
-            `studies.study_info-> 'send_status' AS send_status`,
-            `studies.study_info-> 'fax_status' AS fax_status`,
-            `(select ae_info->'is_sde' AS is_sde from application_entities where id::varchar= studies.study_info-> 'ae_title_id') as is_sde`, // TODO: move this into join possibly
-            `study_info->'sde_study' AS sde_study`, // TODO: why do we need 2 of these fields separately instead of one ?!?
+            `studies.study_info-> 'Check-InDt' 
+                AS check_indate`,
+            `studies.study_info-> 'current_status_waiting_time'
+                AS current_status_waiting_time`,
+            'providers_ref.full_name AS refphy_name',
+            `studies.study_info-> 'readDescription' 
+                AS readphy_name`,
+            `studies.study_info-> 'station' 
+                AS station`,
+            `studies.study_info-> 'study_description' 
+                AS study_status_description`, // TODO: what is this ?? why is it different then study_description ?!
+            `studies.study_info-> 'department' 
+                AS department`,
+            `studies.study_info-> 'send_status' 
+                AS send_status`,
+            `studies.study_info-> 'fax_status' 
+                AS fax_status`,
+            `(select ae_info->'is_sde' AS is_sde from application_entities
+                WHERE id::varchar= studies.study_info-> 'ae_title_id') AS is_sde`, // TODO: move this into join possibly
+            `study_info->'sde_study' 
+                AS sde_study`, // TODO: why do we need 2 of these fields separately instead of one ?!?
             'studies.study_info', // TODO: Why do we need this !!! (its an hstore ??? we already extract data from it)
             'studies.study_uid as study_uid',
             'studies.priority',
@@ -685,7 +709,8 @@ const api = {
             'studies.no_of_series',
             'studies.stat_level',
             //'studies.patient_age', // TODO: remove column from db
-            `dicom_age(extract(days from (studies.study_dt - patients.birth_date))::integer) as patient_age`,
+            `dicom_age(extract(days from (studies.study_dt - patients.birth_date))::integer) 
+                AS patient_age`,
             'studies.modalities',
             'studies.has_unread_dicoms', // TODO: What is this !!
             'studies.dictation_started', // TODO: this is "was live" flag, shouldnt we just use study status and not this !!
@@ -693,7 +718,7 @@ const api = {
 
             'studies.facility_id as facility_id',
             'studies.order_id', // TODO: Why do we need this !!
-            `has_priors(studies.id,studies.patient_id)`, // TODO: how about we use patients.study_count !! for this potentially (if its updated)
+            'has_priors(studies.id,studies.patient_id)', // TODO: how about we use patients.study_count !! for this potentially (if its updated)
             'studies.dicom_status',
             'studies.accession_no',
             'studies.study_status', //??? TODO: why do we need study_status and status_code with same info
@@ -709,7 +734,8 @@ const api = {
             'studies.body_part',
             'studies.reason_for_study',
             'studies.study_dt::text',
-            `to_char(studies.study_created_dt, 'YYYY-MM-DD') as study_created_dt`,
+            `to_char(studies.study_created_dt, 'YYYY-MM-DD') 
+                AS study_created_dt`,
             'studies.status_last_changed_dt::text',
             'studies.patient_id as patient_id',
             '(extract(epoch from (current_timestamp - studies.status_last_changed_dt))/60)::int AS max_waiting_time', // TODO: why do we need "current_status_waiting_time" as this should be it
@@ -720,20 +746,26 @@ const api = {
                                 FROM users
                                 WHERE COALESCE(orders.order_info->'manually_verified_by', '0')::bigint = users.id
                             ), '') AS manually_verified_by`,
-            `timezone(facilities.time_zone, COALESCE(orders.order_info->'manually_verified_dt', NULL)::timestamp)::text AS manually_verified_dt`,
-            `orders.order_info-> 'ordering_facility' as ordering_facility`,
-            `orders.order_info-> 'requestingDate' as requesting_date`,
-            `orders.order_info-> 'visit_no' as visit_no`,
+            `timezone(facilities.time_zone, COALESCE(orders.order_info->'manually_verified_dt', NULL)::timestamp)::text 
+                AS manually_verified_dt`,
+            `orders.order_info-> 'ordering_facility' 
+                AS ordering_facility`,
+            `orders.order_info-> 'requestingDate' 
+                AS requesting_date`,
+            `orders.order_info-> 'visit_no' 
+                AS visit_no`,
             'orders.order_status',
-            'orders.order_status as order_status_code', // TODO: why is this ? suplicated in similar fashion as study_status
+            'orders.order_status AS order_status_code', // TODO: why is this ? suplicated in similar fashion as study_status
             'orders.order_type',
             'orders.ordered_by',                    // TODO: isnt this the same as the results for users ??
             'orders.has_deleted as orders_deleted', // TODO: why do we need this ? shouldnt we delete ordered completely ?
             'orders.icd_codes',
             'orders.modality_room_id', // TODO: this MUST be part of study and not order, order has no ROOM
             'studies.schedule_dt::text as scheduled_dt',
-            `array_to_string(orders.referring_provider_ids, '~') as referring_provider_ids`, // TODO: why do we need this !!
-            `array_to_string(orders.referring_providers, '~') as referring_providers`, // TODO: why do we need this !!
+            `array_to_string(orders.referring_provider_ids, '~') 
+            AS referring_provider_ids`, // TODO: why do we need this !!
+            `array_to_string(orders.referring_providers, '~') 
+            AS referring_providers`, // TODO: why do we need this !!
             // Patients
             'patients.account_no as account_no',
             'patients.last_name as last_name',
@@ -751,7 +783,8 @@ const api = {
             // TODO: this seems to be used only in mobile (maybe move it to mobile configuration if so)
             'providers.full_name as technologist_name',
             // TODO: why are we returning alerts for a study in worklist ?!?
-            `provider_contacts.contact_info->'providerAlerts' as "providerAlerts"`,
+            `provider_contacts.contact_info->'providerAlerts' 
+                AS "providerAlerts"`,
             // TODO: move this into JOIN
             `
                                 (
@@ -763,14 +796,19 @@ const api = {
                                         studies.attorney_provider_id = providers.id
                                 ) AS attorney_name
                             `,
-            'approving_provider_ref.full_name as approving_provider',
-            `imagedelivery.image_delivery AS "image_delivery"`,
-            `auth.as_authorization AS as_authorization`,
-            `report_delivery.report_queue_status`,
+            'approving_provider_ref.full_name AS approving_provider',
+            `imagedelivery.image_delivery 
+                AS image_delivery`,
+            `auth.as_authorization 
+                AS as_authorization`,
+            'report_delivery.report_queue_status',
             // Eligibility Log
-            `(COALESCE(eligibility.verified, false) OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)       AS eligibility_verified`,
-            `eligibility.dt             AS eligibility_dt`,
-            `are_notes_empty(studies.notes, patients.notes, orders.order_notes) AS empty_notes_flag`,
+            `(COALESCE(eligibility.verified, false) OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)       
+                AS eligibility_verified`,
+            `eligibility.dt             
+                AS eligibility_dt`,
+            `are_notes_empty(studies.notes, patients.notes, orders.order_notes) 
+                AS empty_notes_flag`,
             // Lock
             // TODO: move this out of postgres (or at least as JOIN for now)
             `(
@@ -788,11 +826,14 @@ const api = {
 
         return stdcolumns.concat(
             product('TAT') && [
-                `COALESCE(tat.level,-1) as tat_level`
+                `COALESCE(tat.level,-1) 
+                    AS tat_level`
             ],
             product('BILLING') && [
-                `orders.order_info-> 'payer_name' as payer_name`, // Billing
-                `orders.order_info-> 'payer_type' as payer_type`, // Billing
+                `orders.order_info-> 'payer_name' 
+                    AS payer_name`, // Billing
+                `orders.order_info-> 'payer_type' 
+                    AS payer_type`, // Billing
                 'orders.id as claim_no', // Billing
                 'adj1.description AS claim_status',
                 'adj2.description AS billing_code',
@@ -800,8 +841,10 @@ const api = {
             ],
             product('MU') && [
                 'orders.mu_last_updated',
-                `orders.order_info-> 'lastMuUpdatedBy' as mu_last_updated_by`,
-                `orders.order_info-> 'muDataCaptured' as muDataCaptured`,
+                `orders.order_info-> 'lastMuUpdatedBy' 
+                    AS mu_last_updated_by`,
+                `orders.order_info-> 'muDataCaptured' 
+                    AS muDataCaptured`,
                 'orders.mu_passed'
             ],
             product('MOBILE') && [
@@ -814,7 +857,7 @@ const api = {
         let sortField = (args.sortField || '').trim();
         let sortOrder = (args.sortOrder || '').trim();
 
-        if (sortField == "tat_level") {
+        if (sortField == 'tat_level') {
 
             if (sortOrder && sortOrder.toUpperCase() == 'DESC') {
                 sortOrder += ' NULLS LAST';
@@ -890,10 +933,10 @@ const api = {
         const AND = (a, q) => a + ((a.length > 0) ? '\nAND ' : '') + q;
         
         let whereClause = {
-            default: "",
-            query: "",
-            studyFilter: "",
-            userFilter: "",
+            default: '',
+            query: '',
+            studyFilter: '',
+            userFilter: '',
             permission_filter: ` studies.company_id = ${args.company_id} `
         };
 
@@ -913,7 +956,7 @@ const api = {
         const filter_id = (args.customArgs.filter_id > 0) ? args.customArgs.filter_id : 0;
         const filter_options = {
             id: filter_id,
-            flag: "home_study",
+            flag: 'home_study',
             user_id: args.user_id,
             statOverride: statOverride,
             directCall: true
@@ -981,10 +1024,10 @@ const api = {
                 if (includeDeleted_study !== includeDeleted_perms) {
                     switch (includeDeleted_study) {
                     case false:
-                        whereClause.default = AND(whereClause.default, ` NOT studies.has_deleted `);
+                        whereClause.default = AND(whereClause.default, ' NOT studies.has_deleted ');
                         break;
                     case true:
-                        whereClause.default = AND(whereClause.default, ` studies.has_deleted `);
+                        whereClause.default = AND(whereClause.default, ' studies.has_deleted ');
                         break;
                     }
                 }
@@ -1006,10 +1049,10 @@ const api = {
 
                 switch (includeDeleted_perms) {
                 case false:
-                    whereClause.permission_filter = AND(whereClause.permission_filter, ` NOT studies.has_deleted `);
+                    whereClause.permission_filter = AND(whereClause.permission_filter, ' NOT studies.has_deleted ');
                     break;
                 case true:
-                    whereClause.permission_filter = AND(whereClause.permission_filter, ` studies.has_deleted `);
+                    whereClause.permission_filter = AND(whereClause.permission_filter, ' studies.has_deleted ');
                     break;
                 }
 
@@ -1028,8 +1071,8 @@ const api = {
 
             if (args.customArgs && args.customArgs.isOrdingFacility == 'true' && args.customArgs.provider_group_id > 0) {
                 args.customArgs.provider_group_id = args.linked_ordering_facility_id ? args.linked_ordering_facility_id : args.customArgs.provider_group_id;
-                let from = moment(args.customArgs.fromDate, "YYYY-MM-DD");
-                let to = moment(args.customArgs.toDate, "YYYY-MM-DD");
+                let from = moment(args.customArgs.fromDate, 'YYYY-MM-DD');
+                let to = moment(args.customArgs.toDate, 'YYYY-MM-DD');
 
                 if (args.customArgs.fromDate && args.customArgs.toDate) {
                     whereClause.default += `
@@ -1056,7 +1099,7 @@ const api = {
             const query_options = {
                 defaultwherefilter: whereClause.query,
                 statusCode: args.customArgs && args.customArgs.statusCode ? args.customArgs.statusCode : [],
-                isFrom: "Studies",
+                isFrom: 'Studies',
                 statOverride: statOverride
             };
             const response = await filterValidator.generateQuery(colModel, args.filterCol, args.filterData, query_options);

@@ -148,16 +148,25 @@ define([
                     dataType: 'json',
                     data: {
                         status: currentStatus || gridData.current_status,
-                        file_store_id: gridData.file_store_id,
+                        //file_store_id: gridData.file_store_id,
                         file_id: file_id || null,
-                        payer_details: payerDetails
+                        payer_details: payerDetails,
+                        company_id: app.companyID
                     },
                     success: function (model, response) {
                         console.log(model);
                         if (model && model.payer_id) {
                             model.file_store_id = gridData.file_store_id;
                             self.showProgressDialog(file_id, model, 'initialize');
-                        } else {
+                        } 
+                        else if(model.rows && model.rows.length){
+                            var processedClaims = model.rows[0].insert_edi_file_claims ? model.rows[0].insert_edi_file_claims : [];
+                            _.each(processedClaims, function(dataResult, index) {
+                                var status = dataResult.applied ? 'DONE' : 'FAILED';
+                                $('#eraProcessTable').append( '<tr><td>' + dataResult.edi_file_id + '</td><td>' + dataResult.claim_number + '</td><td>' + status  + '</td></tr>' );
+                            });
+                            $('#divEraProcess').show();
+                        }else {
                             alert('Error on progressing era file')
                         }
                     },
@@ -171,7 +180,7 @@ define([
                 if (isFrom == 'initialize') {
 
                     commonjs.hideLoading();
-                    commonjs.showDialog({ header: 'EOB', width: '55%', height: '60%', html: self.eraProgressTemplate() });
+                    commonjs.showDialog({ header: 'EOB', width: '45%', height: '60%', html: self.eraProgressTemplate() });
                     $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr for select2 search text can't editable
                     self.setAutoComplete();
 
@@ -180,6 +189,9 @@ define([
 
                     if (payerDetails.payer_code || payerDetails.payer_name) {
                         $('#select2-ddlInsuranceProviders-container').html(payerDetails.payer_name).prop('title', payerDetails.payer_name).attr({ 'data_code': payerDetails.payer_code, 'data_description': payerDetails.payer_name, 'data_id': payerDetails.payer_id });
+                        $("#ddlInsuranceProviders").select2("enable", false);
+                    } else {
+                        $("#ddlInsuranceProviders").select2("enable", true);
                     }
                 }
 
