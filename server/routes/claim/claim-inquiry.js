@@ -53,5 +53,10 @@ router.get('/payment_details', async (req, res) => {
     const data = await inquiryController.viewPaymentDetails(req.query);
     httpHandler.sendRows(req, res, data);
 });
+
+router.get('/charge_payment_details', async (req, res) => {
+    const data = await inquiryController.viewChargePaymentDetails(req.query);
+    httpHandler.sendRows(req, res, data);
+});
     
 module.exports = router;

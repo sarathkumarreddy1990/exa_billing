@@ -8,7 +8,8 @@ define([
     'text!templates/claims/claim-inquiry.html',
     'collections/claim-inquiry',
     'views/reports/patient-activity-statement' ,
-    'views/reports/payment-invoice' 
+    'views/reports/payment-invoice',
+    'text!templates/claims/claimInquiryPayment.html' 
 ], function (
     $,
     _,
@@ -19,11 +20,13 @@ define([
     claimInquiryTemplate,
     claimCommentsList,
     patientActivityStatement,
-    paymentInvoice) {
+    paymentInvoice,
+    paymentDetails) {
         return Backbone.View.extend({
             el: null,
             pager: null,
             inquiryTemplate: _.template(claimInquiryTemplate),
+            paymentTemplate: _.template(paymentDetails),
             claim_id: null,
             events: {
                 "blur #txtCIFollowUpDate": "saveFollowUpDate",
@@ -34,7 +37,8 @@ define([
                 "click #btnCIPrintInvoice": "printPaymentInvoice",
                 "click #btnCICommentCancel": "closeSaveComment",
                 "click #btnCIAddBillingComments": "billingCommentsReadonly",
-                "click #btnCISaveBillingNote": "saveBillingComment"
+                "click #btnCISaveBillingNote": "saveBillingComment",
+                "click #btnCIPayCancel": "closePaymentDetails"
             },
 
             initialize: function (options) {
@@ -149,6 +153,7 @@ define([
                         { name: 'payment_id', width: 80, search: false, sortable: false,
                             customAction: function (rowID) {
                                 var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
+                                $("#tBodyCIPayment").empty();
                                 self.getPaymentofCharge(gridData.id);
                             },
                             formatter: function (cellvalue, options, rowObject) {
@@ -485,13 +490,34 @@ define([
 
             getPaymentofCharge: function(charge_id) {
                 var self = this;
-                alert('Will show payment details of this charge')
+
+                $.ajax({
+                    url: '/exa_modules/billing/claim_inquiry/charge_payment_details',
+                    type: 'GET',
+                    data: {
+                        'claim_id': self.claim_id,
+                        'charge_id': charge_id
+                },
+                    success: function (data, response) {
+                        $('#divCIpaymentDetails').show();
+
+                        if (data.length > 0) {
+                            var paymentCASRow = self.paymentTemplate({ rows: data });
+                            $('#tBodyCIPayment').append(paymentCASRow);
+                        }
+                        else {
+                            alert('Nothing to show');
+                        }
+                },
+                    error: function (err) {
+                        commonjs.handleXhrError(err);
+                    }
+                });
             },
 
             getDetailsOfPay: function(pay_id) {
                 var self = this;
-                alert('Will Show payment details ');
-                console.log('getDetailsOfPay IDs -- ',  pay_id, self.claim_id)
+
                 $.ajax({
                     url: '/exa_modules/billing/claim_inquiry/payment_details',
                     type: 'GET',
@@ -500,12 +526,24 @@ define([
                         'pay_application_id': pay_id
                     },
                     success: function (data, response) {
-                        console.log('getDetailsOfPay --- ', data)
+                        $('#divCIpaymentDetails').show();
+                        if (data.length > 0) {
+                            var paymentCASRow = self.paymentTemplate({ rows: data });
+                            $('#tBodyCIPayment').append(paymentCASRow);
+                        }
+                        else {
+                            alert('Nothing to show');
+                        }
                     },
                     error: function (err) {
                         commonjs.handleXhrError(err);
                     }
                 })
+            },
+
+            closePaymentDetails: function(e){
+                $('#divCIpaymentDetails').hide();
+                $("#tBodyCIPayment").empty();
             }
         });
 
