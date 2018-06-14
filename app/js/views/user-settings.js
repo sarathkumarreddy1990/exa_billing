@@ -171,7 +171,7 @@ define([
                         gridFieldArray = displayFields;
                         self.ulListBinding(displayFields, 'ulSortList', checkedGridFields);
                         for (var i = 0; i < self.billingDisplayFields.length; i++) {
-                            $('<option/>').val(self.billingDisplayFields[i].field_name).html(self.billingDisplayFields[i].field_name).appendTo('#ddlBillingDefaultColumns');
+                            $('<option/>').val(self.billingDisplayFields[i].field_code).html(self.billingDisplayFields[i].field_name).appendTo('#ddlBillingDefaultColumns');
                         }
                     },
                     error: function (err, response) {
