@@ -39,11 +39,13 @@ define(['jquery',
             },
 
             initialize: function (options) {
-                this.showForm();
-                var modelCollection = Backbone.Collection.extend({
-                    model: Backbone.Model.extend({})
-                });
+                this.showForm();     
+                this.$el.html(this.mainTemplate(this.viewModel));                  
                 UI.initializeReportingViewModel(options, this.viewModel);
+
+                // Set date range to Facility Date
+                this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(app.default_facility_id);
+                this.viewModel.dateTo = this.viewModel.dateFrom.clone();              
             },
 
             showForm: function () {
@@ -54,13 +56,18 @@ define(['jquery',
                 UI.setPageTitle(this.viewModel.reportTitle);
             },
 
+           
             render: function () {
                 var modelCollection = Backbone.Collection.extend({
                     model: Backbone.Model.extend({})
                 });
-                this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
+                this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());   
                 this.$el.html(this.mainTemplate(this.viewModel));
-                // Binding Billing Provider MultiSelect
+                // bind DRP and initialize it
+                this.bindDateRangePicker();
+                this.drpStudyDt.setStartDate(this.viewModel.dateFrom);
+                this.drpStudyDt.setEndDate(this.viewModel.dateTo);              
+              
                 UI.bindBillingProvider();
                 $('#ddlFacilityFilter').multiselect({
                     maxHeight: 200,
@@ -74,7 +81,7 @@ define(['jquery',
 
             bindDateRangePicker: function () {
                 var self = this;
-                var drpEl = $('#txtDateRange');
+                var drpEl = $('#txtDateRangeFromTo');
                 var drpOptions = { autoUpdateInput: true, locale: { format: 'L' } };
                 this.drpStudyDt = commonjs.bindDateRangePicker(drpEl, drpOptions, 'past', function (start, end, format) {
                     self.viewModel.dateFrom = start;
@@ -105,15 +112,15 @@ define(['jquery',
 
             hasValidViewModel: function () {
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
-                    //    commonjs.showWarning('Please check report id, category, and/or format!');
-                    return false;
+                      commonjs.showWarning('Please check report id, category, and/or format!');
+                    return;
                 }
 
-                if ($('#txtDateRangeFrom').val() == "" || $('#txtDateRangeTo').val() == "") {
-                    alert('Please select date range!')
-                    //commonjs.showWarning('Please select date range!');
-                    return false;
+                if (this.viewModel.dateFrom == null || this.viewModel.dateTo == null) {
+                    commonjs.showWarning('Please select date range!');
+                    return;
                 }
+
                 return true;
             },
 
@@ -144,8 +151,8 @@ define(['jquery',
                 return urlParams = {
                     'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
                     'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
-                    'fromDate': moment($('#txtDateRangeFrom').val()).format('L'),
-                    'toDate': moment($('#txtDateRangeTo').val()).format('L'),
+                    'fromDate': this.viewModel.dateFrom.format('YYYY-MM-DD'),
+                    'toDate': this.viewModel.dateTo.format('YYYY-MM-DD'),
                     'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
                     'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,

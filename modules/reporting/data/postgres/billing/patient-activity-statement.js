@@ -13,8 +13,10 @@ const patientStatementDataSetQueryTemplate = _.template(`
 WITH claim_data as(
     SELECT 
        id as claim_id 
-    FROM billing.claims 
+    FROM billing.claims bcc
     WHERE 1=1 
+    AND <%= claimIds %>
+   
     and payer_type = 'patient'
     ),
      billing_comments as 
@@ -104,9 +106,9 @@ WITH claim_data as(
         case when type = 'payment' then amount end as payment,
         case when type = 'adjustment' then amount end as adjustment,
         bp.name as billing_provider_name,
-        bp.address_line1 as billing_proaddress1,
-        bp.address_line2 as billing_proaddress2,
-        bp.city as billing_procity,
+        pi.coverage_level  as billing_proaddress1,
+        pi.group_number as billing_proaddress2,
+        pi.policy_number as billing_procity,
         bp.state as billing_prostate,
         bp.zip_code as billing_prozip,
         bp.zip_code_plus as billing_zip_plus,
@@ -118,6 +120,13 @@ WITH claim_data as(
          INNER JOIN billing_comments pc on pc.id = bc.id 
          INNER JOIN billing.providers bp on bp.id = bc.billing_provider_id
          INNER JOIN facilities f on f.id = bc.facility_id
+         LEFT JOIN public.patient_insurances pi on pi.id = (CASE WHEN  bc.payer_type = 'primary_insurance' THEN
+         primary_patient_insurance_id
+   WHEN  bc.payer_type = 'secondary_insurance' THEN
+         secondary_patient_insurance_id
+   WHEN  bc.payer_type = 'tertiary_insurance' THEN
+         tertiary_patient_insurance_id
+   END)
          WHERE 1= 1
            <% if (billingProviderIds) { %>AND <% print(billingProviderIds); } %>
          <% if (patientIds) { %>AND <% print(patientIds); } %>             
@@ -424,7 +433,7 @@ WITH claim_data as(
           , null
           , null
           , null
-          , 'Statement Total'
+          , 'Total'
           , coalesce(statement_total_amount::text, '0.00')
           , null
           , null
@@ -675,13 +684,17 @@ const api = {
         const filters = {
             companyId: null,
             patientIds: null,
-            billingProviderIds: null
+            billingProviderIds: null,
+            claimIds: null
            
         };
 
         // company id
         params.push(reportParams.companyId);
         filters.companyId = queryBuilder.where('bc.id', '=', [params.length]);
+
+        params.push(reportParams.claimID);
+        filters.claimIds = queryBuilder.where('bcc.id', '=', [params.length]);
 
           // patients
           if (reportParams.patientOption === 'S' && reportParams.patientIds) {

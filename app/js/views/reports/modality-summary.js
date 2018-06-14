@@ -43,6 +43,10 @@ define([
                 this.showForm();
                 this.$el.html(this.mainTemplate(this.viewModel));
                 UI.initializeReportingViewModel(options, this.viewModel);
+
+                // Set date range to Facility Date
+                this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(app.default_facility_id);
+                this.viewModel.dateTo = this.viewModel.dateFrom.clone();
             },
 
             showForm: function () {
@@ -59,6 +63,9 @@ define([
                 });
                 this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
                 this.$el.html(this.mainTemplate(this.viewModel));
+                this.bindDateRangePicker();
+                this.drpStudyDt.setStartDate(this.viewModel.dateFrom);
+                this.drpStudyDt.setEndDate(this.viewModel.dateTo);
                 $('#ddlFacilityFilter').multiselect({
                     maxHeight: 200,
                     buttonWidth: '300px',
@@ -130,19 +137,20 @@ define([
                     return false;
                 }
 
-                if ($('#txtDateRangeFrom').val() == "" || $('#txtDateRangeTo').val() == "") {
-                    alert('Please select date range!')
-                    //commonjs.showWarning('Please select date range!');
+                if (this.viewModel.dateFrom == null || this.viewModel.dateTo == null) {
+                    commonjs.showWarning('Please select date range!');
                     return false;
                 }
+
                 return true;
             },
+
             getReportParams: function () {
                 return urlParams = {
                     'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
                     'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
-                    'fromDate': moment($('#txtDateRangeFrom').val()).format('L'),
-                    'toDate': moment($('#txtDateRangeTo').val()).format('L'),
+                    'fromDate': this.viewModel.dateFrom.format('YYYY-MM-DD'),
+                    'toDate': this.viewModel.dateTo.format('YYYY-MM-DD'),
                     'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
                     'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false

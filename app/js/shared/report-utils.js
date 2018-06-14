@@ -5,7 +5,7 @@ define([
 ],
     function ($, _, Backbone) {
 
-        const UI = {
+        var UI = {
 
             initializeReportingViewModel: function (routeOptions, viewModel) {
                 // Convention:
@@ -13,8 +13,8 @@ define([
                 //      reportCategory - next to last part of the route
                 //      reportTitle    - defined in 'commonjs.facilityModules.reportScreens'
                 //var routeParts = routeOptions.routePrefix.split('/'); //do not use
-                const fragment = Backbone.history.getFragment();
-                const routeParts = fragment.split('/');
+                var fragment = Backbone.history.getFragment();
+                var routeParts = fragment.split('/');
                 if (routeParts.length < 2) {
                     console.error('Less than 2 parts in route!');
                 }
@@ -33,35 +33,31 @@ define([
                 const frame = document.getElementById(elId),
                     frameDoc = frame ? (frame.contentDocument || frame.contentWindow.document) : null;
                 if (frameDoc && frameDoc.documentElement) {
-                    //console.log('clearing iframe: ' + elId);
                     frameDoc.removeChild(frameDoc.documentElement);
                 }
             },
 
             generateReportUrl: function (id, category, format, params) {
                 if (!(id || category || format)) {
-                    console.log('Report URL cannot be generated!');
                     return null;
                 }
-                const reportUrlBase = '../exa_modules/billing/reports/render/' + category + '/' + id + '.' + format;
-                const reportUrlQueryString = $.param(params);
-                const reportUrl = reportUrlBase + '?' + reportUrlQueryString;
-                //console.log('reportUrl: ', reportUrl);
+                var reportUrlBase = '../exa_modules/billing/reports/render/' + category + '/' + id + '.' + format;
+                var reportUrlQueryString = $.param(params);
+                var reportUrl = reportUrlBase + '?' + reportUrlQueryString;
                 return reportUrl;
             },
 
             showReport: function (id, category, format, params, openInNewTab) {
-                const queryStr = $.param(params);
-                const iframeUrl = UI.generateReportUrl(id, category, format, params);
+                var queryStr = $.param(params);
+                var iframeUrl = UI.generateReportUrl(id, category, format, params);
 
                 if (openInNewTab) {
-                    console.log('new window', id, iframeUrl);
                     window.open(iframeUrl, '_blank');
                     return;
                 }
 
                 UI.clearIframe('reportFrame');
-                const iFrame = $('#reportFrame');
+                var iFrame = $('#reportFrame');
                 iFrame.attr('src', iframeUrl);
 
                 // set the iframe height (to to height of available space) before iframe loads, otherwise PDF viewer fails to resize vertically
@@ -526,7 +522,7 @@ define([
             },
 
             bindReferringProviderAutoComplete: function (txtprovider, btnProvider, ulListProvider) {
-                $("#" + txtprovider).select2({
+                $("#" +txtprovider).select2({
                     ajax: {
                         url: "/exa_modules/billing/autoCompleteRouter/providers",
                         dataType: 'json',
@@ -577,7 +573,7 @@ define([
 
 
                 // txtprovider, btnProvider, ulListProvider
-                $('#' + btnProvider).unbind('click').click(function () {
+                $('#' +btnProvider).unbind('click').click(function () {
                     if ($('#s2id_' + txtprovider + ' > a.select2-default').length > 0) {
                         commonjs.showWarning('Please select one Provider to add');
                         return false;
@@ -597,8 +593,8 @@ define([
                 });
             },
 
-            bindCPTCodeInformations: function (txtCPTCode, btnCPTCode, ulListCPTCode) {
-                $("#" + txtCPTCode).select2({
+            bindCPTCodeInformations: function (txtCPTCodeInformation, btnCPTCode, ulListCPTCode) {
+                $("#" + txtCPTCodeInformation).select2({
                     ajax: {
                         url: "/exa_modules/billing/autoCompleteRouter",
                         dataType: 'json',
@@ -635,28 +631,32 @@ define([
                         return repo.text;
                     }
                     var markup1 = "<table><tr class='inActiveRow'>";
-                    markup1 += "<td data-id='" + repo.display_code + "' title='" + repo.display_code + "(" + repo.display_description + ")" + "'><div>" + repo.display_code + "(" + repo.display_description + ")" + "</div>";
-                    return markup1;
+                    if (repo.display_code != '')
+                        markup1 += "<td title='" + repo.display_code + "(" + repo.display_description + ")" + "'><div>" + repo.display_code + "(" + repo.display_description + ")" + "</div>";
+                    else
+                        markup += "<td title='" + repo.display_code + repo.display_description + "'><div>" + repo.display_code + repo.display_description + "</div>";
+                    markup1 += "</td></tr></table>"
+                    return markup1;               
                 }
                 function formatRepoSelection(res) {
                     if (res && res.id) {
                         res.display_description
                     }
                 }
-                //txtCPTCode, btnCPTCode, ulListCPTCode
+                //txtCPTCodeInformation, btnCPTCode, ulListCPTCode
                 $('#' + btnCPTCode).unbind('click').click(function () {
-                    if ($('#s2id_' + txtCPTCode + ' > a.select2-default').length > 0) {
+                    if ($('#s2id_' + txtCPTCodeInformation + ' > a.select2-default').length > 0) {
                         commonjs.showWarning('Please select one CPT to add');
                         return false;
                     }
-                    if ($('#' + ulListCPTCode + ' li a[data-id="' + $('#' + txtCPTCode).select2('data')[0].id + '"]').length) {
+                    if ($('#' + ulListCPTCode + ' li a[data-id="' + $('#' + txtCPTCodeInformation).select2('data')[0].id + '"]').length) {
                         commonjs.showWarning("Provider is already selected");
                         return false;
                     }
-                    var data_id = $('#' + txtCPTCode).select2('data')[0].id;
-                    var bind_text = $('#' + txtCPTCode).select2('data')[0].display_description;
-                    $('#' + ulListCPTCode).append('<li id="' + data_id + '"><span style="background:#3c91f0; color:white; border:1px solid black">' + bind_text + '</span><a class="remove" data-id="' + $('#' + txtCPTCode).select2('data')[0].id + '"><span class="icon-ic-close" style="margin-left:8px;"></span></a></li>')
-                    $('#' + txtCPTCode + 'a span').html('Select CPT');
+                    var data_id = $('#' + txtCPTCodeInformation).select2('data')[0].id;
+                    var bind_text = $('#' + txtCPTCodeInformation).select2('data')[0].display_description;
+                    $('#' + ulListCPTCode).append('<li id="' + data_id + '"><span style="background:#3c91f0; color:white; border:1px solid black">' + bind_text + '</span><a class="remove" data-id="' + $('#' + txtCPTCodeInformation).select2('data')[0].id + '"><span class="icon-ic-close" style="margin-left:8px;"></span></a></li>')
+                    $('#' + txtCPTCodeInformation + 'a span').html('Select CPT');
                 });
 
                 $('#' + ulListCPTCode).delegate('a.remove', 'click', function () {
