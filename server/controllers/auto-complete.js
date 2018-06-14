@@ -23,9 +23,6 @@ module.exports = {
     getOrderingFacility: function (params) {
         return data.getOrderingFacility(params);
     },
-    getProvidersAc: function (params) {
-        return data.getProvidersAc(params);
-    },
     getUsers: function (params) {
         return data.getUsers(params);
     }

@@ -306,10 +306,6 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 else {
                     this.paymentTable.refresh();
                 }
-
-                setTimeout(function () {
-                    // $('#tblpaymentsGrid').jqGrid('setGridHeight', '390px');
-                }, 100);
             },
             editPayment: function (rowId) {
                 Backbone.history.navigate('#billing/payments/edit/' + rowId, true);
