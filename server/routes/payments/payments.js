@@ -5,6 +5,14 @@ const paymentsController = require('../../controllers/payments/payments');
 const httpHandler = require('../../shared/http');
 
 router.get('/', async function (req, res) {
+    req.query.isGetTotal = false;
+    const data = await paymentsController.getPayments(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
+
+router.get('/totalAmount', async function (req, res) {
+    req.query.isGetTotal = true;
     const data = await paymentsController.getPayments(req.query);
     httpHandler.sendRows(req, res, data);
 });

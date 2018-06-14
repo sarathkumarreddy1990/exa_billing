@@ -22,7 +22,7 @@ app.use(function (req, res, next) {
             Object.assign(req.query, customArgs);
         }
     }
-
+    
     next();
 });
 
