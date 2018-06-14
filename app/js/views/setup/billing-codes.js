@@ -60,7 +60,7 @@ define(['jquery',
                         },
                         {
                             name: 'edit',
-                            width: 20,
+                            width: 10,
                             sortable: false,
                             search: false,
                             className:'icon-ic-edit',
@@ -70,14 +70,13 @@ define(['jquery',
                             }
                         },
                         {
-                            name: 'del', width: 20, sortable: false, search: false,
+                            name: 'del', width: 10, sortable: false, search: false,
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
                                 if (confirm("Are you sure want to delete")) {
                                     var gridData = $('#tblBillingCodesGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
-                                        data: $.param({ id: self.model.id, code: gridData.code, description: gridData.description }),
                                         success: function (model, response) {
                                             commonjs.showStatus("Deleted Successfully");
                                             self.billingCodesTable.refresh();
@@ -94,11 +93,9 @@ define(['jquery',
                         },
                         {
                             name: 'code',
-                            width: 180
                         },
                         {
                             name: 'description',
-                            width: 180
                         }
                     ],
                     datastore: self.billingCodesList,
@@ -131,6 +128,7 @@ define(['jquery',
                     }}
                 ]});
 
+
             },
             showGrid: function () {
                 this.render();
@@ -147,7 +145,6 @@ define(['jquery',
                 if(id > 0) {
                     this.model.set({id: id});
                     this.model.fetch({
-                        data: { id: this.model.id},
                         success: function (model, response) {
                             if (response && response.length > 0) {
                                 var data = response[0];

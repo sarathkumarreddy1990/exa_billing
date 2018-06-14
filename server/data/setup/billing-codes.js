@@ -1,4 +1,4 @@
-const { query, SQL } = require('../index');
+const { query, SQL, queryWithAudit } = require('../index');
 
 module.exports = {
 
@@ -83,9 +83,12 @@ module.exports = {
                              , ${code}
                              , ${description}
                              , ${inactivated_date} )
-                        RETURNING id`;
+                        RETURNING *, '{}'::jsonb old_values`;
 
-        return await query(sql);
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: `Created ${description}(${code})`
+        });
     },
 
     update: async (params) => {
@@ -106,9 +109,19 @@ module.exports = {
                             , description = ${description}
                             , inactivated_dt = ${inactivated_date}
                         WHERE
-                            id = ${id} `;
+                            id = ${id} 
+                            RETURNING *,
+                                (
+                                    SELECT row_to_json(old_row) 
+                                    FROM   (SELECT * 
+                                            FROM   billing.adjustment_codes 
+                                            WHERE  id = ${id}) old_row 
+                                ) old_values`;
 
-        return await query(sql);
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: `Updated ${description}(${code})`
+        });
     },
 
     delete: async (params) => {
@@ -116,8 +129,11 @@ module.exports = {
 
         const sql = SQL`DELETE FROM 
                             billing.billing_codes 
-                        WHERE id = ${id}`;
+                        WHERE id = ${id} RETURNING *, '{}'::jsonb old_values`;
 
-        return await query(sql);
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: 'Deleted.'
+        });
     }
 };

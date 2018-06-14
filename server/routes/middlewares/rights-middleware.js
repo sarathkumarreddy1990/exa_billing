@@ -1,13 +1,26 @@
 const express = require('express');
-//const shared = require('../../shared');
+const rights = require('../../controllers/rights');
 
 const app = express();
 
 app.use(function (req, res, next) {
 
-    /// TODO: Check rights
+    let hasRights = rights.checkRights({
+        screens: req.session.screens,
+        userType: req.session.user_type,
+        route: req.path,
+    });
 
-    next();
+    if (hasRights) {
+        return next();
+    }
+
+    res.send({
+        error: {
+            code: '03',
+            description: 'Access Denied'
+        }
+    });
 });
 
 module.exports = app;

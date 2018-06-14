@@ -1,4 +1,7 @@
 module.exports = {
+
+    staticAssetsRoot: '/exa_modules/billing/static',
+
     moduleNames: {
         setup: 'setup',
         claim: 'claims',
@@ -11,5 +14,9 @@ module.exports = {
 
     screenNames: {
         adjustment_codes: 'Adjustment Codes',
+    },
+
+    permissionsMap: {
+
     }
 };

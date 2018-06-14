@@ -7,7 +7,8 @@ app.use(function (req, res, next) {
 
         let {
             filterCol,
-            filterData
+            filterData,
+            customArgs
         } = req.query;
 
         let fields = JSON.parse(filterCol);
@@ -17,9 +18,11 @@ app.use(function (req, res, next) {
             req.query[field] = fieldValues[index];
         });
 
-        return next();
+        if(customArgs) {
+            Object.assign(req.query, customArgs);
+        }
     }
-
+    
     next();
 });
 

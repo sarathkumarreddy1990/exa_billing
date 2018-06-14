@@ -26,20 +26,19 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             },
 
             initialize: function (options) {
-                var self = this;
+
                 this.options = options;
                 var paymentStatus = [
-                    { 'value': 'Applied', 'text': 'Applied' },
-                    { 'value': 'UnApplied', 'text': 'UnApplied' },
-                    { 'value': 'PartialApplied', 'text': 'PartialApplied' },
-                    { 'value': 'OverApplied', 'text': 'OverApplied' },
-                    { 'value': 'Refund', 'text': 'Refund' }
+                    { 'value': 'fully_applied', 'text': 'Applied' },
+                    { 'value': 'unapplied', 'text': 'UnApplied' },
+                    { 'value': 'partially_applied', 'text': 'PartialApplied' },
+                    { 'value': 'over_applied', 'text': 'OverApplied' }
                 ];
                 this.payer_type = [
-                    { 'value': "PPP", 'text': "Patient" },
-                    { 'value': "POF", 'text': "Ordering Facility" },
-                    { 'value': "PIP", 'text': "Insurance" },
-                    { 'value': "PRP", 'text': "Provider" }
+                    { 'value': "patient", 'text': "Patient" },
+                    { 'value': "ordering_facility", 'text': "Ordering Facility" },
+                    { 'value': "insurance", 'text': "Insurance" },
+                    { 'value': "provider", 'text': "Provider" }
                 ];
                 this.billing_method = [
                     { 'value': "DB", 'text': "Direct Billing(Invoice)" },
@@ -177,8 +176,8 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         gridelementid: '#tblpaymentsGrid',
                         custompager: this.pager,
                         emptyMessage: 'No Record found',
-                        colNames: ['<span  id="spnStatus" class="icon-ic-worklist" onclick="commonjs.popOverActions(event)" ></span>', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                        i18nNames: ['', 'billing.payments.paymentID', '', '', 'billing.payments.referencePaymentID', 'billing.payments.paymentDate', 'billing.payments.accountingDate', 'billing.payments.payertype', 'billing.payments.payerName', 'billing.payments.paymentAmount', 'billing.payments.paymentApplied', 'billing.payments.balance', 'billing.payments.adjustment', 'billing.payments.postedBy', 'billing.payments.paymentmode', 'billing.payments.facility_name', '', '', ''],
+                        colNames: ['<span  id="spnStatus" class="icon-ic-worklist" onclick="commonjs.popOverActions(event)" ></span>','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                        i18nNames: ['','', '', 'billing.payments.paymentID', '', 'billing.payments.referencePaymentID', 'billing.payments.paymentDate', 'billing.payments.accountingDate', 'billing.payments.payertype', 'billing.payments.payerName', 'billing.payments.paymentAmount', 'billing.payments.paymentApplied', 'billing.payments.balance', 'billing.payments.adjustment', 'billing.payments.postedBy', 'billing.payments.paymentmode', 'billing.payments.facility_name', '', '', ''],
                         colModel: [
                             {
                                 name: 'edit', width: 50, sortable: false, search: false,
@@ -195,12 +194,13 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                                     return 'style=text-align:center;'
                                 }
                             },
-                            { name: 'id', index: 'id', key: true, searchFlag: 'int' },
+                            { name: 'id', index: 'id', key: true, searchFlag: 'int',hidden: true  },
                             { name: 'current_status', hidden: true },
+                            { name: 'payment_id',  searchFlag: 'int' },
                             { name: 'invoice_no', hidden: true },
                             { name: 'display_id', width: 215, searchFlag: '%' },
-                            { name: 'payment_date', width: 215, searchFlag: 'date_pure', formatter: self.paymentDateFormatter },
-                            { name: 'accounting_date', width: 215, searchFlag: 'date_pure', formatter: self.paymentAccountingDateFormatter },
+                            { name: 'payment_dt', width: 215, searchFlag: 'date_pure', formatter: self.paymentDateFormatter },
+                            { name: 'accounting_dt', width: 215, searchFlag: 'date_pure', formatter: self.paymentAccountingDateFormatter },
                             { name: 'payer_type', width: 215, searchFlag: '%', stype: 'select', formatter: self.payerTypeFormatter, searchoptions: { value: payerTypeValue } },
                             { name: 'payer_name', width: 300, searchFlag: 'hstore' },
                             { name: 'amount', width: 215, searchFlag: '%' },
@@ -271,7 +271,36 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         self.adjustmentTimer = setTimeout(self.calculateAdjustmentTotal, 25);
                         clearTimeout(self.appliedTimer);
                         self.appliedTimer = setTimeout(self.calculateAppliedTotal, 25);
+                        let dataSet={
+                            filterByDateType: $('input[name=filterByDateType]:checked').val(),
+                            fromDate: self.dtpPayFrom && self.dtpPayFrom.date() ? self.dtpPayFrom.date().format('YYYY-MM-DD') : "",
+                            toDate: self.dtpPayTo && self.dtpPayTo.date() ? self.dtpPayTo.date().format('YYYY-MM-DD') : "",
+                            paymentStatus: $("#ulPaymentStatus").val(),
+                            facility_id: $("#ddlPaymentFacility").val(),
+                            filterData:JSON.stringify(self.pager.get("FilterData")),
+                            filterCol:JSON.stringify(self.pager.get("FilterCol")),
+                            sortField:self.pager.get("SortField"), 
+                            sortOrder:self.pager.get("SortOrder"), 
+                        };
+
+                        jQuery.ajax({
+                            url: "/exa_modules/billing/payments/totalAmount",
+                            type: "GET",
+                            data: dataSet,
+                            success: function (data, textStatus, jqXHR) {
+                               if(data &&data.length){
+                                $("#divAmountTotal").html(data[0].total_amount);
+                                $("#divAppliedTotal").html(data[0].total_applied);
+                                $("#divAdjTotal").html(data[0].total_adjustment);   
+                               }
+                            },
+                            error: function (err) {
+                                commonjs.handleXhrError(err);
+                            }
+                        });
                         // $('#tblpaymentsGrid').jqGrid('setGridHeight', '390px');
+
+                        commonjs.docResize();
                     });
                 }
                 else {
@@ -282,21 +311,19 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     // $('#tblpaymentsGrid').jqGrid('setGridHeight', '390px');
                 }, 100);
             },
-
-
             editPayment: function (rowId) {
                 Backbone.history.navigate('#billing/payments/edit/' + rowId, true);
             },
 
             paymentDateFormatter: function (cellvalue, options, rowObject) {
                 var colValue;
-                colValue = (commonjs.checkNotEmpty(rowObject.payment_date) ? moment(rowObject.payment_date).format('L') : '');
+                colValue = (commonjs.checkNotEmpty(rowObject.payment_dt) ? moment(rowObject.payment_dt).format('L') : '');
                 return colValue;
             },
 
             paymentAccountingDateFormatter: function (cellvalue, options, rowObject) {
                 var colValue;
-                colValue = (commonjs.checkNotEmpty(rowObject.accounting_date) ? moment(rowObject.accounting_date).format('L') : '');
+                colValue = (commonjs.checkNotEmpty(rowObject.accounting_dt) ? moment(rowObject.accounting_dt).format('L') : '');
                 return colValue;
             },
 
@@ -326,9 +353,13 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
 
             generatePDF: function (e) {
                 var self = this;
-                var paymentListDetails = self.paymentsList;
-                self.paymentInvoice = new paymentInvoice({ el: $('#modal_div_container') });
-                self.paymentInvoice.onReportViewClick(paymentListDetails);
+                self.paymentPDF = new paymentPDF({ el: $('#modal_div_container') });
+                var paymentPDFArgs = {
+                    'txtPaymentFromDate': $('#txtPaymentFromDate').val(),
+                    'txtPaymentToDate': $('#txtPaymentToDate').val(),
+                    'isDateFlag': $('#filterByPostingDt').prop('checked') ? true : false
+                }
+                self.paymentPDF.onReportViewClick(e, paymentPDFArgs);
             },
 
             prepareValueForCSV(val) {

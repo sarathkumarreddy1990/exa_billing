@@ -1,6 +1,6 @@
 define(['backbone'], function (Backbone) {
     var ClaimStatusModel = Backbone.Model.extend({
-        url: "/exa_modules/billing/setup/claim_status",
+        urlRoot: "/exa_modules/billing/setup/claim_status",
         defaults: {
             code: "",
             description: "",

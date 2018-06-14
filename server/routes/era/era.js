@@ -22,88 +22,76 @@ router.get('/upload', function (req, res) {
         });
 });
 
-// const data =  eraController.getFileStorePath({ company_id: 1 });
-
-const fileStorePath = 'D:/eraUploads';
-const currentTime = new Date();
-
-const dirPath = `${fileStorePath}/${currentTime.getFullYear()}/${currentTime.getMonth()}/${currentTime.getDate()}`;
-
-if (fileStorePath) {
-    mkdirp(dirPath);
-}
-
-const storage = multer.diskStorage({
-    inMemory: true,
-    destination: (req, file, callback) => {
-        callback(null, dirPath);
-    },
-    filename: (req, file, callback) => {
-        callback(null, file.originalname);
-    }
+const storage = multer.memoryStorage();
+const upload = multer({ 
+    storage: storage
 });
 
-let uploader = multer({ storage: storage }).single('displayImage');
+router.post('/upload', upload.single('displayImage'), async function (req, res) {
+    if (req.file) {
 
-router.post('/upload', uploader, async function (req, res) {
-    if (req.file && req.file.path) {
-        let filePath = req.file.path;
-        const file_ext = req.file.originalname.slice(-3);
+        const uploadEra = req.file;    
+        const buffer = uploadEra.buffer;
+        const fileSize = req.file.size;
+    
+        let tempString = buffer.toString();
+        let bufferString = tempString.replace(/(?:\r\n|\r|\n)/g, '');
 
-        await fs.readFile(filePath, async function (err, data) {
-            let tempString = data.toString();
-            let bufferString = tempString.replace(/(?:\r\n|\r|\n)/g, '');
+        let fileMd5 = crypto.createHash('MD5').update(bufferString, 'utf8').digest('hex');
 
-            let fileMd5 = crypto.createHash('MD5').update(bufferString, 'utf8').digest('hex');
+        const dataRes = await eraController.checkERAFileIsProcessed(fileMd5, 1);
 
-            const dataRes = await eraController.checkERAFileIsProcessed(fileMd5);
+        const fileStorePath = dataRes.rows[0].file_store_info[0].root_directory;
+        const fileExist = dataRes.rows[0].file_exists[0];
 
-            if (dataRes.rows && dataRes.rows[0] && dataRes.rows[0].file_exists != false) {
-                await fs.unlink(filePath, function (err) {
-                    if (!err) {
-                        return res.render('../server/views/era-file-upload.pug', {
-                            companyID: 1,
-                            duplicate_file: true,
-                        });
-                    }
-                });
+        const currentTime = new Date();
+
+        const localPath = `${currentTime.getFullYear()}\\${currentTime.getMonth()}\\${currentTime.getDate()}`;
+        const dirPath = `${fileStorePath}\\${localPath}`;
+
+        if (fileStorePath) {
+            if (!fs.exists(dirPath)) {
+                mkdirp(dirPath);
             }
             else {
-                await fs.stat(filePath, async function (err, stats) {
-                    let file_size = '';
-
-                    if (stats) {
-                        file_size = stats['size'];
-                    }
-
-                    req.file_store_id = '1';
-                    req.company_id = '1';
-                    req.status = 'pending';
-                    req.file_type = '835';
-                    req.file_path = filePath;
-                    req.file_size = file_size;
-                    req.file_md5 = fileMd5;
-                    req.pathToUnlink = filePath;
-
-                    const dataResponse = await eraController.saveERAFile(req);
-
-                    if (dataResponse.rows && dataResponse.rows.length && dataResponse.rows[0].id) {
-                        await fs.rename(filePath, dirPath + '/' + dataResponse.rows[0].id + '.' + file_ext, function (err) {
-                            if (err) {
-                                throw err;
-                            }
-
-                            return res.render('../server/views/era-file-upload.pug', {
-                                'companyID': req.query.companyID,
-                                'fileNameUploaded': dataResponse.rows[0].id,
-                                'duplicate_file': false,
-                                'valid_format': true
-                            });
-                        });
-                    }
-                });
+                throw 'Directory not found';
             }
-        });
+        }
+        else {
+            throw 'Directory not found in file store';
+        }
+
+        if (fileExist != false) {
+            return res.render('../server/views/era-file-upload.pug', {
+                companyID: 1,
+                duplicate_file: true,
+            });
+        }
+
+        req.file_store_id = '1';
+        req.company_id = '1';
+        req.status = 'pending';
+        req.file_type = '835';
+        req.file_path = localPath;
+        req.file_size = fileSize;
+        req.file_md5 = fileMd5;
+
+        const dataResponse = await eraController.saveERAFile(req);
+
+        if (dataResponse.rows && dataResponse.rows.length && dataResponse.rows[0].id) {
+            await fs.writeFile(dirPath + '/' + dataResponse.rows[0].id, bufferString, 'binary', function (err) {
+                if (err) {
+                    throw err;
+                }
+
+                return res.render('../server/views/era-file-upload.pug', {
+                    'companyID': req.query.companyID,
+                    'fileNameUploaded': dataResponse.rows[0].id,
+                    'duplicate_file': false,
+                    'valid_format': true
+                });
+            });
+        }
     }
 });
 

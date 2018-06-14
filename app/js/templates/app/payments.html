@@ -31,11 +31,11 @@
             </div>
             <div class="col">
                 <div class="col-form-label" style="margin-top: 30px;">
-                    <input type="radio" name="filterByDateType" value="accounting_date" id="filterByAccountingDt">
+                    <input type="radio" name="filterByDateType" value="accounting_dt" id="filterByAccountingDt">
                     <label class="inline field-chk" for="filterByAccountingDt" i18n="billing.payments.accountingDate"></label>
                 </div>
                 <div class="col-form-label">
-                    <input type="radio" name="filterByDateType" value="payment_date" id="filterByPostingDt" checked="checked">
+                    <input type="radio" name="filterByDateType" value="payment_dt" id="filterByPostingDt" checked="checked">
                     <label class="inline field-chk" for="filterByPostingDt" i18n="billing.payments.paymentDate"></label>
                 </div>
             </div>
@@ -120,76 +120,6 @@
                         <label style="font-weight: bold; margin-left: 10px !important;" i18n="report.reportFilter.reportPreview"></label>
                     </h5>
                     <hr>
-                </div>
-            </div>
-            <div class="col-sm-12 col-md-12 col-lg-12" id="divReportResult" style="overflow: auto;">
-                <iframe id="ifrPaymentReport" style="width: 99%;"></iframe>
-            </div>
-        </div>
-
-        <!-- Pending Payments Tab-->
-        <div class="tab-pane" id="divPendPayments">
-            <div id="search-formPendingPayments" class="form-inline" style="margin-bottom:10px;">
-                <div>
-                    <div class="col-xs-12">
-                        <div class="col-xs-2">
-                            <div class="form-group form-inline">
-                                <div class="col-form-label">
-                                    <label for="txtPendPaymentFromDate" i18n="setup.studyFilters.dateFrom"></label>
-                                </div>
-                                <div id="divPendPaymentFromDate" class="input-group">
-                                    <input type="text" id="txtPendPaymentFromDate" class="form-control form-control-date maskDateLocale" name="paymentFromDate">
-                                    <span class="input-group-addon add-on">
-                                        <span class="icon-ic-schedule"></span>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-xs-2">
-                            <div class="form-group form-inline">
-                                <div class="col-form-label">
-                                    <label for="txtPendPaymentToDate" i18n="setup.studyFilters.dateTo"></label>
-                                </div>
-                                <div id="divPendPaymentToDate" class="input-group">
-                                    <input type="text" id="txtPendPaymentToDate" class="form-control form-control-date maskDateLocale">
-                                    <span class="input-group-addon add-on">
-                                        <span class="icon-ic-schedule"></span>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-xs-3">
-                            <div class="form-group form-inline">
-                                <div class="col-form-label">
-                                    <label for="ddlPendPaymentFacility" i18n="shared.fields.facility"></label>
-                                </div>
-                                <select id="ddlPendPaymentFacility" class="form-control">
-                                    <% _.each(facilityList, function(facility) { %>
-                                        <option value="<%= facility.id %>">
-                                            <%= facility.text %>
-                                        </option>
-                                        <% }); %>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-xs-5">
-                            <div class="BillingBtnGroup form-group form-inline">
-                                <input type="button" value="Search" id="btnPendStatusSearch" i18n="shared.buttons.search" class="btn btn-primary">
-                                <input type="button" value="Refresh" id="btnPendPaymentRefresh" i18n="shared.buttons.refresh" class="btn btn-primary">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-xs-12" style="margin-top: 10px !important;">
-                        <div class='Grid' id='divGrid_pendPayments'>
-                            <table id="tblpendPaymentsGrid"></table>
-                            <div id="gridPager_pendPayments"></div>
-                            <div id="pendPaymentsBalSummary" align="center" style="margin-top:10px;">
-                                <table id="tblPendPaymentBal" class="table table-bordered" style="width:50%!important;">
-
-                                </table>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

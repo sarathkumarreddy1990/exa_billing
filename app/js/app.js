@@ -7,7 +7,7 @@ define([
         initialize: function () {
 
             if (!window.location.hash) {
-                window.location.hash = '#app/worklist';
+                window.location.hash = '#billing/claim_workbench/list';
             }
 
             AppRouter.initialize();

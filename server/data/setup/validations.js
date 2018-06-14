@@ -29,18 +29,19 @@ module.exports = {
                                                   , patient_validation)
                                                 SELECT 
                                                     ${companyId}
-                                                  , ${ediValidation}
-                                                  , ${invoiceValidation}
-                                                  , ${patientValidation}
+                                                  , ${JSON.stringify(ediValidation)}
+                                                  , ${JSON.stringify(invoiceValidation)}
+                                                  , ${JSON.stringify(patientValidation)}
                                                 WHERE NOT EXISTS(SELECT 1 FROM billing.validations)
                                                 RETURNING id)
                                                 UPDATE 
                                                     billing.validations 
                                                 SET
-                                                    edi_validation = ${ediValidation}
-                                                  , invoice_validation = ${invoiceValidation}
-                                                  , patient_validation = ${patientValidation}
+                                                    edi_validation = ${JSON.stringify(ediValidation)}
+                                                  , invoice_validation = ${JSON.stringify(invoiceValidation)}
+                                                  , patient_validation = ${JSON.stringify(patientValidation)}
                                                 WHERE NOT EXISTS(SELECT 1 FROM insertValidations)
+                                                RETURNING id
                                                 `;
 
         return await query(sql);

@@ -2,15 +2,15 @@ doctype html
 html
   head
     title= title
-    link(rel='stylesheet', href='/node_modules/bootstrap/dist/css/bootstrap.min.css')
-    link(rel='stylesheet', href='/node_modules/select2/dist/css/select2.min.css')
-    link(rel='stylesheet', href='/node_modules/bootstrap-multiselect/dist/css/bootstrap-multiselect.css')
-    link(rel='stylesheet', href='/node_modules/bootstrap-daterangepicker/daterangepicker.css')
-    link(rel='stylesheet', href='/node_modules/font-awesome/css/font-awesome.css')
-    link(rel='stylesheet', href='/libs/datetimepicker/less/bootstrap-datetimepicker-build.css')
+    link(rel='stylesheet', href=staticAssetsRoot + '/node_modules/bootstrap/dist/css/bootstrap.min.css')
+    link(rel='stylesheet', href=staticAssetsRoot + '/node_modules/select2/dist/css/select2.min.css')
+    link(rel='stylesheet', href=staticAssetsRoot + '/node_modules/bootstrap-multiselect/dist/css/bootstrap-multiselect.css')
+    link(rel='stylesheet', href=staticAssetsRoot + '/node_modules/bootstrap-daterangepicker/daterangepicker.css')
+    link(rel='stylesheet', href=staticAssetsRoot + '/node_modules/font-awesome/css/font-awesome.css')
+    link(rel='stylesheet', href=staticAssetsRoot + '/libs/datetimepicker/less/bootstrap-datetimepicker-build.css')
     
-    link(rel='stylesheet', href='/libs/jqgrid/css/ui.jqgrid.css')
-    link(rel='stylesheet', href='/skins/default/index.css')
+    link(rel='stylesheet', href=staticAssetsRoot + '/libs/jqgrid/css/ui.jqgrid.css')
+    link(rel='stylesheet', href=staticAssetsRoot + '/skins/default/index.css')
   body
     block content
     

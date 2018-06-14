@@ -2244,7 +2244,7 @@ var commonjs = {
                 break;
         }
 
-        if(response.responseText.indexOf('INVALID_SESSION') > -1) {
+        if(response.responseText && response.responseText.indexOf('INVALID_SESSION') > -1) {
             commonjs.showDialog({ header: 'Error', i18nHeader: 'messages.errors.serversideerror', width: '50%', height: '50%', html: response.responseText }, true);
         }
     },
@@ -3122,7 +3122,8 @@ var commonjs = {
         $.notify({
             message: displayMsg
         }, {
-                type: type
+                type: type,
+                z_index: 1061,
             });
     },
 
@@ -3580,6 +3581,7 @@ var commonjs = {
         var currentModule = commonjs.currentModule;
         switch (currentModule) {
             case 'Home':
+            case 'Claims':
                 commonjs.resizeHomeScreen();
                 break;
             case 'Setup':
@@ -3750,6 +3752,7 @@ var commonjs = {
             var topnavHieght = $('.header').outerHeight() + $('.top-nav').outerHeight()
             switch (commonjs.currentModule) {
                 case 'Home':
+                case 'Claims':
                 case 'app':
                 default:
                     height = $(window).height() - (topnavHieght + $('.ui-jqgrid-htable:visible').height() + $('#divPager').outerHeight() + 50);
@@ -3757,8 +3760,11 @@ var commonjs = {
                 case 'Billing':
                     height = $(window).height() - ($('body>.topbar').outerHeight() + $('body>header').outerHeight() + $('body>.top-nav').outerHeight() + 235);
                     break;
+                case 'Payments':
+                    height = $(window).height() - ($('#formBillingProviders').outerHeight() + $('body>nav').outerHeight() + 160);
+                    break;
                 case 'Setup':
-                    height = $(window).height() - ($('header.header').outerHeight() + $('.title-panel').outerHeight() + $('nav.sub-top-nav').outerHeight() + 50);
+                    height = $(window).height() - ($('body>nav').outerHeight() + $('#divPageHeaderButtons').outerHeight() + 100);
                     break;
                 case 'Patient':
                     height = $(window).height() - ($('header.header').outerHeight() + $('#patientDocHeader').outerHeight() + 200);
