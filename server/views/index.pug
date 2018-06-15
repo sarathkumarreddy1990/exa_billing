@@ -16,16 +16,16 @@ block content
         #navbarNavAltMarkup.collapse.navbar-collapse
             ul.navbar-nav.ml-auto
                 li.nav-item
-                    a.nav-link.active(href='#billing/studies/list') Studies
+                    a#aStudies.nav-link.active(href='#billing/studies/list') Studies
                 li.nav-item
-                    a.nav-link(href='#billing/claim_workbench/list') Claims
+                    a#aClaims.nav-link(href='#billing/claim_workbench/list') Claims
                 li.nav-item
-                    a.nav-link(href='#billing/payments/list') Payments
+                    a#aPayments.nav-link(href='#billing/payments/list') Payments
                 li.nav-item
-                    a.nav-link(href='#billing/era/list') EOB
+                    a#aEob.nav-link(href='#billing/era/list') EOB
                     
                 li.nav-item.dropdown
-                    a.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Reports
+                    a#aReports.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Reports
                     .dropdown-menu
                         a.dropdown-item(href='#reports/r/charges') Charges                        
                         a.dropdown-item(href='#reports/r/claim-activity') Claim Activity
@@ -49,7 +49,7 @@ block content
                         a.dropdown-item(href='#reports/r/transaction-summary') Transaction Summary
                     
                 li.nav-item.dropdown
-                    a.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Setup
+                    a#aSetup.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Setup
                     .dropdown-menu
                         a.dropdown-item(href='#setup/adjustment_codes/list') Adjustment Codes
                         a.dropdown-item(href='#setup/billing_codes/list') Billing codes
@@ -69,7 +69,7 @@ block content
                         a.dropdown-item(href='#setup/validations/all') Billing Validations
 
                 li.nav-item.dropdown
-                    a.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Log
+                    a#aLog.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Log
                     .dropdown-menu
                         a.dropdown-item(href='#setup/audit_log/list') Audit Log
                         a.dropdown-item(href='#setup/user_log/list') User Log
