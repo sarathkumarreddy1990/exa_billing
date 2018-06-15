@@ -2,7 +2,6 @@ const data = require('../../data/claim/claim-workbench');
 const ediConnect = require('../../../modules/edi');
 const _ = require('lodash');
 ediConnect.init('http://192.168.1.102:5581/edi/api');
-const _ = require('lodash');
 
 module.exports = {
 
