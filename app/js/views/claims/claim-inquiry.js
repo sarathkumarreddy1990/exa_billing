@@ -100,14 +100,21 @@ define([
             },
 
             showInsuranceGrid: function (data) {
+                console.log('Insurance Details  ---- ', data)
+
+
                 $('#tblCIInsurance').jqGrid({
                     datatype: 'local',
                     data: data !=null ? data : [],
-                    colNames: ['', 'code', 'description'],
+                    colNames: ['', 'code', 'description', 'Subscriber Name', 'DOB', 'Policy No', 'Group No'],
                     colModel: [
                         { name: 'id', hidden: true },
                         { name: 'insurance_code', search: false },
-                        { name: 'insurance_name', search: false }
+                        { name: 'insurance_name', search: false },
+                        { name: 'name', search: false },
+                        { name: 'subscriber_dob', search: false },
+                        { name: 'policy_number', search: false },
+                        { name: 'group_number', search: false }
                     ],
                     cmTemplate: { sortable: false },
                     customizeSort: true,
