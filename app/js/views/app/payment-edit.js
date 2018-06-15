@@ -22,7 +22,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             paymentsGridTemplate: _.template(paymentsGridHtml),
             applyCasTemplate: _.template(ApplyCasHtml),
             applyPaymentTemplate: _.template(ApplyPaymentTemplate),
-            casSegmentsSelected: {},
+            casSegmentsSelected: [],
             patSearchContentTemplate: _.template(patSearchContent),
             gridFirstLoaded: false,
 
@@ -43,7 +43,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 "click #anc_search": "showPatientOrders",
                 'click #btnPaymentRefresh': 'refreshPayments',
                 'click a#ppliedRefresh': 'refreshPayments',
-                'click #btnPaymentPrint, #btnPrintReceipt, #btnPaymentDelete':"underConstruction"
+                'click #btnPaymentPrint, #btnPrintReceipt, #btnPaymentDelete, #btnPayfullAppliedPendingPayments': "underConstruction"
             },
 
             initialize: function (options) {
@@ -710,7 +710,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblpendPaymentsGrid').jqGrid('getRowData', rowID);
                                 self.order_payment_id = 0;
-                                self.showApplyAndCas(rowID, paymentID, 'pending', gridData.charge_id);
+                                self.showApplyAndCas(rowID, paymentID, 'pending', gridData.charge_id, gridData);
                             }
                         },
                         {
@@ -750,7 +750,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     ondblClickRow: function (rowID) {
                         self.order_payment_id = 0;
                         var gridData = $('#tblpendPaymentsGrid').jqGrid('getRowData', rowID);
-                        self.showApplyAndCas(rowID, paymentID, 'pending', gridData.charge_id);
+                        self.showApplyAndCas(rowID, paymentID, 'pending', gridData.charge_id, gridData);
                     },
                     disablesearch: false,
                     disablesort: false,
@@ -822,10 +822,10 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     gridelementid: '#tblAppliedPaymentsGrid',
                     custompager: this.appliedPager,
                     emptyMessage: 'No Record found',
-                    colNames: ['', '', '', '', 'Order Payment Ref', '', '', '', '', '', '', '', '', '', '', '', ''],
-                    i18nNames: ['', '', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.payments.billFee', 'billing.payments.patientPaid', 'billing.payments.payerPaid', 'billing.payments.adjustment', 'billing.payments.thisPayment', 'billing.payments.balance', 'billing.payments.cptCodes', '', ''],
-                    colNames: ['', '', '', '', 'Order Payment Ref', '', '', '', '', '', '', '', '', '', '', ''],
-                    i18nNames: ['', '', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.payments.billFee', 'billing.payments.patientPaid', 'billing.payments.payerPaid', 'billing.payments.adjustment', 'billing.payments.balance', 'billing.payments.cptCodes', 'patient_id', 'facility_id'],
+                    // colNames: ['', '', '', '', 'Order Payment Ref', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    // i18nNames: ['', '', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.payments.billFee', 'billing.payments.patientPaid', 'billing.payments.payerPaid', 'billing.payments.adjustment', 'billing.payments.thisPayment', 'billing.payments.balance', 'billing.payments.cptCodes', '', ''],
+                    colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    i18nNames: ['', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.payments.billFee', 'billing.payments.patientPaid', 'billing.payments.payerPaid', 'billing.payments.adjustment', 'billing.payments.balance', 'billing.payments.cptCodes', 'patient_id', 'facility_id'],
                     colModel: [
                         {
                             name: 'edit', width: 20, sortable: false, search: false,
@@ -837,7 +837,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblAppliedPaymentsGrid').jqGrid('getRowData', rowID);
-                                self.showApplyAndCas(rowID, paymentID, 'applied', gridData.charge_id);
+                                self.showApplyAndCas(rowID, paymentID, 'applied', gridData.charge_id, gridData);
                             }
                         },
                         {
@@ -853,9 +853,8 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         },
                         { name: 'id', index: 'id', key: true, searchFlag: 'int', hidden: true },
                         { name: 'charge_id', hidden: true },
-                        { name: 'order_payment_ref', searchColumn: ['orders.id'], searchFlag: '%', width: 150 },
-                        { name: 'order_id_grid', searchColumn: ['orders.id'], searchFlag: '%', width: 100 },
-                        { name: 'claim_id', searchFlag: '%', sortable: false, width: 100 },
+                        { name: 'claim_id', searchColumn: ['orders.id'], searchFlag: '%', width: 100 },
+                        { name: 'invoice_no', searchFlag: '%',  width: 100 },
                         { name: 'full_name', searchFlag: '%', searchColumn: ['pp.full_name'], width: 200 },
                         { name: 'bill_fee', searchFlag: 'hstore', searchColumn: ['order_info->bill_fee'], formatter: self.appliedBillFeeFormatter, width: 100 },
                         { name: 'patient_paid', searchFlag: 'hstore', searchColumn: ['more_info->patient_paid'], formatter: self.appliedPatPaidFormatter, width: 100 },
@@ -879,7 +878,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     container: this.el,
                     ondblClickRow: function (rowID) {
                         var gridData = $('#tblAppliedPaymentsGrid').jqGrid('getRowData', rowID);
-                        self.showApplyAndCas(rowID, paymentID, 'applied', gridData.charge_id);
+                        self.showApplyAndCas(rowID, paymentID, 'applied', gridData.charge_id, gridData);
                     },
                     disablesearch: false,
                     disablesort: false,
@@ -906,20 +905,27 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 if (self.appliedPaymentTable) {
                     self.appliedPager.set({ "PageNo": 1 });
                     self.appliedPaymentTable.refreshAll();
+                };
+                if (self.pendPaymentTable) {
+                    self.pendPaymtPager.set({ "PageNo": 1 });
+                    self.pendPaymentTable.refreshAll();
                 }
             },
 
-            showApplyAndCas: function (claimId, paymentID, paymentStatus, chargeId) {
+            showApplyAndCas: function (claimId, paymentID, paymentStatus, chargeId, rowData) {
                 var self = this;
                 self.defalutCASArray = [0, 1, 2, 3, 4, 5, 6];
-                commonjs.showDialog({ header: 'Claim Charges', width: '85%', height: '70%', html: self.applyCasTemplate({ adjustmentCodes: self.adjustmentCodeList.toJSON(), 'claimStatusList': this.claimStatusList.toJSON(), cas_group_codes: self.cas_group_codes, cas_reason_codes: self.cas_reason_codes }) });
+                self.casSegmentsSelected = [];
+                var patient_paid = rowData.patient_paid ? rowData.patient_paid.substr(1) : '0.00';
+                var others_paid = rowData.others_paid ? rowData.others_paid.substr(1) : '0.00';
+                commonjs.showDialog({ header: 'Claim Charges', width: '85%', height: '70%', html: self.applyCasTemplate({ adjustmentCodes: self.adjustmentCodeList.toJSON(), 'claimStatusList': this.claimStatusList.toJSON(), cas_group_codes: self.cas_group_codes, cas_reason_codes: self.cas_reason_codes, patient_paid: patient_paid,  others_paid: others_paid}) });
                 
                 $('#siteModal .close, #siteModal .btn-secondary').unbind().bind('click', function (e) {
                     self.closeAppliedPendingPayments(e);
                     $('#siteModal').hide();
                 })
 
-                $('#divPaymentCAS select').select2();
+                // $('#divPaymentCAS select').select2();
                 commonjs.processPostRender();
                 commonjs.validateControls();
 
@@ -931,17 +937,16 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             },
 
             setFeeFields: function (claimDetail, isInitial) {
+                if (isInitial) {
+                    $('#ddlAdjustmentCode_fast').val('');
+                    $('#txtResponsibleNotes').val('');
+                }   
                 var order_info = claimDetail;
                 $('#lblBalanceNew').text(order_info.balance ? parseFloat(order_info.balance).toFixed(2) : "0.00");
                 $('#lblBillingFee, #spApplyTotalFee').text(order_info.billFee ? parseFloat(order_info.billFee).toFixed(2) : "0.00");
                 $('#lblAdjustment, #spAdjustmentApplied').text(order_info.adjustment ? parseFloat(order_info.adjustment).toFixed(2) : "0.00");
-                $('#lblOthers').text(order_info.othersPaid ? parseFloat(order_info.othersPaid).toFixed(2) : "0.00");
-                $('#lblPatient').text(order_info.patient_paid ? parseFloat(order_info.patient_paid).toFixed(2) : "0.00");
                 $('#spPaymentApplied').text(order_info.applied_payment ? parseFloat(order_info.applied_payment).toFixed(2) : "0.00");
-                if (isInitial) {
-                    $('#ddlClaimStatus').val('');
-                    $('#txtResponsibleNotes').val('');
-                }    
+                $('#txtResponsibleNotes').val(claimDetail.notes);
             },
 
             getClaimBasedCharges: function (claimId, paymentId, paymentStatus, chargeId) {
@@ -970,20 +975,18 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                             paymentDet.index = index;
                             paymentDet.id = payment.id ? payment.id : null;
                             paymentDet.charge_id = payment.id ? payment.id : null;
-                            paymentDet.study_id = payment.study_id ? payment.study_id : null;
                             paymentDet.payment_id = paymentId;
                             paymentDet.claimId = claimId;
-                            paymentDet.study_cpt_id = payment.study_cpt_id ? payment.study_cpt_id : null;
-                            paymentDet.cpt_code_id = payment.cpt_code_id ? payment.cpt_code_id : null;
                             paymentDet.cpt_code = payment.cpt_code;
                             paymentDet.cpt_description = payment.cpt_description;
-                            paymentDet.payment_amount = payment.current_payment ? parseFloat(payment.current_payment).toFixed(2) : 0.00;
+                            paymentDet.payment_amount = payment.payment_amount ? parseFloat(payment.payment_amount) : 0.00;
+                            paymentDet.adjustment = payment.adjustment_amount ? parseFloat(payment.adjustment_amount) : 0.00;
                             paymentDet.other_payment = payment.other_payment && !isNaN(payment.other_payment) ? parseFloat(payment.other_payment).toFixed(2) : 0.00;
                             paymentDet.other_adjustment = payment.other_adjustment && !isNaN(payment.other_adjustment) ? parseFloat(payment.other_adjustment).toFixed(2) : 0.00;
-                            paymentDet.adjustment = payment.current_adj ? parseFloat(payment.current_adj).toFixed(2) : 0.0;
                             paymentDet.bill_fee = payment.bill_fee ? parseFloat(payment.bill_fee).toFixed(2) : 0.00
                             paymentDet.allowed_fee = 0.00;
                             paymentDet.payment_application_id = payment.payment_application_id;
+                            paymentDet.payment_adjustment_id = payment.adjustment_id;
                             var balance = parseFloat(paymentDet.bill_fee) - (parseFloat(paymentDet.other_payment) + parseFloat(paymentDet.other_adjustment) + parseFloat(paymentDet.adjustment) + parseFloat(paymentDet.payment_amount)).toFixed(2);
                             paymentDet.balance = parseFloat(balance).toFixed(2);
 
@@ -1006,11 +1009,12 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         commonjs.validateControls();
                         self.setFeeFields({}, true);
 
+                        $('#ddlAdjustmentCode_fast').append($('<option/>', { value: 0, text: 'Select' }));
+                        $('#ddlResponsible').append($('<option/>', { value: '', text: 'Select' }));
+
                         $.each(adjustmentCodes, function (index, adjustmentCode) {
                             $('#ddlAdjustmentCode_fast').append($('<option/>', { value: adjustmentCode.id, text: adjustmentCode.description }));
                         });
-
-                        $('#ddlAdjustmentCode_fast').select2({});
 
                         $.each(payerTypes, function (index, payerType) {
                             if (payerType.patient_id)
@@ -1034,6 +1038,8 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         $("#ddlResponsible option[data-payerType=" + payerTypes[0].payer_type + "]").attr('selected', 'selected');
                         $('#ddlResponsible').select2({});
 
+                        $("#ddlAdjustmentCode_fast").val(charges.length ? charges[0].adjustment_code_id : 0);
+
                         $('#tBodyApplyPendingPayment').find('.applyCAS').on('click', function (e) {
                             var selectedRow = $(e.target || e.srcElement).closest('tr');
                             var chargeId = selectedRow.attr('data_charge_id_id');
@@ -1047,6 +1053,10 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         $('#btnClearAppliedPendingPayments').unbind().on('click', function (e) {
                             self.clearPayments(e, paymentId, claimId);
                         });
+                        
+                        $('#btnPayfullAppliedPendingPayments').unbind().on('click', function (e) {
+                            self.underConstruction();
+                        });
 
                         var bilFeeCols = $("#tBodyApplyPendingPayment tr td:nth-child(3) span");//.text().trim();
                         var billFee = 0;
@@ -1058,24 +1068,17 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         var adjustment = 0;
                         $.each(adjustmentCols, function (index, col) {
                             adjustment += parseFloat($(this).val().trim())
-                        });
-                        
-                        var othersPaidCols = $("#tBodyApplyPendingPayment tr td:nth-child(5) input");//.text().trim();
-                        var othersPaid = 0;
-                        $.each(othersPaidCols, function (index, col) {
-                            adjustment += parseFloat($(this).val().trim())
-                        });
+                        });                    
                         
                         var balanceCols = $("#tBodyApplyPendingPayment tr td:nth-child(9) span");//.text().trim();
                         var balance = 0;
                         $.each(balanceCols, function (index, col) {
                             balance += parseFloat($(this).text().trim())
                         });
-
                         
-                        self.setFeeFields({ billFee: billFee, adjustment: adjustment, othersPaid: othersPaid, balance: balance});
+                        self.setFeeFields({ billFee: billFee, adjustment: adjustment, balance: balance, notes: payerTypes[0].billing_notes, adjustment_code_id: charges[0].adjustment_code_id});
 
-                        console.log({ billFee: billFee, adjustment: adjustment, othersPaid: othersPaid, balance: balance });
+                        console.log({ billFee: billFee, adjustment: adjustment, balance: balance });
                     },
                     error: function (err, response) {
                         commonjs.handleXhrError(err, response);
@@ -1092,12 +1095,13 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             savePaymentsCAS: function (claimId, paymentId, paymentStatus, payment_application_id) {
                 var self = this;
                 var charge_id = $('#divPaymentCAS').attr('data-charge_id');
-                var cas = self.vaidateCasCodeAndReason(payment_application_id);
-                self.casSegmentsSelected = cas;
+                var cas = self.vaidateCasCodeAndReason(payment_application_id, paymentStatus);
+                self.casSegmentsSelected = cas ;
+                self.closePaymentsCAS();
                 self.closePaymentsCAS();
             },
 
-            vaidateCasCodeAndReason: function (payment_application_id) {
+            vaidateCasCodeAndReason: function (payment_application_id, paymentStatus) {
                 var self = this;
                 var hasReturned = false;
                 var casObj = [];
@@ -1107,11 +1111,16 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     var groupCode = $('#selectGroupCode' + k).val()
                     var reasonCode = $('#selectReason' + k).val()
                     var amount = $('#txtAmount' + k).val()
+                    if(paymentStatus === 'applied'){
+                        var cas_id= $('#selectGroupCode' + k).attr('cas_id');
+                    }
 
                     if (groupCode != '' && reasonCode != '' && amount != '') {
                         emptyCasObj['group_code_id'] = groupCode;
                         emptyCasObj['reason_code_id'] = reasonCode;
                         emptyCasObj['amount'] = amount;
+                        if(paymentStatus === 'applied')
+                            { emptyCasObj['cas_id'] = cas_id;}
                         casObj.push(emptyCasObj);
                         hasReturned = true;
                     }
@@ -1146,7 +1155,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                             var payemntCasApplns = data;
                             $.each(payemntCasApplns, function (index, appln) {
                                 var rowVal = index + 1;
-                                $('#selectGroupCode' + rowVal).val(appln.cas_group_code_id);
+                                $('#selectGroupCode' + rowVal).val(appln.cas_group_code_id).attr('cas_id', appln.id);
                                 $('#selectReason' + rowVal).val(appln.cas_reason_code_id);
                                 $('#txtAmount' + rowVal).val(appln.amount.substr(1));
                             });
@@ -1185,7 +1194,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 }
                 else if ($('#ddlAdjustmentCode_fast').val() === '0') {
                     commonjs.showWarning('Please select adjustemnt code');
-                    $('#ddlAdjustmentCode_fast').select2('open')
+                    // $('#ddlAdjustmentCode_fast').select2('open')
                     return false;
                 }
                 else return true;
@@ -1230,8 +1239,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                             billingNotes: billingNotes,
                             payerType: payerType,
                             adjestmentId: adjustmentType,
-                            paymentStatus: paymentStatus,
-                            cas: cas
+                            paymentStatus: paymentStatus
                         },
                         success: function (model, response) {
                             alert('Payment has been applied successfully');

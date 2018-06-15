@@ -10,7 +10,8 @@ define(['jquery',
     'models/claim-filters',
     'grid',
     'shared/fields',
-    'text!templates/claims/ediResult.html'],
+    'text!templates/claims/ediResult.html',
+    'text!templates/claims/claim-validation.html'],
     function ($,
               Immutable,
               _,
@@ -23,7 +24,8 @@ define(['jquery',
               ModelClaimsFilters,
               ClaimsGrid,
               ListFields,
-              ediResultHTML) {
+              ediResultHTML,
+              claimValidation) {
         var MergeQueueBase = Immutable.Record({
             'filterIndexSet': Immutable.OrderedSet(),
             /**
@@ -189,7 +191,7 @@ define(['jquery',
                 "click #btnSelectAllStudy": "selectAllRows",
                 "click #btnInsuranceClaim": "createClaims",
                 "click #btnValidateOrder": "validateClaim",
-                "click #btnRefreshAll": "refreshAllStudies"
+                "click #btnClaimRefreshAll": "refreshAllClaims"
             },
 
             initialize: function (options) {
@@ -234,6 +236,7 @@ define(['jquery',
                 var self = this;
                 self.template = _.template(ClaimHTML);
                 self.indexTemplate = _.template(IndexHTML);
+                self.claimValidation = _.template(claimValidation);
                 self.$el.html(self.indexTemplate({
                     gadget: '',
                     customStudyStatus: []
@@ -245,10 +248,8 @@ define(['jquery',
                 }
                 commonjs.showLoading('Loading filters..');
                 self.userSettings = commonjs.hstoreParse(app.userInfo.user_settings);
-
+                $("#btnStudiesRefreshAll, #diveHomeIndex, #divclaimsFooter").hide();
                 $('#divPageLoading').show();
-                $('#diveHomeIndex').hide();
-                $('#divclaimsFooter').hide();
 
                 isDefaultTab = false;
                 self.claimsFilters = new ClaimFiltersCollection();
@@ -1337,7 +1338,7 @@ define(['jquery',
                 this.getStudyFilter(commonjs.currentStudyFilter, false);
             },
 
-            refreshAllStudies: function () {
+            refreshAllClaims: function () {
                 var self = this;
                 // commonjs.isHomePageVisited = false;
                 var filter = commonjs.loadedStudyFilters.get(commonjs.currentStudyFilter);
@@ -1348,16 +1349,16 @@ define(['jquery',
 
                 var $loading = $(document.getElementById('divPageLoading'));
                 $loading.show();
-                // commonjs.showLoading();
+                commonjs.showLoading();
 
                 jQuery.ajax({
                     url: "/exa_modules/billing/user_settings",
                     type: "GET",
                     data: {
-                        userID: app.userID,
                         gridName: 'claims'
                     },
                     success: function (resp, textStatus, jqXHR) {
+                        commonjs.hideLoading();
                         resp = resp && (resp.length >=1) && resp[1].rows && resp[1].rows[0] ? resp[1].rows[0] : {};
                         if (resp) {
                             app.claim_user_settings = Object.assign({}, app.claim_user_settings, resp);
@@ -1490,14 +1491,41 @@ define(['jquery',
             },
 
             validateClaim: function(){
+                let self=this;
+                let filterID = commonjs.currentStudyFilter;
+                let filter = commonjs.loadedStudyFilters.get(filterID);
+
+                let claimIds =[],existingBillingMethod=''; 
+                for (let i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
+                    let rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;                   
+                    claimIds.push(rowId);
+                }
+
+                if(claimIds&&claimIds.length==0){
+                    commonjs.showWarning('Please select claims');
+                    return false;
+                } 
+                
                 $.ajax({
                     url: '/exa_modules/billing/claimWorkbench/validate_claims',
                     type: 'GET',
                     data: {
-                        claim_ids: [3909, 2636, 7301]
+                        claim_ids: claimIds 
                     },
                     success: function(data, response){
-                        console.log(response)
+                        $("#btnValidateOrder").attr("disabled", false);
+                        if (data) {
+                            commonjs.hideLoading();
+
+                            if (!data.invalidClaim_data.length)
+                                commonjs.showStatus(commonjs.geti18NString("messages.status.validatedSuccessfully"));
+                            else
+                                commonjs.showDialog({ header: 'Validation Results', i18nHeader: 'menuTitles.order.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });  
+                        }
+                    },
+                    error: function (err, response) {
+                        $("#btnValidateOrder").attr("disabled", false);
+                        commonjs.handleXhrError(err, response);
                     }
                 })
             }
