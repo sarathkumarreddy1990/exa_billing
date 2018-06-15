@@ -1,11 +1,11 @@
 <style>
     .col1 {
-        width: 85%;
+        /* width: 85%; */
         height: 35px;
     }
 
     .col2 {
-        width: 25%;
+        /* width: 25%; */
         height: 35px;
     }
 
@@ -22,19 +22,15 @@
     <div id="applyPaymentContent">
         <table class="table">
             <tr>
-                <td style="width:15%;border:none !important;">
+                <td style="width:15%;border:none !important;" align="center">
                     <span i18n="order.chargePayment.totalBillFee"></span> :
                     <span id="spApplyTotalFee"></span>
                 </td>
-                <td style="width:20%;border:none !important;">
-                    <span i18n="order.chargePayment.contractValue"></span> :
-                    <span id="spApplyAllowed"></span>
-                </td>
-                <td style="width:20%;border:none !important;" align="right">
-                    <span>Applied Payment</span>
+                <td style="width:20%;border:none !important;" align="center">
+                    <span>Applied Payment</span> : 
                     <span id="spPaymentApplied"></span>
                 </td>
-                <td style="width:20%;border:none !important;" align="right">
+                <td style="width:20%;border:none !important;" align="center">
                     <span i18n="order.chargePayment.adjustment">Applied Adjustment</span> :
                     <span id="spAdjustmentApplied"></span>
                 </td>
@@ -93,46 +89,39 @@
                 <div class="row">
                     <div class="col">
                         <div class="form-group row">
-                            <label class="control-label  col-sm-5">
+                            <label class="control-label  col-sm-3">
                                 <span i18n="order.chargePayment.totalBillFee"></span> :</label>
 
-                            <div class="col-sm-5">
+                            <div class="col-sm-3">
                                 <label id="lblBillingFee"></label>
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="control-label  col-sm-5">
-                                <span i18n="order.chargePayment.contractValue"></span> :</label>
-                            <div class="col-sm-5">
-                                <label id="lblContractValue"></label>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="control-label col-sm-5">
+                            <label class="control-label col-sm-3">
                                 <span i18n="shared.fields.otherPaid"></span> :</label>
-                            <div class="col-sm-5">
-                                <label id="lblOthers"></label>
+                            <div class="col-sm-3">
+                                <label id="lblOthers"><%= others_paid %> </label>
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="control-label col-sm-5">
+                            <label class="control-label col-sm-3">
                                 <span i18n="shared.fields.adjustment"></span> :</label>
-                            <div class="col-sm-5">
+                            <div class="col-sm-3">
                                 <label id="lblAdjustment"></label>
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="control-label col-sm-5">
+                            <label class="control-label col-sm-3">
                                 <span i18n="shared.fields.patientPaid"></span> :</label>
-                            <div class="col-sm-5">
-                                <label id="lblPatient"></label>
+                            <div class="col-sm-3">
+                                <label id="lblPatient"><%= patient_paid %> </label>
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="control-label col-sm-5">
+                            <label class="control-label col-sm-3">
                                 <span i18n="shared.fields.balance"></span> :</label>
-                            <div class="col-sm-5">
-                                <label id="lblBalance"></label>
+                            <div class="col-sm-3">
+                                <label id="lblBalanceNew"></label>
                             </div>
                         </div>
                     </div>
@@ -180,15 +169,14 @@
                             <div class="col-sm-5">
                                 <input type="text" id="txtCoInsurance" value="0.00" class="form-control input-xs floatbox">
                             </div>
-                            <div class="form-group row">
-                                <label class="control-label col-sm-4" i18n="order.newOrder.coPay"> :</label>
-
-                                <div class="col-sm-5">
-                                    <input type="text" id="txtCoPay" value="0.00" class="form-control input-xs floatbox">
-                                </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="control-label col-sm-3" i18n="order.newOrder.coPay"> :</label>
+                        
+                            <div class="col-sm-5">
+                                <input type="text" id="txtCoPay" value="0.00" class="form-control input-xs floatbox">
                             </div>
                         </div>
-                    </div>
                 </div>
             </form>
         </div>
@@ -210,7 +198,7 @@
     <div class="col-lg-12 paddingBottomDiv ">
         <div class="row">
             <div class="col">
-                <select id="selectGroupCode1" class="col1" style="width: 300px;">
+                <select id="selectGroupCode1" class="col1">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_group_codes, function(cas_group_code) { %>
                         <option value="<%= cas_group_code.id %>" data-code="<%= cas_group_code.code %>">
@@ -220,7 +208,7 @@
                 </select>
             </div>
             <div class="col">
-                <select id="selectReason1" class="col2" style="width: 300px;">
+                <select id="selectReason1" class="col2">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_reason_codes, function(reason_code) { %>
                         <option value="<%= reason_code.id %>" data-code="<%= reason_code.code %>">
@@ -237,7 +225,7 @@
     <div class="col-lg-12 paddingBottomDiv ">
         <div class="row">
             <div class="col">
-                <select id="selectGroupCode2" class="col1" style="width: 300px;">
+                <select id="selectGroupCode2" class="col1">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_group_codes, function(cas_group_code) { %>
                         <option value="<%= cas_group_code.id %>" data-code="<%= cas_group_code.code %>">
@@ -247,7 +235,7 @@
                 </select>
             </div>
             <div class="col">
-                <select id="selectReason2" class="col2" style="width: 300px;">
+                <select id="selectReason2" class="col2">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_reason_codes, function(reason_code) { %>
                         <option value="<%= reason_code.id %>" data-code="<%= reason_code.code %>">
@@ -264,7 +252,7 @@
     <div class="col-lg-12 paddingBottomDiv ">
         <div class="row">
             <div class="col">
-                <select id="selectGroupCode3" class="col1" style="width: 300px;">
+                <select id="selectGroupCode3" class="col1">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_group_codes, function(cas_group_code) { %>
                         <option value="<%= cas_group_code.id %>" data-code="<%= cas_group_code.code %>">
@@ -274,7 +262,7 @@
                 </select>
             </div>
             <div class="col">
-                <select id="selectReason3" class="col2" style="width: 300px;">
+                <select id="selectReason3" class="col2">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_reason_codes, function(reason_code) { %>
                         <option value="<%= reason_code.id %>" data-code="<%= reason_code.code %>">
@@ -291,7 +279,7 @@
     <div class="col-lg-12 paddingBottomDiv ">
         <div class="row">
             <div class="col">
-                <select id="selectGroupCode4" class="col1" style="width: 300px;">
+                <select id="selectGroupCode4" class="col1">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_group_codes, function(cas_group_code) { %>
                         <option value="<%= cas_group_code.id %>" data-code="<%= cas_group_code.code %>">
@@ -301,7 +289,7 @@
                 </select>
             </div>
             <div class="col">
-                <select id="selectReason4" class="col2" style="width: 300px;">
+                <select id="selectReason4" class="col2">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_reason_codes, function(reason_code) { %>
                         <option value="<%= reason_code.id %>" data-code="<%= reason_code.code %>">
@@ -318,7 +306,7 @@
     <div class="col-lg-12 paddingBottomDiv ">
         <div class="row">
             <div class="col">
-                <select id="selectGroupCode5" class="col1" style="width: 300px;">
+                <select id="selectGroupCode5" class="col1">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_group_codes, function(cas_group_code) { %>
                         <option value="<%= cas_group_code.id %>" data-code="<%= cas_group_code.code %>">
@@ -328,7 +316,7 @@
                 </select>
             </div>
             <div class="col">
-                <select id="selectReason5" class="col2" style="width: 300px;">
+                <select id="selectReason5" class="col2">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_reason_codes, function(reason_code) { %>
                         <option value="<%= reason_code.id %>" data-code="<%= reason_code.code %>">
@@ -345,7 +333,7 @@
     <div class="col-lg-12 paddingBottomDiv ">
         <div class="row">
             <div class="col">
-                <select id="selectGroupCode6" class="col1" style="width: 300px;">
+                <select id="selectGroupCode6" class="col1">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_group_codes, function(cas_group_code) { %>
                         <option value="<%= cas_group_code.id %>" data-code="<%= cas_group_code.code %>">
@@ -355,7 +343,7 @@
                 </select>
             </div>
             <div class="col">
-                <select id="selectReason6" class="col2" style="width: 300px;">
+                <select id="selectReason6" class="col2">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_reason_codes, function(reason_code) { %>
                         <option value="<%= reason_code.id %>" data-code="<%= reason_code.code %>">
@@ -372,7 +360,7 @@
     <div class="col-lg-12 paddingBottomDiv ">
         <div class="row">
             <div class="col">
-                <select id="selectGroupCode7" class="col1" style="width: 300px;">
+                <select id="selectGroupCode7" class="col1">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_group_codes, function(cas_group_code) { %>
                         <option value="<%= cas_group_code.id %>" data-code="<%= cas_group_code.code %>">
@@ -382,7 +370,7 @@
                 </select>
             </div>
             <div class="col">
-                <select id="selectReason7" class="col2" style="width: 300px;">
+                <select id="selectReason7" class="col2">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(cas_reason_codes, function(reason_code) { %>
                         <option value="<%= reason_code.id %>" data-code="<%= reason_code.code %>">

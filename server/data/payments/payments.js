@@ -391,7 +391,21 @@ module.exports = {
                                     , type TEXT
                                     , created_by BIGINT)
                                 ),
-                        update_applications as(
+                        cas_application_details AS(
+                                SELECT
+                                    cas_id
+                                  , group_code_id
+                                  , reason_code_id
+                                  , payment_application_id
+                                  , amount
+                                FROM json_to_recordset(${JSON.stringify(params.save_cas_details)}) AS details(
+                                    cas_id BIGINT
+                                  , group_code_id BIGINT
+                                  , reason_code_id BIGINT
+                                  , payment_application_id BIGINT
+                                  , amount MONEY)
+                                ),
+                        update_applications AS(
                             UPDATE billing.payment_applications 
                                 SET
                                     amount = uad.amount
@@ -420,8 +434,33 @@ module.exports = {
                             , false
                             , created_by
                             , now()
-                            FROM claim_comment_details)
-                        SELECT true`;
+                            FROM claim_comment_details),
+                        update_cas_application AS(
+                                    UPDATE billing.cas_payment_application_details bcpad
+                                        SET
+                                            cas_group_code_id = cad.group_code_id
+                                          , cas_reason_code_id = cad.reason_code_id
+                                          , amount = cad.amount
+                                    FROM cas_application_details cad
+                                    WHERE cad.cas_id = bcpad.id 
+                                ),
+                        insert_cas_applications AS (
+                                INSERT INTO billing.cas_payment_application_details
+                                (
+                                    payment_application_id
+                                  , cas_group_code_id
+                                  , cas_reason_code_id
+                                  , amount 
+                                )
+                                SELECT 
+                                    payment_application_id
+                                  , group_code_id
+                                  , reason_code_id
+                                  , amount
+                                FROM cas_application_details
+                                WHERE cas_id is null
+                            )
+                            SELECT true`;
 
         return await query(sql);
     },
