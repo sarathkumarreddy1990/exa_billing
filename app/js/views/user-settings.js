@@ -42,6 +42,9 @@ define([
                 $('#save_settings').click(function (e) {
                     self.saveUserSettingsBilling(userID);
                     commonjs.hideDialog();
+                    $('#siteModal').on('hidden.bs.modal', function (e) {
+                        $('#btnRefreshAll').click();
+                    })
                 });
             },
 
@@ -147,7 +150,7 @@ define([
                 $.ajax({
                     url: '/exa_modules/billing/user_settings',
                     data: {
-                        userID: userID,
+                        userID: app.userID,
                         gridName: grid_name
                     },
                     success: function (data, response) {
