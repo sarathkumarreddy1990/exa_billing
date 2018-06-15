@@ -15,7 +15,7 @@ define([
     'routes/setup/claim-status',
     'routes/setup/edi-clearinghouses',
     'routes/setup/validations',
-    //'routes/setup/audit-log',
+    'routes/setup/audit-log',
     'routes/setup/user-log'
 ], function (
     Backbone,
@@ -34,7 +34,7 @@ define([
     ClaimStatusRoute,
     EdiClearingHousesRoute,
     ValidationsRoute,
-    //AuditLogRoute,
+    AuditLogRoute,
     UserLogRoute
     ) {
         return Backbone.SubRoute.extend({
@@ -51,7 +51,7 @@ define([
                 "claim_status/*subroute" : "startClaimStatus",
                 "edi_clearinghouses/*subroute" : "startEDIClearingHouses",
                 "validations/*subroute" : "startValidations",
-               // "audit_log/*subroute" : "startAuditLog",
+                "audit_log/*subroute" : "startAuditLog",
                 "user_log/*subroute" : "startUserLog"
             },
 
@@ -175,14 +175,14 @@ define([
                 }
             },
 
-           /* startAuditLog: function(){
+            startAuditLog: function(){
                 if (this.checkLicense('AuditLog') && !this.auditLog) {
                     this.defaultArgs.routePrefix = 'setup/audit_log/';
                     this.auditLog = new AuditLogRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }
-            },*/
+            },
 
             startUserLog: function(){
                 if (this.checkLicense('UserLog') && !this.userLog) {
