@@ -104,7 +104,6 @@ module.exports = {
                              FROM json_to_recordset(${JSON.stringify(lineItems)}) AS (
                                  claim_number bigint
                                 ,charge_id bigint
-                                ,claim_status_code bigint
                                 ,payment money
                                 ,adjustment money
                                 ,cpt_code text
