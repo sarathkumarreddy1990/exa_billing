@@ -96,36 +96,57 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     
                 $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr for select2 search text can't editable
 
-                $('#btnCheckEligibility, #btnCheckEligibility2, #btnCheckEligibility3').unbind().click(function () {
-                    self.checkInsuranceEligibility();
-                }); 
+                 $('#btnCheckEligibility, #btnCheckEligibility2, #btnCheckEligibility3').unbind().click(function (e) {
+                     self.checkInsuranceEligibility(e);
+                 }); 
             },
 
-            checkInsuranceEligibility: function () {
+            checkInsuranceEligibility: function (e) {
+                var self = this;
                 var serviceTypeCodes = [], serviceTypes = [];
-                this.insRelationship = $('#ddlPriRelationShip').val();
-                this.existingInsId = $('#ddlExistPriIns').val() ? $('#ddlExistPriIns').val() : null;
-                self = this,
-                    relationshipCode = '34';
+                var id = e && e.target && e.target.id && e.target.id;
+                var ins = '';
 
-                switch (this.insRelationship && this.insRelationship.toLowerCase()) {
-                    case 'self':
-                        relationshipCode = '18';
-                        break;
-                    case 'child':
-                        relationshipCode = '19';
-                        break;
-                    case 'spouse':
-                        relationshipCode = '01';
-                        break;
-                }                
+                var eligibilityData = {
+                    Sender: "",
+                    AuthKey: "",
+                    APIOrgCode: "",
+                    InsuranceCompanyCode: "-1",
+                    ProviderCode: "-1",
+                    EntityType: '1',
+                    NpiNo: self.npiNo,
+                    FederalTaxID: self.federalTaxId ? self.federalTaxId : '',
+                    BenefitOnDate: null,
+                    BirthDate: null,
+                    RelationshipCode: 34,
+                    ServiceTypeCodes: null,
+                    ServiceTypes: null,
+                    FromLocal: 'false',
+                    ResponseType: 'html',
+                    patient_id: self.cur_patient_id,
+                    isExistingInsurance: true,
+                    patient_insurance_id: null,
+                    LastName: null,
+                    FirstName: null,
+                    address: null,
+                    PolicyNo: null,
+                    InsuranceCompanyName: null,
+                    tradingPartnerId: self.tradingPartnerId
+                }
 
-                if (!$('#ddlServiceType :selected').length) {
+                if (id == 'btnCheckEligibility2') {
+                    ins = 2;
+                } else if (id == 'btnCheckEligibility3') {
+                    ins = 3;
+                }
+
+               
+                if (!$(`#ddlServiceType${ins} :selected`).length) {
                     commonjs.showWarning('messages.warning.shared.selectservicetype');
                     return;
                 }
 
-                if (!$("#txtBenefitOnDate").val()) {
+                if (!$(`#txtBenefitOnDate${ins}`).val()) {
                     commonjs.showWarning('messages.warning.patient.selectbenefitondate');
                     return;
                 }
@@ -143,15 +164,53 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 if (!self.enableInsuranceEligibility) {
                     commonjs.showWarning('messages.warning.patient.eleigibilitycheckdisabled');
                     return;
-                }
+                } 
 
-                $.each($('#ddlServiceType :selected'), function (index, value) {
+
+                $.each($(`#ddlServiceType${ins} :selected`), function (index, value) {
                     serviceTypeCodes.push($(value).val())
                     var serviceType = $(value).attr('title').toLowerCase();
                     serviceTypes.push(serviceType.replace(/[^A-Z0-9]+/ig, "_"));
                 });
 
-                $('#btnCheckEligibility').hide();
+                eligibilityData.ServiceTypeCodes = serviceTypeCodes;
+                eligibilityData.serviceType = serviceTypes;
+
+                if (!ins) {  // Primary insurance
+                    eligibilityData.RelationshipCode = $('#ddlPriRelationShip').val() ? $('#ddlPriRelationShip').val() : eligibilityData.RelationshipCode;
+                    eligibilityData.patient_insurance_id = $('#ddlExistPriIns').val() ? $('#ddlExistPriIns').val() : null;
+                    eligibilityData.PolicyNo = $('#txtPriPolicyNo').val() ? $('#txtPriPolicyNo').val() : null;
+                    eligibilityData.BenefitOnDate = $('#txtBenefitOnDate').val() ? $('#txtBenefitOnDate').val() : null;
+                    eligibilityData.BirthDate = document.querySelector('#txtPriDOB').value;
+                    eligibilityData.LastName = $('#txtPriSubLastName').val() ? $('#txtPriSubLastName').val() : null;
+                    eligibilityData.FirstName = $('#txtPriSubFirstName').val() ? $('#txtPriSubFirstName').val() : null;
+                    eligibilityData.address = $('#txtPriSubPriAddr').val() ? $('#txtPriSubPriAddr').val() : null;
+                    eligibilityData.InsuranceCompanyName = $('#select2-ddlPriInsurance-container').html();
+
+                } else if (ins == 2) { // Secondary insurance
+                    eligibilityData.RelationshipCode = $('#ddlSecRelationShip').val() ? $('#ddlSecRelationShip').val() : eligibilityData.relationshipCode;
+                    eligibilityData.patient_insurance_id = $('#ddlExistSecIns').val() ? $('#ddlExistSecIns').val() : null;
+                    eligibilityData.PolicyNo = $('#txtSecPolicyNo').val() ? $('#txtSecPolicyNo').val() : null;
+                    eligibilityData.BenefitOnDate = $('#txtBenefitOnDate2').val() ? $('#txtBenefitOnDate2').val() : null;
+                    eligibilityData.BirthDate = document.querySelector('#txtSecDOB').value;
+                    eligibilityData.LastName = $('#txtSecSubLastName').val() ? $('#txtSecSubLastName').val() : null;
+                    eligibilityData.FirstName = $('#txtSecSubFirstName').val() ? $('#txtSecSubFirstName').val() : null;
+                    eligibilityData.address = $('#txtSecSubPriAddr').val() ? $('#txtSecSubPriAddr').val() : null;
+                    eligibilityData.InsuranceCompanyName = $('#select2-ddlSecInsurance-container').html();
+                }
+                else if (ins == 3) { // Teritary insurance
+                    eligibilityData.RelationshipCode = $('#ddlTerRelationShip').val() ? $('#ddlTerRelationShip').val() : eligibilityData.relationshipCode;
+                    eligibilityData.patient_insurance_id = $('#ddlExistTerIns').val() ? $('#ddlExistTerIns').val() : null;
+                    eligibilityData.PolicyNo = $('#txtTerPolicyNo').val() ? $('#txtTerPolicyNo').val() : null;
+                    eligibilityData.BenefitOnDate = $('#txtBenefitOnDate3').val() ? $('#txtBenefitOnDate3').val() : null;
+                    eligibilityData.BirthDate = document.querySelector('#txtTerDOB').value;
+                    eligibilityData.LastName = $('#txtTerSubLastName').val() ? $('#txtTerSubLastName').val() : null;
+                    eligibilityData.FirstName = $('#txtTerSubFirstName').val() ? $('#txtTerSubFirstName').val() : null;
+                    eligibilityData.address = $('#txtTerSubPriAddr').val() ? $('#txtTerSubPriAddr').val() : null;
+                    eligibilityData.InsuranceCompanyName = $('#select2-ddlTerInsurance-container').html();
+                }     
+
+                $(`#btnCheckEligibility${ins}`).prop('disabled',true);
                 $('#imgLoading').show();
                 
 
@@ -159,35 +218,10 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     url: '/exa_modules/billing/claims/eligibility',
                     type: "POST",
                     dataType: "json",
-                    data: {
-                        Sender: "",
-                        AuthKey: "",
-                        APIOrgCode: "",
-                        InsuranceCompanyCode: "-1",
-                        ProviderCode: "-1",
-                        EntityType: '1',
-                        NpiNo: self.npiNo,
-                        FederalTaxID: self.federalTaxId ? self.federalTaxId : '',
-                        BenefitOnDate: $("#txtBenefitOnDate").val() ? $("#txtBenefitOnDate").val() : null,
-                        BirthDate: self.cur_patient_dob,
-                        RelationshipCode: relationshipCode,
-                        ServiceTypeCodes: serviceTypeCodes.join('~'),
-                        ServiceTypes: serviceTypes,
-                        FromLocal: 'false',
-                        ResponseType: 'html',
-                        patient_id: self.cur_patient_id,
-                        isExistingInsurance: true,
-                        patient_insurance_id: self.existingInsId,
-                        LastName: self.subscriberLastName,
-                        FirstName: self.subscriberFirstName,
-                        address: self.subscriberAddress,
-                        PolicyNo: self.policyNumber,
-                        InsuranceCompanyName: self.insuranceName,
-                        tradingPartnerId: self.tradingPartnerId
-                    },
+                    data: eligibilityData,
                     success: function (response) {
                         data = response.data;
-
+                        $(`#btnCheckEligibility${ins}`).prop('disabled',false);
                         if (data && data.errors) {
                             commonjs.showWarning(data.errors.query);
                             return;
