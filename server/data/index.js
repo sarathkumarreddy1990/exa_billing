@@ -50,7 +50,13 @@ const pgData = {
             };
         }
 
-        return pool.query(queryObj);
+        try {
+            let response = await pool.query(queryObj);
+            return response;
+        } catch (err) {
+            logger.error(err);
+            throw err;
+        }
     },
 
     queryRows: async function (text, values, preparedName) {
@@ -58,6 +64,7 @@ const pgData = {
             let result = await pgData.query(text, values, preparedName);
             return result.rows;
         } catch (err) {
+            logger.error(err);
             throw err;
         }
     },
@@ -98,7 +105,7 @@ const pgData = {
                 SELECT  *
                 FROM    audit_cte
             `);
-            
+
         return await pgData.query(sql);
     },
 
