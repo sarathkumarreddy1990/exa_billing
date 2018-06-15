@@ -262,7 +262,18 @@ define(['jquery',
                     data: {},
                     success: function (model, response) {
                         // if (commonjs.isValidResponse(response)) {
-                        var studyFilters = response || [];
+                            var studyFilters = [];
+                            studyFilters.push({
+                            assigned_users: null,
+                            display_as_tab: true,
+                            display_in_ddl: true,
+                            filter_id: "All_Studies",
+                            filter_info: null,
+                            filter_name: "All Studies",
+                            filter_order: 0,
+                            id: "All_Studies"
+                        });                       
+                        studyFilters = studyFilters.concat(response)
                         commonjs.studyFilters = Immutable.List(studyFilters);
                         self.setFiltertabs(studyFilters);
                         // }
