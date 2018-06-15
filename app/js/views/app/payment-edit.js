@@ -920,7 +920,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     $('#siteModal').hide();
                 })
 
-                $('#divPaymentCAS select').select2();
+                // $('#divPaymentCAS select').select2();
                 commonjs.processPostRender();
                 commonjs.validateControls();
 
@@ -1070,11 +1070,12 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             savePaymentsCAS: function (claimId, paymentId, paymentStatus, payment_application_id) {
                 var self = this;
                 var charge_id = $('#divPaymentCAS').attr('data-charge_id');
-                var cas = self.vaidateCasCodeAndReason(payment_application_id);
+                var cas = self.vaidateCasCodeAndReason(payment_application_id, paymentStatus);
                 self.casSegmentsSelected = cas ;
+                self.closePaymentsCAS();
             },
 
-            vaidateCasCodeAndReason: function (payment_application_id) {
+            vaidateCasCodeAndReason: function (payment_application_id, paymentStatus) {
                 var self = this;
                 var hasReturned = false;
                 var casObj = [];
@@ -1084,11 +1085,16 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     var groupCode = $('#selectGroupCode' + k).val()
                     var reasonCode = $('#selectReason' + k).val()
                     var amount = $('#txtAmount' + k).val()
+                    if(paymentStatus === 'applied'){
+                        var cas_id= $('#selectGroupCode' + k).attr('cas_id');
+                    }
 
                     if (groupCode != '' && reasonCode != '' && amount != '') {
                         emptyCasObj['group_code_id'] = groupCode;
                         emptyCasObj['reason_code_id'] = reasonCode;
                         emptyCasObj['amount'] = amount;
+                        if(paymentStatus === 'applied')
+                            { emptyCasObj['cas_id'] = cas_id;}
                         casObj.push(emptyCasObj);
                         hasReturned = true;
                     }
@@ -1123,7 +1129,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                             var payemntCasApplns = data;
                             $.each(payemntCasApplns, function (index, appln) {
                                 var rowVal = index + 1;
-                                $('#selectGroupCode' + rowVal).val(appln.cas_group_code_id);
+                                $('#selectGroupCode' + rowVal).val(appln.cas_group_code_id).attr('cas_id', appln.id);
                                 $('#selectReason' + rowVal).val(appln.cas_reason_code_id);
                                 $('#txtAmount' + rowVal).val(appln.amount.substr(1));
                             });

@@ -453,7 +453,8 @@ module.exports = {
     getPayemntApplications: async function (params) {
         return await query(
             `
-                SELECT 
+                SELECT
+                    id,
                     cas_group_code_id,
                     cas_reason_code_id,
                     amount
