@@ -5,15 +5,15 @@ const studiesController = require('../controllers/studies');
 const httpHandler = require('../shared/http');
 
 router.get('/', async function (req, res) {
-    req.query.company_id = 1;
-    req.query.user_id = 2;    
+    req.query.company_id = req.query.companyId;
+    req.query.user_id = req.query.userId;    
     const data = await studiesController.getData(req.query);
     httpHandler.sendRows(req, res, data);
 });
 
 router.get('/studies_total_records', async function (req, res) {
-    req.query.company_id = 1;
-    req.query.user_id = 2;    
+    req.query.company_id = req.query.companyId;
+    req.query.user_id = req.query.userId;    
     const data = await studiesController.getDataCount(req.query);
     httpHandler.sendRows(req, res, data);
 });

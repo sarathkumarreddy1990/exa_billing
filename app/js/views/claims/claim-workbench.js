@@ -191,7 +191,9 @@ define(['jquery',
                 "click #btnSelectAllStudy": "selectAllRows",
                 "click #btnInsuranceClaim": "createClaims",
                 "click #btnValidateOrder": "validateClaim",
-                "click #btnClaimRefreshAll": "refreshAllClaims"
+                "click #btnClaimRefreshAll": "refreshAllClaims",
+                "click #btnValidateExport": "underConstruction",
+                "click #btnFileInsuranceRefresh": "underConstruction",
             },
 
             initialize: function (options) {
@@ -213,6 +215,10 @@ define(['jquery',
                 $document
                     .off('keyup', self.finishFilterMerge)
                     .on('keyup', self.finishFilterMerge);
+            },
+            underConstruction:function(){
+                alert("Under construction");
+                return false;
             },
 
             showFilterMergeUI: function (event) {
@@ -667,6 +673,7 @@ define(['jquery',
                         };
 
                         $btnTabNavLeft.off('click').on('click', function (navState, event) {
+                            self.underConstruction();
                             if (navState.getState('isScrolling') === true || navState.getState('isMeasuring') === true) {
                                 return;
                             }
@@ -733,6 +740,7 @@ define(['jquery',
                          */
 
                         $btnTabNavRight.off('click').on('click', function (navState, event) {
+                            self.underConstruction();
                             if (navState.getState('isScrolling') === true || navState.getState('isMeasuring') === true) {
                                 return;
                             }

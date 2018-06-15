@@ -7914,7 +7914,7 @@ var commonjs = {
         return [];
     },
 
-    getColorCodeForStatus: function (code, processType) {
+    getClaimColorCodeForStatus: function (code, processType) {
         var statusCodes = app.status_color_codes.length && app.status_color_codes ||parent.app.status_color_codes;
         if (statusCodes && statusCodes.length > 0) {
             return $.grep(statusCodes, function (currentObj) {
