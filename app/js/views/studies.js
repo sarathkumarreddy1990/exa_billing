@@ -189,8 +189,9 @@ define(['jquery',
                 "change #chkAllStatus": "chooseStatusForFilter",
                 "change #chkAppointmentStatus": "chooseStatusForFilter",
                 "change #chkRadStatus": "chooseStatusForFilter",
-                "change #chkStudyProgress": "chooseStatusForFilter",
-                "click #btnRefresh": "refreshStudies",
+                "change #chkStudyProgress": "chooseStatusForFilter", 
+                "click #btnRefresh": "underConstruction",
+                "click #btnValidateExport": "underConstruction",
                 "click #btnStudiesRefreshAll": "refreshAllStudies"
             },
 
@@ -228,6 +229,10 @@ define(['jquery',
 //                        this.addClass('merge-pending');
 //                    }.bind($('.top-nav')));
                 }
+            },
+            underConstruction:function(){
+                alert("Under construction");
+                return false;
             },
             completeRefresh: function (e) {
                 var self = this;
@@ -584,6 +589,7 @@ define(['jquery',
                         };
 
                         $btnTabNavLeft.off('click').on('click', function (navState, event) {
+                            self.underConstruction();
                             if (navState.getState('isScrolling') === true || navState.getState('isMeasuring') === true) {
                                 return;
                             }
@@ -650,6 +656,7 @@ define(['jquery',
                          */
 
                         $btnTabNavRight.off('click').on('click', function (navState, event) {
+                            self.underConstruction();
                             if (navState.getState('isScrolling') === true || navState.getState('isMeasuring') === true) {
                                 return;
                             }

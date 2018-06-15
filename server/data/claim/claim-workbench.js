@@ -128,19 +128,24 @@ WITH cte_billing_providers AS (
                                     SELECT Json_agg(Row_to_json(subscriber)) subscriber
                                     FROM  (
                                     SELECT
-                                     coverage_level as "claimResponsibleParty",
+									(CASE coverage_level 
+										WHEN 'primary' THEN 'P'
+										WHEN 'secondary' THEN 'S'
+										WHEN 'teritary' THEN 'T' END) as "claimResponsibleParty",
                                      ( SELECT 
 
-				     (  CASE description 
-						WHEN 'Self' THEN 18
-						WHEN 'Father' THEN 33
-						WHEN 'Mother' THEN 32
-						WHEN 'Sibling' THEN 32
-						WHEN 'Grandparent' THEN 04
-						WHEN 'Great Grandparent' THEN 04
-						WHEN 'Unknown' THEN 21
-						WHEN 'Spouse' THEN 21
-						WHEN 'Child' THEN 19
+				     (  CASE UPPER(description) 
+						WHEN 'SELF' THEN 18
+						WHEN 'FATHER' THEN 33
+						WHEN 'MOTHER' THEN 32
+						WHEN 'SIBLING' THEN 32
+						WHEN 'GRANDPARENT' THEN 04
+						WHEN 'GREAT GRANDPARENT' THEN 04
+						WHEN 'UNKNOWN' THEN 21
+						WHEN 'SPOUSE' THEN 21
+						WHEN 'CHILD' THEN 19
+						WHEN 'BROTHER' THEN 23
+						WHEN 'SISTER' THEN 20
 						END) 
 					FROM  relationship_status WHERE  subscriber_relationship_id =relationship_status.id ) as  relationship,
 
@@ -201,18 +206,19 @@ WITH cte_billing_providers AS (
 											   END) as gender,
 					   
 										   ( SELECT 
-					   
-											(  CASE description 
-											   WHEN 'Self' THEN 18
-											   WHEN 'Father' THEN 33
-											   WHEN 'Mother' THEN 32
-											   WHEN 'Sibling' THEN 32
-											   WHEN 'Grandparent' THEN 04
-											   WHEN 'Great Grandparent' THEN 04
-											   WHEN 'Unknown' THEN 21
-											   WHEN 'Spouse' THEN 21
-											   WHEN 'Child' THEN 19
-											   END) 
+											(  CASE UPPER(description) 
+												WHEN 'SELF' THEN 18
+												WHEN 'FATHER' THEN 33
+												WHEN 'MOTHER' THEN 32
+												WHEN 'SIBLING' THEN 32
+												WHEN 'GRANDPARENT' THEN 04
+												WHEN 'GREAT GRANDPARENT' THEN 04
+												WHEN 'UNKNOWN' THEN 21
+												WHEN 'SPOUSE' THEN 21
+												WHEN 'CHILD' THEN 19
+												WHEN 'BROTHER' THEN 23
+												WHEN 'SISTER' THEN 20
+											END) 
 										   FROM  relationship_status WHERE  subscriber_relationship_id =relationship_status.id ) as  relationship
 					   
 					   
@@ -279,7 +285,10 @@ WITH cte_billing_providers AS (
 					(SELECT 
 						subscriber_firstname as "lastName",
 						subscriber_firstname as "firstName",
-						coverage_level as "otherClaimResponsibleParty",
+						(CASE coverage_level 
+							WHEN 'primary' THEN 'P'
+							WHEN 'secondary' THEN 'S'
+							WHEN 'teritary' THEN 'T' END) as "otherClaimResponsibleParty",
 				( SELECT 
 
  						(  CASE description 

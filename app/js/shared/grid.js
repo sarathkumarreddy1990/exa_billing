@@ -169,6 +169,7 @@ define('grid', [
                
                 var liPayerType =  commonjs.getRightClickMenu('ul_change_payer_type','setup.rightClickMenu.billingPayerType',false,'Change Billing PayerType',true);                 
                 $divObj.append(liPayerType);                        
+                $('#ul_change_payer_type').append("under consturction");
 
                 var liEditClaim = commonjs.getRightClickMenu('anc_edit_claim','setup.rightClickMenu.editClaim',false,'Edit Claim',false);         
                 
@@ -182,7 +183,8 @@ define('grid', [
                 });
                          
                 var liClaimInquiry = commonjs.getRightClickMenu('anc_claim_inquiry','setup.rightClickMenu.claimInquiry',false,'Claim Inquiry',false);
-                $divObj.append(liClaimInquiry);
+                if(studyArray.length == 1)
+                    $divObj.append(liClaimInquiry);
                 $('#anc_claim_inquiry').click(function () {
                      commonjs.showDialog({
                     'header': 'Claim Inquiry',
@@ -197,12 +199,13 @@ define('grid', [
                 var liSplitOrders = commonjs.getRightClickMenu('anc_split_orders','setup.rightClickMenu.splitOrders',false,'Split Orders',false);
                 $divObj.append(liSplitOrders);
                 $('#anc_split_orders').click(function () {
-                    alert(studyIds)
+                    alert("under Constraction");
                 });
 
             } else {                
                 var liCreateClaim = commonjs.getRightClickMenu('anc_create_claim','setup.rightClickMenu.createClaim',false,'Create Claim',false);
-                $divObj.append(liCreateClaim);
+                if(studyArray.length == 1)
+                    $divObj.append(liCreateClaim);
                 $('#anc_create_claim').off().click(function () {
                     window.localStorage.setItem('selected_studies', null);
                     window.localStorage.setItem('first_study_details', null);
