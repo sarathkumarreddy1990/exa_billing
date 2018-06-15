@@ -62,7 +62,6 @@ module.exports = {
                         if (obj['reasonCode' + j] && (casReasonGroupCode.cas_reasons.indexOf(obj['reasonCode' + j]) == -1)) {
 
                             return false;
-
                         }
                     }
 
@@ -87,23 +86,13 @@ module.exports = {
                 adjustmentAmount = ['1', '19'].indexOf(value.claimStatusCode) == -1 ? 0 : adjustmentAmount[0];
 
                 lineItems.push({
-                    bill_fee: val.billFee,
-                    this_pay: val.paidamount,
-                    units: val.units,
+                    payment: val.paidamount,
+                    adjustment: adjustmentAmount,
                     cpt_code: val.qualifierData.cptCode,
-                    modifier1: val.qualifierData.modifier1 || '',
-                    modifier2: val.qualifierData.modifier2 || '',
-                    modifier3: val.qualifierData.modifier3 || '',
-                    modifier4: val.qualifierData.modifier4 || '',
-                    claim_date: value.claimDate && value.claimDate.claimDate ? value.claimDate.claimDate : '',
                     claim_number: value.claimNumber,
                     claim_status_code: value.claimStatusCode,
-                    total_paid_amount: value.paidAmount,
-                    total_billfee: value.totalBillFee,
-                    claim_frequency_code: value.claimFrequencyCode,
-                    cas_obj: val.serviceAdjustment,
-                    this_adj: adjustmentAmount
-
+                    cas_details: val.serviceAdjustment,
+                    charge_id: val.serviceIdentification && val.serviceIdentification.assingedNumber && !isNaN( val.serviceIdentification.assingedNumber ) ? val.serviceIdentification.assingedNumber : 0
                 });
             });
 

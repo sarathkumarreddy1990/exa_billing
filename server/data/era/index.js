@@ -68,20 +68,11 @@ module.exports = {
                                   *
                              FROM json_to_recordset(${JSON.stringify(lineItems)}) AS (
                                  claim_number bigint
-                                ,claim_date date
                                 ,claim_status_code bigint
-                                ,total_paid_amount money 
-                                ,total_billfee money 
                                 ,claim_frequency_code bigint
-                                ,bill_fee money
                                 ,this_pay money
                                 ,this_adj money
-	                            ,units numeric(7,3)
 	                            ,cpt_code text
-	                            ,modifier1 text
-	                            ,modifier2 text
-	                            ,modifier3 text
-	                            ,modifier4 text
 	                            ,cas_obj jsonb
                              )
                             ),

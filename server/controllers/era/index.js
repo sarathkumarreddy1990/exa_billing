@@ -1,7 +1,6 @@
 const data = require('../../data/era/index');
 const fs = require('fs');
 const path = require('path');
-const _ = require('lodash');
 const { promisify } = require('util');
 const readFile = promisify(fs.readFile);
 const ediConnect = require('../../../modules/edi');
@@ -42,7 +41,7 @@ module.exports = {
 
             ediConnect.init('http://192.168.1.102:5581/edi/api');
 
-            const eraResponseJson = await ediConnect.parseEra(templateName, eraRequestText);
+            const eraResponseJson = await ediConnect.parseEra(templateName, eraRequestText); 
 
             if (params.status == 'pending') {
 
@@ -136,9 +135,9 @@ module.exports = {
         return paymentResult;
     },
 
-    processPayments: async function (claimLists, paymentDetails) {
+    processPayments: async function (LineItemsAndClaimLists, paymentDetails) {
 
-        let processedClaims = await data.createPaymentApplication(claimLists, paymentDetails);
+        let processedClaims = await data.createPaymentApplication(LineItemsAndClaimLists, paymentDetails);
         
         return processedClaims;
     },
