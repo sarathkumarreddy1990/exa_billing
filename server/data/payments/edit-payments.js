@@ -221,7 +221,7 @@ module.exports = {
 
         params.sortOrder = params.sortOrder || ' ASC';
         let {
-            order_payment_ref,
+            invoice_no,
             order_id_grid,
             claim_id,
             full_name,
@@ -238,8 +238,8 @@ module.exports = {
         } = params;
 
            
-        if (order_payment_ref) {
-            whereQuery.push(` bc.id = '${order_payment_ref}'`);
+        if (invoice_no) {
+            whereQuery.push(` bc.invoice_no = '${invoice_no}'`);
         }
         
         if (order_id_grid) {
@@ -338,7 +338,7 @@ module.exports = {
                 FROM   (
                     SELECT bc.patient_id, 
                             bc.facility_id, 
-
+                            bc.billing_notes,
                             bc.primary_patient_insurance_id AS primary, 
                             bc.secondary_patient_insurance_id AS secondary, 
                             bc.tertiary_patient_insurance_id AS tertiary, 

@@ -480,7 +480,7 @@ FROM billing.claims
 									, 'payer_state', p_ip.insurance_info->'State'
 									, 'payer_zip_code', p_ip.insurance_info->'ZipCode'
 									, 'claimClearingHouse', p_ip.insurance_info->'claimCHCode' 
-									, 'edi_request_templates_id', p_ip.insurance_info->'claim_req_temp_prov'
+									, 'edi_request_templates_id', p_ip.insurance_info->'claimRequestTemplate'
 									, 'claim_req_type', p_ip.insurance_info->'claim_req_type_prov')
 								WHEN bc.payer_type = 'secondary_insurance' THEN
 									json_build_object('payer_name',  s_ip.insurance_name 
@@ -489,19 +489,17 @@ FROM billing.claims
 									, 'payer_state', s_ip.insurance_info->'State' 
 									, 'payer_zip_code', s_ip.insurance_info->'ZipCode'
 									, 'claimClearingHouse', s_ip.insurance_info->'claimCHCode' 
-									, 'edi_request_templates_id', s_ip.insurance_info->'claim_req_temp_prov'
-									, 'claim_req_type', s_ip.insurance_info->'claim_req_type_prov'
-									, 'claimClearingHouse', t_ip.insurance_info->'claimCHCode' 
-									, 'edi_request_templates_id', t_ip.insurance_info->'claim_req_temp_prov')
+									, 'edi_request_templates_id', s_ip.insurance_info->'claimRequestTemplate'
+									, 'claim_req_type', s_ip.insurance_info->'claim_req_type_prov')
 								WHEN bc.payer_type = 'tertiary_insurance' THEN
 									json_build_object( 'payer_name', t_ip.insurance_name 
 									, 'payer_address1', t_ip.insurance_info->'Address1' 
 									, 'payer_city', t_ip.insurance_info->'City' 
 									, 'payer_state', t_ip.insurance_info->'State' 
 									, 'payer_zip_code', t_ip.insurance_info->'ZipCode'
-									, 'claim_req_type', t_ip.insurance_info->'claimCHCode'
+									, 'claim_req_type', t_ip.insurance_info->'claim_req_type_prov'
 									, 'claimClearingHouse', t_ip.insurance_info->'claimCHCode' 
-									, 'edi_request_templates_id', t_ip.insurance_info->'claim_req_temp_prov')
+									, 'edi_request_templates_id', t_ip.insurance_info->'claimRequestTemplate')
 								WHEN bc.payer_type = 'ordering_facility' THEN	
 								json_build_object(
 									'payer_name',  pg.group_name 
