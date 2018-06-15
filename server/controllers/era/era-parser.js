@@ -84,6 +84,15 @@ module.exports = {
                 adjustmentAmount = ['1', '19'].indexOf(value.claimStatusCode) == -1 ? 0 : adjustmentAmount[0];
 
                 /**
+                *  Condition : ERA- Payment=0, adjustment == bill fee means should not apply adjustment 
+                *  DESC : Assign Adjustment amount is zero
+                */
+
+                if (val.paidamount && val.billFee && (parseFloat(val.paidamount) == 0) && (parseFloat(val.billFee) == adjustmentAmount)) {
+                    adjustmentAmount = 0;
+                }
+
+                /**
                 *  DESC : Formatting cas details
                 */
                 let cas_obj = [];

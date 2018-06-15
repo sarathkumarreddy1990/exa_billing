@@ -68,7 +68,7 @@ router.post('/upload', upload.single('displayImage'), async function (req, res) 
             });
         }
 
-        req.file_store_id = '7';
+        req.file_store_id = '1';
         req.company_id = '1';
         req.status = 'pending';
         req.file_type = '835';

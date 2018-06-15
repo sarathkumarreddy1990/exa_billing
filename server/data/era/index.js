@@ -17,7 +17,6 @@ module.exports = {
             FROM
                 billing.edi_files
             WHERE
-                status = 'pending' AND
                 company_id =  ${params.customArgs.companyID};
         `;
         return await query(sql);
@@ -25,33 +24,69 @@ module.exports = {
 
     selectInsuranceEOB: async function (params) {
 
-        const paymentSQL = `
-                        SELECT
-                            id
-                          , insurance_code
-                          , insurance_name
-                          , insurance_info 
+        const paymentSQL = SQL`WITH 
+                    is_payer_exists AS (
+                        SELECT 
+                            ip.id
+                            ,ip.insurance_code
+                            ,ip.insurance_name
+                            ,ip.insurance_info->'PayerID' AS payer_id
                         FROM 
-                            insurance_providers 
-                        WHERE 
-                            has_deleted = false AND 
-                            company_id = ${params.company_id} AND 
-                            insurance_info->'PayerID' = ${params.payer_id}::text `;
+                           billing.edi_file_payments efp
+                        INNER JOIN billing.payments p ON p.id = efp.payment_id
+                        INNER JOIN insurance_providers ip ON ip.id = p.insurance_provider_id
+                        WHERE efp.edi_file_id = ${params.file_id}  ORDER BY efp.id ASC LIMIT 1
+                    ),
+                    current_payer AS (
+                         SELECT
+                             id
+                             ,insurance_code
+                             ,insurance_name
+                             ,insurance_info->'PayerID' AS payer_id
+                         FROM 
+                             insurance_providers 
+                         WHERE 
+                             has_deleted = false AND 
+                             company_id = ${params.company_id} AND 
+                             insurance_info->'PayerID' = ${params.payer_id}::text 
+                    )
+                    SELECT * FROM is_payer_exists
+                    UNION 
+                    SELECT * FROM current_payer `;
 
         return await query(paymentSQL);
     },
 
     createEdiPayment: async function(params){
 
-        const sql = `INSERT INTO billing.edi_file_payments
-                                            (   edi_file_id
-                                              , payment_id
-                                            )
-                                            (SELECT
-                                                ${params.file_id}
-                                              , ${params.id}
-                                            )
-                                            RETURNING id`;
+        const sql =SQL`WITH 
+                            is_payment_exists AS (
+                                SELECT 
+                                    id
+                                FROM 
+                                    billing.edi_file_payments 
+                                WHERE edi_file_id = ${params.file_id}
+                            ),
+                            edi_file_payments AS ( 
+                                INSERT INTO billing.edi_file_payments
+                                    (   edi_file_id
+                                        ,payment_id
+                                    )
+                                    SELECT
+                                        ${params.file_id}
+                                        ,${params.id}
+                                    WHERE NOT EXISTS ( SELECT id FROM is_payment_exists )
+                                RETURNING id
+                            ),
+                            update_edi_file AS (
+                                UPDATE billing.edi_files
+                                SET
+                                    status = 'in_progress'
+                                WHERE id = ${params.file_id}
+                                AND EXISTS ( SELECT * FROM edi_file_payments )
+                            )
+                        SELECT * FROM  edi_file_payments `;
+
         return await query(sql);
     },
 
@@ -101,13 +136,15 @@ module.exports = {
                                 ) AS charges ON true
                            ), 
                            insert_payment_adjustment AS (
-                                 SELECT
+                                SELECT
                                     billing.create_payment_applications(
                                         ${paymentDetails.id}
-                                        ,171
+                                        ,( SELECT id FROM billing.adjustment_codes WHERE code ='ERA' ORDER BY id ASC LIMIT 1 )
                                         ,${paymentDetails.created_by}
                                         ,json_build_array(selected_Items.json_build_object)::jsonb
                                     )
+                                FROM
+	                                selected_Items
                             ),
                             insert_edi_file_claims AS (
                                 INSERT INTO billing.edi_file_claims
@@ -153,15 +190,15 @@ module.exports = {
                                 RETURNING id AS claim_comment_id
                                 )
                             SELECT
-	                            ( SELECT json_agg(row_to_json(insert_adjustment)) insert_adjustment
+	                            ( SELECT json_agg(row_to_json(insert_payment_adjustment)) insert_payment_adjustment
                                             FROM (
                                                     SELECT
                                                           *
                                                     FROM
-                                                    insert_adjustment
+                                                    insert_payment_adjustment
                                             
-                                                ) AS insert_adjustment
-                                     ) AS insert_adjustment,
+                                                ) AS insert_payment_adjustment
+                                     ) AS insert_payment_adjustment,
 	                            ( SELECT json_agg(row_to_json(insert_edi_file_claims)) insert_edi_file_claims
                                             FROM (
                                                     SELECT
@@ -257,7 +294,7 @@ module.exports = {
         
         return await query(sql); 
     },
-    
+
     getcasReasonGroupCodes: async function (params) {
 
         let { company_id } = params;
@@ -307,5 +344,19 @@ module.exports = {
         `;
         
         return await query(sql); 
+    },
+
+    checkExistsERAPayment : async function(params){
+
+        const sql =SQL`SELECT 
+                            efp.payment_id AS id
+                            ,p.created_by
+                        FROM 
+                            billing.edi_file_payments efp 
+                        INNER JOIN billing.payments p ON p.id = efp.payment_id
+                        WHERE edi_file_id = ${params.file_id} `;
+
+        return await query(sql);
+         
     }
 };
