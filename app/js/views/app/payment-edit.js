@@ -22,7 +22,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             paymentsGridTemplate: _.template(paymentsGridHtml),
             applyCasTemplate: _.template(ApplyCasHtml),
             applyPaymentTemplate: _.template(ApplyPaymentTemplate),
-            casSegmentsSelected: {},
+            casSegmentsSelected: [],
             patSearchContentTemplate: _.template(patSearchContent),
             gridFirstLoaded: false,
 
@@ -912,6 +912,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             showApplyAndCas: function (claimId, paymentID, paymentStatus, chargeId) {
                 var self = this;
                 self.defalutCASArray = [0, 1, 2, 3, 4, 5, 6];
+                self.casSegmentsSelected = [];
                 commonjs.showDialog({ header: 'Claim Charges', width: '85%', height: '70%', html: self.applyCasTemplate({ adjustmentCodes: self.adjustmentCodeList.toJSON(), 'claimStatusList': this.claimStatusList.toJSON(), cas_group_codes: self.cas_group_codes, cas_reason_codes: self.cas_reason_codes }) });
                 
                 $('#siteModal .close, #siteModal .btn-secondary').unbind().bind('click', function (e) {
@@ -919,7 +920,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     $('#siteModal').hide();
                 })
 
-                $('#divPaymentCAS select').select2();
+                // $('#divPaymentCAS select').select2();
                 commonjs.processPostRender();
                 commonjs.validateControls();
 
@@ -978,20 +979,18 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                             paymentDet.index = index;
                             paymentDet.id = payment.id ? payment.id : null;
                             paymentDet.charge_id = payment.id ? payment.id : null;
-                            paymentDet.study_id = payment.study_id ? payment.study_id : null;
                             paymentDet.payment_id = paymentId;
                             paymentDet.claimId = claimId;
-                            paymentDet.study_cpt_id = payment.study_cpt_id ? payment.study_cpt_id : null;
-                            paymentDet.cpt_code_id = payment.cpt_code_id ? payment.cpt_code_id : null;
                             paymentDet.cpt_code = payment.cpt_code;
                             paymentDet.cpt_description = payment.cpt_description;
-                            paymentDet.payment_amount = payment.current_payment ? parseFloat(payment.current_payment).toFixed(2) : 0.00;
+                            paymentDet.payment_amount = payment.payment_amount ? parseFloat(payment.payment_amount) : 0.00;
+                            paymentDet.adjustment = payment.adjustment_amount ? parseFloat(payment.adjustment_amount) : 0.00;
                             paymentDet.other_payment = payment.other_payment && !isNaN(payment.other_payment) ? parseFloat(payment.other_payment).toFixed(2) : 0.00;
                             paymentDet.other_adjustment = payment.other_adjustment && !isNaN(payment.other_adjustment) ? parseFloat(payment.other_adjustment).toFixed(2) : 0.00;
-                            paymentDet.adjustment = payment.current_adj ? parseFloat(payment.current_adj).toFixed(2) : 0.0;
                             paymentDet.bill_fee = payment.bill_fee ? parseFloat(payment.bill_fee).toFixed(2) : 0.00
                             paymentDet.allowed_fee = 0.00;
                             paymentDet.payment_application_id = payment.payment_application_id;
+                            paymentDet.payment_adjustment_id = payment.adjustment_id;
                             var balance = parseFloat(paymentDet.bill_fee) - (parseFloat(paymentDet.other_payment) + parseFloat(paymentDet.other_adjustment) + parseFloat(paymentDet.adjustment) + parseFloat(paymentDet.payment_amount)).toFixed(2);
                             paymentDet.balance = parseFloat(balance).toFixed(2);
 
@@ -1071,11 +1070,12 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             savePaymentsCAS: function (claimId, paymentId, paymentStatus, payment_application_id) {
                 var self = this;
                 var charge_id = $('#divPaymentCAS').attr('data-charge_id');
-                var cas = self.vaidateCasCodeAndReason(payment_application_id);
-                self.casSegmentsSelected = cas;
+                var cas = self.vaidateCasCodeAndReason(payment_application_id, paymentStatus);
+                self.casSegmentsSelected = cas ;
+                self.closePaymentsCAS();
             },
 
-            vaidateCasCodeAndReason: function (payment_application_id) {
+            vaidateCasCodeAndReason: function (payment_application_id, paymentStatus) {
                 var self = this;
                 var hasReturned = false;
                 var casObj = [];
@@ -1085,11 +1085,16 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     var groupCode = $('#selectGroupCode' + k).val()
                     var reasonCode = $('#selectReason' + k).val()
                     var amount = $('#txtAmount' + k).val()
+                    if(paymentStatus === 'applied'){
+                        var cas_id= $('#selectGroupCode' + k).attr('cas_id');
+                    }
 
                     if (groupCode != '' && reasonCode != '' && amount != '') {
                         emptyCasObj['group_code_id'] = groupCode;
                         emptyCasObj['reason_code_id'] = reasonCode;
                         emptyCasObj['amount'] = amount;
+                        if(paymentStatus === 'applied')
+                            { emptyCasObj['cas_id'] = cas_id;}
                         casObj.push(emptyCasObj);
                         hasReturned = true;
                     }
@@ -1124,7 +1129,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                             var payemntCasApplns = data;
                             $.each(payemntCasApplns, function (index, appln) {
                                 var rowVal = index + 1;
-                                $('#selectGroupCode' + rowVal).val(appln.cas_group_code_id);
+                                $('#selectGroupCode' + rowVal).val(appln.cas_group_code_id).attr('cas_id', appln.id);
                                 $('#selectReason' + rowVal).val(appln.cas_reason_code_id);
                                 $('#txtAmount' + rowVal).val(appln.amount.substr(1));
                             });
@@ -1208,8 +1213,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                             billingNotes: billingNotes,
                             payerType: payerType,
                             adjestmentId: adjustmentType,
-                            paymentStatus: paymentStatus,
-                            cas: cas
+                            paymentStatus: paymentStatus
                         },
                         success: function (model, response) {
                             alert('Payment has been applied successfully');
