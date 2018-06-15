@@ -492,7 +492,8 @@ define('grid', [
                         "width": "75%",
                         "height": "75%",
                         "header": "Study Filter",
-                        "needShrink": true
+                        "needShrink": true,
+                        "html": "<div/>"
                     });
 
                     self.StudyFilterView = new StudyFilterView({el: $('#modal_div_container')});

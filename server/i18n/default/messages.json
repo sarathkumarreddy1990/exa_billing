@@ -7,7 +7,8 @@
             "notconnected": "Not connected",
             "requestnotfound": "Request not found",
             "serversideerror": "Server error",
-            "someerror": "Internal error"
+            "someerror": "Internal error",
+            "accessdenied": "No rights"
 		},
 		"warning": {
             "claims": {

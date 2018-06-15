@@ -2245,6 +2245,7 @@ var commonjs = {
         }
 
         if(response.responseText && response.responseText.indexOf('INVALID_SESSION') > -1) {
+            $('#divPageLoading').hide();
             commonjs.showDialog({ header: 'Error', i18nHeader: 'messages.errors.serversideerror', width: '50%', height: '50%', html: response.responseText }, true);
         }
     },

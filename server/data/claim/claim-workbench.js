@@ -430,7 +430,7 @@ FROM billing.claims
         return await query(sql, params);
     },
 	
-    validateClaim: async () => {
+    validateClaim: async (params) => {
 
         let sql = SQL`SELECT 
 							bc.id
@@ -478,19 +478,30 @@ FROM billing.claims
 									, 'payer_address1', p_ip.insurance_info->'Address1'
 									, 'payer_city', p_ip.insurance_info->'City'
 									, 'payer_state', p_ip.insurance_info->'State'
-									, 'payer_zip_code', p_ip.insurance_info->'ZipCode')
+									, 'payer_zip_code', p_ip.insurance_info->'ZipCode'
+									, 'claimClearingHouse', p_ip.insurance_info->'claimCHCode' 
+									, 'edi_request_templates_id', p_ip.insurance_info->'claim_req_temp_prov'
+									, 'claim_req_type', p_ip.insurance_info->'claim_req_type_prov')
 								WHEN bc.payer_type = 'secondary_insurance' THEN
 									json_build_object('payer_name',  s_ip.insurance_name 
 									, 'payer_address1', s_ip.insurance_info->'Address1' 
 									, 'payer_city', s_ip.insurance_info->'City'
 									, 'payer_state', s_ip.insurance_info->'State' 
-									, 'payer_zip_code', s_ip.insurance_info->'ZipCode' )
+									, 'payer_zip_code', s_ip.insurance_info->'ZipCode'
+									, 'claimClearingHouse', s_ip.insurance_info->'claimCHCode' 
+									, 'edi_request_templates_id', s_ip.insurance_info->'claim_req_temp_prov'
+									, 'claim_req_type', s_ip.insurance_info->'claim_req_type_prov'
+									, 'claimClearingHouse', t_ip.insurance_info->'claimCHCode' 
+									, 'edi_request_templates_id', t_ip.insurance_info->'claim_req_temp_prov')
 								WHEN bc.payer_type = 'tertiary_insurance' THEN
 									json_build_object( 'payer_name', t_ip.insurance_name 
 									, 'payer_address1', t_ip.insurance_info->'Address1' 
 									, 'payer_city', t_ip.insurance_info->'City' 
 									, 'payer_state', t_ip.insurance_info->'State' 
-									, 'payer_zip_code', t_ip.insurance_info->'ZipCode')
+									, 'payer_zip_code', t_ip.insurance_info->'ZipCode'
+									, 'claim_req_type', t_ip.insurance_info->'claimCHCode'
+									, 'claimClearingHouse', t_ip.insurance_info->'claimCHCode' 
+									, 'edi_request_templates_id', t_ip.insurance_info->'claim_req_temp_prov')
 								WHEN bc.payer_type = 'ordering_facility' THEN	
 								json_build_object(
 									'payer_name',  pg.group_name 
@@ -505,26 +516,26 @@ FROM billing.claims
 									, 'payer_state', ref_pc.contact_info->'STATE'
 									, 'payer_zip_code', ref_pc.contact_info->'ZIP' ) END AS payer_info
 									, bc.primary_patient_insurance_id
-									, p_ip.insurance_info->'Address1' AS "insurance_pro_address1"
-									, p_ip.insurance_info->'City' AS "insurance_pro_city"
-									, p_ip.insurance_info->'PayerID' AS "insurance_pro_payerID"
-									, p_ip.insurance_info->'State' AS "insurance_pro_state"
-									, p_ip.insurance_info->'ZipCode' AS "insurance_pro_zipCode"
-									, p_ip.insurance_name AS "insurance_pro_companyName" 
+									, p_ip.insurance_info->'Address1' AS "p_insurance_pro_address1"
+									, p_ip.insurance_info->'City' AS "p_insurance_pro_city"
+									, p_ip.insurance_info->'PayerID' AS "p_insurance_pro_payerID"
+									, p_ip.insurance_info->'State' AS "p_insurance_pro_state"
+									, p_ip.insurance_info->'ZipCode' AS "p_insurance_pro_zipCode"
+									, p_ip.insurance_name AS "p_insurance_pro_companyName" 
 									, bc.secondary_patient_insurance_id
-									, s_ip.insurance_info->'Address1' AS "insurance_pro_address1"
-									, s_ip.insurance_info->'City' AS "insurance_pro_city"
-									, s_ip.insurance_info->'PayerID' AS "insurance_pro_payerID"
-									, s_ip.insurance_info->'State' AS "insurance_pro_state"
-									, s_ip.insurance_info->'ZipCode' AS "insurance_pro_zipCode"
-									, s_ip.insurance_name AS "insurance_pro_companyName"
+									, s_ip.insurance_info->'Address1' AS "s_insurance_pro_address1"
+									, s_ip.insurance_info->'City' AS "s_insurance_pro_city"
+									, s_ip.insurance_info->'PayerID' AS "s_insurance_pro_payerID"
+									, s_ip.insurance_info->'State' AS "s_insurance_pro_state"
+									, s_ip.insurance_info->'ZipCode' AS "s_insurance_pro_zipCode"
+									, s_ip.insurance_name AS "s_insurance_pro_companyName"
 									, bc.tertiary_patient_insurance_id
-									, t_ip.insurance_info->'Address1' AS "insurance_pro_address1"
-									, t_ip.insurance_info->'City' AS "insurance_pro_city"
-									, t_ip.insurance_info->'PayerID' AS "insurance_pro_payerID"
-									, t_ip.insurance_info->'State' AS "insurance_pro_state"
-									, t_ip.insurance_info->'ZipCode' AS "insurance_pro_zipCode"
-									, t_ip.insurance_name AS "insurance_pro_companyName"
+									, t_ip.insurance_info->'Address1' AS "t_insurance_pro_address1"
+									, t_ip.insurance_info->'City' AS "t_insurance_pro_city"
+									, t_ip.insurance_info->'PayerID' AS "t_insurance_pro_payerID"
+									, t_ip.insurance_info->'State' AS "t_insurance_pro_state"
+									, t_ip.insurance_info->'ZipCode' AS "t_insurance_pro_zipCode"
+									, t_ip.insurance_name AS "t_insurance_pro_companyName"
 									
 									, p_pi.subscriber_address_line1 AS "p_subscriber_addressLine1"
 									, p_pi.subscriber_city AS "p_subscriber_city"
@@ -549,7 +560,9 @@ FROM billing.claims
 									, t_pi.subscriber_lastname AS "t_subscriber_lastName"
 									, t_pi.subscriber_state AS "t_subscriber_state"
 									, t_pi.subscriber_zipcode AS "t_subscriber_zipCode"					
-						
+									, (SELECT array_agg(row_to_json(pointer)) AS charge_pointer FROM (
+										SELECT ch.id, pointer1, claim_id, cpt.ref_code, cpt.display_description FROM billing.charges ch INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id WHERE ch.claim_id = bc.id
+														 ) pointer) AS charge_pointer
 					FROM
 						billing.claims bc
 					INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id	
@@ -568,10 +581,26 @@ FROM billing.claims
 					LEFT JOIN public.insurance_providers t_ip on t_ip.id = t_pi.insurance_provider_id
 					LEFT JOIN 
 						LATERAL (SELECT icd_id FROM billing.claim_icds ci WHERE ci.claim_id = bc.id LIMIT 1) claim_icd ON true
-					WHERE bc.id = ANY('{3909, 2636, 7324}')`;
+					WHERE bc.id = ANY(${params.claim_ids})`;
 
         return await query(sql)	;									
+    },
+
+    movetoPendingSub: async (params) => {
+        let sql = SQL`WITH getStatus AS 
+						(
+							SELECT 
+								id
+							FROM 
+								billing.claim_status
+							WHERE code  = 'SUBPEN'
+						)	
+						UPDATE 
+							billing.claims bc
+						SET claim_status_id = (SELECT id FROM getStatus)
+						WHERE bc.id = ANY(${params.success_claimID})
+						RETURNING bc.id`;
+
+        return await query(sql);
     }
-
-
 };
