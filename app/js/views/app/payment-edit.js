@@ -22,7 +22,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             paymentsGridTemplate: _.template(paymentsGridHtml),
             applyCasTemplate: _.template(ApplyCasHtml),
             applyPaymentTemplate: _.template(ApplyPaymentTemplate),
-            casSegmentsSelected: [],
+            casSegmentsSelected: {},
             patSearchContentTemplate: _.template(patSearchContent),
 
             events: {
@@ -40,6 +40,8 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 "dblclick .selectionpatient": "selectPatient",
                 "click #btnBackToPatient": "backToPatient",
                 "click #anc_search": "showPatientOrders",
+                'click #btnPaymentRefresh': 'refreshPayments',
+                'click a#ppliedRefresh': 'refreshPayments'
             },
 
             initialize: function (options) {
@@ -176,6 +178,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 this.payer_id = 0;
                 $('#PaymentForm input[type=radio]').prop('ckecked', false);
                 $('#PaymentForm select').val('');
+                $('#ddlPaidLocation').val(0);
                 $('#PaymentForm input[type=text]').val('');
                 $('#select2-txtautoPayerPIP-container').html('Select Insurance');
                 $('#select2-txtautoPayerPP-container').html('Select Patient');
@@ -226,7 +229,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         delay: 250,
                         data: function (params) {
                             return {
-                                page: params.page || 20,
+                                page: params.page || 1,
                                 q: params.term || '',
                                 pageSize: 10,
                                 sortField: "insurance_code",
@@ -257,11 +260,10 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     }
                     var insurance_info = commonjs.hstoreParse(repo.insurance_info);
                     var markup = "<table><tr>";
-                    markup += "<td title='" + repo.insurance_name + "(" + repo.insurance_code + ")'> <div>" + repo.insurance_name + "(" + repo.insurance_code + ")" + "</div><div>" + insurance_info.Address1 + "</div>";
+                    markup += "<td title='" + repo.insurance_code + "(" + repo.insurance_name + ")'> <div>" + repo.insurance_code + "(" + repo.insurance_name + ")" + "</div><div>" + insurance_info.Address1 + "</div>";
                     markup += "<div>" + insurance_info.City + ", " + insurance_info.State + " " + insurance_info.ZipCode + "</div>";
                     markup += "</td></tr></table>";
                     return markup;
-
                 }
                 function formatRepoSelection(res) {
                     if (res && res.id)
@@ -290,10 +292,10 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         delay: 250,
                         data: function (params) {
                             return {
-                                page: params.page || 20,
+                                page: params.page || 1,
                                 q: params.term || '',
                                 pageSize: 10,
-                                sortField: "insurance_code",
+                                sortField: "full_name",
                                 sortOrder: "ASC",
                                 company_id: 1
                             };
@@ -338,16 +340,17 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 $('#s2id_txtautoPayerPOF a span').html('Select ordering facility');
                 $("#txtautoPayerPOF").select2({
                     ajax: {
-                        url: "/exa_modules/billing/autoCompleteRouter/orderingFacility",
+                        url: "/exa_modules/billing/autoCompleteRouter/provider_group",
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
                             return {
-                                page: params.page || 20,
+                                page: params.page || 1,
                                 q: params.term || '',
                                 pageSize: 10,
-                                sortField: "insurance_code",
+                                sortField: "group_name",
                                 sortOrder: "ASC",
+                                groupType: 'OF',
                                 company_id: 1
                             };
                         },
@@ -391,16 +394,17 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 $('#s2id_txtautoPayerPR a span').html('Select provider');
                 $("#txtautoPayerPR").select2({
                     ajax: {
-                        url: "/exa_modules/billing/autoCompleteRouter/getProvidersAc",
+                        url: "/exa_modules/billing/autoCompleteRouter/providers",
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
                             return {
-                                page: params.page || 20,
+                                page: params.page || 1,
                                 q: params.term || '',
+                                provider_type: 'RF',
                                 pageSize: 10,
-                                sortField: "insurance_code",
-                                sortOrder: "ASC",
+                                sortField: "p.last_name",
+                                sortOrder: "asc",
                                 company_id: 1
                             };
                         },
@@ -416,7 +420,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         cache: true
                     },
                     placeholder: 'Select provider',
-                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                    escapeMarkup: function (markup) { return markup; },
                     minimumInputLength: 0,
                     templateResult: formatRepo,
                     templateSelection: formatRepoSelection
@@ -425,10 +429,27 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     if (repo.loading) {
                         return repo.text;
                     }
-                    var markup = "<table><tr>";
-                    markup += "<td title='" + repo.full_name + "(" + repo.provider_code + ")'> <div>" + repo.full_name + "(" + repo.provider_code + ")" + "</div>";
-                    markup += "</td></tr></table>";
+           
+                    var contactInfo = commonjs.hstoreParse(repo.contact_info);
+                    var provContactInfo = self.getProviderAddressInfo(contactInfo);
+                    markup1 += "<div>" + provContactInfo._addressInfo + "</div>";
+                    markup1 += "<div>" + provContactInfo._cityStateZip + "</div>";
+                    if (!repo.is_active) {
+                        var markup1 = "<table class='ref-result' style='width: 100%'><tr class='inActiveRow'>";
+                        markup1 += "<td><div><b>" + repo.full_name + "</b><b>" + '(' + repo.provider_code + ')' + "</b></div>";                 
+                        markup1 += "<div>" + provContactInfo._addressInfo + "</div>";
+                        markup1 += "<div>" + provContactInfo._cityStateZip + "</div>";
+                        markup1 += "</td></tr></table>";
+                        return markup1;
+                    }
+                    else {
+                        var markup = "<table class='ref-result' style='width: 100%'><tr>";
+                        markup += "<td><div><b>" + repo.full_name + "</b><b>" + '(' + repo.provider_code + ')' + "</b></div>";                                
+                        markup += "<div>" + provContactInfo._addressInfo + "</div>";
+                        markup += "<div>" + provContactInfo._cityStateZip + "</div>";
+                        markup += "</td></tr></table>"
                     return markup;
+                }
                 }
                 function formatRepoSelection(res) {
                     if (res && res.id)
@@ -436,6 +457,12 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     return res.full_name;
                 }
                 $('#select2-txtautoPayerPR-container').html('Select Provider');
+            },
+
+            getProviderAddressInfo: function (providerInfo) {
+                var addressInfo = $.grep([providerInfo.ADDR1, providerInfo.ADDR2], Boolean).join(", ");
+                var cityStateZip = $.grep([providerInfo.CITY, providerInfo.STATE, providerInfo.ZIP, providerInfo.MOBNO], Boolean).join(", ");
+                return {_addressInfo: addressInfo, _cityStateZip: cityStateZip}
             },
 
             bindPatientDetails: function (res) {
@@ -474,7 +501,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 self.study_id = (response.study_id) ? response.study_id : 0;
                 $('#lblPayerID').html(response.id);
                 $('#referencePaymentID').val(response.display_id);
-                $('#ddlPaidLocation').val(response.facility_id);
+                $('#ddlPaidLocation').val(response.facility_id || 0);
                 $("input:radio[name=payertype][value=" + response.payer_type + "]").prop("checked", true);
                 self.setPayerName(response.payer_type, response)
                 $("input:radio[name=billingMethod][value=" + response.billing_method + "]").prop("checked", true);
@@ -602,6 +629,16 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 return true;
             },
 
+            refreshPayments: function (e) {
+                var target = $(e.target || e.srcElement);
+                if (target.is('#btnPaymentRefresh')) {
+                    this.pendPaymentTable.refresh();
+                }
+                else {
+                    this.appliedPaymentTable.refresh();
+                }
+            },
+
             savePayment: function () {
                 var self = this;
                 if (self.validatepayments()) {
@@ -643,7 +680,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                                     commonjs.hideLoading();
                                 }
                                 else
-                                    self.render(model.attributes[0].id);
+                                    Backbone.history.navigate('#billing/payments/edit/' + model.attributes[0].id, true);  
                             },
                             error: function (err, response) {
                                 commonjs.handleXhrError(err, response);
@@ -660,7 +697,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     custompager: this.pendPaymtPager,
                     emptyMessage: 'No Record found',
                     colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                    i18nNames: ['', '', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.payments.billFee', 'billing.payments.balance', 'order.summary.cptCodes', 'setup.studyFilters.accountNo', 'patient_id', 'facility_id'],
+                    i18nNames: ['', '', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.payments.billFee', 'billing.payments.balance', 'setup.userSettings.cptCodes', 'setup.userSettings.accountNo', '', ''],
                     colModel: [
                         {
                             name: 'edit', width: 20, sortable: false, search: false,
@@ -763,7 +800,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     custompager: this.appliedPager,
                     emptyMessage: 'No Record found',
                     colNames: ['', '', '', '', 'Order Payment Ref', '', '', '', '', '', '', '', '', '', '', '', ''],
-                    i18nNames: ['', '', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.payments.billFee', 'billing.payments.patientPaid', 'billing.payments.payerPaid', 'billing.payments.adjustment', 'billing.payments.thisPayment', 'billing.payments.balance', 'billing.payments.cptCodes', 'patient_id', 'facility_id'],
+                    i18nNames: ['', '', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.payments.billFee', 'billing.payments.patientPaid', 'billing.payments.payerPaid', 'billing.payments.adjustment', 'billing.payments.thisPayment', 'billing.payments.balance', 'billing.payments.cptCodes', '', ''],
                     colModel: [
                         {
                             name: 'edit', width: 20, sortable: false, search: false,
@@ -834,10 +871,24 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 });
             },
 
+            closeAppliedPendingPayments: function () {
+                var self = this;
+                if (self.appliedPaymentTable) {
+                    self.appliedPager.set({ "PageNo": 1 });
+                    self.appliedPaymentTable.refreshAll();
+                }
+            },
+
             showApplyAndCas: function (claimId, paymentID, paymentStatus, chargeId) {
                 var self = this;
                 self.defalutCASArray = [0, 1, 2, 3, 4, 5, 6];
                 commonjs.showDialog({ header: 'Claim Charges', width: '85%', height: '70%', html: self.applyCasTemplate({ adjustmentCodes: self.adjustmentCodeList.toJSON(), 'claimStatusList': this.claimStatusList.toJSON(), cas_group_codes: self.cas_group_codes, cas_reason_codes: self.cas_reason_codes }) });
+                
+                $('#siteModal .close, #siteModal .btn-secondary').unbind().bind('click', function (e) {
+                    self.closeAppliedPendingPayments(e);
+                    $('#siteModal').hide();
+                })
+
                 $('#divPaymentCAS select').select2();
                 commonjs.processPostRender();
                 commonjs.validateControls();
@@ -991,7 +1042,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 var self = this;
                 var charge_id = $('#divPaymentCAS').attr('data-charge_id');
                 var cas = self.vaidateCasCodeAndReason(payment_application_id);
-                self.casSegmentsSelected[charge_id] = cas;
+                self.casSegmentsSelected = cas;
             },
 
             vaidateCasCodeAndReason: function (payment_application_id) {
@@ -1006,10 +1057,9 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     var amount = $('#txtAmount' + k).val()
 
                     if (groupCode != '' && reasonCode != '' && amount != '') {
-                        emptyCasObj['group_code' + k] = groupCode;
-                        emptyCasObj['group_reason' + k] = reasonCode;
-                        emptyCasObj['amount' + k] = amount;
-                        emptyCasObj['payment_application_id'] = payment_application_id;
+                        emptyCasObj['group_code_id'] = groupCode;
+                        emptyCasObj['reason_code_id'] = reasonCode;
+                        emptyCasObj['amount'] = amount;
                         casObj.push(emptyCasObj);
                         hasReturned = true;
                     }
@@ -1093,15 +1143,16 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 var self = this;
                 if (this.validatePayerDetails()) {
                     var lineItems = $("#tBodyApplyPendingPayment tr"), dataLineItems = [], orderPayment = 0.00, orderAdjustment = 0.00;
-                    var line_items = [];
-                    
-                    var cas = self.casSegmentsSelected;
+                    var line_items = [];     
 
+                    var cas = self.casSegmentsSelected;
+                    
                     $.each(lineItems, function (index) {
                         var _line_item = {};
-                        _line_item["chargeId"] = $(this).attr('data_charge_id_id');
+                        _line_item["charge_id"] = $(this).attr('data_charge_id_id');
                         _line_item["payment"] = $(this).find('td:nth-child(5)>input').val() ? parseFloat($(this).find('td:nth-child(5)>input').val()) : 0.00;
                         _line_item["adjustment"] = $(this).find('td:nth-child(8)>input').val() ? parseFloat($(this).find('td:nth-child(8)>input').val()) : 0.00;
+                        _line_item["cas_details"] = cas;
                         line_items.push(_line_item);
                     });
 

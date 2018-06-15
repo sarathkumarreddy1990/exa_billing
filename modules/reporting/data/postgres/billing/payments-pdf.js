@@ -9,7 +9,7 @@ const _ = require('lodash')
 
 const paymentsPDFDataSetQueryTemplate = _.template(`
 WITH paymentsPDF as (
-    SELECT 
+    SELECT
     bp.id AS payment_id,
     get_full_name(pu.first_name,pu.last_name) as user_full_name,
     get_full_name(pp.first_name,pp.last_name) as patient_full_name,
@@ -22,17 +22,20 @@ WITH paymentsPDF as (
     bp.accounting_dt,
     bp.payer_type,
     bp.invoice_no,
-    bp.amount,
+    bp.amount AS amount,
+    bp.notes as notes,
+bp.card_number AS cheque_card_number,
+    pp.account_no as account_no,
     (SELECT payments_applied_total FROM billing.get_payment_totals(bp.id)) AS applied,
     (SELECT adjustments_applied_total FROM billing.get_payment_totals(bp.id)) AS adjustments,
     (SELECT payment_balance_total FROM billing.get_payment_totals(bp.id)) AS balance,
     (SELECT payment_status FROM billing.get_payment_totals(bp.id)) AS status,
-    CASE WHEN payer_type = 'patient' THEN  get_full_name(pp.first_name,pp.last_name) 
+    CASE WHEN payer_type = 'patient' THEN  get_full_name(pp.first_name,pp.last_name)
          WHEN payer_type = 'insurance' THEN pip.insurance_name
          WHEN payer_type = 'ordering_facility' THEN ppg.group_name
          WHEN payer_type = 'ordering_provider' THEN get_full_name(ppr.first_name,ppr.last_name)
     END payer_name,
-    pf.facility_name
+    pf.facility_name as facility_name
 FROM billing.payments bp
 INNER JOIN public.users pu ON pu.id = bp.created_by
 LEFT JOIN public.patients pp ON pp.id = bp.patient_id
@@ -44,13 +47,28 @@ LEFT JOIN public.facilities pf ON pf.id = bp.facility_id
 WHERE 1=1
 AND <%= paymentDate %>
 
-
-    
   )
-  SELECT 
-     *
+  SELECT
+    COALESCE(facility_name, '~~Total~~') AS "Facility Name",
+    payment_id AS "Payment ID",    
+    patient_full_name AS "Patient Name",
+    account_no AS "MRN #", 
+     notes AS "Note",    
+    cheque_card_number AS "CHK/CC#",   
+    SUM(amount) AS "Payment"
   FROM
         paymentsPDF
+  GROUP BY
+     grouping sets(
+        ( facility_name),
+            ( payment_id, 
+              patient_full_name, 
+              account_no,
+              facility_name,
+              cheque_card_number,
+              notes),
+            ())
+
 `);
 
 const api = {

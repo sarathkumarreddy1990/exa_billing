@@ -47,14 +47,14 @@ module.exports = {
                           , npi_no
                           , taxonomy_code
                           , contact_person_name
-                          , address_line1
+                          , address_line1 as address
                           , address_line2
                           , city
                           , state
                           , zip_code
                           , zip_code_plus
                           , email
-                          , phone_number
+                          , phone_number as "phoneNumber"
                           , fax_number
                           , web_url
                           , pay_to_address_line1

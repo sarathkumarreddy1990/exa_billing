@@ -18,6 +18,14 @@ router.get('/get_patient_insurances', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/service_facilities', async function (req, res) {
+    let file_path = path.join(__dirname, '../../resx/site-info.json');
+    let siteInfo = await readFileAsync(file_path, 'utf8');
+    siteInfo = JSON.parse(siteInfo);
+    const service_types = siteInfo.length ? siteInfo[0].service_types : {};
+    httpHandler.send(req, res, service_types);
+});
+
 router.get('/get_masterdetails', async function (req, res) {
     const data = await claimsController.getMasterDetails(req.query);
     httpHandler.sendRows(req, res, data);

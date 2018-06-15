@@ -1,6 +1,7 @@
 {
     "billing": {
         "fileInsurance": {
+            "dateOfInjury": "Date of Injury",
             "followupUser": "Follow-up User",
             "followUpDate": "Follow-up Date",
             "followupQueue": "Follow-up Queue",
@@ -152,7 +153,8 @@
             "refund": "Refund",
             "dob": "DOB",
             "ssn": "SSN",
-            "facility": "Facility"
+            "facility": "Facility",
+            "placeOfService":"Place Of Service"
         },
         "refundDetails": {
             "refundResponsible": "Responsible :",

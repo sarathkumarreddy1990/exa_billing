@@ -7,46 +7,54 @@ const _ = require('lodash')
 
 // generate query template ***only once*** !!!
 
-const transactionSummaryDataSetQueryTemplate = _.template(`
-WITH transaction_summary_by_month as (
+const creditBalanceEncounterDataSetQueryTemplate = _.template(`
+WITH agg AS(
     SELECT
-        Date_trunc('month', bp.accounting_dt) AS txn_month,
-        sum(CASE when amount_type = 'payment' then bpa.amount else 0::money end ) as payment_amount,
-        sum(CASE when amount_type = 'adjustment' then bpa.amount else 0::money end ) as adjustment_amount
-    FROM billing.payments bp
-    INNER JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
-    INNER JOIN billing.charges bc on bc.id = bpa.charge_id
-    INNER JOIN billing.claims bcl on bcl.id = bc.claim_id
-    INNER JOIN facilities f on f.id = bcl.facility_id
-    <% if (billingProID) { %> INNER JOIN billing.providers bbp ON bbp.id = bcl.billing_provider_id <% } %>
-    WHERE 1 = 1
-    AND <%= companyId %>
-    AND <%= accounting_dt %>
+    get_full_name(pp.last_name, pp.first_name, pp.middle_name, pp.prefix_name, pp.suffix_name) AS Patient,
+    bc.id AS claim_id,
+    pp.account_no AS account_number,
+    bcs.description AS status,
+    bc.claim_dt AS encounter_date,
+    (SELECT round(claim_balance_total::numeric) FROM billing.get_claim_totals(bc.id))  AS total,
+    (SELECT abs(claim_balance_total::numeric) FROM billing.get_claim_totals(bc.id)) AS unformated_total
+    -- Unapplied amount details not there billing 1.5
+FROM billing.claims bc 
+     INNER JOIN public.patients pp ON pp.id = bc.patient_id
+     INNER JOIN billing.claim_status bcs ON bcs.id = bc.claim_status_id
+	   WHERE 1 = 1
+    AND <%=companyId%>
+    AND <%= claimDate %>
     <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
     <% if(billingProID) { %> AND <% print(billingProID); } %>
-    GROUP BY  (date_trunc('month', bp.accounting_dt))
-    ),
-    charge_summary AS(select
-        Date_trunc('month', charge_dt) AS txn_month,
-        sum(bill_fee*units) as charge
-    FROM billing.charges 
-    WHERE 1=1
-    AND<%=claimDate%>
-    GROUP BY (date_trunc('month', charge_dt) ))
-    SELECT
-        COALESCE(to_char(ts.txn_month, 'MON-yy'), to_char(cs.txn_month, 'MON-yy') ) AS "Date",
-        coalesce(cs.charge,0::money)  AS "Charge",
-        SUM(coalesce(ts.payment_amount,0::money)) AS "Payments",
-        SUM(coalesce(adjustment_amount,0::money)) AS "Adjustments",
-        cs.charge - SUM ( coalesce(ts.payment_amount,0::money) +  coalesce(ts.adjustment_amount,0::money)) AS "Net Activity"
-    
-    FROM transaction_summary_by_month ts
-    FULL  JOIN charge_summary cs ON ts.txn_month = cs.txn_month
-    GROUP BY
-         COALESCE(to_char(ts.txn_month, 'MON-yy'), to_char(cs.txn_month, 'MON-yy') ) , cs.charge
-    ORDER BY
-          to_date(COALESCE(to_char(ts.txn_month, 'MON-yy'), to_char(cs.txn_month, 'MON-yy') ),'MON-yy')
-    
+GROUP BY
+    bc.id,
+    pp.account_no ,
+    Patient,
+    Total,
+    bcs.description
+)
+SELECT
+    agg.patient  AS "Patient Name",
+    agg.claim_id ,
+    agg.status AS "Status",
+    agg.account_number AS "Account #",
+    agg.encounter_date As "Accounting Date",
+    agg.total || ' CR' AS "Total",
+    agg.unformated_total AS "UnFormatted Total"
+FROM agg
+UNION 
+SELECT
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    sum(total) || ' CR',
+    sum(unformated_total)
+FROM
+	agg
+ORDER BY
+	claim_id
 `);
 
 const api = {
@@ -57,14 +65,14 @@ const api = {
      */
     getReportData: (initialReportData) => {
         return Promise.join(
-            api.createtransactionSummaryDataSet(initialReportData.report.params),
+            api.createcreditBalanceEncounterDataSet(initialReportData.report.params),
             // other data sets could be added here...
-            (transactionSummaryDataSet) => {
+            (creditBalanceEncounterDataSet) => {
                 // add report filters                
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 // add report specific data sets
-                initialReportData.dataSets.push(transactionSummaryDataSet);
+                initialReportData.dataSets.push(creditBalanceEncounterDataSet);
                 initialReportData.dataSetCount = initialReportData.dataSets.length;
                 return initialReportData;
             });
@@ -108,7 +116,8 @@ const api = {
             const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
         }
-        // Billing provider Filter
+
+        // // Billing provider Filter
         if (params.allBillingProvider == 'true')
             filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
         else {
@@ -122,65 +131,54 @@ const api = {
     },
 
     // ================================================================================================================
-    // --- DATA SET - transactionSummary count
+    // --- DATA SET - creditBalanceEncounter count
 
-    createtransactionSummaryDataSet: (reportParams) => {
+    createcreditBalanceEncounterDataSet: (reportParams) => {
         // 1 - build the query context. Each report will 'know' how to do this, based on report params and query/queries to be executed...
-        const queryContext = api.gettransactionSummaryDataSetQueryContext(reportParams);
+        const queryContext = api.getcreditBalanceEncounterDataSetQueryContext(reportParams);
         console.log('context__', queryContext)
         // 2 - geenrate query to execute
-        const query = transactionSummaryDataSetQueryTemplate(queryContext.templateData);
+        const query = creditBalanceEncounterDataSetQueryTemplate(queryContext.templateData);
         // 3a - get the report data and return a promise
         return db.queryForReportData(query, queryContext.queryParams);
     },
 
     // query context is all about query building: 1 - query parameters and 2 - query template data
     // every report and/or query may have a different logic to build a query context...
-    gettransactionSummaryDataSetQueryContext: (reportParams) => {
+    getcreditBalanceEncounterDataSetQueryContext: (reportParams) => {
         const params = [];
         const filters = {
             companyId: null,
             claimDate: null,
             facilityIds: null,
-            billingProID: null,
-            accounting_dt: null
+            billingProID: null
 
         };
 
         // company id
         params.push(reportParams.companyId);
-        filters.companyId = queryBuilder.where('bp.company_id', '=', [params.length]);
+        filters.companyId = queryBuilder.where('bc.company_id', '=', [params.length]);
 
         //claim facilities
         if (!reportParams.allFacilities && reportParams.facilityIds) {
             params.push(reportParams.facilityIds);
-            filters.facilityIds = queryBuilder.whereIn('f.id', [params.length]);
+            filters.facilityIds = queryBuilder.whereIn('bc.facility_id', [params.length]);
         }
 
-        //  Accounting Date
+        //  scheduled_dt
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);
-            filters.accounting_dt = queryBuilder.whereDate('bp.accounting_dt', '=', [params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDate('bc.claim_dt', '=', [params.length], 'f.time_zone');
         } else {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
-            filters.accounting_dt = queryBuilder.whereDateBetween('bp.accounting_dt', [params.length - 1, params.length], 'f.time_zone');
-        }
-
-        //  Claim Date
-        if (reportParams.fromDate === reportParams.toDate) {
-            params.push(reportParams.fromDate);
-            filters.claimDate = queryBuilder.whereDate('charge_dt', '=', [params.length], 'f.time_zone');
-        } else {
-            params.push(reportParams.fromDate);
-            params.push(reportParams.toDate);
-            filters.claimDate = queryBuilder.whereDateBetween('charge_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
         }
 
         // billingProvider single or multiple
         if (reportParams.billingProvider) {
             params.push(reportParams.billingProvider);
-            filters.billingProID = queryBuilder.whereIn('bbp.id', [params.length]);
+            filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
         }
 
         return {

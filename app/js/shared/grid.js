@@ -86,11 +86,11 @@ define('grid', [
             }
             var studyIds = studyArray.join();
             if (isClaimGrid) {
-                var liClaimStatus = commonjs.getRightClickMenu('ul_change_claim_status','menuTitles.rightClickMenu.billingStatus',false,'Change Billing Status',true); 
+                var liClaimStatus = commonjs.getRightClickMenu('ul_change_claim_status','setup.rightClickMenu.billingStatus',false,'Change Billing Status',true); 
                 $divObj.append(liClaimStatus);
                 var liArray = [];
                 $.each(app.claim_status, function (index, claimStatus) {                      
-                    var $claimStatusLink = $(commonjs.getRightClickMenu('ancclaimStatus_' + claimStatus.id,'menuTitles.rightClickMenu.billingCode',true,claimStatus.description ,false));                        
+                    var $claimStatusLink = $(commonjs.getRightClickMenu('ancclaimStatus_' + claimStatus.id,'setup.rightClickMenu.billingCode',true,claimStatus.description ,false));                        
                         $claimStatusLink.click(function () {
 
                             $.ajax({
@@ -112,12 +112,12 @@ define('grid', [
                 });
                 $('#ul_change_claim_status').append(liArray);
 
-                var liBillingCode = commonjs.getRightClickMenu('ul_change_billing_code','menuTitles.rightClickMenu.billingCode',false,'Change Billing Code',true);       
+                var liBillingCode = commonjs.getRightClickMenu('ul_change_billing_code','setup.rightClickMenu.billingCode',false,'Change Billing Code',true);       
                 $divObj.append(liBillingCode);
                 var liArrayBillingCode = [];
 
                 $.each(app.billing_codes, function (index, billing_code) {                   
-                        var $billingCodeLink = $(commonjs.getRightClickMenu('ancBillingCode_' + billing_code.id,'menuTitles.rightClickMenu.billingCode',true,billing_code.description ,false));
+                        var $billingCodeLink = $(commonjs.getRightClickMenu('ancBillingCode_' + billing_code.id,'setup.rightClickMenu.billingCode',true,billing_code.description ,false));
                        
                         $billingCodeLink.click(function () {
                             $.ajax({
@@ -140,11 +140,11 @@ define('grid', [
                 $('#ul_change_billing_code').append(liArrayBillingCode);
 
 
-                var liBillingClass = commonjs.getRightClickMenu('ul_change_billing_class','menuTitles.rightClickMenu.billingClass',false,'Change Billing Class',true);                 
+                var liBillingClass = commonjs.getRightClickMenu('ul_change_billing_class','setup.rightClickMenu.billingClass',false,'Change Billing Class',true);                 
                 $divObj.append(liBillingClass);
                 var liArrayBillingClass = [];
                 $.each(app.billing_classes, function (index, billing_class) {       
-                    var $BillingClassLink = $(commonjs.getRightClickMenu('ancBillingClass_' + billing_class.id,'menuTitles.rightClickMenu.billingClass',true,billing_class.description ,false));                                   
+                    var $BillingClassLink = $(commonjs.getRightClickMenu('ancBillingClass_' + billing_class.id,'setup.rightClickMenu.billingClass',true,billing_class.description ,false));                                   
                         
                         $BillingClassLink.click(function () {
                                 $.ajax({
@@ -167,10 +167,10 @@ define('grid', [
                 });
                 $('#ul_change_billing_class').append(liArrayBillingClass);
                
-                var liPayerType =  commonjs.getRightClickMenu('ul_change_payer_type','menuTitles.rightClickMenu.billingPayerType',false,'Change Billing PayerType',true);                 
+                var liPayerType =  commonjs.getRightClickMenu('ul_change_payer_type','setup.rightClickMenu.billingPayerType',false,'Change Billing PayerType',true);                 
                 $divObj.append(liPayerType);                        
 
-                var liEditClaim = commonjs.getRightClickMenu('anc_edit_claim','menuTitles.rightClickMenu.editClaim',false,'Edit Claim',false);         
+                var liEditClaim = commonjs.getRightClickMenu('anc_edit_claim','setup.rightClickMenu.editClaim',false,'Edit Claim',false);         
                 
                 if(studyArray.length == 1)
                     $divObj.append(liEditClaim);
@@ -181,7 +181,7 @@ define('grid', [
                     self.claimView.showEditClaimForm(studyIds);
                 });
                          
-                var liClaimInquiry = commonjs.getRightClickMenu('anc_claim_inquiry','menuTitles.rightClickMenu.claimInquiry',false,'Claim Inquiry',false);
+                var liClaimInquiry = commonjs.getRightClickMenu('anc_claim_inquiry','setup.rightClickMenu.claimInquiry',false,'Claim Inquiry',false);
                 $divObj.append(liClaimInquiry);
                 $('#anc_claim_inquiry').click(function () {
                      commonjs.showDialog({
@@ -194,14 +194,14 @@ define('grid', [
                 self.claimInquiryView.render(studyIds);
                 });
                 
-                var liSplitOrders = commonjs.getRightClickMenu('anc_split_orders','menuTitles.rightClickMenu.splitOrders',false,'Split Orders',false);
+                var liSplitOrders = commonjs.getRightClickMenu('anc_split_orders','setup.rightClickMenu.splitOrders',false,'Split Orders',false);
                 $divObj.append(liSplitOrders);
                 $('#anc_split_orders').click(function () {
                     alert(studyIds)
                 });
 
             } else {                
-                var liCreateClaim = commonjs.getRightClickMenu('anc_create_claim','menuTitles.rightClickMenu.createClaim',false,'Create Claim',false);
+                var liCreateClaim = commonjs.getRightClickMenu('anc_create_claim','setup.rightClickMenu.createClaim',false,'Create Claim',false);
                 $divObj.append(liCreateClaim);
                 $('#anc_create_claim').off().click(function () {
                     window.localStorage.setItem('selected_studies', null);

@@ -109,7 +109,7 @@ const detailQueryTemplate = _.template(`
          	            END  AS "Payer Name",
          	        p.mode "Payment AS Mode",
          	        p.card_number AS "Card #",
-         	        payment_totals.payments_applied_total AS "Payment Total",
+         	        payment_totals.payments_applied_total AS "Applied Amount",
          	        p.amount "Payment Amount",
                     (p.amount - payment_totals.payments_applied_total) AS "Balance",
                     cs.code AS "Code",
