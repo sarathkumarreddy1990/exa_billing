@@ -68,11 +68,14 @@ module.exports = {
             let errorMessages = [];
             let insSubsValidationFields = [];
             let insSubsInvalidFields = '';
-            currentClaim.payer_name = currentClaim.payer_info.payer_name;
-            currentClaim.payer_address1 = currentClaim.payer_info.payer_address1;
-            currentClaim.payer_city = currentClaim.payer_info.payer_city;
-            currentClaim.payer_state = currentClaim.payer_info.payer_state;
-            currentClaim.payer_zip_code = currentClaim.payer_info.payer_zip_code;
+
+            if(currentClaim.billing_method != 'patient_payment'){
+                currentClaim.payer_name = currentClaim.payer_info.payer_name;
+                currentClaim.payer_address1 = currentClaim.payer_info.payer_address1;
+                currentClaim.payer_city = currentClaim.payer_info.payer_city;
+                currentClaim.payer_state = currentClaim.payer_info.payer_state;
+                currentClaim.payer_zip_code = currentClaim.payer_info.payer_zip_code;
+            }
 
             if (currentClaim.billing_method == 'electronic_billing') {
                 !currentClaim.payer_info.claimClearingHouse ? errorMessages.push('Claim - Clearing house does not exists ') : null;
@@ -115,7 +118,7 @@ module.exports = {
                 error_data = {
                     'id': currentClaim.id,
                     'patient_name': currentClaim.patient_name,
-                    'payer_name': currentClaim.payer_name,
+                    'payer_name': currentClaim.billing_method == 'patient_payment' ?currentClaim.patient_name : currentClaim.payer_name,
                     'claim_notes': currentClaim.claim_notes,
                     'errorMessages': errorMessages
                 };
