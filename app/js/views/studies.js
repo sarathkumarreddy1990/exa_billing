@@ -545,7 +545,9 @@ define(['jquery',
                             }
 
                             var $uiJQHTableKids = $('.ui-jqgrid-htable').children().children();
-                            $ulTabItems.filter('[data-container="' + dataContainerValue + '"]').addClass("active");  // Add Tab Collection active highlight
+                            $ulTabItems.filter('[data-container="' + dataContainerValue + '"]').addClass("active"); // Add Tab Collection active highlight
+                            $studyTabsItems.removeClass("active");
+                            $("#liStudyTab"+dataContainerValue).addClass("active");
                             $('#tblGrid' + dataContainerValue).first().children().first().addClass('dg-body');
                             $uiJQHTableKids.first().height('40px');
                             $uiJQHTableKids.last().css('line-height', '2');

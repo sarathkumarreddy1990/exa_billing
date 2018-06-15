@@ -7913,6 +7913,17 @@ var commonjs = {
         return [];
     },
 
+    getColorCodeForStatus: function (code, processType) {
+        var statusCodes = app.status_color_codes.length && app.status_color_codes ||parent.app.status_color_codes;
+        if (statusCodes && statusCodes.length > 0) {
+            return $.grep(statusCodes, function (currentObj) {
+                return ((currentObj.process_type == processType) && (currentObj.process_status == code));
+            });
+        }
+        return [];
+    },
+
+
     changeColumnValue: function (tbl, row, columnName, value, fromService, rowData, needManualToolTip, titleString) {
         var regID = /^#tblGrid/;
         if (typeof tbl === 'string') {
