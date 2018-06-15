@@ -1,7 +1,6 @@
 const { SQL, query } = require('../index');
 
 module.exports = {
-
     getData: async function (params) {
         let whereQuery = [];
         params.sortOrder = params.sortOrder || ' ASC';
@@ -93,7 +92,7 @@ module.exports = {
                         FROM 
                             users u
                         INNER JOIN user_log ul ON ul.user_id = u.id 
-                        WHERE id = ${id} `;
+                        WHERE ul.id = ${id} `;
 
         return await query(sql);
     },
