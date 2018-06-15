@@ -462,7 +462,7 @@ FROM billing.claims
 						, ref_pr.first_name AS "ref_full_name"
 						, ref_pr.provider_info->'NPI' AS "referring_pro_npiNo"
 						, rend_pr.first_name AS "reading_physician_full_name"
-						, rend_pr.provider_info->'NPI' AS "rendering_pro_npiNo"
+						, rend_pr.provider_info->'NPI' AS "reading_pro_npiNo"
 						, CASE WHEN (SELECT charges_bill_fee_total FROM billing.get_claim_totals(bc.id)) > 0::money
 							THEN (SELECT charges_bill_fee_total FROM billing.get_claim_totals(bc.id)) ELSE null END AS "claim_totalCharge"
 						, pg.group_info->'AddressLine1' AS "service_facility_addressLine1"

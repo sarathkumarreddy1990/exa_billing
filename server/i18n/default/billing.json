@@ -27,7 +27,7 @@
             "payerName": "Payer Name",
             "balance": "Balance",
             "billFee": "Bill Fee",
-            "patientName": "Patient Name :",
+            "patientName": "Patient Name ",
             "scheduleDate": "Schedule Date :",
             "readytofile": "Ready To File",
             "readytovalidate": "Ready To Validate",
@@ -50,7 +50,7 @@
             "download": "Download",
             "search": "Search",
             "scheduleNotes": "Schedule Notes :",
-            "errorMessage": "Error Message :",
+            "errorMessage": "Error Message ",
             "scheduleDateGrid": "Schedule Date",
             "submittedDateGrid": "Claim Date",
             "patientNameGrid": "Patient Name",
@@ -71,7 +71,8 @@
             "readPhy": "Reading Physician",
             "refPhy": "Referring Physician",
             "ordFacility": "Ordering Facility",
-            "diagnosis": "Diagnosis"
+            "diagnosis": "Diagnosis",
+            "claimNotes": "Claim Notes"
         },
         "payments": {
             "postingDate": "Posting Date",
