@@ -1117,7 +1117,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 var self = this;
                 var chargeItem = $(e.target).closest('tr');
                 var chargeId = chargeItem.attr('data_charge_id_id');
-                var paymentApplicationId = chargeItem.attr('data_payment_application_id');
+                var paymentApplicationId = chargeItem.attr('data_payment_adjustment_id');
                 if (paymentApplicationId) {
                     $.ajax({
                         url: '/exa_modules/billing/pending_payments/getPayemntApplications',
@@ -1185,6 +1185,8 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     $.each(lineItems, function (index) {
                         var _line_item = {};
                         _line_item["charge_id"] = $(this).attr('data_charge_id_id');
+                        _line_item["paymentApplicationId"] = $(this).attr('data_payment_application_id');
+                        _line_item["adjustmentApplicationId"] = $(this).attr('data_payment_adjustment_id');
                         _line_item["payment"] = $(this).find('td:nth-child(5)>input').val() ? parseFloat($(this).find('td:nth-child(5)>input').val()) : 0.00;
                         _line_item["adjustment"] = $(this).find('td:nth-child(8)>input').val() ? parseFloat($(this).find('td:nth-child(8)>input').val()) : 0.00;
                         _line_item["cas_details"] = cas;
