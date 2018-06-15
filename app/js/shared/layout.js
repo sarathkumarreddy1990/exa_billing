@@ -7,6 +7,26 @@ var layout = {
 
     initialized: false,
 
+    screenLinkIds: {
+        'Adjustment Codes': '#aAdjustmentCodes',
+        'Billing Codes': '#aBillingCodes',
+        'Billing Classes': '#aBillingClasses',
+        'Claim Status': '#aClaimStatus',
+        'Billing Providers': '#aBillingProviders',
+        'Provider ID Code Qualifiers': '#aProviderIdCodeQualifiers',
+        'Payment Reasons': '#aPaymentReasons',
+        'CAS Group Codes': '#aCasGroupCodes',
+        'CAS Reason Codes': '#aCasReasonCodes',
+        'Provider Level Codes': '#aProviderLevelCodes',
+        'Billing Validations': '#aBillingValidations',
+
+        /// report navs
+        'Charges': '#aCharges',
+        'Claim Activity': '#aClaimActivity',
+        'Claim Inquiry': '#aClaimInquiry',
+        /// To be added
+    },
+
     initializeLayout: function (router) {
         this.initialized = true;
 
@@ -69,7 +89,7 @@ var layout = {
             this.currentScreen = options.screen;
         }
 
-        this.highlightSideMenu(options.screen);
+        this.highlightSideMenu(options.module, options.screen);
 
         if (options.layout == siteLayouts.customer)
             this.highlightMainMenu_Customer(options.screen);
@@ -99,8 +119,12 @@ var layout = {
         return commonjs.checkScreenRight(currentScreen, isNotFromScreen, isReadOnly);
     },
 
-    highlightSideMenu: function (currentScreen) {
+    highlightSideMenu: function (module, currentScreen) {
+        $('.settings-nav .active').removeClass('active');
 
+        if(layout.screenLinkIds[currentScreen]) {
+            $(layout.screenLinkIds[currentScreen]).addClass('active');
+        }
     },
 
     highlightMainMenu: function (currentModule) {

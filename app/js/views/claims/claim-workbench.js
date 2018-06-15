@@ -188,7 +188,8 @@ define(['jquery',
                 "click #btnClearAllStudy": "clearAllSelectedRows",
                 "click #btnSelectAllStudy": "selectAllRows",
                 "click #btnInsuranceClaim": "createClaims",
-                "click #btnRefreshAll": "refreshAllStudies"
+                "click #btnValidateOrder": "validateClaim",
+				"click #btnRefreshAll": "refreshAllStudies"
             },
 
             initialize: function (options) {
@@ -1486,6 +1487,19 @@ define(['jquery',
                     $("#gs_study_status").focusout();
                     $("#" + divId).hide();
                 });
+            },
+
+            validateClaim: function(){
+                $.ajax({
+                    url: '/exa_modules/billing/claimWorkbench/validate_claims',
+                    type: 'GET',
+                    data: {
+                        claim_ids: [3909, 2636, 7301]
+                    },
+                    success: function(data, response){
+                        console.log(response)
+                    }
+                })
             }
         });
     });
