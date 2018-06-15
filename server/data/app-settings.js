@@ -26,7 +26,7 @@ module.exports = {
                                             company_code,
                                             company_name,
                                             time_zone,
-                                            sys_config,
+                                            hstore_to_json(sys_config) as sys_config,
                                             file_store_id
                                     FROM   companies
                                     WHERE  id=${companyID}
@@ -149,6 +149,16 @@ module.exports = {
                                     app_states
                                     FROM   companies
                                     WHERE  id=${companyID} ) AS states)
+                , cte_status_color_codes AS(
+                                    SELECT Json_agg(Row_to_json(status_color_codes)) status_color_codes
+                                    FROM  (
+                                    SELECT 
+                                    id,
+                                    process_type,
+                                    process_status,
+                                    color_code
+                                    FROM   billing.status_color_codes
+                                    WHERE  company_id=${companyID} ) AS status_color_codes)
                SELECT *
                FROM   cte_company,
                       cte_facilities,
@@ -164,7 +174,8 @@ module.exports = {
                       cte_studyflag,
                       cte_employment_status,
                       cte_relationship_status,
-                      cte_states
+                      cte_states,
+                      cte_status_color_codes
                `;
 
         return await query(sql);

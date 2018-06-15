@@ -343,10 +343,10 @@ define(['jquery',
                     });
                     // additional events that will trigger refreshes
                     colElement.on("apply.daterangepicker", function (ev, drp) {
-                        self.refreshStudies(true);
+                        self.refreshClaims(true);
                     });
                     colElement.on("cancel.daterangepicker", function (ev, drp) {
-                        self.refreshStudies(true);
+                        self.refreshClaims(true);
                     });
                 }); // end _.each
             },
@@ -624,7 +624,9 @@ define(['jquery',
                             }
 
                             var $uiJQHTableKids = $('.ui-jqgrid-htable').children().children();
-                            $ulTabItems.filter('[data-container="' + dataContainerValue + '"]').addClass("active");  // Add Tab Collection active highlight
+                            $ulTabItems.filter('[data-container="' + dataContainerValue + '"]').addClass("active"); // Add Tab Collection active highlight
+                            $claimsTabsItems.removeClass("active");
+                            $("#liclaimsTab"+dataContainerValue).addClass("active");
                             $('#tblClaimGrid' + dataContainerValue).first().children().first().addClass('dg-body');
                             $uiJQHTableKids.first().height('40px');
                             $uiJQHTableKids.last().css('line-height', '2');
@@ -976,7 +978,7 @@ define(['jquery',
                         self.setFooter(filter);
 
                         // Auto Refresh the preloaded grid immediately
-                        self.refreshStudies(undefined, undefined, filter, function (filter) {
+                        self.refreshClaims(undefined, undefined, filter, function (filter) {
                             commonjs.setFilter(filterID, filter);
                         });
                     }
@@ -1166,7 +1168,7 @@ define(['jquery',
                 return obj;
             },
 
-            refreshStudies: function (isFromDatepicker, IsUnload, filter, callback) {
+            refreshClaims: function (isFromDatepicker, IsUnload, filter, callback) {
 
                 // Retrieve scroll position
                 var curScroll = $('.tab-pane.active .ui-jqgrid-bdiv').scrollTop();
@@ -1197,17 +1199,6 @@ define(['jquery',
                     }
                 }
                 self.disablePageControls();
-                if ($('input:checkbox[name=showDicom]').prop('checked')) {
-                    dicomwhere = " AND (dicom_status='CO' OR dicom_status='IP')"
-                }
-                else if ($('input:checkbox[name=showRis]').prop('checked')) {
-                    dicomwhere = " AND ( dicom_status='NA' OR dicom_status='' OR dicom_status IS NULL )"
-                }
-
-                if ($('input:checkbox[name=showRis]').prop('checked') && $('input:checkbox[name=showDicom]').prop('checked')) {
-                    dicomwhere = " AND (dicom_status='CO' OR dicom_status='IP' OR  dicom_status='NA' OR dicom_status='' OR dicom_status IS NULL )"
-                }
-
                 // Reset Interval, Auto Refresh the grid every 60 seconds
                 // clearInterval(self.autoRefreshTimer);
 
@@ -1306,7 +1297,7 @@ define(['jquery',
                         data: {},
                         success: function (resp, textStatus, jqXHR) {
                             commonjs.hideLoading();
-                            self.refreshStudies(true);
+                            self.refreshClaims(true);
                         },
                         error: function (err) {
                             commonjs.handleXhrError(err);

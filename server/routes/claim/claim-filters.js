@@ -5,7 +5,7 @@ const claimFiltersController = require('../../controllers/claim/claim-filters');
 const httpHandler = require('../../shared/http');
 
 router.get('/', async function (req, res) {
-    const data = await claimFiltersController.getData();
+    const data = await claimFiltersController.getData(req.query);
     httpHandler.sendRows(req, res, data);
 });
 
