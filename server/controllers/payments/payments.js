@@ -87,7 +87,7 @@ module.exports = {
                     payment_id: paymentId,
                     charge_id: value.charge_id,
                     amount: value.adjustment == null ? 0.00 : value.adjustment,
-                    adjestment_id: adjestmentId
+                    adjestment_id: adjestmentId ? adjestmentId : null
                 });
 
 
