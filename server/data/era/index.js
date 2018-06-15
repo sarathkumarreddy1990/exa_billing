@@ -68,20 +68,23 @@ module.exports = {
                                   *
                              FROM json_to_recordset(${JSON.stringify(lineItems)}) AS (
                                  claim_number bigint
+                                ,charge_id bigint
                                 ,claim_status_code bigint
-                                ,claim_frequency_code bigint
-                                ,this_pay money
-                                ,this_adj money
-	                            ,cpt_code text
-	                            ,cas_obj jsonb
+                                ,payment money
+                                ,adjustment money
+                                ,cpt_code text
+                                ,cas_details jsonb
                              )
                             ),
                            selected_Items AS (
                                 SELECT 
-                                    application_details.*
-                                    , ch.id as charge_id
+                                    json_build_object(
+                                        'charge_id',application_details.charge_id,
+                                        'payment',application_details.payment,
+                                        'adjustment',application_details.adjustment,
+                                        'cas_details',application_details.cas_details)
                                 FROM 
-                                application_details  
+                                    application_details  
                                 INNER JOIN billing.claims c on c.id = application_details.claim_number
                                 INNER JOIN LATERAL (
                                     SELECT 
@@ -93,46 +96,18 @@ module.exports = {
                                     ch.claim_id = c.id 
                                     AND NOT cpt_codes.has_deleted 
                                     AND cpt_codes.is_active 
+                                    AND application_details.charge_id = ch.id
                                     ORDER BY id ASC LIMIT 1
                                 ) AS charges ON true
                            ), 
-                           insert_payment AS (
-                                  INSERT INTO billing.payment_applications
-                                  ( payment_id
-                                  , charge_id
-                                  , amount
-                                  , amount_type
-                                  , created_by
-                                  , applied_dt )
-                                  (
-                                    SELECT
-                                    ${paymentDetails.id}
-                                  , charge_id
-                                  , this_pay
-                                  , 'payment'
-                                  , ${paymentDetails.created_by}
-                                  , now()
-                                  FROM selected_Items )
-                                  RETURNING id AS application_id, charge_id , amount_type
-                            ),
-                            insert_adjustment AS (
-                                  INSERT INTO billing.payment_applications
-                                  ( payment_id
-                                  , charge_id
-                                  , amount
-                                  , amount_type
-                                  , created_by
-                                  , applied_dt )
-                                  (
-                                    SELECT
-                                    ${paymentDetails.id}
-                                  , charge_id
-                                  , this_adj
-                                  , 'adjustment'
-                                  , ${paymentDetails.created_by}
-                                  , now()
-                                  FROM selected_Items )
-                                  RETURNING id AS application_id, charge_id , amount_type 
+                           insert_payment_adjustment AS (
+                                 SELECT
+                                    billing.create_payment_applications(
+                                        ${paymentDetails.id}
+                                        ,171
+                                        ,${paymentDetails.created_by}
+                                        ,json_build_array(selected_Items.json_build_object)::jsonb
+                                    )
                             ),
                             insert_edi_file_claims AS (
                                 INSERT INTO billing.edi_file_claims
@@ -282,26 +257,32 @@ module.exports = {
         
         return await query(sql); 
     },
-
-    getcasReasonGroupCode: async function(params){
+    
+    getcasReasonGroupCodes: async function (params) {
 
         let { company_id } = params;
 
-        const sql = ` WITH cas_group as 
-                        ( SELECT
-                            array_agg(code) as cas_groups
-                        FROM
-                            billing.cas_group_codes
-                        WHERE inactivated_dt IS NULL AND company_id =  ${company_id}
-                        ) ,
-                        cas_reason as
-                        ( SELECT
-                            array_agg(code) as cas_reasons
-                        FROM
-                            billing.cas_reason_codes
-                        WHERE inactivated_dt IS NULL AND  company_id =  ${company_id}
-                        )
-                    SELECT * FROM cas_group,cas_reason `;
+        const sql = ` SELECT
+                        ( SELECT json_agg(row_to_json(cas_group_codes)) cas_group_codes
+                                    FROM (
+                                            SELECT
+                                                id
+                                                ,code
+                                            FROM
+                                                billing.cas_group_codes
+                                            WHERE inactivated_dt IS NULL AND company_id = ${company_id}
+                                        ) AS cas_group_codes
+                        ) AS cas_group_codes,
+                        ( SELECT json_agg(row_to_json(cas_reason_codes)) cas_reason_codes
+                                    FROM (
+                                            SELECT
+                                                id
+                                                ,code
+                                            FROM
+                                                billing.cas_reason_codes
+                                            WHERE inactivated_dt IS NULL AND company_id = ${company_id}
+                                        ) AS cas_reason_codes
+                        ) AS cas_reason_codes `;
 
         return await query(sql);
     },

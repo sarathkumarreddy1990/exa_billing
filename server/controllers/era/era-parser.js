@@ -11,9 +11,9 @@ module.exports = {
 
         payer_details = JSON.parse(payer_details);
 
-        let casReasonGroupCode = await data.getcasReasonGroupCode(payer_details);
+        let cas_details = await data.getcasReasonGroupCodes(payer_details);
 
-        casReasonGroupCode = casReasonGroupCode.rows && casReasonGroupCode.rows.length ? casReasonGroupCode.rows[0] : {};
+        cas_details = cas_details.rows && cas_details.rows.length ? cas_details.rows[0] : {};
 
         await _.each(claimLists, function (value) {
             value = value.claimPaymentInformation && value.claimPaymentInformation.length ? value.claimPaymentInformation[0] : {};
@@ -55,18 +55,17 @@ module.exports = {
                 *  Condition : Check valid CAS group and reason codes
                 *  DESC : CAS group and reason codes not matched means shouldn't apply adjustment (Ex: adjustment = 0)
                 */
-                let validGroupCodes = _.filter(val.serviceAdjustment, function (obj) {
+                let validCAS = _.filter(val.serviceAdjustment, function (obj) {
 
                     for (let j = 1; j <= 7; j++) {
 
-                        if (obj['reasonCode' + j] && (casReasonGroupCode.cas_reasons.indexOf(obj['reasonCode' + j]) == -1)) {
-
+                        if (obj['reasonCode' + j] && _.filter(cas_details.cas_reason_codes, function (cas) { return cas.code == obj['reasonCode' + j];}).length == 0)
+                        {
                             return false;
                         }
                     }
 
-                    if (casReasonGroupCode.cas_groups.indexOf(obj.groupCode) == -1) {
-
+                    if (_.filter(cas_details.cas_group_codes, function (cas) { return cas.code == obj.groupCode;}).length == 0) {
                         return false;
                     }
 
@@ -74,8 +73,7 @@ module.exports = {
 
                 });
 
-                if (val.serviceAdjustment && (validGroupCodes.length != val.serviceAdjustment.length)) {
-
+                if (val.serviceAdjustment && (validCAS.length != val.serviceAdjustment.length)) {
                     adjustmentAmount = 0;
                 }
 
@@ -85,13 +83,38 @@ module.exports = {
                 */
                 adjustmentAmount = ['1', '19'].indexOf(value.claimStatusCode) == -1 ? 0 : adjustmentAmount[0];
 
+                /**
+                *  DESC : Formatting cas details
+                */
+                let cas_obj = [];
+
+                _.each(validCAS, function (cas) {
+                
+                    let groupcode = _.filter(cas_details.cas_group_codes, { code: cas.groupCode });
+
+                    for (let j = 1; j <= 7; j++) {
+
+                        if (cas['reasonCode' + j])
+                        {
+                            let reasoncode = _.filter(cas_details.cas_reason_codes, { code: cas['reasonCode' + j] });
+
+                            cas_obj.push({
+                                group_code_id : groupcode && groupcode.length ? groupcode[0].id : null,
+                                reason_code_id: reasoncode && reasoncode.length ? reasoncode[0].id : null,
+                                amount : cas['monetaryAmount' + j] ? parseFloat(cas['monetaryAmount' + j]) : 0
+                            });
+                        }
+                    }
+
+                });
+
                 lineItems.push({
                     payment: val.paidamount,
                     adjustment: adjustmentAmount,
                     cpt_code: val.qualifierData.cptCode,
                     claim_number: value.claimNumber,
                     claim_status_code: value.claimStatusCode,
-                    cas_details: val.serviceAdjustment,
+                    cas_details: cas_obj,
                     charge_id: val.serviceIdentification && val.serviceIdentification.assingedNumber && !isNaN( val.serviceIdentification.assingedNumber ) ? val.serviceIdentification.assingedNumber : 0
                 });
             });
