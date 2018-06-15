@@ -14,7 +14,9 @@ define([
     'routes/setup/payment-reasons',
     'routes/setup/claim-status',
     'routes/setup/edi-clearinghouses',
-    'routes/setup/validations'
+    'routes/setup/validations',
+    //'routes/setup/audit-log',
+    'routes/setup/user-log'
 ], function (
     Backbone,
     BackboneSubroute,
@@ -31,7 +33,9 @@ define([
     PaymentReasonsRoute,
     ClaimStatusRoute,
     EdiClearingHousesRoute,
-    ValidationsRoute
+    ValidationsRoute,
+    //AuditLogRoute,
+    UserLogRoute
     ) {
         return Backbone.SubRoute.extend({
             routes: {
@@ -46,7 +50,9 @@ define([
                 "payment_reasons/*subroute" : "startPaymentReasons",
                 "claim_status/*subroute" : "startClaimStatus",
                 "edi_clearinghouses/*subroute" : "startEDIClearingHouses",
-                "validations/*subroute" : "startValidations"
+                "validations/*subroute" : "startValidations",
+               // "audit_log/*subroute" : "startAuditLog",
+                "user_log/*subroute" : "startUserLog"
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -161,9 +167,27 @@ define([
             },
 
             startValidations: function(){
-                if (this.checkLicense('Validations') && !this.claimStatus) {
+                if (this.checkLicense('Validations') && !this.validations) {
                     this.defaultArgs.routePrefix = 'setup/validations/';
                     this.validations = new ValidationsRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+           /* startAuditLog: function(){
+                if (this.checkLicense('AuditLog') && !this.auditLog) {
+                    this.defaultArgs.routePrefix = 'setup/audit_log/';
+                    this.auditLog = new AuditLogRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },*/
+
+            startUserLog: function(){
+                if (this.checkLicense('UserLog') && !this.userLog) {
+                    this.defaultArgs.routePrefix = 'setup/user_log/';
+                    this.userLog = new UserLogRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }
