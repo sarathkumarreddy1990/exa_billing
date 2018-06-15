@@ -1009,7 +1009,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         commonjs.validateControls();
                         self.setFeeFields({}, true);
 
-                        $('#ddlAdjustmentCode_fast').append($('<option/>', { value: 0, text: 'Select' }));
+                        $('#ddlAdjustmentCode_fast').append($('<option/>', { value: '', text: 'Select' }));
                         $('#ddlResponsible').append($('<option/>', { value: '', text: 'Select' }));
 
                         $.each(adjustmentCodes, function (index, adjustmentCode) {
@@ -1038,7 +1038,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         $("#ddlResponsible option[data-payerType=" + payerTypes[0].payer_type + "]").attr('selected', 'selected');
                         $('#ddlResponsible').select2({});
 
-                        $("#ddlAdjustmentCode_fast").val(charges.length ? charges[0].adjustment_code_id : 0);
+                        $("#ddlAdjustmentCode_fast").val(charges.length ? charges[0].adjustment_code_id : '');
 
                         $('#tBodyApplyPendingPayment').find('.applyCAS').on('click', function (e) {
                             var selectedRow = $(e.target || e.srcElement).closest('tr');
@@ -1220,7 +1220,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     });
 
                     var payerType = $('#ddlResponsible').find(':selected').attr('data-payerType');
-                    var adjustmentType = $('#ddlAdjustmentCode_fast').val();
+                    var adjustmentType = $('#ddlAdjustmentCode_fast').val() || null;
                     var billingNotes = $('#txtResponsibleNotes').val();
                     var deduction = $('#txtDeduction').val();
                     var coInsurance = $('#txtCoInsurance').val();
