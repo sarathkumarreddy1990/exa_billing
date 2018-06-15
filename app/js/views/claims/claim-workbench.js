@@ -189,7 +189,7 @@ define(['jquery',
                 "click #btnSelectAllStudy": "selectAllRows",
                 "click #btnInsuranceClaim": "createClaims",
                 "click #btnValidateOrder": "validateClaim",
-				"click #btnRefreshAll": "refreshAllStudies"
+                "click #btnRefreshAll": "refreshAllStudies"
             },
 
             initialize: function (options) {
