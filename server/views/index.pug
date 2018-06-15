@@ -9,7 +9,7 @@ block content
         span(class="badge badge-danger" id="divErrorMsg")
     div(class="loadingMsg", id="divSuccess", style="display:none")
         span(class="badge badge-success" id="divSuccessMsg")
-    nav.navbar.fixed-top.navbar-expand-lg.navbar-dark.bg-primary
+    nav.navbar.fixed-top.navbar-expand-lg.navbar-dark.bg-primary(style="display:none")
         a.navbar-brand(href='#billing/studies/list') #{title}
         button.navbar-toggler(type='button', data-toggle='collapse', data-target='#navbarNavAltMarkup', aria-controls='navbarNavAltMarkup', aria-expanded='false', aria-label='Toggle navigation')
             span.navbar-toggler-icon
@@ -78,5 +78,10 @@ block content
                     a.nav-link(href='#') Logout
 
     #root
+
+    #divPageLoading
+        #divPageLoadingMsg(style="left:0%; top:40%; font-size:25px; position:absolute; font-weight:bolder; text-align:center; width:100%; z-index: 10000;")
+            p Loading
+                img(src=staticAssetsRoot + "/images/ajax-loader.gif", style="padding-left:10px;")
 
     script(type='text/javascript', src=staticAssetsRoot + '/node_modules/requirejs/require.js', data-main=staticAssetsRoot + '/js/main.js')
