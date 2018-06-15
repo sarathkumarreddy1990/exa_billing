@@ -930,26 +930,18 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 self.getClaimBasedCharges(claimId, paymentID, paymentStatus, chargeId);
             },
 
-            setFeeFields: function (claimDetail) {
-                $('#spApplyTotalFee').text(claimDetail.total_bill_fee ? parseFloat(claimDetail.total_bill_fee).toFixed(2) : 0.00);
-                $('#spApplyAllowed').text(claimDetail.total_allowed_fee ? parseFloat(claimDetail.total_allowed_fee).toFixed(2) : 0.00);
-                $('#spPaymentApplied').text(claimDetail.order_payment_applied ? parseFloat(claimDetail.order_payment_applied).toFixed(2) : 0.00);
-                $('#spAdjustmentApplied').text(claimDetail.order_adjustment_applied ? parseFloat(claimDetail.order_adjustment_applied).toFixed(2) : 0.00);
-                $('#spPaymentUnApplied').text(claimDetail.order_payment_unapplied ? parseFloat(claimDetail.order_payment_unapplied).toFixed(2) : 0.00);
-                $('#spAdjustmentUnApplied').text(claimDetail.order_adjustment_unapplied ? parseFloat(claimDetail.order_adjustment_unapplied).toFixed(2) : 0.00);
-
-                $('#txtDeduction').val("0.00");
-                $('#txtCoInsurance').val("0.00");
-                $('#txtCoPay').val("0.00");
-                var order_info = {};
-                $('#lblBalance').text(order_info.balance ? parseFloat(order_info.balance).toFixed(2) : "0.00");
-                $('#lblContractValue').text(order_info.allowed_fee ? parseFloat(order_info.allowed_fee).toFixed(2) : "0.00");
-                $('#lblBillingFee').text(order_info.bill_fee ? parseFloat(order_info.bill_fee).toFixed(2) : "0.00");
-                $('#lblAdjustment').text(order_info.adjustment ? parseFloat(order_info.adjustment).toFixed(2) : "0.00");
-                $('#lblOthers').text(order_info.others_paid ? parseFloat(order_info.others_paid).toFixed(2) : "0.00");
+            setFeeFields: function (claimDetail, isInitial) {
+                var order_info = claimDetail;
+                $('#lblBalanceNew').text(order_info.balance ? parseFloat(order_info.balance).toFixed(2) : "0.00");
+                $('#lblBillingFee, #spApplyTotalFee').text(order_info.billFee ? parseFloat(order_info.billFee).toFixed(2) : "0.00");
+                $('#lblAdjustment, #spAdjustmentApplied').text(order_info.adjustment ? parseFloat(order_info.adjustment).toFixed(2) : "0.00");
+                $('#lblOthers').text(order_info.othersPaid ? parseFloat(order_info.othersPaid).toFixed(2) : "0.00");
                 $('#lblPatient').text(order_info.patient_paid ? parseFloat(order_info.patient_paid).toFixed(2) : "0.00");
-                $('#ddlClaimStatus').val(order_info.claim_status);
-                $('#txtResponsibleNotes').val('');
+                $('#spPaymentApplied').text(order_info.applied_payment ? parseFloat(order_info.applied_payment).toFixed(2) : "0.00");
+                if (isInitial) {
+                    $('#ddlClaimStatus').val('');
+                    $('#txtResponsibleNotes').val('');
+                }    
             },
 
             getClaimBasedCharges: function (claimId, paymentId, paymentStatus, chargeId) {
@@ -1012,7 +1004,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                             });
                         });
                         commonjs.validateControls();
-                        self.setFeeFields({});
+                        self.setFeeFields({}, true);
 
                         $.each(adjustmentCodes, function (index, adjustmentCode) {
                             $('#ddlAdjustmentCode_fast').append($('<option/>', { value: adjustmentCode.id, text: adjustmentCode.description }));
@@ -1055,6 +1047,35 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         $('#btnClearAppliedPendingPayments').unbind().on('click', function (e) {
                             self.clearPayments(e, paymentId, claimId);
                         });
+
+                        var bilFeeCols = $("#tBodyApplyPendingPayment tr td:nth-child(3) span");//.text().trim();
+                        var billFee = 0;
+                        $.each(bilFeeCols, function (index, col) {
+                            billFee += parseFloat($(this).text().trim())
+                        }); 
+                        
+                        var adjustmentCols = $("#tBodyApplyPendingPayment tr td:nth-child(8) input");//.text().trim();
+                        var adjustment = 0;
+                        $.each(adjustmentCols, function (index, col) {
+                            adjustment += parseFloat($(this).val().trim())
+                        });
+                        
+                        var othersPaidCols = $("#tBodyApplyPendingPayment tr td:nth-child(5) input");//.text().trim();
+                        var othersPaid = 0;
+                        $.each(othersPaidCols, function (index, col) {
+                            adjustment += parseFloat($(this).val().trim())
+                        });
+                        
+                        var balanceCols = $("#tBodyApplyPendingPayment tr td:nth-child(9) span");//.text().trim();
+                        var balance = 0;
+                        $.each(balanceCols, function (index, col) {
+                            balance += parseFloat($(this).text().trim())
+                        });
+
+                        
+                        self.setFeeFields({ billFee: billFee, adjustment: adjustment, othersPaid: othersPaid, balance: balance});
+
+                        console.log({ billFee: billFee, adjustment: adjustment, othersPaid: othersPaid, balance: balance });
                     },
                     error: function (err, response) {
                         commonjs.handleXhrError(err, response);
@@ -1073,6 +1094,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 var charge_id = $('#divPaymentCAS').attr('data-charge_id');
                 var cas = self.vaidateCasCodeAndReason(payment_application_id);
                 self.casSegmentsSelected = cas;
+                self.closePaymentsCAS();
             },
 
             vaidateCasCodeAndReason: function (payment_application_id) {
