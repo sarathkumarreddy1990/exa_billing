@@ -40,6 +40,10 @@ define([
                 this.showForm();
                 this.$el.html(this.mainTemplate(this.viewModel));              
                 UI.initializeReportingViewModel(options, this.viewModel);
+
+                // Set date range to Facility Date
+                this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(app.default_facility_id);
+                this.viewModel.dateTo = this.viewModel.dateFrom.clone();              
             },
 
             showForm: function () {
@@ -57,6 +61,9 @@ define([
                 });
                 this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
                 this.$el.html(this.mainTemplate(this.viewModel));
+                this.bindDateRangePicker();
+                this.drpStudyDt.setStartDate(this.viewModel.dateFrom);
+                this.drpStudyDt.setEndDate(this.viewModel.dateTo);     
                 $('#ddlFacilityFilter').multiselect({
                     maxHeight: 200,
                     buttonWidth: '300px',
@@ -71,12 +78,15 @@ define([
 
             bindDateRangePicker: function () {
                 var self = this;
-                var drpEl = $('#txtStudyDtRange');
+                var drpEl = $('#txtDateRangeFromTo');
                 var drpOptions = { autoUpdateInput: true, locale: { format: 'L' } };
                 this.drpStudyDt = commonjs.bindDateRangePicker(drpEl, drpOptions, 'past', function (start, end, format) {
-                    console.info('DRP: ', format, start, end);
                     self.viewModel.dateFrom = start;
                     self.viewModel.dateTo = end;
+                });
+                drpEl.on('cancel.daterangepicker', function (ev, drp) {
+                    self.viewModel.dateFrom = null;
+                    self.viewModel.dateTo = null;
                 });
             },
 
@@ -101,16 +111,16 @@ define([
             hasValidViewModel: function () {
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
                     commonjs.showWarning('Please check report id, category, and/or format!');
-                    return false;
+                    return;
                 }
 
-                if ($('#txtDateRangeFrom').val() == "" || $('#txtDateRangeTo').val() == "") {
-                    alert('Please select date range!')
-                    //commonjs.showWarning('Please select date range!');
-                    return false;
+                if (this.viewModel.dateFrom == null || this.viewModel.dateTo == null) {
+                    commonjs.showWarning('Please select date range!');
+                    return;
                 }
+
                 return true;
-            },
+            },        
 
             // multi select facilities - worked
             getSelectedFacility: function (e) {
@@ -138,8 +148,8 @@ define([
                 const urlParams = {
                     'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
                     'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
-                    'fromDate': moment($('#txtDateRangeFrom').val()).format('L'),
-                    'toDate': moment($('#txtDateRangeTo').val()).format('L'),
+                    'fromDate': this.viewModel.dateFrom.format('YYYY-MM-DD'),
+                    'toDate': this.viewModel.dateTo.format('YYYY-MM-DD'),
                     'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
                     'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,

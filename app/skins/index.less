@@ -1,9 +1,28 @@
 body {
     font-size: 14px;
+    cursor: default;
 }
 
 .settings-nav {
-    margin-top: 45px;
+    padding-top: 45px;
+    border-right: 4px solid #ececec;
+}
+
+#navbarNavAltMarkup ul {
+    margin-right: 40px;
+}
+
+#data_container .Grid {
+    padding: 0px 10px;
+}
+
+#data_container .form-group:first-child {
+    //margin-top: 70px;
+}
+
+#divPageHeaderButtons {
+    // text-align: right;
+    // z-index: 170;
 }
 
 .bg-primary {
@@ -64,4 +83,10 @@ input[type="text"], select {
 
 #divPageHeaderButtons {
     padding: 10px;
+}
+
+.customRowSelect:hover,
+.ui-jqgrid-btable tbody tr:hover {
+  background: @blue-900 !important;
+  color: @blue-50 !important;
 }

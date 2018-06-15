@@ -9,28 +9,29 @@ block content
         span(class="badge badge-danger" id="divErrorMsg")
     div(class="loadingMsg", id="divSuccess", style="display:none")
         span(class="badge badge-success" id="divSuccessMsg")
-    nav.navbar.fixed-top.navbar-expand-lg.navbar-dark.bg-primary
+    nav.navbar.fixed-top.navbar-expand-lg.navbar-dark.bg-primary(style="display:none")
         a.navbar-brand(href='#billing/studies/list') #{title}
         button.navbar-toggler(type='button', data-toggle='collapse', data-target='#navbarNavAltMarkup', aria-controls='navbarNavAltMarkup', aria-expanded='false', aria-label='Toggle navigation')
             span.navbar-toggler-icon
         #navbarNavAltMarkup.collapse.navbar-collapse
             ul.navbar-nav.ml-auto
                 li.nav-item
-                    a.nav-link.active(href='#billing/studies/list') Studies
+                    a#aStudies.nav-link.active(href='#billing/studies/list') Studies
                 li.nav-item
-                    a.nav-link(href='#billing/claim_workbench/list') Claims
+                    a#aClaims.nav-link(href='#billing/claim_workbench/list') Claims
                 li.nav-item
-                    a.nav-link(href='#billing/payments/list') Payments
+                    a#aPayments.nav-link(href='#billing/payments/list') Payments
                 li.nav-item
-                    a.nav-link(href='#billing/era/list') EOB
+                    a#aEob.nav-link(href='#billing/era/list') EOB
                     
                 li.nav-item.dropdown
-                    a.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Reports
+                    a#aReports.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Reports
                     .dropdown-menu
                         a.dropdown-item(href='#reports/r/charges') Charges                        
                         a.dropdown-item(href='#reports/r/claim-activity') Claim Activity
                         a.dropdown-item(href='#reports/r/claim-inquiry') Claim Inquiry
                         a.dropdown-item(href='#reports/r/claim-transaction') Claim Transaction
+                        a.dropdown-item(href='#reports/r/credit-balance-encounters') Credit Balance Encounters
                         a.dropdown-item(href='#reports/r/date-of-SVC-payment-summary') Date Of SVC Payment  
                         a.dropdown-item(href='#reports/r/diagnosis-count') Diagnosis Count  
                         a.dropdown-item(href='#reports/r/modality-summary') Modality Summary
@@ -48,7 +49,7 @@ block content
                         a.dropdown-item(href='#reports/r/transaction-summary') Transaction Summary
                     
                 li.nav-item.dropdown
-                    a.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Setup
+                    a#aSetup.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Setup
                     .dropdown-menu
                         a.dropdown-item(href='#setup/adjustment_codes/list') Adjustment Codes
                         a.dropdown-item(href='#setup/billing_codes/list') Billing codes
@@ -68,7 +69,7 @@ block content
                         a.dropdown-item(href='#setup/validations/all') Billing Validations
 
                 li.nav-item.dropdown
-                    a.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Log
+                    a#aLog.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Log
                     .dropdown-menu
                         a.dropdown-item(href='#setup/audit_log/list') Audit Log
                         a.dropdown-item(href='#setup/user_log/list') User Log
@@ -77,5 +78,10 @@ block content
                     a.nav-link(href='#') Logout
 
     #root
+
+    #divPageLoading
+        #divPageLoadingMsg(style="left:0%; top:40%; font-size:25px; position:absolute; font-weight:bolder; text-align:center; width:100%; z-index: 10000;")
+            p Loading
+                img(src=staticAssetsRoot + "/images/ajax-loader.gif", style="padding-left:10px;")
 
     script(type='text/javascript', src=staticAssetsRoot + '/node_modules/requirejs/require.js', data-main=staticAssetsRoot + '/js/main.js')

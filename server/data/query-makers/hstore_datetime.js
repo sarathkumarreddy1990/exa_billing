@@ -1,7 +1,7 @@
 'use strict';
 
-const moment = require(`moment`);
-const FORMAT_STYLE = `YYYY-MM-DD`;
+const moment = require('moment');
+const FORMAT_STYLE = 'YYYY-MM-DD';
 
 module.exports = (fieldID, fieldValue) => {
 
@@ -28,5 +28,5 @@ module.exports = (fieldID, fieldValue) => {
         //console.log("filtervalidator error");
     }
 
-    return ``;
+    return '';
 };

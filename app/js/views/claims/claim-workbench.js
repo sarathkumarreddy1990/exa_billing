@@ -188,6 +188,8 @@ define(['jquery',
                 "click #btnClearAllStudy": "clearAllSelectedRows",
                 "click #btnSelectAllStudy": "selectAllRows",
                 "click #btnInsuranceClaim": "createClaims",
+                "click #btnValidateOrder": "validateClaim",
+                "click #btnRefreshAll": "refreshAllStudies"
             },
 
             initialize: function (options) {
@@ -1349,12 +1351,16 @@ define(['jquery',
                 // commonjs.showLoading();
 
                 jQuery.ajax({
-                    url: "/usersettings",
+                    url: "/exa_modules/billing/user_settings",
                     type: "GET",
-                    data: {},
+                    data: {
+                        userID: app.userID,
+                        gridName: 'claims'
+                    },
                     success: function (resp, textStatus, jqXHR) {
-                        if (resp && resp.usersettings) {
-                            app.usersettings = Object.assign({}, app.usersettings, resp.usersettings);
+                        resp = resp && (resp.length >=1) && resp[1].rows && resp[1].rows[0] ? resp[1].rows[0] : {};
+                        if (resp) {
+                            app.claim_user_settings = Object.assign({}, app.claim_user_settings, resp);
                             var fid = filter.options.filterid;
                             var isprior = filter.options.isPrior;
                             var $currentstudyTab = $(document.getElementById('studyTabs')).find('a').filter('[href="#divClaimGridContainer' + fid + '"]');
@@ -1481,6 +1487,19 @@ define(['jquery',
                     $("#gs_study_status").focusout();
                     $("#" + divId).hide();
                 });
+            },
+
+            validateClaim: function(){
+                $.ajax({
+                    url: '/exa_modules/billing/claimWorkbench/validate_claims',
+                    type: 'GET',
+                    data: {
+                        claim_ids: [3909, 2636, 7301]
+                    },
+                    success: function(data, response){
+                        console.log(response)
+                    }
+                })
             }
         });
     });
