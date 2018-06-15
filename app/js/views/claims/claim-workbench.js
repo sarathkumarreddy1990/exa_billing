@@ -191,7 +191,7 @@ define(['jquery',
                 "click #btnSelectAllStudy": "selectAllRows",
                 "click #btnInsuranceClaim": "createClaims",
                 "click #btnValidateOrder": "validateClaim",
-                "click #btnRefreshAll": "refreshAllStudies"
+                "click #btnClaimRefreshAll": "refreshAllClaims"
             },
 
             initialize: function (options) {
@@ -248,10 +248,8 @@ define(['jquery',
                 }
                 commonjs.showLoading('Loading filters..');
                 self.userSettings = commonjs.hstoreParse(app.userInfo.user_settings);
-
+                $("#btnStudiesRefreshAll, #diveHomeIndex, #divclaimsFooter").hide();
                 $('#divPageLoading').show();
-                $('#diveHomeIndex').hide();
-                $('#divclaimsFooter').hide();
 
                 isDefaultTab = false;
                 self.claimsFilters = new ClaimFiltersCollection();
@@ -1340,7 +1338,7 @@ define(['jquery',
                 this.getStudyFilter(commonjs.currentStudyFilter, false);
             },
 
-            refreshAllStudies: function () {
+            refreshAllClaims: function () {
                 var self = this;
                 // commonjs.isHomePageVisited = false;
                 var filter = commonjs.loadedStudyFilters.get(commonjs.currentStudyFilter);
@@ -1351,16 +1349,16 @@ define(['jquery',
 
                 var $loading = $(document.getElementById('divPageLoading'));
                 $loading.show();
-                // commonjs.showLoading();
+                commonjs.showLoading();
 
                 jQuery.ajax({
                     url: "/exa_modules/billing/user_settings",
                     type: "GET",
                     data: {
-                        userID: app.userID,
                         gridName: 'claims'
                     },
                     success: function (resp, textStatus, jqXHR) {
+                        commonjs.hideLoading();
                         resp = resp && (resp.length >=1) && resp[1].rows && resp[1].rows[0] ? resp[1].rows[0] : {};
                         if (resp) {
                             app.claim_user_settings = Object.assign({}, app.claim_user_settings, resp);

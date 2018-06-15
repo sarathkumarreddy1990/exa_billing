@@ -191,7 +191,7 @@ define(['jquery',
                 "change #chkRadStatus": "chooseStatusForFilter",
                 "change #chkStudyProgress": "chooseStatusForFilter",
                 "click #btnRefresh": "refreshStudies",
-                "click #btnRefreshAll": "refreshAllStudies"
+                "click #btnStudiesRefreshAll": "refreshAllStudies"
             },
 
             initialize: function (options) {
@@ -244,18 +244,14 @@ define(['jquery',
                     customStudyStatus: []
                 }));
 
-                $("#btnInsuranceClaim").hide();
+                $("#btnInsuranceClaim, #btnValidateOrder, #btnClaimRefreshAll, #diveHomeIndex, #divStudyFooter").hide();
                 $("#btnValidateOrder").hide();
+                $("#btnClaimRefreshAll").hide();
                 if (queryString && !queryString.target && commonjs.getParameterByName(queryString).admin && commonjs.getParameterByName(queryString).admin == 1) {
                     self.isAdmin = true;
                 }
                 commonjs.showLoading('Loading filters..');
                 self.userSettings = commonjs.hstoreParse(app.userInfo.user_settings);
-
-                $('#divPageLoading').show();
-                $('#diveHomeIndex').hide();
-                $('#divStudyFooter').hide();
-
                 isDefaultTab = false;
                 self.studyFilters = new StudyFiltersCollection();
                 self.studyFilters.fetch({
@@ -1303,15 +1299,18 @@ define(['jquery',
 
                 var $loading = $(document.getElementById('divPageLoading'));
                 $loading.show();
-                // commonjs.showLoading();
+                commonjs.showLoading();
 
                 jQuery.ajax({
-                    url: "/usersettings",
+                    url: "/exa_modules/billing/user_settings",
                     type: "GET",
-                    data: {},
+                    data: {
+                        gridName: 'studies'
+                    },
                     success: function (resp, textStatus, jqXHR) {
-                        if (resp && resp.usersettings) {
-                            app.usersettings = Object.assign({}, app.usersettings, resp.usersettings);
+                        resp = resp && (resp.length >=1) && resp[1].rows && resp[1].rows[0] ? resp[1].rows[0] : {};
+                        if (resp) {
+                            app.study_user_settings = Object.assign({}, app.study_user_settings, resp);
                             var fid = filter.options.filterid;
                             var isprior = filter.options.isPrior;
                             var $currentstudyTab = $(document.getElementById('studyTabs')).find('a').filter('[href="#divGridContainer' + fid + '"]');
@@ -1324,6 +1323,7 @@ define(['jquery',
                             filter.customGridTable.jqGrid('GridUnload');
                             commonjs.setFilter(null, null);
                             self.setTabContents(fid, isprior, isDicomSearch, isRisOrderSearch, showEncOnly);
+                            commonjs.hideLoading();
                         }
                     },
                     error: function (err) {
