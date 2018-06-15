@@ -7,6 +7,17 @@ var layout = {
 
     initialized: false,
 
+    moduleLinkIds: {
+        'Payments': '#aPayments',
+        'Setup': '#aSetup',
+        'Report': '#aReports',
+        'report': '#aReports',
+        'Claims': '#aClaims',
+        'Studies': '#aStudies',
+        'EOB': '#aEob',
+        'Log': '#aLog',
+    },
+
     screenLinkIds: {
         'Adjustment Codes': '#aAdjustmentCodes',
         'Billing Codes': '#aBillingCodes',
@@ -120,15 +131,35 @@ var layout = {
     },
 
     highlightSideMenu: function (module, currentScreen) {
+
+        switch (currentScreen) {
+            case 'ClaimWorkbench':
+                module = 'Claims';
+                break;
+
+            case 'Studies':
+                module = 'Studies';
+                break;
+
+            case 'Era':
+                module = 'EOB';
+                break;
+        }
+
+        $('#navbarNavAltMarkup .active').removeClass('active');
+
+        if (layout.moduleLinkIds[module]) {
+            $(layout.moduleLinkIds[module]).addClass('active');
+        }
+
         $('.settings-nav .active').removeClass('active');
 
-        if(layout.screenLinkIds[currentScreen]) {
+        if (layout.screenLinkIds[currentScreen]) {
             $(layout.screenLinkIds[currentScreen]).addClass('active');
         }
     },
 
     highlightMainMenu: function (currentModule) {
-
     },
 
     highlightMainMenu_Customer: function (currentScreen) {

@@ -17,6 +17,6 @@ module.exports = {
     },
 
     permissionsMap: {
-
+        adjustment_codes: 'APP'
     }
 };
