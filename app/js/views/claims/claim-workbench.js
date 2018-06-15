@@ -10,7 +10,8 @@ define(['jquery',
     'models/claim-filters',
     'grid',
     'shared/fields',
-    'text!templates/claims/ediResult.html'],
+    'text!templates/claims/ediResult.html',
+    'text!templates/claims/claim-validation.html'],
     function ($,
               Immutable,
               _,
@@ -23,7 +24,8 @@ define(['jquery',
               ModelClaimsFilters,
               ClaimsGrid,
               ListFields,
-              ediResultHTML) {
+              ediResultHTML,
+              claimValidation) {
         var MergeQueueBase = Immutable.Record({
             'filterIndexSet': Immutable.OrderedSet(),
             /**
@@ -188,7 +190,10 @@ define(['jquery',
                 "click #btnClearAllStudy": "clearAllSelectedRows",
                 "click #btnSelectAllStudy": "selectAllRows",
                 "click #btnInsuranceClaim": "createClaims",
-                "click #btnValidateOrder": "validateClaim"
+                "click #btnValidateOrder": "validateClaim",
+                "click #btnClaimRefreshAll": "refreshAllClaims",
+                "click #btnValidateExport": "underConstruction",
+                "click #btnFileInsuranceRefresh": "underConstruction",
             },
 
             initialize: function (options) {
@@ -210,6 +215,10 @@ define(['jquery',
                 $document
                     .off('keyup', self.finishFilterMerge)
                     .on('keyup', self.finishFilterMerge);
+            },
+            underConstruction:function(){
+                alert("Under construction");
+                return false;
             },
 
             showFilterMergeUI: function (event) {
@@ -233,6 +242,7 @@ define(['jquery',
                 var self = this;
                 self.template = _.template(ClaimHTML);
                 self.indexTemplate = _.template(IndexHTML);
+                self.claimValidation = _.template(claimValidation);
                 self.$el.html(self.indexTemplate({
                     gadget: '',
                     customStudyStatus: []
@@ -244,10 +254,8 @@ define(['jquery',
                 }
                 commonjs.showLoading('Loading filters..');
                 self.userSettings = commonjs.hstoreParse(app.userInfo.user_settings);
-
+                $("#btnStudiesRefreshAll, #diveHomeIndex, #divclaimsFooter").hide();
                 $('#divPageLoading').show();
-                $('#diveHomeIndex').hide();
-                $('#divclaimsFooter').hide();
 
                 isDefaultTab = false;
                 self.claimsFilters = new ClaimFiltersCollection();
@@ -341,10 +349,10 @@ define(['jquery',
                     });
                     // additional events that will trigger refreshes
                     colElement.on("apply.daterangepicker", function (ev, drp) {
-                        self.refreshStudies(true);
+                        self.refreshClaims(true);
                     });
                     colElement.on("cancel.daterangepicker", function (ev, drp) {
-                        self.refreshStudies(true);
+                        self.refreshClaims(true);
                     });
                 }); // end _.each
             },
@@ -622,7 +630,9 @@ define(['jquery',
                             }
 
                             var $uiJQHTableKids = $('.ui-jqgrid-htable').children().children();
-                            $ulTabItems.filter('[data-container="' + dataContainerValue + '"]').addClass("active");  // Add Tab Collection active highlight
+                            $ulTabItems.filter('[data-container="' + dataContainerValue + '"]').addClass("active"); // Add Tab Collection active highlight
+                            $claimsTabsItems.removeClass("active");
+                            $("#liclaimsTab"+dataContainerValue).addClass("active");
                             $('#tblClaimGrid' + dataContainerValue).first().children().first().addClass('dg-body');
                             $uiJQHTableKids.first().height('40px');
                             $uiJQHTableKids.last().css('line-height', '2');
@@ -663,6 +673,7 @@ define(['jquery',
                         };
 
                         $btnTabNavLeft.off('click').on('click', function (navState, event) {
+                            self.underConstruction();
                             if (navState.getState('isScrolling') === true || navState.getState('isMeasuring') === true) {
                                 return;
                             }
@@ -729,6 +740,7 @@ define(['jquery',
                          */
 
                         $btnTabNavRight.off('click').on('click', function (navState, event) {
+                            self.underConstruction();
                             if (navState.getState('isScrolling') === true || navState.getState('isMeasuring') === true) {
                                 return;
                             }
@@ -974,7 +986,7 @@ define(['jquery',
                         self.setFooter(filter);
 
                         // Auto Refresh the preloaded grid immediately
-                        self.refreshStudies(undefined, undefined, filter, function (filter) {
+                        self.refreshClaims(undefined, undefined, filter, function (filter) {
                             commonjs.setFilter(filterID, filter);
                         });
                     }
@@ -1164,7 +1176,7 @@ define(['jquery',
                 return obj;
             },
 
-            refreshStudies: function (isFromDatepicker, IsUnload, filter, callback) {
+            refreshClaims: function (isFromDatepicker, IsUnload, filter, callback) {
 
                 // Retrieve scroll position
                 var curScroll = $('.tab-pane.active .ui-jqgrid-bdiv').scrollTop();
@@ -1195,17 +1207,6 @@ define(['jquery',
                     }
                 }
                 self.disablePageControls();
-                if ($('input:checkbox[name=showDicom]').prop('checked')) {
-                    dicomwhere = " AND (dicom_status='CO' OR dicom_status='IP')"
-                }
-                else if ($('input:checkbox[name=showRis]').prop('checked')) {
-                    dicomwhere = " AND ( dicom_status='NA' OR dicom_status='' OR dicom_status IS NULL )"
-                }
-
-                if ($('input:checkbox[name=showRis]').prop('checked') && $('input:checkbox[name=showDicom]').prop('checked')) {
-                    dicomwhere = " AND (dicom_status='CO' OR dicom_status='IP' OR  dicom_status='NA' OR dicom_status='' OR dicom_status IS NULL )"
-                }
-
                 // Reset Interval, Auto Refresh the grid every 60 seconds
                 // clearInterval(self.autoRefreshTimer);
 
@@ -1304,7 +1305,7 @@ define(['jquery',
                         data: {},
                         success: function (resp, textStatus, jqXHR) {
                             commonjs.hideLoading();
-                            self.refreshStudies(true);
+                            self.refreshClaims(true);
                         },
                         error: function (err) {
                             commonjs.handleXhrError(err);
@@ -1336,7 +1337,7 @@ define(['jquery',
                 this.getStudyFilter(commonjs.currentStudyFilter, false);
             },
 
-            refreshAllStudies: function () {
+            refreshAllClaims: function () {
                 var self = this;
                 // commonjs.isHomePageVisited = false;
                 var filter = commonjs.loadedStudyFilters.get(commonjs.currentStudyFilter);
@@ -1347,15 +1348,19 @@ define(['jquery',
 
                 var $loading = $(document.getElementById('divPageLoading'));
                 $loading.show();
-                // commonjs.showLoading();
+                commonjs.showLoading();
 
                 jQuery.ajax({
-                    url: "/usersettings",
+                    url: "/exa_modules/billing/user_settings",
                     type: "GET",
-                    data: {},
+                    data: {
+                        gridName: 'claims'
+                    },
                     success: function (resp, textStatus, jqXHR) {
-                        if (resp && resp.usersettings) {
-                            app.usersettings = Object.assign({}, app.usersettings, resp.usersettings);
+                        commonjs.hideLoading();
+                        resp = resp && (resp.length >=1) && resp[1].rows && resp[1].rows[0] ? resp[1].rows[0] : {};
+                        if (resp) {
+                            app.claim_user_settings = Object.assign({}, app.claim_user_settings, resp);
                             var fid = filter.options.filterid;
                             var isprior = filter.options.isPrior;
                             var $currentstudyTab = $(document.getElementById('studyTabs')).find('a').filter('[href="#divClaimGridContainer' + fid + '"]');
@@ -1485,14 +1490,41 @@ define(['jquery',
             },
 
             validateClaim: function(){
+                let self=this;
+                let filterID = commonjs.currentStudyFilter;
+                let filter = commonjs.loadedStudyFilters.get(filterID);
+
+                let claimIds =[],existingBillingMethod=''; 
+                for (let i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
+                    let rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;                   
+                    claimIds.push(rowId);
+                }
+
+                if(claimIds&&claimIds.length==0){
+                    commonjs.showWarning('Please select claims');
+                    return false;
+                } 
+                
                 $.ajax({
                     url: '/exa_modules/billing/claimWorkbench/validate_claims',
                     type: 'GET',
                     data: {
-                        claim_ids: [3909, 2636, 7301]
+                        claim_ids: claimIds 
                     },
                     success: function(data, response){
-                        console.log(response)
+                        $("#btnValidateOrder").attr("disabled", false);
+                        if (data) {
+                            commonjs.hideLoading();
+
+                            if (!data.invalidClaim_data.length)
+                                commonjs.showStatus(commonjs.geti18NString("messages.status.validatedSuccessfully"));
+                            else
+                                commonjs.showDialog({ header: 'Validation Results', i18nHeader: 'menuTitles.order.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });  
+                        }
+                    },
+                    error: function (err, response) {
+                        $("#btnValidateOrder").attr("disabled", false);
+                        commonjs.handleXhrError(err, response);
                     }
                 })
             }

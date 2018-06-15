@@ -977,7 +977,7 @@ const api = {
         const filter_query = joined_filter_info && util.getCombinedQuery(joined_filter_info, args.user_id, args.statOverride) || '';
         const newFilter = Object.assign(filter, { filter_query });
 
-        newFilter.perms_filter_query = util.getStudyFilterQuery(filter.perm_filter, args.user_id, args.statOverride);
+        newFilter.perms_filter = util.getStudyFilterQuery(filter.perm_filter, args.user_id, args.statOverride);
 
         let responseUserSetting=[newFilter];
 
@@ -1030,6 +1030,10 @@ const api = {
                         whereClause.default = AND(whereClause.default, ' studies.has_deleted ');
                         break;
                     }
+                }
+                
+                if (studyFilter.perms_filter) {
+                    whereClause.studyFilter = AND(whereClause.studyFilter, studyFilter.perms_filter);
                 }
             }
 

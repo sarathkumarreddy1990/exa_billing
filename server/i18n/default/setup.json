@@ -6,7 +6,15 @@
             "description": "Description",
             "readProvPercLvl" : "Reading Provider Percent Level",
             "reasons" : "Reasons",
-            "dateFrom":"Date From"
+            "dateFrom":"Date From",
+            "screen": "Screen",
+            "user": "User",
+            "from": "From",
+            "to": "To",
+            "module": "Module",
+            "browser":"Browser",
+            "operatingSystem":"Operating System",
+            "version": "Version"
         },
         "adjustmentcodes": {
             "credit": "Credit",
@@ -220,7 +228,6 @@
             "billing_pro_firstName": "Billing Provider-FirstName",
             "billing_pro_npiNo": "Billing Provider-NpiNo",
             "billing_pro_state": "Billing Provider-State",
-            "billing_pro_taxID": "Billing Provider-TaxID",
             "billing_pro_zip": "Billing Provider-Zip",
             "claimGrp": "Claim",
             "claim_icd_code1": "Claim-Icd Code1",
@@ -383,6 +390,16 @@
               "tabPhysician": "Physician",
               "tabInsurance": "Insurance"
             }
+        },
+        "log": {
+            "logDt": "Logged Date",
+            "logDescription": "Log Description",
+            "clientIp": "Client IP",
+            "logInDt": "Logged In Date",
+            "logOutDt": "Logged Out Date",
+            "lastAccessed": "Last Accessed",
+            "lastAccessedDt": "Last Accessed Date",
+            "logSource" : "Log Source"
         }
     }
 }

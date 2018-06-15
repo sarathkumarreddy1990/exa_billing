@@ -143,7 +143,8 @@
             "addFields": "Add Fields",
             "ascOrder": "Ascending Order",
             "descOrder": "Descending Order",
-            "processPayement":"Process Payments"
+            "processPayement":"Process Payments",
+            "exportToExcel": "Export To Excel"
         },
         "screens": {},
         "fields": {

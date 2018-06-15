@@ -1,17 +1,17 @@
-const data = require('../../data/setup/adjustment-codes');
+const data = require('../../data/setup/user-log');
 
 module.exports = {
 
-    getData: (params) => {
+    getData: async(params) => {
 
         if (params.id) {
-            return data.getDataById(params);
+            return await data.getDataById(params);
         }
 
-        return data.getData(params);
+        return await data.getData(params);
     },
 
-    getDataById: (params) => {
-        return data.getDataById(params);
+    getDataById: async(params) => {
+        return await data.getDataById(params);
     }
 };
