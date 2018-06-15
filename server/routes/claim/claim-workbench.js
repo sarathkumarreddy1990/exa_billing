@@ -33,4 +33,9 @@ router.get('/submitClaim', async function (req, res) {
     httpHandler.send(req, res, data);
 });
 
+router.get('/validate_claims', async function (req, res) {
+    const data = await claimWorkbenchController.validateClaim(req.query);
+    httpHandler.send(req, res, data);
+});
+
 module.exports = router;
