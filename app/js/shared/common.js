@@ -3375,6 +3375,7 @@ var commonjs = {
         $('#divLoading').css('display', 'none');
         $('#divLoadingMsg').css('display', 'none');
         $('#divPageLoading').css('display', 'none');
+        $('.navbar').show();
     },
 
     showLoadingMessage: function (msg) {
