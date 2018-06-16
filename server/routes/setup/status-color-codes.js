@@ -19,7 +19,7 @@ router.post('/', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
-router.put('/', async function (req, res) {
+router.put('/:id', async function (req, res) {
     const data = await colorController.update(req.body);
     httpHandler.sendRows(req, res, data);
 });
