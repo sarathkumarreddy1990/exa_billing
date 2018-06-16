@@ -491,7 +491,7 @@ define('grid', [
                     {
                         "width": "75%",
                         "height": "75%",
-                        "header": "Study Filter",
+                        "header": window.location && window.location.hash.split('/')[1] == 'claim_workbench' ? "Claim Filter" : "Study Filter",
                         "needShrink": true,
                         "html": "<div/>"
                     });

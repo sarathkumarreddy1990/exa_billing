@@ -66,8 +66,9 @@ module.exports = {
         return await query(insert_update_study_filter);
     },
 
-    get: async function () {
-        let get_all = SQL` SELECT 
+    get: async function (args) {
+        let grid_flag = args.customArgs.filter_type;
+        let get_all = SQL` SELECT
         id
         ,filter_order
         ,filter_type
@@ -77,7 +78,8 @@ module.exports = {
         ,is_global_filter
         ,display_in_ddl
         ,is_active
-        FROM  billing.grid_filters WHERE deleted_dt IS NULL `;
+    FROM  billing.grid_filters WHERE deleted_dt IS NULL
+    AND filter_type = ${grid_flag} `;
 
         return await query(get_all);
     },

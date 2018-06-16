@@ -20,6 +20,50 @@ define([
     studyFiltersGridTemplate,
     studyFiltersModel,
     studyFiltersCollectons) {
+    var defaultBillingMethod = [
+        {
+            "code": "direct_billing",
+            "desc": "Direct Billing"
+        },
+        {
+            "code": "paper_claim",
+            "desc": "Paper Claim"
+        },
+        {
+            "code": "electronic_billing",
+            "desc": "Electronic Billing"
+        },
+        {
+            "code": "patient_payment",
+            "desc": "Patient Payment"
+        }
+    ];
+    var defaultPayerType=[
+        {
+            "code":"patient",
+            "desc":"Patient"
+        },
+        {
+            "code":"referring_provider",
+            "desc":"Referring Provider"
+        },
+        {
+            "code":"ordering_facility",
+            "desc":"Ordering Facility"
+        },
+        {
+            "code":"primary_insurance",
+            "desc":"Primary Insurance"
+        },
+        {
+            "code":"secondary_insurance",
+            "desc":"Secondary Insurance"
+        },
+        {
+            "code":"teritary_insurance",
+            "desc":"Teritary Insurance"
+        }
+    ];
     var defaultStatusArray = [
         {
             'status_code': 'SCH',
@@ -222,6 +266,7 @@ define([
             studyFiltersGridTemplate: _.template(studyFiltersGridTemplate),
             studyFiltersList: [],
             previous: "",
+            opener: "",
             events: {
                 "click #tabDateTime": "tabClick",
                 "click #tabPatientInformation": "tabClick",
@@ -245,10 +290,22 @@ define([
                 "click #rbtNext": "changeDateTimeStdFilter",
                 "click #rbtDate": "changeDateTimeStdFilter",
                 "click #btnAddInstitutionStudyFilter": "addInstitutionList",
-                "click #btnRemoveInstitutionStudyFilter": 'removeInstitutionList'
+                "click #btnRemoveInstitutionStudyFilter": 'removeInstitutionList',
+                "click #btnAddClaimInfo": "addItemToList",
+                "click #btnRemoveClaimInfo": "removeItemFromList",
+                "click #btnAddBillingMethod": "addItemToList",
+                "click #btnRemoveBillingMethod": "removeItemFromList",
+                "click #btnAddPayerType": "addItemToList",
+                "click #btnRemovePayerType": "removeItemFromList",
+                "click #btnAddBalance": "addItemToList",
+                "click #btnRemoveBalance": "removeItemFromList"
             },
 
             initialize: function () {
+                if (window.location && window.location.hash.split('/')[1] == 'claim_workbench')
+                    this.opener = 'claims';
+                else
+                    this.opener = 'studies';
                 this.model = new studyFiltersModel();
                 this.studyFiltersList = new studyFiltersCollectons();
             },
@@ -315,7 +372,7 @@ define([
                     colModel: [
                         {
                             name: 'edit',
-                            width: 50,
+                            width: 10,
                             sortable: false,
                             search: false,
                             className: 'icon-ic-edit',
@@ -330,7 +387,7 @@ define([
                             }
                         },
                         {
-                            name: 'del', width: 50, sortable: false, search: false,
+                            name: 'del', width: 10, sortable: false, search: false,
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
                                 if (confirm("Are you sure want to delete")) {
@@ -339,7 +396,8 @@ define([
                                     self.model.destroy({
                                         data: $.param({ id: self.model.id }),
                                         success: function (model, response) {
-
+                                            self.studyFilterTable.refreshAll();
+                                            commonjs.showStatus("Deleted Succesfully")
                                         },
                                         error: function (model, response) {
                                         }
@@ -357,11 +415,9 @@ define([
                         },
                         {
                             name: 'filter_name',
-                            width: 180
                         },
                         {
                             name: 'filter_order',
-                            width: 180
                         }
 
                     ],
@@ -377,7 +433,10 @@ define([
                     disablepaging: false,
                     showcaption: false,
                     disableadd: true,
-                    disablereload: true
+                    disablereload: true,
+                    customargs:{
+                        filter_type: self.opener
+                    }
                 });
                 setTimeout(function () {
                     $("#tblStudyFilterGrid").setGridWidth($('#divStudyFilterGrid').width(), true);
@@ -396,6 +455,13 @@ define([
                 $('#modal_div_container').empty();
                 $('#modal_div_container').append(self.template);
                 $('#modal_div_container').show();
+                if (this.opener == "studies")
+                    $('#divTab').show();
+                else {
+                    $("#claimFilter").show();
+                    $("#divDateTime>table").appendTo("#divClaimDateTime");
+                    $("#divClaimDateTime>table").css({'height':'125px','margin-left': '3%'});
+                }
 
                 this.setupLists();
                 $('#rbtPreformatted').unbind().change(function (e) {
@@ -420,100 +486,63 @@ define([
                     self.previous = "";
                     self.showGrid();
                 });
-                /* Bind tag remove - SMH */
-                $('#ulListOrdFacility').delegate('a.remove','click',function(){
-                    $('#listOrdFacility option[value="' + $(this).attr('data-id') + '"]').prop('selected',false);
-                    $(this).closest('li').remove();
-                });
 
-                /* Bind ordering facility autocomplete - SMH */
-                commonjs.setAutocompleteInfinite({
-                    containerID: "#txtListOrdFacility",
-                    placeHolder: "Select ordering facilities",
-                    inputLength: 0,
-                    clearnotNeed: false,
-                    URL: '/getGroupProvidersAuto',
-                    data: function (term, page) {
-                        return {
-                            pageNo: page,
-                            pageSize: 10,
-                            q: term,
-                            sortField: "group_name",
-                            sortOrder: "ASC",
-                            from: 'payments',
-                            groupType : "OF"
-                        };
-                    },
-                    results: function (data, page) {
-                        var more = data.result.length > 0 ? (page * 10) < data.result[0].total_records : false;
-                        return {results: data.result, more: more};
-                    },
+                if (this.opener == "studies") {
+                    /* Bind tag remove - SMH */
+                    $('#ulListOrdFacility').delegate('a.remove', 'click', function () {
+                        $('#listOrdFacility option[value="' + $(this).attr('data-id') + '"]').prop('selected', false);
+                        $(this).closest('li').remove();
+                    });
 
-                    formatID: function (obj) {
-                        return obj.provider_group_id;
-                    },
+                    /* Bind add button for ordering facilities - SMH */
+                    $('#btnAddOrdFacility').unbind('click').click(function () {
+                        if ($('#s2id_txtListOrdFacility > a.select2-default').length > 0) {
+                            return false;
+                        }
 
-                    formatResult: function (res) {
-                        var markup = "<table class='ref-result' style='width: 100%'><tr>";
-                        markup += "<td class='movie-info'><div class='movie-title'><b>" + res.group_name + "</b></div>";
-                        markup += "</td></tr></table>";
-                        return markup;
-                    },
+                        if ($('#listOrdFacility option[value="' + $(this).attr('data-id') + '"]').prop('selected') === true) {
+                            commonjs.showError("Ordering Facility is already selected");
+                            return false;
+                        }
 
-                    formatSelection: function (res) {
-                        $('#btnAddOrdFacility').attr('data-id',res.provider_group_id);
-                        return res.group_name;
+                        $('#listOrdFacility option[value="' + $(this).attr('data-id') + '"]').prop('selected', true);
+                        $('#ulListOrdFacility').append('<li><span>' + $('#select2-ddlOrdFacility-container').text() + '</span><a class="remove" data-id="' + $(this).attr('data-id') + '"><span class="icon-ic-close"></span></a></li>')
 
-                    }
-                });
-                /* Bind add button for ordering facilities - SMH */
-                $('#btnAddOrdFacility').unbind('click').click(function() {
-                    if ($('#s2id_txtListOrdFacility > a.select2-default').length > 0) {
-                        return false;
-                    }
-
-                    if ($('#listOrdFacility option[value="' + $(this).attr('data-id') + '"]').prop('selected') === true) {
-                        commonjs.showError("Ordering Facility is already selected");
-                        return false;
-                    }
-
-                    $('#listOrdFacility option[value="' + $(this).attr('data-id') + '"]').prop('selected',true);
-                    $('#ulListOrdFacility').append('<li><span>' + $('#listOrdFacility option[value="' + $(this).attr('data-id') + '"]:first').text() + '</span><a class="remove" data-id="' + $(this).attr('data-id') + '"><span class="icon-ic-close"></span></a></li>')
-
-                });
-                $('#ulListStudyDescriptions').delegate('a.remove','click',function() {
-                    $(this).closest('li').remove();
-                    $('#txtStudyDescription').focus();
-                });
-
-                $('#btnAddStudyDescription').unbind('click').click(function() {
-                    if ($('#txtStudyDescription').val().length === 0) {
+                    });
+                    $('#ulListStudyDescriptions').delegate('a.remove', 'click', function () {
+                        $(this).closest('li').remove();
                         $('#txtStudyDescription').focus();
-                        return false;
-                    }
+                    });
 
-                    $('#ulListStudyDescriptions').append('<li><span>' + $('#txtStudyDescription').val() + '</span><a class="remove" data-id="' + $('#txtStudyDescription').val() + '" id="' + $('#txtStudyDescription').val() + '"><span class="icon-ic-close"></span></a></li>')
-                    $('#txtStudyDescription').val('');
-                    $('#txtStudyDescription').focus();
+                    $('#btnAddStudyDescription').unbind('click').click(function () {
+                        if ($('#txtStudyDescription').val().length === 0) {
+                            $('#txtStudyDescription').focus();
+                            return false;
+                        }
 
-                });
+                        $('#ulListStudyDescriptions').append('<li><span>' + $('#txtStudyDescription').val() + '</span><a class="remove" data-id="' + $('#txtStudyDescription').val() + '" id="' + $('#txtStudyDescription').val() + '"><span class="icon-ic-close"></span></a></li>')
+                        $('#txtStudyDescription').val('');
+                        $('#txtStudyDescription').focus();
 
-                $('#ulListAttorneys').delegate('a.remove','click',function() {
-                    $(this).closest('li').remove();
-                    $('#txtAttorney').focus();
-                });
+                    });
 
-                $('#btnAddAttorney').unbind('click').click(function() {
-                    if ($('#txtAttorney').val().length === 0) {
+                    $('#ulListAttorneys').delegate('a.remove', 'click', function () {
+                        $(this).closest('li').remove();
                         $('#txtAttorney').focus();
-                        return false;
-                    }
+                    });
 
-                    $('#ulListAttorneys').append('<li><span>' + $('#txtAttorney').val() + '</span><a class="remove" data-id="' + $('#txtAttorney').val() + '" id="' + $('#txtAttorney').val() + '"><span class="icon-ic-close"></span></a></li>')
-                    $('#txtAttorney').val('');
-                    $('#txtAttorney').focus();
+                    $('#btnAddAttorney').unbind('click').click(function () {
+                        if ($('#txtAttorney').val().length === 0) {
+                            $('#txtAttorney').focus();
+                            return false;
+                        }
 
-                });
+                        $('#ulListAttorneys').append('<li><span>' + $('#txtAttorney').val() + '</span><a class="remove" data-id="' + $('#txtAttorney').val() + '" id="' + $('#txtAttorney').val() + '"><span class="icon-ic-close"></span></a></li>')
+                        $('#txtAttorney').val('');
+                        $('#txtAttorney').focus();
+
+                    });
+                }
 
                 if (id > 0) {
                     this.model = new studyFiltersModel();
@@ -531,7 +560,7 @@ define([
                                 $('#chkDisplayAsDDL').prop('checked', response.display_in_ddl ? true : false);
 
                                 var dateJson = response.filter_info.date;
-                                if(dateJson) {
+                                if (dateJson) {
                                     switch (dateJson.dateType) {
                                         case "study_dt":
                                             $('#rbtStudyDate').prop('checked', true);
@@ -575,189 +604,224 @@ define([
 
                                     self.changeDateTimeStdFilter();
                                 }
-                                var patientNameJson = response.filter_info.patientInformation.patientName;
-                                for (var i = 0; i < patientNameJson.length; i++) {
-                                    var opt = document.createElement('Option');
-                                    opt.text = 'Name' + " " + patientNameJson[i].condition + " " + patientNameJson[i].value;
-                                    opt.value = patientNameJson[i].condition + '~' + patientNameJson[i].value;
-                                    $("input:radio[name=PatientName][value=" + patientNameJson[i].condition + "]").prop('checked', true);
-                                    document.getElementById('listPatientName').options.add(opt);
-                                }
-                                var patientIDJson = response.filter_info.patientInformation.patientID;
-                                for (var i = 0; i < patientIDJson.length; i++) {
-                                    var opt = document.createElement('Option');
-                                    opt.text = "Account# " + " " + patientIDJson[i].condition + " " + " " + patientIDJson[i].value;
-                                    opt.value = patientIDJson[i].condition + '~' + patientIDJson[i].value;
-                                    $("input:radio[name=PatientID][value=" + patientIDJson[i].condition + "]").prop('checked', true);
-                                    document.getElementById('listPatientID').options.add(opt);
-                                }
-                                var readPhy = response.filter_info.physician.readPhy;
-                                for (var i = 0; i < readPhy.length; i++) {
-                                    var opt = document.createElement('Option');
-                                    opt.text = "ReadPhy" + " " + readPhy[i].condition + " " + readPhy[i].value;
-                                    opt.value = readPhy[i].condition + '~' + readPhy[i].value;
-                                    $("input:radio[name=ReadPhy][value=" + readPhy[i].condition + "]").prop('checked', true);
-                                    document.getElementById('listReadPhy').options.add(opt);
-                                }
-                                var refPhy = response.filter_info.physician.refPhy;
-                                for (var i = 0; i < refPhy.length; i++) {
-                                    var opt = document.createElement('Option');
-                                    opt.text = 'RefPhy' + " " + refPhy[i].condition + " " + refPhy[i].value;
-                                    opt.value = refPhy[i].condition + '~' + refPhy[i].value;
-                                    $("input:radio[name=RefPhy][value=" + refPhy[i].condition + "]").prop('checked', true);
-                                    document.getElementById('listRefPhy').options.add(opt);
-                                }
-                                var imageDelivery = response.filter_info.physician.imageDelivery || {list: [], condition: ''};
-                                var imageDeliveryList = imageDelivery.list || [];
-                                var imageDeliveryCondition = imageDelivery.condition;
-                                $("input:radio[name=ImageDelivery][value=" + imageDeliveryCondition + "]").prop('checked', true);
-                                $('#listImageDelivery').val(imageDeliveryList);
-
-                                var insProv = response.filter_info.insurance && Array.isArray(response.filter_info.insurance.insProv)
-                                    ? response.filter_info.insurance.insProv
-                                    : [];
-                                for (var i = 0; i < insProv.length; i++) {
-                                    var opt = document.createElement('Option');
-                                    opt.text = 'InsProv' + " " + insProv[i].condition + " " + insProv[i].value;
-                                    opt.value = insProv[i].condition + '~' + insProv[i].value;
-                                    $("input:radio[name=InsProv][value=" + insProv[i].condition + "]").prop('checked', true);
-                                    document.getElementById('listInsurance').options.add(opt);
-                                }
-
-                                var studyInfoJson = response.filter_info.studyInformation;
-                                $("input:radio[name=StudyID][value=" + studyInfoJson.studyID.condition + "]").prop('checked', true);
-                                $('#txtStudyID').val(studyInfoJson.studyID.value);
-                                $("input:radio[name=Accession][value=" + studyInfoJson.accession.condition + "]").prop('checked', true);
-                                $('#txtAccession').val(studyInfoJson.accession.value);
-                                $("input:radio[name=Institution][value=" + studyInfoJson.institution.condition + "]").prop('checked', true);
-
-                                if (studyInfoJson.study_description && studyInfoJson.study_description.condition !== undefined && studyInfoJson.study_description.condition != "" && studyInfoJson.study_description.list.length && studyInfoJson.study_description.list !== undefined) {
-                                    $("input:radio[name=StudyDescription][value=" + studyInfoJson.study_description.condition.replace('Contains', '') + "]").prop("checked", true);
-                                    $('#chkContainsStudyDescription').prop('checked', studyInfoJson.study_description.condition.indexOf('Contains') >= 0 ? true : false);
-                                    $.each(studyInfoJson.study_description.list, function (index, studyDescriptionData) {
-                                        if ($('#ulListStudyDescriptions a[data-id="' + studyDescriptionData.text + '"]').length === 0)
-                                            $('#ulListStudyDescriptions').append('<li><span>' + studyDescriptionData.text + '</span><a class="remove" data-id="' + studyDescriptionData.text + '" id="' + studyDescriptionData.text + '"><span class="icon-ic-close"></span></a></li>')
-                                    });
-                                }
-
-                                _.each(studyInfoJson.attorney, function (attorney, index) {
-                                    if (attorney && index === 0) {
-                                        $("input:radio[name=Attorney][value=" + attorney.condition + "]").prop("checked", true);
-                                    }
-                                    $('#ulListAttorneys').append('<li><span>' + attorney.value + '</span><a class="remove" data-id="' + attorney.value + '" id="' + attorney.value + '"><span class="icon-ic-close"></span></a></li>')
-                                });
-
-                                $("input:radio[name=Institution][value=" + studyInfoJson.institution.condition + "]").prop("checked", true);
-
-                                for (var j = 0; j < studyInfoJson.institution.list.length; j++) {
-                                    if (studyInfoJson.institution.list[j].text) {
+                                if (self.opener == "studies") {
+                                    var patientNameJson = response.filter_info.patientInformation.patientName;
+                                    for (var i = 0; i < patientNameJson.length; i++) {
                                         var opt = document.createElement('Option');
-                                        opt.text = studyInfoJson.institution.list[j].text
-                                        opt.value = j;
-                                        document.getElementById('listInstitution').options.add(opt);
+                                        opt.text = 'Name' + " " + patientNameJson[i].condition + " " + patientNameJson[i].value;
+                                        opt.value = patientNameJson[i].condition + '~' + patientNameJson[i].value;
+                                        $("input:radio[name=PatientName][value=" + patientNameJson[i].condition + "]").prop('checked', true);
+                                        document.getElementById('listPatientName').options.add(opt);
                                     }
-                                }
+                                    var patientIDJson = response.filter_info.patientInformation.patientID;
+                                    for (var i = 0; i < patientIDJson.length; i++) {
+                                        var opt = document.createElement('Option');
+                                        opt.text = "Account# " + " " + patientIDJson[i].condition + " " + " " + patientIDJson[i].value;
+                                        opt.value = patientIDJson[i].condition + '~' + patientIDJson[i].value;
+                                        $("input:radio[name=PatientID][value=" + patientIDJson[i].condition + "]").prop('checked', true);
+                                        document.getElementById('listPatientID').options.add(opt);
+                                    }
+                                    var readPhy = response.filter_info.physician.readPhy;
+                                    for (var i = 0; i < readPhy.length; i++) {
+                                        var opt = document.createElement('Option');
+                                        opt.text = "ReadPhy" + " " + readPhy[i].condition + " " + readPhy[i].value;
+                                        opt.value = readPhy[i].condition + '~' + readPhy[i].value;
+                                        $("input:radio[name=ReadPhy][value=" + readPhy[i].condition + "]").prop('checked', true);
+                                        document.getElementById('listReadPhy').options.add(opt);
+                                    }
+                                    var refPhy = response.filter_info.physician.refPhy;
+                                    for (var i = 0; i < refPhy.length; i++) {
+                                        var opt = document.createElement('Option');
+                                        opt.text = 'RefPhy' + " " + refPhy[i].condition + " " + refPhy[i].value;
+                                        opt.value = refPhy[i].condition + '~' + refPhy[i].value;
+                                        $("input:radio[name=RefPhy][value=" + refPhy[i].condition + "]").prop('checked', true);
+                                        document.getElementById('listRefPhy').options.add(opt);
+                                    }
+                                    var imageDelivery = response.filter_info.physician.imageDelivery || {
+                                            list: [],
+                                            condition: ''
+                                        };
+                                    var imageDeliveryList = imageDelivery.list || [];
+                                    var imageDeliveryCondition = imageDelivery.condition;
+                                    $("input:radio[name=ImageDelivery][value=" + imageDeliveryCondition + "]").prop('checked', true);
+                                    $('#listImageDelivery').val(imageDeliveryList);
 
-                                $("input:radio[name=Modality][value=" + studyInfoJson.modality.condition + "]").prop('checked', true);
-                                for (var j = 0; j < studyInfoJson.modality.list.length; j++) {
-                                    $('#listModality option').each(function (i, selected) {
-                                        if (studyInfoJson.modality.list[j].id == $(selected).val()) {
-                                            document.getElementById('listModality').options[i].selected = true;
+                                    var insProv = response.filter_info.insurance && Array.isArray(response.filter_info.insurance.insProv)
+                                        ? response.filter_info.insurance.insProv
+                                        : [];
+                                    for (var i = 0; i < insProv.length; i++) {
+                                        var opt = document.createElement('Option');
+                                        opt.text = 'InsProv' + " " + insProv[i].condition + " " + insProv[i].value;
+                                        opt.value = insProv[i].condition + '~' + insProv[i].value;
+                                        $("input:radio[name=InsProv][value=" + insProv[i].condition + "]").prop('checked', true);
+                                        document.getElementById('listInsurance').options.add(opt);
+                                    }
+
+                                    var studyInfoJson = response.filter_info.studyInformation;
+                                    $("input:radio[name=StudyID][value=" + studyInfoJson.studyID.condition + "]").prop('checked', true);
+                                    $('#txtStudyID').val(studyInfoJson.studyID.value);
+                                    $("input:radio[name=Accession][value=" + studyInfoJson.accession.condition + "]").prop('checked', true);
+                                    $('#txtAccession').val(studyInfoJson.accession.value);
+                                    $("input:radio[name=Institution][value=" + studyInfoJson.institution.condition + "]").prop('checked', true);
+
+                                    if (studyInfoJson.study_description && studyInfoJson.study_description.condition !== undefined && studyInfoJson.study_description.condition != "" && studyInfoJson.study_description.list.length && studyInfoJson.study_description.list !== undefined) {
+                                        $("input:radio[name=StudyDescription][value=" + studyInfoJson.study_description.condition.replace('Contains', '') + "]").prop("checked", true);
+                                        $('#chkContainsStudyDescription').prop('checked', studyInfoJson.study_description.condition.indexOf('Contains') >= 0 ? true : false);
+                                        $.each(studyInfoJson.study_description.list, function (index, studyDescriptionData) {
+                                            if ($('#ulListStudyDescriptions a[data-id="' + studyDescriptionData.text + '"]').length === 0)
+                                                $('#ulListStudyDescriptions').append('<li><span>' + studyDescriptionData.text + '</span><a class="remove" data-id="' + studyDescriptionData.text + '" id="' + studyDescriptionData.text + '"><span class="icon-ic-close"></span></a></li>')
+                                        });
+                                    }
+
+                                    _.each(studyInfoJson.attorney, function (attorney, index) {
+                                        if (attorney && index === 0) {
+                                            $("input:radio[name=Attorney][value=" + attorney.condition + "]").prop("checked", true);
                                         }
+                                        $('#ulListAttorneys').append('<li><span>' + attorney.value + '</span><a class="remove" data-id="' + attorney.value + '" id="' + attorney.value + '"><span class="icon-ic-close"></span></a></li>')
                                     });
-                                }
 
-                                if (studyInfoJson.modality_room_id && studyInfoJson.modality_room_id.condition)
-                                    $("input:radio[name=ModalityRoom][value=" + studyInfoJson.modality_room_id.condition + "]").prop('checked', true);
-                                if (studyInfoJson.modality_room_id && studyInfoJson.modality_room_id.list)
-                                    for (var j = 0; j < studyInfoJson.modality_room_id.list.length; j++) {
-                                        $('#listModalityRoom option').each(function (i, selected) {
-                                            if (studyInfoJson.modality_room_id.list[j] == $(selected).val()) {
-                                                document.getElementById('listModalityRoom').options[i].selected = true;
+                                    $("input:radio[name=Institution][value=" + studyInfoJson.institution.condition + "]").prop("checked", true);
+
+                                    for (var j = 0; j < studyInfoJson.institution.list.length; j++) {
+                                        if (studyInfoJson.institution.list[j].text) {
+                                            var opt = document.createElement('Option');
+                                            opt.text = studyInfoJson.institution.list[j].text
+                                            opt.value = j;
+                                            document.getElementById('listInstitution').options.add(opt);
+                                        }
+                                    }
+
+                                    $("input:radio[name=Modality][value=" + studyInfoJson.modality.condition + "]").prop('checked', true);
+                                    for (var j = 0; j < studyInfoJson.modality.list.length; j++) {
+                                        $('#listModality option').each(function (i, selected) {
+                                            if (studyInfoJson.modality.list[j].id == $(selected).val()) {
+                                                document.getElementById('listModality').options[i].selected = true;
                                             }
                                         });
                                     }
 
-                                if (studyInfoJson.facility && studyInfoJson.facility.condition) {
-                                    $("input:radio[name=Facility][value=" + studyInfoJson.facility.condition + "]").prop('checked', true);
-                                    for (var j = 0; j < studyInfoJson.facility.list.length; j++) {
-                                        $('#listFacility option').each(function (i, selected) {
-                                            if (studyInfoJson.facility.list[j].id == $(selected).val()) {
-                                                document.getElementById('listFacility').options[i].selected = true;
-                                            }
-                                        });
+                                    if (studyInfoJson.facility && studyInfoJson.facility.condition) {
+                                        $("input:radio[name=Facility][value=" + studyInfoJson.facility.condition + "]").prop('checked', true);
+                                        for (var j = 0; j < studyInfoJson.facility.list.length; j++) {
+                                            $('#listFacility option').each(function (i, selected) {
+                                                if (studyInfoJson.facility.list[j].id == $(selected).val()) {
+                                                    document.getElementById('listFacility').options[i].selected = true;
+                                                }
+                                            });
+                                        }
                                     }
-                                }
 
-                                $('#ulListOrdFacility').empty();
-                                if (studyInfoJson.ordering_facility && studyInfoJson.ordering_facility.condition) {
-                                    $("input:radio[name=ordFacility][value=" + studyInfoJson.ordering_facility.condition + "]").prop('checked', true);
-                                    var interval = 0;
-                                    var setSelection = function () {
-                                        if ($('#listOrdFacility option').length > 0) {
-                                            for (var j = 0; j < studyInfoJson.ordering_facility.list.length; j++) {
+                                    $('#ulListOrdFacility').empty();
+                                    if (studyInfoJson.ordering_facility && studyInfoJson.ordering_facility.condition) {
+                                        $("input:radio[name=ordFacility][value=" + studyInfoJson.ordering_facility.condition + "]").prop('checked', true);
+                                        var interval = 0;
+                                        var setSelection = function () {
+                                            if ($('#listOrdFacility option').length > 0) {
+                                                for (var j = 0; j < studyInfoJson.ordering_facility.list.length; j++) {
 
-                                                $('#listOrdFacility option').each(function (i, selected) {
-                                                    if (studyInfoJson.ordering_facility.list[j].id == $(selected).val()) {
-                                                        document.getElementById('listOrdFacility').options[i].selected = true;
-                                                        if ($('#ulListOrdFacility a[data-id="' + studyInfoJson.ordering_facility.list[j].id + '"]').length === 0) {
-                                                            $('#ulListOrdFacility').append('<li><span>' + $(selected).text() + '</span><a class="remove" data-id="' + studyInfoJson.ordering_facility.list[j].id + '"><span class="icon-ic-close"></span></a></li>')
+                                                    $('#listOrdFacility option').each(function (i, selected) {
+                                                        if (studyInfoJson.ordering_facility.list[j].id == $(selected).val()) {
+                                                            document.getElementById('listOrdFacility').options[i].selected = true;
+                                                            if ($('#ulListOrdFacility a[data-id="' + studyInfoJson.ordering_facility.list[j].id + '"]').length === 0) {
+                                                                $('#ulListOrdFacility').append('<li><span>' + $(selected).text() + '</span><a class="remove" data-id="' + studyInfoJson.ordering_facility.list[j].id + '"><span class="icon-ic-close"></span></a></li>')
+                                                            }
                                                         }
-                                                    }
-                                                });
+                                                    });
 
+                                                }
+                                                clearInterval(interval);
                                             }
-                                            clearInterval(interval);
+
+
+                                        };
+                                        // create an interval so that this code will run when the select is populated.
+                                        interval = setInterval(setSelection, 100);
+                                    }
+
+                                    $("input:radio[name=BodyPart][value=" + studyInfoJson.bodyPart.condition + "]").prop('checked', true);
+                                    for (var j = 0; j < studyInfoJson.bodyPart.list.length; j++) {
+                                        $('#listBodyPart option').each(function (i, selected) {
+                                            if (studyInfoJson.bodyPart.list[j].id == $(selected).val()) {
+                                                document.getElementById('listBodyPart').options[i].selected = true;
+                                            }
+                                        });
+                                    }
+
+                                    $("input:radio[name=Flag][value=" + studyInfoJson.flag.condition + "]").prop('checked', true);
+                                    for (var j = 0; j < studyInfoJson.flag.list.length; j++) {
+                                        $('#listFlag option').each(function (i, selected) {
+                                            if (studyInfoJson.flag.list[j].text == $(selected).text()) {
+                                                document.getElementById('listFlag').options[i].selected = true;
+                                            }
+                                        });
+                                    }
+
+                                    $("input:radio[name=State][value=" + studyInfoJson.stat.condition + "]").prop('checked', true);
+                                    for (var j = 0; j < studyInfoJson.stat.list.length; j++) {
+                                        $('#listStat option').each(function (i, selected) {
+                                            if (studyInfoJson.stat.list[j].id == $(selected).val()) {
+                                                document.getElementById('listStat').options[i].selected = true;
+                                            }
+                                        });
+                                    }
+
+                                    $("input:radio[name=Status][value=" + studyInfoJson.status.condition + "]").prop('checked', true);
+                                    $('input[name=LastChangedByMe]').prop('checked', (!!studyInfoJson.status.last_changed_by_me))
+                                    for (var j = 0; j < studyInfoJson.status.list.length; j++) {
+                                        $('#listStatus option').each(function (i, selected) {
+                                            if (studyInfoJson.status.list[j].id == $(selected).val()) {
+                                                document.getElementById('listStatus').options[i].selected = true;
+                                            }
+                                        });
+                                    }
+                                    if (studyInfoJson && studyInfoJson.vehicle && studyInfoJson.vehicle.condition) {
+                                        $("input:radio[name=Vehicle][value=" + studyInfoJson.vehicle.condition + "]").prop("checked", true);
+                                        for (var j = 0; j < studyInfoJson.vehicle.list.length; j++) {
+                                            $('#listVehicle option').each(function (i, selected) {
+                                                if (studyInfoJson.vehicle.list[j].id == $(selected).val()) {
+                                                    document.getElementById('listVehicle').options[i].selected = true;
+                                                }
+                                            });
                                         }
-
-
-                                    };
-                                    // create an interval so that this code will run when the select is populated.
-                                    interval = setInterval(setSelection, 100);
+                                    }
                                 }
+                                else {
+                                    var claimStatusJson = response.filter_info.ClaimInformation.claimStatus;
+                                    $("input:radio[name=ClaimInfo][value=" + claimStatusJson.condition + "]").prop('checked', true);
+                                    for (var j = 0; j < claimStatusJson.list.length; j++) {
+                                        $('#listClaimInfo option').each(function (i, selected) {
+                                            if (claimStatusJson.list[j].value == $(selected).val()) {
+                                                document.getElementById('listClaimInfo').options[i].selected = true;
+                                            }
+                                        });
+                                    }
 
-                                $("input:radio[name=BodyPart][value=" + studyInfoJson.bodyPart.condition + "]").prop('checked', true);
-                                for (var j = 0; j < studyInfoJson.bodyPart.list.length; j++) {
-                                    $('#listBodyPart option').each(function (i, selected) {
-                                        if (studyInfoJson.bodyPart.list[j].id == $(selected).val()) {
-                                            document.getElementById('listBodyPart').options[i].selected = true;
-                                        }
-                                    });
-                                }
+                                    var billingMethodJson = response.filter_info.ClaimInformation.billingMethod;
+                                    $("input:radio[name=BillingMethod][value=" + billingMethodJson.condition + "]").prop('checked', true);
+                                    for (var j = 0; j < billingMethodJson.list.length; j++) {
+                                        $('#listBillingMethod option').each(function (i, selected) {
+                                            if (billingMethodJson.list[j].value == $(selected).val()) {
+                                                document.getElementById('listBillingMethod').options[i].selected = true;
+                                            }
+                                        });
+                                    }
 
-                                $("input:radio[name=Flag][value=" + studyInfoJson.flag.condition + "]").prop('checked', true);
-                                for (var j = 0; j < studyInfoJson.flag.list.length; j++) {
-                                    $('#listFlag option').each(function (i, selected) {
-                                        if (studyInfoJson.flag.list[j].text == $(selected).text()) {
-                                            document.getElementById('listFlag').options[i].selected = true;
-                                        }
-                                    });
-                                }
+                                    var payerTypeJson = response.filter_info.ClaimInformation.payerType;
+                                    $("input:radio[name=PayerType][value=" + payerTypeJson.condition + "]").prop('checked', true);
+                                    for (var j = 0; j < payerTypeJson.list.length; j++) {
+                                        $('#listPayerType option').each(function (i, selected) {
+                                            if (payerTypeJson.list[j].value == $(selected).val()) {
+                                                document.getElementById('listPayerType').options[i].selected = true;
+                                            }
+                                        });
+                                    }
 
-                                $("input:radio[name=State][value=" + studyInfoJson.stat.condition + "]").prop('checked', true);
-                                for (var j = 0; j < studyInfoJson.stat.list.length; j++) {
-                                    $('#listStat option').each(function (i, selected) {
-                                        if (studyInfoJson.stat.list[j].id == $(selected).val()) {
-                                            document.getElementById('listStat').options[i].selected = true;
-                                        }
-                                    });
-                                }
-
-                                $("input:radio[name=Status][value=" + studyInfoJson.status.condition + "]").prop('checked', true);
-                                $('input[name=LastChangedByMe]').prop('checked', (!!studyInfoJson.status.last_changed_by_me))
-                                for (var j = 0; j < studyInfoJson.status.list.length; j++) {
-                                    $('#listStatus option').each(function (i, selected) {
-                                        if (studyInfoJson.status.list[j].id == $(selected).val()) {
-                                            document.getElementById('listStatus').options[i].selected = true;
-                                        }
-                                    });
-                                }
-                                if (studyInfoJson && studyInfoJson.vehicle && studyInfoJson.vehicle.condition) {
-                                    $("input:radio[name=Vehicle][value=" + studyInfoJson.vehicle.condition + "]").prop("checked", true);
-                                    for (var j = 0; j < studyInfoJson.vehicle.list.length; j++) {
-                                        $('#listVehicle option').each(function (i, selected) {
-                                            if (studyInfoJson.vehicle.list[j].id == $(selected).val()) {
-                                                document.getElementById('listVehicle').options[i].selected = true;
+                                    var balanceJson = response.filter_info.ClaimInformation.balance;
+                                    $("input:radio[name=Balance][value=" + balanceJson.condition + "]").prop('checked', true);
+                                    for (var j = 0; j < balanceJson.list.length; j++) {
+                                        $('#listBalance option').each(function (i, selected) {
+                                            if (balanceJson.list[j].value == $(selected).val()) {
+                                                document.getElementById('listBalance').options[i].selected = true;
                                             }
                                         });
                                     }
@@ -799,7 +863,7 @@ define([
                         return;
                     }
 
-                    if (!commonjs.checkNotEmpty($('#txtFromTimeLast, ').val())) {
+                    if (!commonjs.checkNotEmpty($('#txtFromTimeLast').val())) {
                         commonjs.showWarning('messages.warning.setup.enterfromtime');
                         return;
                     }
@@ -811,12 +875,12 @@ define([
                         toDt = $('#txtDateTo').val();
                     if (fromDt && toDt) {
                         dateJsonCondition = "Date";
-                        var validationResult2 = commonjs.validateDateTimePickerRange(fromDt, toDt, true);
-                        if (!validationResult2.valid) {
-                            commonjs.showWarning(validationResult2.message);
-                            $('#lblSummaryDate').html();
-                            return;
-                        }
+                        //var validationResult2 = commonjs.validateDateTimePickerRange(fromDt, toDt, true);
+                        //if (!validationResult2.valid) {
+                        //    commonjs.showWarning(validationResult2.message);
+                        //    $('#lblSummaryDate').html();
+                        //    return;
+                        //}
                     }
                     else {
                         commonjs.showWarning('messages.warning.setup.selectfromtodate');
@@ -833,6 +897,44 @@ define([
                         return;
                     }
                 }
+                var claimStatus = [];
+                $('#listClaimInfo option:selected').each(function (i, selected) {
+                    var jsonlistClaimInfo = {};
+                    jsonlistClaimInfo.value = $(selected).val();
+                    jsonlistClaimInfo.text = $(selected).text();
+                    claimStatus.push(jsonlistClaimInfo);
+                });
+                if (claimStatus.length > 0 && !self.validateRadioButton('ClaimInfo', 'ClaimInfo')) {
+                    return;
+                }
+
+                var billingMethod = [];
+                $('#listBillingMethod option:selected').each(function (i, selected) {
+                    var jsonlistbillingMethod = {};
+                    jsonlistbillingMethod.value = $(selected).val();
+                    jsonlistbillingMethod.text = $(selected).text();
+                    billingMethod.push(jsonlistbillingMethod);
+                });
+                if (billingMethod.length > 0 && !self.validateRadioButton('BillingMethod', 'BillingMethod')) {
+                    return;
+                }
+
+                var payerType = [];
+                $('#listPayerType option:selected').each(function (i, selected) {
+                    var jsonlistpayerType = {};
+                    jsonlistpayerType.value = $(selected).val();
+                    jsonlistpayerType.text = $(selected).text();
+                    payerType.push(jsonlistpayerType);
+                });
+                if (payerType.length > 0 && !self.validateRadioButton('PayerType', 'PayerType')) {
+                    return;
+                }
+
+                var balance = $('#listBalance').val();
+                if (balance.length > 0 && !self.validateRadioButton('Balance', 'Balance')) {
+                    return;
+                }
+
                 var arrPatientName = [];
                 $('#listPatientName option').each(function (i, selected) {
                     var jsonPatientName = {};
@@ -899,13 +1001,7 @@ define([
                 if (arrModality.length > 0 && !self.validateRadioButton('Modality', 'Modality')) {
                     return;
                 }
-                var arrModalityRoom = [];
-                $('#listModalityRoom option:selected').each(function ( i, selected ) {
-                    arrModalityRoom.push($(selected).val());
-                });
-                if ( arrModalityRoom.length > 0 && !self.validateRadioButton('ModalityRoom', 'Modality Room') ) {
-                    return;
-                }
+
                 var arrFacility = [];
                 $('#listFacility option:selected').each(function (i, selected) {
                     var jsonFacility = {};
@@ -1030,91 +1126,126 @@ define([
                     imageDelivery = [];
                 }
 
-                var jsonData = {
-                    date: {
-                        condition: dateJsonCondition,
-                        preformatted: $.trim($('#ddlDatePreformatted').val()),
-                        durationValue: $.trim($('#txtLastTime').val()),
-                        duration: $('#ddlLast option:selected').text(),
-                        fromTime: $('#txtFromTimeLast').val() ? $('#txtFromTimeLast').val() : null,
-                        toTime: $('#txtToTimeLast').val() ? $('#txtToTimeLast').val() : null,
-                        fromDate: $('#txtDateFrom').val() ? $('#txtDateFrom').val() : null,
-                        fromDateTime: $('#txtFromTimeDate').val() ? $('#txtFromTimeDate').val() : null,
-                        toDate: $('#txtDateTo').val() ? $('#txtDateTo').val() : null,
-                        toDateTime: $('#txtToTimeDate').val() ? $('#txtToTimeDate').val() : null,
-                        isStudyDate: $('#rbtStudyDate').is(":checked"),
-                        dateType: $('#rbtStudyDate').is(":checked") ? "study_dt" : $('#rbtStudyReceivedDate').is(":checked") ? "study_received_dt" : $('#rbtScheduledDate').is(":checked") ? "scheduled_dt" : $('#rbtStatusChangeDate').is(":checked") ? "status_last_changed_dt" : "study_dt"
-                    }, patientInformation: {
-                        patientName: arrPatientName, patientID: arrPatientID
-                    },
-                    studyInformation: {
-                        institution: {
-                            condition: $('input[name=Institution]:checked').val(),
-                            list: arrInstitution
+                var jsonData = {};
+
+                if (self.opener == "studies") {
+                    jsonData = {
+                        date: {
+                            condition: dateJsonCondition,
+                            preformatted: $.trim($('#ddlDatePreformatted').val()),
+                            durationValue: $.trim($('#txtLastTime').val()),
+                            duration: $('#ddlLast option:selected').text(),
+                            fromTime: $('#txtFromTimeLast').val() ? $('#txtFromTimeLast').val() : null,
+                            toTime: $('#txtToTimeLast').val() ? $('#txtToTimeLast').val() : null,
+                            fromDate: $('#txtDateFrom').val() ? $('#txtDateFrom').val() : null,
+                            fromDateTime: $('#txtFromTimeDate').val() ? $('#txtFromTimeDate').val() : null,
+                            toDate: $('#txtDateTo').val() ? $('#txtDateTo').val() : null,
+                            toDateTime: $('#txtToTimeDate').val() ? $('#txtToTimeDate').val() : null,
+                            isStudyDate: $('#rbtStudyDate').is(":checked"),
+                            dateType: $('#rbtStudyDate').is(":checked") ? "study_dt" : $('#rbtStudyReceivedDate').is(":checked") ? "study_received_dt" : $('#rbtScheduledDate').is(":checked") ? "scheduled_dt" : $('#rbtStatusChangeDate').is(":checked") ? "status_last_changed_dt" : "study_dt"
+                        }, patientInformation: {
+                            patientName: arrPatientName, patientID: arrPatientID
                         },
-                        modality: {
-                            condition: $('input[name=Modality]:checked').val(),
-                            list: arrModality
+                        studyInformation: {
+                            institution: {
+                                condition: $('input[name=Institution]:checked').val(),
+                                list: arrInstitution
+                            },
+                            modality: {
+                                condition: $('input[name=Modality]:checked').val(),
+                                list: arrModality
+                            },
+                            facility: {
+                                condition: $('input[name=Facility]:checked').val(),
+                                list: arrFacility
+                            },
+                            status: {
+                                condition: $('input[name=Status]:checked').val(),
+                                last_changed_by_me: $('input[name=LastChangedByMe]').prop('checked') || false,
+                                list: arrStatus
+                            },
+                            vehicle: {
+                                condition: $('input[name=Vehicle]:checked').val(),
+                                list: arrVehicle
+                            },
+                            bodyPart: {
+                                condition: $('input[name=BodyPart]:checked').val(),
+                                list: arrBodyPart
+                            },
+                            studyID: {
+                                condition: $('input[name=StudyID]:checked').val(),
+                                value: $.trim($('#txtStudyID').val())
+                            },
+                            accession: {
+                                condition: $('input[name=Accession]:checked').val(),
+                                value: $.trim($('#txtAccession').val())
+                            },
+                            stat: {
+                                condition: $('input[name=State]:checked').val(),
+                                list: arrStat
+                            },
+                            flag: {
+                                condition: $('input[name=Flag]:checked').val(),
+                                list: arrFlag
+                            },
+                            study_description: {
+                                condition: $('input[name=StudyDescription]:checked').val() !== undefined ? $('input[name=StudyDescription]:checked').val() : $('#chkContainsStudyDescription').is(":checked") ? $('#chkContainsStudyDescription').val() : '',
+                                list: arrStudyDescriptions
+                            },
+                            attorney: attorneys,
+                            ordering_facility: {
+                                condition: $('input[name=ordFacility]:checked').val(),
+                                list: arrOrdFacility
+                            }
                         },
-                        modality_room_id: {
-                            condition: $('input[name=ModalityRoom]:checked').val(),
-                            list: arrModalityRoom
+                        physician: {
+                            readPhy: readPhy,
+                            refPhy: refPhy,
+                            imageDelivery: {
+                                condition: imageDeliveryCondition,
+                                list: imageDelivery
+                            }
                         },
-                        facility: {
-                            condition: $('input[name=Facility]:checked').val(),
-                            list: arrFacility
-                        },
-                        status: {
-                            condition: $('input[name=Status]:checked').val(),
-                            last_changed_by_me: $('input[name=LastChangedByMe]').prop('checked') || false,
-                            list: arrStatus
-                        },
-                        vehicle: {
-                            condition: $('input[name=Vehicle]:checked').val(),
-                            list: arrVehicle
-                        },
-                        bodyPart: {
-                            condition: $('input[name=BodyPart]:checked').val(),
-                            list: arrBodyPart
-                        },
-                        studyID: {
-                            condition: $('input[name=StudyID]:checked').val(),
-                            value: $.trim($('#txtStudyID').val())
-                        },
-                        accession: {
-                            condition: $('input[name=Accession]:checked').val(),
-                            value: $.trim($('#txtAccession').val())
-                        },
-                        stat: {
-                            condition: $('input[name=State]:checked').val(),
-                            list: arrStat
-                        },
-                        flag: {
-                            condition: $('input[name=Flag]:checked').val(),
-                            list: arrFlag
-                        },
-                        study_description: {
-                            condition: $('input[name=StudyDescription]:checked').val() !== undefined ? $('input[name=StudyDescription]:checked').val() : $('#chkContainsStudyDescription').is(":checked") ? $('#chkContainsStudyDescription').val() : '',
-                            list: arrStudyDescriptions
-                        },
-                        attorney: attorneys,
-                        ordering_facility: {
-                            condition: $('input[name=ordFacility]:checked').val(),
-                            list: arrOrdFacility
+                        insurance: {
+                            insProv: insProv
                         }
-                    },
-                    physician: {
-                        readPhy: readPhy,
-                        refPhy: refPhy,
-                        imageDelivery: {
-                            condition: imageDeliveryCondition,
-                            list: imageDelivery
-                        }
-                    },
-                    insurance: {
-                        insProv: insProv
                     }
-                };
+                } else {
+                    jsonData = {
+                        date: {
+                            condition: dateJsonCondition,
+                            preformatted: $.trim($('#ddlDatePreformatted').val()),
+                            durationValue: $.trim($('#txtLastTime').val()),
+                            duration: $('#ddlLast option:selected').text(),
+                            fromTime: $('#txtFromTimeLast').val() ? $('#txtFromTimeLast').val() : null,
+                            toTime: $('#txtToTimeLast').val() ? $('#txtToTimeLast').val() : null,
+                            fromDate: $('#txtDateFrom').val() ? $('#txtDateFrom').val() : null,
+                            fromDateTime: $('#txtFromTimeDate').val() ? $('#txtFromTimeDate').val() : null,
+                            toDate: $('#txtDateTo').val() ? $('#txtDateTo').val() : null,
+                            toDateTime: $('#txtToTimeDate').val() ? $('#txtToTimeDate').val() : null,
+                            isStudyDate: $('#rbtStudyDate').is(":checked"),
+                            dateType: $('#rbtStudyDate').is(":checked") ? "study_dt" : $('#rbtStudyReceivedDate').is(":checked") ? "study_received_dt" : $('#rbtScheduledDate').is(":checked") ? "scheduled_dt" : $('#rbtStatusChangeDate').is(":checked") ? "status_last_changed_dt" : "study_dt"
+                        },
+                        ClaimInformation: {
+                            claimStatus: {
+                                condition: $('input[name=ClaimInfo]:checked').val(),
+                                list: claimStatus
+                            },
+                            billingMethod: {
+                                condition: $('input[name=BillingMethod]:checked').val(),
+                                list: billingMethod
+                            },
+                            payerType: {
+                                condition: $('input[name=PayerType]:checked').val(),
+                                list: payerType
+                            },
+                            balance: {
+                                condition: $('input[name=Balance]:checked').val(),
+                                list: $('#listBalance').val()
+                            }
+                        }
+                    }
+                }
 
                 this.model.set({
                     userId: app.userID,
@@ -1131,6 +1262,7 @@ define([
                     {
                         success: function (model, response) {
                             commonjs.hideLoading();
+                            commonjs.showStatus("Saved Succesfully");
                             self.showGrid();
                         },
                         error: function (model, response) {
@@ -1372,35 +1504,80 @@ define([
             },
 
             setupLists: function () {
-                var statusCodes = defaultStatusArray.concat(app.customOrderStatus).concat(app.customStudyStatus);
-                var facilities = app.userInfo.user_type === 'SU' ?
-                    app.facilities :
-                    app.userfacilities;
-                setupList('listModality', app.modalities, 'modality_code');
-                setupList('listModalityRoom', app.modalityRooms, 'modality_room_name');
-                setupList('listBodyPart', app.settings.bodyParts);
-                setupList('listStat', app.stat_level.slice(1), 'description', 'level');
-                setupList('listFlag', app.settings.studyflag);
-                setupList('listStatus', statusCodes, 'status_desc', 'status_code');
-                setupList('listVehicle', app.vehicles, 'vehicle_name');
-                setupList('listFacility', facilities, 'facility_name');
+                if (this.opener == "studies") {
+                    var statusCodes = defaultStatusArray.concat(app.customOrderStatus).concat(app.customStudyStatus);
+                    var facilities = app.userInfo.user_type === 'SU' ?
+                        app.facilities :
+                        app.userfacilities;
+                    setupList('listModality', app.modalities, 'modality_code');
+                    setupList('listBodyPart', app.settings.bodyParts);
+                    setupList('listStat', app.stat_level.slice(1), 'description', 'level');
+                    setupList('listFlag', app.settings.studyflag);
+                    setupList('listStatus', statusCodes, 'status_desc', 'status_code');
+                    setupList('listVehicle', app.vehicles, 'vehicle_name');
+                    setupList('listFacility', facilities, 'facility_name');
+                    this.setOrderingFacilityAutoComplete()
+                }
+                else {
+                    setupList('listClaimInfo', app.claim_status, 'description', 'code');
+                    setupList('listBillingMethod', defaultBillingMethod, 'desc', 'code');
+                    setupList('listPayerType', defaultPayerType, 'desc', 'code');
+                    setupList('listBalance', app.balance, 'balance');
+                }
+            },
 
-                // no point if this is empty...
-                // setupList('listInstitution', []);
-
-                $.ajax({
-                    url: "/getOrdFacility",
-                    type: "GET",
-                    data: {},
-                    success: function (data, textStatus, jqXHR) {
-                        if (data && data.result && data.result.length > 0) {
-                            setupList('listOrdFacility', data.result, 'group_name');
-                        }
+            setOrderingFacilityAutoComplete: function () {
+                var self = this;
+                $("#ddlOrdFacility").select2({
+                    ajax: {
+                        url: "/exa_modules/billing/autoCompleteRouter/provider_group",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                page: params.page || 1,
+                                q: params.term || '',
+                                pageSize: 10,
+                                sortField: "group_name",
+                                sortOrder: "ASC",
+                                groupType: 'OF',
+                                company_id: 1
+                            };
+                        },
+                        processResults: function (data, params) {
+                            params.page = params.page || 1;
+                            return {
+                                results: data,
+                                pagination: {
+                                    more: (params.page * 30) < data[0].total_records
+                                }
+                            };
+                        },
+                        cache: true
                     },
-                    error: function (err, response) {
-                        commonjs.handleXhrError(err, response);
-                    }
+                    placeholder: 'Ordering Facility',
+                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 0,
+                    templateResult: formatRepo,
+                    templateSelection: formatRepoSelection
                 });
+                function formatRepo(repo) {
+                    if (repo.loading) {
+                        return repo.text;
+                    }
+                    var markup = "<table class='ref-result' style='width: 100%'><tr>";
+                    markup += "<td class='movie-info'><div class='movie-title'><b>" + repo.group_name + "</b></div>";
+                    markup += "</td></tr></table>";
+                    return markup;
+                }
+                function formatRepoSelection(res) {
+                    self.group_name = res.group_name;
+                    self.group_id = res.provider_group_id;
+                    if (res && res.id) {
+                        return res.group_name;
+                    }
+
+                }
             },
 
             studyFilterSideMenuResize: function () {
@@ -1437,7 +1614,6 @@ define([
                 $('#listFacility option').remove();
                 $('#listInstitution option').remove();
                 $('#listModality option').remove();
-                $('#listModalityRoom option').remove();
                 $('#listStatus option').remove();
                 $('#listVehicle option').remove();
                 $('#listBodyPart option').remove();
@@ -1456,7 +1632,6 @@ define([
                 $('#lblSummaryRefPhy').text('');
                 $('#lblSummaryInstitution').text('');
                 $('#lblSummaryModality').text('');
-                $('#lblSummaryModalityRoom').text('');
                 $('#lblFacility').text('');
                 $('#lblSummaryStatus').text('');
                 $('#lblSummaryVehicle').text('');
@@ -1486,6 +1661,12 @@ define([
                 toggleOption('shwAssignedStudies', false);
                 $('#txtFromTimeLast, #txtToTimeLast, #txtLastTime, #ddlLast').val('');
                 $('#txtDateFrom, #txtFromTimeDate, #txtDateTo, #txtToTimeDate').val('');
+
+                $('#listPayerType option').remove();
+                $('#listBillingMethod option').remove();
+                $('#listClaimInfo option').remove();
+                $('#listBalance').val('');
+
                 this.enableDateFrom();
                 this.enableLastNext();
                 this.enablePreformatted();
@@ -1511,7 +1692,6 @@ define([
                 $inputs.filter('[name=LastChangedByMe]').prop('checked', false);
                 $radioButtons.filter('[name=State]').prop('checked', false);
                 $radioButtons.filter('[name=Modality]').prop('checked', false);
-                $radioButtons.filter('[name=ModalityRoom]').prop('checked', false);
                 $radioButtons.filter('[name=BodyPart]').prop('checked', false);
                 $radioButtons.filter('[name=Flag]').prop('checked', false);
                 $radioButtons.filter('[name=StudyID]').prop('checked', false);
@@ -1524,6 +1704,10 @@ define([
                 $radioButtons.filter('[name=StudyDescription]').prop('checked', false);
                 $radioButtons.filter('[name=Attorney]').prop('checked', false);
                 $radioButtons.filter('[name=InsProv]').prop('checked', false);
+                $radioButtons.filter('[name=ClaimInfo]').prop('checked', false);
+                $radioButtons.filter('[name=BillingMethod]').prop('checked', false);
+                $radioButtons.filter('[name=PayerType]').prop('checked', false);
+                $radioButtons.filter('[name=Balance]').prop('checked', false);
             },
         })
     });

@@ -383,6 +383,12 @@
               "tabPhysician": "Physician",
               "tabInsurance": "Insurance"
             }
+        },
+        "claimFilter": {
+            "claimStatus": "Claim Status",
+            "billingMethod": "Billing Method",
+            "payerType": "Payer Type",
+            "balance": "Balance"
         }
     }
 }
