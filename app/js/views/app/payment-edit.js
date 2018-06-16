@@ -1245,7 +1245,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         },
                         success: function (model, response) {
                             alert('Payment has been applied successfully');
-                            self.getClaimBasedCharges(claimId, paymentId, paymentStatus, chargeId);
+                            //self.getClaimBasedCharges(claimId, paymentId, paymentStatus, chargeId);
                         },
                         error: function (err, response) {
                             commonjs.handleXhrError(err, response);

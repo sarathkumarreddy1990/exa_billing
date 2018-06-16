@@ -324,7 +324,7 @@ module.exports = {
 
     createPaymentapplications: async function (params) {
         let { user_id, paymentId, line_items, adjestmentId } = params;
-
+        adjestmentId = adjestmentId ? adjestmentId : null;
         const sql = SQL`WITH claim_comment_details AS(
                                     SELECT 
                                           claim_id
