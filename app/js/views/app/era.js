@@ -165,9 +165,15 @@ define([
                                 var status = dataResult.applied ? 'DONE' : 'FAILED';
                                 $('#eraProcessTable').append( '<tr><td>' + dataResult.edi_file_id + '</td><td>' + dataResult.claim_number + '</td><td>' + status  + '</td></tr>' );
                             });
+                            if(processedClaims.length == 0){
+                                $('#eraProcessTable').append( '<tr><td>Payment failed for all claims</td></tr>' );
+                            }
                             $('#divEraProcess').show();
-                        }else {
-                            alert('Error on progressing era file')
+                            $('#btnProcessPayment').prop('disabled',true);
+
+                        }else if(model && model.type && model.type == 'none'){
+                            model.file_store_id = gridData.file_store_id;
+                            self.showProgressDialog(file_id, model, 'initialize');
                         }
                     },
                     error: function (err, response) {
@@ -184,20 +190,20 @@ define([
                     $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr for select2 search text can't editable
                     self.setAutoComplete();
 
-                    $('#eobpaymentIdentifier').text(payerDetails.payer_Identification);
-                    self.paymentIdentifier = payerDetails.payer_Identification;
+                    $('#eobpaymentIdentifier').text(payerDetails.payer_Identification || '');
+                    self.paymentIdentifier = payerDetails.payer_Identification || null;
 
                     if (payerDetails.payer_code || payerDetails.payer_name) {
                         $('#select2-ddlInsuranceProviders-container').html(payerDetails.payer_name).prop('title', payerDetails.payer_name).attr({ 'data_code': payerDetails.payer_code, 'data_description': payerDetails.payer_name, 'data_id': payerDetails.payer_id });
-                        $("#ddlInsuranceProviders").select2("enable", false);
+                        $("#ddlInsuranceProviders").prop("disabled", true);
                     } else {
-                        $("#ddlInsuranceProviders").select2("enable", true);
+                        $("#ddlInsuranceProviders").prop("disabled", false);
                     }
                 }
 
-
                 $('#btnProcessPaymentCancel').off().click(function (e) {
                     commonjs.hideDialog();
+                    self.reloadERAFilesLocal();
                 });
                 $('#btnProcessPayment').off().click(function (e) {
                     self.processFile(file_id, payerDetails, 'applypayments');
@@ -252,8 +258,11 @@ define([
 
                 }
                 function formatRepoSelection(res) {
-                    if(res.id){
+                    if(res.id && res.id !='0'){
                         $('#select2-ddlInsuranceProviders-container').html(res.insurance_name).prop('title', res.insurance_name).attr({ 'data_code': res.insurance_code, 'data_description': res.insurance_name, 'data_id': res.id });
+                        var hstoreInfo = commonjs.hstoreParse(res.insurance_info);
+                        $('#eobpaymentIdentifier').text(hstoreInfo.PayerID || '');
+                        self.paymentIdentifier = hstoreInfo.PayerID || null;
                     }
                     return res.insurance_name;
                 }

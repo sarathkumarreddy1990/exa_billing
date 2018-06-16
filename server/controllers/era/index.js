@@ -1,7 +1,6 @@
 const data = require('../../data/era/index');
 const fs = require('fs');
 const path = require('path');
-//const _ = require('lodash');
 const { promisify } = require('util');
 const readFile = promisify(fs.readFile);
 const ediConnect = require('../../../modules/edi');
@@ -42,11 +41,11 @@ module.exports = {
 
             ediConnect.init('http://192.168.1.102:5581/edi/api');
 
-            const eraResponseJson = await ediConnect.parseEra(templateName, eraRequestText);
+            const eraResponseJson = await ediConnect.parseEra(templateName, eraRequestText); 
 
-            if (params.status == 'pending') {
+            if (params.status != 'applypayments') {
 
-                processDetails = await self.checkExistInsurance(eraResponseJson);
+                processDetails = await self.checkExistInsurance(params, eraResponseJson);
             }
             else {
 
@@ -68,7 +67,7 @@ module.exports = {
 
     },
 
-    checkExistInsurance: async function (eraResponseJson) {
+    checkExistInsurance: async function (params, eraResponseJson) {
 
         let payerDetails = {};
         let reassociation = eraResponseJson.length ? eraResponseJson[0].reassociationTraceNumber : {};
@@ -77,6 +76,7 @@ module.exports = {
         const existsInsurance = await data.selectInsuranceEOB({
             payer_id: payerIdentification
             , company_id: 1
+            , file_id : params.file_id
         });
 
         if (existsInsurance && existsInsurance.rows && existsInsurance.rows.length) {
@@ -85,7 +85,7 @@ module.exports = {
             payerDetails.payer_id = existsInsurance.rows[0].id;
             payerDetails.payer_code = existsInsurance.rows[0].insurance_code;
             payerDetails.payer_name = existsInsurance.rows[0].insurance_name;
-            payerDetails.payer_Identification = payerIdentification;
+            payerDetails.payer_Identification = params.status != 'pending' ? existsInsurance.rows[0].payer_id : payerIdentification;
 
         }
         else {
@@ -97,6 +97,7 @@ module.exports = {
     
     createPaymentFromERA: async function (params, eraResponseJson) {
 
+        let paymentResult;
         let payerDetails = JSON.parse(params.payer_details);
 
         let reassociation = eraResponseJson.length ? eraResponseJson[0].reassociationTraceNumber : {};
@@ -125,9 +126,14 @@ module.exports = {
         payerDetails.credit_card_name = null;
         payerDetails.credit_card_number = reassociation.referenceIdent || null; // card_number
 
-        let paymentResult = await paymentController.createOrUpdatePayment(payerDetails);
-
+        paymentResult = await data.checkExistsERAPayment(params);
         paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
+
+        if(!paymentResult.id){
+            paymentResult = await paymentController.createOrUpdatePayment(payerDetails);
+            paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
+        }
+        
         paymentResult.file_id = params.file_id;
         paymentResult.created_by = payerDetails.created_by;
 
@@ -136,9 +142,10 @@ module.exports = {
         return paymentResult;
     },
 
-    processPayments: async function (claimLists, paymentDetails) {
+    processPayments: async function (LineItemsAndClaimLists, paymentDetails) {
 
-        let processedClaims = await data.createPaymentApplication(claimLists, paymentDetails);
+        let processedClaims = await data.createPaymentApplication(LineItemsAndClaimLists, paymentDetails);
+        
         
         return processedClaims;
     },

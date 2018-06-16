@@ -17,7 +17,6 @@ module.exports = {
             FROM
                 billing.edi_files
             WHERE
-                status = 'pending' AND
                 company_id =  ${params.customArgs.companyID};
         `;
         return await query(sql);
@@ -25,33 +24,69 @@ module.exports = {
 
     selectInsuranceEOB: async function (params) {
 
-        const paymentSQL = `
-                        SELECT
-                            id
-                          , insurance_code
-                          , insurance_name
-                          , insurance_info 
+        const paymentSQL = SQL`WITH 
+                    is_payer_exists AS (
+                        SELECT 
+                            ip.id
+                            ,ip.insurance_code
+                            ,ip.insurance_name
+                            ,ip.insurance_info->'PayerID' AS payer_id
                         FROM 
-                            insurance_providers 
-                        WHERE 
-                            has_deleted = false AND 
-                            company_id = ${params.company_id} AND 
-                            insurance_info->'PayerID' = ${params.payer_id}::text `;
+                           billing.edi_file_payments efp
+                        INNER JOIN billing.payments p ON p.id = efp.payment_id
+                        INNER JOIN insurance_providers ip ON ip.id = p.insurance_provider_id
+                        WHERE efp.edi_file_id = ${params.file_id}  ORDER BY efp.id ASC LIMIT 1
+                    ),
+                    current_payer AS (
+                         SELECT
+                             id
+                             ,insurance_code
+                             ,insurance_name
+                             ,insurance_info->'PayerID' AS payer_id
+                         FROM 
+                             insurance_providers 
+                         WHERE 
+                             has_deleted = false AND 
+                             company_id = ${params.company_id} AND 
+                             insurance_info->'PayerID' = ${params.payer_id}::text 
+                    )
+                    SELECT * FROM is_payer_exists
+                    UNION 
+                    SELECT * FROM current_payer `;
 
         return await query(paymentSQL);
     },
 
     createEdiPayment: async function(params){
 
-        const sql = `INSERT INTO billing.edi_file_payments
-                                            (   edi_file_id
-                                              , payment_id
-                                            )
-                                            (SELECT
-                                                ${params.file_id}
-                                              , ${params.id}
-                                            )
-                                            RETURNING id`;
+        const sql =SQL`WITH 
+                            is_payment_exists AS (
+                                SELECT 
+                                    id
+                                FROM 
+                                    billing.edi_file_payments 
+                                WHERE edi_file_id = ${params.file_id}
+                            ),
+                            edi_file_payments AS ( 
+                                INSERT INTO billing.edi_file_payments
+                                    (   edi_file_id
+                                        ,payment_id
+                                    )
+                                    SELECT
+                                        ${params.file_id}
+                                        ,${params.id}
+                                    WHERE NOT EXISTS ( SELECT id FROM is_payment_exists )
+                                RETURNING id
+                            ),
+                            update_edi_file AS (
+                                UPDATE billing.edi_files
+                                SET
+                                    status = 'in_progress'
+                                WHERE id = ${params.file_id}
+                                AND EXISTS ( SELECT * FROM edi_file_payments )
+                            )
+                        SELECT * FROM  edi_file_payments `;
+
         return await query(sql);
     },
 
@@ -68,29 +103,22 @@ module.exports = {
                                   *
                              FROM json_to_recordset(${JSON.stringify(lineItems)}) AS (
                                  claim_number bigint
-                                ,claim_date date
-                                ,claim_status_code bigint
-                                ,total_paid_amount money 
-                                ,total_billfee money 
-                                ,claim_frequency_code bigint
-                                ,bill_fee money
-                                ,this_pay money
-                                ,this_adj money
-	                            ,units numeric(7,3)
-	                            ,cpt_code text
-	                            ,modifier1 text
-	                            ,modifier2 text
-	                            ,modifier3 text
-	                            ,modifier4 text
-	                            ,cas_obj jsonb
+                                ,charge_id bigint
+                                ,payment money
+                                ,adjustment money
+                                ,cpt_code text
+                                ,cas_details jsonb
                              )
                             ),
                            selected_Items AS (
                                 SELECT 
-                                    application_details.*
-                                    , ch.id as charge_id
+                                    json_build_object(
+                                        'charge_id',application_details.charge_id,
+                                        'payment',application_details.payment,
+                                        'adjustment',application_details.adjustment,
+                                        'cas_details',application_details.cas_details)
                                 FROM 
-                                application_details  
+                                    application_details  
                                 INNER JOIN billing.claims c on c.id = application_details.claim_number
                                 INNER JOIN LATERAL (
                                     SELECT 
@@ -102,46 +130,20 @@ module.exports = {
                                     ch.claim_id = c.id 
                                     AND NOT cpt_codes.has_deleted 
                                     AND cpt_codes.is_active 
+                                    AND application_details.charge_id = ch.id
                                     ORDER BY id ASC LIMIT 1
                                 ) AS charges ON true
                            ), 
-                           insert_payment AS (
-                                  INSERT INTO billing.payment_applications
-                                  ( payment_id
-                                  , charge_id
-                                  , amount
-                                  , amount_type
-                                  , created_by
-                                  , applied_dt )
-                                  (
-                                    SELECT
-                                    ${paymentDetails.id}
-                                  , charge_id
-                                  , this_pay
-                                  , 'payment'
-                                  , ${paymentDetails.created_by}
-                                  , now()
-                                  FROM selected_Items )
-                                  RETURNING id AS application_id, charge_id , amount_type
-                            ),
-                            insert_adjustment AS (
-                                  INSERT INTO billing.payment_applications
-                                  ( payment_id
-                                  , charge_id
-                                  , amount
-                                  , amount_type
-                                  , created_by
-                                  , applied_dt )
-                                  (
-                                    SELECT
-                                    ${paymentDetails.id}
-                                  , charge_id
-                                  , this_adj
-                                  , 'adjustment'
-                                  , ${paymentDetails.created_by}
-                                  , now()
-                                  FROM selected_Items )
-                                  RETURNING id AS application_id, charge_id , amount_type 
+                           insert_payment_adjustment AS (
+                                SELECT
+                                    billing.create_payment_applications(
+                                        ${paymentDetails.id}
+                                        ,( SELECT id FROM billing.adjustment_codes WHERE code ='ERA' ORDER BY id ASC LIMIT 1 )
+                                        ,${paymentDetails.created_by}
+                                        ,json_build_array(selected_Items.json_build_object)::jsonb
+                                    )
+                                FROM
+	                                selected_Items
                             ),
                             insert_edi_file_claims AS (
                                 INSERT INTO billing.edi_file_claims
@@ -187,15 +189,15 @@ module.exports = {
                                 RETURNING id AS claim_comment_id
                                 )
                             SELECT
-	                            ( SELECT json_agg(row_to_json(insert_adjustment)) insert_adjustment
+	                            ( SELECT json_agg(row_to_json(insert_payment_adjustment)) insert_payment_adjustment
                                             FROM (
                                                     SELECT
                                                           *
                                                     FROM
-                                                    insert_adjustment
+                                                    insert_payment_adjustment
                                             
-                                                ) AS insert_adjustment
-                                     ) AS insert_adjustment,
+                                                ) AS insert_payment_adjustment
+                                     ) AS insert_payment_adjustment,
 	                            ( SELECT json_agg(row_to_json(insert_edi_file_claims)) insert_edi_file_claims
                                             FROM (
                                                     SELECT
@@ -292,25 +294,31 @@ module.exports = {
         return await query(sql); 
     },
 
-    getcasReasonGroupCode: async function(params){
+    getcasReasonGroupCodes: async function (params) {
 
         let { company_id } = params;
 
-        const sql = ` WITH cas_group as 
-                        ( SELECT
-                            array_agg(code) as cas_groups
-                        FROM
-                            billing.cas_group_codes
-                        WHERE inactivated_dt IS NULL AND company_id =  ${company_id}
-                        ) ,
-                        cas_reason as
-                        ( SELECT
-                            array_agg(code) as cas_reasons
-                        FROM
-                            billing.cas_reason_codes
-                        WHERE inactivated_dt IS NULL AND  company_id =  ${company_id}
-                        )
-                    SELECT * FROM cas_group,cas_reason `;
+        const sql = ` SELECT
+                        ( SELECT json_agg(row_to_json(cas_group_codes)) cas_group_codes
+                                    FROM (
+                                            SELECT
+                                                id
+                                                ,code
+                                            FROM
+                                                billing.cas_group_codes
+                                            WHERE inactivated_dt IS NULL AND company_id = ${company_id}
+                                        ) AS cas_group_codes
+                        ) AS cas_group_codes,
+                        ( SELECT json_agg(row_to_json(cas_reason_codes)) cas_reason_codes
+                                    FROM (
+                                            SELECT
+                                                id
+                                                ,code
+                                            FROM
+                                                billing.cas_reason_codes
+                                            WHERE inactivated_dt IS NULL AND company_id = ${company_id}
+                                        ) AS cas_reason_codes
+                        ) AS cas_reason_codes `;
 
         return await query(sql);
     },
@@ -335,5 +343,19 @@ module.exports = {
         `;
         
         return await query(sql); 
+    },
+
+    checkExistsERAPayment : async function(params){
+
+        const sql =SQL`SELECT 
+                            efp.payment_id AS id
+                            ,p.created_by
+                        FROM 
+                            billing.edi_file_payments efp 
+                        INNER JOIN billing.payments p ON p.id = efp.payment_id
+                        WHERE edi_file_id = ${params.file_id} `;
+
+        return await query(sql);
+         
     }
 };
