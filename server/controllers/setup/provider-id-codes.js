@@ -7,6 +7,9 @@ module.exports = {
             args.provider_id = params.provider_id;
             return data.getById(args);
         }
+        else if(args.provider_id) {
+            return data.getData(args);
+        }
         
         return data.getData(params);
     },

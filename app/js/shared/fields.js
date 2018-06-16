@@ -243,16 +243,6 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "width": 200
                     }                    
                 },
-                "Cpt Description": {
-                    "id": 10,
-                    "field_code": "cpt_desc",
-                    "field_name": "Cpt Description",
-                    "i18n_name": "shared.fields.cptDescription",
-                    "field_info": {
-                        "name": "cpt_desc",
-                        "width": 130
-                    }
-                },
                 "Payer Type": {
                     "id": 11,
                     "field_code": "payer_type",
@@ -348,7 +338,12 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "searchoptions": { 
                             "value": claimStatusValue,
                             "defaultValue": claimStatusValue
-                        }
+                        },
+                        "cellattr": function ( id, cellvalue, rowObject ) {
+                            var statusDetail = commonjs.getClaimColorCodeForStatus(rowObject.claim_status,'claim');
+                            var statusObj = statusDetail[ 0 ];
+                            return 'style="background:' + (statusObj && statusObj.color_code || 'transparent') + ';"';
+                        },
                     }
                 },
                 "Notes": {

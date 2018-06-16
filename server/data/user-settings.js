@@ -62,6 +62,9 @@ module.exports = {
             , grid_name 
             , default_column 
             , default_column_order_by
+            , id AS user_setting_id
+            , default_column
+
         FROM 
            billing.user_settings WHERE user_id = ${params.userId} 
            AND grid_name = ${params.gridName} `;

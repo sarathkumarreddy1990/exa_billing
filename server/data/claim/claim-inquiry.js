@@ -61,26 +61,26 @@ module.exports = {
             WHERE ci.claim_id = ${claim_id}   
             ) AS icd
         ) 
-    , ins_prov_ids AS (
+    , pat_ins_ids AS (
         SELECT
-            ARRAY[ COALESCE (pri_pi.insurance_provider_id, '0')
-            , COALESCE(sec_pi.insurance_provider_id, '0' )
-            , COALESCE(ter_pi.insurance_provider_id, '0' )] AS ip_ids
+            ARRAY[ primary_patient_insurance_id, secondary_patient_insurance_id, tertiary_patient_insurance_id] AS pi_ids
         FROM billing.claims bc
-        LEFT JOIN public.patient_insurances pri_pi ON pri_pi.id = bc.primary_patient_insurance_id
-        LEFT JOIN public.patient_insurances sec_pi ON sec_pi.id = bc.secondary_patient_insurance_id
-        LEFT JOIN public.patient_insurances ter_pi ON ter_pi.id = bc.tertiary_patient_insurance_id
         WHERE 
             bc.id = ${claim_id}
         )  
     , insurance_details AS 
         ( SELECT json_agg(row_to_json(ins)) insurance_details
         FROM (SELECT
-                  id 
-                , insurance_code
-                , insurance_name
-            FROM public.insurance_providers 
-            WHERE id::bigint = ANY(SELECT UNNEST(ip_ids) FROM ins_prov_ids)
+                  ip.id 
+                , ip.insurance_code
+                , ip.insurance_name
+                , (COALESCE(TRIM(pi.subscriber_lastname),'') ||' '|| COALESCE(TRIM(pi.subscriber_firstname),'')) AS name 
+                , pi.subscriber_dob 
+                , pi.policy_number 
+                , pi.group_number
+            FROM public.patient_insurances pi
+            INNER JOIN insurance_providers ip ON ip.id = pi.insurance_provider_id 
+            WHERE pi.id = ANY(SELECT UNNEST(pi_ids) FROM  pat_ins_ids)
             ) AS ins
         )
     , followup_details AS
@@ -379,10 +379,9 @@ module.exports = {
                         , ch.bill_fee
                         , ch.allowed_amount
                         , cas.cas_details
-                        , (CASE WHEN pa.amount_type = 'payment' THEN pa.amount ELSE 0::money END) payment
-                        , (CASE WHEN pa.amount_type = 'adjustment' THEN pa.amount  ELSE 0::money END) adjustment 
-                    FROM billing.payments bp             
-                    INNER JOIN billing.payment_applications pa ON pa.payment_id = bp.id
+                        , pa.payment_amount AS payment
+                        , pa.adjustment_amount AS adjustment
+                    FROM (SELECT charge_id, id, payment_amount, adjustment_amount, payment_applied_dt from billing.get_payment_applications(${pay_application_id}) ) AS pa
                     INNER JOIN billing.charges ch on ch.id = pa.charge_id 
                     LEFT JOIN LATERAL (
                         SELECT json_agg(row_to_json(cas)) AS cas_details
@@ -395,8 +394,8 @@ module.exports = {
                                 
                                 ) as cas
                     ) cas on true 
-                    WHERE bp.id = ${pay_application_id} AND ch.claim_id = ${claim_id} 
-                    ORDER BY applied_dt ASC `;
+                    WHERE ch.claim_id = ${claim_id} 
+                    ORDER BY pa.payment_applied_dt ASC `;
         return await query(sql);
     },
 

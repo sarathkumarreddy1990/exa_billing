@@ -128,19 +128,24 @@ WITH cte_billing_providers AS (
                                     SELECT Json_agg(Row_to_json(subscriber)) subscriber
                                     FROM  (
                                     SELECT
-                                     coverage_level as "claimResponsibleParty",
+									(CASE coverage_level 
+										WHEN 'primary' THEN 'P'
+										WHEN 'secondary' THEN 'S'
+										WHEN 'teritary' THEN 'T' END) as "claimResponsibleParty",
                                      ( SELECT 
 
-				     (  CASE description 
-						WHEN 'Self' THEN 18
-						WHEN 'Father' THEN 33
-						WHEN 'Mother' THEN 32
-						WHEN 'Sibling' THEN 32
-						WHEN 'Grandparent' THEN 04
-						WHEN 'Great Grandparent' THEN 04
-						WHEN 'Unknown' THEN 21
-						WHEN 'Spouse' THEN 21
-						WHEN 'Child' THEN 19
+				     (  CASE UPPER(description) 
+						WHEN 'SELF' THEN 18
+						WHEN 'FATHER' THEN 33
+						WHEN 'MOTHER' THEN 32
+						WHEN 'SIBLING' THEN 32
+						WHEN 'GRANDPARENT' THEN 04
+						WHEN 'GREAT GRANDPARENT' THEN 04
+						WHEN 'UNKNOWN' THEN 21
+						WHEN 'SPOUSE' THEN 21
+						WHEN 'CHILD' THEN 19
+						WHEN 'BROTHER' THEN 23
+						WHEN 'SISTER' THEN 20
 						END) 
 					FROM  relationship_status WHERE  subscriber_relationship_id =relationship_status.id ) as  relationship,
 
@@ -201,18 +206,19 @@ WITH cte_billing_providers AS (
 											   END) as gender,
 					   
 										   ( SELECT 
-					   
-											(  CASE description 
-											   WHEN 'Self' THEN 18
-											   WHEN 'Father' THEN 33
-											   WHEN 'Mother' THEN 32
-											   WHEN 'Sibling' THEN 32
-											   WHEN 'Grandparent' THEN 04
-											   WHEN 'Great Grandparent' THEN 04
-											   WHEN 'Unknown' THEN 21
-											   WHEN 'Spouse' THEN 21
-											   WHEN 'Child' THEN 19
-											   END) 
+											(  CASE UPPER(description) 
+												WHEN 'SELF' THEN 18
+												WHEN 'FATHER' THEN 33
+												WHEN 'MOTHER' THEN 32
+												WHEN 'SIBLING' THEN 32
+												WHEN 'GRANDPARENT' THEN 04
+												WHEN 'GREAT GRANDPARENT' THEN 04
+												WHEN 'UNKNOWN' THEN 21
+												WHEN 'SPOUSE' THEN 21
+												WHEN 'CHILD' THEN 19
+												WHEN 'BROTHER' THEN 23
+												WHEN 'SISTER' THEN 20
+											END) 
 										   FROM  relationship_status WHERE  subscriber_relationship_id =relationship_status.id ) as  relationship
 					   
 					   
@@ -279,7 +285,10 @@ WITH cte_billing_providers AS (
 					(SELECT 
 						subscriber_firstname as "lastName",
 						subscriber_firstname as "firstName",
-						coverage_level as "otherClaimResponsibleParty",
+						(CASE coverage_level 
+							WHEN 'primary' THEN 'P'
+							WHEN 'secondary' THEN 'S'
+							WHEN 'teritary' THEN 'T' END) as "otherClaimResponsibleParty",
 				( SELECT 
 
  						(  CASE description 
@@ -430,7 +439,7 @@ FROM billing.claims
         return await query(sql, params);
     },
 	
-    validateClaim: async () => {
+    validateClaim: async (params) => {
 
         let sql = SQL`SELECT 
 							bc.id
@@ -462,7 +471,7 @@ FROM billing.claims
 						, ref_pr.first_name AS "ref_full_name"
 						, ref_pr.provider_info->'NPI' AS "referring_pro_npiNo"
 						, rend_pr.first_name AS "reading_physician_full_name"
-						, rend_pr.provider_info->'NPI' AS "rendering_pro_npiNo"
+						, rend_pr.provider_info->'NPI' AS "reading_pro_npiNo"
 						, CASE WHEN (SELECT charges_bill_fee_total FROM billing.get_claim_totals(bc.id)) > 0::money
 							THEN (SELECT charges_bill_fee_total FROM billing.get_claim_totals(bc.id)) ELSE null END AS "claim_totalCharge"
 						, pg.group_info->'AddressLine1' AS "service_facility_addressLine1"
@@ -478,19 +487,28 @@ FROM billing.claims
 									, 'payer_address1', p_ip.insurance_info->'Address1'
 									, 'payer_city', p_ip.insurance_info->'City'
 									, 'payer_state', p_ip.insurance_info->'State'
-									, 'payer_zip_code', p_ip.insurance_info->'ZipCode')
+									, 'payer_zip_code', p_ip.insurance_info->'ZipCode'
+									, 'claimClearingHouse', p_ip.insurance_info->'claimCHCode' 
+									, 'edi_request_templates_id', p_ip.insurance_info->'claimRequestTemplate'
+									, 'claim_req_type', p_ip.insurance_info->'claim_req_type_prov')
 								WHEN bc.payer_type = 'secondary_insurance' THEN
 									json_build_object('payer_name',  s_ip.insurance_name 
 									, 'payer_address1', s_ip.insurance_info->'Address1' 
 									, 'payer_city', s_ip.insurance_info->'City'
 									, 'payer_state', s_ip.insurance_info->'State' 
-									, 'payer_zip_code', s_ip.insurance_info->'ZipCode' )
+									, 'payer_zip_code', s_ip.insurance_info->'ZipCode'
+									, 'claimClearingHouse', s_ip.insurance_info->'claimCHCode' 
+									, 'edi_request_templates_id', s_ip.insurance_info->'claimRequestTemplate'
+									, 'claim_req_type', s_ip.insurance_info->'claim_req_type_prov')
 								WHEN bc.payer_type = 'tertiary_insurance' THEN
 									json_build_object( 'payer_name', t_ip.insurance_name 
 									, 'payer_address1', t_ip.insurance_info->'Address1' 
 									, 'payer_city', t_ip.insurance_info->'City' 
 									, 'payer_state', t_ip.insurance_info->'State' 
-									, 'payer_zip_code', t_ip.insurance_info->'ZipCode')
+									, 'payer_zip_code', t_ip.insurance_info->'ZipCode'
+									, 'claim_req_type', t_ip.insurance_info->'claim_req_type_prov'
+									, 'claimClearingHouse', t_ip.insurance_info->'claimCHCode' 
+									, 'edi_request_templates_id', t_ip.insurance_info->'claimRequestTemplate')
 								WHEN bc.payer_type = 'ordering_facility' THEN	
 								json_build_object(
 									'payer_name',  pg.group_name 
@@ -505,26 +523,26 @@ FROM billing.claims
 									, 'payer_state', ref_pc.contact_info->'STATE'
 									, 'payer_zip_code', ref_pc.contact_info->'ZIP' ) END AS payer_info
 									, bc.primary_patient_insurance_id
-									, p_ip.insurance_info->'Address1' AS "insurance_pro_address1"
-									, p_ip.insurance_info->'City' AS "insurance_pro_city"
-									, p_ip.insurance_info->'PayerID' AS "insurance_pro_payerID"
-									, p_ip.insurance_info->'State' AS "insurance_pro_state"
-									, p_ip.insurance_info->'ZipCode' AS "insurance_pro_zipCode"
-									, p_ip.insurance_name AS "insurance_pro_companyName" 
+									, p_ip.insurance_info->'Address1' AS "p_insurance_pro_address1"
+									, p_ip.insurance_info->'City' AS "p_insurance_pro_city"
+									, p_ip.insurance_info->'PayerID' AS "p_insurance_pro_payerID"
+									, p_ip.insurance_info->'State' AS "p_insurance_pro_state"
+									, p_ip.insurance_info->'ZipCode' AS "p_insurance_pro_zipCode"
+									, p_ip.insurance_name AS "p_insurance_pro_companyName" 
 									, bc.secondary_patient_insurance_id
-									, s_ip.insurance_info->'Address1' AS "insurance_pro_address1"
-									, s_ip.insurance_info->'City' AS "insurance_pro_city"
-									, s_ip.insurance_info->'PayerID' AS "insurance_pro_payerID"
-									, s_ip.insurance_info->'State' AS "insurance_pro_state"
-									, s_ip.insurance_info->'ZipCode' AS "insurance_pro_zipCode"
-									, s_ip.insurance_name AS "insurance_pro_companyName"
+									, s_ip.insurance_info->'Address1' AS "s_insurance_pro_address1"
+									, s_ip.insurance_info->'City' AS "s_insurance_pro_city"
+									, s_ip.insurance_info->'PayerID' AS "s_insurance_pro_payerID"
+									, s_ip.insurance_info->'State' AS "s_insurance_pro_state"
+									, s_ip.insurance_info->'ZipCode' AS "s_insurance_pro_zipCode"
+									, s_ip.insurance_name AS "s_insurance_pro_companyName"
 									, bc.tertiary_patient_insurance_id
-									, t_ip.insurance_info->'Address1' AS "insurance_pro_address1"
-									, t_ip.insurance_info->'City' AS "insurance_pro_city"
-									, t_ip.insurance_info->'PayerID' AS "insurance_pro_payerID"
-									, t_ip.insurance_info->'State' AS "insurance_pro_state"
-									, t_ip.insurance_info->'ZipCode' AS "insurance_pro_zipCode"
-									, t_ip.insurance_name AS "insurance_pro_companyName"
+									, t_ip.insurance_info->'Address1' AS "t_insurance_pro_address1"
+									, t_ip.insurance_info->'City' AS "t_insurance_pro_city"
+									, t_ip.insurance_info->'PayerID' AS "t_insurance_pro_payerID"
+									, t_ip.insurance_info->'State' AS "t_insurance_pro_state"
+									, t_ip.insurance_info->'ZipCode' AS "t_insurance_pro_zipCode"
+									, t_ip.insurance_name AS "t_insurance_pro_companyName"
 									
 									, p_pi.subscriber_address_line1 AS "p_subscriber_addressLine1"
 									, p_pi.subscriber_city AS "p_subscriber_city"
@@ -549,7 +567,9 @@ FROM billing.claims
 									, t_pi.subscriber_lastname AS "t_subscriber_lastName"
 									, t_pi.subscriber_state AS "t_subscriber_state"
 									, t_pi.subscriber_zipcode AS "t_subscriber_zipCode"					
-						
+									, (SELECT array_agg(row_to_json(pointer)) AS charge_pointer FROM (
+										SELECT ch.id, pointer1, claim_id, cpt.ref_code, cpt.display_description FROM billing.charges ch INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id WHERE ch.claim_id = bc.id
+														 ) pointer) AS charge_pointer
 					FROM
 						billing.claims bc
 					INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id	
@@ -568,10 +588,26 @@ FROM billing.claims
 					LEFT JOIN public.insurance_providers t_ip on t_ip.id = t_pi.insurance_provider_id
 					LEFT JOIN 
 						LATERAL (SELECT icd_id FROM billing.claim_icds ci WHERE ci.claim_id = bc.id LIMIT 1) claim_icd ON true
-					WHERE bc.id = ANY('{3909, 2636, 7324}')`;
+					WHERE bc.id = ANY(${params.claim_ids})`;
 
         return await query(sql)	;									
+    },
+
+    movetoPendingSub: async (params) => {
+        let sql = SQL`WITH getStatus AS 
+						(
+							SELECT 
+								id
+							FROM 
+								billing.claim_status
+							WHERE code  = 'SUBPEN'
+						)	
+						UPDATE 
+							billing.claims bc
+						SET claim_status_id = (SELECT id FROM getStatus)
+						WHERE bc.id = ANY(${params.success_claimID})
+						RETURNING bc.id`;
+
+        return await query(sql);
     }
-
-
 };

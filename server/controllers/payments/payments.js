@@ -29,7 +29,7 @@ module.exports = {
         async function pendingApplications(params) {
 
             let coPaycoInsDeductdetails = [];
-            let {  user_id, coPay, coInsurance, deductible, claimId } = params;
+            let { user_id, coPay, coInsurance, deductible, claimId } = params;
 
             if (coInsurance > 0) {
                 coPaycoInsDeductdetails.push({
@@ -70,14 +70,14 @@ module.exports = {
             let coPaycoInsDeductdetails = [];
             let { paymentId, line_items, user_id, coPay, coInsurance, deductible, claimId, adjestmentId } = params;
             line_items = JSON.parse(line_items);
-            // const save_cas_details = [];
+            const save_cas_details = [];
 
             _.each(line_items, function (value) {
 
                 updateAppliedPayments.push({
                     payment_application_id: value.paymentApplicationId,
                     payment_id: paymentId,
-                    charge_id: value.chargeId,
+                    charge_id: value.charge_id,
                     amount: value.payment == null ? 0.00 : value.payment,
                     adjestment_id: null
                 });
@@ -85,9 +85,20 @@ module.exports = {
                 updateAppliedPayments.push({
                     payment_application_id: value.adjustmentApplicationId,
                     payment_id: paymentId,
-                    charge_id: value.chargeId,
+                    charge_id: value.charge_id,
                     amount: value.adjustment == null ? 0.00 : value.adjustment,
-                    adjestment_id: adjestmentId
+                    adjestment_id: adjestmentId ? adjestmentId : null
+                });
+
+
+                _.each(value.cas_details, function (details) {
+                    save_cas_details.push({
+                        payment_application_id: value.adjustmentApplicationId,
+                        group_code_id : details.group_code_id,
+                        reason_code_id : details.reason_code_id,
+                        amount : details.amount,
+                        cas_id : details.cas_id ? details.cas_id : null
+                    });
                 });
 
             });
@@ -121,7 +132,7 @@ module.exports = {
 
             params.coPaycoInsDeductdetails = coPaycoInsDeductdetails;
             params.updateAppliedPayments = updateAppliedPayments;
-
+            params.save_cas_details = save_cas_details;
             return await data.updatePaymentApplication(params);
         }
 

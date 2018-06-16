@@ -35,11 +35,12 @@ module.exports = {
         }
 
         if(fromDate && toDate){
-            whereQuery.push(`al.created_dt BETWEEN  ${fromDate}::timestamptz AND ${toDate}::timestamptz`);
+            //whereQuery.push(`al.created_dt BETWEEN  ${fromDate}::date AND ${toDate}::date`);
         }
 
-        const sql = SQL`SELECT 
-                              al.company_id 
+        const sql = SQL`SELECT
+                               al.id
+                            ,  al.company_id
                             , CASE WHEN LENGTH(TRIM(u.last_name)) > 0
                                     THEN COALESCE(TRIM(u.last_name),'') ||' '|| COALESCE(TRIM(u.first_name),'')
                                 ELSE TRIM(u.first_name)

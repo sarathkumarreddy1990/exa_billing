@@ -16,30 +16,33 @@ define([
             template: _.template(userSettingsTemplate),
             events: {
                 "click #mySettings": "showForm",
-                "click #close_settings": "closePopup",
-                "click #save_settings": "saveUserSettingsBilling"
-
+                "click #close_settings": "closePopup"
             },
 
             initialize: function () {
                 self.template = _.template(userSettingsTemplate);
                 this.model = new ModelUserSetting();
             },
+            gridFilterName: null,
 
             render: function () {
-                // this.$el.html(_.template(userSettingsTemplate));
-                // var ulColumnList = $('#ulSortList');
-                // ulColumnList.sortable();
-
                 var self = this;
                 userID = app.userID;
                 this.$el.html(template);
-
+                if (window.location && window.location.hash.split('/')[1] == 'studies') {
+                    self.gridFilterName = 'studies';
+                    self.default_tab = 'All Studies';
+                }
+                if (window.location && window.location.hash.split('/')[1] == 'claim_workbench') {
+                    self.gridFilterName = 'claims';
+                    self.default_tab = 'All Claims';
+                }
                 var height = $('#modal_div_container').height() - 70;
                 $("#ulSortList").css('height', height);
                 this.bindSettingColumns(userID);
                 $(".simple_with_animation").sortable();
-                $('#save_settings').click(function (e) {
+                $('#save_settings').unbind().click(function (e) {
+                    $('#save_settings').attr('disabled', true);
                     self.saveUserSettingsBilling(userID);
                     commonjs.hideDialog();
                 });
@@ -62,19 +65,11 @@ define([
                         billingClaimGridFields.push({ "name": input.val(), "id": input.attr('id').split('~')[1], "width": $(this).find('input[type=hidden]')[0].value });
                     }
                 });
-                if (window.location && window.location.hash.split('/')[1] == 'studies') {
-                    var grid_name = 'studies';
-                    var default_tab = 'All Studies';
-                }
-                if (window.location && window.location.hash.split('/')[1] == 'claim_workbench') {
-                    var grid_name = 'claims';
-                    var default_tab = 'All Claims';
-                }
                 this.model.set({
-                    flag: grid_name,
-                    default_tab: default_tab,
+                    flag: self.gridFilterName,
+                    default_tab: self.default_tab,
                     userId: userId,
-                    claim_col_name: claim_col_name,                    
+                    claim_col_name: claim_col_name,
                     claim_sort_order: claim_sort_order,
                     billingClaimGridFields: billingClaimGridFields,
                     claimFieldOrder: JSON.stringify(claimFieldOrder),
@@ -83,6 +78,12 @@ define([
                 this.model.save({},
                     {
                         success: function (model, response) {
+                            $('#save_settings').attr('disabled', false);
+                            if (self.gridFilterName == 'studies')
+                                $('#btnStudiesRefreshAll').click();
+                            else if (self.gridFilterName == 'claims')
+                                $('#btnClaimRefreshAll').click();
+                            commonjs.hideDialog();
                             commonjs.hideLoading();
                         },
                         error: function (model, response) {
@@ -129,35 +130,26 @@ define([
                 $('#modal_div_container').append(template);
                 $('#modal_div_container').show();
                 this.bindSettingColumns(userID);
-                $('#close_settings').click(function (e) {
-                    $('#modal_div_container').hide();
-                });
-                $('#save_settings').click(function (e) {
-                    self.saveUserSettingsBilling(userID);
+                $('#close_settings').unbind().click(function (e) {
                     $('#modal_div_container').hide();
                 });
             },
 
             bindSettingColumns: function (userID) {
                 var self = this;
-                if (window.location && window.location.hash.split('/')[1] == 'claim_workbench') 
-                    var grid_name = 'claims'
-                else
-                    var grid_name = 'studies'
                 $.ajax({
                     url: '/exa_modules/billing/user_settings',
                     data: {
-                        userID: userID,
-                        gridName: grid_name
+                        gridName: self.gridFilterName
                     },
                     success: function (data, response) {
                         var displayFields = [];
                         self.billingDisplayFields = [];
                         self.displayFieldChecked = [];
-                        var result =  data && data.length ? JSON.parse(data[0]) : {};
-                        if (window.location && window.location.hash.split('/')[1] == 'claim_workbench') 
-                            self.billingDisplayFields = result.claim_management;                        
-                        if (window.location && window.location.hash.split('/')[1] == 'studies') 
+                        var result = data && data.length ? JSON.parse(data[0]) : {};
+                        if (self.gridFilterName == 'claims')
+                            self.billingDisplayFields = result.claim_management;
+                        if (self.gridFilterName == 'studies')
                             self.billingDisplayFields = result.study_fields;
                         var result_data = data && data.length && data[1] && data[1].rows && data[1].rows.length ? data[1].rows[0] : {};
                         self.checkedBillingDisplayFields = result_data.field_order;
@@ -181,7 +173,7 @@ define([
                                 }
                             }
                         }
-                        var gridNames = displayFields.map(function ( field ) {
+                        var gridNames = displayFields.map(function (field) {
                             return field.id;
                         });
                         var remainingFields = $.grep(self.billingDisplayFields, function (obj) {
@@ -203,7 +195,7 @@ define([
                         }
 
                         $('#ddlBillingDefaultColumns').val(result_data.default_column);
-                        $('#ddlBillingSortOrder').val(result_data.default_column_order_by);                        
+                        $('#ddlBillingSortOrder').val(result_data.default_column_order_by);
                     },
                     error: function (err, response) {
                         if (err)
