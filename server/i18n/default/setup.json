@@ -406,6 +406,14 @@
             "billingMethod": "Billing Method",
             "payerType": "Payer Type",
             "balance": "Balance"
+        },
+        "statusColorCode": {
+            "processType": "Process Type",
+            "processStatus": "Process Status",
+            "study": "Study",
+            "claim": "Claim",
+            "payment": "Payment",
+            "colorCode": "Color Code"
         }
     }
 }
