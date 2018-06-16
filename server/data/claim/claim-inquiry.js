@@ -61,26 +61,26 @@ module.exports = {
             WHERE ci.claim_id = ${claim_id}   
             ) AS icd
         ) 
-    , ins_prov_ids AS (
+    , pat_ins_ids AS (
         SELECT
-            ARRAY[ COALESCE (pri_pi.insurance_provider_id, '0')
-            , COALESCE(sec_pi.insurance_provider_id, '0' )
-            , COALESCE(ter_pi.insurance_provider_id, '0' )] AS ip_ids
+            ARRAY[ primary_patient_insurance_id, secondary_patient_insurance_id, tertiary_patient_insurance_id] AS pi_ids
         FROM billing.claims bc
-        LEFT JOIN public.patient_insurances pri_pi ON pri_pi.id = bc.primary_patient_insurance_id
-        LEFT JOIN public.patient_insurances sec_pi ON sec_pi.id = bc.secondary_patient_insurance_id
-        LEFT JOIN public.patient_insurances ter_pi ON ter_pi.id = bc.tertiary_patient_insurance_id
         WHERE 
             bc.id = ${claim_id}
         )  
     , insurance_details AS 
         ( SELECT json_agg(row_to_json(ins)) insurance_details
         FROM (SELECT
-                  id 
-                , insurance_code
-                , insurance_name
-            FROM public.insurance_providers 
-            WHERE id::bigint = ANY(SELECT UNNEST(ip_ids) FROM ins_prov_ids)
+                  ip.id 
+                , ip.insurance_code
+                , ip.insurance_name
+                , (COALESCE(TRIM(pi.subscriber_lastname),'') ||' '|| COALESCE(TRIM(pi.subscriber_firstname),'')) AS name 
+                , pi.subscriber_dob 
+                , pi.policy_number 
+                , pi.group_number
+            FROM public.patient_insurances pi
+            INNER JOIN insurance_providers ip ON ip.id = pi.insurance_provider_id 
+            WHERE pi.id = ANY(SELECT UNNEST(pi_ids) FROM  pat_ins_ids)
             ) AS ins
         )
     , followup_details AS
