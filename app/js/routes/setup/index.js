@@ -15,6 +15,7 @@ define([
     'routes/setup/claim-status',
     'routes/setup/edi-clearinghouses',
     'routes/setup/validations',
+    'routes/setup/status-color-codes',
     'routes/setup/audit-log',
     'routes/setup/user-log'
 ], function (
@@ -34,6 +35,7 @@ define([
     ClaimStatusRoute,
     EdiClearingHousesRoute,
     ValidationsRoute,
+    StatusColorCodesRoute,
     AuditLogRoute,
     UserLogRoute
     ) {
@@ -51,6 +53,7 @@ define([
                 "claim_status/*subroute" : "startClaimStatus",
                 "edi_clearinghouses/*subroute" : "startEDIClearingHouses",
                 "validations/*subroute" : "startValidations",
+                "status_color_codes/*subroute" : "startStatusColorCodes",
                 "audit_log/*subroute" : "startAuditLog",
                 "user_log/*subroute" : "startUserLog"
             },
@@ -188,6 +191,15 @@ define([
                 if (this.checkLicense('UserLog') && !this.userLog) {
                     this.defaultArgs.routePrefix = 'setup/user_log/';
                     this.userLog = new UserLogRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startStatusColorCodes: function () {
+                if (this.checkLicense('StatusColorCodes') && !this.statusColorCodesRouter) {
+                    this.defaultArgs.routePrefix = 'setup/status_color_codes/';
+                    this.statusColorCodesRouter = new StatusColorCodesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }

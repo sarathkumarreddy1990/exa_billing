@@ -34,7 +34,6 @@ define([
                 ]});
                 this.model.fetch({
                     success: function (model, response) {
-                        console.log(response);
                         var eJson = self.getJson(response[0].edi_validation);
                         var iJson = self.getJson(response[0].invoice_validation);
                         var pJson = self.getJson(response[0].patient_validation);
@@ -46,6 +45,7 @@ define([
                         $('#divElectricValidation').show();
                         $('#divInvoiceValidation').hide();
                         $('#divPatientValidation').hide();
+                        commonjs.processPostRender();
                     }
                 });
 
