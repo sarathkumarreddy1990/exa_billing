@@ -400,6 +400,12 @@
             "lastAccessed": "Last Accessed",
             "lastAccessedDt": "Last Accessed Date",
             "logSource" : "Log Source"
+        },
+        "claimFilter": {
+            "claimStatus": "Claim Status",
+            "billingMethod": "Billing Method",
+            "payerType": "Payer Type",
+            "balance": "Balance"
         }
     }
 }
