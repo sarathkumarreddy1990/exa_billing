@@ -55,7 +55,7 @@ module.exports = {
             LEFT JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id 
             LEFT JOIN billing.payments bp ON bp.id = bpa.payment_id
             WHERE 
-                bc.id = 4712
+                bc.id = ${claim_id}
          ) AS pay     
     )      
     , icd_details AS
