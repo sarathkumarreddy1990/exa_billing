@@ -104,13 +104,11 @@ define([
             },
 
             showInsuranceGrid: function (data) {
-                console.log('Insurance Details  ---- ', data)
-
 
                 $('#tblCIInsurance').jqGrid({
                     datatype: 'local',
                     data: data !=null ? data : [],
-                    colNames: ['', 'code', 'description', 'Subscriber Name', 'DOB', 'Policy No', 'Group No'],
+                    colNames: ['', 'code', 'description', 'Subscriber Name', 'DOB', 'Policy No', 'Group No', 'Paper Claim'],
                     colModel: [
                         { name: 'id', hidden: true },
                         { name: 'insurance_code', search: false },
@@ -118,7 +116,14 @@ define([
                         { name: 'name', search: false },
                         { name: 'subscriber_dob', search: false },
                         { name: 'policy_number', search: false },
-                        { name: 'group_number', search: false }
+                        { name: 'group_number', search: false },
+                        { name: 'paper_claim', search: false, 
+                            customAction: function (rowID) {
+                            },
+                            formatter: function (cellvalue, options, rowObject) {
+                                    return "<input type='button' id='btnCICommentSave' class='btn btnCommentSave  btn-primary' value='Paper Claim' i18n='shared.buttons.paperclaim' id='spnPaperClaim_" + rowObject.id + "'>"
+                            }
+                        }
                     ],
                     cmTemplate: { sortable: false },
                     customizeSort: true,
@@ -186,7 +191,7 @@ define([
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.type && rowObject.code == 'payment')
-                                    return "<span class='fas fa-eye' rel='tooltip' title='view payment details'></span>"
+                                    return "<span class='fa fa-eye' rel='tooltip' title='view payment details'></span>"
                                 else
                                     return "";
                             }
@@ -237,7 +242,6 @@ define([
                             }
                         }
                     ],
-                    pager: '#gridPager_CIClaimComment',
                     sortname: 'id',
                     sortorder: 'ASC',
                     caption: 'Claim Comments',
