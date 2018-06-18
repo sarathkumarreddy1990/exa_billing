@@ -71,8 +71,9 @@
             "readPhy": "Reading Physician",
             "refPhy": "Referring Physician",
             "ordFacility": "Ordering Facility",
-            "diagnosis": "Diagnosis",
-            "claimNotes": "Claim Notes"
+            "icd": "ICD Codes",
+            "claimNotes": "Claim Notes",
+            "billingComments": "Billing Notes"
         },
         "payments": {
             "postingDate": "Posting Date",

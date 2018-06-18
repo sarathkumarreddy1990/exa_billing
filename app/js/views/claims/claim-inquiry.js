@@ -5,7 +5,7 @@ define([
     'jqgrid',
     'jqgridlocale',
     'models/pager',
-    'text!templates/claims/claim-inquiry.html',
+    'text!templates/claims/claim-inquiry1.html',
     'collections/claim-inquiry',
     'views/reports/patient-activity-statement' ,
     'views/reports/payment-invoice',
@@ -127,7 +127,7 @@ define([
                     ],
                     cmTemplate: { sortable: false },
                     customizeSort: true,
-                    width: $('#encounterDetails').width() - 50,
+                    width: $('#claimDetails').width() - 50,
                     shrinkToFit: true
                 });
                 $('#gview_tblCIInsurance').find('.ui-jqgrid-bdiv').css('max-height', '180px')
@@ -146,9 +146,9 @@ define([
                     cmTemplate: { sortable: false },
                     customizeSort: true,
                     shrinkToFit: true,
-                    width: $('#encounterDetails').width() - 50
+                    width: $('#claimDetails').width() - 50
                 });
-                $('#gview_tblCIDiagnosis').find('.ui-jqgrid-bdiv').css('max-height', '180px')
+                //$('#gview_tblCIDiagnosis').find('.ui-jqgrid-bdiv').css('max-height', '180px')
             },
 
             showClaimCommentsGrid: function () {
