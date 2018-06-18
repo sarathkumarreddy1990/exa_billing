@@ -63,7 +63,7 @@ module.exports = {
             whereQuery.push(`  (  CASE payer_type 
                 WHEN 'insurance' THEN insurance_providers.insurance_name
                 WHEN 'ordering_facility' THEN provider_groups.group_name
-                WHEN 'provider' THEN ref_provider.full_name
+                WHEN 'ordering_provider' THEN ref_provider.full_name
                 WHEN 'patient' THEN patients.full_name        END)  ILIKE '%${payer_name}%' `);
         }
 
@@ -114,7 +114,7 @@ module.exports = {
         } else {
             sql = SQL`SELECT
                           payments.id
-                        ,payments.id as payment_id
+                        , payments.id as payment_id
                         , payments.facility_id
                         , patient_id
                         , insurance_provider_id
@@ -128,7 +128,7 @@ module.exports = {
                         , (  CASE payer_type 
                                 WHEN 'insurance' THEN insurance_providers.insurance_name
 	                            WHEN 'ordering_facility' THEN provider_groups.group_name
-	                            WHEN 'provider' THEN ref_provider.full_name
+	                            WHEN 'ordering_provider' THEN ref_provider.full_name
 	                            WHEN 'patient' THEN patients.full_name        END) AS payer_name
                         , payment_dt
                         , invoice_no
