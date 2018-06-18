@@ -4,11 +4,6 @@ module.exports = {
 
     getData: async function (params) {
 
-        params.name = '';
-        params.receiverName = '';
-        params.pageNo = 1;
-        params.pageSize = 10;
-        params.sortField = ' code ';
         params.sortOrder = params.sortOrder || ' DESC';
 
         let {
