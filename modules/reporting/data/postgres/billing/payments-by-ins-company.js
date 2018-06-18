@@ -39,15 +39,15 @@ WITH paymentsByInsCompany as (
     bp.id    
 )
     SELECT 
-        payment_id AS "PAYMENT ID",
-        insurance_name AS "INSURANCE NAME",
-        COALESCE(facility_name, 'TOTAL') AS "FACILITY NAME",
-        payment_balance AS "PAYMENT BALANCE",
-        payment_applied_amount AS "PAYMENT APPLIED AMOUNT",
-        amount AS "AMOUNT",
-        cheque_card_number AS "CHEQUE/CARD #",
-        payment_mode AS "PAYMENT MODE",
-        payment_date AS "PAYMENT DATE"
+        payment_id AS "Payment Id",
+        insurance_name AS "Insurance Name",
+        COALESCE(facility_name, 'TOTAL') AS "Facility Name",
+        amount AS "Amount",
+        payment_applied_amount AS "Applied",
+        payment_balance AS "Balance",
+        cheque_card_number AS "Cheque/Card #",
+        payment_mode AS "Payment Mode",
+        payment_date AS "Payment Date"
     FROM
          paymentsByInsCompany
 `);
