@@ -1,9 +1,88 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+    div(class="progress loadingMsg", id="divLoading", style="display:none")
+        div(class="progress-bar progress-bar-striped bg-success", role="progressbar", style="width:100%", id="divLoadingMsg")
+    div(class="loadingMsg", id="divWarning", style="display:none")
+        span(class="badge badge-warning" id="divWarningMsg")
+    div(class="loadingMsg", id="divError", style="display:none")
+        span(class="badge badge-danger" id="divErrorMsg")
+    div(class="loadingMsg", id="divSuccess", style="display:none")
+        span(class="badge badge-success" id="divSuccessMsg")
+    nav.navbar.fixed-top.navbar-expand-lg.navbar-dark.bg-primary(style="display:none")
+        a.navbar-brand(href='#billing/studies/list') #{title}
+        button.navbar-toggler(type='button', data-toggle='collapse', data-target='#navbarNavAltMarkup', aria-controls='navbarNavAltMarkup', aria-expanded='false', aria-label='Toggle navigation')
+            span.navbar-toggler-icon
+        #navbarNavAltMarkup.collapse.navbar-collapse
+            ul.navbar-nav.ml-auto
+                li.nav-item
+                    a#aStudies.nav-link.active(href='#billing/studies/list') Studies
+                li.nav-item
+                    a#aClaims.nav-link(href='#billing/claim_workbench/list') Claims
+                li.nav-item
+                    a#aPayments.nav-link(href='#billing/payments/list') Payments
+                li.nav-item
+                    a#aEob.nav-link(href='#billing/era/list') EOB
+                    
+                li.nav-item.dropdown
+                    a#aReports.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Reports
+                    .dropdown-menu
+                        a.dropdown-item(href='#reports/r/charges') Charges                        
+                        a.dropdown-item(href='#reports/r/claim-activity') Claim Activity
+                        a.dropdown-item(href='#reports/r/claim-inquiry') Claim Inquiry
+                        a.dropdown-item(href='#reports/r/claim-transaction') Claim Transaction
+                        a.dropdown-item(href='#reports/r/credit-balance-encounters') Credit Balance Encounters
+                        a.dropdown-item(href='#reports/r/date-of-SVC-payment-summary') Date Of SVC Payment  
+                        a.dropdown-item(href='#reports/r/diagnosis-count') Diagnosis Count  
+                        a.dropdown-item(href='#reports/r/modality-summary') Modality Summary
+                        a.dropdown-item(href='#reports/r/monthly-recap') Monthly Recap
+                        a.dropdown-item(href='#reports/r/patient-statement') Patient Statement
+                        a.dropdown-item(href='#reports/r/payer-mix') Payer Mix
+                        a.dropdown-item(href='#reports/r/payments') Payments  
+                        a.dropdown-item(href='#reports/r/patients-by-insurance-company') Patients By Ins. Company
+                        a.dropdown-item(href='#reports/r/payments-by-ins-company') Payments By Ins. Company
+                        a.dropdown-item(href='#reports/r/procedure-analysis-by-insurance') Procedure Analysis By
+                        a.dropdown-item(href='#reports/r/procedure-count') Procedure Count
+                        a.dropdown-item(href='#reports/r/reading-provider-fees') Reading Provider Fees
+                        a.dropdown-item(href='#reports/r/referring-provider-count') Referring Provider Count
+                        a.dropdown-item(href='#reports/r/referring-provider-summary') Referring Provider Summary
+                        a.dropdown-item(href='#reports/r/transaction-summary') Transaction Summary
+                    
+                li.nav-item.dropdown
+                    a#aSetup.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Setup
+                    .dropdown-menu
+                        a.dropdown-item(href='#setup/adjustment_codes/list') Adjustment Codes
+                        a.dropdown-item(href='#setup/billing_codes/list') Billing codes
+                        a.dropdown-item(href='#setup/billing_classes/list') Billing Classes
+                        a.dropdown-item(href='#setup/claim_status/list') Claim Status
+                        .dropdown-divider
+                        a.dropdown-item(href='#setup/billing_providers/list') Billing Providers
+                        a.dropdown-item(href='#setup/provider_id_code_qualifiers/list') Provider ID Code Qualifiers
+                        .dropdown-divider
+                        a.dropdown-item(href='#') Billing Messages
+                        a.dropdown-item(href='#setup/payment_reasons/list') Payment Reasons
+                        a.dropdown-item(href='#setup/cas_group_codes/list') CAS Group Codes
+                        a.dropdown-item(href='#setup/cas_reason_codes/list') CAS Reason Codes
+                        a.dropdown-item(href='#setup/provider_level_codes/list') Provider Level Codes
+                        a.dropdown-item(href='#setup/status_color_codes/list') Status Color Codes
+                        .dropdown-divider
+                        a.dropdown-item(href='#setup/edi_clearinghouses/list') EDI ClearingHouses
+                        a.dropdown-item(href='#setup/validations/all') Billing Validations
 
-  #root
+                li.nav-item.dropdown
+                    a#aLog.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Log
+                    .dropdown-menu
+                        a.dropdown-item(href='#setup/audit_log/list') Audit Log
+                        a.dropdown-item(href='#setup/user_log/list') User Log
 
-  script(type='text/javascript', src='/node_modules/requirejs/require.js', data-main='/js/main.js')
+                li.nav-item
+                    a.nav-link(href='#') Logout
+
+    #root
+
+    #divPageLoading
+        #divPageLoadingMsg(style="left:0%; top:40%; font-size:25px; position:absolute; font-weight:bolder; text-align:center; width:100%; z-index: 10000;")
+            p Loading
+                img(src=staticAssetsRoot + "/images/ajax-loader.gif", style="padding-left:10px;")
+
+    script(type='text/javascript', src=staticAssetsRoot + '/node_modules/requirejs/require.js', data-main=staticAssetsRoot + '/js/main.js')

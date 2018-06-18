@@ -1,16 +1,17 @@
 define([
     'backbone',
-    'routes/app.router'
+    'routes/app-router'
 ], function (Backbone, AppRouter) {
 
     return {
         initialize: function () {
 
             if (!window.location.hash) {
-                window.location.hash = '#app/worklist';
+                window.location.hash = '#billing/claim_workbench/list';
             }
 
             AppRouter.initialize();
+            commonjs.initSessionHandler();
         }
     }
 });

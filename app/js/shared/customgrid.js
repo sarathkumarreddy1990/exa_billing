@@ -473,7 +473,7 @@ function customGrid ( datastore, gridID ) {
             // EXA-9228 scroll event firing for previous tab grid before loading current grid , so the paging not working . Avoid based on study filter ID
             if (self.options && self.options.customargs && self.options.customargs.flag == 'home_study') {
                 var grid_element_id = $(e.currentTarget).find('table').attr('id');
-                grid_element_id = grid_element_id.split('tblGrid')[1];
+                grid_element_id =  self.options.isClaimGrid?grid_element_id.split('tblClaimGrid')[1]:grid_element_id.split('tblGrid')[1];
                 is_valid_event = grid_element_id == commonjs.currentStudyFilter;
             }
             if (is_valid_event) {
@@ -601,6 +601,7 @@ function customGrid ( datastore, gridID ) {
         var $loading = $(document.getElementById('divPageLoading'));
         var $tblGrid = $(self.options.gridelementid);
         $loading.show();
+        commonjs.showLoading()
         self.setSearchQuery();
         var customArgs = null;
         var params = $tblGrid.jqGrid("getGridParam");

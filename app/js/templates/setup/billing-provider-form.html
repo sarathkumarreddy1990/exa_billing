@@ -1,0 +1,343 @@
+<div class="form-group row">
+    <div class="col-lg-12">
+        <form id="formBillingProviders" class="form-horizontals">
+            <div class="row" id="providerInfo">
+                <div class="col">
+                    <div class="form-group row">
+                        <label for="txtName" class="col-sm-3 col-form-label field-required" i18n="setup.common.name"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtName" name="providerName">
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkIsActive">
+                            <label class="form-check-label" for="chkIsActive" i18n="shared.fields.inactive"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtCode" class="col-sm-3 col-form-label field-required" i18n="setup.common.code"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtCode" name="providerCode">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtShortDesc" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.shortdescription"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtShortDesc" name="shortDescription">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtFederalTaxID" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.federaltaxid"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtFederalTaxID" name="federalTaxID">
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group row">
+                        <label for="txtNpi" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.npino"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtNpi" name="npiNo">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtTaxonomy" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.taxonomycode"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtTaxonomy" name="taxonomy">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="chkEnableFTP" class="col-sm-3 col-form-label" i18n="setup.billingprovider.enableftp"></label>
+                        <div class="col-sm-5">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="chkEnableFTP">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FTP Details -->
+            <div class="row" id="divFTPDetails" style="margin-top:10px;">
+                <div class="col-lg-12">
+                    <div class="form-group row">
+                        <legend>
+                            <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
+                                <label i18n="setup.billingprovider.ftpdetails"></label>
+                            </h5>
+                        </legend>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group row">
+                        <label for="txtHostName" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.hostname"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtHostName" name="hostname">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtUserName" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.username"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtUserName" name="username">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtPassword" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.password"></label>
+                        <div class="col-sm-5">
+                            <input type="password" class="form-control" id="txtPassword" name="password">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="ddlType" class="col-sm-3 col-form-label" i18n="setup.billingprovider.type"></label>
+                        <div class="col-sm-5">
+                            <select id="ddlFtpType" class="form-control" style="height:32px;" name="ftpType">
+                                <option selected i18n="shared.buttons.select"></option>
+                                <option value="SFTP" i18n="setup.billingprovider.sftp"></option>
+                                <option value="FTP" i18n="setup.billingprovider.ftp"></option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group row">
+                        <label for="txtPort" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.port"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtPort" name="port">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtSentFolder" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.sentfolder"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtSentFolder" name="sentFolder">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtReceiveFolder" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.receivefolder"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtReceiveFolder" name="receiveFolder">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtIdentityFilePath" class="col-sm-3 col-form-label" i18n="setup.billingprovider.identityfilepath"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtIdentityFilePath" name="identityFilePath">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Address info's -->
+
+            <div class="row" id="providerAddressInfo" style="margin-top:10px;">
+                <div class="col">
+                    <div class="form-group row">
+                        <legend style="width:98%;">
+                            <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
+                                <label i18n="setup.billingprovider.addressinfo"></label>
+                            </h5>
+                        </legend>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtContactName" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.contactname"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtContactName" name="contactPersonName">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtAddressLine1" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.addresslinel"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtAddressLine1" name="addressLine1">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtAddressLine2" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.addressline2"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtAddressLine2" name="addressLine2">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtBillProCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.citystatezip"></label>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" id="txtCity" name="city">
+                        </div>
+                        <div class="col-sm-2" style="padding-left:0px;">
+                            <select id="ddlState" class="form-control" style="height:32px;" name="state">
+                                <option selected>Select</option>
+                                <option value="Alabama">Alabama</option>
+                                <option value="Alaska">Alaska</option>
+                                <option value="California">California</option>
+                                <option value="Colorado">Colorado</option>
+                                <option value="Florida">Florida</option>
+                                <option value="Georgia">Georgia</option>
+                                <option value="Illinois">Illinois</option>
+                                <option value="NC">NC</option>
+                                <option value="New Jersey">New Jersey</option>
+                                <option value="Ohio">Ohio</option>
+                                <option value="Tamil nadu">Tamil nadu</option>
+                                <option value="Virginia">Virginia</option>
+                                <option value="Washington">Washington</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-2" style="padding-left:0px;">
+                            <input type="text" class="form-control" id="txtZip" name="zip">
+                        </div>
+                        <div class="col-sm-2" style="padding-left:0px;">
+                            <input type="text" class="form-control" id="txtZipPlus" name="zipPlus">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtBillProPhoneNo" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.phoneno"></label>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control maskPhone" id="txtBillProPhoneNo" name="phoneNo">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtFaxNo" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.fax"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtFaxNo" name="faxNo">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtEmail" class="col-sm-3 col-form-label" i18n="setup.billingprovider.email"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtEmail" name="email">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtWebURL" class="col-sm-3 col-form-label" i18n="setup.billingprovider.weburl"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtWebURL" name="webURL">
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group row">
+                        <legend style="width:98%;">
+                            <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
+                                <label i18n="setup.billingprovider.paytoaddress"></label>
+                            </h5>
+                        </legend>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtPayAddressLine1" class="col-sm-3 col-form-label" i18n="setup.billingprovider.addresslinel"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtPayAddressLine1" name="payAddressLine1">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtPayAddressLine2" class="col-sm-3 col-form-label" i18n="setup.billingprovider.addressline2"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtPayAddressLine2" name="payAddressLine2">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtPayBillProCity" class="col-sm-3 col-form-label" i18n="setup.billingprovider.citystatezip"></label>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" id="txtPayCity" name="payCity">
+                        </div>
+                        <div class="col-sm-2" style="padding-left:0px;">
+                            <select id="ddlPayState" class="form-control" style="height:32px;" name="payState">
+                                <option selected>Select</option>
+                                <option value="Alabama">Alabama</option>
+                                <option value="Alaska">Alaska</option>
+                                <option value="California">California</option>
+                                <option value="Colorado">Colorado</option>
+                                <option value="Florida">Florida</option>
+                                <option value="Georgia">Georgia</option>
+                                <option value="Illinois">Illinois</option>
+                                <option value="NC">NC</option>
+                                <option value="New Jersey">New Jersey</option>
+                                <option value="Ohio">Ohio</option>
+                                <option value="Tamil nadu">Tamil nadu</option>
+                                <option value="Virginia">Virginia</option>
+                                <option value="Washington">Washington</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-2" style="padding-left:0px;">
+                            <input type="text" class="form-control" id="txtPayZip" name="payZip">
+                        </div>
+                        <div class="col-sm-2" style="padding-left:0px;">
+                            <input type="text" class="form-control" id="txtPayZipPlus" name="payZipPlus">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtPayBillProPhoneNo" class="col-sm-3 col-form-label" i18n="setup.billingprovider.phoneno"></label>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" id="txtPayBillProPhoneNo" name="payPhoneNo">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtPayFaxNo" class="col-sm-3 col-form-label" i18n="setup.billingprovider.fax"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtPayFaxNo" name="payFaxNo">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtPayEmail" class="col-sm-3 col-form-label" i18n="setup.billingprovider.email"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtPayEmail" name="payEmail">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>     
+    </div>
+    <div class="col-lg-12">
+        <!-- ID Codes -->
+        <div class="row" id="divIDCodesGrid" style="margin-top:10px;">
+            <div class="col-lg-12">
+                <div class="form-group row">
+                    <legend>
+                        <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
+                            <label i18n="setup.billingprovider.idcodes"></label>
+                        </h5>
+                    </legend>
+                </div>
+            </div>
+            <div class="col-lg-12">
+                <div class="form-group row" style="float:right;">
+                    <button id="btnAddNewProviderCodes" type="submit" class="btn btn-primary" i18n="setup.buttons.add"></button>
+                    <button id="btnRefreshProviderCodes" type="submit" class="btn btn-primary" i18n="shared.buttons.reload"></button>
+                </div>
+            </div>
+            <div class="col-lg-12">
+                <div id="divCodesGrid">
+                    <table id="tblProviderIDCodesGrid"></table>
+                </div>
+            </div>
+        </div>
+        <div class="row" id="divIDCodesForm" style="margin-top:50px;">
+            <div class="col-lg-6">
+                <div class="form-group row">
+                    <label for="txtPayerAssProId" class="col-sm-3 col-form-label" i18n="setup.billingprovider.payerassignedproviderid"></label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" id="txtPayerAssProId" name="payerAssignedProviderID">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlIdCodeQualifier" class="col-sm-3 col-form-label" i18n="setup.billingprovider.codequalifier"></label>
+                    <div class="col-sm-5">
+                        <select id="ddlIdCodeQualifier" class="form-control valid" style="width: 70%" name="codeQualifier">
+                            <option value="" i18n="shared.buttons.select"></option>
+                            <% _.each(qualifierCodes, function(qualifiers) { %>
+                                <option value='<%= qualifiers.id %>'>
+                                    <%=qualifiers.description%>
+                                </option>
+                                <% }); %>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtInsurnaceProvidre" class="col-sm-3 col-form-label" i18n="setup.billingprovider.insuranceprovider"></label>
+                    <div class="col-sm-5">
+                        <select id="ddlInsuranceProvider" style="width: 250px" name="insuranceProvider">
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row" style="float:right;">
+                    <button id="btnSaveICDCode" type="submit" class="btn btn-primary" i18n="setup.billingprovider.saveIdCode"></button>
+                    <button id="btnCancel" type="submit" class="btn btn-primary" i18n="shared.buttons.cancel"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

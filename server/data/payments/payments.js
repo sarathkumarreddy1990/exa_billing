@@ -1,0 +1,485 @@
+const { query, SQL } = require('./../index');
+
+module.exports = {
+
+    getPayments: async function (params) {
+        let whereQuery = [];
+        params.sortOrder = params.sortOrder || ' ASC';
+        params.sortField = params.sortField == 'id' ? ' payments.id ' : params.sortField;
+        let {
+            payment_id,
+            display_id,
+            payment_dt,
+            payer_type,
+            payer_name,
+            accounting_dt,
+            amount,
+            available_balance,
+            applied,
+            adjustment_amount,
+            user_full_name,
+            payment_mode,
+            facility_name,
+            sortOrder,
+            sortField,
+            pageNo,
+            pageSize,
+            fromDate,
+            toDate,
+            filterByDateType,
+            paymentStatus,
+            isGetTotal
+        } = params;
+
+        if (fromDate && toDate) {
+            whereQuery.push(`${filterByDateType} BETWEEN  '${fromDate}'::date AND '${toDate}'::date`);
+        }
+
+        if (paymentStatus) {
+            whereQuery.push(`(select payment_status from billing.get_payment_totals(payments.id))=ANY(string_to_array('${params.paymentStatus}',','))`);
+        }
+
+        if (payment_id) {
+            whereQuery.push(` payments.id =${payment_id}`);
+        }
+
+        if (display_id) {
+            whereQuery.push(` alternate_payment_id ILIKE '%${display_id}%'`);
+        }
+
+        if (payment_dt) {
+            whereQuery.push(` payment_dt::date = '${payment_dt}'::date`);
+        }
+
+        if (accounting_dt) {
+            whereQuery.push(` accounting_dt::date ='${accounting_dt}'::date`);
+        }
+
+        if (payer_type) {
+            whereQuery.push(` payer_type = replace('${payer_type}', '\\', '')`);
+        }
+
+        if (payer_name) {
+            whereQuery.push(`  (  CASE payer_type 
+                WHEN 'insurance' THEN insurance_providers.insurance_name
+                WHEN 'ordering_facility' THEN provider_groups.group_name
+                WHEN 'provider' THEN ref_provider.full_name
+                WHEN 'patient' THEN patients.full_name        END)  ILIKE '%${payer_name}%' `);
+        }
+
+        if (amount) {
+            whereQuery.push(`amount = ${amount}::money`);
+        }
+
+        if (available_balance) {
+            whereQuery.push(`(select payment_balance_total from billing.get_payment_totals(payments.id))=${available_balance}::money`);
+        }
+
+        if (applied) {
+            whereQuery.push(`(select payments_applied_total from billing.get_payment_totals(payments.id))=${applied}::money`);
+        }
+
+        if (adjustment_amount) {
+            whereQuery.push(`(select adjustments_applied_total from billing.get_payment_totals(payments.id))=${adjustment_amount}::money`);
+
+        }
+
+        if (user_full_name) {
+            whereQuery.push(`get_full_name(users.last_name, users.first_name)  ILIKE '%${user_full_name}%' `);
+        }
+
+        if (payment_mode) {
+            whereQuery.push(`mode ILIKE '%${payment_mode}%'`);
+        }
+
+        if (facility_name) {
+            whereQuery.push(`facility_name  ILIKE '%${facility_name}%' `);
+        }
+
+        let joinQuery = ` INNER JOIN public.users ON users.id = payments.created_by
+        LEFT JOIN public.patients ON patients.id = payments.patient_id
+        LEFT JOIN public.provider_groups ON provider_groups.id = payments.provider_group_id
+        LEFT JOIN public.provider_contacts ON provider_contacts.id = payments.provider_contact_id
+        LEFT JOIN public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
+        LEFT JOIN public.insurance_providers  ON insurance_providers.id = payments.insurance_provider_id
+        LEFT JOIN public.facilities ON facilities.id = payments.facility_id `;
+
+        let sql = '';
+
+        if (isGetTotal) {
+            sql = SQL` SELECT SUM(amount) as total_amount,
+                        SUM((select payments_applied_total from billing.get_payment_totals(payments.id))::money) as total_applied,
+                        SUM((select adjustments_applied_total from billing.get_payment_totals(payments.id))::money) as total_adjustment
+                        FROM billing.payments `;
+        } else {
+            sql = SQL`SELECT
+                          payments.id
+                        ,payments.id as payment_id
+                        , payments.facility_id
+                        , patient_id
+                        , insurance_provider_id
+                        , payments.provider_group_id
+                        , provider_contact_id
+                        , payment_reason_id
+                        , amount MONEY
+                        , accounting_dt 
+                        , payment_dt 
+                        , alternate_payment_id AS display_id
+                        , (  CASE payer_type 
+                                WHEN 'insurance' THEN insurance_providers.insurance_name
+	                            WHEN 'ordering_facility' THEN provider_groups.group_name
+	                            WHEN 'provider' THEN ref_provider.full_name
+	                            WHEN 'patient' THEN patients.full_name        END) AS payer_name
+                        , payment_dt
+                        , invoice_no
+                        , alternate_payment_id
+                        , payer_type
+                        , payments.notes
+                        , mode AS payment_mode
+                        , card_name
+                        , card_number
+                        , patients.full_name as patient_name
+                        , get_full_name(users.last_name, users.first_name) as user_full_name
+                        , facilities.facility_name
+                        , amount
+                        , (select payment_balance_total from billing.get_payment_totals(payments.id)) AS available_balance
+                        , (select payments_applied_total from billing.get_payment_totals(payments.id)) AS applied       
+                        , (select adjustments_applied_total from billing.get_payment_totals(payments.id)) AS adjustment_amount
+                        , (select payment_status from billing.get_payment_totals(payments.id)) AS current_status
+                        , COUNT(1) OVER (range unbounded preceding) AS total_records
+                    FROM billing.payments`;
+
+        }
+
+        sql.append(joinQuery);
+
+        if (whereQuery.length) {
+            sql.append(SQL` WHERE `)
+                .append(whereQuery.join(' AND '));
+        }
+
+        if (!isGetTotal) {
+            sql.append(SQL` ORDER BY  `)
+                .append(sortField)
+                .append(' ')
+                .append(sortOrder)
+                .append(SQL` LIMIT ${pageSize}`)
+                .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+        }
+
+        return await query(sql);
+    },
+
+    getPayment: async function (params) {
+
+        let { id } = params;
+
+        const sql = `SELECT
+                          payments.id
+                        , payments.facility_id
+                        , patient_id
+                        , providers.full_name AS provider_full_name
+                        , insurance_name AS insurance_name
+                        , provider_groups.group_name AS ordering_facility_name
+                        , patients.full_name as patient_name
+                        , insurance_provider_id
+                        , provider_group_id
+                        , provider_contact_id
+                        , payment_reason_id
+                        , amount MONEY
+                        , accounting_dt AS accounting_date
+                        , payment_dt AS payment_date
+                        , alternate_payment_id AS display_id
+                        , created_by AS payer_name
+                        , payment_dt
+                        , invoice_no
+                        , alternate_payment_id
+                        , payer_type
+                        , payments.notes
+                        , mode AS payment_mode
+                        , card_name
+                        , card_number
+                        , get_full_name(users.last_name, users.first_name) as user_full_name
+                        , facilities.facility_name
+                        , amount
+                        , (select payment_balance_total from billing.get_payment_totals(payments.id)) AS available_balance
+                        , (select payments_applied_total from billing.get_payment_totals(payments.id)) AS applied       
+                        , (select adjustments_applied_total from billing.get_payment_totals(payments.id)) AS adjustment_amount
+                        , (select payment_status from billing.get_payment_totals(payments.id)) AS current_status
+                    FROM billing.payments
+                    INNER JOIN public.users ON users.id = payments.created_by
+                    LEFT JOIN public.patients ON patients.id = payments.patient_id
+                    LEFT JOIN public.facilities ON facilities.id = payments.facility_id
+                    LEFT JOIN public.insurance_providers ON insurance_providers.id = payments.insurance_provider_id
+                    LEFT JOIN provider_groups ON provider_groups.id = payments.provider_group_id
+                    LEFT JOIN public.providers ON providers.id = payments.provider_contact_id
+
+                    WHERE 
+                        payments.id = ${id}`;
+
+        return await query(sql);
+    },
+
+    createOrUpdatePayment: async function (params) {
+        let {
+            paymentId,
+            company_id,
+            facility_id,
+            patient_id,
+            insurance_provider_id,
+            provider_group_id,
+            provider_contact_id,
+            payment_reason_id,
+            amount,
+            accounting_date,
+            user_id,
+            invoice_no,
+            display_id,
+            payer_type,
+            notes,
+            payment_mode,
+            credit_card_name,
+            credit_card_number } = params;
+
+        payer_type = payer_type == 'provider' ? 'ordering_provider' : payer_type;
+
+        const sql = SQL`WITH insert_data as ( INSERT INTO billing.payments
+                                                (   company_id
+                                                  , facility_id
+                                                  , patient_id
+                                                  , insurance_provider_id
+                                                  , provider_group_id
+                                                  , provider_contact_id
+                                                  , payment_reason_id
+                                                  , amount
+                                                  , accounting_dt
+                                                  , created_by
+                                                  , payment_dt
+                                                  , invoice_no
+                                                  , alternate_payment_id
+                                                  , payer_type
+                                                  , notes
+                                                  , mode
+                                                  , card_name
+                                                  , card_number)
+                                                SELECT
+                                                    ${company_id}
+                                                  , ${facility_id}
+                                                  , ${patient_id}
+                                                  , ${insurance_provider_id}
+                                                  , ${provider_group_id}
+                                                  , ${provider_contact_id}
+                                                  , ${payment_reason_id}
+                                                  , ${amount}
+                                                  , ${accounting_date}
+                                                  , ${user_id}
+                                                  , now()
+                                                  , ${invoice_no}
+                                                  , ${display_id}
+                                                  , ${payer_type}
+                                                  , ${notes}
+                                                  , ${payment_mode}
+                                                  , ${credit_card_name}
+                                                  , ${credit_card_number}
+                                                WHERE NOT EXISTS( SELECT 1 FROM billing.payments where id = ${paymentId})
+                                                RETURNING id ),
+                                                payment_update AS(UPDATE billing.payments SET
+                                                    facility_id = ${facility_id}
+                                                  , patient_id = ${patient_id}
+                                                  , insurance_provider_id = ${insurance_provider_id}
+                                                  , provider_group_id = ${provider_group_id}
+                                                  , provider_contact_id = ${provider_contact_id}
+                                                  , amount = ${amount}::money
+                                                  , accounting_dt = ${accounting_date}
+                                                  , invoice_no = ${invoice_no}
+                                                  , alternate_payment_id = ${display_id}
+                                                  , payer_type = ${payer_type}
+                                                  , payment_reason_id = ${payment_reason_id}
+                                                  , notes = ${notes}
+                                                  , mode = ${payment_mode}
+                                                  , card_name = ${credit_card_name}
+                                                  , card_number = ${credit_card_number}
+                                                  WHERE 
+                                                    id = ${paymentId}
+                                                  AND NOT EXISTS(SELECT 1 FROM insert_data) 
+                                                  RETURNING id
+                                                )
+                                                  SELECT id from insert_data
+                                                  UNION 
+                                                  SELECT id from payment_update `;
+
+        return await query(sql);
+    },
+
+    deletePayment: async function (params) {
+
+        let { id } = params;
+
+        const sql = SQL` DELETE FROM
+                             billing.payments
+                         WHERE
+                             id = ${id}`;
+        return await query(sql);
+    },
+
+    createPaymentapplications: async function (params) {
+        let { user_id, paymentId, line_items, adjestmentId } = params;
+        adjestmentId = adjestmentId ? adjestmentId : null;
+        const sql = SQL`WITH claim_comment_details AS(
+                                    SELECT 
+                                          claim_id
+                                        , note
+                                        , type
+                                        , created_by
+                                    FROM json_to_recordset(${JSON.stringify(params.coPaycoInsDeductdetails)}) AS details(
+                                          claim_id BIGINT
+                                        , note TEXT
+                                        , type TEXT
+                                        , created_by BIGINT)
+                                    ),
+                             insert_application AS(
+                                SELECT billing.create_payment_applications(${paymentId},${adjestmentId},${user_id},(${line_items})::jsonb)
+                             ),
+                             update_claims AS(
+                                    UPDATE billing.claims
+                                    SET
+                                        billing_notes = ${params.billingNotes}
+                                      , payer_type = ${params.payerType}
+                                    WHERE
+                                        id = ${params.claimId}),
+                             insert_calim_comments AS(
+                                    INSERT INTO billing.claim_comments
+                                    ( claim_id
+                                    , note
+                                    , type
+                                    , is_internal
+                                    , created_by
+                                    , created_dt)
+                                    SELECT 
+                                      claim_id
+                                    , note
+                                    , type
+                                    , false
+                                    , created_by
+                                    , now()
+                                    FROM claim_comment_details)
+                                    SELECT * FROM insert_application`;
+
+        return await query(sql);
+    },
+
+    updatePaymentApplication: async function (params) {
+
+        const sql = SQL`WITH update_application_details AS(
+                            SELECT 
+                                payment_application_id
+                              , amount
+                              , adjestment_id
+                            FROM json_to_recordset(${JSON.stringify(params.updateAppliedPayments)}) AS details(
+                               payment_application_id BIGINT
+                             , amount MONEY
+                             , adjestment_id BIGINT)),
+                        claim_comment_details AS(
+                                SELECT 
+                                      claim_id
+                                    , note
+                                    , type
+                                    , created_by
+                                FROM json_to_recordset(${JSON.stringify(params.coPaycoInsDeductdetails)}) AS details(
+                                      claim_id BIGINT
+                                    , note TEXT
+                                    , type TEXT
+                                    , created_by BIGINT)
+                                ),
+                        cas_application_details AS(
+                                SELECT
+                                    cas_id
+                                  , group_code_id
+                                  , reason_code_id
+                                  , payment_application_id
+                                  , amount
+                                FROM json_to_recordset(${JSON.stringify(params.save_cas_details)}) AS details(
+                                    cas_id BIGINT
+                                  , group_code_id BIGINT
+                                  , reason_code_id BIGINT
+                                  , payment_application_id BIGINT
+                                  , amount MONEY)
+                                ),
+                        update_applications AS(
+                            UPDATE billing.payment_applications 
+                                SET
+                                    amount = uad.amount
+                                  , adjustment_code_id = uad.adjestment_id
+                            FROM update_application_details uad
+                            WHERE id = uad.payment_application_id),
+                        update_claim_details AS(
+                            UPDATE billing.claims
+                            SET
+                                billing_notes = ${params.billingNotes}
+                              , payer_type = ${params.payerType}
+                            WHERE
+                                id = ${params.claimId}),
+                        update_claim_comments AS(
+                            INSERT INTO billing.claim_comments
+                            ( claim_id
+                            , note
+                            , type
+                            , is_internal
+                            , created_by
+                            , created_dt)
+                            SELECT 
+                              claim_id
+                            , note
+                            , type
+                            , false
+                            , created_by
+                            , now()
+                            FROM claim_comment_details),
+                        update_cas_application AS(
+                                    UPDATE billing.cas_payment_application_details bcpad
+                                        SET
+                                            cas_group_code_id = cad.group_code_id
+                                          , cas_reason_code_id = cad.reason_code_id
+                                          , amount = cad.amount
+                                    FROM cas_application_details cad
+                                    WHERE cad.cas_id = bcpad.id 
+                                ),
+                        insert_cas_applications AS (
+                                INSERT INTO billing.cas_payment_application_details
+                                (
+                                    payment_application_id
+                                  , cas_group_code_id
+                                  , cas_reason_code_id
+                                  , amount 
+                                )
+                                SELECT 
+                                    payment_application_id
+                                  , group_code_id
+                                  , reason_code_id
+                                  , amount
+                                FROM cas_application_details
+                                WHERE cas_id is null
+                            )
+                            SELECT true`;
+
+        return await query(sql);
+    },
+
+    saveCasDetails: async function (params) {
+
+        const sql = `INSERT INTO billing.cas_payment_application_details
+                                            (   payment_application_id
+                                              , cas_group_code_id
+                                              , cas_reason_code_id
+                                              , amount
+                                            )
+                                            (SELECT
+                                                ${params.application_id}
+                                              , ${params.group_code}
+                                              , ${params.reason_code}
+                                              , ${params.amount})
+                                              RETURNING id`;
+        return await query(sql);
+    }
+
+};

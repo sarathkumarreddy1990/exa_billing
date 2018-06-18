@@ -1,0 +1,181 @@
+<style>
+    .patient-search__header {
+        background-color: lightgrey;
+        padding: 10px 20px;
+    }
+
+    .patient-search__header-text {
+        text-transform: uppercase;
+        color: grey;
+        font-weight: bold;
+        font-size: 14px;
+    }
+</style>
+<div id="divPendingPaymentsContainer">
+    <div class="tabbable" style="margin-top:20px;margin-bottom: 20px;">
+        <ul id="claimsTabs" class="nav nav-tabs">
+            <li id="liPendingPayments" class="nav-item">
+                <a href="#divPendingPayments" data-container="All_Claims" class="nav-link active show" data-toggle="tab" i18n="billing.payments.pendingPayments"
+                    title="All Claims">All Claims</a>
+            </li>
+            <li id="liAppliedPayments" class="nav-item">
+                <a href="#divApplidPayments" data-container="Follow_up_queue" i18n="billing.payments.appliedPayments" class="nav-link" data-toggle="tab"
+                    title="Follow-Up Queue">Follow-Up Queue</a>
+            </li>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-content">
+                <div class="tab-pane active" id="divPendingPayments" style="margin-top: 10px;">
+                    <div id="divPendingRecords">
+                        <div align="right" style="margin-bottom:5px;">
+                            <input type="button" value="Refresh" id="btnPaymentRefresh" i18n="shared.buttons.refresh" class="btn pendRefresh">
+                            <input type="button" value="Refresh" id="btnBackToPatient" i18n="billing.payments.backToPatients" class="btn" style="display: none;">
+                        </div>
+                        <div class='Grid' id='divGrid_pendPayments'>
+                            <table id="tblpendPaymentsGrid"></table>
+                            <div id="gridPager_pendPayments"></div>
+                        </div>
+                        <div id="pendPaymentsBalSummary" align="center" style="margin-top:10px;">
+                            <table id="tblPendPaymentBal" class="table table-bordered" style="width:50%!important;">
+                            </table>
+                        </div>
+                    </div>
+                    <div id="diVPatient" style="width:98%; margin-left: 20px; margin-top: 20px; display: none;">
+                        <div id="divGrid">
+                            <div class="row" id="searchForm">
+                                <div id="divPatientInputs">
+                                    <div class="col-xs-12">
+                                        <div class="form-group form-inline">
+                                            <select id="ddlSearchType" class="form-control">
+                                                <option value="start" i18n="patient.patientSearchLite.startsWith">Starts With</option>
+                                                <option value="end" i18n="patient.patientSearchLite.endsWith">Ends With</option>
+                                                <option value="contain" i18n="patient.patientSearchLite.contains">Contains</option>
+                                            </select>
+                                            <select id="ddlFacilitySearch" class="form-control">
+                                                <option value="-1">All</option>
+                                                <% _.each(facilities, function(facility) { %>
+                                                    <option value="<%= facility.id %>">
+                                                        <%= facility.facility_name %>
+                                                    </option>
+                                                    <% }); %>
+                                            </select>
+                                            <input type="checkbox" checked="checked" id="chk_isActiveNeeded" style="margin-left: 10px;">
+                                            <label for="chk_isActiveNeeded" class="field-chk" i18n="patient.patientSearchLite.showInactive">&nbsp;Show Inactive</label>
+
+                                            <input type="checkbox" id="chk_PatOwner" style="margin-left: 10px;">
+                                            <label for="chk_PatOwner" class="field-chk" id="chk_PatOwner_Vet" i18n="patient.patientSearchLite.searchOwners" style="display: none;">Search Owners</label>
+
+                                            <!-- <a id="anc_search" class="btn btn-primary" href="javascript: void(0)" style="margin-left: 10px;">
+                                                <i class="icon-ic-search">Search</i>
+                                            </a> -->
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 search-field__container">
+                                        <div class="form-group form-inline">
+                                            <div class="fc-inline" id="searchPatient" style="width: 100%;">
+                                                <input type="text" id="lname" class="form-control search-field" i18np="shared.fields.lastName" placeholder="Last Name">
+                                                <input type="text" id="fname" class="form-control search-field" i18np="shared.fields.firstName" placeholder="First Name">
+                                                <input type="text" id="mrn" class="form-control search-field" i18np="shared.fields.mrn" placeholder="MRN">
+                                                <a id="anc_search" class="btn btn-primary" href="javascript: void(0)" style="margin-left: 10px; float: right;">
+                                                    <i class="icon-ic-search"></i>
+                                                </a>
+                                                <input type="text" id="claimId" class="form-control" style="float: right;" placeholder="Invoice No">
+                                                </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-12" style="margin-top: 5px !important;">
+                                    <div class="patient-search__header">
+                                        <span class="patient-search__header-text" i18n="patient.patientSearchLite.patientSearchResults">Patient Search Results</span>
+                                    </div>
+                                    <div class="patient-search__container" style="margin-top: 0px !important; height: 495px; overflow: auto;">
+                                        <div id="divNoPatients" class="noRecords" style="display:none;">
+                                            <h4>
+                                                <span i18n="patient.patientSearchLite.YourSearch">Your search</span> -
+                                                <em id="em_SearchValue">---</em> -
+                                                <span i18n="patient.patientSearchLite.didNotMatchAnyPatients">did not match any patients</span>
+                                            </h4>
+                                            <div style="margin-top:1em">
+                                                <h4>
+                                                    <span i18n="patient.patientSearchLite.Suggestions">Suggestions:</span>
+                                                </h4>
+                                            </div>
+                                            <ul style="margin:0 0 2em;margin-left:1.3em">
+                                                <li>
+                                                    <h4>
+                                                        <span i18n="patient.patientSearchLite.rryDifferentKeywords">Try different keywords.</span>
+                                                    </h4>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <div id="divPatientSearchResults" class="results-on" style="overflow: auto;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="divEmptySearch" style="display:none;">
+                                <p style="padding-top:.33em"></p>
+                                <h4>
+                                    <span i18n="patient.patientSearchLite.pleaseEnterAtleast">Please enter atleast</span>
+                                    <em id="em_SearchLetters"></em>
+                                    <span i18n="patient.patientSearchLite.charactersToSsearch">charactors to search.</span>
+                                </h4>
+                                <p></p>
+                            </div>
+                            <div id="divPatientPaging" class="custompage" style="margin-top: 5px !important; display: none; width: 100%;">
+                                <div style="width: 46%; float: left;">
+                                    <span i18n="patient.patientSearchLite.totalRecords">Total Records :&nbsp;</span>
+                                    <span id="spnPatientTotalRecords">36</span>
+                                </div>
+                                <div style="display: inline;">
+                                    <span i18n="patient.patientSearchLite.page">Page</span>
+                                    <span id="spnPatientCurrentPage">1</span>
+                                    <span i18n="patient.patientSearchLite.of">of</span>
+                                    <span id="spnPatientTotalPage">4</span>
+                                </div>
+                                <div class="pagination pagination-right" style="margin-right: 5px; margin-top: 0px; margin-bottom: 0px; float: right;">
+                                    <ul>
+                                        <li id="li_first" class="disabled" disabled="disabled">
+                                            <a title="Go to first page" href="javascript:void(0);" id="anc_first" data-container="first_gridPager">
+                                                <i class="icon-ic-first"></i>
+                                            </a>
+                                        </li>
+                                        <li id="li_previous" class="disabled" disabled="disabled">
+                                            <a title="Go to previous page" href="javascript:void(0);" id="anc_previous" data-container="prev_gridPager">
+                                                <i class="icon-ic-backward"></i>
+                                            </a>
+                                        </li>
+                                        <li id="li_next">
+                                            <a title="Go to next page" href="javascript:void(0);" id="anc_next" data-container="next_gridPager">
+                                                <i class="icon-ic-forward"></i>
+                                            </a>
+                                        </li>
+                                        <li id="li_last">
+                                            <a title="Go to last page" href="javascript:void(0);" id="anc_last" data-container="last_gridPager">
+                                                <i class="icon-ic-last"></i>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane" id="divApplidPayments" style="margin-top: 10px;">
+                    <div>
+                        <div align="right" style="margin-bottom:5px;">
+
+                            <input type="button" value="Refresh" id="btnAppliedPayRefresh" i18n="shared.buttons.refresh" class="btn appliedRefresh">
+                        </div>
+                        <div class='Grid' id='divGrid_appliedPayments'>
+                            <table id="tblAppliedPaymentsGrid"></table>
+                            <div id="gridPager_appliedPayments"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,30 @@
+<div class="form-group row">
+    <div class="col-lg-12">
+        <div class="col-lg-6">
+            <form id="formStatusColorCodes" class="form-horizontal">
+                <div class="form-group row">
+                    <label for="txtProcessType" class="col-sm-3 col-form-label field-required" i18n="setup.statusColorCode.processType"></label>
+                    <div class="col-sm-5">
+                        <select id="ddlProcessType" class="form-control" style="height:32px;" name="processType">
+                            <option value="claim" i18n="setup.statusColorCode.claim"></option>
+                            <option value="payment" i18n="setup.statusColorCode.payment"></option>
+                            <option value="study" i18n="setup.statusColorCode.study"></option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtProcessStatus" class="col-sm-3 col-form-label field-required" i18n="setup.statusColorCode.processStatus"></label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" id="txtProcessStatus" name="processStatus">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtColor" class="col-sm-3 col-form-label" i18n="setup.statusColorCode.colorCode"></label>
+                    <div class="col-sm-5">
+                        <input type="color" id="txtColor" style="margin-top:2%">
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

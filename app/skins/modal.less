@@ -1,0 +1,138 @@
+/**
+ * Modal Windows
+ */
+
+.modal-content {
+	-webkit-border-radius: 2px;
+	-moz-border-radius: 2px;
+	border-radius: 2px;
+} 
+
+.modal-footer {
+	background: @header_bg;
+}
+
+.modal-dialog {
+	max-width: 2500px;
+}
+
+.modal-header {
+  background: @header_bg;
+  color: @header_text_color;
+  border-top-left-radius: 0px !important;
+  border-top-right-radius: 0px !important;
+}
+
+/* Modal Header */
+.modal-header {
+	border: 0;
+	padding: 20px 24px 12px;
+	h4 {
+		font-size: 20px;
+		font-weight: 500;
+	}
+
+	.close {
+		color: @header_text_color;
+		position: absolute;
+		right:8px;
+		top: 13px;
+		min-width: 0;
+		font-size: 16px;
+		text-indent: 1px;
+	}
+}
+
+/* Modal Footer */
+.modal-footer {
+	border: 0;
+	padding: 12px 16px 16px;
+}
+
+/* Modal New Filter */
+.modal-new-filter {
+	.modal-dialog {
+		width: 825px;
+	}
+}
+.filter_item{
+	width: 100%;
+	.clearfix();
+	padding: 0 0 32px;
+	label{
+		float: left;
+		line-height: 30px;
+		padding: 0 24px;
+		&.left_item{
+			width: 64px;
+			padding: 0;
+		}
+	}
+	.color_item{
+		float: left;
+		width: 30px;
+		height: 30px;
+		overflow: hidden;
+		&.red_color{
+			background: #EB3F79;
+		}
+	}
+}
+.el{
+	float: left;
+	padding: 0 16px 0 0;
+	input{
+		float: left;
+	}
+}
+.rules_box{
+	width: 100%;
+	.left_item{
+		float: left;
+		width: 64px;
+		span{
+			display: block;
+			line-height: 30px;
+		}
+	}
+	label {
+		float: left;
+		line-height: 30px;
+	}
+	.fc-half{
+		height: 32px;
+	}
+	.right_item{
+		padding-left: 64px;
+		.clearfix();
+		.rules_item{
+			width: 100%;
+			padding-bottom: 16px;
+			.clearfix();
+			.add_rule{
+				float: left;
+				height: 30px;
+				line-height: 30px;
+				color: #333;
+				font-size: 13px;
+				i{
+					float: left;
+					height: 30px;
+					width: 30px;
+					line-height: 30px;
+					text-align: center;
+					margin-right: 5px;
+					color: rgba(0,0,0,0.5);
+				}
+				&:hover{
+					i{
+						color: #000;
+					}
+				}
+			}
+		}
+		label{
+			padding-left: 16px;
+		}
+	}
+}

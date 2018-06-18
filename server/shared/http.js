@@ -1,6 +1,15 @@
 const logger = require('../../logger');
 
 module.exports = {
+
+    send: function (req, res, responseData) {
+        try {
+            return res.send(responseData);
+        } catch (err) {
+            return res.send(err);
+        }
+    },
+
     sendRows: function (req, res, responseData) {
         try {
             return res.send(responseData.rows);
@@ -39,5 +48,5 @@ module.exports = {
         } catch (err) {
             logger.error('When sending error response', err);
         }
-    },
+    }
 };

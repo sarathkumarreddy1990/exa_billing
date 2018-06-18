@@ -1,0 +1,318 @@
+<header class="header">
+</header>
+<style>
+   
+#divStatusSearch {
+    position: fixed;
+    display: none;
+    max-height: 400px;
+    max-width: 420px;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  .statusMenu {
+  height: auto;
+  border: 2px #d4d4d4 solid;
+  background-color: #F6F6F6;
+  z-index: 110000;
+  position: absolute;
+  font-size: 1em !important;
+}
+.header-status {
+  background-color: #5A5A5A !important;
+  color: #FFFFFF !important;
+  line-height: 25px;
+}
+
+.statusList li {
+    padding: 0px;
+}
+
+.statusList li label {
+  font-size: 0.8em !important;
+}
+
+.statusList {
+  margin-left: 0px !important;
+  margin-bottom: 4px !important;
+}
+
+.statusList .inline {
+  padding-top: 0px !important;
+}
+
+div.multiStudyColumnList input[type=checkbox] {
+  display: block;
+}
+.multiStudyColumnList {
+  column-count: 3;
+  -moz-column-count: 3; /* Firefox */
+  -webkit-column-count: 3; /* Safari and Chrome */
+  padding: 0px;
+}
+
+</style>
+
+<div class="controls" style="float:left;">
+</div>
+<nav class="top-nav">
+    <div id="divTabsContainer" style="float:left;">
+        <div>
+            <ul id="studyTabs" class="nav tn-menu"></ul>
+            <ul id="claimsTabs" class="nav tn-menu"></ul>
+        </div>
+    </div>
+    <div style="float:right;">
+        <form class="small_dd tn-menu">
+            <ul class="tn-menu-right">
+                <!--TODO  Put back study fliter dropdown and left and right nav buttons-->
+                <li class="studyBtnPadding">
+                    <i class="icon-ic-expand" id="btnTabNavLeft" title="Move tab bar by left side"></i>
+                </li>
+                <li class="studyBtnPadding">
+                    <i class="icon-ic-expand-flipped" id="btnTabNavRight" title="Move tab bar by right side"></i>
+                </li>
+                <li class="dropdown active studyBtnPadding">
+                    <i id="btnShowTabItems" class="icon-chevron-down" data-toggle="dropdown" title="Show all Tabs by list"></i>
+                    <ul id="ulTabCollection" class="dropdown-menu" style="overflow:auto!important;max-height:400px;margin-top:8px!important;"
+                        role="menu" aria-labelledby="btnShowTabItems">
+                    </ul>
+                </li>
+                <li>
+                    <input type="button" value="Claim" id="btnInsuranceClaim" class="btn btn-primary" i18n="billing.fileInsurance.claim">
+                </li>
+                <li>
+                    <input type="button" value="Validate" id="btnValidateOrder" class="btn btn-primary" i18n="shared.buttons.validate">
+                </li>
+                <li>
+                    <button type="button" class="btn btn-primary" id="btnValidateExport" i18n="shared.buttons.export" i18n="report.reportFilter.exportToExel"
+                        data-rformat="xlsx">
+                        <i class="fa fa-file-excel-o"></i></button>
+                </li>
+                <li>
+                    <a>
+                        <i title="Refresh" id="btnFileInsuranceRefresh" class="icon-ic-reset"></i>
+                    </a>
+                </li>
+                <li>
+                    <a>
+                        <i title="Refresh All" id="btnClaimRefreshAll" class="icon-ic-loop"></i>
+                        <i title="Refresh All" id="btnStudiesRefreshAll" class="icon-ic-loop"></i>
+                    </a>
+                </li>
+                <li>
+                    <a>
+                        <i title="Settings" id="mySettings" class="icon-ic-actions"></i>
+                    </a>
+                </li>
+                <li>
+                    <a>
+                        <i title="Filters" id="btnStudyFilter" class="icon-ic-filter"></i>
+                    </a>
+                </li>
+            </ul>
+        </form>
+    </div>
+</nav>
+<div class="tabbable" id="diveHomeIndex" style="display:none;">
+    <div class="row" id="divStudyHeader" style="float: left; display: none; width:100%;">
+        <i class="icon-ic-calendar icon-ic-large"></i>
+        <span style="padding-left: 10px;"></span>
+        <b class="caret pull-right" style="margin-top: 8px;"></b>
+    </div>
+</div>
+
+<div class="tab-content bgColorGadgetLight example" id="data_container_home">
+    <div class="tab-pane " style="height: auto!important" id="Summary">
+        <div id="divGadgetSummary" style="display: none">
+        </div>
+        <div id="divGadgetSummaryNew" style="position: absolute; top: 90px; bottom: 10px; left: 10px; right: 10px; overflow: auto;">
+        </div>
+    </div>
+</div>
+
+<div class="col-xs-7 col-md-7 col-lg-7" style="margin-top: 5px !important;">
+
+
+    <div class="statusMenu" id="divStatusSearch">
+        <div class="header-status">
+            <label style="padding-left: 25px !important;" class="checkbox">
+                <input id="chkAppointmentStatus" type="checkbox">
+                <span i18n="home.worklist.appointmentStatus"></span>
+            </label>
+        </div>
+        <div class="multiStudyColumnList">
+            <ul id="ulAppointmentStatus" style="list-style: none;" class='statusList'>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="SCHEDULED" type="checkbox" value="SCH">
+                        <span i18n="home.worklist.scheduled"></span>
+                    </label>
+                </li>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="RESCHEDULED" type="checkbox" value="RSCH">
+                        <span i18n="home.worklist.rescheduled"></span>
+                    </label>
+                </li>
+
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="CONFIRMED" type="checkbox" value="CON">
+                        <span i18n="home.worklist.confirmed"></span>
+                    </label>
+                </li>
+
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="CHECKEDIN" type="checkbox" value="CHI">
+                        <span i18n="home.worklist.checkedin"></span>
+                    </label>
+                </li>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="CHECKEDOUT" type="checkbox" value="CHO">
+                        <span i18n="home.worklist.checkedout"></span>
+                    </label>
+                </li>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="CANCELED" type="checkbox" value="CAN">
+                        <span i18n="home.worklist.cancelled"></span>
+                    </label>
+                </li>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="ABORTED" type="checkbox" value="ABRT">
+                        <span i18n="home.worklist.aborted"></span>
+                    </label>
+                </li>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="NOSHOWS" type="checkbox" value="NOS">
+                        <span i18n="home.worklist.noshows"></span>
+                    </label>
+
+                </li>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="PRECHECKIN" type="checkbox" value="PR">
+                        <span i18n="home.worklist.precheckin"></span>
+                    </label>
+                </li>
+            </ul>
+        </div>
+
+
+        <div class="header-status">
+            <label style="padding-left: 25px !important;" class="checkbox">
+                <input id="chkStudyProgress" type="checkbox">
+                <span i18n="home.worklist.studyProgress"></span>
+            </label>
+        </div>
+        <div class="multiStudyColumnList">
+            <ul id="ulStudyProgress" style="list-style: none;" class='statusList'>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="START" type="checkbox" value="TS">
+                        <span i18n="home.worklist.start"></span>
+                    </label>
+                </li>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="END" type="checkbox" value="TE">
+                        <span i18n="home.worklist.end"></span>
+                    </label>
+                </li>
+            </ul>
+        </div>
+
+
+        <div class="header-status">
+            <label style="padding-left: 25px !important;" class="checkbox">
+                <input id="chkRadStatus" type="checkbox">
+                <span i18n="home.worklist.radStatus"></span>
+            </label>
+        </div>
+        <div class="multiStudyColumnList">
+            <ul id="ulRadStatus" style="list-style: none;" class='statusList'>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="INCOMPLETE" type="checkbox" value="INC">
+                        <span i18n="home.worklist.incomplete"></span>
+                    </label>
+                </li>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="UNREAD" type="checkbox" value="UNR">
+                        <span i18n="home.worklist.unread"></span>
+                    </label>
+                </li>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="READ" type="checkbox" value="RE">
+                        <span i18n="home.worklist.read"></span>
+                    </label>
+                </li>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="DICTATED" type="checkbox" value="DIC">
+                        <span i18n="home.worklist.dictated"></span>
+                    </label>
+                </li>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="DRAFT" type="checkbox" value="DRFT">
+                        <span i18n="home.worklist.draft"></span>
+                    </label>
+                </li>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="TRANSCRIBED" type="checkbox" value="TRAN">
+                        <span i18n="home.worklist.transcribed"></span>
+                    </label>
+                </li>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="APPROVED" type="checkbox" value="APP">
+                        <span i18n="home.worklist.approved"></span>
+                    </label>
+                </li>
+
+            </ul>
+        </div>
+
+        <table class="table" style="width: 100%;margin-bottom:0px !important;">
+            <tbody>
+                <tr>
+                    <td>
+                        <input id="chkAllStatus" type="checkbox">
+                        <label for="chkAllStatus" class="checkbox-inline" i18n="shared.fields.all"></label>
+                    </td>
+                    <td style="text-align: right;">
+                        <button type="button" class="btn btn-primary" id="btnCancelStatusSearch" i18n="shared.buttons.cancel"></button>
+                        <button id="btnStatusApply" class="btn btn-primary" type="button" i18n="shared.buttons.applyFilter"></button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <button class="btn btn-primary" id="btnClearAllStudy" title="Deselect all" i18n="shared.buttons.none" style="display: none;"></button>
+    <button class="btn btn-primary" id="btnSelectAllStudy" title="Select all studies" i18n="setup.dbTotals.all" style="display: none;"></button>
+</div>
+
+<div id="divPager" class="recordPagerDiv">
+    <span id="spanPagerSpan">
+        <span i18n="home.inbox.showing"></span>
+        <span id="spnTotalPage">
+            <i class="fa fa-spinner loading-spinner"></i>
+        </span>
+        <span i18n="home.inbox.of"></span>
+        <span id="spnTotalRecords">
+            <i class="fa fa-spinner loading-spinner"></i>
+        </span>
+    </span>
+</div>
+
+<ul class="dropdown-menu rightmenu" id="studyRightMenu" data-toggle="context" data-target="#context-menu">
+</ul>

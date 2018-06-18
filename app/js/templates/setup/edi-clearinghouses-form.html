@@ -1,0 +1,277 @@
+<div class="form-group row">
+    <div class="col-lg-12">
+        <form id="formEDIClearingHouses" class="form-horizontals">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="form-group row">
+                        <label for="txtName" class="col-sm-4 col-form-label field-required" i18n="setup.common.description"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtName" name="name">
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkIsActive">
+                            <label class="form-check-label" for="chkIsActive" i18n="shared.fields.inactive"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtCode" class="col-sm-4 col-form-label field-required" i18n="setup.common.code"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtCode" name="code">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="form-group row">
+                        <label for="txtReceiverName" class="col-sm-4 col-form-label field-required" i18n="setup.ediClearingHouses.receiverName"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtReceiverName" name="receiverName">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtReceiverID" class="col-sm-4 col-form-label field-required" i18n="setup.ediClearingHouses.receiverID"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtReceiverID" name="receiverID">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- clearing house control header -->
+            <div class="row" id="divClearingHouseControlHeader" style="margin-top:10px;">
+                <div class="col-lg-12">
+                    <div class="form-group row">
+                        <legend>
+                            <h6 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
+                                <label i18n="setup.ediClearingHouses.clearingHouseControlHeader"></label>
+                            </h6>
+                        </legend>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group row">
+                        <label for="txtAuthInfoQualifier" class="col-sm-4 col-form-label field-required" i18n="setup.ediClearingHouses.authInfo"></label>
+                        <div class="col-sm-2">
+                            <input type="text" maxlength="2" class="form-control" id="txtAuthInfoQualifier" name="authInfoQualifier">
+                        </div>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" id="txtAuthInfo" name="authInfo">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtSecurityAuthQualifier" class="col-sm-4 col-form-label field-required" i18n="setup.ediClearingHouses.securityinfo"></label>
+                        <div class="col-sm-2">
+                            <input type="text" maxlength="2" class="form-control" id="txtSecurityAuthQualifier" name="securityAuthInfoQualifier">
+                        </div>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" id="txtSecurityInfo" name="securityAuthInfo">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtSenderIDQualifier" class="col-sm-4 col-form-label field-required" i18n="setup.ediClearingHouses.senderID"></label>
+                        <div class="col-sm-2">
+                            <input type="text" maxlength="2" class="form-control" id="txtSenderIDQualifier" name="senderIDQualifier">
+                        </div>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" id="txtSenderID" name="senderID">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtIReceiverIDQualifier" class="col-sm-4 col-form-label field-required" i18n="setup.ediClearingHouses.ireceiverID"></label>
+                        <div class="col-sm-2">
+                            <input type="text" maxlength="2" class="form-control" id="txtIReceiverIDQualifier" name="iReceiverIDQualifier">
+                        </div>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" id="txtIReceiverID" name="iRecevierID">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtInterCtrlStandID" class="col-sm-4 col-form-label field-required" i18n="setup.ediClearingHouses.ctrlStandID"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtInterCtrlStandID" name="ctrlStandID">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtInterCtrlVersionNo" class="col-sm-4 col-form-label" i18n="setup.ediClearingHouses.ctrlVersionNo"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtInterCtrlVersionNo" name="ctrlVersionNo">
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group row">
+                        <label for="txtRepetitionSeperator" class="col-sm-4 col-form-label" i18n="setup.ediClearingHouses.repetitionSeperator"></label>
+                        <div class="col-sm-5">
+                            <input type="text" maxlength="1" class="form-control" id="txtRepetitionSeperator" name="repetitionSeperator">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtElementDelimiter" class="col-sm-4 col-form-label" i18n="setup.ediClearingHouses.delimiter"></label>
+                        <div class="col-sm-3">
+                            <input type="text" maxlength="1" class="form-control" id="txtElementDelimiter" name="elementDelimiter">
+                        </div>
+                        <div class="col-sm-3">
+                            <input type="text" maxlength="1" class="form-control" id="txtSubElementDelimiter" name="subelementDelimiter">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtSegmentTerminator" class="col-sm-4 col-form-label" i18n="setup.ediClearingHouses.segmentTerminator"></label>
+                        <div class="col-sm-2">
+                            <input type="text" class="form-control" id="txtSegmentTerminator" name="segmentTerminator" value="~" disabled>
+                        </div>
+                        <div class="col-sm-3 form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkAckReq">
+                            <label class="form-check-label" for="chkAckReq" i18n="setup.ediClearingHouses.acknowledgmentRequested"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label field-required" i18n="setup.ediClearingHouses.usage"></label>
+                        <div class="col-sm-3 form-check form-check-inline">
+                            <input class="form-check-input" type="radio" id="radProduction" name="radUsage" value="P">
+                            <label class="form-check-label" for="radProduction" i18n="setup.ediClearingHouses.production"></label>
+                        </div>
+                        <div class="col-sm-3 form-check form-check-inline">
+                            <input class="form-check-input" type="radio" id="radTesting" name="radUsage">
+                            <label class="form-check-label" for="radTesting" i18n="setup.ediClearingHouses.testing" value="T"></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Functional control header -->
+
+            <div class="row" id="divFunctionalControlHeader" style="margin-top:10px;">
+                <div class="col-lg-12">
+                    <div class="form-group row">
+                        <legend>
+                            <h6 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
+                                <label i18n="setup.ediClearingHouses.functionalControlHeader"></label>
+                            </h6>
+                        </legend>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group row">
+                        <label for="txtAppSenderCode" class="col-sm-4 col-form-label field-required" i18n="setup.ediClearingHouses.appSenderCode"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtAppSenderCode" name="appSenderCode">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtResAgencyCode" class="col-sm-4 col-form-label field-required" i18n="setup.ediClearingHouses.responsibleAgencyCode"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtResAgencyCode" name="responsibleAgencyCode">
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group row">
+                        <label for="txtAppReceiverCode" class="col-sm-4 col-form-label field-required" i18n="setup.ediClearingHouses.appReceiverCode"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtAppReceiverCode" name="appReceiverCode">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtVerRelIndIDCode" class="col-sm-4 col-form-label" i18n="setup.ediClearingHouses.verRelIndIDCode"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtVerRelIndIDCode" name="verRelIndIDCode">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transaction set header and clearing housing info -->
+
+            <div class="row" id="divTransactionSetHeader" style="margin-top:10px;">
+                <div class="col">
+                    <div class="form-group row">
+                        <legend style="width:98%;">
+                            <h6 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
+                                <label i18n="setup.ediClearingHouses.transactionSetHeader"></label>
+                            </h6>
+                        </legend>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtImplConventionReference" class="col-sm-4 col-form-label" i18n="setup.ediClearingHouses.conventionReference"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtImplConventionReference" name="conventionReference">
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group row">
+                        <legend style="width:98%;">
+                            <h6 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
+                                <label i18n="setup.ediClearingHouses.clearingHouseInfo"></label>
+                            </h6>
+                        </legend>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtRequestUrl" class="col-sm-4 col-form-label" i18n="setup.ediClearingHouses.requestUrl"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtRequestUrl" name="requestUrl">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtBackupRootFolder" class="col-sm-4 col-form-label" i18n="setup.ediClearingHouses.backupRootFolder"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtBackupRootFolder" name="backupRootFolder">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtRequestUrl" class="col-sm-4 col-form-label"></label>
+                        <div class="col-sm-3 form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkEnableB2B" name="enableb2b">
+                            <label class="form-check-label" for="chkEnableB2B" i18n="setup.ediClearingHouses.enableB2B"></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Details -->
+
+            <div class="row" id="divAPIDetails" style="margin-top:10px;">
+                <div class="col-lg-12">
+                    <div class="form-group row">
+                        <legend>
+                            <h6 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
+                                <label i18n="setup.ediClearingHouses.apiDetails"></label>
+                            </h6>
+                        </legend>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="form-group row">
+                        <label for="ddlXmlTemplateSyntax" class="col-sm-4 col-form-label" i18n="setup.ediClearingHouses.xmlTemplateSyntax"></label>
+                        <div class="col-sm-5">
+                            <select id="ddlXmlTemplateSyntax" class="form-control" style="height:32px;" name="state">
+                                <option value="1" selected i18n="setup.ediClearingHouses.rawEDI"></option>
+                                <option value="2" i18n="setup.ediClearingHouses.availity"></option>
+                                <option value="3" i18n="setup.ediClearingHouses.unitedHealthCare"></option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row xmlTemplateSyntaxAuth" style="display:none;">
+                        <label for="txtProviderOfficeNo" class="col-sm-4 col-form-label field-required" i18n="setup.ediClearingHouses.providerOffice"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtProviderOfficeNo" name="providerOfficeNo">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 xmlTemplateSyntaxAuth" style="display:none;">
+                    <div class="form-group row">
+                        <label for="txtUserName" class="col-sm-4 col-form-label field-required" i18n="setup.ediClearingHouses.username"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtUserName" name="username">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtPassword" class="col-sm-4 col-form-label field-required" i18n="setup.ediClearingHouses.password"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtPassword" name="password">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

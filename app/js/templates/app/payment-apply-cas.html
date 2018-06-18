@@ -1,0 +1,391 @@
+<style>
+    .col1 {
+        /* width: 85%; */
+        height: 35px;
+    }
+
+    .col2 {
+        /* width: 25%; */
+        height: 35px;
+    }
+
+    .col3 {
+        width: 80%;
+        height: 35px;
+    }
+
+    .paddingBottomDiv {
+        padding-bottom: 10px;
+    }
+</style>
+<div id="divPendingPayment" class="divBackgroundPayment form-horizontal form-list commonBorder">
+    <div id="applyPaymentContent">
+        <table class="table">
+            <tr>
+                <td style="width:15%;border:none !important;" align="center">
+                    <span i18n="order.chargePayment.totalBillFee"></span> :
+                    <span id="spApplyTotalFee"></span>
+                </td>
+                <td style="width:20%;border:none !important;" align="center">
+                    <span>Applied Payment</span> : 
+                    <span id="spPaymentApplied"></span>
+                </td>
+                <td style="width:20%;border:none !important;" align="center">
+                    <span i18n="order.chargePayment.adjustment">Applied Adjustment</span> :
+                    <span id="spAdjustmentApplied"></span>
+                </td>
+            </tr>
+        </table>
+        <div id="divApplyPendingPayments" style="overflow: auto; height: 200px;">
+            <input type="hidden" id="hdnOrderId" />
+            <input type="hidden" id="hdnPaymentId" />
+            <table id="tblApplyPendingPayments" class="table table-bordered scroll">
+                <thead id="thApplyPendingPayments" style="background: #f5f5f5;">
+                    <td>
+                        <span i18n="order.studyInfo.cptCode"></span>
+                    </td>
+                    <td>
+                        <span i18n="shared.fields.cptDescription"></span>
+                    </td>
+                    <td>
+                        <span i18n="shared.fields.billFee"></span>
+                    </td>
+                    <td>
+                        <span i18n="order.chargePayment.payment"></span>
+                    </td>
+                    <td width="10%">
+                        <span i18n="billing.payments.thisPayment"></span>
+                    </td>
+                    <td width="10%">
+                        <span i18n="shared.fields.allowed"></span>
+                    </td>
+                    <td>
+                        <span i18n="shared.fields.adjustment"></span>
+                    </td>
+                    <td width="10%">
+                        <span i18n="shared.fields.thisAdjustment"></span>
+                    </td>
+                    <td>
+                        <span i18n="shared.fields.balance"></span>
+                    </td>
+                    <td>
+                        <span i18n="billing.payments.cas"></span>
+                    </td>
+                </thead>
+                <tbody id="tBodyApplyPendingPayment">
+                </tbody>
+            </table>
+        </div>
+        <div style="text-align: right;margin: 10px 0 10px 0;">
+            <input type="button" id="btnPayfullAppliedPendingPayments" style="float:left;" class="btn btn-default btn-primary" value="Pay in full"
+                i18n="billing.payments.payInFull">
+            <input type="button" id="btnSaveAppliedPendingPayments" class="btn btn-default btn-primary" i18n="shared.buttons.saveAll"
+                value="Save All">
+            <input type="button" id="btnClearAppliedPendingPayments" class="btn btn-default" value="Clear" i18n="shared.buttons.clear">
+            <span id="spPaymentID"></span>
+        </div>
+        <div class="col-lg-12">
+            <form id="formBillingProviders" class="form-horizontals">
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group row">
+                            <label class="control-label  col-sm-3">
+                                <span i18n="order.chargePayment.totalBillFee"></span> :</label>
+
+                            <div class="col-sm-3">
+                                <label id="lblBillingFee"></label>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="control-label col-sm-3">
+                                <span i18n="shared.fields.otherPaid"></span> :</label>
+                            <div class="col-sm-3">
+                                <label id="lblOthers"><%= others_paid %> </label>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="control-label col-sm-3">
+                                <span i18n="shared.fields.adjustment"></span> :</label>
+                            <div class="col-sm-3">
+                                <label id="lblAdjustment"></label>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="control-label col-sm-3">
+                                <span i18n="shared.fields.patientPaid"></span> :</label>
+                            <div class="col-sm-3">
+                                <label id="lblPatient"><%= patient_paid %> </label>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="control-label col-sm-3">
+                                <span i18n="shared.fields.balance"></span> :</label>
+                            <div class="col-sm-3">
+                                <label id="lblBalanceNew"></label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group row">
+                            <label class="control-label field-required col-sm-5" i18n="shared.fields.responsible"></label>
+                            <div class="col-sm-5">
+                                <select id="ddlResponsible" class="form-control" style="width:250px">
+                                    <option data_code="0" value="0" i18n="shared.buttons.select">Select</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="control-label col-sm-5" i18n="shared.fields.adjustmentCode"></label>
+
+                            <div class="col-sm-5">
+                                <select id="ddlAdjustmentCode_fast" class="form-control form-control-lg adjustmentCode" style="width:250px">
+                                    <option data_id='0' data_code="0" value="0" i18n="shared.buttons.select"></option>
+                                    <% _.each(adjustmentCodes, function(adjustmentCode) { %>
+                                        <option data_id='<%= adjustmentCode.id %>' data_code='<%= adjustmentCode.code %>' data_codetype='<%= adjustmentCode.type %>'
+                                            value='<%= adjustmentCode.id %>-<%= adjustmentCode.amount %>-<%= adjustmentCode.type %>'>
+                                            <%= adjustmentCode.description %>(
+                                                <%= adjustmentCode.code %>)
+                                        </option>
+                                        <% }); %>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="control-label col-sm-5" for="txtResponsibleNotes" i18n="order.chargePayment.billingNotes"></label>
+                            <div class="col-sm-5">
+                                <textarea class="form-control" id="txtResponsibleNotes" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group row">
+                            <label class="control-label col-sm-3" i18n="order.newOrder.deduction"> :</label>
+                            <div class="col-sm-5">
+                                <input type="text" id="txtDeduction" value="0.00" class="form-control input-xs floatbox">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="control-label col-sm-3" i18n="order.newOrder.coInsurance"> :</label>
+                            <div class="col-sm-5">
+                                <input type="text" id="txtCoInsurance" value="0.00" class="form-control input-xs floatbox">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="control-label col-sm-3" i18n="order.newOrder.coPay"> :</label>
+                        
+                            <div class="col-sm-5">
+                                <input type="text" id="txtCoPay" value="0.00" class="form-control input-xs floatbox">
+                            </div>
+                        </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div id="divPaymentCAS" class="divBackgroundPayment form-horizontal commonBorder" style="display: none; position: absolute; border-radius:10px;z-index:10000; width: 97.5%; padding:20px;background-color: white;  
+          text-align: center;top: 9%;border: 1px solid black;">
+    <div class="row">
+        <div class="col">
+            <span class="cobAmount" i18n="billing.COB.groupCode"></span>
+        </div>
+        <div class="col">
+            <span class="cobAmount" i18n="billing.COB.reason"></span>
+        </div>
+        <div class="col">
+            <span class="cobAmount" i18n="billing.COB.amount"></span>
+        </div>
+    </div>
+    <div class="col-lg-12 paddingBottomDiv ">
+        <div class="row">
+            <div class="col">
+                <select id="selectGroupCode1" class="col1">
+                    <option value="" i18n="shared.buttons.select"></option>
+                    <% _.each(cas_group_codes, function(cas_group_code) { %>
+                        <option value="<%= cas_group_code.id %>" data-code="<%= cas_group_code.code %>">
+                            <%= cas_group_code.description %>
+                        </option>
+                        <% }); %>
+                </select>
+            </div>
+            <div class="col">
+                <select id="selectReason1" class="col2">
+                    <option value="" i18n="shared.buttons.select"></option>
+                    <% _.each(cas_reason_codes, function(reason_code) { %>
+                        <option value="<%= reason_code.id %>" data-code="<%= reason_code.code %>">
+                            <%= reason_code.description %>
+                        </option>
+                        <% }); %>
+                </select>
+            </div>
+            <div class="col">
+                <input type="text" class="col3 floatbox" id="txtAmount1">
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12 paddingBottomDiv ">
+        <div class="row">
+            <div class="col">
+                <select id="selectGroupCode2" class="col1">
+                    <option value="" i18n="shared.buttons.select"></option>
+                    <% _.each(cas_group_codes, function(cas_group_code) { %>
+                        <option value="<%= cas_group_code.id %>" data-code="<%= cas_group_code.code %>">
+                            <%= cas_group_code.description %>
+                        </option>
+                        <% }); %>
+                </select>
+            </div>
+            <div class="col">
+                <select id="selectReason2" class="col2">
+                    <option value="" i18n="shared.buttons.select"></option>
+                    <% _.each(cas_reason_codes, function(reason_code) { %>
+                        <option value="<%= reason_code.id %>" data-code="<%= reason_code.code %>">
+                            <%= reason_code.description %>
+                        </option>
+                        <% }); %>
+                </select>
+            </div>
+            <div class="col">
+                <input type="text" id="txtAmount2" class="col3 floatbox">
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12 paddingBottomDiv ">
+        <div class="row">
+            <div class="col">
+                <select id="selectGroupCode3" class="col1">
+                    <option value="" i18n="shared.buttons.select"></option>
+                    <% _.each(cas_group_codes, function(cas_group_code) { %>
+                        <option value="<%= cas_group_code.id %>" data-code="<%= cas_group_code.code %>">
+                            <%= cas_group_code.description %>
+                        </option>
+                        <% }); %>
+                </select>
+            </div>
+            <div class="col">
+                <select id="selectReason3" class="col2">
+                    <option value="" i18n="shared.buttons.select"></option>
+                    <% _.each(cas_reason_codes, function(reason_code) { %>
+                        <option value="<%= reason_code.id %>" data-code="<%= reason_code.code %>">
+                            <%= reason_code.description %>
+                        </option>
+                        <% }); %>
+                </select>
+            </div>
+            <div class="col">
+                <input type="text" id="txtAmount3" class="col3 floatbox">
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12 paddingBottomDiv ">
+        <div class="row">
+            <div class="col">
+                <select id="selectGroupCode4" class="col1">
+                    <option value="" i18n="shared.buttons.select"></option>
+                    <% _.each(cas_group_codes, function(cas_group_code) { %>
+                        <option value="<%= cas_group_code.id %>" data-code="<%= cas_group_code.code %>">
+                            <%= cas_group_code.description %>
+                        </option>
+                        <% }); %>
+                </select>
+            </div>
+            <div class="col">
+                <select id="selectReason4" class="col2">
+                    <option value="" i18n="shared.buttons.select"></option>
+                    <% _.each(cas_reason_codes, function(reason_code) { %>
+                        <option value="<%= reason_code.id %>" data-code="<%= reason_code.code %>">
+                            <%= reason_code.description %>
+                        </option>
+                        <% }); %>
+                </select>
+            </div>
+            <div class="col">
+                <input type="text" id="txtAmount4" class="col3 floatbox">
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12 paddingBottomDiv ">
+        <div class="row">
+            <div class="col">
+                <select id="selectGroupCode5" class="col1">
+                    <option value="" i18n="shared.buttons.select"></option>
+                    <% _.each(cas_group_codes, function(cas_group_code) { %>
+                        <option value="<%= cas_group_code.id %>" data-code="<%= cas_group_code.code %>">
+                            <%= cas_group_code.description %>
+                        </option>
+                        <% }); %>
+                </select>
+            </div>
+            <div class="col">
+                <select id="selectReason5" class="col2">
+                    <option value="" i18n="shared.buttons.select"></option>
+                    <% _.each(cas_reason_codes, function(reason_code) { %>
+                        <option value="<%= reason_code.id %>" data-code="<%= reason_code.code %>">
+                            <%= reason_code.description %>
+                        </option>
+                        <% }); %>
+                </select>
+            </div>
+            <div class="col">
+                <input type="text" id="txtAmount5" class="col3 floatbox">
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12 paddingBottomDiv ">
+        <div class="row">
+            <div class="col">
+                <select id="selectGroupCode6" class="col1">
+                    <option value="" i18n="shared.buttons.select"></option>
+                    <% _.each(cas_group_codes, function(cas_group_code) { %>
+                        <option value="<%= cas_group_code.id %>" data-code="<%= cas_group_code.code %>">
+                            <%= cas_group_code.description %>
+                        </option>
+                        <% }); %>
+                </select>
+            </div>
+            <div class="col">
+                <select id="selectReason6" class="col2">
+                    <option value="" i18n="shared.buttons.select"></option>
+                    <% _.each(cas_reason_codes, function(reason_code) { %>
+                        <option value="<%= reason_code.id %>" data-code="<%= reason_code.code %>">
+                            <%= reason_code.description %>
+                        </option>
+                        <% }); %>
+                </select>
+            </div>
+            <div class="col">
+                <input type="text" id="txtAmount6" class="col3 floatbox">
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12 paddingBottomDiv ">
+        <div class="row">
+            <div class="col">
+                <select id="selectGroupCode7" class="col1">
+                    <option value="" i18n="shared.buttons.select"></option>
+                    <% _.each(cas_group_codes, function(cas_group_code) { %>
+                        <option value="<%= cas_group_code.id %>" data-code="<%= cas_group_code.code %>">
+                            <%= cas_group_code.description %>
+                        </option>
+                        <% }); %>
+                </select>
+            </div>
+            <div class="col">
+                <select id="selectReason7" class="col2">
+                    <option value="" i18n="shared.buttons.select"></option>
+                    <% _.each(cas_reason_codes, function(reason_code) { %>
+                        <option value="<%= reason_code.id %>" data-code="<%= reason_code.code %>">
+                            <%= reason_code.description %>
+                        </option>
+                        <% }); %>
+                </select>
+            </div>
+            <div class="col">
+                <input type="text" id="txtAmount6" class="col3 floatbox">
+            </div>
+        </div>
+    </div>
+    <div class="form-group" style="margin-top:10px;text-align: center;">
+        <button type="button" class="btn btn-danger" id="btnSaveCAS" i18n="shared.buttons.save"></button>
+        <button type="button" class="btn btn-primary" id="btnCancelCAS" i18n="shared.buttons.cancel" style="margin-left: 20px;"></button>
+    </div>
+</div>

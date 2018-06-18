@@ -1,0 +1,63 @@
+<style>
+    .table>tbody>tr>td{
+    padding: 8px;
+    line-height: 1.42857143;
+    vertical-align: top;
+    }
+    .table>thead>tr>td{
+    padding: 8px;
+    line-height: 1.42857143;
+    vertical-align: top;
+    }
+</style>
+<div class="form-group row" id="divPaymentCreation">
+
+    <div class="col-lg-12" style="margin-top:10px;">
+
+        <div class="form-group row">
+            <label class="col-sm-3 col-form-label">
+                <span i18n="billing.payments.paymentIdentifier"></span>
+            </label>
+
+            <div class="col-sm-5">
+                <label class="col-form-label" id="eobpaymentIdentifier"></label>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-sm-3 col-form-label" for="txtPhysician">
+                <span i18n="billing.payments.insurance"></span>
+            </label>
+
+            <div class="col-sm-5">
+                <select id="ddlInsuranceProviders" style="width: 307px">
+                    <option value="0">Select</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group" style="margin-left:26%;">
+            <div class="col-form-content">
+                <button type="button" id="btnProcessPayment"  class="btn btn-primary" i18n="shared.buttons.processPayement"></button>
+                <button type="button" id="btnProcessPaymentCancel"  class="btn btn-primary" i18n="shared.buttons.cancel"></button>
+            </div>
+        </div>
+
+    </div>
+    <div class="col-lg-12" style="margin-top:10px;">
+        <div id="divEraProcess" style="display: none;">
+            <table class="table table-bordered table-hover" style="margin-bottom:0px !important">
+                <thead>
+                    <td>File id</td>
+                    <td>Claim ID</td>
+                    <td>Payment Status</td>
+                </thead>
+            </table>
+            <div style="height: 300px;overflow: auto;">
+                <table class="table table-bordered table-hover">
+                    <tbody id="eraProcessTable" class="table table-bordered table-hover">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>

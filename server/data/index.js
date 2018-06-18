@@ -4,6 +4,7 @@ const url = require('url');
 
 const logger = require('../../logger');
 const config = require('../config');
+const constants = require('../shared/constants');
 
 const dbConnString = config.get(config.keys.dbConnection);
 
@@ -34,20 +35,83 @@ pool.on('error', (err) => {
     logger.error('PG POOL on.error: ' + err.message);
 });
 
-module.exports = {
+const pgData = {
 
     query: async function (text, values, preparedName) {
-
         let queryObj = {};
 
         if (typeof text === 'object') {
             queryObj = text;
         } else {
-            queryObj = { name: preparedName || null, text, values };
+            queryObj = {
+                name: preparedName || null,
+                text,
+                values
+            };
         }
-        
-        return pool.query(queryObj);
+
+        try {
+            let response = await pool.query(queryObj);
+            return response;
+        } catch (err) {
+            logger.error(err);
+            throw err;
+        }
     },
+
+    queryRows: async function (text, values, preparedName) {
+        try {
+            let result = await pgData.query(text, values, preparedName);
+            return result.rows;
+        } catch (err) {
+            logger.error(err);
+            throw err;
+        }
+    },
+
+    queryWithAudit: async function (query, args) {
+        let {
+            userId,
+            screenName,
+            moduleName,
+            logDescription,
+            clientIp,
+            companyId
+        } = args;
+
+        let sql = SQL`WITH cte AS (`;
+        sql.append(query);
+
+        sql.append(SQL`
+                ),
+                audit_cte AS (
+                    SELECT billing.create_audit(
+                        ${companyId},
+                        ${screenName},
+                        cte.id,
+                        ${screenName},
+                        ${moduleName},
+                        ${logDescription},
+                        ${clientIp || '127.0.0.1'},
+                        json_build_object(
+                            'old_values', (SELECT COALESCE(old_values, '{}') FROM cte),
+                            'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM cte) temp_row)
+                        )::jsonb,
+                        ${userId || 0}
+                    ) id
+                    from cte
+                )
+
+                SELECT  *
+                FROM    audit_cte
+            `);
+
+        return await pgData.query(sql);
+    },
+
+    constants,
 
     SQL,
 };
+
+module.exports = pgData;

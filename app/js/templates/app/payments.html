@@ -1,0 +1,127 @@
+<style>
+    #divDatePeriod label {
+        display: inline;
+    }
+
+    #root {
+        margin-top: 60px;
+    }
+</style>
+<form id="formBillingProviders" class="form-horizontals">
+    <div class="tabbable flex-parent-vert">
+        <div class="row" style="margin: 0; width: 95%;">
+            <div class="col">
+                <div class="col-form-label">
+                        <label for="txtPaymentFromDate" class="control-labels" i18n="setup.common.dateFrom"></label>                        
+                </div>
+                <div class="col-form-content" style="text-align: right;">
+                    <div id="divPaymentFromDate" class="input-group">
+                        <input type="text" id="txtPaymentFromDate" class="form-control form-control-date maskDateLocale" required="required" name="paymentFromDate">
+                        <span class="input-group-addon add-on">
+                            <span class="icon-ic-schedule"></span>
+                        </span>
+                    </div>
+                    <div id="divPaymentToDate" class="input-group">
+                        <input type="text" id="txtPaymentToDate" class="form-control form-control-date maskDateLocale" name="paymentToDate">
+                        <span class="input-group-addon add-on">
+                            <span class="icon-ic-schedule"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="col-form-label" style="margin-top: 30px;">
+                    <input type="radio" name="filterByDateType" value="accounting_dt" id="filterByAccountingDt">
+                    <label class="inline field-chk" for="filterByAccountingDt" i18n="billing.payments.accountingDate"></label>
+                </div>
+                <div class="col-form-label">
+                    <input type="radio" name="filterByDateType" value="payment_dt" id="filterByPostingDt" checked="checked">
+                    <label class="inline field-chk" for="filterByPostingDt" i18n="billing.payments.paymentDate"></label>
+                </div>
+            </div>
+            <div class="col">
+                <div class="col-form-label" id='divDatePeriod' style="margin-left: 10px;">
+                    <div class="col-form-label" style="width: 150px;">
+                        <label for="ulPaymentStatus" class="control-labels" i18n="billing.payments.paymentStatus"></label>
+                    </div>
+                    <div class="col-form-label">
+                        <select id="ulPaymentStatus" class="multiselect" multiple="multiple" maxHeight=5>
+                            <% _.each(paymentStatus, function(status) { %>
+                                <option value="<%= status.value %>">
+                                    <%= status.text %>
+                                </option>
+                                <% }); %>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" style="float: right;">
+                <div class="BillingBtnGroup" style="text-align: center;">
+                    <input type="button" value="Search" id="btnStatusSearch" i18n="shared.buttons.search" class="btn btn-primary">
+                    <input type="button" value="Add New" id="btnPaymentAdd" i18n="shared.buttons.addNew" class="btn btn-danger addnew">
+                    <input type="button" value="Refresh" id="btnPaymentRefresh" i18n="shared.buttons.refresh" class="btn btn-primary">
+                    <button type="button" class="btn btn-primary" id="btnGenerateExcel" i18n="shared.buttons.export" i18n="report.reportFilter.exportToExel"
+                        data-rformat="xlsx">
+                        <i class="fa fa-file-excel-o"></i> Export</button>
+                    <button type="button" class="btn btn-primary" id="btnGeneratePDF" i18n="shared.buttons.generatepdf" i18n="report.reportFilter.generatepdf"
+                        data-rformat="pdf">
+                        <i class="fa fa-file-excel-o"></i> Generate PDF </button>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="col-xs-12" id="payementsFilter" style="margin-bottom: 10px;">
+                <!-- 3rd column end -->
+                <div class="row" style="text-align: center;">
+                    <div class="col-xs-4 col-md-4 col-lg-4">
+                        <div class="form-group form-inline" style="margin-left: 10px">
+                            <div class="col-form-label text-center" style="width: 200px">
+                                <label for="ddlPaymentFacility" class="control-labels" i18n="Payment Amount Total"></label> :
+                            </div>
+                            <div id="divAmountTotal" class="text-center"></div>
+                        </div>
+                    </div>
+                    <div class="col-xs-4 col-md-4 col-lg-4">
+                        <div class="form-group form-inline">
+                            <div class="col-form-label text-center" style="width: 200px">
+                                <label for="ddlPaymentFacility" class="control-labels" i18n="Applied Amount Total"></label> :
+                            </div>
+                            <div id="divAppliedTotal" class="text-center"></div>
+                        </div>
+                    </div>
+                    <div class="col-xs-4 col-md-4 col-lg-4">
+                        <div class="form-group form-inline">
+                            <div class="col-form-label text-center" style="width: 200px">
+                                <label for="ddlPaymentFacility" class="control-labels" i18n="Adjustment Amount Total"></label> :
+                            </div>
+                            <div id="divAdjTotal" class="text-center"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-12">
+                <div class='Grid' id='divGrid_payments'>
+                    <table id="tblpaymentsGrid"></table>
+                    <div id="gridPager_payments"></div>
+                </div>
+
+                <div class='Form' id='divForm_payments'>
+                </div>
+            </div>
+        </div>
+
+        <div id="divForReportIframe" style="display: none; box-shadow: inset -7px 0 9px -7px rgba(0,0,0,0.4);overflow: auto;">
+            <div class="row">
+                <div class="col-sm-12 col-md-12 col-lg-12" style="margin-top: 10px !important;">
+                    <h5>
+                        <input type="button" style="float: right; margin-right: 10px !important;" value="Back" id="btnBackReport" class="btn btn-primary"
+                            i18n="shared.buttons.back">
+                        <label style="font-weight: bold; margin-left: 10px !important;" i18n="report.reportFilter.reportPreview"></label>
+                    </h5>
+                    <hr>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

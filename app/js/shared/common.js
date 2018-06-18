@@ -811,8 +811,8 @@ var commonjs = {
         }
         var defaultOptions = {
             format: "L LT",
-            locale: browserLocale,
-            timeZone: null,//this.getCompanyTimeZone(),
+            //locale: browserLocale,
+            //timeZone: null,//this.getCompanyTimeZone(),
             showClose: true,
             showClear: true,
             //keepInvalid: true,
@@ -856,6 +856,7 @@ var commonjs = {
                 break;
             default:
         }
+
         dtpTarget.datetimepicker(options);
         dtpTarget.on("dp.change", function (e) {
             if (e && e.date) {
@@ -1257,10 +1258,10 @@ var commonjs = {
             dataContainer = $('#site_modal_iframe_container');
             dataContainer.attr('src', options.url);
             dataContainer.show();
-            $('#site_modal_div_container').hide();
+            $('#modal_div_container').hide();
         }
         else if (typeof options.html != 'undefined' && commonjs.checkNotEmpty(options.html)) {
-            dataContainer = $('#site_modal_div_container').css({ 'overflow-x': 'hidden' });
+            dataContainer = $('#modal_div_container').css({ 'overflow-x': 'hidden' });
 
             if (!options.haveContentInContainer) {
                 dataContainer.html(options.html);
@@ -1902,8 +1903,6 @@ var commonjs = {
     },
 
     hideDialog: function (callback) {
-        $('#site_modal_div_container').html('');
-        $('#site_modal_iframe_container').attr('src', '');
         var $siteModal = $('#siteModal');
         if (typeof callback === 'function') {
             if ($siteModal.is(':visible')) {
@@ -1916,11 +1915,18 @@ var commonjs = {
                          */
 
                         $('.modal-backdrop').remove();
+
+
+                        $('#modal_div_container').html('');
+                        $('#site_modal_iframe_container').attr('src', '');
+
                         callback();
                         $(this).off('hidden.bs.modal');
                     });
             }
             else {
+                $('#modal_div_container').html('');
+                $('#site_modal_iframe_container').attr('src', '');
                 callback();
             }
         }
@@ -2220,7 +2226,10 @@ var commonjs = {
     },
 
     handleXhrError: function (err, response) {
-        switch (err.status) {
+
+        commonjs.hideLoading();
+
+        switch (err.status || response.status) {
             case 0:
                 commonjs.showError('messages.errors.notconnected');
                 break;
@@ -2233,6 +2242,11 @@ var commonjs = {
             default:
                 commonjs.showError('messages.errors.someerror');
                 break;
+        }
+
+        if(response.responseText && response.responseText.indexOf('INVALID_SESSION') > -1) {
+            $('#divPageLoading').hide();
+            commonjs.showDialog({ header: 'Error', i18nHeader: 'messages.errors.serversideerror', width: '50%', height: '50%', html: response.responseText }, true);
         }
     },
 
@@ -2325,9 +2339,9 @@ var commonjs = {
                             break;
                     }
                 }
-                else {
-                    commonjs.showError('messages.errors.someerror');
-                }
+                // else {
+                //     commonjs.showError('messages.errors.someerror');
+                // }
             }
             return false;
         }
@@ -3043,23 +3057,12 @@ var commonjs = {
     },
 
     showStatus: function (msg) {
-        commonjs.hideLoading();
-        if (!msg) return;
-        $('#divStatus').show();
-
-        var i18nMsg = i18n.get(msg);
-        if (i18nMsg == '' || i18nMsg == app.currentCulture + '.' + msg) {
-            $('#divStatusMsg').html(msg);
-        } else {
-            $('#divStatusMsg').html(i18n.get(msg));
-        }
-
-        setTimeout(function () {
-            $('#divStatus').hide(300);
-        }, 3000);
+        commonjs.notify(msg, 'success');
     },
 
     showWarning: function (msg, classname, isCustomWarning, time_out) {
+        return commonjs.notify(msg, 'warning');
+
         var warnClass = (classname) ? classname : 'smallwarning';
         var timeOut = (time_out) ? time_out : 3000;
         commonjs.hideLoading();
@@ -3079,6 +3082,50 @@ var commonjs = {
         setTimeout(function () {
             $('#divWarning').hide(300);
         }, timeOut);
+    },
+
+    showError: function (msg, isFromService) {
+        return commonjs.notify(msg, 'danger');
+
+        commonjs.hideLoading();
+        $('#divError').show();
+        if (!isFromService && (typeof (i18n) != 'undefined' && i18n.get(msg) != app.currentCulture + '.' + msg)) {
+            if (i18n.get(msg)) {
+                $('#divErrorMsg').html(i18n.get(msg));
+            } else {
+                $('#divErrorMsg').html(msg);
+            }
+        }
+        else {
+            if (msg == 'messages.errors.accessdenied') {
+                $('#divErrorMsg').html('Access denied');
+            } else {
+                $('#divErrorMsg').html(msg);
+            }
+        }
+        setTimeout(function () {
+            $('#divError').hide(300);
+        }, 3000);
+    },
+
+    notify: function (msg, type) {
+        if (!msg) return;
+
+        var displayMsg = '';
+        var i18nMsg = i18n.get(msg);
+
+        if (i18nMsg == '' || i18nMsg == app.currentCulture + '.' + msg) {
+            displayMsg = msg;
+        } else {
+            displayMsg = i18n.get(msg);
+        }
+
+        $.notify({
+            message: displayMsg
+        }, {
+                type: type,
+                z_index: 1061,
+            });
     },
 
     geti18NString: function (localizationString) {
@@ -3195,28 +3242,6 @@ var commonjs = {
         return h + ':' + m + ':' + s;
     },
 
-    showError: function (msg, isFromService) {
-        commonjs.hideLoading();
-        $('#divError').show();
-        if (!isFromService && (typeof (i18n) != 'undefined' && i18n.get(msg) != app.currentCulture + '.' + msg)) {
-            if (i18n.get(msg)) {
-                $('#divErrorMsg').html(i18n.get(msg));
-            } else {
-                $('#divErrorMsg').html(msg);
-            }
-        }
-        else {
-            if (msg == 'messages.errors.accessdenied') {
-                $('#divErrorMsg').html('Access denied');
-            } else {
-                $('#divErrorMsg').html(msg);
-            }
-        }
-        setTimeout(function () {
-            $('#divError').hide(300);
-        }, 3000);
-    },
-
     showModalBg: function () {
         var hideDiv = document.getElementById('divModalBgFrame');
         if (hideDiv) {
@@ -3240,6 +3265,7 @@ var commonjs = {
     },
 
     showLoading: function (msg) {
+        return commonjs.showLoading_v1(msg);
         if (!msg) {
             msg = 'messages.loadingMsg.default';
             if (i18n.get(msg) != app.currentCulture + '.' + msg) {
@@ -3350,6 +3376,7 @@ var commonjs = {
         $('#divLoading').css('display', 'none');
         $('#divLoadingMsg').css('display', 'none');
         $('#divPageLoading').css('display', 'none');
+        $('.navbar').show();
     },
 
     showLoadingMessage: function (msg) {
@@ -3556,6 +3583,7 @@ var commonjs = {
         var currentModule = commonjs.currentModule;
         switch (currentModule) {
             case 'Home':
+            case 'Claims':
                 commonjs.resizeHomeScreen();
                 break;
             case 'Setup':
@@ -3628,9 +3656,10 @@ var commonjs = {
         else $('#studyTabs').css({ width: (ul_width + 50) + 'px' });
 
         var $divStudyTabsContainer = $('#divStudyTabsContainer');
+        var $divclaimsTabsContainer = $('#divclaimsTabsContainer');
         var $subMenu = $divStudyTabsContainer.closest('nav.top-nav');
         // SMH - Fixed the size of the tab menu to fill more of the available space, and also to scroll properly.
-        var divUseableSpace = $subMenu.width() - 40;  // 40 pixels space between controls
+        var divUseableSpace = $subMenu.width() - 140;  // 140 pixels space between controls
         var headerIconsWidth = $subMenu.find('ul.tn-menu-right').width();
         var retries = ~~retryCount;
         if (divUseableSpace === headerIconsWidth) {
@@ -3641,6 +3670,7 @@ var commonjs = {
         }
         var divStudyTabsContainerWidth = divUseableSpace - headerIconsWidth;
         $divStudyTabsContainer.css({ width: divStudyTabsContainerWidth });
+        $divclaimsTabsContainer.css({ width: divStudyTabsContainerWidth });
 
         //set gadget Width on window Resize
         var _ww = $(window).width() - 50,
@@ -3662,26 +3692,26 @@ var commonjs = {
         }
         $('#divGadgetSummaryNew .widget.item').css('width', (_gw - 26) + 'px');
         $('#column1 .masonry-wrap').css('width', ($(window).width() - 50 + 'px'));
-        $('#column1').masonry();
+       // $('#column1').masonry();
 
     },
 
     resizeSetupMenu: function () {
-        // Modified by SMH to account for rendered height.  Some of the elements below were returning positive values for $.outerHeight despite being hidden (display:none)
-        $('#content').height($(window).height() - ($('.title-panel').get(0).offsetHeight + $('.sub-top-nav').get(0).offsetHeight + $('#divPageHeaderButtons').get(0).offsetHeight));
-        //$('#content').height($(window).height() - ($('.title-panel').outerHeight() + $('.sub-top-nav').outerHeight()+ $('#divPageHeaderButtons').outerHeight()));
+        // // Modified by SMH to account for rendered height.  Some of the elements below were returning positive values for $.outerHeight despite being hidden (display:none)
+        // $('#content').height($(window).height() - ($('.title-panel').get(0).offsetHeight + $('.sub-top-nav').get(0).offsetHeight + $('#divPageHeaderButtons').get(0).offsetHeight));
+        // //$('#content').height($(window).height() - ($('.title-panel').outerHeight() + $('.sub-top-nav').outerHeight()+ $('#divPageHeaderButtons').outerHeight()));
 
-        //Hide nav arrows if no overflow
-        var subID = $('#tab_setup_menu > li > ul > li.active').prop('id');
-        if (subID) {
-            if ($('#' + subID + 'SubMenu li:last-child').position().left > $('div.navbar-header').width()) {
-                $('#btnTabNavLeft').show();
-                $('#btnTabNavRight').show();
-            } else {
-                $('#btnTabNavLeft').hide();
-                $('#btnTabNavRight').hide();
-            }
-        }
+        // //Hide nav arrows if no overflow
+        // var subID = $('#tab_setup_menu > li > ul > li.active').prop('id');
+        // if (subID) {
+        //     if ($('#' + subID + 'SubMenu li:last-child').position().left > $('div.navbar-header').width()) {
+        //         $('#btnTabNavLeft').show();
+        //         $('#btnTabNavRight').show();
+        //     } else {
+        //         $('#btnTabNavLeft').hide();
+        //         $('#btnTabNavRight').hide();
+        //     }
+        // }
     },
 
     resizePatientMenu: function () {
@@ -3724,14 +3754,19 @@ var commonjs = {
             var topnavHieght = $('.header').outerHeight() + $('.top-nav').outerHeight()
             switch (commonjs.currentModule) {
                 case 'Home':
+                case 'Claims':
+                case 'app':
                 default:
-                    height = $(window).height() - (topnavHieght + $('.ui-jqgrid-htable:visible').height() + $('#divPager').outerHeight() + 5);
+                    height = $(window).height() - (topnavHieght + $('.ui-jqgrid-htable:visible').height() + $('#divPager').outerHeight() + 50);
                     break;
                 case 'Billing':
                     height = $(window).height() - ($('body>.topbar').outerHeight() + $('body>header').outerHeight() + $('body>.top-nav').outerHeight() + 235);
                     break;
+                case 'Payments':
+                    height = $(window).height() - ($('#formBillingProviders').outerHeight() + $('body>nav').outerHeight() + 160);
+                    break;
                 case 'Setup':
-                    height = $(window).height() - ($('header.header').outerHeight() + $('.title-panel').outerHeight() + $('nav.sub-top-nav').outerHeight() + 50);
+                    height = $(window).height() - ($('body>nav').outerHeight() + $('#divPageHeaderButtons').outerHeight() + 100);
                     break;
                 case 'Patient':
                     height = $(window).height() - ($('header.header').outerHeight() + $('#patientDocHeader').outerHeight() + 200);
@@ -4573,17 +4608,17 @@ var commonjs = {
     getBillingMethod: function (billingMethod) {
         var billing = "";
         switch (billingMethod) {
-            case "DB":
-                billing = "Direct Billing(invoice)";
+            case "direct_billing":
+                billing = "Direct Billing";
                 break;
-            case "PC":
-                billing = "PaperClaim";
+            case "paper_claim":
+                billing = "Paper Claim";
                 break;
-            case "EB":
+            case "electronic_billing":
                 billing = "Electronic Billing";
                 break;
             default:
-                billing = "Patient";
+                billing = "Patient Payment";
                 break;
         }
         return billing;
@@ -4591,25 +4626,23 @@ var commonjs = {
     getPayerType: function (payerType) {
         var payer = "";
         switch (payerType) {
-            case "PPP":
-            case "Patient":
+            case "patient":
                 payer = "Patient";
                 break;
-            case "PIP":
-            case "Insurance":
-                payer = "Insurance";
+            case "referring_provider":
+                payer = "Referring Provider";
                 break;
-            case "PR":
-            case "Referring physician":
-                payer = "Referring physician";
-                break;
-            case "POF":
-            case "Ordering Facility":
+            case "ordering_facility":
                 payer = "Ordering Facility";
+                break;                
+            case "primary_insurance":
+                payer = "Primary Insurance";
                 break;
-            case "PF":
-            case "Facility":
-                payer = "Facility";
+            case "secondary_insurance":
+                payer = "Secondary Insurance";
+                break;
+            case "teritary_insurance":
+                payer = "Teritary Insurance";
                 break;
             default:
                 payer = "";
@@ -6351,7 +6384,22 @@ var commonjs = {
                         app.settings.studyflag.push(flagData.description);
                     });
                     app.settings.patientLocation = (patientLocation && patientLocation.length > 0) ? patientLocation : [];
-                    app.usersettings = typeof appsettingsobj.usersettings === "object" && appsettingsobj.usersettings || {};
+                    app.usersettings = typeof appsettingsobj.usersettings === "object" && appsettingsobj.usersettings || {id:1,
+                        field_orders:[1,2,3,4],
+                        grid_options:[
+                            {name: "Modality", width: 150},
+
+                            {name: "Patient", width: 200},
+
+                            {name: "Accession #", width: 200},
+
+                            {name: "Status", width: 150}
+                        ],
+                        sort_column:"Accession #",
+                        sort_order:"Desc",
+                        wl_sort_field:"accession_no",
+                        study_fields:["Modality","Patient","Accession #","Status"]
+                    };
                     function change_theme(theme) {
                         app.currentTheme = theme;
                         commonjs.refreshUserSettings();
@@ -7546,7 +7594,7 @@ var commonjs = {
                 });
             }
 
-            commonjs.licenseCheck();
+            //commonjs.licenseCheck();
         }
         setTimeout(function () {
             commonjs.docResize();  //fjc added to correctly resize grids once rendered
@@ -7555,7 +7603,7 @@ var commonjs = {
         commonjs.processPostRender(args.header);
         commonjs.initializeCheckBoxSelection();
         commonjs.validateControls();
-        commonjs.isMaskValidate();
+       // commonjs.isMaskValidate();
         commonjs.setupCityStateZipInputs();
         if (parent.editStudyID && parent.editStudyID > 0 && app.transcriptionLock) {
             commonjs.lockUnlockTranscription({ study_id: parent.editStudyID, lockType: "unlock", user_id: app.userID });
@@ -7698,7 +7746,7 @@ var commonjs = {
     processPostRender: function (args) {
         var screenTitle = (args && args.screen != '') ? args.screen : 'PACS-Title';
 
-        var cultureCode = browserLocale.replace('-', '_').toLowerCase();
+        var cultureCode = 'es_us';
 
         switch (cultureCode.substring(0, 2)) {
             case 'es':
@@ -7733,11 +7781,12 @@ var commonjs = {
     },
 
     updateCulture: function (culture, cb) {
-        var upCul = i18n.loadDefaultLanguage(function () {
-            i18n.setLang(culture);
-            i18n.t(undefined, cb);
-        });
-        return upCul;
+       var upCul = i18n.loadDefaultLanguage(function () {
+           i18n.setLang(culture);
+           i18n.t(undefined, cb);
+       });
+       
+       return upCul;
     },
 
     /**
@@ -7842,8 +7891,21 @@ var commonjs = {
 
     },
 
+    getRightClickMenu:function(elementID,i18n,isSubMenu,elementName,isULMenu){  
+        if(isULMenu){
+            return '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n='+i18n+' class="dropdown-item">'+elementName+'</a><ul id='+elementID+' style="float:right;" class="dropdown-menu"></ul></li>';
+        }
+        else if(isSubMenu){
+            return '<li><a class="dropdown-item" id=' + elementID + '  href="javascript: void(0)" >' + elementName + '</a></li>'
+        }
+        else{
+            return '<li><a id='+elementID+' href="javascript: void(0)" i18n='+i18n+' class="dropdown-item">'+elementName+'</a></li>';
+        }   
+        
+    },
+
     getColorCodeForStatus: function (facility_id, code, screenName) {
-        var statusCodes = commonjs.statusCodes.length && commonjs.statusCodes ||parent.commonjs.statusCodes;
+        var statusCodes = app.study_status.length && app.study_status ||parent.app.study_status;
         if (statusCodes && statusCodes.length > 0) {
             return $.grep(statusCodes, function (currentObj) {
                 return ((currentObj.facility_id == facility_id) && (currentObj.status_code == code));
@@ -7851,6 +7913,17 @@ var commonjs = {
         }
         return [];
     },
+
+    getClaimColorCodeForStatus: function (code, processType) {
+        var statusCodes = app.status_color_codes.length && app.status_color_codes ||parent.app.status_color_codes;
+        if (statusCodes && statusCodes.length > 0) {
+            return $.grep(statusCodes, function (currentObj) {
+                return ((currentObj.process_type == processType) && (currentObj.process_status == code));
+            });
+        }
+        return [];
+    },
+
 
     changeColumnValue: function (tbl, row, columnName, value, fromService, rowData, needManualToolTip, titleString) {
         var regID = /^#tblGrid/;
@@ -9198,7 +9271,7 @@ var commonjs = {
 
     // SMH Bug #2604 - Method for showing/hiding worklist columns
 
-    toggleWorklistColumns: function (tabPane) {
+    toggleGridlistColumns: function (tabPane) {
         // default to userSetting visibility
         var hide = app.hideWorklistIcons;
 
@@ -9212,35 +9285,6 @@ var commonjs = {
                     tabPane = $('div.ui-jqgrid > div.ui-jqgrid-view > div.ui-jqgrid-bdiv > div > table.ui-jqgrid-btable').closest('.tab-pane');
                 }
             }
-        }
-
-        if (typeof tabPane !== 'undefined') {
-            var toggleElement = $('.worklistIconToggle', tabPane);
-            if (!toggleElement.length) {
-                $('div.ui-jqgrid > div.ui-jqgrid-view > div.ui-jqgrid-hdiv', tabPane)
-                    .append('<div class="worklistIconToggle expanded collapsed"><i class="collapseIcons icon-ic-expand" title="Hide Icons"></i><i class="expandIcons icon-ic-expand-flipped" title="Show Icons"></i></div>');
-                toggleElement = $('.worklistIconToggle', tabPane);
-            }
-            if (typeof toggleElement.data('hide') === 'boolean') {
-                hide = toggleElement.data('hide');
-            }
-
-            toggleElement
-                .unbind('click')
-                .removeClass('expanded collapsed')
-                .addClass((hide) ? 'collapsed' : 'expanded');
-
-            toggleElement.bind('click', function () {
-                var tab = $(this).closest('.tab-pane'),
-                    hide = $(this).hasClass('expanded');
-
-                $(this)
-                    .data('hide', hide)
-                    .removeClass('expanded collapsed')
-                    .addClass((hide) ? 'collapsed' : 'expanded');
-
-                commonjs.toggleWorklistColumns(tab);
-            });
         }
 
         var action = hide ? "hideCol" : "showCol",
@@ -9547,7 +9591,7 @@ var commonjs = {
     },
     enableModifiersOnbind: function (isFrom) {
         var self = this;
-        var _className = isFrom == 'chargeandpayment_pointer' ? 'diagCodes' : 'inputModifiers';
+        var _className = isFrom == 'P' ? 'diagCodes' : 'inputModifiers';
         $('.' + _className).each(function (index, val) {
             self.activateInputModifiers(isFrom, this);
         });
@@ -10703,7 +10747,7 @@ var facilityModules = {
         procedureanalysisbyinsurance: 'Procedure Analysis By Insurance',
         'appointmentListDateRange': 'Appointment List Date Range',
         facilityinvoices: 'Facility Invoices',
-        payermix: 'Payer Mix',
+        payerMix: 'Payer Mix',
         referringprovidersummary: 'Referring Provider Summary',
         chargedetails: 'Claim Activity',
         facilitysummary: 'Facility Summary',
@@ -10745,6 +10789,7 @@ var facilityModules = {
         referringPhysicianStudyCount: 'Referring Physician Study Count',
         completedSchedules: 'Completed Schedules',
         patientStatement: 'Patient Statement',
+        patientActivityStatement: 'Patient Statement',
         claimTransaction: 'Claim Transaction',
         insuranceVsLOP: 'Insurance Vs. LOP',
         claimInquiry: 'Claim Inquiry',
@@ -10753,7 +10798,8 @@ var facilityModules = {
         monthlyRecap: 'Monthly Recap',
         readingProviderFees: 'Reading Provider Fees',
         transactionSummary: 'Transaction Summary',
-        agedARDetail: 'Aged AR Detail'
+        agedARDetail: 'Aged AR Detail',
+        paymentPDF: 'Payments Received'
     },
     portalRegUsersScreen: {
         regUsers: 'Portal Registered Users'
@@ -11206,13 +11252,13 @@ function launchOpalCDBurn(ids) {
 //}
 
 function CreateCheckBox(label, id, i18nLabel) {
-    return $('<div>').append($('<input>').attr({
+    return $('<div>').addClass('form-check form-check-inline').append($('<input>').attr({
         type: 'checkbox',
         id: id,
         name: id,
         value: label,
         checked: false
-    })).append($('<label>').attr({for: id, 'i18n': i18nLabel, 'value':label}).addClass('checkbox').text(label));
+    }).addClass('form-check-input')).append($('<label>').attr({for: id, 'i18n': i18nLabel, 'value':label}).addClass('form-check-label').text(label));
 }
 
 //function SetupCheckBoxes(p) {

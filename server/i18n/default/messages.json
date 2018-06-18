@@ -1,0 +1,64 @@
+{
+    "messages": {
+        "status": {
+            "validatedSuccessfully": "Validated Successfully"
+        },
+        "errors": {
+            "notconnected": "Not connected",
+            "requestnotfound": "Request not found",
+            "serversideerror": "Server error",
+            "someerror": "Internal error",
+            "accessdenied": "No rights"
+		},
+		"warning": {
+            "claims": {
+                "selectfacility": "Please select facility",
+                "selectbillingProvider": "Please select billing provider",
+                "chargeValidation": "Without charge can not create claim ,please add/select any one charge",
+                "samePatientValidate": "Please select study with same patient",
+                "sameStudyDtValidate": "Please select study with same study date",
+                "sameFacilityValidate": "Please select study with same facility",
+                "priInsValidation": "Please enter mandatory details for primary insurance",
+                "secInsValidation": "Please enter mandatory details for secondary insurance",
+                "terInsValidation": "Please enter mandatory details for tertiary insurance",
+                "priMissingValidation": "Without primary insurance, can not create secondary insurance",
+                "secMissingValidation": "Without secondary insurance, can not create tertiary insurance",
+                "missingClaimStatus": "Please select claim status",
+                "missingResponsible": "Please select responsible"
+            }
+        },
+        "loadingMsg": {
+            "default": "Loading ...",
+            "pleaseWait": "Please wait...",
+            "searching": "Searching...",
+            "gettingCharts": "Getting charts. Please wait...",
+            "savingPrintOrderInfoDefaults": "Saving defaults ..."
+        },
+        "confirm": {
+            "button": {
+                "yes": "Yes",
+                "no": "No",
+                "cancel": "Cancel",
+                "close": "Close",
+                "leave": "Leave",
+                "stay": "Stay"
+            },
+            "success": "Success",
+            "error": "Error",
+            "billing": {
+                "problemReferenced": "Problem Referenced",
+                "problemReferencedAreYouSure": "Problem is being referenced in Charge Payments.  Are you sure that you want to delete?",
+                "mediCarePayer":"Please select medicare payer type",
+                "ruleNode":"This node does not contain any rule",
+                "ruleSaved":"Rule Saved successfully",
+                "ruleUpdated":"Rule Updated successfully",
+                "ruleDeleted":"Rule deleted successfully"
+            },
+            "payments": {
+                "overwriteRefund": "Overwrite Refund",
+                "overwriteRefundAreYouSure": "This payment in refund mode want to overwrite this payment ?",
+                "overwriteAnyRefundAreYouSure": "One of the payment in refund mode want to overwrite ?"
+            }
+        }
+    }
+}
