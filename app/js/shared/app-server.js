@@ -23,7 +23,7 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                     app.userID = app.userInfo.userID;
                     app.companyID = app.company.id;
                     app.fileStoreId = app.company.file_store_id;
-                    app.facility_id = app.userInfo.default_facility_id;
+                    app.facilityID = app.userInfo.default_facility_id;
                     callback();
                 },
                 error: function (model, response) {
