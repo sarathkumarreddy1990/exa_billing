@@ -60,7 +60,7 @@ define([
                 if (!self.rendered)
                 self.render();
                 $.ajax({
-                    url: '/exa_modules/billing/claim_inquiry',
+                    url: '/exa_modules/billing/claims/claim_inquiry',
                     type: 'GET',
                     data: {
                         'claim_id': self.claim_id  
@@ -68,22 +68,26 @@ define([
                     success: function (data, response) {
                         if (data) {
                             data = data[0];
-                            var encounter = data.encounter_details && data.encounter_details.length > 0 ? data.encounter_details : '[]';
-                            if(encounter.length > 0){
-                                encounter = encounter[0];
+                            var claim_data = data.claim_details && data.claim_details.length > 0 ? data.claim_details : '[]';
+                            var payment_data = data.payment_details && data.payment_details.length > 0 ? data.payment_details : '[]';
+                            if(claim_data.length > 0){
+                                claim_data = claim_data[0];
                                 //binding the values from data base
-                                $('#lblCIReadPhy').text(encounter.rend_provider_name);
-                                $('#lblCIRefPhy').text(encounter.ref_provider_name);
-                                $('#lblCIOrdFac').text(encounter.group_name);
-                                $('#lblCIfac').text(encounter.facility_name);
-                                $('#lblCIStatus').text(encounter.claim_status);
-                                $('#lblCIPatientPaid').text(encounter.patient_paid);
-                                $('#lblCIOthersPaid').text(encounter.others_paid);
-                                $('#lblCIBillFee').text(encounter.bill_fee);
-                                $('#lblCIAdj').text(encounter.adjustment_amount);
-                                $('#lblCIBalance').text(encounter.claim_balance);
-                                $('#lblCIAllowed').text(encounter.allowed_fee);
-                                $('#txtCIBillingComment').text(encounter.billing_notes)
+                                $('#lblCIReadPhy').text(claim_data.rend_provider_name);
+                                $('#lblCIRefPhy').text(claim_data.ref_provider_name);
+                                $('#lblCIOrdFac').text(claim_data.group_name);
+                                $('#lblCIfac').text(claim_data.facility_name);
+                                $('#lblCIStatus').text(claim_data.claim_status);
+                                $('#lblCIBillFee').text(claim_data.bill_fee);
+                                $('#lblCIBalance').text(claim_data.claim_balance);
+                                $('#lblCIAllowed').text(claim_data.allowed_fee);
+                                $('#txtCIBillingComment').text(claim_data.billing_notes)
+                            }
+
+                            if(payment_data.length > 0){
+                                $('#lblCIPatientPaid').text(payment_data.patient_paid);
+                                $('#lblCIOthersPaid').text(payment_data.others_paid);
+                                $('#lblCIAdj').text(payment_data.adjustment_amount);
                             }
 
                             self.showInsuranceGrid(data.insurance_details);
@@ -100,13 +104,11 @@ define([
             },
 
             showInsuranceGrid: function (data) {
-                console.log('Insurance Details  ---- ', data)
-
 
                 $('#tblCIInsurance').jqGrid({
                     datatype: 'local',
                     data: data !=null ? data : [],
-                    colNames: ['', 'code', 'description', 'Subscriber Name', 'DOB', 'Policy No', 'Group No'],
+                    colNames: ['', 'code', 'description', 'Subscriber Name', 'DOB', 'Policy No', 'Group No', 'Paper Claim'],
                     colModel: [
                         { name: 'id', hidden: true },
                         { name: 'insurance_code', search: false },
@@ -114,7 +116,14 @@ define([
                         { name: 'name', search: false },
                         { name: 'subscriber_dob', search: false },
                         { name: 'policy_number', search: false },
-                        { name: 'group_number', search: false }
+                        { name: 'group_number', search: false },
+                        { name: 'paper_claim', search: false, 
+                            customAction: function (rowID) {
+                            },
+                            formatter: function (cellvalue, options, rowObject) {
+                                    return "<input type='button' id='btnCICommentSave' class='btn btnCommentSave  btn-primary' value='Paper Claim' i18n='shared.buttons.paperclaim' id='spnPaperClaim_" + rowObject.id + "'>"
+                            }
+                        }
                     ],
                     cmTemplate: { sortable: false },
                     customizeSort: true,
@@ -182,7 +191,7 @@ define([
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.type && rowObject.code == 'payment')
-                                    return "<span class='fas fa-eye' rel='tooltip' title='view payment details'></span>"
+                                    return "<span class='fa fa-eye' rel='tooltip' title='view payment details'></span>"
                                 else
                                     return "";
                             }
@@ -196,7 +205,7 @@ define([
                                 } 
                             },
                             formatter: function (cellvalue, options, rowObject) {
-                                if (rowObject.type && commentType.indexOf(rowObject.type) == -1)
+                                if (rowObject.type && commentType.indexOf(rowObject.code) == -1)
                                     return "<span class='icon-ic-delete' rel='tooltip' title='Click here to delete'></span>"
                                 else
                                     return "";
@@ -210,7 +219,7 @@ define([
                                 self.getClaimComment(gridData.id);
                             },
                             formatter: function (cellvalue, options, rowObject) {
-                                if (rowObject.type && commentType.indexOf(rowObject.type) == -1)
+                                if (rowObject.type && commentType.indexOf(rowObject.code) == -1)
                                     return "<span class='icon-ic-edit' rel='tooltip' title='Click here to edit'></span>"
                                 else
                                     return "";
@@ -219,7 +228,7 @@ define([
                         {
                             name: 'is_internal', width: 20, sortable: false, search: false, hidden: false,
                             formatter: function (cellvalue, options, rowObject) {
-                                if (rowObject.type && commentType.indexOf(rowObject.type) == -1) {
+                                if (rowObject.type && commentType.indexOf(rowObject.code) == -1) {
                                     if (rowObject.is_internal == true)
                                         return '<input type="checkbox" checked   class="chkPaymentReport" name="paymentReportChk"  id="' + rowObject.id + '" />'
                                     else
@@ -233,7 +242,6 @@ define([
                             }
                         }
                     ],
-                    pager: '#gridPager_CIClaimComment',
                     sortname: 'id',
                     sortorder: 'ASC',
                     caption: 'Claim Comments',
@@ -265,7 +273,7 @@ define([
                 }
                 if (e.eventPhase && self.previousFollowUpDate != selectedFollowUpDate) {
                     $.ajax({
-                        url: '/exa_modules/billing/claim_inquiry/followup',
+                        url: '/exa_modules/billing/claims/claim_inquiry/followup',
                         type: 'POST',
                         data: {
                             'claim_id': self.claim_id,
@@ -292,7 +300,7 @@ define([
             getFollowupDate: function () {
                 var self = this;
                 $.ajax({
-                    url: '/exa_modules/billing/claim_inquiry/followup',
+                    url: '/exa_modules/billing/claims/claim_inquiry/followup',
                     type: 'GET',
                     data: {
                         'claim_id': self.claim_id
@@ -338,7 +346,7 @@ define([
             deleteClaimComment: function (commentId) {
                 var self = this;
                 $.ajax({
-                    url: '/exa_modules/billing/claim_inquiry',
+                    url: '/exa_modules/billing/claims/claim_inquiry',
                     type: 'DELETE',
                     data: {
                         'id': commentId
@@ -355,7 +363,7 @@ define([
             getClaimComment: function (commentId) {
                 var self = this;
                 $.ajax({
-                    url: '/exa_modules/billing/claim_inquiry/claim_comment',
+                    url: '/exa_modules/billing/claims/claim_inquiry/claim_comment',
                     type: 'GET',
                     data: {
                         'commentId': commentId
@@ -377,7 +385,7 @@ define([
                 if (commentId != 0) {
 
                     $.ajax({
-                        url: '/exa_modules/billing/claim_inquiry/claim_comment',
+                        url: '/exa_modules/billing/claims/claim_inquiry/claim_comment',
                         type: 'PUT',
                         data: {
                             'commentId': commentId,
@@ -395,7 +403,7 @@ define([
                     });
                 } else if (commentId == 0) {
                     $.ajax({
-                        url: '/exa_modules/billing/claim_inquiry/claim_comment',
+                        url: '/exa_modules/billing/claims/claim_inquiry/claim_comment',
                         type: 'POST',
                         data: {
                             'note': comment,
@@ -423,7 +431,7 @@ define([
                 });
                 comments = JSON.stringify(comments);
                 $.ajax({
-                    url: '/exa_modules/billing/claim_inquiry/claim_comment',
+                    url: '/exa_modules/billing/claims/claim_inquiry/claim_comment',
                     type: 'PUT',
                     data: {
                         'comments': comments,
@@ -480,7 +488,7 @@ define([
                 var notes = $('#txtCIBillingComment').val();
 
                 $.ajax({
-                    url: '/exa_modules/billing/claim_inquiry/billing_note',
+                    url: '/exa_modules/billing/claims/claim_inquiry/billing_note',
                     type: 'PUT',
                     data: {
                         'claim_id': self.claim_id,
@@ -500,21 +508,20 @@ define([
                 var self = this;
 
                 $.ajax({
-                    url: '/exa_modules/billing/claim_inquiry/charge_payment_details',
+                    url: '/exa_modules/billing/claims/claim_inquiry/charge_payment_details',
                     type: 'GET',
                     data: {
                         'claim_id': self.claim_id,
                         'charge_id': charge_id
                 },
                     success: function (data, response) {
-                        $('#divCIpaymentDetails').show();
-
                         if (data.length > 0) {
+                            $('#divCIpaymentDetails').show();
                             var paymentCASRow = self.paymentTemplate({ rows: data });
                             $('#tBodyCIPayment').append(paymentCASRow);
                         }
                         else {
-                            alert('Nothing to show');
+                           commonjs.showStatus('No Payment to Show');
                         }
                 },
                     error: function (err) {
@@ -527,20 +534,20 @@ define([
                 var self = this;
 
                 $.ajax({
-                    url: '/exa_modules/billing/claim_inquiry/payment_details',
+                    url: '/exa_modules/billing/claims/claim_inquiry/payment_details',
                     type: 'GET',
                     data: {
                         'claim_id': self.claim_id,
                         'pay_application_id': pay_id
                     },
                     success: function (data, response) {
-                        $('#divCIpaymentDetails').show();
                         if (data.length > 0) {
+                            $('#divCIpaymentDetails').show();
                             var paymentCASRow = self.paymentTemplate({ rows: data });
                             $('#tBodyCIPayment').append(paymentCASRow);
                         }
                         else {
-                            alert('Nothing to show');
+                            commonjs.showStatus('No Payment to Show');
                         }
                     },
                     error: function (err) {

@@ -4,8 +4,7 @@ module.exports = {
 
     getData: async function (params) {
 
-        params.pageNo = 1;
-        params.pageSize = 10;
+
         params.sortOrder = params.sortOrder || ' DESC';
         let {
             qualifier_code,

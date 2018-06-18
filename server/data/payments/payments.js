@@ -242,6 +242,7 @@ module.exports = {
             credit_card_number } = params;
 
         payer_type = payer_type == 'provider' ? 'ordering_provider' : payer_type;
+        facility_id = facility_id != 0 ? facility_id : null; 
 
         const sql = SQL`WITH insert_data as ( INSERT INTO billing.payments
                                                 (   company_id
