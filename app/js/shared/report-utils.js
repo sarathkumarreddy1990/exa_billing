@@ -4,7 +4,7 @@ define([
     , 'backbone'
 ],
     function ($, _, Backbone) {
-
+        var reportId = "";
         var UI = {
 
             initializeReportingViewModel: function (routeOptions, viewModel) {
@@ -19,6 +19,7 @@ define([
                     console.error('Less than 2 parts in route!');
                 }
                 viewModel.reportId = routeParts[routeParts.length - 1];
+                this.reportId = routeParts[routeParts.length - 1];
                 viewModel.reportCategory = 'billing';
                 viewModel.reportTitle = routeOptions.screen;
 
@@ -30,7 +31,7 @@ define([
             },
 
             clearIframe: function (elId) {
-                const frame = document.getElementById(elId),
+                var frame = document.getElementById(elId),
                     frameDoc = frame ? (frame.contentDocument || frame.contentWindow.document) : null;
                 if (frameDoc && frameDoc.documentElement) {
                     frameDoc.removeChild(frameDoc.documentElement);
@@ -49,11 +50,10 @@ define([
 
             showReport: function (id, category, format, params, openInNewTab) {
                 var queryStr = $.param(params);
-                var iframeUrl = UI.generateReportUrl(id, category, format, params);
-
+                var chkReportId = this.reportId;
+               var iframeUrl = UI.generateReportUrl(chkReportId, category, format, params);
                 if (openInNewTab) {
                     window.open(iframeUrl, '_blank');
-                    return;
                 }
 
                 UI.clearIframe('reportFrame');

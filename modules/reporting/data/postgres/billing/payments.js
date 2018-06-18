@@ -83,13 +83,13 @@ const detailQueryTemplate = _.template(`
             <% if (userIds) { %>AND <% print(userIds); } %>
             GROUP BY bp.id,bc.id )
                 SELECT
-                    p.accounting_dt::date AS "Accounting Date",
+                    to_char(p.accounting_dt, 'MM/DD/YYYY')   AS "Accounting Date",
                     f.facility_name  AS "Facility Name",
                     pd.payment_id AS "Payment Id",
          	        pd.claim_id AS "Claim  Id",
          	        get_full_name(pp.last_name, pp.first_name, pp.middle_name, pp.prefix_name, pp.suffix_name) AS "Patient Name",
          	        pp.account_no "Account #" ,
-         	        c.claim_dt::date "Claim Date",
+         	        to_char(c.claim_dt, 'MM/DD/YYYY') "Claim Date",
          	        p.payer_type "Payer Type",
                      CASE
                       WHEN
@@ -315,4 +315,5 @@ const api = {
         }
     }
 }
+
 module.exports = api;

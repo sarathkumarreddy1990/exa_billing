@@ -1,17 +1,9 @@
-const { query, SQL } = require('../index');
+const { query, SQL, queryWithAudit } = require('../index');
 
 module.exports = {
 
     getData: async function (params) {
 
-        params.printer_name = '';
-        params.left_margin = 0;
-        params.right_margin = 0;
-        params.top_margin = 0;
-        params.bottom_margin = 0;
-        params.pageNo = 1;
-        params.pageSize = 10;
-        params.sortField = ' printer_name ';
         params.sortOrder = params.sortOrder || ' DESC';
         let {
             printerName,
@@ -104,7 +96,7 @@ module.exports = {
             leftMargin,
             rightMargin,
             topMargin,
-            bottomMargin} = params;
+            bottomMargin } = params;
         let inactivated_dt = isActive ? null : 'now()';
 
         const sql = SQL` INSERT INTO billing.paper_claim_printer_setup
@@ -123,10 +115,13 @@ module.exports = {
                                                   , ${leftMargin}
                                                   , ${rightMargin}
                                                   , ${topMargin}
-                                                  , ${bottomMargin}
-                                                ) RETURNING id`;
+                                                  , ${bottomMargin})
+                                                  RETURNING *, '{}'::jsonb old_values`;
 
-        return await query(sql);
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: `Created ${printerName}`
+        });
     },
 
     update: async function (params) {
@@ -138,7 +133,7 @@ module.exports = {
             leftMargin,
             rightMargin,
             topMargin,
-            bottomMargin} = params;
+            bottomMargin } = params;
         let inactivated_dt = isActive ? null : 'now()';
 
         const sql = SQL` UPDATE
@@ -151,9 +146,18 @@ module.exports = {
                           , top_margin = ${topMargin}
                           , bottom_margin = ${bottomMargin}
                          WHERE
-                              id = ${id}`;
+                              id = ${id} RETURNING *,
+                              (
+                                  SELECT row_to_json(old_row) 
+                                  FROM   (SELECT * 
+                                          FROM   billing.paper_claim_printer_setup 
+                                          WHERE  id = ${id}) old_row 
+                              ) old_values`;
 
-        return await query(sql);
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: `Updated ${printerName}`
+        });
     },
 
     delete: async function (params) {
@@ -163,8 +167,11 @@ module.exports = {
         const sql = SQL` DELETE FROM
                              billing.paper_claim_printer_setup
                          WHERE
-                             id = ${id}`;
+                             id = ${id}  RETURNING *, '{}'::jsonb old_values`;
 
-        return await query(sql);
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: 'Deleted.'
+        });
     }
 };
