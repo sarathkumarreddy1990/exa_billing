@@ -456,8 +456,13 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     $('#ddlResponsible').val('PPP');
                     $('#ddlClaimStatus').val($("option[data-desc = 'PP']").val());
                     $('#ddlFrequencyCode').val(claim_data.frequency);
-                    var _posCode = claim_data.pos_type_code ? claim_data.pos_type_code.trim() : '';
-                    $('#ddlPOSType').val($('option[data-code = ' + _posCode + ']').val());
+                    if(claim_data.pos_type_code && claim_data.pos_type_code !=''){
+                        $('#ddlPOSType').val($('option[data-code = ' + claim_data.pos_type_code.trim() + ']').val());
+                    }
+                    var currentDate = new Date();
+                    var defaultStudyDate = moment(currentDate).format('YYYY-MM-DD');
+                    var lineItemStudyDate = self.studyDate && self.studyDate != '' ? self.convertToTimeZone(claim_data.facility_id, moment(self.studyDate)).format('YYYY-MM-DD') : '';
+                    $('#txtClaimDate').val(self.studyDate ? lineItemStudyDate : defaultStudyDate);
                 }
                 /* Common Details end */
                 // trigger blur event for update Total bill fee, balance etc.
@@ -657,6 +662,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                             if (model && model.length > 0) {
                                 $('#tBodyCharge').empty();
                                 var modelDetails = model[0];
+                                self.studyDate = modelDetails && modelDetails.charges && modelDetails.charges[0].study_dt ? modelDetails.charges[0].study_dt : '' ;
                                 _.each(modelDetails.charges, function (item) {
                                     var index = $('#tBodyCharge').find('tr').length;
                                     item.data_row_id = index;
@@ -1318,20 +1324,15 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                         'patient_id': self.cur_patient_id || 0
                     },
                     success: function (response) {
+                        if (response.length > 0) {
                         self.existingPrimaryInsurance = [];
                         self.existingSecondaryInsurance = [];
                         self.existingTriInsurance = [];
                         self.npiNo = response[0].npi_no ? response[0].npi_no : '';
                         self.federalTaxId = response[0].federal_tax_id ? response[0].federal_tax_id : '';
                         self.enableInsuranceEligibility = response[0].enable_insurance_eligibility ? response[0].enable_insurance_eligibility : '';
-                        self.subscriberLastName = response[0].subscriber_lastname ? response[0].subscriber_lastname : '';
-                        self.subscriberFirstName = response[0].subscriber_firstname ? response[0].subscriber_firstname : '';
-                        self.subscriberAddress = response[0].subscriber_address_line1 ? response[0].subscriber_address_line1 : '';
-                        self.policyNumber = response[0].policy_number ? response[0].policy_number : '';
-                        self.insuranceName = response[0].insurance_name ? response[0].insurance_name : '';
                         self.tradingPartnerId = response[0].ins_partner_id ? response[0].ins_partner_id : '';
 
-                        if (response.length > 0) {
                             var existing_insurance = response || [];
                             $.each(existing_insurance, function (index, value) {
                                 switch (value.coverage_level) {
@@ -1870,8 +1871,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     place_of_service_id: $('#ddlPOSType option:selected').val() != '' ? parseInt($('#ddlPOSType option:selected').val()) : null,
                     billing_code_id: $('#ddlBillingCode option:selected').val() != '' ? parseInt($('#ddlBillingCode option:selected').val()) : null,
                     billing_class_id: $('#ddlBillingClass option:selected').val() != '' ? parseInt($('#ddlBillingClass option:selected').val()) : null,
-                    created_by: 1,
-                    claim_dt: $('#txtClaimDate').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtClaimDate').val()).format('YYYY-MM-DD hh:mm a')) : null,
+                    created_by: app.userID,
+                    claim_dt: $('#txtClaimDate').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtClaimDate').val())).format('YYYY-MM-DD hh:mm a') : null,
                     current_illness_date: $('#txtDate').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtDate').val()).format('YYYY-MM-DD')) : null,
                     same_illness_first_date: $('#txtOtherDate').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtOtherDate').val()).format('YYYY-MM-DD')) : null,
                     unable_to_work_from_date: $('#txtWCF').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtWCF').val()).format('YYYY-MM-DD')) : null,
