@@ -12,7 +12,7 @@ module.exports = {
         let {
             code,
             description,
-            type,
+            accounting_entry_type,
             sortOrder,
             sortField,
             pageNo,
@@ -27,8 +27,8 @@ module.exports = {
             whereQuery.push(` description ILIKE '%${description}%'`);
         }
 
-        if (type) {
-            whereQuery.push(` accounting_entry_type ILIKE '%${type}%'`);
+        if (accounting_entry_type) {
+            whereQuery.push(` accounting_entry_type ILIKE '%${accounting_entry_type}%'`);
         }
 
         const sql = SQL`SELECT 

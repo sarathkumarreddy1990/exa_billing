@@ -144,7 +144,8 @@
             "ascOrder": "Ascending Order",
             "descOrder": "Descending Order",
             "processPayement":"Process Payments",
-            "exportToExcel": "Export To Excel"
+            "exportToExcel": "Export To Excel",
+            "paperclaim": "Paper Claim"
         },
         "screens": {},
         "fields": {

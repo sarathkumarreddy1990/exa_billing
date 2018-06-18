@@ -4,8 +4,7 @@ module.exports = {
 
     getData: async function (params) {
 
-        params.pageNo = 1;
-        params.pageSize = 10;
+
         params.sortOrder = params.sortOrder || ' DESC';
         let {
             code,
@@ -305,7 +304,7 @@ module.exports = {
                                 (
                                     SELECT row_to_json(old_row) 
                                     FROM   (SELECT * 
-                                            FROM   billing.adjustment_codes 
+                                            FROM   billing.providers 
                                             WHERE  id = ${id}) old_row 
                                 ) old_values`;
 
