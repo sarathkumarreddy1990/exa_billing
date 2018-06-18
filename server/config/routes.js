@@ -36,7 +36,7 @@ const router = function (app) {
     app.use('/exa_modules/billing/claims', claimsRouters);
     app.use('/exa_modules/billing/user_settings', userSettingRouter);
     app.use('/exa_modules/billing/claimWorkbench', claimsWorkbenchRouters);
-    app.use('/exa_modules/billing/claim_inquiry', claimInquiry);
+    app.use('/exa_modules/billing/claims/claim_inquiry', claimInquiry);
     app.use('/exa_modules/billing/patient', patientRouter);
     app.use('/exa_modules/billing/setup/study_filters', studyFilterRouter);
     app.use('/exa_modules/billing/era', eraRouter);
