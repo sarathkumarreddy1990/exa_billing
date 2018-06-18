@@ -86,7 +86,7 @@ define('grid', [
             }
             var studyIds = studyArray.join();
             if (isClaimGrid) {
-                var liClaimStatus = commonjs.getRightClickMenu('ul_change_claim_status','setup.rightClickMenu.billingStatus',false,'Change Billing Status',true); 
+                var liClaimStatus = commonjs.getRightClickMenu('ul_change_claim_status','setup.rightClickMenu.billingStatus',false,'Change Claim Status',true); 
                 $divObj.append(liClaimStatus);
                 var liArray = [];
                 $.each(app.claim_status, function (index, claimStatus) {                      
@@ -287,7 +287,7 @@ define('grid', [
                     search: false,
                     isIconCol: true,
                     formatter: function (cellvalue, options, rowObject) {
-                        return '<input type="checkbox" name="chkStudy" id="chkSendStudy_' + (options.isClaimGrid?rowObject.id:rowObject.id )+ '" />'
+                        return '<input type="checkbox" name="chkStudy" id="chk'+gridID.slice(1)+'_' + (options.isClaimGrid?rowObject.id:rowObject.id )+ '" />'
                     },
                     customAction: function (rowID, e, that) {
                     }
@@ -520,7 +520,20 @@ define('grid', [
                 multiselect: true,
                 ondblClickRow: function (rowID, irow, icol, event) {
                     var data = getData(rowID, studyStore, gridID);
-                    handleStudyDblClick(data, event, gridID);
+                    if ($('#chk'+gridID.slice(1)+'_' + rowID).length > 0) {
+                        $('#chk'+gridID.slice(1)+'_' + rowID).attr('checked',true);
+                    }
+                    if (options.isClaimGrid) {
+                        self.claimView = new claimsView();
+                        self.claimView.showEditClaimForm(rowID);
+                    } else {
+                        window.localStorage.setItem('selected_studies', null);
+                        window.localStorage.setItem('first_study_details', null);
+                        window.localStorage.setItem('primary_study_details', JSON.stringify(rowID));
+                        window.localStorage.setItem('selected_studies', JSON.stringify(rowID));
+                        self.claimView = new claimsView();
+                        self.claimView.showClaimForm(rowID);
+                    }
                 },
                 disablesearch: false,
                 disablesort: false,

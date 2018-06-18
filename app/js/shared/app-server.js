@@ -19,11 +19,13 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                     app.priorities = (typeof sys_config.sys_priorities == "string") ? sys_config.sys_priorities.split(',') : [];
                     app.gender = (typeof sys_config.sys_gender == "string") ? sys_config.sys_gender.split(',') : [];
                     app.stat_level = app.stat_level_config.stat_level;
-                    app.tat_level = app.tat_config.tat_config;
+                    app.tat_config = app.tat_config.tat_config;
                     app.userID = app.userInfo.userID;
                     app.companyID = app.company.id;
                     app.fileStoreId = app.company.file_store_id;
                     app.facility_id = app.userInfo.default_facility_id;
+                    
+                    commonjs.setAppSettingsReportQueueStatus();
                     callback();
                 },
                 error: function (model, response) {
