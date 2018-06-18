@@ -115,7 +115,7 @@ module.exports = {
                                   (
                                       SELECT row_to_json(old_row) 
                                       FROM   (SELECT * 
-                                              FROM   billing.adjustment_codes 
+                                              FROM   billing.provider_id_code_qualifiers 
                                               WHERE  id = ${id}) old_row 
                                   ) old_values`;
 
