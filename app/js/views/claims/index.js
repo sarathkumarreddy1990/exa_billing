@@ -1214,7 +1214,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 if (self.icd_code && curDiagnosis.length < 12) {
 
                     if (curDiagnosis.indexOf(String(self.ICDID)) > -1) {
-                        alert("Problem already exists");
+                        commonjs.showWarning("messages.warning.claims.problemAlreadyExists");
                         return false;
                     }
 
@@ -1281,7 +1281,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     });
                 }
                 else {
-                    alert("Cannot add more that 12 ICD");
+                    commonjs.showWarning("messages.warning.claims.icdLimitExists");
                 }
             },
 
@@ -1915,8 +1915,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                         modifier2_id: null,
                         modifier3_id: null,
                         modifier4_id: null,
-                        bill_fee: parseFloat($('#txtBillFee_' + id).val()) || null,
-                        allowed_amount: parseFloat($('#txtAllowedFee_' + id).val()),
+                        bill_fee: parseFloat($('#txtBillFee_' + id).val()) || 0.00,
+                        allowed_amount: parseFloat($('#txtAllowedFee_' + id).val()) || 0.00,
                         units: parseFloat($('#txtUnits_' + id).val()),
                         created_by: 1,
                         authorization_no: $('#txtAuthInfo_' + id).val() || null,
@@ -1956,9 +1956,9 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                         success: function (model, response) {
                             //if (response && response.length > 0) {
                             if (response && response.message) {
-                                alert(response.message);
+                                commonjs.showWarning(response.message);
                             } else {
-                                alert('Successfully completed');
+                                commonjs.showWarning("messages.status.successfullyCompleted");
                                 commonjs.hideDialog();
                             }
                             
