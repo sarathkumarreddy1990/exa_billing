@@ -246,7 +246,7 @@ module.exports = {
                     UPDATE 
                         billing.claim_followups 
                     SET 
-                          followup_date = CAST('${followupDate}' AS DATE) 
+                          followup_date = '${followupDate}'::DATE
                         , assigned_to= ${assignedTo} 
                     WHERE 
                         claim_id = ${claim_id}
@@ -260,7 +260,7 @@ module.exports = {
                     )
                     SELECT
                           ${claim_id}
-                        , CAST('${followupDate}' AS DATE) 
+                        , '${followupDate}'::DATE  
                         , ${assignedTo}
                     WHERE 
                     NOT EXISTS(SELECT * FROM update_followup) 
