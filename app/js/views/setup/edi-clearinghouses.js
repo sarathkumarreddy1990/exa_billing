@@ -51,8 +51,8 @@ define(['jquery',
                     gridelementid: '#tblEDIClearingHousesGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['', '', '', '', ''],
-                    i18nNames: ['', '', '', 'setup.ediClearingHouses.name', 'setup.ediClearingHouses.receiverName'],
+                    colNames: ['', '', '', '', '', ''],
+                    i18nNames: ['', '', '', 'setup.ediClearingHouses.name', 'setup.ediClearingHouses.receiverName', 'is_active'],
                     colModel: [
                         {
                             name: 'id',
@@ -100,8 +100,18 @@ define(['jquery',
                         {
                             name: 'receiver_name',
                             searchFlag: '%'
+                        },
+                        {
+                            name:'inactivated_dt',
+                            hidden: true
                         }
                     ],
+                    afterInsertRow: function (rowid, rowdata) {
+                        if (rowdata.inactivated_dt) {
+                            var $row = $('#tblEDIClearingHousesGrid').find('#' + rowid);
+                            $row.css('text-decoration', 'line-through');
+                        }
+                    },
                     datastore: self.ediClearingHousesList,
                     container: self.el,
                     customizeSort: true,
@@ -156,7 +166,7 @@ define(['jquery',
                                     $('#txtCode').val(data.code ? data.code : '');
                                     $('#txtReceiverName').val(data.receiver_name ? data.receiver_name : '');
                                     $('#txtReceiverID').val(data.receiver_id ? data.receiver_id : '');
-                                    $('#chkActive').prop('checked', data.inactivated_dt ? true : false);
+                                    $('#chkIsActive').prop('checked', data.inactivated_dt ? true : false);
                                     $('#txtAuthInfo').val(info.AuthorizationInformation ? info.AuthorizationInformation : '');
                                     $('#txtAuthInfoQualifier').val(info.AuthorizationInformationQualifier ? info.AuthorizationInformationQualifier : '');
                                     $('#txtSecurityInfo').val(info.SecurityInformation ? info.SecurityInformation : '');
@@ -303,7 +313,7 @@ define(['jquery',
                     "receiverName": $.trim($('#txtReceiverName').val()),
                     "receiverId": $.trim($('#txtReceiverID').val()),
                     "company_id": app.companyID,
-                    "isActive": !$('#chkActive').prop('checked'),
+                    "isActive": !$('#chkIsActive').prop('checked'),
                     "communicationInfo": JSON.stringify(communication_info)
                 });
                 this.model.save({

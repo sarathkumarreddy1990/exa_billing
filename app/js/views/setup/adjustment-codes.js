@@ -51,8 +51,8 @@ define(['jquery',
                     gridelementid: '#tblAdjustmentCodesGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['', '', '', '', '', ''],
-                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description', 'setup.adjustmentcodes.entryType'],
+                    colNames: ['', '', '', '', '', '', ''],
+                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description', 'setup.adjustmentcodes.entryType', 'is_active'],
                     colModel: [
                         {
                             name: 'id',
@@ -114,8 +114,18 @@ define(['jquery',
                                 value: self.entryType
                             },
                           //  width: 180
+                        },
+                        {
+                            name: 'inactivated_dt',
+                            hidden: true
                         }
                     ],
+                    afterInsertRow: function (rowid, rowdata) {
+                        if (rowdata.inactivated_dt) {
+                            var $row = $('#tblAdjustmentCodesGrid').find('#' + rowid);
+                            $row.css('text-decoration', 'line-through');
+                        }
+                    },
                     datastore: self.adjustmentCodesList,
                     container: self.el,
                     customizeSort: true,

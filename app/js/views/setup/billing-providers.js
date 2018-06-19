@@ -56,8 +56,8 @@ define(['jquery',
                     gridelementid: '#tblBillingProvidersGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['', '', '', '', '', '', ''],
-                    i18nNames: ['', '', '', 'shared.common.code', 'shared.common.name', 'setup.billingprovider.address', 'setup.billingprovider.phoneno'],
+                    colNames: ['', '', '', '', '', '', '', ''],
+                    i18nNames: ['', '', '', 'shared.common.code', 'shared.common.name', 'setup.billingprovider.address', 'setup.billingprovider.phoneno', 'in_active'],
                     colModel: [
                         {
                             name: 'id',
@@ -124,7 +124,17 @@ define(['jquery',
                             width: 200,
                             searchFlag: '%'
                         },
+                        {
+                            name: 'inactivated_dt',
+                            hidden: true
+                        }
                     ],
+                    afterInsertRow: function (rowid, rowdata) {
+                        if (rowdata.inactivated_dt) {
+                            var $row = $('#tblBillingProvidersGrid').find('#' + rowid);
+                            $row.css('text-decoration', 'line-through');
+                        }
+                    },
                     datastore: self.billingProvidersList,
                     container: self.el,
                     customizeSort: true,
@@ -486,7 +496,7 @@ define(['jquery',
                 var billing_provider_id = this.model.id;
                 var width = $('#divBillingProvidersForm').width() - 50;
                 $('#tblProviderIDCodesGrid').jqGrid({
-                    colNames: ['', '', '', '', '', 'Insurance Name', 'Payer Assigned Provider ID', 'Legacy ID Qualifier'],
+                    colNames: ['', '', '', '', '', 'Insurance Name', 'Payer Assigned Provider ID', 'Legacy ID Qualifier', 'in_active'],
                     colModel: [
                         { name: 'id', key: true, hidden: true },
                         { name: 'insurance_provider_id', hidden: true },
@@ -505,8 +515,18 @@ define(['jquery',
                         },
                         { name: 'insurance_name', width: 300 },
                         { name: 'payer_assigned_provider_id', width: 200 },
-                        { name: 'qualifier_desc', width: 300 }
+                        { name: 'qualifier_desc', width: 300 },
+                        {
+                            name: 'isActive',
+                            hidden: true
+                        }
                     ],
+                    afterInsertRow: function (rowid, rowdata) {
+                        if (rowdata.isActive) {
+                            var $row = $('#tblProviderIDCodesGrid').find('#' + rowid);
+                            $row.css('text-decoration', 'line-through');
+                        }
+                    },
                     ondblClickRow: function (rowID) {
                         self.editingProviderIDCodes(rowID);
                     },

@@ -427,7 +427,9 @@ define([
                     offsetHeight: 01,
                     sortname: "id",
                     sortorder: "desc",
-                    dblClickActionIndex: 1,
+                    ondblClickRow: function (rowID) {
+                        self.showForm(rowID);
+                    },
                     disablesearch: false,
                     disablesort: false,
                     disablepaging: false,
@@ -841,12 +843,21 @@ define([
                     var filterType = 'studies';
                 if (window.location && window.location.hash.split('/')[1] == 'claim_workbench')
                     var filterType = 'claims';
-                filterName = $('#txtFilterName').val() ? $('#txtFilterName').val() : '';
-                filterOrder = $('#txtFilterOrder').val() ? $('#txtFilterOrder').val() : '';
+                filterName = $('#txtFilterName').val() ? $('#txtFilterName').val().trim() : '';
+                filterOrder = $('#txtFilterOrder').val() ? $('#txtFilterOrder').val().trim() : '';
                 isActive = $('#chkIsActive').is(":checked");
                 isGlobal = $('#chkIsGlobalFilter').is(":checked");
                 isDisplayAsTab = $('#chkDisplayAsTab').is(":checked");
                 isDisplayInDropDown = $('#chkDisplayAsDDL').is(":checked");
+
+                if(!filterName){
+                    commonjs.showWarning('Please Enter FilterName');
+                    return;
+                }
+                if(!filterOrder){
+                    commonjs.showWarning('Please Enter FilterOrder');
+                    return;
+                }
 
                 if ($('#rbtPreformatted').is(':checked')) {
                     var dateJsonCondition = "Preformatted";
@@ -1337,7 +1348,6 @@ define([
                 var self = this;
                 var opt = document.createElement('Option');
                 var IdName = e.target.nodeName == 'I' ? $(e.target).closest('button') : $(e.target);
-                //switch ((e.target || e.srcElement).id) {
                 switch ($(IdName).attr('id')) {
                     case 'btnAddPatientName':
                         if (commonjs.checkNotEmpty($('#txtPatientName').val()) && self.validateRadioButton('PatientName', 'PatientName')) {
@@ -1347,8 +1357,8 @@ define([
                             document.getElementById('listPatientName').options.add(opt);
                             $('#txtPatientName').val('');
                         }
-                        else {
-                            commonjs.showWarning("messages.warning.setup.entertextandselect");
+                        else if (!commonjs.checkNotEmpty($('#txtPatientName').val())) {
+                            commonjs.showWarning("setup.studyFilters.entertextandselect");
                             return false;
                         }
                         break;
@@ -1360,8 +1370,8 @@ define([
                             document.getElementById('listPatientID').options.add(opt);
                             $('#txtPatientID').val('');
                         }
-                        else {
-                            commonjs.showWarning("messages.warning.setup.entertextandselect");
+                        else if (!commonjs.checkNotEmpty($('#txtPatientID').val())) {
+                            commonjs.showWarning("setup.studyFilters.entertextandselect");
                             return false;
                         }
                         break;
@@ -1373,8 +1383,8 @@ define([
                             document.getElementById('listReadPhy').options.add(opt);
                             $('#txtReadPhy').val('');
                         }
-                        else {
-                            commonjs.showWarning("messages.warning.setup.entertextandselect");
+                        else if (!commonjs.checkNotEmpty($('#txtReadPhy').val())) {
+                            commonjs.showWarning("setup.studyFilters.entertextandselect");
                             return false;
                         }
                         break;
@@ -1386,8 +1396,8 @@ define([
                             document.getElementById('listRefPhy').options.add(opt);
                             $('#txtRefPhy').val('');
                         }
-                        else {
-                            commonjs.showWarning("messages.warning.setup.entertextandselect");
+                        else if (!commonjs.checkNotEmpty($('#txtRefPhy').val())) {
+                            commonjs.showWarning("setup.studyFilters.entertextandselect");
                             return false;
                         }
                         break;
@@ -1399,12 +1409,10 @@ define([
                             document.getElementById('listInsurance').options.add(opt);
                             $('#txtInsurance').val('');
                         }
-                        else {
-                            commonjs.showWarning("messages.warning.setup.entertextandselect");
+                        else if (!commonjs.checkNotEmpty($('#txtInsurance').val())) {
+                            commonjs.showWarning("setup.studyFilters.entertextandselect");
                             return false;
                         }
-                        break;
-                    case '':
                         break;
                 }
                 return false;
@@ -1510,9 +1518,9 @@ define([
                         app.facilities :
                         app.userfacilities;
                     setupList('listModality', app.modalities, 'modality_code');
-                    setupList('listBodyPart', app.settings.bodyParts);
+                    setupList('listBodyPart', app.bodyParts);
                     setupList('listStat', app.stat_level.slice(1), 'description', 'level');
-                    setupList('listFlag', app.settings.studyflag);
+                    setupList('listFlag', app.studyflag,'description');
                     setupList('listStatus', statusCodes, 'status_desc', 'status_code');
                     setupList('listVehicle', app.vehicles, 'vehicle_name');
                     setupList('listFacility', facilities, 'facility_name');
