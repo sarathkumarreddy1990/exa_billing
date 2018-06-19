@@ -49,7 +49,7 @@ AND <%= paymentDate %>
 
   )
   SELECT
-    COALESCE(facility_name, '~~Total~~') AS "Facility Name",
+    facility_name AS "Facility Name",
     payment_id AS "Payment ID",    
     patient_full_name AS "Patient Name",
     account_no AS "MRN #", 
@@ -61,13 +61,14 @@ AND <%= paymentDate %>
   GROUP BY
      grouping sets(
         ( facility_name),
-            ( payment_id, 
-              patient_full_name, 
-              account_no,
+            (
               facility_name,
+              payment_id, 
+              patient_full_name, 
+              account_no,              
               cheque_card_number,
-              notes),
-            ())
+              notes)
+           )
 
 `);
 

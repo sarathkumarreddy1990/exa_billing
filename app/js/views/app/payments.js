@@ -354,8 +354,8 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     var row = "";
                     var paymentResult = paymentExcelData.models[i].attributes;
                     row += '"' + paymentResult.id + '",';
-                    row += '"' + paymentResult.payment_date + '",';
-                    row += '"' + moment(paymentResult.accounting_date).format('L') + '",';
+                    row += '"' + moment(paymentResult.payment_dt).format('L') + '",';
+                    row += '"' + moment(paymentResult.accounting_dt).format('L') + '",';
                     row += '"' + paymentResult.payer_type + '",';
                     row += '"' + paymentResult.payer_name + '",';
                     row += '"' + paymentResult.amount + '",';

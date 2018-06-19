@@ -367,17 +367,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "name": "claim_no",
                         "width": 75
                     }
-                },
-                "Gender": {
-                    "id": 20,
-                    "field_code": "gender",
-                    "field_name": "Gender",
-                    "i18n_name": "billing.claims.gender",
-                    "field_info": {
-                        "name": "gender",
-                        "width": 200
-                    }
-                },
+                },                
                 "Invoice": {
                     "id": 21,
                     "field_code": "invoice_no",
@@ -652,7 +642,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "name": "patient_age",
                     "width": 100,
                     "formatter": function ( cellvalue, options, data ) {
-                        return data.patient_age;
+                        return data.patient_age || "";
 
 
                         var birthDate = moment(data.birth_date, 'YYYY-MM-DD');

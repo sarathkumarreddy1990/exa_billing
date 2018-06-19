@@ -7905,7 +7905,7 @@ var commonjs = {
     },
 
     getColorCodeForStatus: function (facility_id, code, screenName) {
-        var statusCodes = app.study_status.length && app.study_status ||parent.app.study_status;
+        var statusCodes = app.study_status && app.study_status.length && app.study_status ||parent.app.study_status;
         if (statusCodes && statusCodes.length > 0) {
             return $.grep(statusCodes, function (currentObj) {
                 return ((currentObj.facility_id == facility_id) && (currentObj.status_code == code));
@@ -7915,7 +7915,7 @@ var commonjs = {
     },
 
     getClaimColorCodeForStatus: function (code, processType) {
-        var statusCodes = app.status_color_codes.length && app.status_color_codes ||parent.app.status_color_codes;
+        var statusCodes = app.status_color_codes && app.status_color_codes.length && app.status_color_codes || parent.app.status_color_codes;
         if (statusCodes && statusCodes.length > 0) {
             return $.grep(statusCodes, function (currentObj) {
                 return ((currentObj.process_type == processType) && (currentObj.process_status == code));

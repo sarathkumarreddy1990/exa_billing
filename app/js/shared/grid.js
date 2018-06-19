@@ -24,6 +24,8 @@ define('grid', [
     var updateReorderColumn = utils.updateReorderColumn;
     var updateResizeColumn = utils.updateResizeColumn;
     var setScrollHandler = utils.setScrollHandler;
+    var selectedStudyArray = [];
+
     return function (options) {
         var self = this;
         var filterID = options.filterid;
@@ -51,6 +53,47 @@ define('grid', [
             var id = data.study_id;
             editStudyID = id;
             return chooseScreen(id, data, event, gridID);
+        };
+
+        var validateClaimSelection = function(row_id, enabled, _element, store){
+
+            var isPatientMatch, isStudyDateMatch, isStudyIdMatch;
+            var _storeEle = getData(row_id, store, gridID);
+            var study = {
+                study_id: row_id,
+                patient_id: _storeEle.patient_id,
+                facility_id: _storeEle.facility_id,
+                study_date: _storeEle.study_dt
+            };
+            if (enabled) {
+                if (selectedStudyArray.length) {
+                    isStudyIdMatch = _.filter(selectedStudyArray, d => d.study_id == row_id);
+                    isPatientMatch = _.filter(selectedStudyArray, d => d.patient_id == _storeEle.patient_id);
+                    isStudyDateMatch = _.filter(selectedStudyArray, d => (commonjs.convertToFacilityTimeZone(_storeEle.facility_id, d.study_date).format('MM/DD/YYYY'))  == commonjs.convertToFacilityTimeZone(_storeEle.facility_id, _storeEle.study_dt).format('MM/DD/YYYY'));
+                    isFacilityMatch = _.filter(selectedStudyArray, d => d.facility_id == _storeEle.facility_id);
+                    if (!isPatientMatch.length) {
+                        commonjs.showWarning('messages.warning.claims.samePatientValidate');
+                        $(_element).attr('checked', false);
+                        return;
+                    }
+                    if (!isStudyDateMatch.length) {
+                        commonjs.showWarning('messages.warning.claims.sameStudyDtValidate');
+                        $(_element).attr('checked', false);
+                        return;
+                    }
+                    if (!isFacilityMatch.length) {
+                        commonjs.showWarning('messages.warning.claims.sameFacilityValidate');
+                        $(_element).attr('checked', false);
+                        return;
+                    }
+                    else if(!isStudyIdMatch.length)
+                        selectedStudyArray.push(study);
+                }
+                else
+                    selectedStudyArray.push(study);
+            }
+            else
+                selectedStudyArray = _.reject(selectedStudyArray, d => d.study_id == row_id);
         };
 
         var openCreateClaim = function (rowID, event, isClaimGrid, store) {
@@ -86,7 +129,7 @@ define('grid', [
             }
             var studyIds = studyArray.join();
             if (isClaimGrid) {
-                var liClaimStatus = commonjs.getRightClickMenu('ul_change_claim_status','setup.rightClickMenu.billingStatus',false,'Change Billing Status',true); 
+                var liClaimStatus = commonjs.getRightClickMenu('ul_change_claim_status','setup.rightClickMenu.billingStatus',false,'Change Claim Status',true); 
                 $divObj.append(liClaimStatus);
                 var liArray = [];
                 $.each(app.claim_status, function (index, claimStatus) {                      
@@ -204,8 +247,7 @@ define('grid', [
 
             } else {                
                 var liCreateClaim = commonjs.getRightClickMenu('anc_create_claim','setup.rightClickMenu.createClaim',false,'Create Claim',false);
-                if(studyArray.length == 1)
-                    $divObj.append(liCreateClaim);
+                $divObj.append(liCreateClaim);
                 $('#anc_create_claim').off().click(function () {
                     window.localStorage.setItem('selected_studies', null);
                     window.localStorage.setItem('first_study_details', null);
@@ -287,7 +329,7 @@ define('grid', [
                     search: false,
                     isIconCol: true,
                     formatter: function (cellvalue, options, rowObject) {
-                        return '<input type="checkbox" name="chkStudy" id="chkSendStudy_' + (options.isClaimGrid?rowObject.id:rowObject.id )+ '" />'
+                        return '<input type="checkbox" name="chkStudy" id="chk'+gridID.slice(1)+'_' + (options.isClaimGrid?rowObject.id:rowObject.id )+ '" />'
                     },
                     customAction: function (rowID, e, that) {
                     }
@@ -446,7 +488,7 @@ define('grid', [
                 if (typeof options.updateStudiesPager === 'function') {
                     options.updateStudiesPager(model, gridObj);
                 }
-
+                selectedStudyArray = [];
             };
 
             var rowattr = function (domData, data) {
@@ -520,7 +562,20 @@ define('grid', [
                 multiselect: true,
                 ondblClickRow: function (rowID, irow, icol, event) {
                     var data = getData(rowID, studyStore, gridID);
-                    handleStudyDblClick(data, event, gridID);
+                    if ($('#chk'+gridID.slice(1)+'_' + rowID).length > 0) {
+                        $('#chk'+gridID.slice(1)+'_' + rowID).attr('checked',true);
+                    }
+                    if (options.isClaimGrid) {
+                        self.claimView = new claimsView();
+                        self.claimView.showEditClaimForm(rowID);
+                    } else {
+                        window.localStorage.setItem('selected_studies', null);
+                        window.localStorage.setItem('first_study_details', null);
+                        window.localStorage.setItem('primary_study_details', JSON.stringify(rowID));
+                        window.localStorage.setItem('selected_studies', JSON.stringify(rowID));
+                        self.claimView = new claimsView();
+                        self.claimView.showClaimForm(rowID);
+                    }
                 },
                 disablesearch: false,
                 disablesort: false,
@@ -560,18 +615,26 @@ define('grid', [
                 onRightClickRow: function (rowID, iRow, iCell, event, options) {
                     if (disableRightClick()) {
                         var _selectEle = $(event.currentTarget).find('#' + rowID).find('input:checkbox');
-                            _selectEle.attr('checked', true);
+                        _selectEle.attr('checked', true);
+
+                        if (!options.isClaimGrid) {
+                            validateClaimSelection(rowID, true, _selectEle, studyStore);
+                        }
                         openCreateClaim(rowID, event, options.isClaimGrid, studyStore);
                     }
                     else {
                         event.stopPropagation();
                     }
                 },
-                beforeSelectRow: function (rowID, e) {
+                beforeSelectRow: function (rowID, e, options) {
                     var _selectEle = $(e.currentTarget).find('#' + rowID).find('input:checkbox');
                     var enableField = _selectEle.is(':checked')
                     _selectEle.attr('checked', !enableField);
-                  
+
+                    if (!options.isClaimGrid) {
+                        enableField = _selectEle.is(':checked');
+                        validateClaimSelection(rowID, enableField, _selectEle, studyStore);
+                    }
                 },
                 beforeSearch: function () {
                     commonjs.scrollLeft = $('.ui-jqgrid-bdiv').scrollLeft();

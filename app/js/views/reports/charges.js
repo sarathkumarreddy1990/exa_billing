@@ -44,7 +44,7 @@ define(['jquery',
                 UI.initializeReportingViewModel(options, this.viewModel);
 
                 // Set date range to Facility Date
-                this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(app.default_facility_id);
+                this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(app.facilityID);
                 this.viewModel.dateTo = this.viewModel.dateFrom.clone();              
             },
 
