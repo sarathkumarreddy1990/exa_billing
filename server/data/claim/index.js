@@ -57,7 +57,7 @@ module.exports = {
                                         facility_id,
                                         order_info->'currentDate' AS current_illness_date,
                                         order_info->'similarIll' AS same_illness_first_date,
-                                        order_info->'wTo' AS hospitalization_to_date,
+                                        order_info->'wTo' AS unable_to_work_to_date,
                                         order_info->'wFrom' AS unable_to_work_from_date,
                                         order_info->'hTo' AS hospitalization_to_dt,
                                         order_info->'hFrom' AS hospitalization_from_date,
@@ -874,7 +874,7 @@ module.exports = {
                 , claim_notes = ${ claims.claim_notes}
                 , original_reference = ${ claims.original_reference}
                 , authorization_no = ${ claims.authorization_no}
-                , frequency = ${ claims.claim_frequency}
+                , frequency = ${ claims.frequency}
                 , is_auto_accident = ${ claims.is_auto_accident}
                 , is_other_accident = ${ claims.is_other_accident}
                 , is_employed = ${ claims.is_employed}
