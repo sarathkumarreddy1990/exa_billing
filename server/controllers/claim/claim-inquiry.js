@@ -26,16 +26,8 @@ module.exports = {
         return data.updateClaimComment(params);
     },
 
-    saveFollowUpDate: (params) => {
-        return data.saveFollowUpDate(params);
-    },
-
     getFollowupDate: (params) => {
         return data.getFollowupDate(params);
-    },
-
-    updateBillingNotes: (params) => {
-        return data.updateBillingNotes(params);
     },
 
     viewPaymentDetails: (params) => {

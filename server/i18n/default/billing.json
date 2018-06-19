@@ -73,7 +73,8 @@
             "ordFacility": "Ordering Facility",
             "icd": "ICD Codes",
             "claimNotes": "Claim Notes",
-            "billingComments": "Billing Notes"
+            "billingComments": "Billing Notes",
+            "comment": "comments"
         },
         "payments": {
             "postingDate": "Posting Date",
