@@ -35,7 +35,8 @@ define([
                 reportFormat: null,
                 reportDate: null,
                 billingProvider: null,
-                allBillingProvider: false
+                allBillingProvider: false,
+                insuranceOption: null
             },
             selectedFacilityListDetail: [],
             events: {
@@ -44,7 +45,8 @@ define([
                 'click #btnPdfReport': 'onReportViewClick',
                 'click #btnExcelReport': 'onReportViewClick',
                 'click #btnCsvReport': 'onReportViewClick',
-                'click #btnXmlReport': 'onReportViewClick'
+                'click #btnXmlReport': 'onReportViewClick',
+                "click #ddlInsuranceBinding": "onInsuranceBinding",
             },
 
             initialize: function (options) {
@@ -52,7 +54,7 @@ define([
                 this.$el.html(this.mainTemplate(this.viewModel));                
                 UI.initializeReportingViewModel(options, this.viewModel);
                 // Set date range to Facility Date
-                this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(app.default_facility_id);
+                this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(app.facilityID);
                 this.viewModel.dateTo = this.viewModel.dateFrom.clone();              
             },
 
@@ -84,6 +86,7 @@ define([
                 });
                 // Binding Billing Provider MultiSelect
                 UI.bindBillingProvider();
+                UI.bindInsuranceAutocomplete('txtInsuranceName', 'btnAddInsurance', 'ulListInsurance');
             },
 
             bindDateRangePicker: function () {
@@ -100,8 +103,27 @@ define([
                 });
             },
 
+             // Binding Insurance information
+        onInsuranceBinding: function () {
+            if ($('#ddlInsuranceBinding').val() == 'S'){
+                $('#ddlInsuranceOptionBox').show();
+                $('#divListInsurance').show();
+            }
+            else {
+                $('#ddlInsuranceOptionBox').hide();
+                $('#divListInsurance').hide();
+                $('#ulListInsurance').empty();
+                this.viewModel.insuranceOption = [];
+                $('#ulListInsurance').data('insuranceIds', []);
+            }
+        },       
 
             onReportViewClick: function (e) {
+                  //Insurance Mapping
+            this.viewModel.insuranceOption = $('ul#ulListInsurance li').map(function () {
+                return this.id;
+            }).get();
+
                 var btnClicked = e && e.target ? $(e.target) : null;
                 this.getSelectedFacility();
                 this.getBillingProvider();
@@ -162,7 +184,8 @@ define([
                     'toDate': this.viewModel.dateTo.format('YYYY-MM-DD'),
                     'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
-                    'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false
+                    'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
+                    'insuranceProviderIds': this.viewModel.insuranceOption ? this.viewModel.insuranceOption : ''
                 };
             }
         });

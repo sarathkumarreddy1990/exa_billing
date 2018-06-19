@@ -3763,7 +3763,7 @@ var commonjs = {
                     height = $(window).height() - ($('body>.topbar').outerHeight() + $('body>header').outerHeight() + $('body>.top-nav').outerHeight() + 235);
                     break;
                 case 'Payments':
-                    height = $(window).height() - ($('#formBillingProviders').outerHeight() + $('body>nav').outerHeight() + 160);
+                    height = $(window).height() - ($('#divPaymentFilter').height() + 155);
                     break;
                 case 'Setup':
                     height = $(window).height() - ($('body>nav').outerHeight() + $('#divPageHeaderButtons').outerHeight() + 100);

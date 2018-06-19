@@ -40,9 +40,12 @@ module.exports = {
                                 , display_description
                                 , additional_info
                                 , sc.cpt_code_id AS cpt_id
+                                , ARRAY( SELECT icd_codes.id||'~'||code ||'-'|| icd_codes.description FROM public.icd_codes WHERE id = ANY(o.icd_code_ids_billing) ) as icd_codes_billing
+				                , o.icd_code_ids_billing as icd_codes_billing_order 
                             FROM public.study_cpt sc
                             INNER JOIN public.studies s ON s.id = sc.study_id
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
+                            INNER JOIN public.orders o on o.id = s.order_id
                             WHERE
                                 study_id = ANY(${studyIds})
                             ORDER BY s.accession_no DESC
@@ -106,6 +109,7 @@ module.exports = {
                                     ) AS claim_default_details
                             ) claims_info `;
 
+        
         return await query(sql);
     },
 
@@ -274,7 +278,6 @@ module.exports = {
                                                     , coverage_level
                                                     , policy_number
                                                     , group_number
-                                                    , subscriber_employment_status_id
                                                     , subscriber_firstname
                                                     , subscriber_lastname
                                                     , subscriber_middlename
@@ -297,7 +300,6 @@ module.exports = {
                                                         , coverage_level
                                                         , policy_number
                                                         , group_number
-                                                        , subscriber_employment_status_id
                                                         , subscriber_firstname
                                                         , subscriber_lastname
                                                         , subscriber_middlename
@@ -321,7 +323,6 @@ module.exports = {
                                                         , coverage_level text 
                                                         , policy_number text 
                                                         , group_number text
-                                                        , subscriber_employment_status_id bigint 
                                                         , subscriber_firstname text 
                                                         , subscriber_lastname text 
                                                         , subscriber_middlename text
@@ -708,7 +709,6 @@ module.exports = {
                   , coverage_level
                   , policy_number
                   , group_number
-                  , subscriber_employment_status_id
                   , subscriber_firstname
                   , subscriber_lastname
                   , subscriber_middlename
@@ -734,7 +734,6 @@ module.exports = {
                  , coverage_level text 
                  , policy_number text 
                  , group_number text
-                 , subscriber_employment_status_id bigint 
                  , subscriber_firstname text 
                  , subscriber_lastname text 
                  , subscriber_middlename text
@@ -761,7 +760,6 @@ module.exports = {
                   , coverage_level
                   , policy_number
                   , group_number
-                  , subscriber_employment_status_id
                   , subscriber_firstname
                   , subscriber_lastname
                   , subscriber_middlename
@@ -785,7 +783,6 @@ module.exports = {
                     , coverage_level
                     , policy_number
                     , group_number
-                    , subscriber_employment_status_id
                     , subscriber_firstname
                     , subscriber_lastname
                     , subscriber_middlename
@@ -817,7 +814,6 @@ module.exports = {
                     , coverage_level = ins.coverage_level
                     , policy_number = ins.policy_number
                     , group_number = ins.group_number
-                    , subscriber_employment_status_id = ins.subscriber_employment_status_id
                     , subscriber_firstname = ins.subscriber_firstname
                     , subscriber_lastname = ins.subscriber_lastname
                     , subscriber_middlename = ins.subscriber_middlename

@@ -38,7 +38,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     { 'value': "patient", 'text': "Patient" },
                     { 'value': "ordering_facility", 'text': "Ordering Facility" },
                     { 'value': "insurance", 'text': "Insurance" },
-                    { 'value': "provider", 'text': "Provider" }
+                    { 'value': "ordering_provider", 'text': "Provider" }
                 ];
                 this.billing_method = [
                     { 'value': "DB", 'text': "Direct Billing(Invoice)" },
@@ -107,7 +107,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 $('#btnTabNavPayRight').click(function () {
                     $('#divPaymentTabsContainer').scrollTo({ top: '0px', left: '+=70' }, 300);
                 });
-                self.initializeDateTimePickers();
+                // self.initializeDateTimePickers();
             },
 
             validateFromAndToDate: function (objFromDate, objToDate) {
@@ -176,7 +176,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         gridelementid: '#tblpaymentsGrid',
                         custompager: this.pager,
                         emptyMessage: 'No Record found',
-                        colNames: ['<span  id="spnStatus" class="icon-ic-worklist" onclick="commonjs.popOverActions(event)" ></span>','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                        colNames: ['','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
                         i18nNames: ['','', '', 'billing.payments.paymentID', '', 'billing.payments.referencePaymentID', 'billing.payments.paymentDate', 'billing.payments.accountingDate', 'billing.payments.payertype', 'billing.payments.payerName', 'billing.payments.paymentAmount', 'billing.payments.paymentApplied', 'billing.payments.balance', 'billing.payments.adjustment', 'billing.payments.postedBy', 'billing.payments.paymentmode', 'billing.payments.facility_name', '', '', ''],
                         colModel: [
                             {
@@ -232,15 +232,6 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         ondblClickRow: function (rowID) {
                             self.editPayment(rowID);
                         },
-                        afterInsertRow: function (rowid, rowdata) {
-
-                            // if (rowdata.current_status) {
-                            //     var statusClass = self.getStatus(rowdata.current_status);
-                            //     $("#tblpaymentsGrid").find('#' + rowid).removeClass(statusClass).addClass(statusClass);
-                            // }
-                            // if (typeof (self.options.afterInsertRow) != 'undefined')
-                            //     self.options.afterInsertRow(rowid, rowdata);
-                        },
                         onaftergridbind: self.afterGridBind,
                         disablesearch: false,
                         disablesort: false,
@@ -254,6 +245,14 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                             toDate: self.dtpPayTo && self.dtpPayTo.date() ? self.dtpPayTo.date().format('YYYY-MM-DD') : "",
                             paymentStatus: $("#ulPaymentStatus").val(),
                             facility_id: $("#ddlPaymentFacility").val()
+                        },
+                        afterInsertRow: function (rowid, rowdata) {
+                            if (rowdata.current_status) {
+                                console.log(rowdata.current_status)
+                                var status = commonjs.getClaimColorCodeForStatus(rowdata.current_status, 'payment');
+                                var statusColor = status[0];                            
+                                $("#" + rowid).css({ 'background-color' : statusColor.color_code });         
+                            }
                         }
                     });
 
@@ -332,7 +331,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     case "patient":
                         colvalue = 'Patient';
                         break;
-                    case "provider":
+                    case "ordering_provider":
                         colvalue = 'Provider';
                         break;
                     case "ordering_facility":
@@ -395,8 +394,8 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     var row = "";
                     var paymentResult = paymentExcelData.models[i].attributes;
                     row += '"' + paymentResult.id + '",';
-                    row += '"' + paymentResult.payment_date + '",';
-                    row += '"' + moment(paymentResult.accounting_date).format('L') + '",';
+                    row += '"' + moment(paymentResult.payment_dt).format('L') + '",';
+                    row += '"' + moment(paymentResult.accounting_dt).format('L') + '",';
                     row += '"' + paymentResult.payer_type + '",';
                     row += '"' + paymentResult.payer_name + '",';
                     row += '"' + paymentResult.amount + '",';

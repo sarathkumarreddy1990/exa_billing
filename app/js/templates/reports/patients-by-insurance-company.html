@@ -1,8 +1,8 @@
 <form class="form-horizontal form-list" novalidate="" _lpchecked="1" id="patientsByInsuranceCompanyForm">
     <!-- row: form elements -->
-    <div class="col-xs-12 col-md-12 col-lg-12">
+    <div class="row">
         <!-- col: form elements -->
-        <div class="col-xs-4">
+        <div class="col-3">
             <div class="form-group form-inline">
                 <div class="col-form-label">
                     <label class="control-label field-required" for="txtDateRangeFromTo" i18n="billing.payments.claimDate" />
@@ -17,13 +17,11 @@
                 </div>
             </div>
         </div>
-        <div class="col-xs-4">
+        <div class="col-3">
             <div class="form-group form-inline">
-                <div class="col-form-label">
+                <div class="col-form-label" class="multiselect">
                     <label class="control-label">Facilities
                     </label>
-                </div>
-                <div class="col-form-label" class="multiselect">
                     <select id="ddlFacilityFilter" multiple="multiple">
                         <% _.each(facilities.toJSON(), function(facility) { %>
                             <option value='<%= facility.id %>'>
@@ -34,17 +32,46 @@
                 </div>
             </div>
         </div>
-        <div class="col-xs-4" style="display: none;">
-            <div class="form-group form-inline">
-                <div class="col-form-label">
-                    <label class="control-label">Billing Provider
-                    </label>
+        <div class="col-3">
+            <div class="form-group form-inline" id="procedureByInsurance">
+                <div class="col-form-label" style="max-width: 110px">
+                    <label class="control-label">Insurance</label>
                 </div>
-                <div class="col-form-label" class="multiselect">
-                    <select id="ddlBillingProvider" multiple="multiple" />
+                <div class="form-content">
+                    <div class="input-group" style="width: 250px; margin-top:10px">
+                        <select id="ddlInsuranceBinding" class="form-control form-control-lg">
+                            <option value="All">All Insurance</option>
+                            <option value="S">Insurances</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="ddlInsuranceOptionBox" class="form-group form-inline" style="display: none;">
+                    <div>
+                        <label class="control-label" i18n="report.reportFilter.insurances"></label>
+                    </div>
+                    <div style="width: 250px; margin-top:10px">
+                        <select id="txtInsuranceName" style="width: 250px; border:1px solid;margin-top:10px"> </select>
+                        <a class="btn btn-primary" id="btnAddInsurance" title="Add Insurance">
+                            <i class="icon-ic-plus"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <div class="col-3">
+            <div id="divListInsurance" style="display: none;">
+                <div class="col-form-label">
+                    <label class="inline field-chk">Insurance Selected</label>
+                </div>
+                <div>
+                    <ul id="ulListInsurance" class="ulSelectionList tagList" style="overflow: auto;width: 330px;height:90px; border: 1px solid;">
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
     </div>
     <!-- /col: form elements -->
 

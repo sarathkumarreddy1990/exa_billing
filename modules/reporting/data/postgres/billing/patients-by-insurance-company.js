@@ -28,7 +28,8 @@ with patientByInsCompanyDetailQuery as (
     WHERE  1 = 1
          AND <%= companyId %>
          AND <%= claimDate %>
-         <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+         <% if (facilityIds) { %>AND <% print(facilityIds); } %>    
+         <% if(insuranceProviderIds) { %>AND <% print(insuranceProviderIds);} %>    
          <% if(billingProID) { %> AND <% print(billingProID); } %>
     ORDER BY 
         "Patient","Level"
@@ -43,13 +44,20 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
+        //convert array of insuranceProviderIds array of string to integer
+        if (initialReportData.report.params.insuranceProviderIds) {
+            initialReportData.report.params.insuranceProviderIds = initialReportData.report.params.insuranceProviderIds.map(Number);
+        }
+
         return Promise.join(
             api.createpatientsByInsCompanyDataSet(initialReportData.report.params),
             dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
+            dataHelper.getInsuranceProvidersInfo(initialReportData.report.params.companyId, initialReportData.report.params.insuranceProviderIds),
             // other data sets could be added here...
-            (patientsByInsCompanyDataSet, providerInfo) => {
+            (patientsByInsCompanyDataSet, providerInfo, insuranceProvidersInfo) => {
                 // add report filters  
                 initialReportData.lookups.billingProviderInfo = providerInfo || [];
+                initialReportData.lookups.insuranceProviders = insuranceProvidersInfo || [];
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 // add report specific data sets
@@ -98,6 +106,17 @@ const api = {
             const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
         }
+
+        // insurance Providers
+        if (params.allRefProList == 'false') {
+            if (params.insuranceProviderIds) {
+                const insuranceProviderNames = _(lookups.insuranceProviders).map(f => f.name).value();
+                filtersUsed.push({ name: 'insuranceProviderNames', label: 'Insurance Provider', value: insuranceProviderNames });
+            }
+            else
+                filtersUsed.push({ name: 'insuranceProviderNames', label: 'Insurance Provider', value: 'All' });
+        }
+
         // Billing provider Filter
         // if (params.allBillingProvider == 'true')
         //     filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
@@ -132,7 +151,8 @@ const api = {
             companyId: null,
             claimDate: null,
             facilityIds: null,
-            billingProID: null
+            billingProID: null,
+            insuranceProviderIds: null
 
         };
 
@@ -162,6 +182,11 @@ const api = {
             filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
         }
 
+        //InsuranceProvider filter
+        if (reportParams.insuranceProviderIds) {
+            params.push(reportParams.insuranceProviderIds);
+            filters.insuranceProviderIds = queryBuilder.whereIn('ip.id', [params.length]);
+        }
         return {
             queryParams: params,
             templateData: filters
