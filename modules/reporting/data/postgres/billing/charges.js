@@ -45,7 +45,7 @@ const detailQueryTemplate = _.template(`
 	, pp.account_no 										AS "Account #"
 	, bc.id 											    AS "Claim #"
     , to_char(pp.birth_date,'MM/DD/YYYY')                   AS "DOB"
-    , icd.code                                              AS "Diagnostic"
+    , billing.get_charge_icds(bch.id)                     AS "Diagnostic"
 	, (bch.bill_fee*bch.units)								AS "Charge"
 	, (bch.allowed_amount*bch.units)						AS "Contract"
 	, pm1.code                                             	AS "M1"
@@ -55,8 +55,6 @@ const detailQueryTemplate = _.template(`
 	
 FROM billing.charges bch 
 INNER JOIN billing.claims bc on bc.id = bch.claim_id
-INNER JOIN billing.claim_icds claim_icd  ON claim_icd.claim_id = bc.id
-INNER JOIN public.icd_codes icd ON icd.id = claim_icd.icd_id
 INNER JOIN public.patients pp on pp.id = bc.patient_id 
 INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
 LEFT JOIN public.modifiers pm1 on pm1.id = bch.modifier1_id
