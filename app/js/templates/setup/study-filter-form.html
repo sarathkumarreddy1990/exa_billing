@@ -54,6 +54,10 @@
         margin-left:5%;
     }
 
+    #ulStudyFilterSideMenu li a{
+        white-space: nowrap;
+    }
+
 </style>
     <div id="headerContainer" style="background-color:#fff;text-align:right;width:100%;display: inline-block;">
         <ul class="new-menu-right">
@@ -95,7 +99,7 @@
                             </label>
                         </div>
                         <div class="form-list col-md-4 col-sm-4">
-                            <input type="number" id="txtFilterOrder" name="FilterOrder" maxlength="5" placeholder="Filter Order" i18np="setup.studyFilters.filterOrder"
+                            <input type="number" id="txtFilterOrder" name="FilterOrder" maxlength="5" min="0" placeholder="Filter Order" i18np="setup.studyFilters.filterOrder"
                                 required="required" class="form-control fc-short">
                         </div>
                         <div class="form-list col-md-4 col-sm-4">
@@ -123,42 +127,42 @@
         </legend>
         <div id="divTab" class="row borderedForm" style="display:none">
             <div class="col-md-2 col-sm-2 bs-docs-sidenav">
-                <div class="tabs-left navbar navbar-light bg-faded">
+                <div class="tabs-left navbar-light bg-faded">
                     <ul id="ulStudyFilterSideMenu" class="navbar-nav nav-stacked tn-menu side-nav applyTabBorder nav navbar-nav">
-                        <li class="nav-item nav-link active">
-                            <a id="tabDateTime" data-toggle="tab">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="tabDateTime" data-toggle="tab">
                         <span>
                             <i class="icon-ic-schedule"></i>
                         </span>
                                 <span i18n="setup.studyFilters.nav.tabDateTime"></span>
                             </a>
                         </li>
-                        <li class="nav-item nav-link">
-                            <a id="tabPatientInformation" data-toggle="tab">
+                        <li class="nav-item">
+                            <a class="nav-link" id="tabPatientInformation" data-toggle="tab" >
                         <span>
                             <i class="icon-ic-patient"></i>
                         </span>
-                                <span i18n="setup.studyFilters.nav.tabPatientInformation"></span>
+                                <span i18n="setup.studyFilters.nav.tabPatientInformation" ></span>
                             </a>
                         </li>
-                        <li class="nav-item nav-link">
-                            <a id="tabStudyInformation" data-toggle="tab">
+                        <li class="nav-item">
+                            <a class="nav-link" id="tabStudyInformation" data-toggle="tab">
                         <span>
                             <i class="icon-ic-worklist"></i>
                         </span>
                                 <span i18n="setup.studyFilters.nav.tabStudyInformation"></span>
                             </a>
                         </li>
-                        <li class="nav-item nav-link">
-                            <a id="tabPhysician" data-toggle="tab">
+                        <li class="nav-item">
+                            <a class="nav-link" id="tabPhysician" data-toggle="tab">
                         <span>
                             <i class="icon-ic-aid-kit"></i>
                         </span>
                                 <span i18n="setup.studyFilters.nav.tabPhysician"></span>
                             </a>
                         </li>
-                        <li class="nav-item nav-link">
-                            <a id="tabInsurance" data-toggle="tab">
+                        <li class="nav-item">
+                            <a class="nav-link" id="tabInsurance" data-toggle="tab">
                                 <span>
                                     <i class="icon-ic-aid-kit"></i>
                                 </span>
@@ -948,7 +952,7 @@
                                     <tr>
                                         <td>
                                             <div class="row form-inline">
-                                                <div class="form-list col-md-2 col-sm-2">
+                                                <div class="form-list col-md-3 col-sm-3">
                                                     <input type="radio" id="rbtIsVehicle" name="Vehicle" value="Is"
                                                            class="form-check-input">
                                                     <label for="rbtIsVehicle" class="field-chk studyfilterLabel"
@@ -1100,7 +1104,7 @@
                             <tr>
                                 <td>
                                     <div class="row form-inline">
-                                        <div class="form-list col-md-2 col-sm-2">
+                                        <div class="form-list col-md-3 col-sm-3">
                                             <input type="radio"
                                                    id="rbtIsImageDelivery"
                                                    name="ImageDelivery"

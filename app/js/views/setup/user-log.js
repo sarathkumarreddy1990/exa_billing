@@ -75,11 +75,11 @@ define([
                             width: 180
                         },
                         {
-                            name: 'description',
+                            name: 'last_access_dt',
                             width: 180
                         },
                         {
-                            name: 'created_dt',
+                            name: 'login_source',
                             width: 180
                         }
                     ],
