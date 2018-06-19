@@ -389,8 +389,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
 
                 document.querySelector('#txtHCT').value = claim_data.hospitalization_to_date ? moment(claim_data.hospitalization_to_date).format('YYYY-MM-DD') : '';
                 document.querySelector('#txtHCF').value = claim_data.hospitalization_from_date ? moment(claim_data.hospitalization_from_date).format('YYYY-MM-DD') : '';
-                document.querySelector('#txtWCT').value = claim_data.unable_to_work_from_date ? moment(claim_data.unable_to_work_from_date).format('YYYY-MM-DD') : '';
-                document.querySelector('#txtWCF').value = claim_data.unable_to_work_to_date ? moment(claim_data.unable_to_work_to_date).format('YYYY-MM-DD') : '';
+                document.querySelector('#txtWCF').value = claim_data.unable_to_work_from_date ? moment(claim_data.unable_to_work_from_date).format('YYYY-MM-DD') : '';
+                document.querySelector('#txtWCT').value = claim_data.unable_to_work_to_date ? moment(claim_data.unable_to_work_to_date).format('YYYY-MM-DD') : '';
                 document.querySelector('#txtOtherDate').value = claim_data.same_illness_first_date ? moment(claim_data.same_illness_first_date).format('YYYY-MM-DD') : '';
                 document.querySelector('#txtDate').value = claim_data.current_illness_date ? moment(claim_data.current_illness_date).format('YYYY-MM-DD') : '';
                 document.querySelector('#txtClaimDate').value = claim_data.claim_dt ? moment(claim_data.claim_dt).format('YYYY-MM-DD') : '';
@@ -1566,6 +1566,9 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                         $('#ddlExistPriIns').val(0);
                         self.updateInsAddress('Pri', res);
                         self.is_primary_available = true;
+                        if($('#ddlPriInsurance').val() !='') {
+                            $('#chkPriAcptAsmt').attr('checked', true);
+                        }
                         break;
                     case 'ddlSecInsurance':
                         self.secInsID = res.id;
@@ -1577,6 +1580,9 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                         $('#ddlExistSecIns').val(0);
                         self.updateInsAddress('Sec', res);
                         self.is_secondary_available = true;
+                        if($('#ddlSecInsurance').val() !='') {
+                            $('#chkSecAcptAsmt').attr('checked', true);
+                        }
                         break;
                     case 'ddlTerInsurance':
                         self.terInsID = res.id;
@@ -1588,6 +1594,9 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                         $('#ddlExistTerIns').val(0);
                         self.updateInsAddress('Ter', res);
                         self.is_tertiary_available = true;
+                        if($('#ddlTerInsurance').val() !='') {
+                            $('#chkTerAcptAsmt').attr('checked', true);
+                        }
                         break;
                 }
                 self.updateResponsibleList({
@@ -1809,7 +1818,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                             break;
                     }
                     $('#select2-ddl' + flag + 'Insurance-container').html(result.insurance_name);
-                    $('#chk' + flag + 'AcptAsmt').prop('checked', result.assign_benefits_to_patient == "true");
+                    $('#chk' + flag + 'AcptAsmt').prop('checked', result.assign_benefits_to_patient);
                     $('#lbl' + flag + 'InsPriAddr').html(result.ins_pri_address);
                     var csz = result.ins_city + (commonjs.checkNotEmpty(result.ins_state) ? ',' + result.ins_state : "") + (commonjs.checkNotEmpty(result.ins_zip_code) ? ',' + result.ins_zip_code : "");
                     $('#lbl' + flag + 'InsCityStateZip').html(csz);
