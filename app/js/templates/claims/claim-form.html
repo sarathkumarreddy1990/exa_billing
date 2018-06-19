@@ -255,18 +255,7 @@
                         <input type="text" class="form-control" id="txtPriGroupNo" placeholder="Group No">
                     </div>
                 </div>
-                <div class="form-group row">
-                    <label for="ddlPriPlanName" class="col-sm-3 col-form-label" i18n="billing.claims.planName"></label>
-                    <div class="col-sm-5">
-                        <select class="form-control select-box" id="ddlPriPlanName" style="height:32px;">
-                            <% _.each(planname, function(plan) { %>
-                                <option value='<%= plan.value %>'>
-                                    <%= plan.text %>
-                                </option>
-                                <% }); %>
-                        </select>
-                    </div>
-                </div>
+                
                 <div class="form-group row">
                     <label for="ddlPriRelationShip" class="col-sm-3 col-form-label field-required" i18n="billing.claims.relationShip"></label>
                     <div class="col-sm-5">
@@ -343,19 +332,7 @@
                         <input type="text" class="form-control" id="txtPriZipCode" placeholder="ZipCode">
                     </div>
                 </div>
-                <div class="form-group row">
-                    <label for="ddlPriEmpStatus" class="col-sm-3 col-form-label field-required" i18n="billing.claims.employeeStatus"></label>
-                    <div class="col-sm-5">
-                        <select class="form-control select-box" id="ddlPriEmpStatus" style="height:32px;">
-                            <option value=''>Select</option>
-                            <% _.each(empStatus, function(empStatus) { %>
-                                <option value='<%= empStatus.id %>'>
-                                    <%= empStatus.description %>
-                                </option>
-                                <% }); %>
-                        </select>
-                    </div>
-                </div>
+                
                 <div class="form-group row">
                     <label for="ddlServiceType" class="col-sm-3 col-form-label" i18n="billing.claims.serviceType"></label>
                     <div class="col-sm-5">
@@ -446,18 +423,7 @@
                         <input type="text" class="form-control" id="txtSecGroupNo" placeholder="Group No">
                     </div>
                 </div>
-                <div class="form-group row">
-                    <label for="ddlSecPlanName" class="col-sm-3 col-form-label" i18n="billing.claims.planName"></label>
-                    <div class="col-sm-5">
-                        <select class="form-control select-box" id="ddlSecPlanName" style="height:32px;">
-                            <% _.each(planname, function(plan) { %>
-                                <option value='<%= plan.value %>'>
-                                    <%= plan.text %>
-                                </option>
-                                <% }); %>
-                        </select>
-                    </div>
-                </div>
+                
                 <div class="form-group row">
                     <label for="ddlSecRelationShip" class="col-sm-3 col-form-label field-required" i18n="billing.claims.relationShip"></label>
                     <div class="col-sm-5">
@@ -534,19 +500,7 @@
                         <input type="text" class="form-control" id="txtSecZipCode" placeholder="ZipCode">
                     </div>
                 </div>
-                <div class="form-group row">
-                    <label for="ddlSecEmpStatus" class="col-sm-3 col-form-label field-required" i18n="billing.claims.employeeStatus"></label>
-                    <div class="col-sm-5">
-                        <select class="form-control select-box" id="ddlSecEmpStatus" style="height:32px;">
-                            <option value=''>Select</option>
-                            <% _.each(empStatus, function(empStatus) { %>
-                                <option value='<%= empStatus.id %>'>
-                                    <%= empStatus.description %>
-                                </option>
-                                <% }); %>
-                        </select>
-                    </div>
-                </div>
+                
                 <div class="form-group row">
                     <label for="ddlServiceType2" class="col-sm-3 col-form-label" i18n="billing.claims.serviceType"></label>
                     <div class="col-sm-5">
@@ -620,18 +574,7 @@
                         <input type="text" class="form-control" id="txtTerGroupNo" placeholder="Group No">
                     </div>
                 </div>
-                <div class="form-group row">
-                    <label for="ddlTerPlanName" class="col-sm-3 col-form-label" i18n="billing.claims.planName"></label>
-                    <div class="col-sm-5">
-                        <select class="form-control select-box" id="ddlTerPlanName" style="height:32px;">
-                            <% _.each(planname, function(plan) { %>
-                                <option value='<%= plan.value %>'>
-                                    <%= plan.text %>
-                                </option>
-                                <% }); %>
-                        </select>
-                    </div>
-                </div>
+                
                 <div class="form-group row">
                     <label for="ddlTerRelationShip" class="col-sm-3 col-form-label field-required" i18n="billing.claims.relationShip"></label>
                     <div class="col-sm-5">
@@ -708,19 +651,7 @@
                         <input type="text" class="form-control" id="txtTerZipCode" placeholder="ZipCode">
                     </div>
                 </div>
-                <div class="form-group row">
-                    <label for="ddlTerEmpStatus" class="col-sm-3 col-form-label field-required" i18n="billing.claims.employeeStatus"></label>
-                    <div class="col-sm-5">
-                        <select class="form-control select-box" id="ddlTerEmpStatus" style="height:32px;">
-                            <option value=''>Select</option>
-                            <% _.each(empStatus, function(empStatus) { %>
-                                <option value='<%= empStatus.id %>'>
-                                    <%= empStatus.description %>
-                                </option>
-                                <% }); %>
-                        </select>
-                    </div>
-                </div>
+                
                 <div class="form-group row">
                     <label for="ddlServiceType3" class="col-sm-3 col-form-label" i18n="billing.claims.serviceType"></label>
                     <div class="col-sm-5">
