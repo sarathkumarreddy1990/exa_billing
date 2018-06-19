@@ -37,13 +37,13 @@ define(['jquery',
                 this.model = new CasGroupCodesModel();
                 this.casGroupCodesList = new CasGroupCodesCollections();
                 this.pager = new Pager();
+                $(this.el).html(this.casGroupCodesGridTemplate());
             },
 
             render: function() {
                 var self = this;
                 $('#divCasGroupCodesGrid').show();
                 $('#divCasGroupCodesForm').hide();
-                $(this.el).html(this.casGroupCodesGridTemplate());
                 this.casGroupCodesTable = new customGrid();
                 this.casGroupCodesTable.render({
                     gridelementid: '#tblCasGroupCodesGrid',

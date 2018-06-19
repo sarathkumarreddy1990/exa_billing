@@ -37,7 +37,7 @@ define([
             },
 
             initializeRouter: function () {
-                this.options.screen = "Cas Group Codes";//facilityModules.setupScreens.icd;
+                this.options.screen = "CAS Group Codes";//facilityModules.setupScreens.icd;
                 this.options.currentView = this.casGroupCodeScreen;
                 layout.initializeLayout(this);
 

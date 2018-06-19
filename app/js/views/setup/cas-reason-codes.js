@@ -27,13 +27,13 @@ define([
                 this.model = new CasReasonCodesModel();
                 this.pager = new Pager();
                 this.casReasonCodesList = new CasReasonCodesCollections();
+                $(this.el).html(this.casReasonCodesGridTemplate());
             },
 
             render: function () {
                 var self = this;
                 $('#divCasReasonCodesGrid').show();
                 $('#divCasReasonCodesForm').hide();
-                $(this.el).html(this.casReasonCodesGridTemplate());
                 this.casReasonCodesTable = new customGrid();
                 this.casReasonCodesTable.render({
                     gridelementid: '#tblCasReasonCodesGrid',

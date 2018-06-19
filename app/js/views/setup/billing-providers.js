@@ -44,13 +44,13 @@ define(['jquery',
                 this.model = new BillingProvidersModel();
                 this.billingProvidersList = new BillingProvidersCollections();
                 this.pager = new Pager();
+                $(this.el).html(this.billingProvidersGridTemplate());
             },
 
             render: function () {
                 var self = this;
                 $('#divBillingProvidersGrid').show();
                 $('#divBillingProvidersForm').hide();
-                $(this.el).html(this.billingProvidersGridTemplate());
                 this.billingProvidersTable = new customGrid();
                 this.billingProvidersTable.render({
                     gridelementid: '#tblBillingProvidersGrid',
@@ -380,7 +380,8 @@ define(['jquery',
                     submitHandler: function () {
                         self.save();
                     },
-                    formID: '#formBillingProviders'
+                    formID: '#formBillingProviders',
+                    onkeyup: function(element) { $(element).valid(); },
                 });
                 $('#formBillingProviders').submit();
             },

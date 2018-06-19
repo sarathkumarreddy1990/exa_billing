@@ -36,13 +36,13 @@ define(['jquery',
                 this.model = new BillingClassesModel();
                 this.pager = new Pager();
                 this.billingClassesList = new BillingClassesCollections();
+                $(this.el).html(this.billingClassesGridTemplate());
             },
 
             render: function() {
                 var self = this;
                 $('#divBillingClassesGrid').show();
                 $('#divBillingClassesForm').hide();
-                $(this.el).html(this.billingClassesGridTemplate());
                 this.billingClassesTable = new customGrid();
                 this.billingClassesTable.render({
                     gridelementid: '#tblBillingClassesGrid',
