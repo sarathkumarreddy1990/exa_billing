@@ -2227,9 +2227,14 @@ var commonjs = {
 
     handleXhrError: function (err, response) {
 
+        var errorMessage = '';
         commonjs.hideLoading();
+        if (response.responseJSON && response.responseJSON.errorCode) {
+            response.status = response.responseJSON.errorCode;
+            errorMessage = response.responseJSON.errorDesc;
+        }
 
-        switch (err.status || response.status) {
+        switch (err.status || response.status ) {
             case 0:
                 commonjs.showError('messages.errors.notconnected');
                 break;
@@ -2238,6 +2243,9 @@ var commonjs = {
                 break;
             case 500:
                 commonjs.showError('messages.errors.serversideerror');
+                break;
+            case 100:
+                commonjs.showError(errorMessage);
                 break;
             default:
                 commonjs.showError('messages.errors.someerror');
