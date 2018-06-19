@@ -30,8 +30,17 @@ router.delete('/:id', async function (req, res) {
         ...req.params,
         ...req.audit
     };
-    const data = await codesController.delete(params);
-    httpHandler.sendRows(req, res, data);
+
+    try {
+        const data = await codesController.delete(params);
+        httpHandler.sendRows(req, res, data);
+    } catch (error) {
+        httpHandler.sendError(req, res, error, {
+            errorCode : 100,
+            errorDesc: 'Dependent data found'
+        });
+    }
+    
 });
 
 

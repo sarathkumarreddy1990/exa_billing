@@ -37,7 +37,7 @@ router.delete('/:id', async function (req, res) {
     } catch (error) {
         httpHandler.sendError(req, res, error, {
             errorCode : 100,
-            errorDesc: 'constraint violation error "Dependent data found" '
+            errorDesc: 'Dependent data found'
         });
     }
 
