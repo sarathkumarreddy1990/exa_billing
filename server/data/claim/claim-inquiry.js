@@ -23,6 +23,7 @@ module.exports = {
                 , SUM(ch.allowed_amount) AS allowed_fee
                 , (SELECT SUM(claim_balance_total) FROM billing.get_claim_totals(bc.id)) AS claim_balance
                 , bc.billing_notes
+                , claim_dt
             FROM billing.claims bc
             INNER JOIN billing.claim_status st ON st.id = bc.claim_status_id
             INNER JOIN public.facilities f ON f.id = bc.facility_id

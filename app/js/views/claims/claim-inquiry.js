@@ -81,7 +81,9 @@ define([
                                 $('#lblCIBillFee').text(claim_data.bill_fee);
                                 $('#lblCIBalance').text(claim_data.claim_balance);
                                 $('#lblCIAllowed').text(claim_data.allowed_fee);
-                                $('#txtCIBillingComment').text(claim_data.billing_notes)
+                                $('#txtCIBillingComment').text(claim_data.billing_notes);
+                                var claim_date = commonjs.checkNotEmpty(claim_data.claim_dt) ? moment(claim_data.claim_dt).format('L') : '';
+                                $('#lblCIClaimDate').text(claim_date);
                             }
 
                             if(payment_data.length > 0){
