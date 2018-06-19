@@ -40,9 +40,12 @@ module.exports = {
                                 , display_description
                                 , additional_info
                                 , sc.cpt_code_id AS cpt_id
+                                , ARRAY( SELECT icd_codes.id||'~'|| code ||'~'|| icd_codes.description FROM public.icd_codes WHERE id = ANY(o.icd_code_ids_billing) ) as icd_codes_billing
+				                , o.icd_code_ids_billing as icd_codes_billing_order 
                             FROM public.study_cpt sc
                             INNER JOIN public.studies s ON s.id = sc.study_id
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
+                            INNER JOIN public.orders o on o.id = s.order_id
                             WHERE
                                 study_id = ANY(${studyIds})
                             ORDER BY s.accession_no DESC
