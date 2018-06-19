@@ -10,7 +10,7 @@ module.exports = {
                         SELECT id as filter_id,*
                         FROM   billing.grid_filters
                         WHERE filter_type='studies' AND user_id=$1
-                        order by id `;
+                        order by filter_order `;
 
         return await query(sqlQuery, [args.userId]);
 
