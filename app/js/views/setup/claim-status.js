@@ -39,8 +39,8 @@ define([
                     gridelementid: '#tblClaimStatusGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['', '', '', '', ''],
-                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description'],
+                    colNames: ['', '', '', '', '', ''],
+                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description', 'in_active'],
                     colModel: [
                         {
                             name: 'id',
@@ -87,8 +87,18 @@ define([
                         },
                         {
                             name: 'description'
+                        },
+                        {
+                            name: 'inactivated_dt',
+                            hidden: true
                         }
                     ],
+                    afterInsertRow: function (rowid, rowdata) {
+                        if (rowdata.inactivated_dt) {
+                            var $row = $('#tblClaimStatusGrid').find('#' + rowid);
+                            $row.css('text-decoration', 'line-through');
+                        }
+                    },
                     datastore: self.claimStatusList,
                     container: self.el,
                     customizeSort: true,
@@ -152,6 +162,8 @@ define([
                 }
                 commonjs.initializeScreen({header: {screen: 'ClaimStatus', ext: 'claimStatus'}, buttons: [
                     {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
+                        $("#txtCode").val($.trim($('#txtCode').val()) || null);
+                        $("#txtDescription").val($.trim($('#txtDescription').val()) || null);
                         self.saveClaimStatus();
                     }},
                     {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
@@ -176,8 +188,8 @@ define([
                         }
                     },
                     messages: {
-                        code: commonjs.getMessage("*", "Code"),
-                        description: commonjs.getMessage("*", "Description")
+                        code: commonjs.getMessage("e", "Code"),
+                        description: commonjs.getMessage("e", "Description")
                     },
                     submitHandler: function () {
                         self.save();
@@ -189,8 +201,8 @@ define([
 
             save: function () {
                 this.model.set({
-                    "code": $.trim($('#txtCode').val()),
-                    "description": $.trim($('#txtDescription').val()),
+                    "code": $('#txtCode').val(),
+                    "description": $('#txtDescription').val(),
                     "isActive": !$('#chkActive').prop('checked'),
                     "isSystemStatus" : $('#chkIsSystemStatus').prop('checked') ,
                     "company_id": app.companyID
