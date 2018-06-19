@@ -188,6 +188,8 @@ define(['jquery',
 
                 commonjs.initializeScreen({header: {screen: 'AdjustmentCodes', ext: 'adjustmentCode'}, buttons: [
                     {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
+                        $("#txtCode").val($.trim($('#txtCode').val()) || null);
+                        $("#txtDescription").val($.trim($('#txtDescription').val()) || null);
                         self.saveAdjustmentCodes();
                     }},
                     {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
@@ -214,8 +216,8 @@ define(['jquery',
                         }
                     },
                     messages: {
-                        adjustmentCode: commonjs.getMessage("*", "Adjustment Code"),
-                        description: commonjs.getMessage("*", "Description"),
+                        adjustmentCode: commonjs.getMessage("e", "Adjustment Code"),
+                        description: commonjs.getMessage("e", "Description"),
                         entryType: commonjs.getMessage("*", "Accouting Entry Type")
                     },
                     submitHandler: function () {
@@ -228,8 +230,8 @@ define(['jquery',
 
             save: function () {
                 this.model.set({
-                    "code": $.trim($('#txtCode').val()),
-                    "description": $.trim($('#txtDescription').val()),
+                    "code": $('#txtCode').val(),
+                    "description": $('#txtDescription').val(),
                     "isActive": !$('#chkActive').prop('checked'),
                     "type": $('#ddlEntryType').val(),
                     "companyId": app.companyID

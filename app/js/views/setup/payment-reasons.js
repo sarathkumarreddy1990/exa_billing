@@ -159,6 +159,8 @@ define([
                 }
                 commonjs.initializeScreen({header: {screen: 'PaymentReasons', ext: 'paymentReasons'}, buttons: [
                     {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
+                        $("#txtCode").val($.trim($('#txtCode').val()) || null);
+                        $("#txtDescription").val($.trim($('#txtDescription').val()) || null);
                         self.savePaymentReasons();
                     }},
                     {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
@@ -183,8 +185,8 @@ define([
                         }
                     },
                     messages: {
-                        code: commonjs.getMessage("*", "Reason"),
-                        description: commonjs.getMessage("*", "Description")
+                        code: commonjs.getMessage("e", "Reason"),
+                        description: commonjs.getMessage("e", "Description")
                     },
                     submitHandler: function () {
                         self.save();
@@ -196,8 +198,8 @@ define([
 
             save: function() {
                 this.model.set({
-                    "code": $.trim($('#txtCode').val()),
-                    "description": $.trim($('#txtDescription').val()),
+                    "code": $('#txtCode').val(),
+                    "description": $('#txtDescription').val(),
                     "isActive": !$('#chkActive').prop('checked'),
                     "company_id": app.companyID
                 });
