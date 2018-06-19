@@ -25,13 +25,22 @@ router.put('/:id', async function (req, res) {
 });
 
 router.delete('/:id', async function (req, res) {
-    let params = { 
-        ...req.params, 
-        ...req.audit 
+    let params = {
+        ...req.params,
+        ...req.audit
     };
 
-    const data = await adjController.delete(params);
-    httpHandler.sendRows(req, res, data);
+    
+    try {
+        const data = await adjController.delete(params);
+        httpHandler.sendRows(req, res, data);
+    } catch (error) {
+        httpHandler.sendRows(req, res, { rows : {
+            errorCode : 100,
+            reason: 'constraint violation error "Dependent data found" '
+        }});
+    }
+
 });
 
 

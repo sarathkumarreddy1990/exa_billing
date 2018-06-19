@@ -2229,7 +2229,7 @@ var commonjs = {
 
         commonjs.hideLoading();
 
-        switch (err.status || response.status) {
+        switch (err.status || response.status || response.errorCode) {
             case 0:
                 commonjs.showError('messages.errors.notconnected');
                 break;
@@ -2238,6 +2238,9 @@ var commonjs = {
                 break;
             case 500:
                 commonjs.showError('messages.errors.serversideerror');
+                break;
+            case 100:
+                commonjs.showError(response.reason);
                 break;
             default:
                 commonjs.showError('messages.errors.someerror');

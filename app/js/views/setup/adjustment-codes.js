@@ -81,10 +81,15 @@ define(['jquery',
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
                                         success: function (model, response) {
-                                            commonjs.showStatus("Deleted Successfully");
-                                            self.adjustmentCodesTable.refresh();
+                                            if (response.errorCode) {
+                                                commonjs.handleXhrError(model, response);
+                                            }
+                                            else {
+                                                commonjs.showStatus("Deleted Successfully");
+                                                self.adjustmentCodesTable.refresh();
+                                            }
                                         },
-                                        error: function (model, response) {
+                                        error: function (model, response,message) {
                                             commonjs.handleXhrError(model, response);
                                         }
                                     });
