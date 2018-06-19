@@ -27,13 +27,13 @@ define([
                 this.model = new PaymentReasonsModel();
                 this.pager = new Pager();
                 this.paymentReasonsList = new PaymentReasonsCollections();
+                $(this.el).html(this.paymentReasonsGridTemplate());
             },
 
             render: function () {
                 var self = this;
                 $('#divPaymentReasonsGrid').show();
                 $('#divPaymentReasonsForm').hide();
-                $(this.el).html(this.paymentReasonsGridTemplate());
                 this.paymentReasonsTable = new customGrid();
                 this.paymentReasonsTable.render({
                     gridelementid: '#tblPaymentReasonsGrid',

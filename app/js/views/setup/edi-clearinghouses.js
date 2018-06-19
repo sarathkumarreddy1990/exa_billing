@@ -39,13 +39,13 @@ define(['jquery',
                 this.model = new EDIClearingHousesModel();
                 this.pager = new Pager();
                 this.ediClearingHousesList = new EDIClearingHousesCollections();
+                $(this.el).html(this.ediClearingHousesGridTemplate());
             },
 
             render: function () {
                 var self = this;
                 $('#divEDIClearingHousesGrid').show();
                 $('#divEDIClearingHousesForm').hide();
-                $(this.el).html(this.ediClearingHousesGridTemplate());
                 this.ediClearingHousesTable = new customGrid();
                 this.ediClearingHousesTable.render({
                     gridelementid: '#tblEDIClearingHousesGrid',

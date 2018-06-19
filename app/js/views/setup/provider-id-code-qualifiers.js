@@ -27,13 +27,13 @@ define([
                 this.model = new ProviderIdCodeQualifiersModel();
                 this.pager = new Pager();
                 this.providerIdCodeQualifiersList = new ProviderIdCodeQualifiersCollections();
+                $(this.el).html(this.providerIdCodeQualifiersGridTemplate());
             },
 
             render: function () {
                 var self = this;
                 $('#divProviderIdCodeQualifiersGrid').show();
                 $('#divProviderIdCodeQualifiersForm').hide();
-                $(this.el).html(this.providerIdCodeQualifiersGridTemplate());
                 this.providerIdCodeQualifiersTable = new customGrid();
                 this.providerIdCodeQualifiersTable.render({
                     gridelementid: '#tblProviderIdCodeQualifiersGrid',

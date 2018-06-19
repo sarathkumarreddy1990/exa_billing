@@ -27,13 +27,13 @@ define([
                 this.model = new ClaimStatusModel();
                 this.pager = new Pager();
                 this.claimStatusList = new ClaimStatusCollections();
+                $(this.el).html(this.claimStatusGridTemplate());
             },
 
             render: function () {
                 var self = this;
                 $('#divClaimStatusGrid').show();
                 $('#divClaimStatusForm').hide();
-                $(this.el).html(this.claimStatusGridTemplate());
                 this.claimStatusTable = new customGrid();
                 this.claimStatusTable.render({
                     gridelementid: '#tblClaimStatusGrid',

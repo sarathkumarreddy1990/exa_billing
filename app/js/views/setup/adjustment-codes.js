@@ -39,13 +39,13 @@ define(['jquery',
                 this.model = new AdjustmentCodesModel();
                 this.pager = new Pager();
                 this.adjustmentCodesList = new AdjustmentCodesCollections();
+                $(this.el).html(this.adjustmentCodesGridTemplate());
             },
 
             render: function () {
                 var self = this;
                 $('#divAdjustmentCodesGrid').show();
                 $('#divAdjustmentCodesForm').hide();
-                $(this.el).html(this.adjustmentCodesGridTemplate());
                 this.adjustmentCodesTable = new customGrid();
                 this.adjustmentCodesTable.render({
                     gridelementid: '#tblAdjustmentCodesGrid',
@@ -151,7 +151,8 @@ define(['jquery',
                     }},
                     {value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
                         self.pager.set({"PageNo": 1}); 
-                        self.adjustmentCodesTable.refreshAll(); 
+                        self.adjustmentCodesTable.refreshAll();
+                        commonjs.showStatus("Reloaded Successfully");
                     }}
                 ]});
             },

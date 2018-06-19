@@ -36,13 +36,13 @@ define(['jquery',
                 this.model = new BillingCodesModel();
                 this.billingCodesList = new BillingCodesCollections();
                 this.pager = new Pager();
+                $(this.el).html(this.billingCodesGridTemplate());
             },
 
             render: function() {
                 var self = this;
                 $('#divBillingCodesGrid').show();
                 $('#divBillingCodesForm').hide();
-                $(this.el).html(this.billingCodesGridTemplate());
                 this.billingCodesTable = new customGrid();
                 this.billingCodesTable.render({
                     gridelementid: '#tblBillingCodesGrid',
