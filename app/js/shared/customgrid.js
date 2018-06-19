@@ -312,9 +312,9 @@ function customGrid ( datastore, gridID ) {
                 var rowObj = $(tr);
                 rowObj.addClass('customRowSelect');
 
-                if ($tblGrid.find('#chkSendStudy_' + rowid).length > 0) {
-                    $tblGrid.find('#chkSendStudy_' + rowid).attr('checked',true);
-                }
+                // if ($tblGrid.find('#chkSendStudy_' + rowid).length > 0) {
+                //     $tblGrid.find('#chkSendStudy_' + rowid).attr('checked',true);
+                // }
 
                 if (self.options.dblClickActionIndex == -2) {
                     e.stopPropagation();
