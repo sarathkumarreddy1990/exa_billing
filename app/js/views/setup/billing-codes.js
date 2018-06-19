@@ -48,8 +48,8 @@ define(['jquery',
                     gridelementid: '#tblBillingCodesGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['','','','',''],
-                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description'],
+                    colNames: ['','','','','',''],
+                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description', 'is_active'],
                     colModel: [
                         {
                             name: 'id',
@@ -96,8 +96,18 @@ define(['jquery',
                         },
                         {
                             name: 'description',
+                        },
+                        {
+                            name: 'inactivated_dt',
+                            hidden: true
                         }
                     ],
+                    afterInsertRow: function (rowid, rowdata) {
+                        if (rowdata.inactivated_dt) {
+                            var $row = $('#tblBillingCodesGrid').find('#' + rowid);
+                            $row.css('text-decoration', 'line-through');
+                        }
+                    },
                     datastore: self.billingCodesList,
                     container:self.el,
                     customizeSort: true,

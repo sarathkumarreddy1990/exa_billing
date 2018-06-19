@@ -39,8 +39,8 @@ define([
                     gridelementid: '#tblClaimStatusGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['', '', '', '', ''],
-                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description'],
+                    colNames: ['', '', '', '', '', ''],
+                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description', 'in_active'],
                     colModel: [
                         {
                             name: 'id',
@@ -87,8 +87,18 @@ define([
                         },
                         {
                             name: 'description'
+                        },
+                        {
+                            name: 'inactivated_dt',
+                            hidden: true
                         }
                     ],
+                    afterInsertRow: function (rowid, rowdata) {
+                        if (rowdata.inactivated_dt) {
+                            var $row = $('#tblClaimStatusGrid').find('#' + rowid);
+                            $row.css('text-decoration', 'line-through');
+                        }
+                    },
                     datastore: self.claimStatusList,
                     container: self.el,
                     customizeSort: true,
