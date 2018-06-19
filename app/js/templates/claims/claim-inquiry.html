@@ -1,252 +1,206 @@
-<style>
-    #site_modal_div_container {
-        background: #ffffff;
-        border: solid 1px;
-        display: none;
-        position: absolute;
-        border-radius: 10px;
-        z-index: 10000;
-        margin-left: auto !important;
-        margin-right: auto !important;
-        width: 93%;
-        overflow: auto;
-        padding: 0px 5px 0px;
-        top: 12%;
-        left: 3%;
-    }
-    .line_height{
-        line-height: 0.5;
-    }
 
-    .form-list .form-group .col-form-label {
-        width: 140px;
-    }
-
-    .alignLeft {
-        margin-right: 10px;
-    }
-    .ui-jqgrid .ui-jqgrid-bdiv { overflow-y: scroll }
-    /*.fit {
-    position: absolute;
-    top: 60px;
-    left: 10px;
-    bottom: 10px;
-    right: 10px; 
-    overflow-y: scroll;
-    overflow-x: scroll;
-    } */
-</style>
-<form class="form-horizontal form-list">
-    <div id="inquiryInvoice">
-        <button type="button" class="btn btn-primary" id="btnCIPatientInquiry" data-rformat="pdf">
-            Patient Inquiry
-            <i class="fa fa-external-link"></i>
-        </button>
-        <button type="button" class="btn btn-primary" id="btnCIPrintInvoice" data-rformat="pdf">
-            Print Invoice
-            <i class="fa fa-external-link"></i>
-        </button>
-    </div>
-    <div id="encounterDetails"> 
-        <legend class="viztekLegend" i18n="billing.fileInsurance.claimInquiryDetails" style="font-weight: bold;font-size: 15px"></legend>
-        <div>
-                <div class="col-xs-4">
-                    <div class="form-group form-inline line-height">
-                        <div class="col-form-label">
+    <form>
+        <div class="form-row">
+            <div class="form-group col-xs-6">
+                <div class="form-row">
+                    <div class="form-group col-xs-2"><label style="font-weight: bold" i18n="billing.fileInsurance.claimInquiryDetails"></label></div>
+                    <div class="form-group col-xs-3"><label style="font-weight: bold" i18n="billing.fileInsurance.claimStatus"></label></div>
+                    <div class="form-group col-xs-3"><label id="lblCIStatus"></label></div>
+                    <div class="form-group col-xs-3"><label style="font-weight: bold" i18n="billing.claims.claimDate"></label></div>
+                    <div class="form-group col-xs-2"><label id="lblCIClaimDate"></label></div>
+                </div>
+                <div class="form-row">
+                        <legend class="viztekLegend" style="font-weight: bold;font-size: 15px"></legend>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-xs-3">
+                        <div class="form-group">
                             <label class="font-weight" i18n="billing.fileInsurance.readPhy"></label>
                         </div>
-                        <div class="alignLeft">
-                            <label id="lblCIReadPhy">: </label>
-                        </div>
-                    </div>
-                    <div class="form-group form-inline line-height">
-                        <div class="col-form-label alignRight">
+                        <div class="form-group">
                             <label class="font-weight" i18n="billing.fileInsurance.refPhy"></label>
                         </div>
-                        <div>
-                            <label id="lblCIRefPhy">: </label>
-                        </div>
-                    </div>
-                    <div class="form-group form-inline line-height">
-                        <div class="col-form-label alignRight">
+                        <div class="form-group">
                             <label class="font-weight" i18n="billing.fileInsurance.ordFacility"></label>
                         </div>
-                        <div>
-                            <label id="lblCIOrdFac">: </label>
+                        <div class="form-group">
+                            <label class="font-weight" i18n="billing.payments.facility_name"></label>
                         </div>
                     </div>
-                    <div class="form-group form-inline line-height">
-                        <div class="col-form-label alignRight">
-                            <label class="font-weight" i18n="billing.payments.facility_name"></label>  
+                    <div class="form-group col-xs-4">
+                        <div class="form-group">
+                                <label id="lblCIReadPhy"></label>
                         </div>
-                        <div>
-                            <label id="lblCIfac">: </label>
-                        </div>
-                    </div>
-                </div>
-                    <div class="col-xs-4">
-                        <div class="form-group form-inline line-height">
-                            <div class="col-form-label alignRight">
-                                <label class="font-weight" i18n="billing.fileInsurance.claimStatus"></label> 
+                        <div class="form-group">
+                                <label id="lblCIRefPhy"></label>
                             </div>
-                            <div>
-                                <label id="lblCIStatus">: </label>
+                        <div class="form-group">
+                                <label id="lblCIOrdFac"></label>
                             </div>
-                        </div>
-                        <div class="form-group form-inline line-height">
-                            <div class="col-form-label alignRight">
-                                <label class="font-weight" i18n="billing.payments.patientPaid"></label>             
-                                
-                            </div>
-                            <div>
-                                <label id="lblCIPatientPaid">: </label>
-                            </div>
-                        </div>
-                        <div class="form-group form-inline line-height">
-                            <div class="col-form-label alignRight">
-                                <label class="font-weight" i18n="billing.refund.otherPaid"></label> 
-                            </div>
-                            <div>
-                                <label id="lblCIOthersPaid">: </label>
-                            </div>
-                        </div>
-                        <div class="form-group form-inline line-height">
-                            <div class="col-form-label alignRight">
-                                <label class="font-weight" i18n="billing.fileInsurance.billFee"></label>
-                            </div>
-                            <div>
-                                <label id="lblCIBillFee">: </label>
-                            </div>
+                        <div class="form-group">
+                                <label id="lblCIfac"></label>
                         </div>
                     </div>
-                    <div class="col-xs-4">
-                        <div class="form-group form-inline line-height">
-                            <div class="col-form-label alignRight">
-                                <label class="font-weight" i18n="billing.payments.adjustment"></label> 
-                            </div>
-                            <div>
-                                <label id="lblCIAdj">: </label>
-                            </div>
+                </div>
+                <div class="form-row">
+                        <div class="form-group col-xs-3">
+                                    <div class="form-group">
+                                        <label class="font-weight" i18n="billing.refund.patientPaid"></label>             
+                                        </div>
+                                    <div class="form-group">
+                                            <label class="font-weight" i18n="billing.refund.otherPaid"></label> 
+                                        </div>
+                                    <div class="form-group">
+                                        <label class="font-weight" i18n="billing.fileInsurance.billFee"></label>
+                                        </div>
+                                    </div>
+                        <div class="form-group col-xs-3">
+                                <div class="form-group">
+                                    <label id="lblCIPatientPaid"></label>
+                                        </div>
+                                <div class="form-group">
+                                    <label id="lblCIOthersPaid"></label>
+                                        </div>
+                                <div class="form-group">
+                                    <label id="lblCIBillFee"></label>
+                                    </div>
+                        </div>  
+                        <div class="form-group col-xs-3">
+                                    <div class="form-group">
+                                            <label class="font-weight" i18n="billing.payments.adjustment"></label> 
+                                        </div>
+                                    <div class="form-group">
+                                            <label class="font-weight" i18n="billing.fileInsurance.balance"></label>
+                                        </div>
+                                    <div class="form-group">
+                                        <label class="font-weight" i18n="billing.COB.allowed"></label>                                         
+                                        </div>
+                                    </div>
+                        <div class="form-group col-xs-3">
+                                <div class="form-group">
+                                    <label id="lblCIAdj"></label>
+                                        </div>
+                                <div class="form-group">
+                                    <label id="lblCIBalance"></label>
+                                        </div>
+                                <div class="form-group">
+                                    <label id="lblCIAllowed"></label>
+                                    </div>
+                        </div>                      
+                </div>
+                <div class="form-row">
+                        <div class="form-group col-xs-3" >
+                                <label class="control-label" style="font-weight: bold" i18n="billing.fileInsurance.followUpDate"></label> 
                         </div>
-                        <div class="form-group form-inline line-height">
-                            <div class="col-form-label alignRight">
-                                <label class="font-weight" i18n="billing.fileInsurance.balance"></label>
-                            </div>
-                            <div>
-                                <label id="lblCIBalance">: </label>
-                            </div>
-                        </div>
-                        <div class="form-group form-inline line-height">
-                            <div class="col-form-label alignRight">
-                                <label class="font-weight" i18n="billing.COB.allowed"></label> 
-                            </div>
-                            <div>
-                                <label id="lblCIAllowed">: </label>
-                            </div>
-                        </div>
-                    </div>
-            </div>
-        </div>
-        <legend class="viztekLegend" style="font-size: 15px;font-weight: bold" i18n="billing.fileInsurance.diagnosis"></legend>
-        <div class="col-md-12">
-            <div style="min-height:150px;">
-                <div class="Grid" style="min-height:150px;">
-                    <table id='tblCIDiagnosis'></table>
-                </div>
-            </div>
-        </div>
-        <legend class="viztekLegend" style="font-size: 15px;font-weight: bold" i18n="billing.COB.insurance"></legend>
-        <div class="col-md-12">
-            <div style="min-height:100px;">
-                <div class="Grid" style="min-height:150px;">
-                    <table id='tblCIInsurance'></table>
-                </div>
-            </div>
-        </div>
-        <div class="col-xs-12">
-            <div class="form-group form-inline">
-                <div class="col-xs-2">
-                    <label>Billing Notes</label>
-                </div>
-                <div  class="col-xs-6">
-                    <textarea id="txtCIBillingComment" class="form-control" style="height:50px; width:80%" rows="3" readonly></textarea>
-                </div>
-                <div class="col-xs-2">
-                    <i class='icon-ic-raw-transctipt' title='Edit Note' id="btnCIAddBillingComments"></i>
-                </div>
-                <div class="col-xs-2">
-                    <input type="button" id="btnCISaveBillingNote" class="btn btnCommentSave  btn-primary" value="Save" i18n="shared.buttons.save" style="display:none">
-                </div>
-            </div>
-        </div>
-        <div>
-            <div class="col-xs-12">
-                <div class="col-xs-6">
-                    <div class="form-group form-inline">
-                        <div class="col-xs-3">
-                            <label class="control-label" style="font-weight: bold" i18n="billing.fileInsurance.followUpDate"></label> 
-                        </div>
-                        <div class="col-xs-6">
-                            <div id="divFollowUpDate" class="input-group" style="float:right">
-                                <input type="text" id="txtCIFollowUpDate"class="form-control maskDateMonth" name="followUpDate">
+                        <div id="divFollowUpDate" class="input-group col-xs-3" style="width:20%">
+                                <input type="text" id="txtCIFollowUpDate" class="form-control maskDateMonth" name="followUpDate">
                                 <span class="input-group-addon add-on"> <i class="icon-ic-schedule"></i> </span>
-                            </div>
+                        </div>
+                        <div class="form-group col-xs-3" >
+                                
+                        </div>
+                </div>
+                <div class="form-row">
+                        <!-- <div class="form-group col-xs-3" >
+                                <label class="control-label" style="font-weight: bold" i18n="billing.fileInsurance.billingComments"></label> 
+                        </div> -->
+                        <div class="form-group input-group">
+                            <label class="control-label" style="font-weight: bold" i18n="billing.fileInsurance.billingComments"></label>
+                            <textarea id="txtCIBillingComment" class="form-control" style="height:50px;width:30%" readonly></textarea>
+                            <i class='icon-ic-raw-transctipt' title='Edit Note' id="btnCIAddBillingComments"></i>
+                        </div>
+                </div>
+                    
+            </div>
+            <div class="form-group col-xs-6">
+                    <div class="form-row"> 
+                        <div class="form-group col-xs-3">
+                            <label style="font-weight: bold" i18n="billing.fileInsurance.icd"></label>
+                        </div>
+                        <div class="form-group col-xs-3">
+                                <input type="button" id="btnCISaveIsInternal" class=" btn btn-primary" style="float:right" value="Save" i18n="shared.buttons.save">
+                        </div>
+                        <div class="form-group col-xs-3">
+                            <button type="button" class="btn btn-primary" id="btnCIPatientInquiry" data-rformat="pdf">
+                                Patient Inquiry
+                                <i class="fa fa-external-link"></i>
+                            </button>
+                        </div>
+                        <div class="form-group col-xs-3">
+                            <button type="button" class="btn btn-primary" id="btnCIPrintInvoice" data-rformat="pdf">
+                                Print Invoice
+                                <i class="fa fa-external-link"></i>
+                            </button>  
                         </div>
                     </div>
-                </div>
-                <div class="col-xs-6">
-                        <input type="button" id="btnCISaveIsInternal" class=" btn btn-primary" value="Save" i18n="shared.buttons.save" style="float: right;line-height: 1">
-                        <input type="button" id="btnCIAddComment" class=" btn btn-danger" value="Save" i18n="shared.buttons.add" style="float:right;margin-right: 5px;line-height: 1">
-                </div>
+                    <div class="form-row">
+                            <legend class="viztekLegend" style="font-weight: bold;font-size: 15px"></legend>
+                    </div>
+                    <div class="form-row">
+                        <div class="Grid" style="min-height:150px;">
+                            <table id='tblCIDiagnosis'></table>
+                        </div>
+                    </div>
             </div>
         </div>
-            <div class="col-xs-12" style="margin-left: 0px !important;margin-top: 5px; padding-left: 0;">
-                <div style="min-height:150px;">
-                    <div class="Grid" style="min-height:150px;">
+        <div class="form-group">
+            <label style="font-weight: bold" i18n="billing.COB.insurance"></label>
+        </div>
+        <div class="form-group"> <legend class="viztekLegend" style="font-weight: bold;font-size: 15px"></legend></div>
+        <div class="form-group">
+                <div class="Grid" style="min-height:150px;">
+                        <table id='tblCIInsurance'></table>
+                </div>
+        </div>
+        <div class="form-group">
+                <label style="font-weight: bold" i18n="billing.fileInsurance.comment"></label>
+                <input type="button" id="btnCIAddComment" class=" btn btn-danger" value="Save" i18n="shared.buttons.add" style="float:right;margin-right: 5px;line-height: 1">
+        </div>
+        <div class="form-group"> <legend class="viztekLegend" style="font-weight: bold;font-size: 15px"></legend></div>
+        <div class="form-group">
+                <div class="Grid" style="min-height:150px;">
                         <table id='tblCIClaimComments'></table>
-                    </div>
                 </div>
-            </div>
         </div>
-    </div>
-    <div class="form-horizontal form-inline" id="divCIFormComment" style="display:none; position:fixed; top:45%; left:45%; z-index:10000; border-style:groove">
-            <div class="col-xs-12" id="divCIclaimComment">
-                <div class="col-xs-10"  style="margin-top:4%">
-                    <div class="form-group">
-                        <textarea id="txtCIAddComment" class="form-control" style="margin-left: 20px; margin-right: 20px" rows="3"></textarea>
+
+        <div id="divCIpaymentDetails" style="display:none; position:fixed; top:45%; left:20%; z-index:10000; border-style:groove">
+                <table id="tblCIPayDetails"  class="table">
+                   <thead id="tHeadCIPayment">
+                       <tr>
+                           <th>Charged</th>
+                           <th>Paid</th>
+                           <th>Adjustment</th>
+                           <th>Cas1</th>
+                           <th>Amount</th>
+                           <th>Cas2</th>
+                           <th>Amount</th>
+                           <th>Cas3</th>
+                           <th>Amount</th>
+                           <th>Cas4</th>
+                           <th>Amount</th>
+                           <th>Cas5</th>
+                           <th>Amount</th>
+                           <th>Cas6</th>
+                           <th>Amount</th>
+                           <th>Cas7</th>
+                           <th>Amount</th>
+                       </tr>
+                   </thead>
+                   <tbody id="tBodyCIPayment"></tbody>
+               </table>
+               <input type="button" id="btnCIPayCancel" class="btn btnCommentSave  btn-primary" value="Save" i18n="shared.buttons.cancel">
+        </div>
+        <div class="form-horizontal form-inline" id="divCIFormComment" style="display:none; position:fixed; top:45%; left:45%; z-index:10000; border-style:groove">
+                <div class="col-xs-12" id="divCIclaimComment">
+                    <div class="col-xs-10"  style="margin-top:4%">
+                        <div class="form-group">
+                            <textarea id="txtCIAddComment" class="form-control" style="margin-left: 20px; margin-right: 20px" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="col-xs-2" style="margin-top:4%">
+                        <input type="button" id="btnCICommentSave" class="btn btnCommentSave  btn-primary" value="Save" i18n="shared.buttons.save">
+                        <input type="button" id="btnCICommentCancel" class="btn btnCommentSave  btn-primary" value="Save" i18n="shared.buttons.cancel">
                     </div>
                 </div>
-                <div class="col-xs-2" style="margin-top:4%">
-                    <input type="button" id="btnCICommentSave" class="btn btnCommentSave  btn-primary" value="Save" i18n="shared.buttons.save">
-                    <input type="button" id="btnCICommentCancel" class="btn btnCommentSave  btn-primary" value="Save" i18n="shared.buttons.cancel">
-                </div>
-            </div>
-    </div>
-    <div id="divCIpaymentDetails" style="display:none; position:fixed; top:45%; left:20%; z-index:10000; border-style:groove">
-         <table id="tblCIPayDetails"  class="table">
-            <thead id="tHeadCIPayment">
-                <tr>
-                    <th>Charged</th>
-                    <th>Paid</th>
-                    <th>Adjustment</th>
-                    <th>Cas1</th>
-                    <th>Amount</th>
-                    <th>Cas2</th>
-                    <th>Amount</th>
-                    <th>Cas3</th>
-                    <th>Amount</th>
-                    <th>Cas4</th>
-                    <th>Amount</th>
-                    <th>Cas5</th>
-                    <th>Amount</th>
-                    <th>Cas6</th>
-                    <th>Amount</th>
-                    <th>Cas7</th>
-                    <th>Amount</th>
-                </tr>
-            </thead>
-            <tbody id="tBodyCIPayment"></tbody>
-        </table>
-        <input type="button" id="btnCIPayCancel" class="btn btnCommentSave  btn-primary" value="Save" i18n="shared.buttons.cancel">
-    </div>
-</form>
+        </div>
+    </form>

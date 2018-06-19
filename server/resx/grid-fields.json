@@ -269,17 +269,7 @@
           "width": "150"
         },
         "id": 23
-      },
-      {
-        "field_code": "study_status",
-        "field_name": "Study Status",
-        "i18n_name": "setup.userSettings.studyStatus",
-        "field_info": {
-          "name": "study_status",
-          "width": "150"
-        },
-        "id": 23
-      },
+      },      
       {
         "field_code": "current_illness_date",
         "field_name": "Date of Injury",
@@ -327,16 +317,6 @@
           "width": 200
         },
         "id": 27
-      },
-      {
-        "field_code": "gender",
-        "field_name": "Gender",
-        "i18n_name": "setup.userSettings.gender",
-        "field_info": {
-          "name": "gender",
-          "width": 200
-        },
-        "id": 20
       }
     ],
     "study_fields": [

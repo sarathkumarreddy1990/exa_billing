@@ -39,8 +39,8 @@ define([
                     gridelementid: '#tblProviderIdCodeQualifiersGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['', '', '', '', ''],
-                    i18nNames: ['', '', '',  'setup.providerIdCodeQualifiers.qualifierCode', 'setup.common.description'],
+                    colNames: ['', '', '', '', '', ''],
+                    i18nNames: ['', '', '',  'setup.providerIdCodeQualifiers.qualifierCode', 'setup.common.description', 'in_active'],
                     colModel: [
                         {
                             name: 'id',
@@ -87,8 +87,18 @@ define([
                         },
                         {
                             name: 'description'
+                        },
+                        {
+                            name: 'inactivated_dt',
+                            hidden: true
                         }
                     ],
+                    afterInsertRow: function (rowid, rowdata) {
+                        if (rowdata.inactivated_dt) {
+                            var $row = $('#tblProviderIdCodeQualifiersGrid').find('#' + rowid);
+                            $row.css('text-decoration', 'line-through');
+                        }
+                    },
                     datastore: self.providerIdCodeQualifiersList,
                     container: self.el,
                     customizeSort: true,
@@ -151,6 +161,8 @@ define([
                 }
                 commonjs.initializeScreen({header: {screen: 'ProviderIdCodeQualifiers', ext: 'providerIdCodeQualifiers'}, buttons: [
                     {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
+                        $("#txtQualifierCode").val($.trim($('#txtQualifierCode').val()) || null);
+                        $("#txtDescription").val($.trim($('#txtDescription').val()) || null);
                         self.saveProviderIdCodeQualifiers();
                     }},
                     {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
@@ -174,8 +186,8 @@ define([
                         }
                     },
                     messages: {
-                        qualifierCode: commonjs.getMessage("*", "Qualifier Code"),
-                        description: commonjs.getMessage("*", "Description")
+                        qualifierCode: commonjs.getMessage("e", "Qualifier Code"),
+                        description: commonjs.getMessage("e", "Description")
                     },
                     submitHandler: function () {
                         self.save();
@@ -187,8 +199,8 @@ define([
 
             save: function() {
                 this.model.set({
-                    "code": $.trim($('#txtQualifierCode').val()),
-                    "description": $.trim($('#txtDescription').val()),
+                    "code": $('#txtQualifierCode').val(),
+                    "description": $('#txtDescription').val(),
                     "isActive": !($('#chkActive').prop('checked')),
                     "company_id" : app.companyID
                 });

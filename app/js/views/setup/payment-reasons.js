@@ -39,8 +39,8 @@ define([
                     gridelementid: '#tblPaymentReasonsGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['', '', '', '', ''],
-                    i18nNames: ['', '', '', 'setup.common.reasons', 'setup.common.description'],
+                    colNames: ['', '', '', '', '', ''],
+                    i18nNames: ['', '', '', 'setup.common.reasons', 'setup.common.description', 'in_active'],
                     colModel: [
                         {
                             name: 'id',
@@ -87,8 +87,18 @@ define([
                         },
                         {
                             name: 'description'
+                        },
+                        {
+                            name: 'inactivated_dt',
+                            hidden: true
                         }
                     ],
+                    afterInsertRow: function (rowid, rowdata) {
+                        if (rowdata.inactivated_dt) {
+                            var $row = $('#tblPaymentReasonsGrid').find('#' + rowid);
+                            $row.css('text-decoration', 'line-through');
+                        }
+                    },
                     datastore: self.paymentReasonsList,
                     container: self.el,
                     customizeSort: true,
@@ -149,6 +159,8 @@ define([
                 }
                 commonjs.initializeScreen({header: {screen: 'PaymentReasons', ext: 'paymentReasons'}, buttons: [
                     {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
+                        $("#txtCode").val($.trim($('#txtCode').val()) || null);
+                        $("#txtDescription").val($.trim($('#txtDescription').val()) || null);
                         self.savePaymentReasons();
                     }},
                     {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
@@ -173,8 +185,8 @@ define([
                         }
                     },
                     messages: {
-                        code: commonjs.getMessage("*", "Reason"),
-                        description: commonjs.getMessage("*", "Description")
+                        code: commonjs.getMessage("e", "Reason"),
+                        description: commonjs.getMessage("e", "Description")
                     },
                     submitHandler: function () {
                         self.save();
@@ -186,8 +198,8 @@ define([
 
             save: function() {
                 this.model.set({
-                    "code": $.trim($('#txtCode').val()),
-                    "description": $.trim($('#txtDescription').val()),
+                    "code": $('#txtCode').val(),
+                    "description": $('#txtDescription').val(),
                     "isActive": !$('#chkActive').prop('checked'),
                     "company_id": app.companyID
                 });

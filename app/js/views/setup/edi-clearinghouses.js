@@ -51,8 +51,8 @@ define(['jquery',
                     gridelementid: '#tblEDIClearingHousesGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['', '', '', '', ''],
-                    i18nNames: ['', '', '', 'setup.ediClearingHouses.name', 'setup.ediClearingHouses.receiverName'],
+                    colNames: ['', '', '', '', '', ''],
+                    i18nNames: ['', '', '', 'setup.ediClearingHouses.name', 'setup.ediClearingHouses.receiverName', 'is_active'],
                     colModel: [
                         {
                             name: 'id',
@@ -100,8 +100,18 @@ define(['jquery',
                         {
                             name: 'receiver_name',
                             searchFlag: '%'
+                        },
+                        {
+                            name:'inactivated_dt',
+                            hidden: true
                         }
                     ],
+                    afterInsertRow: function (rowid, rowdata) {
+                        if (rowdata.inactivated_dt) {
+                            var $row = $('#tblEDIClearingHousesGrid').find('#' + rowid);
+                            $row.css('text-decoration', 'line-through');
+                        }
+                    },
                     datastore: self.ediClearingHousesList,
                     container: self.el,
                     customizeSort: true,
@@ -156,7 +166,7 @@ define(['jquery',
                                     $('#txtCode').val(data.code ? data.code : '');
                                     $('#txtReceiverName').val(data.receiver_name ? data.receiver_name : '');
                                     $('#txtReceiverID').val(data.receiver_id ? data.receiver_id : '');
-                                    $('#chkActive').prop('checked', data.inactivated_dt ? true : false);
+                                    $('#chkIsActive').prop('checked', data.inactivated_dt ? true : false);
                                     $('#txtAuthInfo').val(info.AuthorizationInformation ? info.AuthorizationInformation : '');
                                     $('#txtAuthInfoQualifier').val(info.AuthorizationInformationQualifier ? info.AuthorizationInformationQualifier : '');
                                     $('#txtSecurityInfo').val(info.SecurityInformation ? info.SecurityInformation : '');
@@ -198,6 +208,22 @@ define(['jquery',
                 }
                 commonjs.initializeScreen({header: {screen: 'EDIClearingHouses', ext: 'ediClearingHouses'}, buttons: [
                     {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
+                        $("#txtCode").val($.trim($('#txtCode').val()) || null);
+                        $("#txtName").val($.trim($('#txtName').val()) || null);
+                        $("#txtReceiverName").val($.trim($('#txtReceiverName').val()) || null);
+                        $("#txtReceiverID").val($.trim($('#txtReceiverID').val()) || null);
+                        $("#txtAuthInfo").val($.trim($('#txtAuthInfo').val()) || null);
+                        $("#txtAuthInfoQualifier").val($.trim($('#txtAuthInfoQualifier').val()) || null);
+                        $("#txtSecurityInfo").val($.trim($('#txtSecurityInfo').val()) || null);
+                        $("#txtSecurityAuthQualifier").val($.trim($('#txtSecurityAuthQualifier').val()) || null);
+                        $("#txtSenderID").val($.trim($('#txtSenderID').val()) || null);
+                        $("#txtSenderIDQualifier").val($.trim($('#txtSenderIDQualifier').val()) || null);
+                        $("#txtIReceiverID").val($.trim($('#txtIReceiverID').val()) || null);
+                        $("#txtIReceiverIDQualifier").val($.trim($('#txtIReceiverIDQualifier').val()) || null);
+                        $("#txtInterCtrlStandID").val($.trim($('#txtInterCtrlStandID').val()) || null);
+                        $("#txtAppSenderCode").val($.trim($('#txtAppSenderCode').val()) || null);
+                        $("#txtResAgencyCode").val($.trim($('#txtResAgencyCode').val()) || null);
+                        $("#txtAppReceiverCode").val($.trim($('#txtAppReceiverCode').val()) || null);
                         self.saveEDIClearingHouses();
                     }},
                     {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
@@ -237,26 +263,26 @@ define(['jquery',
                 commonjs.validateForm({
                     rules: rules,
                     messages: {
-                        name: commonjs.getMessage("*", "Clearing House Name"),
-                        code: commonjs.getMessage("*", "Code"),
-                        receiverName: commonjs.getMessage("*", "Recevier Name"),
-                        receiverID: commonjs.getMessage("*", "Recevier ID"),
-                        authInfoQualifier: commonjs.getMessage("*", "Authorization Information Qualifier"),
-                        authInfo: commonjs.getMessage("*", "Authorization Information"),
-                        securityAuthInfoQualifier: commonjs.getMessage("*", "Security Information Qualifier"),
-                        securityAuthInfo: commonjs.getMessage("*", "Security Information"),
-                        senderIDQualifier: commonjs.getMessage("*", "Interchange Sender ID Qualifier"),
-                        senderID: commonjs.getMessage("*", "Interchange Sender ID"),
-                        iReceiverIDQualifier: commonjs.getMessage("*", "Interchange Receiver ID Qualifier"),
-                        iRecevierID: commonjs.getMessage("*", "Interchange Receiver ID"),
-                        ctrlStandID: commonjs.getMessage("*", "Interchange Control Standards Identifier"),
+                        name: commonjs.getMessage("e", "Clearing House Name"),
+                        code: commonjs.getMessage("e", "Code"),
+                        receiverName: commonjs.getMessage("e", "Recevier Name"),
+                        receiverID: commonjs.getMessage("e", "Recevier ID"),
+                        authInfoQualifier: commonjs.getMessage("e", "Authorization Information Qualifier"),
+                        authInfo: commonjs.getMessage("e", "Authorization Information"),
+                        securityAuthInfoQualifier: commonjs.getMessage("e", "Security Information Qualifier"),
+                        securityAuthInfo: commonjs.getMessage("e", "Security Information"),
+                        senderIDQualifier: commonjs.getMessage("e", "Interchange Sender ID Qualifier"),
+                        senderID: commonjs.getMessage("e", "Interchange Sender ID"),
+                        iReceiverIDQualifier: commonjs.getMessage("e", "Interchange Receiver ID Qualifier"),
+                        iRecevierID: commonjs.getMessage("e", "Interchange Receiver ID"),
+                        ctrlStandID: commonjs.getMessage("e", "Interchange Control Standards Identifier"),
                         radUsage: commonjs.getMessage("*", "Usage"),
-                        appSenderCode: commonjs.getMessage("*", "Application Sender Code"),
-                        responsibleAgencyCode: commonjs.getMessage("*", "Responsible Agency Code"),
-                        appReceiverCode: commonjs.getMessage("*", "Application Receiver Code"),
-                        providerOfficeNo: commonjs.getMessage("*", "Provider Office No"),
-                        username: commonjs.getMessage("*", "Username"),
-                        password: commonjs.getMessage("*", "Password"),
+                        appSenderCode: commonjs.getMessage("e", "Application Sender Code"),
+                        responsibleAgencyCode: commonjs.getMessage("e", "Responsible Agency Code"),
+                        appReceiverCode: commonjs.getMessage("e", "Application Receiver Code"),
+                        providerOfficeNo: commonjs.getMessage("e", "Provider Office No"),
+                        username: commonjs.getMessage("e", "Username"),
+                        password: commonjs.getMessage("e", "Password")
                     },
                     submitHandler: function () {
                         self.save();
@@ -298,12 +324,12 @@ define(['jquery',
                     ProviderOfficeNumber: $('#txtProviderOfficeNo').val()
                 }
                 this.model.set({
-                    "name": $.trim($('#txtName').val()),
-                    "code": $.trim($('#txtCode').val()),
-                    "receiverName": $.trim($('#txtReceiverName').val()),
-                    "receiverId": $.trim($('#txtReceiverID').val()),
+                    "name": $('#txtName').val(),
+                    "code": $('#txtCode').val(),
+                    "receiverName": $('#txtReceiverName').val(),
+                    "receiverId": $('#txtReceiverID').val(),
                     "company_id": app.companyID,
-                    "isActive": !$('#chkActive').prop('checked'),
+                    "isActive": !$('#chkIsActive').prop('checked'),
                     "communicationInfo": JSON.stringify(communication_info)
                 });
                 this.model.save({

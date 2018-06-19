@@ -81,7 +81,9 @@ define([
                                 $('#lblCIBillFee').text(claim_data.bill_fee);
                                 $('#lblCIBalance').text(claim_data.claim_balance);
                                 $('#lblCIAllowed').text(claim_data.allowed_fee);
-                                $('#txtCIBillingComment').text(claim_data.billing_notes)
+                                $('#txtCIBillingComment').text(claim_data.billing_notes);
+                                var claim_date = commonjs.checkNotEmpty(claim_data.claim_dt) ? moment(claim_data.claim_dt).format('L') : '';
+                                $('#lblCIClaimDate').text(claim_date);
                             }
 
                             if(payment_data.length > 0){
@@ -121,13 +123,13 @@ define([
                             customAction: function (rowID) {
                             },
                             formatter: function (cellvalue, options, rowObject) {
-                                    return "<input type='button' id='btnCICommentSave' class='btn btnCommentSave  btn-primary' value='Paper Claim' i18n='shared.buttons.paperclaim' id='spnPaperClaim_" + rowObject.id + "'>"
+                                    return "<input type='button' id='btnCIPaperClaim' class='btn btnCommentSave  btn-primary' value='Paper Claim' i18n='shared.buttons.paperclaim' id='spnPaperClaim_" + rowObject.id + "'>"
                             }
                         }
                     ],
                     cmTemplate: { sortable: false },
                     customizeSort: true,
-                    width: $('#encounterDetails').width() - 50,
+                    width: $('#claimDetails').width() - 50,
                     shrinkToFit: true
                 });
                 $('#gview_tblCIInsurance').find('.ui-jqgrid-bdiv').css('max-height', '180px')
@@ -146,9 +148,9 @@ define([
                     cmTemplate: { sortable: false },
                     customizeSort: true,
                     shrinkToFit: true,
-                    width: $('#encounterDetails').width() - 50
+                    width: $('#claimDetails').width() - 50
                 });
-                $('#gview_tblCIDiagnosis').find('.ui-jqgrid-bdiv').css('max-height', '180px')
+                //$('#gview_tblCIDiagnosis').find('.ui-jqgrid-bdiv').css('max-height', '180px')
             },
 
             showClaimCommentsGrid: function () {
@@ -261,40 +263,6 @@ define([
                 })
                 $('#gview_tblCIClaimComments').find('.ui-jqgrid-bdiv').css('max-height', '180px')
                 commonjs.initializeScreen({ header: { screen: 'Claim Comments', ext: 'Claim Comments' } });
-            },
-
-            saveFollowUpDate: function (e) {
-                var self = this;
-                var selectedFollowUpDate = $('#txtCIFollowUpDate').val() ? moment($('#txtCIFollowUpDate').val()).format('L') : '';
-                var currentDate = moment().format('L');
-                if (moment(selectedFollowUpDate).format('MM/DD/YYYY') < currentDate) {
-                    commonjs.showWarning('Cannot Select Past date');
-                    return;
-                }
-                if (e.eventPhase && self.previousFollowUpDate != selectedFollowUpDate) {
-                    $.ajax({
-                        url: '/exa_modules/billing/claims/claim_inquiry/followup',
-                        type: 'POST',
-                        data: {
-                            'claim_id': self.claim_id,
-                            'followupDate': selectedFollowUpDate,
-                            'assignedTo': app.userID
-                        },
-                        success: function (data, response) {
-                            if (selectedFollowUpDate == '')
-                                commonjs.showStatus('Follow-up Date Deleted Successfully');
-                            else if (self.previousFollowUpDate)
-                                commonjs.showStatus('Follow-up Date Updated Successfully');
-                            else
-                                commonjs.showStatus('Follow-up Date Saved Successfully');
-
-                             self.getFollowupDate(); 
-                        },
-                        error: function (err, response) {
-                            commonjs.handleXhrError(err, response);
-                        }
-                    });
-                }
             },
 
             getFollowupDate: function () {
@@ -423,6 +391,14 @@ define([
 
             saveIsInternalComment: function () {
                 var comments = [];
+                var self = this;
+                var selectedFollowUpDate = $('#txtCIFollowUpDate').val() ? moment($('#txtCIFollowUpDate').val()).format('L') : '';
+                var currentDate = moment().format('L');
+                if (moment(selectedFollowUpDate).format('MM/DD/YYYY') < currentDate) {
+                    commonjs.showWarning('Cannot Select Past date');
+                    return;
+                }
+
                 $('#tblCIClaimComments  td input:checkbox').each(function () {
                     var content = {};
                     content.isinternal =  $(this).prop('checked');
@@ -430,15 +406,23 @@ define([
                     comments.push(content);
                 });
                 comments = JSON.stringify(comments);
+
+                var notes = $('#txtCIBillingComment').val();
+
                 $.ajax({
                     url: '/exa_modules/billing/claims/claim_inquiry/claim_comment',
                     type: 'PUT',
                     data: {
                         'comments': comments,
-                        'from': 'cb'
+                        'from': 'cb', //check box
+                        'claim_id': self.claim_id,
+                        'followupDate': selectedFollowUpDate,
+                        'assignedTo': app.userID,
+                        'notes': notes
                     },
                     success: function (data, response) {
                         commonjs.showStatus('Record Saved Successfully');
+                        $('#txtCIBillingComment').attr('readonly', 'readonly');
 
                     },
                     error: function (err) {
@@ -475,33 +459,10 @@ define([
 
                 if ($('#txtCIBillingComment').prop('readonly')) {
                     $('#txtCIBillingComment').removeAttr('readonly');
-                    $('#btnCISaveBillingNote').show();
                 }
                 else {
                     $('#txtCIBillingComment').attr('readonly', 'readonly');
-                    $('#btnCISaveBillingNote').hide();
                 }
-            },
-
-            saveBillingComment: function () {
-                var self = this;
-                var notes = $('#txtCIBillingComment').val();
-
-                $.ajax({
-                    url: '/exa_modules/billing/claims/claim_inquiry/billing_note',
-                    type: 'PUT',
-                    data: {
-                        'claim_id': self.claim_id,
-                        'notes': notes
-                    },
-                    success: function (data, response) {
-                        $('#txtCIBillingComment').attr('readonly', 'readonly');
-                        $('#btnCISaveBillingNote').hide();
-                    },
-                    error: function (err) {
-                        commonjs.handleXhrError(err);
-                    }
-                })
             },
 
             getPaymentofCharge: function(charge_id) {

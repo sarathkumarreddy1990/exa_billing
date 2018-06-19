@@ -51,8 +51,8 @@ define(['jquery',
                     gridelementid: '#tblAdjustmentCodesGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['', '', '', '', '', ''],
-                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description', 'setup.adjustmentcodes.entryType'],
+                    colNames: ['', '', '', '', '', '', ''],
+                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description', 'setup.adjustmentcodes.entryType', 'is_active'],
                     colModel: [
                         {
                             name: 'id',
@@ -114,8 +114,18 @@ define(['jquery',
                                 value: self.entryType
                             },
                           //  width: 180
+                        },
+                        {
+                            name: 'inactivated_dt',
+                            hidden: true
                         }
                     ],
+                    afterInsertRow: function (rowid, rowdata) {
+                        if (rowdata.inactivated_dt) {
+                            var $row = $('#tblAdjustmentCodesGrid').find('#' + rowid);
+                            $row.css('text-decoration', 'line-through');
+                        }
+                    },
                     datastore: self.adjustmentCodesList,
                     container: self.el,
                     customizeSort: true,
@@ -178,6 +188,8 @@ define(['jquery',
 
                 commonjs.initializeScreen({header: {screen: 'AdjustmentCodes', ext: 'adjustmentCode'}, buttons: [
                     {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
+                        $("#txtCode").val($.trim($('#txtCode').val()) || null);
+                        $("#txtDescription").val($.trim($('#txtDescription').val()) || null);
                         self.saveAdjustmentCodes();
                     }},
                     {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
@@ -204,8 +216,8 @@ define(['jquery',
                         }
                     },
                     messages: {
-                        adjustmentCode: commonjs.getMessage("*", "Adjustment Code"),
-                        description: commonjs.getMessage("*", "Description"),
+                        adjustmentCode: commonjs.getMessage("e", "Adjustment Code"),
+                        description: commonjs.getMessage("e", "Description"),
                         entryType: commonjs.getMessage("*", "Accouting Entry Type")
                     },
                     submitHandler: function () {
@@ -218,8 +230,8 @@ define(['jquery',
 
             save: function () {
                 this.model.set({
-                    "code": $.trim($('#txtCode').val()),
-                    "description": $.trim($('#txtDescription').val()),
+                    "code": $('#txtCode').val(),
+                    "description": $('#txtDescription').val(),
                     "isActive": !$('#chkActive').prop('checked'),
                     "type": $('#ddlEntryType').val(),
                     "companyId": app.companyID
