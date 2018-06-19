@@ -268,6 +268,12 @@ define(['jquery',
                         $("#txtZip").val($.trim($('#txtZip').val()) || null);
                         $("#txtBillProPhoneNo").val($.trim($('#txtBillProPhoneNo').val()) || null);
                         $("#txtFaxNo").val($.trim($('#txtFaxNo').val()) || null);
+                        $("#txtHostName").val($.trim($('#txtHostName').val()) || null);
+                        $("#txtPort").val($.trim($('#txtPort').val()) || null);
+                        $("#txtUserName").val($.trim($('#txtUserName').val()) || null);
+                        $("#txtPassword").val($.trim($('#txtPassword').val()) || null);
+                        $("#txtSentFolder").val($.trim($('#txtSentFolder').val()) || null);
+                        $("#txtReceiveFolder").val($.trim($('#txtReceiveFolder').val()) || null);
                         self.saveBillingProviders();
                     }},
                     {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
@@ -334,6 +340,9 @@ define(['jquery',
                     },
                     faxNo: {
                         required: true
+                    },
+                    email: {
+                        email: true
                     }
                 }
                 var messages = {
@@ -348,7 +357,8 @@ define(['jquery',
                     city: commonjs.getMessage("e", "City"),
                     zip: commonjs.getMessage("e", "Zip"),
                     phoneNo: commonjs.getMessage("e", "Phone Number"),
-                    faxNo: commonjs.getMessage("e", "Fax Number")
+                    faxNo: commonjs.getMessage("e", "Fax Number"),
+                    email: commonjs.getMessage("e", "Email")
                 }
                 if($('#chkEnableFTP').prop('checked')) {
                     rules.hostname = { required: true }
@@ -357,12 +367,12 @@ define(['jquery',
                     rules.port = { required: true }
                     rules.sentFolder = { required: true }
                     rules.receiveFolder = { required: true }
-                    messages.hostname = commonjs.getMessage("*", "FTP Host Name");
-                    messages.username = commonjs.getMessage("*", "FTP User Name");
-                    messages.password = commonjs.getMessage("*", "FTP Passord");
-                    messages.port = commonjs.getMessage("*", "FTP Port");
-                    messages.sentFolder = commonjs.getMessage("*", "FTP Sent Folder");
-                    messages.ReceiveFolder = commonjs.getMessage("*", "FTP Receive Folder");
+                    messages.hostname = commonjs.getMessage("e", "FTP Host Name");
+                    messages.username = commonjs.getMessage("e", "FTP User Name");
+                    messages.password = commonjs.getMessage("e", "FTP Passord");
+                    messages.port = commonjs.getMessage("e", "FTP Port");
+                    messages.sentFolder = commonjs.getMessage("e", "FTP Sent Folder");
+                    messages.ReceiveFolder = commonjs.getMessage("e", "FTP Receive Folder");
                 }
                 commonjs.validateForm({
                     rules: rules,
@@ -387,13 +397,13 @@ define(['jquery',
                 }
                 let communication_info = {
                     "enable_ftp": $('#chkEnableFTP').prop('checked'),
-                    "Ftp_host": $.trim($('#txtHostName').val()),
-                    "Ftp_port": $.trim($('#txtPort').val()),
-                    "Ftp_user_name": $.trim($('#txtUserName').val()),
-                    "Ftp_password": $.trim($('#txtPassword').val()),
+                    "Ftp_host": $('#txtHostName').val(),
+                    "Ftp_port": $('#txtPort').val(),
+                    "Ftp_user_name": $('#txtUserName').val(),
+                    "Ftp_password": $('#txtPassword').val(),
                     "Ftp_type": $.trim($('#ddlFtpType').val()),
-                    "Ftp_sent_folder": $.trim($('#txtSentFolder').val()),
-                    "Ftp_receive_folder": $.trim($('#txtReceiveFolder').val()),
+                    "Ftp_sent_folder": $('#txtSentFolder').val(),
+                    "Ftp_receive_folder": $('#txtReceiveFolder').val(),
                     "Ftp_identity_file": $.trim($('#txtIdentityFilePath').val())
                 }
                 this.model.set({
