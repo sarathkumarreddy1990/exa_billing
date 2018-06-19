@@ -35,10 +35,10 @@ router.delete('/:id', async function (req, res) {
         const data = await adjController.delete(params);
         httpHandler.sendRows(req, res, data);
     } catch (error) {
-        httpHandler.sendRows(req, res, { rows : {
+        httpHandler.sendError(req, res, error, {
             errorCode : 100,
-            reason: 'constraint violation error "Dependent data found" '
-        }});
+            errorDesc: 'constraint violation error "Dependent data found" '
+        });
     }
 
 });
