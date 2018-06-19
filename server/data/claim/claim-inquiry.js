@@ -23,6 +23,7 @@ module.exports = {
                 , SUM(ch.allowed_amount) AS allowed_fee
                 , (SELECT SUM(claim_balance_total) FROM billing.get_claim_totals(bc.id)) AS claim_balance
                 , bc.billing_notes
+                , claim_dt
             FROM billing.claims bc
             INNER JOIN billing.claim_status st ON st.id = bc.claim_status_id
             INNER JOIN public.facilities f ON f.id = bc.facility_id
@@ -246,7 +247,7 @@ module.exports = {
                     UPDATE 
                         billing.claim_followups 
                     SET 
-                          followup_date = CAST('${followupDate}' AS DATE) 
+                          followup_date = '${followupDate}'::DATE
                         , assigned_to= ${assignedTo} 
                     WHERE 
                         claim_id = ${claim_id}
@@ -260,7 +261,7 @@ module.exports = {
                     )
                     SELECT
                           ${claim_id}
-                        , CAST('${followupDate}' AS DATE) 
+                        , '${followupDate}'::DATE  
                         , ${assignedTo}
                     WHERE 
                     NOT EXISTS(SELECT * FROM update_followup) 
