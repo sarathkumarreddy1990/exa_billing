@@ -48,8 +48,8 @@ define(['jquery',
                     gridelementid: '#tblProviderLevelCodesGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['','','','','',''],
-                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description', 'setup.common.readProvPercLvl'],
+                    colNames: ['','','','','','', ''],
+                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description', 'setup.common.readProvPercLvl', 'in_active'],
                     colModel: [
                         {
                             name: 'id',
@@ -102,8 +102,18 @@ define(['jquery',
                         {
                             name: 'reading_provider_percent_level',
                             width: 180
+                        },
+                        {
+                            name: 'inactivated_dt',
+                            hidden: true
                         }
                     ],
+                    afterInsertRow: function (rowid, rowdata) {
+                        if (rowdata.inactivated_dt) {
+                            var $row = $('#tblProviderLevelCodesGrid').find('#' + rowid);
+                            $row.css('text-decoration', 'line-through');
+                        }
+                    },
                     datastore: self.providerLevelCodesList,
                     container:self.el,
                     customizeSort: true,
@@ -156,7 +166,7 @@ define(['jquery',
                                 if (data) {
                                     $('#txtCode').val(data.code ? data.code : '');
                                     $('#txtDescription').val(data.description ? data.description : '');
-                                    $('#txtReadProvPercLvl').val(data.reading_provider_percent_level ? data.reading_provider_percent_level : 'none');
+                                    $('#txtReadProvPercLvl').val(data.reading_provider_percent_level ? data.reading_provider_percent_level.substring(0,4) : 'none');
                                     $('#chkActive').prop('checked', data.inactivated_dt ? true : false);
                                 }
                             }

@@ -203,7 +203,11 @@ module.exports = {
             commentId,
             note,
             comments,
-            from
+            from,
+            followupDate,
+            claim_id,
+            assignedTo,
+            notes
         } = params;
         let sql; 
 
@@ -215,14 +219,56 @@ module.exports = {
                                 isinternal boolean,
                                 commentid bigint
                             )
-                        )
-                        UPDATE 
+                        ),
+                        update_cmt AS (UPDATE 
                             billing.claim_comments cc
                         SET 
                             is_internal = agg_cmt.isInternal
                         FROM agg_cmt
                         WHERE 
-                            id = commentid `;
+                            id = commentid 
+                        RETURNING id), 
+                        update_billNotes AS ( UPDATE 
+                                billing.claims SET billing_notes  = ${notes}
+                             WHERE id = ${claim_id} 
+                            RETURNING id), `;
+
+            if(followupDate == '')
+            {
+                sql.append(`update_followup AS (DELETE FROM 
+                            billing.claim_followups
+                        WHERE 
+                            claim_id = ${claim_id} RETURNING id )
+                        SELECT * FROM update_cmt, update_billNotes`);
+            }
+            else{
+                sql.append(`update_followup AS(
+                    UPDATE 
+                        billing.claim_followups 
+                    SET 
+                          followup_date = CAST('${followupDate}' AS DATE) 
+                        , assigned_to= ${assignedTo} 
+                    WHERE 
+                        claim_id = ${claim_id}
+                    RETURNING *
+                ), 
+                insert_followup AS(
+                    INSERT INTO billing.claim_followups(
+                          claim_id
+                        , followup_date
+                        , assigned_to
+                    )
+                    SELECT
+                          ${claim_id}
+                        , CAST('${followupDate}' AS DATE) 
+                        , ${assignedTo}
+                    WHERE 
+                    NOT EXISTS(SELECT * FROM update_followup) 
+                    RETURNING *
+                ) 
+                SELECT * FROM update_followup UNION SELECT * FROM insert_followup`);
+            }
+
         } else {   
             sql = SQL`UPDATE 
                         billing.claim_comments
@@ -284,54 +330,6 @@ module.exports = {
         });
     },
 
-    saveFollowUpDate: async (params) => {
-        let followup_query = '';
-
-        let {
-            claim_id,
-            followupDate,
-            assignedTo
-        } = params;
-
-        if (followupDate == '') {
-            followup_query = SQL`DELETE FROM 
-                                    billing.claim_followups
-                                WHERE 
-                                    claim_id = ${claim_id}`;
-        }
-        else {
-            followup_query = SQL`WITH 
-                                update_followup AS(
-                                    UPDATE 
-                                        billing.claim_followups 
-                                    SET 
-                                          followup_date = ${followupDate} 
-                                        , assigned_to= ${assignedTo} 
-                                    WHERE 
-                                        claim_id = ${claim_id}
-                                    RETURNING *
-                                ), 
-                                insert_followup AS(
-                                    INSERT INTO billing.claim_followups(
-                                          claim_id
-                                        , followup_date
-                                        , assigned_to
-                                    )
-                                    SELECT
-                                          ${claim_id}
-                                        , ${followupDate}
-                                        , ${assignedTo}
-                                    WHERE 
-                                    NOT EXISTS(SELECT * FROM update_followup) 
-                                    RETURNING *
-                                    )
-                            SELECT * FROM update_followup UNION SELECT * FROM insert_followup `;
-
-        }
-
-        return await query(followup_query);
-    },
-
     getFollowupDate: async (params) => {
         let {
             claim_id
@@ -342,31 +340,6 @@ module.exports = {
                             FROM 
                                 billing.claim_followups 
                             WHERE claim_id = ${claim_id}`);
-    },
-
-    updateBillingNotes: async (params) => {
-        let {
-            claim_id,
-            notes
-        } = params;
-
-        let sql = SQL`UPDATE 
-                        billing.claims SET billing_notes  = ${notes}
-                    WHERE id = ${claim_id} 
-                    RETURNING *,
-                    (
-                        SELECT row_to_json(old_row) 
-                        FROM   (SELECT * 
-                                FROM   billing.claims 
-                                WHERE  id = ${claim_id}) old_row 
-                    ) old_values`;
-        // return await queryWithAudit(sql, {
-        //     ...params,
-        //     logDescription: `Updated ${notes}(${claim_id})`
-        // });
-
-        return await query(sql);
-        
     },
 
     viewPaymentDetails: async(params) => {

@@ -39,8 +39,8 @@ define([
                     gridelementid: '#tblProviderIdCodeQualifiersGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['', '', '', '', ''],
-                    i18nNames: ['', '', '',  'setup.providerIdCodeQualifiers.qualifierCode', 'setup.common.description'],
+                    colNames: ['', '', '', '', '', ''],
+                    i18nNames: ['', '', '',  'setup.providerIdCodeQualifiers.qualifierCode', 'setup.common.description', 'in_active'],
                     colModel: [
                         {
                             name: 'id',
@@ -87,8 +87,18 @@ define([
                         },
                         {
                             name: 'description'
+                        },
+                        {
+                            name: 'inactivated_dt',
+                            hidden: true
                         }
                     ],
+                    afterInsertRow: function (rowid, rowdata) {
+                        if (rowdata.inactivated_dt) {
+                            var $row = $('#tblProviderIdCodeQualifiersGrid').find('#' + rowid);
+                            $row.css('text-decoration', 'line-through');
+                        }
+                    },
                     datastore: self.providerIdCodeQualifiersList,
                     container: self.el,
                     customizeSort: true,

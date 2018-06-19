@@ -358,6 +358,7 @@ const api = {
     getSortFields: function (args, screenName) {
         //console.log('getSortFields: ', args, screenName);
         switch (args) {
+        case 'study_id':                return 'studies.id';
         case 'insurance_providers':     return  'orders.insurance_providers';
         case 'image_delivery':          return  'imagedelivery.image_delivery';
         case 'eligibility_verified':    return `(COALESCE(eligibility.verified, false) OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)`;
@@ -1031,7 +1032,7 @@ const api = {
                         break;
                     }
                 }
-                
+
                 if (studyFilter.perms_filter) {
                     whereClause.studyFilter = AND(whereClause.studyFilter, studyFilter.perms_filter);
                 }
