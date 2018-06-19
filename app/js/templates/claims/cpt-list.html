@@ -1,0 +1,20 @@
+<section>
+        <cpt class="mergeContainer selectionTask dragStudy sectionOver modal-header" data-cpt_id="<%= claim.cpt_id %>"
+            data-claim_id="<%= claim.claim_no %>" data-patient_id="<%= claim.patient_id %>">
+            <div class="mergeStudy flex-parent-horiz flex-vert-center dragSeries">
+                <div class="icon-ic-plus mergePlusIcon triggerMergeStudyPlus disableDrag" title="Add to Selected">
+                </div>
+                <div class="mergeInfo">
+                    <p><span i18n="setup.userSettings.accountNo"></span> <b class="accession_no"><%= claim.account_no %></b></p>
+                    <p><span i18n="billing.payments.patient" style="text-transform: capitalize;"></span> : <b><%= claim.full_name %></b></p>
+                    <p><span i18n="billing.fileInsurance.refPhy"></span> <b class="accession_no"><%= claim.referringPhysician %></b></p>
+                </div>
+                <div class="mergeInfo">
+                    <p><span i18n="billing.fileInsurance.claimNo"></span> : <b class="accession_no"><%= claim.claim_no %></b></p>
+                    <p><span i18n="setup.userSettings.cptDescription"></span> <b title="<%= claim.cpt_description %>"><%= claim.cpt_description %></b></p>
+                    <p><span i18n="setup.userSettings.cptCodes"></span> : <b class="accession_no"><%= claim.cpt_code %></b></p>
+                </div>
+            </div>
+        </cpt>
+    </section>
+    
