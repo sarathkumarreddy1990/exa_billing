@@ -256,6 +256,18 @@ define(['jquery',
                 }
                 commonjs.initializeScreen({header: {screen: 'BillingProviders', ext: 'billingProvider'}, buttons: [
                     {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
+                        $("#txtName").val($.trim($('#txtName').val()) || null);
+                        $("#txtCode").val($.trim($('#txtCode').val()) || null);
+                        $("#txtShortDesc").val($.trim($('#txtShortDesc').val()) || null);
+                        $("#txtFederalTaxID").val($.trim($('#txtFederalTaxID').val()) || null);
+                        $("#txtNpi").val($.trim($('#txtNpi').val()) || null);
+                        $("#txtTaxonomy").val($.trim($('#txtTaxonomy').val()) || null);
+                        $("#txtContactName").val($.trim($('#txtContactName').val()) || null);
+                        $("#txtAddressLine1").val($.trim($('#txtAddressLine1').val()) || null);
+                        $("#txtCity").val($.trim($('#txtCity').val()) || null);
+                        $("#txtZip").val($.trim($('#txtZip').val()) || null);
+                        $("#txtBillProPhoneNo").val($.trim($('#txtBillProPhoneNo').val()) || null);
+                        $("#txtFaxNo").val($.trim($('#txtFaxNo').val()) || null);
                         self.saveBillingProviders();
                     }},
                     {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
@@ -311,16 +323,10 @@ define(['jquery',
                     addressLine1: {
                         required: true
                     },
-                    addressLine2: {
-                        required: true
-                    },
                     city: {
                         required: true
                     },
                     zip: {
-                        required: true
-                    },
-                    zipPlus: {
                         required: true
                     },
                     phoneNo: {
@@ -331,20 +337,18 @@ define(['jquery',
                     }
                 }
                 var messages = {
-                    providerName: commonjs.getMessage("*", "Billing Provider Name"),
-                    providerCode: commonjs.getMessage("*", "Billing Provider Code"),
-                    shortDescription: commonjs.getMessage("*", "Billing Provider Short Desc"),
-                    federalTaxID: commonjs.getMessage("*", "Federal Tax ID"),
-                    npiNo: commonjs.getMessage("*", "Npi No"),
-                    taxonomy: commonjs.getMessage("*", "Taxonomy Code"),
-                    contactPersonName: commonjs.getMessage("*", "Contact Person Name"),
-                    addressLine1: commonjs.getMessage("*", "AddressLine1"),
-                    addressLine2: commonjs.getMessage("*", "AddressLine2"),
-                    city: commonjs.getMessage("*", "City"),
-                    zip: commonjs.getMessage("*", "Zip"),
-                    zipPlus: commonjs.getMessage("*", "Zip Plus"),
-                    phoneNo: commonjs.getMessage("*", "Phone Number"),
-                    faxNo: commonjs.getMessage("*", "Fax Number")
+                    providerName: commonjs.getMessage("e", "Billing Provider Name"),
+                    providerCode: commonjs.getMessage("e", "Billing Provider Code"),
+                    shortDescription: commonjs.getMessage("e", "Billing Provider Short Desc"),
+                    federalTaxID: commonjs.getMessage("e", "Federal Tax ID"),
+                    npiNo: commonjs.getMessage("e", "Npi No"),
+                    taxonomy: commonjs.getMessage("e", "Taxonomy Code"),
+                    contactPersonName: commonjs.getMessage("e", "Contact Person Name"),
+                    addressLine1: commonjs.getMessage("e", "AddressLine1"),
+                    city: commonjs.getMessage("e", "City"),
+                    zip: commonjs.getMessage("e", "Zip"),
+                    phoneNo: commonjs.getMessage("e", "Phone Number"),
+                    faxNo: commonjs.getMessage("e", "Fax Number")
                 }
                 if($('#chkEnableFTP').prop('checked')) {
                     rules.hostname = { required: true }
@@ -393,24 +397,24 @@ define(['jquery',
                     "Ftp_identity_file": $.trim($('#txtIdentityFilePath').val())
                 }
                 this.model.set({
-                    "name": $.trim($('#txtName').val()),
+                    "name": $('#txtName').val(),
                     "isActive": !$('#chkIsActive').prop('checked'),
                     "companyId": app.companyID,
-                    "code": $.trim($('#txtCode').val()),
-                    "shortDescription": $.trim($('#txtShortDesc').val()),
-                    "federalTaxId": $.trim($('#txtFederalTaxID').val()),
-                    "npiNo": $.trim($('#txtNpi').val()),
-                    "taxonomyCode": $.trim($('#txtTaxonomy').val()),
-                    "contactPersonName": $.trim($('#txtContactName').val()),
-                    "addressLine1": $.trim($('#txtAddressLine1').val()),
+                    "code": $('#txtCode').val(),
+                    "shortDescription": $('#txtShortDesc').val(),
+                    "federalTaxId": $('#txtFederalTaxID').val(),
+                    "npiNo": $('#txtNpi').val(),
+                    "taxonomyCode": $('#txtTaxonomy').val(),
+                    "contactPersonName": $('#txtContactName').val(),
+                    "addressLine1": $('#txtAddressLine1').val(),
                     "addressLine2": $.trim($('#txtAddressLine2').val()),
-                    "city": $.trim($('#txtCity').val()),
+                    "city": $('#txtCity').val(),
                     "state": $('#ddlState').val(),
-                    "zipCode": $.trim($('#txtZip').val()),
+                    "zipCode": $('#txtZip').val(),
                     "zipCodePlus": $.trim($('#txtZipPlus').val()),
                     "email": $.trim($('#txtEmail').val()),
-                    "phoneNumber": $.trim($('#txtBillProPhoneNo').val()),
-                    "faxNumber": $.trim($('#txtFaxNo').val()),
+                    "phoneNumber": $('#txtBillProPhoneNo').val(),
+                    "faxNumber": $('#txtFaxNo').val(),
                     "webUrl": $.trim($('#txtWebURL').val()),
                     "payToAddressLine1": $.trim($('#txtPayAddressLine1').val()),
                     "payToAddressLine2": $.trim($('#txtPayAddressLine2').val()),

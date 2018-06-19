@@ -173,6 +173,8 @@ define(['jquery',
 
                 commonjs.initializeScreen({header: {screen: 'BillingClasses', ext: 'billingClasses'}, buttons: [
                     {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
+                        $("#txtCode").val($.trim($('#txtCode').val()) || null);
+                        $("#txtDescription").val($.trim($('#txtDescription').val()) || null);
                         self.saveBillingClasses();
                     }},
                     {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
@@ -197,8 +199,8 @@ define(['jquery',
                         }
                     },
                     messages: {
-                        code: commonjs.getMessage("*", "Code"),
-                        description: commonjs.getMessage("*", "Description")
+                        code: commonjs.getMessage("e", "Code"),
+                        description: commonjs.getMessage("e", "Description")
                     },
                     submitHandler: function () {
                         self.save();
@@ -210,8 +212,8 @@ define(['jquery',
 
             save: function () {
                 this.model.set({
-                    "code": $.trim($('#txtCode').val()),
-                    "description": $.trim($('#txtDescription').val()),
+                    "code": $('#txtCode').val(),
+                    "description": $('#txtDescription').val(),
                     "isActive" : !$('#chkActive').prop('checked'),
                     "companyId" : app.companyID
                 });
