@@ -41,7 +41,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 "dblclick .selectionpatient": "selectPatient",
                 "click #btnBackToPatient": "backToPatient",
                 "click #anc_search": "showPatientOrders",
-                'click #btnPaymentRefresh': 'refreshPayments',
+                'click #btnPaymentPendingRefresh': 'refreshPayments',
                 'click a#ppliedRefresh': 'refreshPayments',
                 'click #btnPaymentPrint, #btnPrintReceipt, #btnPaymentDelete, #btnPayfullAppliedPendingPayments': "underConstruction"
             },
@@ -199,29 +199,29 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             },
 
             setPayerFields: function (e, obj) {
-                var srcElement = obj ? obj : $(e.target || e.srcElement);
-                $('.payerFields').hide();
-
                 this.payer_id = 0;
-                if (srcElement.is('#chkpayerInsurance')) {
+                var val = $('#selectPayerType').val();
+                $('.payerFields').hide();
+                if (val === 'insurance') {
                     $('#select2-txtautoPayerPIP-container').html('Select Insurance');
                     $('#divPayerInsurnace').show();
                     $('#divMethodInsurance').show();
+                    $('#divPayerInsurnace').show();
                 }
-                else if (srcElement.is('#chkpayerPatient')) {
+                else if (val === 'patient') {
                     $('#select2-txtautoPayerPP-container').html('Select Patient');
                     $('#divPayerPatient').show();
-                    $('#divMethodPatient').show();
+                    $('#divMethodInsurance').hide();
                 }
-                else if (srcElement.is('#chkpayerOrdering')) {
+                else if (val === 'ordering_facility') {
                     $('#select2-txtautoPayerPOF-container').html('Select Ordering facility');
                     $('#divPayerOrderFacility').show();
-                    $('#divMethodProvider').show();
+                    $('#divMethodInsurance').show();
                 }
-                else if (srcElement.is('#chkpayerProvider')) {
+                else if (val === 'ordering_provider') {
                     $('#select2-txtautoPayerPR-container').html('Select Provider');
                     $('#divPayerProvider').show();
-                    $('#divMethodProvider').show();
+                    $('#divMethodInsurance').show();
                 }
             },
 
@@ -540,7 +540,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             },
 
             setPayerName: function (payerType, payerNames) {
-                this.setPayerFields(null, $("input:radio[name=payertype][value=" + payerType + "]"));
+                $('#selectPayerType').val(payerType);
 
                 if (payerType === 'insurance') {
                     $('#select2-txtautoPayerPIP-container').html(payerNames.insurance_name);
@@ -580,18 +580,22 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 var self = this;
                 if (payermode == 'insurance' && !self.payer_id) {
                     commonjs.showWarning("Please select insurance");
+                    $('#txtautoPayerPIP').select2('open');
                     return false;
                 }
                 else if (payermode == 'patient' && !self.payer_id) {
                     commonjs.showWarning("Please select patient");
+                    $('#txtautoPayerPP').select2('open');
                     return false;
                 }
                 else if (payermode == 'provider' && !self.payer_id) {
                     commonjs.showWarning("Please select provider");
+                    $('#txtautoPayerPR').select2('open');
                     return false;
                 }
                 else if (payermode == 'ordering_facility' && !self.payer_id) {
                     commonjs.showWarning("Please select ordering facility");
+                    $('#txtautoPayerPOF').select2('open');
                     return false;
                 }
                 else
@@ -601,11 +605,11 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             validatepayments: function () {
                 var self = this;
                 var amount = $.trim($("#txtAmount").val());
-                if ($('input:radio[name=payertype]:checked').length == 0) {
-                    commonjs.showWarning("Please select payer type");
-                    return false;
-                }
-                if (!self.validatePayer($('input:radio[name=payertype]:checked').val())) {
+                // if ($('input:radio[name=payertype]:checked').length == 0) {
+                //     commonjs.showWarning("Please select payer type");
+                //     return false;
+                // }
+                if (!self.validatePayer($('#selectPayerType').val())) {
                     return false;
                 }
                 if ($.trim($("#txtAccountingDate").val()) == "") {
@@ -637,7 +641,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
 
             refreshPayments: function (e) {
                 var target = $(e.target || e.srcElement);
-                if (target.is('#btnPaymentRefresh')) {
+                if (target.is('#btnPaymentPendingRefresh')) {
                     this.pendPaymentTable.refreshAll();
                 }
                 else {
