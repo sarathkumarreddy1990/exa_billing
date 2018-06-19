@@ -121,7 +121,7 @@ define([
                             customAction: function (rowID) {
                             },
                             formatter: function (cellvalue, options, rowObject) {
-                                    return "<input type='button' id='btnCICommentSave' class='btn btnCommentSave  btn-primary' value='Paper Claim' i18n='shared.buttons.paperclaim' id='spnPaperClaim_" + rowObject.id + "'>"
+                                    return "<input type='button' id='btnCIPaperClaim' class='btn btnCommentSave  btn-primary' value='Paper Claim' i18n='shared.buttons.paperclaim' id='spnPaperClaim_" + rowObject.id + "'>"
                             }
                         }
                     ],
