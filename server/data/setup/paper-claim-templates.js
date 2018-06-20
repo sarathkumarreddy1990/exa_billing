@@ -116,7 +116,7 @@ module.exports = {
                         SET  
                               name = ${name}
                               , orginal_form_template = ${orginalFormTemplate}
-                              , fullFormTemplate = ${fullFormTemplate}
+                              , full_form_template = ${fullFormTemplate}
                               , inactivated_dt = ${inactivated_date}
                         WHERE
                             id = ${id} 
