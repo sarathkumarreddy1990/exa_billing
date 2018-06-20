@@ -80,7 +80,8 @@ define([
                         },
                         {
                             name: 'created_dt',
-                            width: 180
+                            width: 180,
+                            formatter: self.loggedDateFormatter
                         },
                         {
                             name: 'screen_name',
@@ -140,6 +141,10 @@ define([
 
             showDetails: function (id) {
                 this.displayDetails(id);
+            },
+
+            loggedDateFormatter: function (cellvalue, options, rowObject) {
+                return rowObject.created_dt ? commonjs.getFormattedDateTime(rowObject.created_dt) : '';
             },
 
             displayDetails: function (id) {

@@ -63,7 +63,7 @@ define(['jquery',
             events: {
                 'click #btnPaymentSave': 'savePayment',
                 'click #btnApplyCAS': 'getPayemntApplications',
-                'change .payerType': 'setPayerFields',
+                'change #selectPayerType': 'setPayerFields',
                 'click #btnPaymentAddNew': 'addNewPayemnt',
                 'click #btnPaymentBack': 'goBackToPayments',
                 'click #btnPaymentClear': 'clearPayemntForm',
@@ -190,6 +190,7 @@ define(['jquery',
                 if (paymentID == 0) {
                     this.model = new ModelPayments();
                     $('#btnPaymentClear').show();
+                    $('#btnPaymentDelete').hide();
                     $('#divPendingPay').hide();
                     $('#btnPaymentAddNew').hide();
                     $('#btnPaymentPrint').hide();
@@ -200,6 +201,7 @@ define(['jquery',
                 else {
                     this.model.set({ id: paymentID });
                     $('#btnPaymentClear').hide();
+                    $('#btnPaymentDelete').show();
                     this.model.fetch({
                         data: { id: this.model.id },
                         success: function (model, result) {
@@ -216,8 +218,10 @@ define(['jquery',
             clearPayemntForm: function () {
                 this.payer_id = 0;
                 $('#PaymentForm input[type=radio]').prop('ckecked', false);
-                $('#ddlpaymentReason').val(0);
+                $('#ddlpaymentReason').val('');
                 $('#ddlPaidLocation').val(0);
+                $('#selectPayerType').val(0);
+                $('#selectPaymentMode').val(0);
                 $('#PaymentForm input[type=text]').val('');
                 this.changePayerMode('');
                 $('#select2-txtautoPayerPIP-container').html('Select Insurance');
@@ -558,7 +562,7 @@ define(['jquery',
                 $("#ddlpaymentReason").val(response.payment_reason_id)
                 $("#txtNotes").val(response.notes)
                 $('#selectPaymentMode').val(response.payment_mode);
-                self.changePayerMode(response.payment_mode);
+                self.changePayerMode(response.payment_mode, true);
                 
                 commonjs.checkNotEmpty(response.accounting_date) ? self.dtpAccountingDate.date(response.accounting_date) : self.dtpAccountingDate.clear();
 
@@ -627,7 +631,7 @@ define(['jquery',
                     $('#txtautoPayerPP').select2('open');
                     return false;
                 }
-                else if (payermode == 'provider' && !self.payer_id) {
+                else if (payermode == 'ordering_provider' && !self.payer_id) {
                     commonjs.showWarning("Please select provider");
                     $('#txtautoPayerPR').select2('open');
                     return false;
@@ -643,7 +647,12 @@ define(['jquery',
 
             validatepayments: function () {
                 var self = this;
-                var amount = $.trim($("#txtAmount").val());
+                var amount = $.trim($("#txtAmount").val());                              
+                if ($('#selectPayerType').val() === '0') {
+                    commonjs.showWarning("Please select payer type");
+                    $('#selectPayerType').focus();
+                    return false;
+                }                   
                 if (!self.validatePayer($('#selectPayerType').val())) {
                     return false;
                 }
@@ -658,6 +667,11 @@ define(['jquery',
                 }
                 if (amount == "" || (amount.indexOf('-') > 0)) {
                     commonjs.showWarning("Please enter valid amount");
+                    return false;
+                }             
+                if ($('#selectPaymentMode').val() === '0') {
+                    commonjs.showWarning("Please select payment mode");
+                    $('#selectPaymentMode').focus();
                     return false;
                 }
                 if ($('#chkModeCheck').prop('checked') && $.trim($("#txtCheque").val()) == "") {
@@ -940,7 +954,8 @@ define(['jquery',
                 
                 setTimeout(function () {
                     $('#tblAppliedPaymentsGrid').jqGrid('setGridHeight', '600px');
-                    $('#tblAppliedPaymentsGrid').jqGrid('setGridWidth', $(window).width() - 20);
+                    $('#tblAppliedPaymentsGrid').jqGrid('setGridWidth', $(window).width() - 20);                    
+                    commonjs.processPostRender();
                 }, 500);
             },
 
@@ -1637,7 +1652,7 @@ define(['jquery',
                 alert('Under construction');
             },
             
-            changePayerMode: function (e) {
+            changePayerMode: function (e, isBind) {
                 var valueType = $("#selectPaymentMode").val();
 
                 switch (valueType) {
@@ -1653,7 +1668,9 @@ define(['jquery',
                     case "check":
                     case "EFT":
                         $("#txtCheque").removeAttr("disabled");
-                        $("#txtCheque").focus();
+                        if (!isBind) {
+                            $("#txtCheque").focus();
+                        }    
                         $("#txtCardName").attr("disabled", "disabled");
                         $("#paymentExpiryMonth").attr("disabled", "disabled");
                         $("#paymentExpiryYear").attr("disabled", "disabled");
@@ -1661,7 +1678,9 @@ define(['jquery',
                         $("#txtCVN").attr("disabled", "disabled");
                         break;
                     case "card":
-                        $("#txtCheque").focus();
+                        if (!isBind) {
+                            $("#txtCheque").focus();
+                        }
                         $("#txtCheque").removeAttr("disabled");
                         $("#txtCardName").removeAttr("disabled");
                         $("#paymentExpiryMonth").removeAttr("disabled");
