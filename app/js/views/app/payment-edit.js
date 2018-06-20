@@ -63,7 +63,7 @@ define(['jquery',
             events: {
                 'click #btnPaymentSave': 'savePayment',
                 'click #btnApplyCAS': 'getPayemntApplications',
-                'change .payerType': 'setPayerFields',
+                'change #selectPayerType': 'setPayerFields',
                 'click #btnPaymentAddNew': 'addNewPayemnt',
                 'click #btnPaymentBack': 'goBackToPayments',
                 'click #btnPaymentClear': 'clearPayemntForm',
@@ -627,7 +627,7 @@ define(['jquery',
                     $('#txtautoPayerPP').select2('open');
                     return false;
                 }
-                else if (payermode == 'provider' && !self.payer_id) {
+                else if (payermode == 'ordering_provider' && !self.payer_id) {
                     commonjs.showWarning("Please select provider");
                     $('#txtautoPayerPR').select2('open');
                     return false;
@@ -940,7 +940,8 @@ define(['jquery',
                 
                 setTimeout(function () {
                     $('#tblAppliedPaymentsGrid').jqGrid('setGridHeight', '600px');
-                    $('#tblAppliedPaymentsGrid').jqGrid('setGridWidth', $(window).width() - 20);
+                    $('#tblAppliedPaymentsGrid').jqGrid('setGridWidth', $(window).width() - 20);                    
+                    commonjs.processPostRender();
                 }, 500);
             },
 
