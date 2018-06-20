@@ -14,26 +14,22 @@ define([
             el: null,
             splitCLaimTemplate: _.template(splitCLaimTemplate),
             cptListTemplate: _.template(cptListTemplate),
-            events: {
-                "dblclick section": "selectStudy"
-            },
 
             initialize: function (options) {
                 this.options = options;
             },
 
             render: function () {
-                //this.claim_id = claim_id;
                 this.rendered = true;
                 commonjs.showDialog({
                     header: 'Claim Creation',
                     width: '95%',
                     height: '75%',
                     html: this.splitCLaimTemplate()
-                })
-                //this.$el.html(this.splitCLaimTemplate());
-                this.showCPT();
-               this.validateSplitClaim(this.claim_id);
+                });
+
+                this.showCharge();
+                this.validateSplitClaim(this.claim_id);
                 $('#divAllCPTList, #divSelectedCPTList').height($('#body_content').height() - 60).css('padding', '0');
             },
 
@@ -82,9 +78,18 @@ define([
                 $('#btnCreateClaim').off().click(function () {
                     self.splitClaim();
                 });
+
+                $('#btnReload').off().click(function (){
+                    self.reloadChargeList();
+                });
+
+                // $('section').off().dblclick(function(){
+                //     self.selectCharge(e);
+                // });
+                    
             },
 
-            showCPT: function(){
+            showCharge: function(){
                 var self = this;
 
                 $.ajax({
@@ -148,25 +153,26 @@ define([
 
             splitClaim: function () {
                 var self = this;
-
+                var _cpt_ids = [];
                 if ($('#divSelectedCPTList section cpt').length > 0) {
-                    var cpt_ids = [];
                     $.each($('#divSelectedCPTList section cpt'), function () {
-                        cpt_ids.push($(this).attr('data-study_id'))
-                    })
+                        let charge_id = $(this).attr('data-charge_id');
+                        _cpt_ids.push(charge_id);
+                    });
+                    
                     if (confirm('Are you sure to create order with the selected stud(y)ies?')) {
-                        $('#btnCreateClaim').attr('disabled', true);
-                        commonjs.showLoading('Processing please wait..');
+                      //  $('#btnCreateClaim').attr('disabled', true);
+                        commonjs.showLoading('Processing please wait..');                      
                         $.ajax({
                             url: "/exa_modules/billing/claims/split_claim",
                             type: "PUT",
                             data: {
-                                cpt_ids: cpt_ids,
-                                orderId: self.orderId,
+                                cpt_ids: _cpt_ids.join(','),
+                                claim_id: self.claim_id
                             },
                             success: function (data, response) {
                                 commonjs.showStatus('Order has been merged successfully');
-                                //self.reloadChargeList();
+                                self.reloadChargeList();
                                 $('#btnCreateClaim').removeAttr('disabled');
                             },
                             error: function (err) {
@@ -182,7 +188,7 @@ define([
 
             },
 
-            selectStudy: function (e) {
+            selectCharge: function (e) {
                 if (e.target || e.srcElement) {
                     var selectedStudy = $(e.target || e.srcElement).closest('section');
                     if (selectedStudy.find('.icon-ic-plus').length) {
@@ -194,6 +200,13 @@ define([
                         return false;
                     }
                 }
-            }
+            },
+
+            reloadChargeList: function () {
+                this.showCharge();
+                $('#divAllStudiesList').empty();
+                $('#divSelectedStudiesList').empty();
+                $('#btnMergeStudy').removeAttr('disabled');
+            },
         });
     });

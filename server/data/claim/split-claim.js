@@ -18,6 +18,7 @@ module.exports = {
                         , public.get_full_name(p.last_name, p.first_name, p.middle_name, p.prefix_name, p.suffix_name)
                         , p.account_no
                         , (COALESCE(TRIM(pr.last_name),'') ||' '|| COALESCE(TRIM(pr.first_name),'')) AS referringPhysician
+                        , ch.id AS charge_id
                     FROM billing.claims bc
                     INNER JOIN public.patients p ON p.id = bc.patient_id
                     INNER JOIN billing.charges ch ON ch.claim_id = bc.id
@@ -37,7 +38,9 @@ module.exports = {
             cpt_ids
         } = params;
 
-        let sql = `WITH new_claim AS (
+        cpt_ids = cpt_ids.split(',');
+
+        let sql =SQL` WITH new_claim AS (
                         INSERT INTO billing.claims
                             (
                                 company_id 
@@ -140,8 +143,35 @@ module.exports = {
                                 WHERE 
                                     claim_id = ${claim_id}
                                 RETURNING *
+                        ),
+                        claim_data AS (
+                            SELECT json_agg(row_to_json(claim)) claim_data 
+                            FROM (
+                                SELECT 
+                                    * 
+                                FROM 
+                                    new_claim
+                            ) AS claim
+                        ),
+                        charge_details AS (
+                            SELECT json_agg(row_to_json(charge)) charge_data 
+                            FROM (
+                                SELECT 
+                                    * 
+                                FROM 
+                                    update_charge
+                            ) AS charge
+                        ),
+                        icd_details AS (
+                            SELECT json_agg(row_to_json(icd)) icd_data 
+                            FROM (
+                                SELECT 
+                                    * 
+                                FROM 
+                                new_icd
+                            ) AS icd
                         )
-                        SELECT * FROM new_claim, update_charge, new_icd`;
+                        SELECT * FROM claim_data, charge_details, icd_details`;
 
         return await query(sql);
     },
