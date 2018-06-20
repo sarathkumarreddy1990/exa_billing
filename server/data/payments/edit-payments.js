@@ -263,11 +263,11 @@ module.exports = {
         }
 
         if (patient_paid) {    
-            havingQuery.push(` HAVING COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient'),0::money) = '${patient_paid}'::money`);
+            havingQuery.push(` COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient'),0::money) = '${patient_paid}'::money`);
         }
 
         if (others_paid) {  
-            havingQuery.push(` HAVING COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient'),0::money) = '${others_paid}'::money`);  
+            havingQuery.push(` COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient'),0::money) = '${others_paid}'::money`);  
         }
 
         if (adjustment) {    
@@ -309,8 +309,14 @@ module.exports = {
                 .append(whereQuery.join(' AND '));
         }
 
-        sql.append(SQL`GROUP BY bc.id, bc.invoice_no, get_full_name(pp.last_name,pp.first_name), bc.claim_dt, bch.id `)
-            .append(SQL` ORDER BY  `)
+        sql.append(SQL`GROUP BY bc.id, bc.invoice_no, get_full_name(pp.last_name,pp.first_name), bc.claim_dt, bch.id `);
+
+        if (havingQuery.length) {
+            sql.append(SQL` HAVING `)
+                .append(havingQuery.join(' AND '));
+        }
+        
+        sql.append(SQL` ORDER BY  `)
             .append(sortField)
             .append(' ')
             .append(sortOrder)
@@ -685,5 +691,33 @@ module.exports = {
         }
 
         return likeQuery;
+    },
+
+    getFeeDetails: async function (params) {
+        return await query(
+            `            
+                SELECT
+                    (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) AS bill_fee,
+                    COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient'),0::money) AS patient_paid,
+                    COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient'),0::money) AS others_paid,
+                    (SELECT adjustments_applied_total from billing.get_claim_totals(bc.id)) AS adjustment,
+                    (SELECT payments_applied_total from billing.get_claim_totals(bc.id)) AS payment,
+                    (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) AS balance
+                FROM billing.claims bc
+                    INNER JOIN billing.charges bch ON bch.claim_id = bc.id 
+                    LEFT JOIN billing.payment_applications bpa ON bpa.charge_id  =  bch.id -- For getting applid and pending payments 
+                    LEFT JOIN billing.payments bp ON bp.id = bpa.payment_id 
+                WHERE bc.id = ${params.claimId}
+                    GROUP BY bc.id
+                    `
+        );
+    },
+
+    deletePayment: async function (params) {
+        return await query(
+            ` 
+            DELETE FROM billing.payments WHERE id = ${params.payment_id}
+            `
+        );
     }
 };
