@@ -54,8 +54,8 @@ const pgData = {
             let response = await pool.query(queryObj);
             return response;
         } catch (err) {
-            logger.error(err);
-            throw err;
+            //logger.error(err);
+            return err;
         }
     },
 
@@ -64,8 +64,8 @@ const pgData = {
             let result = await pgData.query(text, values, preparedName);
             return result.rows;
         } catch (err) {
-            logger.error(err);
-            throw err;
+            //logger.error(err);
+            return err;
         }
     },
 
