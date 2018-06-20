@@ -309,9 +309,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             generatePDF: function (e) {
                 var self = this;
                 self.paymentPDF = new paymentPDF({ el: $('#modal_div_container') });
-                var paymentPDFArgs = {
-                    'txtPaymentFromDate': $('#txtPaymentFromDate').val(),
-                    'txtPaymentToDate': $('#txtPaymentToDate').val(),
+                var paymentPDFArgs = {                   
                     'isDateFlag': $('#filterByPostingDt').prop('checked') ? true : false
                 }
                 self.paymentPDF.onReportViewClick(e, paymentPDFArgs);
