@@ -30,7 +30,9 @@ define(['jquery',
             ediClearingHousesTable: null,
             pager: null,
             events: {
-                'change #ddlXmlTemplateSyntax' : 'changeXmlTemplateSyntax'
+                'change #ddlXmlTemplateSyntax' : 'changeXmlTemplateSyntax',
+                'keyup #txtSubElementDelimiter': 'checkValidSubDelimiter',
+                'keyup #txtElementDelimiter': 'checkValidDelimiter'
             },
 
             initialize: function (options) {
@@ -353,7 +355,17 @@ define(['jquery',
                 } else {
                     $('.xmlTemplateSyntaxAuth').show();
                 }
-             }
+             },
+
+            checkValidSubDelimiter: function (e) {
+                var val = $('#txtElementDelimiter').val().trim();
+                if (val && e.key == val)$('#txtSubElementDelimiter').val('');
+            },
+
+            checkValidDelimiter: function (e) {
+                var val = $('#txtSubElementDelimiter').val().trim();
+                if (val && e.key == val)$('#txtElementDelimiter').val('');
+            }
         });
         return EDIClearingHousesView;
     });
