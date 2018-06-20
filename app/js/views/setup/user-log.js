@@ -68,15 +68,18 @@ define([
                         },
                         {
                             name: 'logged_in_dt',
-                            width: 180
+                            width: 180,
+                            formatter: self.loggedIndateFormatter
                         },
                         {
                             name: 'logged_out_dt',
-                            width: 180
+                            width: 180,
+                            formatter: self.loggedOutdateFormatter
                         },
                         {
                             name: 'last_access_dt',
-                            width: 180
+                            width: 180,
+                            formatter: self.accessdateFormatter
                         },
                         {
                             name: 'login_source',
@@ -115,6 +118,18 @@ define([
 
             showGrid: function (id) {
                 this.render();
+            },
+
+            loggedIndateFormatter: function (cellvalue, options, rowObject) {
+                return commonjs.checkNotEmpty(rowObject.logged_in_dt) ? commonjs.getFormattedDateTime(rowObject.logged_in_dt) : '';
+            },
+
+            loggedOutdateFormatter: function (cellvalue, options, rowObject) {
+                return commonjs.checkNotEmpty(rowObject.logged_out_dt) ? commonjs.getFormattedDateTime(rowObject.logged_out_dt) : '';
+            },
+
+            accessdateFormatter: function (cellvalue, options, rowObject) {
+                return commonjs.checkNotEmpty(rowObject.last_access_dt) ? commonjs.getFormattedDateTime(rowObject.last_access_dt) : '';
             },
 
             displayDetails: function(id){

@@ -30,7 +30,10 @@ var layout = {
         'CAS Reason Codes': '#aCasReasonCodes',
         'Provider Level Codes': '#aProviderLevelCodes',
         'Billing Validations': '#aBillingValidations',
-
+        'Status Color Codes': '#aStatusColorCodes',
+        'EDI ClearingHouses': '#aEDIClearingHouses',
+        'Insurance EDI Mapping': '#aInsuranceX12Mapping',
+        'Billing Messages': '#aBillingMessages',
         /// report navs
         'Charges': '#aCharges',
         'Claim Activity': '#aClaimActivity',

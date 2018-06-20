@@ -265,11 +265,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
 
             /* Get claim edit details function*/
             showEditClaimForm: function (claim_Id, IsUpdated) {
-                var self = this, _claimMgmtStatus = {
-                    'rv': 'Ready To Validate',
-                    'rd': 'Ready To File',
-                    'st': 'Submitted'
-                };
+                var self = this;
                 self.model.set({ id: claim_Id });
                 self.claim_Id = claim_Id;
                 self.isEdit = true;
@@ -346,12 +342,11 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                             // clear icd details after bind
                             self.ICDID = self.icd_code = self.icd_description = '';
 
-                            $('#ddlClaimManagement').text(_claimMgmtStatus[claimDetails.file_status]);
-                            $('#spClaimId').text(claimDetails.id);
                             $('#btnSaveClaim').attr('disabled', false);
 
                             setTimeout(function () {
                                 self.bindDefaultClaimDetails(claimDetails);
+                                $('.claimProcess').prop('disabled', false);
                             }, 200);
                         }
                     },
@@ -455,7 +450,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     $('#ddlPOSType').val(claim_data.place_of_service_id || '');
                 } else {
                     $('#ddlResponsible').val('PPP');
-                    $('#ddlClaimStatus').val($("option[data-desc = 'PP']").val());
+                    $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
                     $('#ddlFrequencyCode').val(claim_data.frequency);
                     if (claim_data.pos_type_code && claim_data.pos_type_code != '') {
                         $('#ddlPOSType').val($('option[data-code = ' + claim_data.pos_type_code.trim() + ']').val());
@@ -651,12 +646,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 });
 
                 $(".claimProcess").off().click(function (e) {
-                    if($(e.target).attr('id') == 'btnPrevClaim'){
-                        self.showPrevClaim();
-                    }else{
-                        self.showNextClaim();
-                    }
-                    
+                    self.processClaim(e);
                 });
 
             },
@@ -1294,10 +1284,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
 
                         /* Bind Diagnosis codes */
                         $('#ulSelectedDiagCodes').append(
-                            $('<li/>').append(
-                                $('<span>').addClass("beautifySpan").text(self.icd_code + '-' + self.icd_description).append(
-                                    $('<span/>').addClass("orderNo").text(curDiagnosis.length + ' )').css('float', 'left')
-                                )
+                            $('<li/>').append($('<span/>').addClass("orderNo").text(curDiagnosis.length + ' )').css('float', 'left')).append(
+                                $('<span>').addClass("beautifySpan").text(self.icd_code + '-' + self.icd_description)
                             ).off().click(function () {
                                 $('.highlight').removeClass('highlight');
                                 $(this).addClass('highlight');
@@ -2456,16 +2444,28 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 commonjs.showWarning('Under Construction'); 
             },
 
-            showPrevClaim: function () {
+            processClaim: function (e) {
                 var self = this;
-                commonjs.showWarning('Under Construction'); 
-            },
+                var $tblGrid = $('#tblClaimGridAll_Claims');
 
-            showNextClaim: function () {
-                var self = this;
-                commonjs.showWarning('Under Construction'); 
+                if (self.claim_Id) {
+
+                    var rowData = $($tblGrid, parent.document).find('tr#' + self.claim_Id);
+                    var nextRowData = $(e.target).attr('id') == 'btnPrevClaim' ? rowData.prev() : rowData.next();
+
+                    if (nextRowData.attr('id') && nextRowData.length > 0) {
+                        var rowId = nextRowData.attr('id');
+                        $(e.target).prop('disabled',true);
+                        self.showEditClaimForm(rowId);
+                    } else {
+                        commonjs.showWarning('No more order found')
+                    }
+
+                } else {
+                    commonjs.showWarning('Error on process claim');
+                }
             }
-            
+
         });
         return claimView;
     });

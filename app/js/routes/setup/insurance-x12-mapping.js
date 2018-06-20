@@ -2,15 +2,15 @@ define([
     'jquery',
     'backbone',
     'backbonesubroute',
-    'views/setup/edi-clearinghouses'
+    'views/setup/insurance-x12-mapping'
 ],
     function (
         $,
         Backbone,
         SubRoute,
-        EDIClearingHousesView
-    ) {
-        var EDIClearingHousesRouter = Backbone.SubRoute.extend({
+        InsuranceX12MappingView
+        ) {
+        var InsuranceX12MappingRouter = Backbone.SubRoute.extend({
             routes: {
                 'list': 'showGrid',
                 'new': 'showForm',
@@ -19,17 +19,17 @@ define([
 
             showGrid: function () {
                 this.initializeRouter();
-                this.ediClearingHousesScreen.showGrid();
+                this.insuranceX12MappingScreen.showGrid();
             },
 
             showForm: function () {
                 this.initializeRouter();
-                this.ediClearingHousesScreen.showForm(0);
+                this.insuranceX12MappingScreen.showForm(0);
             },
 
             showEditForm: function (id) {
                 this.initializeRouter();
-                this.ediClearingHousesScreen.showForm(id);
+                this.insuranceX12MappingScreen.showForm(id);
             },
 
             initialize: function (options) {
@@ -37,15 +37,15 @@ define([
             },
 
             initializeRouter: function () {
-                this.options.screen = "EDI ClearingHouses";
-                this.options.currentView = this.ediClearingHousesScreen;
+                this.options.screen = "Insurance EDI Mapping";
+                this.options.currentView = this.insuranceX12MappingScreen;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
-                    this.ediClearingHousesScreen = new EDIClearingHousesView(this.options);
+                    this.insuranceX12MappingScreen = new InsuranceX12MappingView(this.options);
                 }
             }
         });
 
-        return EDIClearingHousesRouter;
+        return InsuranceX12MappingRouter;
     });

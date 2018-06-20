@@ -2,15 +2,15 @@ define([
     'jquery',
     'backbone',
     'backbonesubroute',
-    'views/setup/edi-clearinghouses'
+    'views/setup/billing-messages'
 ],
     function (
         $,
         Backbone,
         SubRoute,
-        EDIClearingHousesView
-    ) {
-        var EDIClearingHousesRouter = Backbone.SubRoute.extend({
+        BillingMessagesView
+        ) {
+        var BillingMessagesRouter = Backbone.SubRoute.extend({
             routes: {
                 'list': 'showGrid',
                 'new': 'showForm',
@@ -19,17 +19,17 @@ define([
 
             showGrid: function () {
                 this.initializeRouter();
-                this.ediClearingHousesScreen.showGrid();
+                this.billingMessageScreen.showGrid();
             },
 
             showForm: function () {
                 this.initializeRouter();
-                this.ediClearingHousesScreen.showForm(0);
+                this.billingMessageScreen.showForm(0);
             },
 
             showEditForm: function (id) {
                 this.initializeRouter();
-                this.ediClearingHousesScreen.showForm(id);
+                this.billingMessageScreen.showForm(id);
             },
 
             initialize: function (options) {
@@ -37,15 +37,15 @@ define([
             },
 
             initializeRouter: function () {
-                this.options.screen = "EDI ClearingHouses";
-                this.options.currentView = this.ediClearingHousesScreen;
+                this.options.screen = "Billing Messages";
+                this.options.currentView = this.billingMessageScreen;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
-                    this.ediClearingHousesScreen = new EDIClearingHousesView(this.options);
+                    this.billingMessageScreen = new BillingMessagesView(this.options);
                 }
             }
         });
 
-        return EDIClearingHousesRouter;
+        return BillingMessagesRouter;
     });

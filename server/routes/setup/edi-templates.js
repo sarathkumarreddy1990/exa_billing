@@ -6,27 +6,27 @@ const httpHandler = require('../../shared/http');
 
 router.get('/:flag', async function (req, res) {
     const data = await ediController.getTemplatesList(req.params);
-    httpHandler.sendRows(req, res, data);
+    httpHandler.send(req, res, data);
 });
 
 router.get('/:flag/:name', async function (req, res) {
     const data = await ediController.getTemplate(req.params);
-    httpHandler.sendRows(req, res, data);
+    httpHandler.send(req, res, data);
 });
 
 router.post('/:flag/:name', async function (req, res) {
     const data = await ediController.createTemplate(req.params);
-    httpHandler.sendRows(req, res, data);
+    httpHandler.send(req, res, data);
 });
 
 router.put('/:flag/:name', async function (req, res) {
     const data = await ediController.updateTemplate(req.params, req.body);
-    httpHandler.sendRows(req, res, data);
+    httpHandler.send(req, res, data);
 });
 
 router.delete('/:flag/:name', async function (req, res) {
     const data = await ediController.deleteTemplate(req.params);
-    httpHandler.sendRows(req, res, data);
+    httpHandler.send(req, res, data);
 });
 
 module.exports = router;

@@ -3,6 +3,11 @@ const logger = require('../../logger');
 module.exports = {
 
     send: function (req, res, responseData) {
+
+        if (responseData.name === 'error') {
+            return this.sendError(req, res, responseData);
+        }
+
         try {
             return res.send(responseData);
         } catch (err) {
@@ -11,6 +16,11 @@ module.exports = {
     },
 
     sendRows: function (req, res, responseData) {
+
+        if (responseData.name === 'error') {
+            return this.sendError(req, res, responseData);
+        }
+
         try {
             return res.send(responseData.rows);
         } catch (err) {
@@ -34,6 +44,11 @@ module.exports = {
     sendError: function (req, res, err, meta) {
         try {
             logger.error('Error', err);
+
+            meta = meta || {
+                errorCode: err.code || '',
+                errorDesc: err.message
+            };
 
             const stack = new Error().stack;
             const callstack = stack.toString();

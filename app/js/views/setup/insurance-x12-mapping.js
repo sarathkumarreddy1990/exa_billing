@@ -4,10 +4,10 @@ define(['jquery',
     'backbone',
     'jqgrid',
     'jqgridlocale',
-    'text!templates/setup/status-color-codes-grid.html',
-    'text!templates/setup/status-color-codes-form.html',
-    'collections/setup/status-color-codes',
-    'models/setup/status-color-codes',
+    'text!templates/setup/insurance-x12-mapping-grid.html',
+    'text!templates/setup/insurance-x12-mapping-form.html',
+    'collections/setup/insurance-x12-mapping',
+    'models/setup/insurance-x12-mapping',
     'models/pager'
 ],
     function ($,
@@ -16,40 +16,40 @@ define(['jquery',
               Backbone,
               JGrid,
               JGridLocale,
-              StatusColorCodesGrid,
-              StatusColorCodesForm,
-              StatusColorCodesCollections,
-              StatusColorCodesModel,
+              InsuranceX12MappingGrid,
+              InsuranceX12MappingForm,
+              InsuranceX12MappingCollections,
+              InsuranceX12MappingModel,
               Pager
         ) {
-        var statusColorCodesView = Backbone.View.extend({
-            statusColorCodesGridTemplate: _.template(StatusColorCodesGrid),
-            statusColorCodesFormTemplate: _.template(StatusColorCodesForm),
-            statusColorCodesList : [],
+        var insuranceX12MappingView = Backbone.View.extend({
+            insuranceX12MappingGridTemplate: _.template(InsuranceX12MappingGrid),
+            insuranceX12MappingFormTemplate: _.template(InsuranceX12MappingForm),
+            insuranceX12MappingList : [],
             model: null,
-            statusColorCodesTable :null,
+            insuranceX12MappingTable :null,
             pager: null,
             events: { },
             initialize: function (options) {
                 var self = this;
                 this.options = options;
-                this.model = new StatusColorCodesModel();
-                this.statusColorCodesList = new StatusColorCodesCollections();
+                this.model = new InsuranceX12MappingModel();
+                this.insuranceX12MappingList = new InsuranceX12MappingCollections();
                 this.pager = new Pager();
             },
 
             render: function() {
                 var self = this;
-                $('#divStatusColorCodesGrid').show();
-                $('#divStatusColorCodesForm').hide();
-                $(this.el).html(this.statusColorCodesGridTemplate());
-                this.statusColorCodesTable = new customGrid();
-                this.statusColorCodesTable.render({
-                    gridelementid: '#tblStatusColorCodesGrid',
+                $('#divInsuranceX12MappingGrid').show();
+                $('#divInsuranceX12MappingForm').hide();
+                $(this.el).html(this.insuranceX12MappingGridTemplate());
+                this.insuranceX12MappingTable = new customGrid();
+                this.insuranceX12MappingTable.render({
+                    gridelementid: '#tblInsuranceX12MappingGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['','','','','',''],
-                    i18nNames: ['', '', '', 'setup.statusColorCode.processType', 'setup.statusColorCode.processStatus', 'setup.statusColorCode.colorCode' ],
+                    colNames: ['','','','',''],
+                    i18nNames: ['', '', '', 'setup.insuranceX12Mapping.insuranceName', 'setup.insuranceX12Mapping.claimClearingHouse'],
                     colModel: [
                         {
                             name: 'id',
@@ -64,7 +64,7 @@ define(['jquery',
                             sortable: false,
                             search: false,
                             className:'icon-ic-edit',
-                            route: '#setup/status_color_codes/edit/',
+                            route: '#setup/insurance_x12_mapping/edit/',
                             formatter: function(e, model, data) {
                                 return "<span class='icon-ic-edit' title='click here to Edit'></span>"
                             }
@@ -74,12 +74,12 @@ define(['jquery',
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
                                 if (confirm("Are you sure want to delete")) {
-                                    var gridData = $('#tblStatusColorCodesGrid').jqGrid('getRowData', rowID);
+                                    var gridData = $('#tblinsuranceX12MappingGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
                                         success: function (model, response) {
                                             commonjs.showStatus("Deleted Successfully");
-                                            self.statusColorCodesTable.refresh();
+                                            self.insuranceX12MappingTable.refresh();
                                         },
                                         error: function (model, response) {
                                             commonjs.handleXhrError(model, response);
@@ -92,30 +92,20 @@ define(['jquery',
                             }
                         },
                         {
-                            name: 'process_type',
+                            name: 'insurance_name',
                         },
                         {
-                            name: 'process_status',
-                        },
-                        {
-                            name: 'color_code',
-                            search: false,
-                            cellattr: function (rowId, tv, rawObject) {
-                                return 'style="background-color:' + tv + '"';
-                            }
+                            name: 'claimClearingHouse',
                         }
                     ],
-                    afterInsertRow: function (row_id, rData) {
-                        commonjs.changeColumnValue('#tblStatusColorCodesGrid', row_id, 'color_code', "");
-                    },
-                    datastore: self.statusColorCodesList,
+                    datastore: self.insuranceX12MappingList,
                     container:self.el,
                     customizeSort: true,
                     offsetHeight: 01,
                     sortname: "id",
                     sortorder: "desc",
                     sortable: {
-                        exclude: '#jqgh_tblStatusColorCodesGrid,#jqgh_tblStatusColorCodesGrid_edit'
+                        exclude: '#jqgh_tblInsuranceX12MappingGrid,#jqgh_tblInsuranceX12MappingGrid_edit,#jqgh_tblInsuranceX12MappingGrid_del'
                     },
                     dblClickActionIndex: 1,
                     disablesearch: false,
@@ -124,16 +114,16 @@ define(['jquery',
                     showcaption: false,
                     disableadd: true,
                     disablereload: true,
-                    pager: '#gridPager_StatusColorCodes'
+                    pager: '#gridPager_InsuranceX12Mapping'
                 });
 
-                commonjs.initializeScreen({header: {screen: 'StatusColorCodes', ext: 'statusColorCodes'}, grid: {id: '#tblStatusColorCodesGrid'}, buttons: [
+                commonjs.initializeScreen({header: {screen: 'InsuranceX12Mapping', ext: 'insuranceX12Mapping'}, grid: {id: '#tblInsuranceX12MappingGrid'}, buttons: [
                     {value: 'Add', class: 'btn btn-danger', i18n: 'shared.buttons.add', clickEvent: function () {
-                        Backbone.history.navigate('#setup/status_color_codes/new', true);
+                        Backbone.history.navigate('#setup/insurance_x12_mapping/new', true);
                     }},
                     {value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
                         self.pager.set({"PageNo": 1});
-                        self.statusColorCodesTable.refreshAll();
+                        self.insuranceX12MappingTable.refreshAll();
                         commonjs.showStatus("Reloaded Successfully");
                     }}
                 ]});
@@ -151,7 +141,7 @@ define(['jquery',
 
             renderForm: function(id) {
                 var self = this;
-                $('#divStatusColorCodesForm').html(this.statusColorCodesFormTemplate());
+                $('#divInsuranceX12MappingForm').html(this.insuranceX12MappingFormTemplate());
                 if(id > 0) {
                     this.model.set({id: id});
                     this.model.fetch({
@@ -159,59 +149,59 @@ define(['jquery',
                             if (response && response.length > 0) {
                                 var data = response[0];
                                 if (data) {
-                                    $('#ddlProcessType').val(data.process_type ? data.process_type : '');
-                                    $('#txtProcessStatus').val(data.process_status ? data.process_status : '');
-                                    $('#txtColor').val(data.color_code ? data.color_code : '');
+                                    $('#txtName').val(data.name ? data.name : '');
+                                    $('#txtClaimClearingHouse').val(data.claimClearingHouse ? data.claimClearingHouse : '');
+                                    $('#chkActive').prop('checked', data.inactivated_dt ? true : false);
                                 }
                             }
                         }
                     });
                 } else {
-                    this.model = new StatusColorCodesModel();
+                    this.model = new InsuranceX12MappingModel();
                 }
 
-                commonjs.initializeScreen({header: {screen: 'StatusColorCodes', ext: 'statusColorCodes'}, buttons: [
+                commonjs.initializeScreen({header: {screen: 'InsuranceX12Mapping', ext: 'insuranceX12Mapping'}, buttons: [
                     {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
-                        self.saveStatusColorCodes();
+                        self.saveInsuranceX12Mapping();
                     }},
                     {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
-                        Backbone.history.navigate('#setup/status_color_codes/list', true);
+                        Backbone.history.navigate('#setup/insurance_x12_mapping/list', true);
                     }}
                 ]});
 
-                $('#divStatusColorCodesGrid').hide();
-                $('#divStatusColorCodesForm').show();
+                $('#divInsuranceX12MappingGrid').hide();
+                $('#divInsuranceX12MappingForm').show();
                 commonjs.processPostRender();
             },
 
-            saveStatusColorCodes: function() {
+            saveInsuranceX12Mapping: function() {
                 var self = this;
                 commonjs.validateForm({
                     rules: {
-                        processType: {
+                        name: {
                             required: true
                         },
-                        processStatus: {
+                        claimClearingHouse: {
                             required: true
                         }
                     },
                     messages: {
-                        processType: commonjs.getMessage("*", "Process Type"),
-                        processStatus: commonjs.getMessage("*", "Process Status")
+                        name: commonjs.getMessage("*", "Name"),
+                        claimClearingHouse: commonjs.getMessage("*", "claimClearingHouse")
                     },
                     submitHandler: function () {
                         self.save();
                     },
-                    formID: '#formStatusColorCodes'
+                    formID: '#formInsuranceX12Mapping'
                 });
-                $('#formStatusColorCodes').submit();
+                $('#formInsuranceX12Mapping').submit();
             },
 
             save: function () {
                 this.model.set({
-                    "processType": $.trim($('#ddlProcessType').val()),
-                    "processStatus": $.trim($('#txtProcessStatus').val()),
-                    "colorCode" : $('#txtColor').val(),
+                    "name": $.trim($('#txtName').val()),
+                    "claimClearingHouse": $.trim($('#txtClaimClearingHouse').val()),
+                    "isActive" : !$('#chkActive').prop('checked'),
                     "companyId" : app.companyID
                 });
                 this.model.save({
@@ -219,7 +209,7 @@ define(['jquery',
                     success: function (model, response) {
                         if(response) {
                             commonjs.showStatus("Saved Successfully");
-                            location.href = "#setup/status_color_codes/list";
+                            location.href = "#setup/insurance_x12_mapping/list";
                         }
                     },
                     error: function (model, response) {
@@ -228,5 +218,5 @@ define(['jquery',
                 });
             }
         });
-        return statusColorCodesView;
+        return insuranceX12MappingView;
     });
