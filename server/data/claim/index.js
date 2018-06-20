@@ -114,7 +114,60 @@ module.exports = {
 
     getPatientInsurances: async function (params) {
 
-        const sql = SQL`SELECT
+        const sql = SQL`WITH 
+                beneficiary_details as (
+                        SELECT
+                              pi.id
+                            , ip.id AS insurance_provider_id
+                            , ip.insurance_name
+                            , ip.insurance_info->'billingMethod' AS billing_method
+                            , ip.insurance_info->'City' AS ins_city
+                            , ip.insurance_info->'State' AS ins_state
+                            , ip.insurance_info->'ZipCode' AS ins_zip_code
+                            , ip.insurance_info->'Address1' AS ins_pri_address
+                            , ip.insurance_code
+                            , pi.coverage_level
+                            , pi.subscriber_relationship_id   
+                            , pi.valid_to_date
+                            , pi.subscriber_employment_status_id                     
+                            , pi.subscriber_dob
+                            , pi.medicare_insurance_type_code
+                            , pi.coverage_level
+                            , pi.policy_number
+                            , pi.group_name
+                            , pi.group_number
+                            , pi.precertification_phone_number
+                            , pi.precertification_fax_number
+                            , pi.subscriber_firstname
+                            , pi.subscriber_lastname
+                            , pi.subscriber_middlename
+                            , pi.subscriber_name_suffix
+                            , pi.subscriber_gender
+                            , pi.subscriber_address_line1
+                            , pi.subscriber_address_line2
+                            , pi.subscriber_city
+                            , pi.subscriber_state
+                            , pi.subscriber_zipcode
+                            , pi.assign_benefits_to_patient
+                        FROM 
+                            public.patient_insurances pi
+                        INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id  
+                        LEFT JOIN LATERAL ( 
+                            SELECT 
+                                coverage_level,
+                                MIN(valid_to_date) as valid_to_date
+                            FROM 
+                                public.patient_insurances 
+                            WHERE 
+                                patient_id = ${params.patient_id} AND valid_to_date >= (${params.claim_date})::date 
+                                GROUP BY coverage_level 
+                        ) as expiry ON TRUE                           
+                        WHERE 
+                            pi.patient_id = ${params.patient_id}  AND expiry.valid_to_date = pi.valid_to_date AND expiry.coverage_level = pi.coverage_level 
+                            ORDER BY id ASC
+                ),
+                existing_insurance as (
+                        SELECT
                               pi.id
                             , ip.id AS insurance_provider_id
                             , ip.insurance_name
@@ -157,7 +210,27 @@ module.exports = {
                         LEFT JOIN public.facilities f ON p.facility_id = f.id
                         WHERE 
                             pi.patient_id = ${params.patient_id}
-                        ORDER BY pi.id asc `;
+                        ORDER BY pi.id asc
+                )
+                SELECT
+                  ( SELECT json_agg(row_to_json(beneficiary_details)) beneficiary_details
+                      FROM (
+                              SELECT
+                                    *
+                              FROM
+                                  beneficiary_details
+
+                          ) AS beneficiary_details
+                  ) AS beneficiary_details,
+                  ( SELECT json_agg(row_to_json(existing_insurance)) existing_insurance
+                      FROM (
+                              SELECT
+                                    *
+                              FROM
+                                  existing_insurance
+
+                          ) AS existing_insurance
+                  ) AS existing_insurance `;
 
         return await query(sql);
     },
