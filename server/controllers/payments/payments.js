@@ -15,15 +15,24 @@ module.exports = {
         return data.deletePayment(params);
     },
 
-    createOrUpdatePaymentapplications: function (args) {
+    createOrUpdatePaymentapplications: async function (args) {
         let { paymentStatus } = args;
+        let auditDetails = [];
+        
+        auditDetails.push({
+            company_id: args.companyId,
+            screen_name: args.screenName,
+            module_name: args.moduleName,
+            client_ip: args.clientIp,
+            user_id: args.user_id
+        });
 
         if (paymentStatus == 'pending') {
-            pendingApplications(args);
+            return pendingApplications(args);
         }
 
         if (paymentStatus == 'applied') {
-            appliedApplications(args);
+            return appliedApplications(args);
         }
 
         async function pendingApplications(params) {
@@ -59,6 +68,7 @@ module.exports = {
             }
 
             params.coPaycoInsDeductdetails = coPaycoInsDeductdetails;
+            params.auditDetails = auditDetails;
 
             return await data.createPaymentapplications(params);
 
