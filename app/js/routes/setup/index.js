@@ -20,7 +20,8 @@ define([
     'routes/setup/user-log',
     'routes/setup/edi-templates',
     'routes/setup/billing-messages',
-    'routes/setup/insurance-x12-mapping'
+    'routes/setup/insurance-x12-mapping',
+	'routes/setup/paper-claim-templates'
 ], function (
     Backbone,
     BackboneSubroute,
@@ -43,7 +44,8 @@ define([
     UserLogRoute,
     EDITemplatesRoute,
     BillingMessagesRoute,
-    InsuranceX12MappingRoute
+    InsuranceX12MappingRoute,
+	PaperClaimTemplatesRoute
     ) {
         return Backbone.SubRoute.extend({
             routes: {
@@ -64,7 +66,8 @@ define([
                 "user_log/*subroute" : "startUserLog",
                 "edi_templates/*subroute" : "startEDITemplates",
                 "billing_messages/*subroute" : "startBillingMessages",
-                "insurance_x12_mapping/*subroute" : "startInsuranceX12Mapping"
+                "insurance_x12_mapping/*subroute" : "startInsuranceX12Mapping",
+				"paper_claim_templates/*subroute" : "startPaperClaimTemplates"
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -236,6 +239,15 @@ define([
                 if (this.checkLicense('InsuranceX12Mapping') && !this.insuranceX12MappingRouter) {
                     this.defaultArgs.routePrefix = 'setup/insurance_x12_mapping/';
                     this.insuranceX12MappingRouter = new InsuranceX12MappingRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+			 startPaperClaimTemplates: function () {
+                if (this.checkLicense('PaperClaimTemplates') && !this.paperClaimTemplatesRouter) {
+                    this.defaultArgs.routePrefix = 'setup/paper_claim_templates/';
+                    this.paperClaimTemplatesRouter = new PaperClaimTemplatesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }
