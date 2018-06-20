@@ -390,16 +390,17 @@ define(['jquery',
                 if (!$('#ddlState').val()) {
                     return commonjs.showWarning("Please Select the state");
                 }
+                let isFtpEnabled = $('#chkEnableFTP').prop('checked');
                 let communication_info = {
-                    "enable_ftp": $('#chkEnableFTP').prop('checked'),
-                    "Ftp_host": $('#txtHostName').val(),
-                    "Ftp_port": $('#txtPort').val(),
-                    "Ftp_user_name": $('#txtUserName').val(),
-                    "Ftp_password": $('#txtPassword').val(),
-                    "Ftp_type": $.trim($('#ddlFtpType').val()),
-                    "Ftp_sent_folder": $('#txtSentFolder').val(),
-                    "Ftp_receive_folder": $('#txtReceiveFolder').val(),
-                    "Ftp_identity_file": $.trim($('#txtIdentityFilePath').val())
+                    "enable_ftp": isFtpEnabled,
+                    "Ftp_host": isFtpEnabled ? $('#txtHostName').val(): "",
+                    "Ftp_port": isFtpEnabled ? $('#txtPort').val(): "",
+                    "Ftp_user_name": isFtpEnabled ? $('#txtUserName').val(): "",
+                    "Ftp_password": isFtpEnabled ? $('#txtPassword').val(): "",
+                    "Ftp_type": isFtpEnabled ? $.trim($('#ddlFtpType').val()): "",
+                    "Ftp_sent_folder": isFtpEnabled ? $('#txtSentFolder').val(): "",
+                    "Ftp_receive_folder": isFtpEnabled ? $('#txtReceiveFolder').val(): "",
+                    "Ftp_identity_file": isFtpEnabled ? $.trim($('#txtIdentityFilePath').val()): ""
                 }
                 this.model.set({
                     "name": $('#txtName').val(),
