@@ -450,7 +450,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     $('#ddlPOSType').val(claim_data.place_of_service_id || '');
                 } else {
                     $('#ddlResponsible').val('PPP');
-                    $('#ddlClaimStatus').val($("option[data-desc = 'PP']").val());
+                    $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
                     $('#ddlFrequencyCode').val(claim_data.frequency);
                     if (claim_data.pos_type_code && claim_data.pos_type_code != '') {
                         $('#ddlPOSType').val($('option[data-code = ' + claim_data.pos_type_code.trim() + ']').val());
