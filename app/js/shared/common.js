@@ -2247,6 +2247,12 @@ var commonjs = {
             case 100:
                 commonjs.showError(errorMessage);
                 break;
+            case '23503':
+                commonjs.showError('Dependent records found');
+                break;
+            case '23505':
+                commonjs.showError('Duplicate record found');
+                break;
             default:
                 commonjs.showError('messages.errors.someerror');
                 break;
