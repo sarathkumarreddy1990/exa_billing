@@ -24,14 +24,21 @@ router.put('/:id', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
-router.delete('/', async function (req, res) {
+router.delete('/:id', async function (req, res) {
     let params = {
-        ...req.body,
+        ...req.params,
         ...req.audit
     };
 
-    const data = await colorController.delete(params);
-    httpHandler.sendRows(req, res, data);
+    try {
+        const data = await colorController.delete(params);
+        httpHandler.sendRows(req, res, data);
+    } catch (error) {
+        httpHandler.sendError(req, res, error, {
+            errorCode: 100,
+            errorDesc: 'Dependent data found'
+        });
+    }
 });
 
 module.exports = router;

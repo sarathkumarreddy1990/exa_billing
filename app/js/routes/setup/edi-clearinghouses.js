@@ -37,7 +37,7 @@ define([
             },
 
             initializeRouter: function () {
-                this.options.screen = "EDI Clearing Houses";//facilityModules.setupScreens.icd;
+                this.options.screen = "EDI ClearingHouses";
                 this.options.currentView = this.ediClearingHousesScreen;
                 layout.initializeLayout(this);
 
