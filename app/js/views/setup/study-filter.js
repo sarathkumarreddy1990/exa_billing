@@ -1275,9 +1275,13 @@ define([
                 this.model.save({},
                     {
                         success: function (model, response) {
-                            commonjs.hideLoading();
-                            commonjs.showStatus("Saved Succesfully");
-                            self.showGrid();
+                            if (!response.length)
+                                commonjs.showStatus("Already Exists");
+                            else{
+                                commonjs.showStatus("Saved Succesfully");
+                                commonjs.hideLoading();
+                                self.showGrid();
+                            }
                         },
                         error: function (model, response) {
                             commonjs.handleXhrError(model, response);

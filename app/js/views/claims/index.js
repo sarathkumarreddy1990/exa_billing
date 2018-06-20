@@ -450,7 +450,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     $('#ddlPOSType').val(claim_data.place_of_service_id || '');
                 } else {
                     $('#ddlResponsible').val('PPP');
-                    $('#ddlClaimStatus').val($("option[data-desc = 'PP']").val());
+                    $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
                     $('#ddlFrequencyCode').val(claim_data.frequency);
                     if (claim_data.pos_type_code && claim_data.pos_type_code != '') {
                         $('#ddlPOSType').val($('option[data-code = ' + claim_data.pos_type_code.trim() + ']').val());
@@ -1284,10 +1284,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
 
                         /* Bind Diagnosis codes */
                         $('#ulSelectedDiagCodes').append(
-                            $('<li/>').append(
-                                $('<span>').addClass("beautifySpan").text(self.icd_code + '-' + self.icd_description).append(
-                                    $('<span/>').addClass("orderNo").text(curDiagnosis.length + ' )').css('float', 'left')
-                                )
+                            $('<li/>').append($('<span/>').addClass("orderNo").text(curDiagnosis.length + ' )').css('float', 'left')).append(
+                                $('<span>').addClass("beautifySpan").text(self.icd_code + '-' + self.icd_description)
                             ).off().click(function () {
                                 $('.highlight').removeClass('highlight');
                                 $(this).addClass('highlight');
