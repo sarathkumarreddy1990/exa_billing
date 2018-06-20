@@ -141,8 +141,8 @@ const api = {
         }
       
 
-        filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
-        filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
+        filtersUsed.push({ name: 'fromDate', label: 'From', value: params.fromDate });
+        filtersUsed.push({ name: 'toDate', label: 'To', value: params.toDate });
         return filtersUsed;
     },
 
@@ -184,11 +184,11 @@ const api = {
         // //  Claim Date
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);
-            filters.claimDate = queryBuilder.whereDate('bc.claim_dt', '=', [params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDate('pay.accounting_dt', '=', [params.length], 'f.time_zone');
         } else {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
-            filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateBetween('pay.accounting_dt', [params.length - 1, params.length], 'f.time_zone');
         }
 
         // billingProvider single or multiple
