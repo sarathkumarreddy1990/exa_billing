@@ -32,7 +32,9 @@ var rjsConfig = {
         'grid-events': 'shared/events',
         'app-server': 'shared/app-server',
         'select2': '../node_modules/select2/dist/js/select2.full',
-        'jquerysortable': '../node_modules/jquery-sortable/source/js/jquery-sortable'
+        'jquerysortable': '../node_modules/jquery-sortable/source/js/jquery-sortable',
+        'ace': '../node_modules/ace-code-editor/lib/ace'
+
     },
     shim: {
         'jquery.validate': {
@@ -101,6 +103,10 @@ var rjsConfig = {
         'jquerysortable': {
             deps: ['jquery']
         },
+        'ace': {
+            exports: "ace"
+        }
+
     }
 };
 
