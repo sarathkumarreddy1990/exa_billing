@@ -40,9 +40,12 @@ module.exports = {
                                 , display_description
                                 , additional_info
                                 , sc.cpt_code_id AS cpt_id
+                                , ARRAY( SELECT icd_codes.id||'~'|| code ||'~'|| icd_codes.description FROM public.icd_codes WHERE id = ANY(o.icd_code_ids_billing) ) as icd_codes_billing
+				                , o.icd_code_ids_billing as icd_codes_billing_order 
                             FROM public.study_cpt sc
                             INNER JOIN public.studies s ON s.id = sc.study_id
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
+                            INNER JOIN public.orders o on o.id = s.order_id
                             WHERE
                                 study_id = ANY(${studyIds})
                             ORDER BY s.accession_no DESC
@@ -54,7 +57,7 @@ module.exports = {
                                         facility_id,
                                         order_info->'currentDate' AS current_illness_date,
                                         order_info->'similarIll' AS same_illness_first_date,
-                                        order_info->'wTo' AS hospitalization_to_date,
+                                        order_info->'wTo' AS unable_to_work_to_date,
                                         order_info->'wFrom' AS unable_to_work_from_date,
                                         order_info->'hTo' AS hospitalization_to_dt,
                                         order_info->'hFrom' AS hospitalization_from_date,
@@ -871,7 +874,7 @@ module.exports = {
                 , claim_notes = ${ claims.claim_notes}
                 , original_reference = ${ claims.original_reference}
                 , authorization_no = ${ claims.authorization_no}
-                , frequency = ${ claims.claim_frequency}
+                , frequency = ${ claims.frequency}
                 , is_auto_accident = ${ claims.is_auto_accident}
                 , is_other_accident = ${ claims.is_other_accident}
                 , is_employed = ${ claims.is_employed}
