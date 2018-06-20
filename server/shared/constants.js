@@ -32,7 +32,8 @@ module.exports = {
         x12: 'EDI Templates',
         insurance_x12_mapping: 'Insurance X12 Mapping',
         user_log : 'User Log',
-        audit_log : 'Audit Log'
+        audit_log : 'Audit Log',
+        paper_claim_templates: 'Paper Claim Templates'
     },
 
     permissionsMap: {

@@ -25,21 +25,8 @@ router.put('/:id', async function (req, res) {
 });
 
 router.delete('/:id', async function (req, res) {
-    let params = {
-        ...req.params,
-        ...req.audit
-    };
-
-    
-    try {
-        const data = await paperController.delete(params);
-        httpHandler.sendRows(req, res, data);
-    } catch (error) {
-        httpHandler.sendError(req, res, error, {
-            errorCode : 100,
-            errorDesc: 'Dependent data found'
-        });
-    }
+    const data = await paperController.delete(req.params);
+    httpHandler.sendRows(req, res, data);
 
 });
 
