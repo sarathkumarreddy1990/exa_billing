@@ -390,12 +390,6 @@ define(['jquery',
                 if (!$('#ddlState').val()) {
                     return commonjs.showWarning("Please Select the state");
                 }
-                if (!commonjs.checkInteger($('#txtBillProPhoneNo').val())) {
-                    return commonjs.showWarning("Please Enter a valid phone number");
-                }
-                if (!commonjs.checkInteger($('#txtFaxNo').val())) {
-                    return commonjs.showWarning("Please Enter a valid fax number");
-                }
                 let communication_info = {
                     "enable_ftp": $('#chkEnableFTP').prop('checked'),
                     "Ftp_host": $('#txtHostName').val(),
