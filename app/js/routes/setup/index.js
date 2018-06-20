@@ -17,7 +17,8 @@ define([
     'routes/setup/validations',
     'routes/setup/status-color-codes',
     'routes/setup/audit-log',
-    'routes/setup/user-log'
+    'routes/setup/user-log',
+    'routes/setup/edi-templates'
 ], function (
     Backbone,
     BackboneSubroute,
@@ -37,7 +38,8 @@ define([
     ValidationsRoute,
     StatusColorCodesRoute,
     AuditLogRoute,
-    UserLogRoute
+    UserLogRoute,
+    EDITemplatesRoute
     ) {
         return Backbone.SubRoute.extend({
             routes: {
@@ -55,7 +57,8 @@ define([
                 "validations/*subroute" : "startValidations",
                 "status_color_codes/*subroute" : "startStatusColorCodes",
                 "audit_log/*subroute" : "startAuditLog",
-                "user_log/*subroute" : "startUserLog"
+                "user_log/*subroute" : "startUserLog",
+                "edi_templates/*subroute" : "startEDITemplates"
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -200,6 +203,15 @@ define([
                 if (this.checkLicense('StatusColorCodes') && !this.statusColorCodesRouter) {
                     this.defaultArgs.routePrefix = 'setup/status_color_codes/';
                     this.statusColorCodesRouter = new StatusColorCodesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startEDITemplates: function () {
+                if (this.checkLicense('EDITemplates') && !this.ediTemplatesRouter) {
+                    this.defaultArgs.routePrefix = 'setup/edi_templates/';
+                    this.ediTemplatesRouter = new EDITemplatesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }

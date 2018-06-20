@@ -2247,6 +2247,12 @@ var commonjs = {
             case 100:
                 commonjs.showError(errorMessage);
                 break;
+            case '23503':
+                commonjs.showError('Dependent records found');
+                break;
+            case '23505':
+                commonjs.showError('Duplicate record found');
+                break;
             default:
                 commonjs.showError('messages.errors.someerror');
                 break;
@@ -7611,7 +7617,7 @@ var commonjs = {
         commonjs.processPostRender(args.header);
         commonjs.initializeCheckBoxSelection();
         commonjs.validateControls();
-       // commonjs.isMaskValidate();
+        commonjs.isMaskValidate();
         commonjs.setupCityStateZipInputs();
         if (parent.editStudyID && parent.editStudyID > 0 && app.transcriptionLock) {
             commonjs.lockUnlockTranscription({ study_id: parent.editStudyID, lockType: "unlock", user_id: app.userID });

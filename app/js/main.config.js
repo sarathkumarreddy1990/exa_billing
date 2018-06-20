@@ -14,6 +14,7 @@ var rjsConfig = {
         'bootstrapmultiselect': '../node_modules/bootstrap-multiselect/dist/js/bootstrap-multiselect',
         'moment': '../node_modules/moment/min/moment-with-locales',
         'moment-timezone': '../node_modules/moment-timezone/builds/moment-timezone-with-data',
+        'maskjs': '../node_modules/inputmask/dist/min/jquery.inputmask.bundle.min',
         'jqgrid': '../libs/jqgrid/js/jquery.jqGrid.src',
         'jqgridlocale': '../libs/jqgrid/js/i18n/grid.locale-en',
         'immutable': '../node_modules/immutable/dist/immutable',
@@ -32,7 +33,9 @@ var rjsConfig = {
         'grid-events': 'shared/events',
         'app-server': 'shared/app-server',
         'select2': '../node_modules/select2/dist/js/select2.full',
-        'jquerysortable': '../node_modules/jquery-sortable/source/js/jquery-sortable'
+        'jquerysortable': '../node_modules/jquery-sortable/source/js/jquery-sortable',
+        'ace': '../node_modules/ace-code-editor/lib/ace'
+
     },
     shim: {
         'jquery.validate': {
@@ -68,6 +71,9 @@ var rjsConfig = {
         'jstorage': {
             deps: ['jquery']
         },
+        'maskjs': {
+            deps: ['jquery']
+        },
         'datetimepicker': {
             deps: ['jquery', 'moment', 'bootstrap']
         },
@@ -100,7 +106,7 @@ var rjsConfig = {
         },
         'jquerysortable': {
             deps: ['jquery']
-        },
+        }
     }
 };
 
