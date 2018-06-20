@@ -316,22 +316,48 @@ module.exports = {
 
     delete: async function (params) {
 
-        let { id } = params;
+        let {
+            id,
+            userId,
+            screenName,
+            moduleName,
+            logDescription,
+            clientIp,
+            companyId } = params;
+
+        logDescription = 'Deleted.';
 
         const sql = SQL` WITH delete_billing_provider AS(
                                 DELETE FROM
                                     billing.provider_id_codes
                                 WHERE
                                     billing_provider_id = ${id}
-                            )
-                            DELETE FROM
+                            ),
+                            cte AS(DELETE FROM
                                 billing.providers
                             WHERE
-                                id = ${id}RETURNING *, '{}'::jsonb old_values`;
+                                id = ${id} RETURNING *, '{}'::jsonb old_values),
+                            audit_cte AS(
+                                SELECT billing.create_audit(
+                                    ${companyId},
+                                    ${screenName},
+                                    cte.id,
+                                    ${screenName},
+                                    ${moduleName},
+                                    ${logDescription},
+                                    ${clientIp || '127.0.0.1'},
+                                    json_build_object(
+                                        'old_values', (SELECT COALESCE(old_values, '{}') FROM cte),
+                                        'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM cte) temp_row)
+                                    )::jsonb,
+                                    ${userId || 0}
+                                ) id
+                                from cte
+                            )
+            
+                            SELECT  *
+                            FROM    audit_cte`;
 
-        return await queryWithAudit(sql, {
-            ...params,
-            logDescription: 'Deleted.'
-        });
+        return await query(sql);
     }
 };
