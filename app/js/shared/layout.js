@@ -33,6 +33,7 @@ var layout = {
         'Status Color Codes': '#aStatusColorCodes',
         'EDI ClearingHouses': '#aEDIClearingHouses',
         'Insurance EDI Mapping': '#aInsuranceX12Mapping',
+        'Billing Messages': '#aBillingMessages',
         /// report navs
         'Charges': '#aCharges',
         'Claim Activity': '#aClaimActivity',

@@ -74,7 +74,9 @@
             "icd": "ICD Codes",
             "claimNotes": "Claim Notes",
             "billingComments": "Billing Notes",
-            "comment": "comments"
+            "comment": "comments",
+            "chargeList": "Charge List",
+            "selectedChargeList": "Selected Charge List"
         },
         "payments": {
             "postingDate": "Posting Date",
@@ -140,7 +142,46 @@
             "claimChargeAmount": "Claim Charge Amount",
             "directBilling": "Direct Biling",
             "facility_name": "Facility",
-            "filterDateType": "Filter By Date"
+            "filterDateType": "Filter By Date",
+            "totalBillFee": "Total Bill Fee",
+            "appliedPayment": "Applied Payment",
+            "appliedAdjustment": "Applied Adjustment",
+            "cptCode": "CPT Code",
+            "cptDescription":"CPT Description",
+            "payment": "Payment",
+            "allowed": "Allowed",
+            "thisAdj": "This Adjustment",
+            "cas": "CAS",
+            "otherPaid": "Other Paid",
+            "responsible": "Responsible",
+            "adjustmentCode": "Adjustment Code",
+            "billingNotes": "Billing Notes",
+            "deduction": "Deduction",
+            "coInsurance": "Co-Insurance",
+            "coPay": "Co-Pay",
+            "startsWith":"Starts With",
+            "endsWith":"Ends With",
+            "contains": "Contains",
+            "showInactive": "show Inactive",
+            "searchOwners": "Search Owners",
+            "lastName":"Last Name",
+            "firstName": "First Name",
+            "mrn": "MRN",
+            "patientSearchResults": "Patient Search Results",
+            "yourSearch":"Your Search",
+            "didNotMatchAnyPatients": "Did not match any patient",
+            "suggestions": "suggestions:",
+            "tryDifferentKeywords": "try different Keywords.",
+            "pleaseEnterAtleast": "Please Enter Atleast",
+            "charactersToSsearch": "Characters To Ssearch",
+            "totalRecords":"Total Records",
+            "page": "page",
+            "of": "of",
+            "printReceipt": "Print Receipt",
+            "generatepdf": "Generate PDF",
+            "paymentTotal": "Payment Total",
+            "appliedTotal": "Applied Total",
+            "adjustmentTotal": "Adjustment Total"
         },
         "refund": {
             "scheduleDate": "Schedule Date",
@@ -321,6 +362,6 @@
             "insuranceStartExpiryDate" : "Coverage Start/End Date",
             "insuranceStartDate" : "Start Date",
             "insuranceExpDate" : "Expiry Date"
-        } 
+        }
     }
 }

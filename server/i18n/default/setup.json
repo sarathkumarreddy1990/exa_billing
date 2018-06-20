@@ -423,6 +423,15 @@
             "ediTemplate" : "EDI Template",
             "eraTemplate": "ERA Template",
             "saveDefinitionData" : "Save Definition Data"
+        },
+        "insuranceX12Mapping": {
+            "insuranceName": "Insurance Name",
+            "claimClearingHouse": "Claim Clearing House",
+            "claimTemplateRad": "Claim Template (Rad)",
+            "claimTemplateProv": "Claim Template (Prov)"
+        },
+        "billingMessages": {
+            "collections": "Collections"
         }
     }
 }

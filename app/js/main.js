@@ -31,7 +31,8 @@ require(['main.config'], function (RConfig) {
                 'select2',
                 'datetimepicker',
                 'daterangepicker',
-                'jquerysortable'
+                'jquerysortable',
+                'maskjs'
             ], function (
                 $,
                 _,
@@ -52,7 +53,8 @@ require(['main.config'], function (RConfig) {
                 select2,
                 datetimepicker,
                 daterangepicker,
-                jquerysortable
+                jquerysortable,
+                maskjs
             ) {
                     Backbone.emulateHTTP = false;
 

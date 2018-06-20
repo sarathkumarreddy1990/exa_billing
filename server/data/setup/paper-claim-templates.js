@@ -11,7 +11,6 @@ module.exports = {
         params.sortOrder = params.sortOrder || ' ASC';
         let {
             name,
-            bodyContent,
             sortOrder,
             sortField,
             pageNo,
@@ -22,14 +21,9 @@ module.exports = {
             whereQuery.push(` name ILIKE '%${name}%'`);
         }
 
-        if (bodyContent) {
-            whereQuery.push(` body_content ILIKE '%${bodyContent}%'`);
-        }
-
         const sql = SQL`SELECT 
                           id
                         , name
-                        , body_content
                         , inactivated_dt
                         , COUNT(1) OVER (range unbounded preceding) AS total_records
                     FROM   
@@ -56,7 +50,8 @@ module.exports = {
         const sql = SQL`SELECT 
                           id
                         , name
-                        , body_content
+                        , orginal_form_template
+                        , full_form_template
                         , inactivated_dt
                     FROM   
                         billing.paper_claim_templates 
@@ -69,7 +64,8 @@ module.exports = {
     create: async (params) => {
         let {
             name,
-            bodyContent,
+            orginalFormTemplate,
+            fullFormTemplate,
             isActive,
             companyId
         } = params;
@@ -79,16 +75,18 @@ module.exports = {
         const sql = SQL`
                     INSERT INTO billing.paper_claim_templates 
                     ( 
-                        company_id , 
-                        name , 
-                        body_content ,  
+                        company_id, 
+                        name, 
+                        orginal_form_template,
+                        full_form_template,
                         inactivated_dt 
                     ) 
                     VALUES 
                     ( 
-                        ${companyId} , 
-                        ${name} , 
-                        ${bodyContent} , 
+                        ${companyId}, 
+                        ${name}, 
+                        ${orginalFormTemplate}, 
+                        ${fullFormTemplate}, 
                         ${inactivated_date} 
                     )
                     RETURNING *, '{}'::jsonb old_values
@@ -96,7 +94,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Created ${name}(${bodyContent})`
+            logDescription: `Created ${name}`
         });
     },
 
@@ -104,19 +102,22 @@ module.exports = {
 
         let {
             name,
-            bodyContent,
+            //flag,
+            orginalFormTemplate,
+            fullFormTemplate,
             id,
             isActive
         } = params;
 
         let inactivated_date = isActive ? null : ' now() ';
 
-        const sql = SQL`UPDATE
+        let sql = SQL`UPDATE
                              billing.paper_claim_templates 
                         SET  
                               name = ${name}
-                            , body_content = ${bodyContent}
-                            , inactivated_dt = ${inactivated_date}
+                              , orginal_form_template = ${orginalFormTemplate}
+                              , fullFormTemplate = ${fullFormTemplate}
+                              , inactivated_dt = ${inactivated_date}
                         WHERE
                             id = ${id} 
                         RETURNING *,
@@ -130,7 +131,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Updated ${name}(${bodyContent})`
+            logDescription: `Updated ${name}`
         });
     },
 

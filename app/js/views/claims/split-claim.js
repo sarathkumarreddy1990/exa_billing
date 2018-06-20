@@ -58,9 +58,7 @@ define([
                             } else if (data.payment_count > 0) {
                                 commonjs.showWarning('Can not split the claim with payment');
                             } else {
-                                 if (!self.rendered)
-                                     self.render();
-                                //self.showCPT()
+                                self.initializeCPTList();
                             }
                         }
 
@@ -69,6 +67,21 @@ define([
                         commonjs.handleXhrError(err);
                     }
                 })
+            },
+
+            initializeCPTList: function () {
+                var self = this;
+                if (!self.rendered)
+                    self.render();
+                self.bindSplitEvents();
+            },
+
+            bindSplitEvents: function () {
+                var self = this;
+                
+                $('#btnCreateClaim').off().click(function () {
+                    self.splitClaim();
+                });
             },
 
             showCPT: function(){
@@ -82,9 +95,9 @@ define([
                     },
                     success: function (data, response) {
                         if (data && data[0]) {
-                            var CPTList = self.cptListTemplate({ claim: data[0].claim_details });
+                            var CPTList = self.cptListTemplate({ charges: data[0].claim_details });
                             $('#divAllCPTList').append(CPTList).fadeIn("slow");
-                            //self.setEvents();
+                            self.setEvents();
                             commonjs.initializeScreen({header: {screen: 'Split Claim', ext: 'createSplit'}}, true);
                         }
 
@@ -97,9 +110,10 @@ define([
 
             setEvents: function () {
                 var self = this;
+
                 $('.icon-ic-plus').on('click', function (e) {
                     if (e && e.target) {
-                        if (self.validateMinimumStudy(e)) {
+                        if (self.validateMinimumCharge(e)) {
                             var el = $(e.target || e.srcElement).closest('section');
                             $(this)
                                 .removeClass('icon-ic-plus')
@@ -117,7 +131,7 @@ define([
                             $('#divSelectedCPTList').append($('<section/>').append($(this).closest('cpt')))
                         }
                         else {
-                            commonjs.showWarning('Minimum one study required for the order')
+                            commonjs.showWarning('Minimum one Charge required for the Claim')
                             return false;
                         }
                     }
@@ -125,7 +139,46 @@ define([
                 })
             },
 
+            validateMinimumCharge: function (e) {
+                if ($(e.target).is('.icon-ic-minus'))
+                    return true
+                else
+                    return $('#divAllCPTList section cpt').length > 1;
+            },
+
             splitClaim: function () {
+                var self = this;
+
+                if ($('#divSelectedCPTList section cpt').length > 0) {
+                    var cpt_ids = [];
+                    $.each($('#divSelectedCPTList section cpt'), function () {
+                        cpt_ids.push($(this).attr('data-study_id'))
+                    })
+                    if (confirm('Are you sure to create order with the selected stud(y)ies?')) {
+                        $('#btnCreateClaim').attr('disabled', true);
+                        commonjs.showLoading('Processing please wait..');
+                        $.ajax({
+                            url: "/exa_modules/billing/claims/split_claim",
+                            type: "PUT",
+                            data: {
+                                cpt_ids: cpt_ids,
+                                orderId: self.orderId,
+                            },
+                            success: function (data, response) {
+                                commonjs.showStatus('Order has been merged successfully');
+                                //self.reloadChargeList();
+                                $('#btnCreateClaim').removeAttr('disabled');
+                            },
+                            error: function (err) {
+                                commonjs.handleXhrError(err);
+                            }
+                        });
+                    }
+                }
+                else {
+                    commonjs.showWarning('Please select atleast one charge to merge')
+                    return false;
+                }
 
             },
 
@@ -142,5 +195,5 @@ define([
                     }
                 }
             }
-        })
-    })
+        });
+    });

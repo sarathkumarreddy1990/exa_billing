@@ -2247,6 +2247,12 @@ var commonjs = {
             case 100:
                 commonjs.showError(errorMessage);
                 break;
+            case '23503':
+                commonjs.showError('Dependent records found');
+                break;
+            case '23505':
+                commonjs.showError('Duplicate record found');
+                break;
             default:
                 commonjs.showError('messages.errors.someerror');
                 break;
@@ -3774,7 +3780,7 @@ var commonjs = {
                     height = $(window).height() - ($('#divPaymentFilter').height() + 155);
                     break;
                 case 'Setup':
-                    height = $(window).height() - ($('body>nav').outerHeight() + $('#divPageHeaderButtons').outerHeight() + 100);
+                    height = $(window).height() - ($('body>nav').outerHeight() + $('#divPageHeaderButtons').outerHeight() + 100 + ($('#auditFilterdiv').outerHeight() ? $('#auditFilterdiv').outerHeight() : 0));
                     break;
                 case 'Patient':
                     height = $(window).height() - ($('header.header').outerHeight() + $('#patientDocHeader').outerHeight() + 200);
@@ -7611,7 +7617,7 @@ var commonjs = {
         commonjs.processPostRender(args.header);
         commonjs.initializeCheckBoxSelection();
         commonjs.validateControls();
-       // commonjs.isMaskValidate();
+        commonjs.isMaskValidate();
         commonjs.setupCityStateZipInputs();
         if (parent.editStudyID && parent.editStudyID > 0 && app.transcriptionLock) {
             commonjs.lockUnlockTranscription({ study_id: parent.editStudyID, lockType: "unlock", user_id: app.userID });

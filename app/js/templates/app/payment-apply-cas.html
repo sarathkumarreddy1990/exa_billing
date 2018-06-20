@@ -23,15 +23,15 @@
         <table class="table">
             <tr>
                 <td style="width:15%;border:none !important;" align="center">
-                    <span i18n="order.chargePayment.totalBillFee"></span> :
+                    <span i18n="billing.payments.totalBillFee"></span> :
                     <span id="spApplyTotalFee"></span>
                 </td>
                 <td style="width:20%;border:none !important;" align="center">
-                    <span>Applied Payment</span> : 
+                    <span i18n="billing.payments.appliedPayment"></span> : 
                     <span id="spPaymentApplied"></span>
                 </td>
                 <td style="width:20%;border:none !important;" align="center">
-                    <span i18n="order.chargePayment.adjustment">Applied Adjustment</span> :
+                    <span i18n="billing.payments.appliedAdjustment"></span> :
                     <span id="spAdjustmentApplied"></span>
                 </td>
             </tr>
@@ -42,31 +42,31 @@
             <table id="tblApplyPendingPayments" class="table table-bordered scroll">
                 <thead id="thApplyPendingPayments" style="background: #f5f5f5;">
                     <td>
-                        <span i18n="order.studyInfo.cptCode"></span>
+                        <span i18n="billing.payments.cptCode"></span>
                     </td>
                     <td>
-                        <span i18n="shared.fields.cptDescription"></span>
+                        <span i18n="billing.payments.cptDescription"></span>
                     </td>
                     <td>
-                        <span i18n="shared.fields.billFee"></span>
+                        <span i18n="billing.payments.billFee"></span>
                     </td>
                     <td>
-                        <span i18n="order.chargePayment.payment"></span>
+                        <span i18n="billing.payments.payment"></span>
                     </td>
                     <td width="10%">
                         <span i18n="billing.payments.thisPayment"></span>
                     </td>
                     <td width="10%">
-                        <span i18n="shared.fields.allowed"></span>
+                        <span i18n="billing.payments.allowed"></span>
                     </td>
                     <td>
-                        <span i18n="shared.fields.adjustment"></span>
+                        <span i18n="billing.payments.adjustment"></span>
                     </td>
                     <td width="10%">
-                        <span i18n="shared.fields.thisAdjustment"></span>
+                        <span i18n="billing.payments.thisAdj"></span>
                     </td>
                     <td>
-                        <span i18n="shared.fields.balance"></span>
+                        <span i18n="billing.payments.balance"></span>
                     </td>
                     <td>
                         <span i18n="billing.payments.cas"></span>
@@ -89,37 +89,37 @@
                 <div class="row">
                     <div class="col">
                         <div class="form-group row">
-                            <label class="control-label  col-sm-3">
-                                <span i18n="order.chargePayment.totalBillFee"></span> :</label>
+                            <label class="control-label  col-sm-4">
+                                <span i18n="billing.payments.totalBillFee"></span> :</label>
 
                             <div class="col-sm-3">
                                 <label id="lblBillingFee"></label>
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="control-label col-sm-3">
-                                <span i18n="shared.fields.otherPaid"></span> :</label>
+                            <label class="control-label col-sm-4">
+                                <span i18n="billing.payments.otherPaid"></span> :</label>
                             <div class="col-sm-3">
                                 <label id="lblOthers"><%= others_paid %> </label>
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="control-label col-sm-3">
-                                <span i18n="shared.fields.adjustment"></span> :</label>
+                            <label class="control-label col-sm-4">
+                                <span i18n="billing.payments.adjustment"></span> :</label>
                             <div class="col-sm-3">
                                 <label id="lblAdjustment"></label>
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="control-label col-sm-3">
-                                <span i18n="shared.fields.patientPaid"></span> :</label>
+                            <label class="control-label col-sm-4">
+                                <span i18n="billing.payments.patientPaid"></span> :</label>
                             <div class="col-sm-3">
                                 <label id="lblPatient"><%= patient_paid %> </label>
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="control-label col-sm-3">
-                                <span i18n="shared.fields.balance"></span> :</label>
+                            <label class="control-label col-sm-4">
+                                <span i18n="billing.payments.balance"></span> :</label>
                             <div class="col-sm-3">
                                 <label id="lblBalanceNew"></label>
                             </div>
@@ -127,7 +127,7 @@
                     </div>
                     <div class="col">
                         <div class="form-group row">
-                            <label class="control-label field-required col-sm-5" i18n="shared.fields.responsible"></label>
+                            <label class="control-label field-required col-sm-5" i18n="billing.payments.responsible"></label>
                             <div class="col-sm-5">
                                 <select id="ddlResponsible" class="form-control" style="width:250px">
                                     <option data_code="0" value="0" i18n="shared.buttons.select">Select</option>
@@ -135,7 +135,7 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="control-label col-sm-5" i18n="shared.fields.adjustmentCode"></label>
+                            <label class="control-label col-sm-5" i18n="billing.payments.adjustmentCode"></label>
 
                             <div class="col-sm-5">
                                 <select id="ddlAdjustmentCode_fast" class="form-control form-control-lg adjustmentCode" style="height:30px;">
@@ -151,7 +151,7 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="control-label col-sm-5" for="txtResponsibleNotes" i18n="order.chargePayment.billingNotes"></label>
+                            <label class="control-label col-sm-5" for="txtResponsibleNotes" i18n="billing.payments.billingNotes"></label>
                             <div class="col-sm-5">
                                 <textarea class="form-control" id="txtResponsibleNotes" rows="2"></textarea>
                             </div>
@@ -159,19 +159,19 @@
                     </div>
                     <div class="col">
                         <div class="form-group row">
-                            <label class="control-label col-sm-3" i18n="order.newOrder.deduction"> :</label>
+                            <label class="control-label col-sm-4" i18n="billing.payments.deduction"> :</label>
                             <div class="col-sm-5">
                                 <input type="text" id="txtDeduction" value="0.00" class="form-control input-xs floatbox">
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="control-label col-sm-3" i18n="order.newOrder.coInsurance"> :</label>
+                            <label class="control-label col-sm-4" i18n="billing.payments.coInsurance"> :</label>
                             <div class="col-sm-5">
                                 <input type="text" id="txtCoInsurance" value="0.00" class="form-control input-xs floatbox">
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="control-label col-sm-3" i18n="order.newOrder.coPay"> :</label>
+                            <label class="control-label col-sm-4" i18n="billing.payments.coPay"> :</label>
                         
                             <div class="col-sm-5">
                                 <input type="text" id="txtCoPay" value="0.00" class="form-control input-xs floatbox">
@@ -183,7 +183,7 @@
     </div>
 </div>
 <div id="divPaymentCAS" class="divBackgroundPayment form-horizontal commonBorder" style="display: none; position: absolute; border-radius:10px;z-index:10000; width: 97.5%; padding:20px;background-color: white;  
-          text-align: center;top: 9%;border: 1px solid black;">
+          text-align: center;top: 2%;border: 1px solid #dee2e6;">
     <div class="row">
         <div class="col">
             <span class="cobAmount" i18n="billing.COB.groupCode"></span>

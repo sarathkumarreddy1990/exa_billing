@@ -31,15 +31,8 @@ router.delete('/:id', async function (req, res) {
         ...req.audit
     };
     
-    try {
-        const data = await providerIdCodeQualifierControllers.delete(params);
-        httpHandler.sendRows(req, res, data);
-    } catch (error) {
-        httpHandler.sendError(req, res, error, {
-            errorCode: 100,
-            errorDesc: 'Dependent data found'
-        });
-    }
+    const data = await providerIdCodeQualifierControllers.delete(params);
+    httpHandler.sendRows(req, res, data);
 
 });
 
