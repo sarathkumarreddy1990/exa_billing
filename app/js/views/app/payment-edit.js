@@ -1685,8 +1685,8 @@ define(['jquery',
                     if (confirm('Are you sure to delete this payment?')) {
                         var self = this;
                         $.ajax({
-                            url: '/exa_modules/billing/pending_payments/payment_delete',
-                            type: 'PUT',
+                            url: '/exa_modules/billing/pending_payments/payment',
+                            type: 'DELETE',
                             data: {
                                 payment_id: self.payment_id
                             },

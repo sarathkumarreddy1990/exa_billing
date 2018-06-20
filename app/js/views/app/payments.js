@@ -8,7 +8,7 @@ define(['jquery',
     'collections/app/payments',
     'models/pager',
     'views/reports/payments-pdf'],
-    
+
     function (jQuery,
         Immutable,
         _,
@@ -42,7 +42,6 @@ define(['jquery',
                 'click #btnPaymentRefresh': 'refreshPayments',
                 "click #btnGenerateExcel": "exportExcel",
                 "click #btnGeneratePDF": "generatePDF"
-
             },
 
             initialize: function (options) {
@@ -117,6 +116,12 @@ define(['jquery',
                 $('#btnTabNavPayRight').click(function () {
                     $('#divPaymentTabsContainer').scrollTo({ top: '0px', left: '+=70' }, 300);
                 });
+                $('#ulPaymentStatus').multiselect({
+                    maxHeight: 300,
+                    selectAllText: true,
+                    numberDisplayed: 2,
+                    selectAllValue: 'multiselect-all'
+                });                
             },
 
             refreshPayments: function () {

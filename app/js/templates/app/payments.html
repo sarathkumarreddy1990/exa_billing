@@ -10,15 +10,23 @@
     .fontBold{
         font-weight: bold;
     }
+    
+    #divPaymentFilter .multiselect-container input[type=checkbox]{
+        margin: 9px 5px 0 0;
+    }
+    
+    #divPaymentFilter .multiselect-container label{
+        padding-left: 0;
+    }
 </style>
 <form id="formPayments" class="form-horizontals">
 
     <div class="row" id="divPaymentFilter">
         <div class="col-sm-2">
             <div class="col-form-label" style="padding-bottom: 0;">
-                <label for="ulPaymentStatus" class="control-labels" i18n="billing.payments.paymentStatus" style="margin-bottom: 0;"></label>
+                <label for="ulPaymentStatus" class="control-labels" i18n="billing.payments.paymentStatus" style="margin-left: 10px;"></label>
             </div>
-            <div class="col-form-label" style="padding-top: 0;">
+            <div class="col-form-label" style="padding-top: 0; margin-left: 10px;">
                 <select id="ulPaymentStatus" class="multiselect" multiple="multiple" maxHeight=5 style="height: 45px;">
                     <% _.each(paymentStatus, function(status) { %>
                         <option value="<%= status.value %>">
@@ -56,7 +64,7 @@
                 data-rformat="xlsx">
                 <i class="fa fa-file-excel-o"></i> Export</button>
             <button type="button" class="btn btn-primary" id="btnGeneratePDF" i18n="shared.buttons.generatepdf" i18n="report.reportFilter.generatepdf"
-                data-rformat="pdf" style="margin: 10px 0;">
+                data-rformat="pdf" style="margin: 3px 0;">
                 <i class="fa fa-file-excel-o"></i> Generate PDF </button>
         </div>
     </div>
