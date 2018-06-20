@@ -3,7 +3,7 @@ const should = require('chai').should();
 const config = require('../../server/config');
 config.initialize();
 
-const claimsController = require('../../server/controllers/claims');
+const claimsController = require('../../server/controllers/claim');
 const testHelpersController = require('../../server/controllers/test-helpers');
 
 describe('Claims', () => {
