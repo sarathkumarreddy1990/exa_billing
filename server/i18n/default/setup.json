@@ -415,6 +415,14 @@
             "claim": "Claim",
             "payment": "Payment",
             "colorCode": "Color Code"
+        },
+        "ediTemplates" : {
+            "createNewTemplate": "Create New Template",
+            "deleteTemplate": "Delete Template",
+            "chooseTemplate": "Choose Template",
+            "ediTemplate" : "EDI Template",
+            "eraTemplate": "ERA Template",
+            "saveDefinitionData" : "Save Definition Data"
         }
     }
 }

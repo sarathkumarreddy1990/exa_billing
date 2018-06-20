@@ -72,9 +72,7 @@ define([
                 this.viewModel.openInNewTab = openInNewTab && rFormat === 'pdf';
                 this.viewModel.paymentOptions = $('#ddlPaymentOption').val();
                 var urlParams = {
-                    'fromDate': reportArgs.txtPaymentFromDate,
-                    'toDate': reportArgs.txtPaymentToDate,
-                    'isDateFlag': reportArgs.isDateFlag
+                    
                 }
                 UI.showReport('payments-pdf', this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
             },
