@@ -41,7 +41,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 "dblclick .selectionpatient": "selectPatient",
                 "click #btnBackToPatient": "backToPatient",
                 "click #anc_search": "showPatientOrders",
-                'click #btnPaymentRefresh': 'refreshPayments',
+                'click #btnPaymentPendingRefresh': 'refreshPayments',
                 'click a#ppliedRefresh': 'refreshPayments',
                 'click #btnPaymentPrint, #btnPrintReceipt, #btnPaymentDelete, #btnPayfullAppliedPendingPayments': "underConstruction"
             },
@@ -108,6 +108,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
 
             render: function (paymentId) {
                 var self = this;
+                self.payment_id = 0;
                 commonjs.showLoading('Loading..')
                 self.defalutCASArray = [0, 1, 2, 3, 4, 5, 6];
 
@@ -147,9 +148,9 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
 
             showBillingForm: function (paymentID) {
                 var self = this;
+                self.bindNewDTP();
                 self.clearPayemntForm();
                 self.setAcs();
-                self.bindNewDTP();
                 if (paymentID == 0) {
                     this.model = new ModelPayments();
                     $('#btnPaymentClear').show();
@@ -186,6 +187,8 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 $('#select2-txtautoPayerPP-container').html('Select Patient');
                 $('#select2-txtautoPayerPOF-container').html('Select Ordering facility');
                 $('#select2-txtautoPayerPR-container').html('Select Provider');
+                if (this.dtpAccountingDate)
+                    this.dtpAccountingDate.date(commonjs.getCompanyCurrentDateTime());
             },
 
             setAcs: function () {
@@ -196,29 +199,29 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             },
 
             setPayerFields: function (e, obj) {
-                var srcElement = obj ? obj : $(e.target || e.srcElement);
-                $('.payerFields').hide();
-
                 this.payer_id = 0;
-                if (srcElement.is('#chkpayerInsurance')) {
+                var val = $('#selectPayerType').val();
+                $('.payerFields').hide();
+                if (val === 'insurance') {
                     $('#select2-txtautoPayerPIP-container').html('Select Insurance');
                     $('#divPayerInsurnace').show();
                     $('#divMethodInsurance').show();
+                    $('#divPayerInsurnace').show();
                 }
-                else if (srcElement.is('#chkpayerPatient')) {
+                else if (val === 'patient') {
                     $('#select2-txtautoPayerPP-container').html('Select Patient');
                     $('#divPayerPatient').show();
-                    $('#divMethodPatient').show();
+                    $('#divMethodInsurance').hide();
                 }
-                else if (srcElement.is('#chkpayerOrdering')) {
+                else if (val === 'ordering_facility') {
                     $('#select2-txtautoPayerPOF-container').html('Select Ordering facility');
                     $('#divPayerOrderFacility').show();
-                    $('#divMethodProvider').show();
+                    $('#divMethodInsurance').show();
                 }
-                else if (srcElement.is('#chkpayerProvider')) {
+                else if (val === 'ordering_provider') {
                     $('#select2-txtautoPayerPR-container').html('Select Provider');
                     $('#divPayerProvider').show();
-                    $('#divMethodProvider').show();
+                    $('#divMethodInsurance').show();
                 }
             },
 
@@ -519,7 +522,8 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 $("#ddlpaymentReason").val(response.payment_reason_id)
                 $("#txtNotes").val(response.notes)
                 $("input:radio[name=payerMode][value=" + response.payment_mode + "]").prop("checked", true);
-                $('#txtAccountingDate').val(moment(response.accounting_date).format('L'))
+                
+                commonjs.checkNotEmpty(response.accounting_date) ? self.dtpAccountingDate.date(response.accounting_date) : self.dtpAccountingDate.clear();
 
                 self.payer_type = response.payer_type;
                 self.payment_id = paymentID;
@@ -536,7 +540,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             },
 
             setPayerName: function (payerType, payerNames) {
-                this.setPayerFields(null, $("input:radio[name=payertype][value=" + payerType + "]"));
+                $('#selectPayerType').val(payerType);
 
                 if (payerType === 'insurance') {
                     $('#select2-txtautoPayerPIP-container').html(payerNames.insurance_name);
@@ -576,18 +580,22 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 var self = this;
                 if (payermode == 'insurance' && !self.payer_id) {
                     commonjs.showWarning("Please select insurance");
+                    $('#txtautoPayerPIP').select2('open');
                     return false;
                 }
                 else if (payermode == 'patient' && !self.payer_id) {
                     commonjs.showWarning("Please select patient");
+                    $('#txtautoPayerPP').select2('open');
                     return false;
                 }
                 else if (payermode == 'provider' && !self.payer_id) {
                     commonjs.showWarning("Please select provider");
+                    $('#txtautoPayerPR').select2('open');
                     return false;
                 }
                 else if (payermode == 'ordering_facility' && !self.payer_id) {
                     commonjs.showWarning("Please select ordering facility");
+                    $('#txtautoPayerPOF').select2('open');
                     return false;
                 }
                 else
@@ -597,11 +605,11 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             validatepayments: function () {
                 var self = this;
                 var amount = $.trim($("#txtAmount").val());
-                if ($('input:radio[name=payertype]:checked').length == 0) {
-                    commonjs.showWarning("Please select payer type");
-                    return false;
-                }
-                if (!self.validatePayer($('input:radio[name=payertype]:checked').val())) {
+                // if ($('input:radio[name=payertype]:checked').length == 0) {
+                //     commonjs.showWarning("Please select payer type");
+                //     return false;
+                // }
+                if (!self.validatePayer($('#selectPayerType').val())) {
                     return false;
                 }
                 if ($.trim($("#txtAccountingDate").val()) == "") {
@@ -633,7 +641,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
 
             refreshPayments: function (e) {
                 var target = $(e.target || e.srcElement);
-                if (target.is('#btnPaymentRefresh')) {
+                if (target.is('#btnPaymentPendingRefresh')) {
                     this.pendPaymentTable.refreshAll();
                 }
                 else {
@@ -661,7 +669,8 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         payer_type: $('input:radio[name=payertype]:checked').val(),
                         amount: $.trim($('#txtAmount').val().replace(',', '')) || 0.00,
                         invoice_no: $('#txtInvoice').val() || null,
-                        accounting_date: moment($('#txtAccountingDate').val()).format('L') || null,
+                        // accounting_date: moment($('#txtAccountingDate').val()).format('L') || null,        
+                        accounting_date: self.dtpAccountingDate && self.dtpAccountingDate.date() ? self.dtpAccountingDate.date().format('YYYY-MM-DD') : null,
                         patient_id: self.patient_id,
                         provider_contact_id: self.provider_id,
                         provider_group_id: self.provider_group_id,
@@ -1256,7 +1265,6 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
 
             addNewPayemnt: function () {
                 Backbone.history.navigate('#billing/payments/new', true);
-                this.render(0);
             },
 
             goBackToPayments: function () {
@@ -1589,6 +1597,6 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             underConstruction: function () {
                 alert('Under construction');
             }
-
+            
         });
     });

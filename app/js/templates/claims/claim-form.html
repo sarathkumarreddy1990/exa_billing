@@ -4,38 +4,41 @@
         display: none;
     }
 </style>
-<div id="headerContainer" style="background-color:#fff">
-    <!-- Top Navigation Bar -->
-    <div class="row">
-        <legend class="viztekLegend row" id="legendHeader">
-            <div class="row">
-                <nav id="newOrderNav" class="top-nav">
-                    <ul id="tab_menu" class="tn-menu">
-                        <li class="active">
-                            <a id="newClaimNavCharge" href="#tab_1">CHARGES</a>
-                        </li>
-                        <li>
-                            <a id="newClaimNavClaims" href="#tab_2">CLAIMS</a>
-                        </li>
-                        <li>
-                            <a id="newClaimNavIns" href="#tab_3">INSURANCE</a>
-                        </li>
-                        <li>
-                            <a id="newClaimNavAddInfo" href="#tab_4">ADDITIONAL INFO</a>
-                        </li>
-                        <li>
-                            <a id="newClaimNavBillSummary" href="#tab_5">BILLING SUMMARY</a>
-                        </li>
-                    </ul>
-                    <ul class="new-menu-right">
-                        <li class="saveAll">
-                            <button type="button" class="btn top-buffer" id="btnSaveClaim">SAVE ALL</button>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
-        </legend>
-    </div>
+<div class="row" style="width: 100%;margin: 0px;">
+    <nav id="newClaimNav" class="top-nav">
+        <ul id="tab_menu" class="tn-menu">
+            <li class="active">
+                <a id="newClaimNavCharge" href="#tab_1">CHARGES</a>
+            </li>
+            <li>
+                <a id="newClaimNavClaims" href="#tab_2">CLAIMS</a>
+            </li>
+            <li>
+                <a id="newClaimNavIns" href="#tab_3">INSURANCE</a>
+            </li>
+            <li>
+                <a id="newClaimNavAddInfo" href="#tab_4">ADDITIONAL INFO</a>
+            </li>
+            <li>
+                <a id="newClaimNavBillSummary" href="#tab_5">BILLING SUMMARY</a>
+            </li>
+        </ul>
+        <ul class="new-menu-right">
+            <li class="editClaimRelated" >
+                <button type="button" class="btn top-buffer claimProcess" id="btnPrevClaim">PREV</button>
+                <button type="button" class="btn top-buffer claimProcess" id="btnNextClaim">NEXT</button>
+            </li>
+            <li class="editClaimRelated" >
+                <button type="button" class="btn top-buffer" id="btnPatientReport">PATIENT REPORT</button>
+            </li>
+            <li class="editClaimRelated" >
+                <button type="button" class="btn top-buffer " id="btnValidateClaim">VALIDATE</button>
+            </li>
+            <li class="saveAll">
+                <button type="button" class="btn top-buffer" id="btnSaveClaim">SAVE ALL</button>
+            </li>
+        </ul>
+    </nav>
 </div>
 <div id="divPokidokResponse" class=" form-horizontal form-list " style="display: none; position: absolute; border-radius:10px;z-index:10001; left: 10%; height: 75%; width: 75%; padding:20px;background-color: white;  text-align: center;top: 9%;border: 1px solid black; overflow:scroll;">
 </div>
@@ -255,18 +258,7 @@
                         <input type="text" class="form-control" id="txtPriGroupNo" placeholder="Group No">
                     </div>
                 </div>
-                <div class="form-group row">
-                    <label for="ddlPriPlanName" class="col-sm-3 col-form-label" i18n="billing.claims.planName"></label>
-                    <div class="col-sm-5">
-                        <select class="form-control select-box" id="ddlPriPlanName" style="height:32px;">
-                            <% _.each(planname, function(plan) { %>
-                                <option value='<%= plan.value %>'>
-                                    <%= plan.text %>
-                                </option>
-                                <% }); %>
-                        </select>
-                    </div>
-                </div>
+                
                 <div class="form-group row">
                     <label for="ddlPriRelationShip" class="col-sm-3 col-form-label field-required" i18n="billing.claims.relationShip"></label>
                     <div class="col-sm-5">
@@ -343,20 +335,8 @@
                         <input type="text" class="form-control" id="txtPriZipCode" placeholder="ZipCode">
                     </div>
                 </div>
-                <div class="form-group row">
-                    <label for="ddlPriEmpStatus" class="col-sm-3 col-form-label field-required" i18n="billing.claims.employeeStatus"></label>
-                    <div class="col-sm-5">
-                        <select class="form-control select-box" id="ddlPriEmpStatus" style="height:32px;">
-                            <option value=''>Select</option>
-                            <% _.each(empStatus, function(empStatus) { %>
-                                <option value='<%= empStatus.id %>'>
-                                    <%= empStatus.description %>
-                                </option>
-                                <% }); %>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group row">
+                
+                <div class="form-group row editClaimRelated">
                     <label for="ddlServiceType" class="col-sm-3 col-form-label" i18n="billing.claims.serviceType"></label>
                     <div class="col-sm-5">
                         <select id="ddlServiceType" style="width: 250px;" multiple="multiple" />
@@ -446,18 +426,7 @@
                         <input type="text" class="form-control" id="txtSecGroupNo" placeholder="Group No">
                     </div>
                 </div>
-                <div class="form-group row">
-                    <label for="ddlSecPlanName" class="col-sm-3 col-form-label" i18n="billing.claims.planName"></label>
-                    <div class="col-sm-5">
-                        <select class="form-control select-box" id="ddlSecPlanName" style="height:32px;">
-                            <% _.each(planname, function(plan) { %>
-                                <option value='<%= plan.value %>'>
-                                    <%= plan.text %>
-                                </option>
-                                <% }); %>
-                        </select>
-                    </div>
-                </div>
+                
                 <div class="form-group row">
                     <label for="ddlSecRelationShip" class="col-sm-3 col-form-label field-required" i18n="billing.claims.relationShip"></label>
                     <div class="col-sm-5">
@@ -534,20 +503,8 @@
                         <input type="text" class="form-control" id="txtSecZipCode" placeholder="ZipCode">
                     </div>
                 </div>
-                <div class="form-group row">
-                    <label for="ddlSecEmpStatus" class="col-sm-3 col-form-label field-required" i18n="billing.claims.employeeStatus"></label>
-                    <div class="col-sm-5">
-                        <select class="form-control select-box" id="ddlSecEmpStatus" style="height:32px;">
-                            <option value=''>Select</option>
-                            <% _.each(empStatus, function(empStatus) { %>
-                                <option value='<%= empStatus.id %>'>
-                                    <%= empStatus.description %>
-                                </option>
-                                <% }); %>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group row">
+                
+                <div class="form-group row editClaimRelated">
                     <label for="ddlServiceType2" class="col-sm-3 col-form-label" i18n="billing.claims.serviceType"></label>
                     <div class="col-sm-5">
                         <select id="ddlServiceType2" style="width: 250px;" multiple="multiple" />
@@ -620,18 +577,7 @@
                         <input type="text" class="form-control" id="txtTerGroupNo" placeholder="Group No">
                     </div>
                 </div>
-                <div class="form-group row">
-                    <label for="ddlTerPlanName" class="col-sm-3 col-form-label" i18n="billing.claims.planName"></label>
-                    <div class="col-sm-5">
-                        <select class="form-control select-box" id="ddlTerPlanName" style="height:32px;">
-                            <% _.each(planname, function(plan) { %>
-                                <option value='<%= plan.value %>'>
-                                    <%= plan.text %>
-                                </option>
-                                <% }); %>
-                        </select>
-                    </div>
-                </div>
+                
                 <div class="form-group row">
                     <label for="ddlTerRelationShip" class="col-sm-3 col-form-label field-required" i18n="billing.claims.relationShip"></label>
                     <div class="col-sm-5">
@@ -708,20 +654,8 @@
                         <input type="text" class="form-control" id="txtTerZipCode" placeholder="ZipCode">
                     </div>
                 </div>
-                <div class="form-group row">
-                    <label for="ddlTerEmpStatus" class="col-sm-3 col-form-label field-required" i18n="billing.claims.employeeStatus"></label>
-                    <div class="col-sm-5">
-                        <select class="form-control select-box" id="ddlTerEmpStatus" style="height:32px;">
-                            <option value=''>Select</option>
-                            <% _.each(empStatus, function(empStatus) { %>
-                                <option value='<%= empStatus.id %>'>
-                                    <%= empStatus.description %>
-                                </option>
-                                <% }); %>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group row">
+                
+                <div class="form-group row editClaimRelated">
                     <label for="ddlServiceType3" class="col-sm-3 col-form-label" i18n="billing.claims.serviceType"></label>
                     <div class="col-sm-5">
                         <select id="ddlServiceType3" style="width: 250px;" multiple="multiple" />

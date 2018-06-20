@@ -363,6 +363,7 @@
             "reportQueueStatus": "Report Queue Status",
             "reportQueueDetails": "Report Queue Details",
             "insuranceAuthorization": "Insurance Authorization",
+            "entertextandselect" : "Please enter text and select condition",
             "mu": "MU",
             "ddlLastMetric": {
               "hours": "Hour(s)",

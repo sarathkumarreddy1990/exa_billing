@@ -13,19 +13,14 @@ define([
     AppRoute,
     SetupRoute,
     ReportsRoute
-    ) {
+) {
         var AppRouter = Backbone.Router.extend({
             routes: {
-                "app/worklist": "startApp",
-                "app/studies": "startAppStudies",
-                "app/claim_workbench": "startClaimWorkBench",              
-
-                "billing/*subroute": "startApp",
                 "setup/*subroute": "startSetup",
-                "app/payments": "startPayments",
-                "reports/*subroute": "startReporting"
+                "reports/*subroute": "startReporting",
+                "billing/*subroute": "startApp",
             },
-            
+
             startApp: function (subroute) {
                 if (!this.appRouter) {
                     this.appRouter = new AppRoute("billing/", { createTrailingSlashRoutes: true });
@@ -44,23 +39,12 @@ define([
                 }
             },
 
-            startAppStudies: function (subroutes) {
-                if (!this.appRoute) {
-                 this.appRoute = new StudiesView({ el: $('#root') });
-                }
-            },
-
-            startClaimWorkBench: function (subroutes) {
-                if (!this.appClaimWorkBenchRoute) {
-                    this.appClaimWorkBenchRoute = new ClaimWorkBenchView({ el: $('#root') });
-                }
-            },
-
             initialize: function () {
                 $('#initialLoading').hide();
                 $('#root-content').show();
             }
         });
+
         return {
             initialize: function () {
                 new AppRouter();
@@ -68,3 +52,4 @@ define([
             }
         };
     });
+    

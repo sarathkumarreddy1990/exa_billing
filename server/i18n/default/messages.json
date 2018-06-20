@@ -1,7 +1,8 @@
 {
     "messages": {
         "status": {
-            "validatedSuccessfully": "Validated Successfully"
+            "validatedSuccessfully": "Validated Successfully",
+            "successfullyCompleted": "Successfully completed"
         },
         "errors": {
             "notconnected": "Not connected",
@@ -24,7 +25,9 @@
                 "priMissingValidation": "Without primary insurance, can not create secondary insurance",
                 "secMissingValidation": "Without secondary insurance, can not create tertiary insurance",
                 "missingClaimStatus": "Please select claim status",
-                "missingResponsible": "Please select responsible"
+                "missingResponsible": "Please select responsible",
+                "problemAlreadyExists": "Problem already exists",
+                "icdLimitExists": "Cannot add more than 12 ICD"
             }
         },
         "loadingMsg": {

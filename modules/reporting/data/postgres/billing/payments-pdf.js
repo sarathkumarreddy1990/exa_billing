@@ -44,12 +44,9 @@ LEFT JOIN public.provider_groups ppg ON ppg.id = bp.provider_group_id
 LEFT JOIN public.provider_contacts ppc ON ppc.id = bp.provider_contact_id
 LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
 LEFT JOIN public.facilities pf ON pf.id = bp.facility_id
-WHERE 1=1
-AND <%= paymentDate %>
-
   )
   SELECT
-    COALESCE(facility_name, '~~Total~~') AS "Facility Name",
+    facility_name AS "Facility Name",
     payment_id AS "Payment ID",    
     patient_full_name AS "Patient Name",
     account_no AS "MRN #", 
@@ -61,13 +58,14 @@ AND <%= paymentDate %>
   GROUP BY
      grouping sets(
         ( facility_name),
-            ( payment_id, 
-              patient_full_name, 
-              account_no,
+            (
               facility_name,
+              payment_id, 
+              patient_full_name, 
+              account_no,              
               cheque_card_number,
-              notes),
-            ())
+              notes)
+           )
 
 `);
 
@@ -161,14 +159,14 @@ const api = {
         
         
         //  scheduled_dt
-        if (reportParams.fromDate === reportParams.toDate) {
-            params.push(reportParams.fromDate);
-            filters.paymentDate = queryBuilder.whereDate('bp.payment_dt', '=', [params.length], 'f.time_zone');
-        } else {
-            params.push(reportParams.fromDate);
-            params.push(reportParams.toDate);
-            filters.paymentDate = queryBuilder.whereDateBetween('bp.payment_dt', [params.length - 1, params.length], 'f.time_zone');
-        }
+        // if (reportParams.fromDate === reportParams.toDate) {
+        //     params.push(reportParams.fromDate);
+        //     filters.paymentDate = queryBuilder.whereDate('bp.payment_dt', '=', [params.length], 'f.time_zone');
+        // } else {
+        //     params.push(reportParams.fromDate);
+        //     params.push(reportParams.toDate);
+        //     filters.paymentDate = queryBuilder.whereDateBetween('bp.payment_dt', [params.length - 1, params.length], 'f.time_zone');
+        // }
 
       
         

@@ -120,6 +120,7 @@ var layout = {
                 window.location.href = '#config/company/edit/' + app.company_code;
             });
         }
+        commonjs.hideLoading();
     },
 
     hasInitialized: function (options) {

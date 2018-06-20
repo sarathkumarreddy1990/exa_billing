@@ -3,3 +3,4 @@
 /test/**
 /modules/reporting/**
 .eslintrc.js
+gulpfile.js
