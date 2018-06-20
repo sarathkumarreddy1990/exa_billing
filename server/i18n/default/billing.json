@@ -74,7 +74,9 @@
             "icd": "ICD Codes",
             "claimNotes": "Claim Notes",
             "billingComments": "Billing Notes",
-            "comment": "comments"
+            "comment": "comments",
+            "chargeList": "Charge List",
+            "selectedChargeList": "Selected Charge List"
         },
         "payments": {
             "postingDate": "Posting Date",

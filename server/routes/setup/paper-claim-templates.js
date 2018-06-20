@@ -25,14 +25,9 @@ router.put('/:id', async function (req, res) {
 });
 
 router.delete('/:id', async function (req, res) {
-    let params = {
-        ...req.params,
-        ...req.audit
-    };
-    
-    const data = await paperController.delete(params);
+    const data = await paperController.delete(req.params);
     httpHandler.sendRows(req, res, data);
-    
+
 });
 
 
