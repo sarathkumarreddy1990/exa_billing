@@ -50,8 +50,8 @@ define([
 
             showReport: function (id, category, format, params, openInNewTab) {
                 var queryStr = $.param(params);
-                var chkReportId = this.reportId;
-               var iframeUrl = UI.generateReportUrl(chkReportId, category, format, params);
+
+               var iframeUrl = UI.generateReportUrl(id, category, format, params);
                 if (openInNewTab) {
                     window.open(iframeUrl, '_blank');
                 }
