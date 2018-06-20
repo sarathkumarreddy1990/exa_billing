@@ -41,7 +41,7 @@ define([
                 editor.setTheme();
                 editor.setTheme("ace/theme/monokai");
                 editor.getSession().setMode("ace/mode/javascript");
-                $('#editor').height($('#data_container').outerHeight() - ($('#ediHeaders').outerHeight() + $('#eraHeaderButtons').outerHeight() + $('#btnSaveDefinitionData').outerHeight()))
+                $('#editor').height($('#data_container').outerHeight() - ($('#navEraTempltes').outerHeight() + $('#ediHeaders').outerHeight() + $('#eraHeaderButtons').outerHeight() + $('#btnSaveDefinitionData').outerHeight()))
                 commonjs.processPostRender();
                 $('#aShowEdiTemplates').parent('li:first').css(this.highlighClass);
                 $('#data_container').click(function () {
@@ -58,21 +58,15 @@ define([
                     type: 'GET',
                     success: function (data, response) {
                         if (data && data.length > 0) {
-                            $('#ulTemlateList').empty();
+                            $('#divTemlateList').empty();
                             for (var i = 0; i < data.length; i++) {
-                                $('#ulTemlateList').append(
-                                    $('<li/>').addClass('list-group-item').text(data[i]).css({ 'cursor': 'pointer' }).click(function () {
+                                $('#divTemlateList').append(
+                                    $('<a/>').attr('href','javascript:void(0)').addClass('dropdown-item').text(data[i]).css({ 'cursor': 'pointer', 'padding' : '5px' }).click(function () {
                                         self.getEDITemplate($(this).html());
                                     })
                                 );
                             }
-                            $('#divListTemplateContainer').css({
-                                'top': '22%',
-                                'left': '1%',
-                                'z-index': '10',
-                                'overflow-x': 'hidden'
-                            });
-                            $('#divlist').height($('#editor').height());
+                            $('#divTemlateList').css({'height':$('#editor').height(),'overflow-x' : 'hidden'});
                             self.getEDITemplate(data[0]);
                         }
                     },
@@ -91,7 +85,7 @@ define([
                         success: function (data, response) {
                             if (data) {
                                 ace.edit('editor').setValue(JSON.stringify(data, null, '\t'));
-                                $('#spnTemplateText').html(templateName);
+                                $('#dropdownMenuButton').html(templateName);
                             }
                         },
                         error: function (err) {
@@ -185,7 +179,7 @@ define([
             },
 
             saveDefinitionData: function () {
-                var templateName = $('#spnTemplateText').html();
+                var templateName = $('#dropdownMenuButton').html();
                 var editor = ace.edit('editor');
                 if (templateName) {
                     $.ajax({

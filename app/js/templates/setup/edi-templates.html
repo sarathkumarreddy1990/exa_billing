@@ -10,9 +10,19 @@
 </nav>
 <div class="form-group row">
     <div id="ediHeaders" class="col-lg-6">
-        <div id="divChooseEDITemplates" style="min-height:60px;background:#e2e2e2;border-radius:7px 7px 7px 7px;cursor:pointer;">
-            <label style="padding:20px;font-size:15px;font-weight:bold;">Choose Template</label>
-            <span id="spnTemplateText"></span>
+        <div class="form-group row">
+            <label for="txtTemplateName" class="col-sm-3 col-form-label font-weight-bold">Choose Templates</label>
+            <div class="col-lg-6">
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle col-lg-12" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
+                        aria-expanded="false">
+                        Choose Templates
+                    </button>
+                    <div id="divTemlateList" class="dropdown-menu col-lg-12" aria-labelledby="dropdownMenuButton">
+    
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <div id="eraHeaderButtons" class="col-lg-6">
@@ -21,20 +31,13 @@
             <button id="btnDeleteTemplate" type="button" class="btn btn-primary" i18n="setup.ediTemplates.deleteTemplate"></button>
         </div>
     </div>
-    <div class="col-lg-12">
-        <div id="editor" class="" style="width:70%;min-height:200px;">
+    <div class="col-lg-12 mt-2">
+        <div id="editor" class="col-lg-12" style="min-height:200px;">
 
         </div>
     </div>
-    <div class="col-lg-12">
+    <div class="col-lg-12 mt-2">
         <button id="btnSaveDefinitionData" type="button" class="btn btn-primary" i18n="setup.ediTemplates.saveDefinitionData"></button>
-    </div>
-    <div id="divListTemplateContainer" style="display:none;position:absolute;min-width:200px;">
-        <div id="divlist">
-            <ul id="ulTemlateList" class="list-group">
-
-            </ul>
-        </div>
     </div>
     <div id="divTemplateCreator" class="col-lg-4" style="display:none;position: absolute;left:30%;top:40%;background:white;border-radius:7px;z-index:10;">
         <div class="form-group row">
