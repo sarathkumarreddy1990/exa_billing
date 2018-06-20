@@ -39,7 +39,7 @@ router.get('/fee_details', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
-router.put('/payment_delete', async function (req, res) {
+router.delete('/payment', async function (req, res) {
     const data = await paymentsController.deletePayment(req.body);
     httpHandler.sendRows(req, res, data);
 });
