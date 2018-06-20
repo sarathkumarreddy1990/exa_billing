@@ -1284,10 +1284,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
 
                         /* Bind Diagnosis codes */
                         $('#ulSelectedDiagCodes').append(
-                            $('<li/>').append(
-                                $('<span>').addClass("beautifySpan").text(self.icd_code + '-' + self.icd_description).append(
-                                    $('<span/>').addClass("orderNo").text(curDiagnosis.length + ' )').css('float', 'left')
-                                )
+                            $('<li/>').append($('<span/>').addClass("orderNo").text(curDiagnosis.length + ' )').css('float', 'left')).append(
+                                $('<span>').addClass("beautifySpan").text(self.icd_code + '-' + self.icd_description)
                             ).off().click(function () {
                                 $('.highlight').removeClass('highlight');
                                 $(this).addClass('highlight');
