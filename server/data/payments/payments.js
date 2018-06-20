@@ -206,6 +206,7 @@ module.exports = {
                         , (select payments_applied_total from billing.get_payment_totals(payments.id)) AS applied       
                         , (select adjustments_applied_total from billing.get_payment_totals(payments.id)) AS adjustment_amount
                         , (select payment_status from billing.get_payment_totals(payments.id)) AS current_status
+                        , billing.payments.XMIN as payment_row_version
                     FROM billing.payments
                     INNER JOIN public.users ON users.id = payments.created_by
                     LEFT JOIN public.patients ON patients.id = payments.patient_id
@@ -239,7 +240,9 @@ module.exports = {
             notes,
             payment_mode,
             credit_card_name,
-            credit_card_number } = params;
+            credit_card_number,
+            payment_row_version
+        } = params;
 
         payer_type = payer_type == 'provider' ? 'ordering_provider' : payer_type;
         facility_id = facility_id != 0 ? facility_id : null; 
@@ -303,6 +306,7 @@ module.exports = {
                                                   WHERE 
                                                     id = ${paymentId}
                                                   AND NOT EXISTS(SELECT 1 FROM insert_data) 
+                                                  AND (SELECT (SELECT xmin as claim_row_version from billing.payments WHERE id = ${paymentId}) =  ${payment_row_version})
                                                   RETURNING id
                                                 )
                                                   SELECT id from insert_data

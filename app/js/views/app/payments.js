@@ -1,5 +1,25 @@
-define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale', 'text!templates/app/payments.html', 'collections/app/payments', 'models/pager', 'views/reports/payments-pdf'],
-    function (jQuery, Immutable, _, Backbone, JGrid, JGridLocale, paymentsGrid, paymentsLists, ModelPaymentsPager, paymentPDF) {
+define(['jquery',
+    'immutable',
+    'underscore',
+    'backbone',
+    'jqgrid',
+    'jqgridlocale',
+    'text!templates/app/payments.html',
+    'collections/app/payments',
+    'models/pager',
+    'views/reports/payments-pdf'],
+    
+    function (jQuery,
+        Immutable,
+        _,
+        Backbone,
+        JGrid,
+        JGridLocale,
+        paymentsGrid,
+        paymentsLists,
+        ModelPaymentsPager,
+        paymentPDF)
+    {
         var paymentsView = Backbone.View.extend({
             el: null,
             pager: null,
@@ -213,7 +233,6 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         },
                         afterInsertRow: function (rowid, rowdata) {
                             if (rowdata.current_status) {
-                                console.log(rowdata.current_status)
                                 var status = commonjs.getClaimColorCodeForStatus(rowdata.current_status, 'payment');
                                 var statusColor = status[0];
                                 if (statusColor)
@@ -223,11 +242,6 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     });
 
                     this.gridLoaded = true;
-                    $("#tblpaymentsGrid").bind("reloadGrid", function (e) {
-                        $("#divAmountTotal").html("$0.00");
-                        $("#divAppliedTotal").html("$0.00");
-                        $("#divAdjTotal").html("$0.00");
-                    });
 
                     $("#tblpaymentsGrid").bind("jqGridAfterGridComplete", function (e) {
                         clearTimeout(self.amountTimer);
@@ -266,6 +280,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     this.paymentTable.refresh();
                 }
             },
+            
             editPayment: function (rowId) {
                 Backbone.history.navigate('#billing/payments/edit/' + rowId, true);
             },
