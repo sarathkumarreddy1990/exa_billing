@@ -7617,7 +7617,7 @@ var commonjs = {
         commonjs.processPostRender(args.header);
         commonjs.initializeCheckBoxSelection();
         commonjs.validateControls();
-       // commonjs.isMaskValidate();
+        commonjs.isMaskValidate();
         commonjs.setupCityStateZipInputs();
         if (parent.editStudyID && parent.editStudyID > 0 && app.transcriptionLock) {
             commonjs.lockUnlockTranscription({ study_id: parent.editStudyID, lockType: "unlock", user_id: app.userID });

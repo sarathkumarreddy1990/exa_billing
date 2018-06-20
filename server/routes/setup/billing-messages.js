@@ -9,6 +9,11 @@ router.get('/', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/:id', async function (req, res) {
+    const data = await msgController.getDataById(req.params);
+    httpHandler.sendRows(req, res, data);
+});
+
 router.post('/', async function (req, res) {
     const data = await msgController.create(req.body);
     httpHandler.sendRows(req, res, data);
