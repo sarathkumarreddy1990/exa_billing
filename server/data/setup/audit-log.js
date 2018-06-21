@@ -52,6 +52,7 @@ module.exports = {
                             , al.module_name 
                             , al.description 
                             , p.full_name
+                            , COUNT(1) OVER (range unbounded preceding) AS total_records
                         FROM billing.audit_log al    
                         INNER JOIN public.users u ON u.id = al.created_by
                         LEFT JOIN public.patients p ON p.id = CASE WHEN entity_name = 'claims' THEN al.entity_key ELSE null END`;

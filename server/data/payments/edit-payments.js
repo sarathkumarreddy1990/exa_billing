@@ -7,7 +7,7 @@ module.exports = {
 
         let whereQuery = [];
         params.sortOrder = params.sortOrder || ' ASC';
-
+        
         if (params.sortField == 'pp.full_name') {            
             params.sortField = ' get_full_name(pp.last_name, pp.first_name) ';
         }
@@ -152,7 +152,7 @@ module.exports = {
             return await query(sql);
         }
 
-        let joinQuery = ' ';
+        let joinQuery = ' ';        
         let paymentWhereQuery = ` WHERE NOT EXISTS (SELECT 1 FROM billing.payment_applications bpa 
         INNER JOIN billing.payments bp ON bp.id = bpa.payment_id
         WHERE  bpa.charge_id = bch.id
@@ -162,6 +162,13 @@ module.exports = {
         paymentWhereQuery = params.customArgs.payerType == 'patient' ? paymentWhereQuery + ` AND bc.patient_id = ${params.customArgs.payerId} ` : paymentWhereQuery;
         paymentWhereQuery = params.customArgs.payerType == 'ordering_facility' ? paymentWhereQuery + ` AND bc.ordering_facility_id = ${params.customArgs.payerId}  AND bc.payer_type = 'ordering_facility'` : paymentWhereQuery;
         paymentWhereQuery = params.customArgs.payerType == 'ordering_provider' ? paymentWhereQuery + ` AND bc.referring_provider_contact_id = ${params.customArgs.payerId}  AND bc.payer_type = 'referring_provider'` : paymentWhereQuery;
+
+        
+        // let invoiceQuery = await this.checkInvoiceExists(params.customArgs.paymentID);
+
+        // if (invoiceQuery.rows && invoiceQuery.rows.length && invoiceQuery.rows[0].invoice_no) {
+        //     paymentWhereQuery += ` AND bc.invoice_no LIKE '${ invoiceQuery.rows[0].invoice_no }'`;
+        // }
 
         if (params.customArgs.payerType == 'insurance') {
             joinQuery = ` 
@@ -209,6 +216,20 @@ module.exports = {
             .append(SQL` LIMIT ${params.pageSize} OFFSET ${((params.pageNo - 1) * params.pageSize)} `);
 
         return await query(sql);
+    },
+
+    checkInvoiceExists: async(paymentID) => {
+        let sqlQry =
+            SQL`        
+                SELECT
+                    invoice_no
+                FROM 
+                    billing.payments
+                WHERE
+                    id = ${paymentID}
+        `;
+
+        return await query(sqlQry);
     },
 
     getAppliedPayments: async function (params) {        

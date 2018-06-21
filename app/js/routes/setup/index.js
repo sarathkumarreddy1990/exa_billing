@@ -18,7 +18,10 @@ define([
     'routes/setup/status-color-codes',
     'routes/setup/audit-log',
     'routes/setup/user-log',
-    'routes/setup/edi-templates'
+    'routes/setup/edi-templates',
+    'routes/setup/billing-messages',
+    'routes/setup/insurance-x12-mapping',
+	'routes/setup/paper-claim-templates'
 ], function (
     Backbone,
     BackboneSubroute,
@@ -39,7 +42,10 @@ define([
     StatusColorCodesRoute,
     AuditLogRoute,
     UserLogRoute,
-    EDITemplatesRoute
+    EDITemplatesRoute,
+    BillingMessagesRoute,
+    InsuranceX12MappingRoute,
+	PaperClaimTemplatesRoute
     ) {
         return Backbone.SubRoute.extend({
             routes: {
@@ -58,7 +64,10 @@ define([
                 "status_color_codes/*subroute" : "startStatusColorCodes",
                 "audit_log/*subroute" : "startAuditLog",
                 "user_log/*subroute" : "startUserLog",
-                "edi_templates/*subroute" : "startEDITemplates"
+                "edi_templates/*subroute" : "startEDITemplates",
+                "billing_messages/*subroute" : "startBillingMessages",
+                "insurance_x12_mapping/*subroute" : "startInsuranceX12Mapping",
+				"paper_claim_templates/*subroute" : "startPaperClaimTemplates"
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -212,6 +221,33 @@ define([
                 if (this.checkLicense('EDITemplates') && !this.ediTemplatesRouter) {
                     this.defaultArgs.routePrefix = 'setup/edi_templates/';
                     this.ediTemplatesRouter = new EDITemplatesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startBillingMessages: function () {
+                if (this.checkLicense('BillingMessages') && !this.billingMessagesRouter) {
+                    this.defaultArgs.routePrefix = 'setup/billing_messages/';
+                    this.billingMessagesRouter = new BillingMessagesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startInsuranceX12Mapping: function () {
+                if (this.checkLicense('InsuranceX12Mapping') && !this.insuranceX12MappingRouter) {
+                    this.defaultArgs.routePrefix = 'setup/insurance_x12_mapping/';
+                    this.insuranceX12MappingRouter = new InsuranceX12MappingRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+			 startPaperClaimTemplates: function () {
+                if (this.checkLicense('PaperClaimTemplates') && !this.paperClaimTemplatesRouter) {
+                    this.defaultArgs.routePrefix = 'setup/paper_claim_templates/';
+                    this.paperClaimTemplatesRouter = new PaperClaimTemplatesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }

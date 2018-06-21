@@ -9,7 +9,7 @@ router.get('/', async (req, res) => {
     httpHandler.sendRows(req, res, data);
 });
 
-router.post('/', async (req, res) => {
+router.put('/', async (req, res) => {
     const data = await splitController.createClaim(req.body);
     httpHandler.sendRows(req, res, data);
 });

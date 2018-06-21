@@ -3781,7 +3781,7 @@ var commonjs = {
                     height = $(window).height() - ($('#divPaymentFilter').height() + 155);
                     break;
                 case 'Setup':
-                    height = $(window).height() - ($('body>nav').outerHeight() + $('#divPageHeaderButtons').outerHeight() + 100);
+                    height = $(window).height() - ($('body>nav').outerHeight() + $('#divPageHeaderButtons').outerHeight() + 100 + ($('#auditFilterdiv').outerHeight() ? $('#auditFilterdiv').outerHeight() : 0));
                     break;
                 case 'Patient':
                     height = $(window).height() - ($('header.header').outerHeight() + $('#patientDocHeader').outerHeight() + 200);

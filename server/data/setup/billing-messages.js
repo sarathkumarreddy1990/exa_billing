@@ -45,6 +45,21 @@ module.exports = {
         return await query(sql);
     },
 
+    getDataById: async (params) => {
+        const { id } = params;
+
+        const sql = SQL`SELECT
+        id
+            , code
+            , description
+        FROM
+        billing.messages
+        WHERE
+        id = ${id} `;
+
+        return await query(sql);
+    },
+
     create: async (params) => {
         let {
             code,
