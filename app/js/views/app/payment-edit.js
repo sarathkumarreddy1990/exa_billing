@@ -1641,7 +1641,7 @@ define(['jquery',
                     self.pendPaymentTable.refreshAll();
                 }
                 else
-                    commonjs.showWarning('Please enter invoice number');
+                    commonjs.showWarning('Please enter claim id');
             },
 
             backToPatient: function (e) {
