@@ -99,7 +99,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
 
                  $('#btnCheckEligibility, #btnCheckEligibility2, #btnCheckEligibility3').unbind().click(function (e) {
                      self.checkInsuranceEligibility(e);
-                 }); 
+                 });
+                 this.bindTabMenuEvents();
             },
 
             checkInsuranceEligibility: function (e) {
@@ -794,6 +795,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 commonjs.enableModifiersOnbind('M'); // Modifier
                 commonjs.enableModifiersOnbind('P'); // Diagnostic Pointer
                 commonjs.validateControls();
+                commonjs.isMaskValidate();
 
             },
 
@@ -1394,15 +1396,10 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                             var existing_insurance = response[0].existing_insurance || [];
                             var beneficiary_details = response[0].beneficiary_details || [];
 
-                            self.npiNo = existing_insurance[0].npi_no ? existing_insurance[0].npi_no : '';
-                            self.federalTaxId = existing_insurance[0].federal_tax_id ? existing_insurance[0].federal_tax_id : '';
-                            self.enableInsuranceEligibility = existing_insurance[0].enable_insurance_eligibility ? existing_insurance[0].enable_insurance_eligibility : '';
-                            self.subscriberLastName = existing_insurance[0].subscriber_lastname ? existing_insurance[0].subscriber_lastname : '';
-                            self.subscriberFirstName = existing_insurance[0].subscriber_firstname ? existing_insurance[0].subscriber_firstname : '';
-                            self.subscriberAddress = existing_insurance[0].subscriber_address_line1 ? existing_insurance[0].subscriber_address_line1 : '';
-                            self.policyNumber = existing_insurance[0].policy_number ? existing_insurance[0].policy_number : '';
-                            self.insuranceName = existing_insurance[0].insurance_name ? existing_insurance[0].insurance_name : '';
-                            self.tradingPartnerId = existing_insurance[0].ins_partner_id ? existing_insurance[0].ins_partner_id : '';
+                            self.npiNo = existing_insurance.length &&  existing_insurance[0].npi_no ? existing_insurance[0].npi_no : '';
+                            self.federalTaxId = existing_insurance.length && existing_insurance[0].federal_tax_id ? existing_insurance[0].federal_tax_id : '';
+                            self.enableInsuranceEligibility = existing_insurance.length && existing_insurance[0].enable_insurance_eligibility ? existing_insurance[0].enable_insurance_eligibility : '';
+                            self.tradingPartnerId = existing_insurance.length && existing_insurance[0].ins_partner_id ? existing_insurance[0].ins_partner_id : '';
 
                             $.each(existing_insurance, function (index, value) {
                                 switch (value.coverage_level) {
@@ -1420,11 +1417,14 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                             self.bindExistingInsurance(self.existingSecondaryInsurance, 'ddlExistSecIns')
                             self.bindExistingInsurance(self.existingTriInsurance, 'ddlExistTerIns')
                             
-                            beneficiary_details = beneficiary_details && beneficiary_details.length ? _.groupBy(beneficiary_details, function(obj) { return obj.coverage_level}) : {};
-                            $.each(beneficiary_details, function (index, object) {
-                                var insurance_details = object.length ? _.sortBy(object, "id")[0] : {}
-                                self.bindExistInsurance(insurance_details, insurance_details.coverage_level);
-                            });
+                            beneficiary_details = beneficiary_details && beneficiary_details.length ? _.groupBy(beneficiary_details, function (obj) { return obj.coverage_level }) : {};
+                            setTimeout(function () {
+                                $.each(beneficiary_details, function (index, object) {
+                                    var insurance_details = object.length ? _.sortBy(object, "id")[0] : {}
+                                    self.bindExistInsurance(insurance_details, insurance_details.coverage_level);
+                                });
+                            }, 200);
+                            
                            
                         }
                     },
@@ -1888,56 +1888,56 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     //valid_to_date: $('#txtPriExpDate').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtPriExpDate').val()).format('YYYY-MM-DD')) : null,
                     is_deleted: self.priClaimInsID && self.priInsID == '' ? true : false
                 },
-                    secondary_insurance_details = {
-                        claim_insurance_id: self.secClaimInsID ? parseInt(self.secClaimInsID) : null,
-                        patient_id: self.cur_patient_id || null,
-                        insurance_provider_id: self.secInsID ? parseInt(self.secInsID) : null,
-                        subscriber_relationship_id: $('#ddlSecRelationShip option:selected').val() != '' ? parseInt($('#ddlSecRelationShip option:selected').val()) : null,
-                        coverage_level: 'secondary',
-                        policy_number: $('#txtSecPolicyNo').val(),
-                        group_number: $('#txtSecGroupNo').val(),
-                        subscriber_firstname: $('#txtSecSubFirstName').val(),
-                        subscriber_lastname: $('#txtSecSubLastName').val(),
-                        subscriber_middlename: $('#txtSecSubMiName').val(),
-                        subscriber_name_suffix: $('#txtSecSubSuffix').val(),
-                        subscriber_gender: $('#ddlPriGender option:selected').val() || null,
-                        subscriber_address_line1: $('#txtSecSubPriAddr').val(),
-                        subscriber_address_line2: $('#txtSecSubSecAddr').val(),
-                        subscriber_city: $('#txtSecCity').val(),
-                        subscriber_zipcode: $('#txtSecZipCode').val() != '' ? parseInt($('#txtSecZipCode').val()) : null,
-                        subscriber_state: $('#ddlPriState option:selected').val() || null,
-                        assign_benefits_to_patient: $('#chkSecAcptAsmt').prop("checked"),
-                        subscriber_dob: $('#txtSecDOB').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtSecDOB').val()).format('YYYY-MM-DD')) : null,
-                        medicare_insurance_type_code: $('#selectMedicalPayer option:selected').val() != '' ? parseInt($('#selectMedicalPayer option:selected').val()) : null,
-                        //valid_from_date: $('#txtPriStartDate').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtPriStartDate').val()).format('YYYY-MM-DD')) : null,
-                        //valid_to_date: $('#txtPriExpDate').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtPriExpDate').val()).format('YYYY-MM-DD')) : null,
-                        is_deleted: self.secClaimInsID && self.secInsID == '' ? true : false
-                    },
-                    teritiary_insurance_details = {
-                        claim_insurance_id: self.terClaimInsID ? parseInt(self.terClaimInsID) : null,
-                        patient_id: self.cur_patient_id || null,
-                        insurance_provider_id: self.terInsID ? parseInt(self.terInsID) : null,
-                        coverage_level: 'tertiary',
-                        subscriber_relationship_id: $('#ddlTerRelationShip option:selected').val() != '' ? parseInt($('#ddlTerRelationShip option:selected').val()) : null,
-                        policy_number: $('#txtTerPolicyNo').val(),
-                        group_number: $('#txtTerGroupNo').val(),
-                        subscriber_firstname: $('#txtTerSubFirstName').val(),
-                        subscriber_lastname: $('#txtTerSubLastName').val(),
-                        subscriber_middlename: $('#txtTerSubMiName').val(),
-                        subscriber_name_suffix: $('#txtTerSubSuffix').val(),
-                        subscriber_gender: $('#ddlPriGender option:selected').val() || null,
-                        subscriber_address_line1: $('#txtTerSubPriAddr').val(),
-                        subscriber_address_line2: $('#txtTerSubSecAddr').val(),
-                        subscriber_city: $('#txtTerCity').val(),
-                        subscriber_zipcode: $('#txtTerZipCode').val() != '' ? parseInt($('#txtTerZipCode').val()) : null,
-                        subscriber_state: $('#ddlPriState option:selected').val() || null,
-                        assign_benefits_to_patient: $('#chkTerAcptAsmt').prop("checked"),
-                        subscriber_dob: $('#txtTerDOB').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtTerDOB').val()).format('YYYY-MM-DD')) : null,
-                        medicare_insurance_type_code: null,
-                        //valid_from_date: $('#txtPriStartDate').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtPriStartDate').val()).format('YYYY-MM-DD')) : null,
-                        //valid_to_date: $('#txtPriExpDate').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtPriExpDate').val()).format('YYYY-MM-DD')) : null,
-                        is_deleted: self.terClaimInsID && self.terInsID == '' ? true : false
-                    }
+                secondary_insurance_details = {
+                    claim_insurance_id: self.secClaimInsID ? parseInt(self.secClaimInsID) : null,
+                    patient_id: self.cur_patient_id || null,
+                    insurance_provider_id: self.secInsID ? parseInt(self.secInsID) : null,
+                    subscriber_relationship_id: $('#ddlSecRelationShip option:selected').val() != '' ? parseInt($('#ddlSecRelationShip option:selected').val()) : null,
+                    coverage_level: 'secondary',
+                    policy_number: $('#txtSecPolicyNo').val(),
+                    group_number: $('#txtSecGroupNo').val(),
+                    subscriber_firstname: $('#txtSecSubFirstName').val(),
+                    subscriber_lastname: $('#txtSecSubLastName').val(),
+                    subscriber_middlename: $('#txtSecSubMiName').val(),
+                    subscriber_name_suffix: $('#txtSecSubSuffix').val(),
+                    subscriber_gender: $('#ddlPriGender option:selected').val() || null,
+                    subscriber_address_line1: $('#txtSecSubPriAddr').val(),
+                    subscriber_address_line2: $('#txtSecSubSecAddr').val(),
+                    subscriber_city: $('#txtSecCity').val(),
+                    subscriber_zipcode: $('#txtSecZipCode').val() != '' ? parseInt($('#txtSecZipCode').val()) : null,
+                    subscriber_state: $('#ddlPriState option:selected').val() || null,
+                    assign_benefits_to_patient: $('#chkSecAcptAsmt').prop("checked"),
+                    subscriber_dob: $('#txtSecDOB').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtSecDOB').val()).format('YYYY-MM-DD')) : null,
+                    medicare_insurance_type_code: $('#selectMedicalPayer option:selected').val() != '' ? parseInt($('#selectMedicalPayer option:selected').val()) : null,
+                    //valid_from_date: $('#txtPriStartDate').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtPriStartDate').val()).format('YYYY-MM-DD')) : null,
+                    //valid_to_date: $('#txtPriExpDate').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtPriExpDate').val()).format('YYYY-MM-DD')) : null,
+                    is_deleted: self.secClaimInsID && self.secInsID == '' ? true : false
+                },
+                teritiary_insurance_details = {
+                    claim_insurance_id: self.terClaimInsID ? parseInt(self.terClaimInsID) : null,
+                    patient_id: self.cur_patient_id || null,
+                    insurance_provider_id: self.terInsID ? parseInt(self.terInsID) : null,
+                    coverage_level: 'tertiary',
+                    subscriber_relationship_id: $('#ddlTerRelationShip option:selected').val() != '' ? parseInt($('#ddlTerRelationShip option:selected').val()) : null,
+                    policy_number: $('#txtTerPolicyNo').val(),
+                    group_number: $('#txtTerGroupNo').val(),
+                    subscriber_firstname: $('#txtTerSubFirstName').val(),
+                    subscriber_lastname: $('#txtTerSubLastName').val(),
+                    subscriber_middlename: $('#txtTerSubMiName').val(),
+                    subscriber_name_suffix: $('#txtTerSubSuffix').val(),
+                    subscriber_gender: $('#ddlPriGender option:selected').val() || null,
+                    subscriber_address_line1: $('#txtTerSubPriAddr').val(),
+                    subscriber_address_line2: $('#txtTerSubSecAddr').val(),
+                    subscriber_city: $('#txtTerCity').val(),
+                    subscriber_zipcode: $('#txtTerZipCode').val() != '' ? parseInt($('#txtTerZipCode').val()) : null,
+                    subscriber_state: $('#ddlPriState option:selected').val() || null,
+                    assign_benefits_to_patient: $('#chkTerAcptAsmt').prop("checked"),
+                    subscriber_dob: $('#txtTerDOB').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtTerDOB').val()).format('YYYY-MM-DD')) : null,
+                    medicare_insurance_type_code: null,
+                    //valid_from_date: $('#txtPriStartDate').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtPriStartDate').val()).format('YYYY-MM-DD')) : null,
+                    //valid_to_date: $('#txtPriExpDate').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtPriExpDate').val()).format('YYYY-MM-DD')) : null,
+                    is_deleted: self.terClaimInsID && self.terInsID == '' ? true : false
+                }
                 if (self.is_primary_available || self.priClaimInsID)
                     claim_model.insurances.push(primary_insurance_details);
                 if (self.is_secondary_available || self.secClaimInsID)
@@ -2008,7 +2008,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                         authorization_no: $('#txtAuthInfo_' + id).val() || null,
                         charge_dt: self.cur_study_date || null,
                         study_id: rowData.study_id || null,
-                        is_deleted: false
+                        is_deleted: false,
+                        isEdit: !!$('#txtBillFee_' + id).attr('edit')
                     });
                 });
 
@@ -2490,6 +2491,32 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 } else {
                     commonjs.showWarning('Error on process claim');
                 }
+            },
+            
+            bindTabMenuEvents: function () {
+                var self = this;
+
+                var tab_menu_link = $('ul#tab_menu li a');
+                var tab_menu_item = $('ul#tab_menu li');
+                var width_tab_menu_item = tab_menu_item.width();
+                var $header_container = $('#headerContainer');
+                var $root = $('#modal_div_container');
+                tab_menu_link.click(function () {
+                    var val = $($(this).attr('href')).offset().top;
+                    var offset = $header_container.height() - 20
+                    $root.animate({
+                        scrollTop: val - offset
+                    }, 500)
+                    tab_menu_item.removeClass('active');
+                    $(this).parent().addClass('active');
+                    var width_tab_menu_item = $(this).parent().width();
+                    var _el_position = $(this).parent().position().left;
+                    $('ul#tab_menu li.active_item').animate({
+                        left: _el_position,
+                        width: width_tab_menu_item + 40
+                    }, 300);
+                });
+
             }
 
         });

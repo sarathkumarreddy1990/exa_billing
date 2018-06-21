@@ -18,6 +18,17 @@ var layout = {
         'Log': '#aLog',
     },
 
+    moduleHeaders: {
+        'Payments': 'Payments',
+        'Setup': 'Setup',
+        'Report': 'Report',
+        'report': 'Report',
+        'Claims': 'Claims',
+        'Studies': 'Studies',
+        'EOB': 'EOB',
+        'Log': 'Log',
+    },
+
     screenLinkIds: {
         'Adjustment Codes': '#aAdjustmentCodes',
         'Billing Codes': '#aBillingCodes',
@@ -161,6 +172,9 @@ var layout = {
         if (layout.screenLinkIds[currentScreen]) {
             $(layout.screenLinkIds[currentScreen]).addClass('active');
         }
+
+        $('#aNavTitlebar').text(layout.moduleHeaders[module]);
+        document.title = layout.moduleHeaders[module] + ' - EXA Billing';
     },
 
     highlightMainMenu: function (currentModule) {

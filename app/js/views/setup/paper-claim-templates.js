@@ -74,7 +74,7 @@ define(['jquery',
                         },
                         {
                             name: 'edit',
-                            width: 15,
+                            width: 5,
                             sortable: false,
                             search: false,
                             className: 'icon-ic-edit',
@@ -84,7 +84,7 @@ define(['jquery',
                             }
                         },
                         {
-                            name: 'del', width: 15, sortable: false, search: false,
+                            name: 'del', width: 5, sortable: false, search: false,
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
                                 if (confirm("Are you sure want to delete")) {
@@ -193,7 +193,7 @@ define(['jquery',
                     this.setEditorContents("{}");
                 }
                 $('#aShowOriginalForm').parent('li:first').css(this.highlighClass);
-
+                
                 commonjs.initializeScreen({
                     header: { screen: 'PaperClaimTemplates', ext: 'paperClaimTemplates' }, buttons: [
                         {

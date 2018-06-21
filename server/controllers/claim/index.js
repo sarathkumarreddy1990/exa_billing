@@ -34,7 +34,7 @@ module.exports = {
 
             for (const obj of objects.charges) {
 
-                if (claimResult.rows.length && claimResult.rows[0]) {
+                if (claimResult.rows && claimResult.rows.length && claimResult.rows[0]) {
 
                     obj.claim_id = claimResult.rows[0].id;
 

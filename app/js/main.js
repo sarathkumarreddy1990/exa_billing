@@ -6,6 +6,7 @@ var rjsConfig = {
         'jquery.validate': '../node_modules/jquery-validation/dist/jquery.validate',
         'jqueryvalidateadditional': '../node_modules/jquery-validation/dist/additional-methods',
         'underscore': '../node_modules/underscore/underscore',
+        '_get': '../libs/_get/index',
         'text': '../node_modules/requirejs-text/text',
         'backbone': '../node_modules/backbone/backbone',
         'backbonesubroute': '../node_modules/backbone.subroute/backbone.subroute',
@@ -34,7 +35,9 @@ var rjsConfig = {
         'app-server': 'shared/app-server',
         'select2': '../node_modules/select2/dist/js/select2.full',
         'jquerysortable': '../node_modules/jquery-sortable/source/js/jquery-sortable',
-        'ace': '../node_modules/ace-code-editor/lib/ace'
+        'ace': '../node_modules/ace-code-editor/lib/ace',
+        'pdfmake': '../node_modules/pdfmake/build/pdfmake.min',
+        'pdfmake-fonts': '../node_modules/pdfmake/build/vfs_fonts',
     },
     shim: {
         'jquery.validate': {
@@ -109,7 +112,10 @@ var rjsConfig = {
         },
         'jquerysortable': {
             deps: ['jquery']
-        }
+        },
+        'pdfmake-fonts': {
+            deps: ['pdfmake']
+        },
     },
 };
 
@@ -164,8 +170,8 @@ if (require && require.config) {
         datetimepicker,
         daterangepicker,
         jquerysortable,
-        maskjs
-    ) {
+        maskjs,
+        ) {
             window.browserLocale = typeof browserLocale == 'undefined' ? 'en-US' : browserLocale;
             window.Immutable = Immutable;
 
@@ -183,139 +189,3 @@ if (typeof module != 'undefined' && module.exports) {
         rjsConfig
     };
 }
-
-// require([
-//     'immutable',
-//     'moment-timezone',
-//     'jquery.validate',
-// ], function (
-//     Immutable,
-//     MomentTimezone,
-//     jqueryvalidate,
-//     ) {
-//         window.browserLocale = typeof browserLocale == 'undefined' ? 'en-US' : browserLocale;
-//         window.Immutable = Immutable;
-
-//         require([
-//             'jquery',
-//             'underscore',
-//             'fastdom',
-//             'jqueryvalidateadditional',
-//             'jstorage',
-//             'bootstrap',
-//             'bootstrap-notify',
-//             'commonjs',
-//             'layout',
-//             'debug',
-//             'i18nscript',
-//             'sessionhandler',
-//             'customgrid',
-//             'app',
-//             'app-server',
-//             'bootstrapmultiselect',
-//             'select2',
-//             'datetimepicker',
-//             'daterangepicker',
-//             'jquerysortable',
-//             'maskjs'
-//         ], function (
-//             $,
-//             _,
-//             fastdom,
-//             jqueryvalidateadditional,
-//             jstorage,
-//             Bootstrap,
-//             bootstrapNotify,
-//             commonjs,
-//             layout,
-//             debug,
-//             i18n,
-//             sessionhandler,
-//             customGrid,
-//             App,
-//             Appserver,
-//             bootstrapmultiselect,
-//             select2,
-//             datetimepicker,
-//             daterangepicker,
-//             jquerysortable,
-//             maskjs
-//         ) {
-//                 Backbone.emulateHTTP = false;
-
-//                 new Appserver(function () {
-//                     App.initialize();
-//                 });
-
-//             });
-//     });
-
-// require(['main.config'], function (RConfig) {
-//     require.config(RConfig);
-
-//     require([
-//         'immutable',
-//         'moment-timezone',
-//         'jquery.validate',
-//     ], function (
-//         Immutable,
-//         MomentTimezone,
-//         jqueryvalidate,
-//         ) {
-//             window.browserLocale = typeof browserLocale == 'undefined' ? 'en-US' : browserLocale;
-//             window.Immutable = Immutable;
-
-//             require([
-//                 'jquery',
-//                 'underscore',
-//                 'fastdom',
-//                 'jqueryvalidateadditional',
-//                 'jstorage',
-//                 'bootstrap',
-//                 'bootstrap-notify',
-//                 'commonjs',
-//                 'layout',
-//                 'debug',
-//                 'i18nscript',
-//                 'sessionhandler',
-//                 'customgrid',
-//                 'app',
-//                 'app-server',
-//                 'bootstrapmultiselect',
-//                 'select2',
-//                 'datetimepicker',
-//                 'daterangepicker',
-//                 'jquerysortable',
-//                 'maskjs'
-//             ], function (
-//                 $,
-//                 _,
-//                 fastdom,
-//                 jqueryvalidateadditional,
-//                 jstorage,
-//                 Bootstrap,
-//                 bootstrapNotify,
-//                 commonjs,
-//                 layout,
-//                 debug,
-//                 i18n,
-//                 sessionhandler,
-//                 customGrid,
-//                 App,
-//                 Appserver,
-//                 bootstrapmultiselect,
-//                 select2,
-//                 datetimepicker,
-//                 daterangepicker,
-//                 jquerysortable,
-//                 maskjs
-//             ) {
-//                     Backbone.emulateHTTP = false;
-
-//                     new Appserver(function () {
-//                         App.initialize();
-//                     });
-
-//                 });
-//         });
-// });

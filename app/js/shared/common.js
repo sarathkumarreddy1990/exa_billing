@@ -3240,6 +3240,57 @@ var commonjs = {
         //$(".maskMonthYear").inputmask("dd/MM/yyyy hh:mm:ss",{ "placeholder": "dd/MM/yyyy hh:mm:ss" });
         $(".maskHourmin").inputmask("h:s", { "placeholder": "HH/MM" });
         $(".maskYear").inputmask("9999", { "placeholder": "YYYY" });
+        $('.maskUnits').inputmask("numeric", {
+            radixPoint: ".",
+            groupSeparator: "",
+            digits: 3,
+            autoGroup: true,
+            prefix: '',
+            rightAlign: true,
+            allowMinus:false
+        });
+        $('.maskUnits').attr('placeholder','0.000');
+
+        $(".maskUnits").on("keypress", function (e) {     // function for allow 3 digits before decimal point in amount
+            value1 = $(this).val();
+            value = value1;
+            if (value1 > 999.999)
+                this.value =  this.oldvalue;
+            else
+                this.oldvalue = this.value;
+        });
+
+        $('.maskFee').inputmask("numeric", {  
+            radixPoint: ".",
+            groupSeparator: "",
+            digits: 2,
+            autoGroup: true,
+            prefix: '',
+            rightAlign: true,
+            allowMinus:false,
+            oncomplete: function () {return false;}
+        });
+
+        $('.maskFee, .maskUnits').focus(function(e){
+            if(parseFloat($(this).val()) == 0){
+                $(this).val('');
+            }
+        });
+
+        $(".maskFee").on("keypress", function (e) {     // function for allow 8 digits before decimal point in amount
+            value1 = $(this).val();
+            value = value1;
+            if (value1 > 99999999.99)
+                this.value = this.oldvalue;
+            else
+                this.oldvalue = this.value;
+        });
+        $('.maskFee').attr('placeHolder','0.00');
+
+        $(".maskFee, .maskUnits").on("keydown", function (e) {
+            if(e.ctrlKey) return false;
+        });        
+
     },
     parseDicomDate: function (str) {
         if (!/^(\d){8}$/.test(str)) return "invalid date";
@@ -3795,6 +3846,8 @@ var commonjs = {
                 case 'Order':
                     height = $(window).height() - (50 + 40 + 120) < 100 ? $(window).height() : $(window).height() - (50 + 40 + 120);
                     break;
+                case 'EOB':
+                    height = $(window).height() - 225;
             }
         }
 
@@ -7785,10 +7838,6 @@ var commonjs = {
 
         app.currentCulture = cultureCode;
         commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
-
-        if (screenTitle) {
-            document.title = screenTitle + '';
-        }
     },
 
     beautifyMe: function () {
