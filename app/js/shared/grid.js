@@ -11,8 +11,9 @@ define('grid', [
     'views/user-settings',
     'views/setup/study-filter',
     'text!templates/setup/study-filter-grid.html',
-    'views/claims/claim-inquiry'
-], function (jQuery, _, initChangeGrid, utils, Pager, StudyFields, Studies, claimWorkbench, claimsView, UserSettingsView, StudyFilterView, studyFilterGrid, claimInquiryView) {
+    'views/claims/claim-inquiry',
+    'views/claims/split-claim'
+], function (jQuery, _, initChangeGrid, utils, Pager, StudyFields, Studies, claimWorkbench, claimsView, UserSettingsView, StudyFilterView, studyFilterGrid, claimInquiryView, splitClaimView) {
     var $ = jQuery;
     var isTrue = utils.isTrue;
     var isFalse = utils.isFalse;
@@ -231,8 +232,8 @@ define('grid', [
                 $('#anc_claim_inquiry').click(function () {
                      commonjs.showDialog({
                     'header': 'Claim Inquiry',
-                    'width': '95%',
-                    'height': '85%',
+                    'width': '90%',
+                    'height': '75%',
                     'needShrink': true
                 });
                 self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
@@ -257,7 +258,8 @@ define('grid', [
                 var liSplitOrders = commonjs.getRightClickMenu('anc_split_orders','setup.rightClickMenu.splitOrders',false,'Split Orders',false);
                 $divObj.append(liSplitOrders);
                 $('#anc_split_orders').click(function () {
-                    alert("under Constraction");
+                    self.splitClaimView = new splitClaimView();
+                    self.splitClaimView.validateSplitClaim(studyIds);
                 });
 
             } else {                

@@ -36,20 +36,20 @@ define(['jquery',
                 this.model = new BillingCodesModel();
                 this.billingCodesList = new BillingCodesCollections();
                 this.pager = new Pager();
+                $(this.el).html(this.billingCodesGridTemplate());
             },
 
             render: function() {
                 var self = this;
                 $('#divBillingCodesGrid').show();
                 $('#divBillingCodesForm').hide();
-                $(this.el).html(this.billingCodesGridTemplate());
                 this.billingCodesTable = new customGrid();
                 this.billingCodesTable.render({
                     gridelementid: '#tblBillingCodesGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['','','','',''],
-                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description'],
+                    colNames: ['','','','','',''],
+                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description', 'is_active'],
                     colModel: [
                         {
                             name: 'id',
@@ -96,8 +96,18 @@ define(['jquery',
                         },
                         {
                             name: 'description',
+                        },
+                        {
+                            name: 'inactivated_dt',
+                            hidden: true
                         }
                     ],
+                    afterInsertRow: function (rowid, rowdata) {
+                        if (rowdata.inactivated_dt) {
+                            var $row = $('#tblBillingCodesGrid').find('#' + rowid);
+                            $row.css('text-decoration', 'line-through');
+                        }
+                    },
                     datastore: self.billingCodesList,
                     container:self.el,
                     customizeSort: true,
@@ -162,6 +172,8 @@ define(['jquery',
 
                 commonjs.initializeScreen({header: {screen: 'BillingCodes', ext: 'billingCodes'}, buttons: [
                     {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
+                        $("#txtCode").val($.trim($('#txtCode').val()) || null);
+                        $("#txtDescription").val($.trim($('#txtDescription').val()) || null);
                         self.saveBillingCodes();
                     }},
                     {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
@@ -186,8 +198,8 @@ define(['jquery',
                         }
                     },
                     messages: {
-                        code: commonjs.getMessage("*", "Code"),
-                        description: commonjs.getMessage("*", "Description")
+                        code: commonjs.getMessage("e", "Code"),
+                        description: commonjs.getMessage("e", "Description")
                     },
                     submitHandler: function () {
                         self.save();
@@ -199,8 +211,8 @@ define(['jquery',
 
             save: function () {
                 this.model.set({
-                    "code": $.trim($('#txtCode').val()),
-                    "description": $.trim($('#txtDescription').val()),
+                    "code": $('#txtCode').val(),
+                    "description": $('#txtDescription').val(),
                     "isActive" : !$('#chkActive').prop('checked'),
                     "companyId" : app.companyID
                 });

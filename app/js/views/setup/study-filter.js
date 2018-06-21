@@ -427,7 +427,9 @@ define([
                     offsetHeight: 01,
                     sortname: "id",
                     sortorder: "desc",
-                    dblClickActionIndex: 1,
+                    ondblClickRow: function (rowID) {
+                        self.showForm(rowID);
+                    },
                     disablesearch: false,
                     disablesort: false,
                     disablepaging: false,
@@ -827,6 +829,9 @@ define([
                                     }
                                 }
                             }
+                            if(self.opener == "studies"){
+                                self.summary()
+                            }
                         }
                     });
                 }
@@ -841,12 +846,21 @@ define([
                     var filterType = 'studies';
                 if (window.location && window.location.hash.split('/')[1] == 'claim_workbench')
                     var filterType = 'claims';
-                filterName = $('#txtFilterName').val() ? $('#txtFilterName').val() : '';
-                filterOrder = $('#txtFilterOrder').val() ? $('#txtFilterOrder').val() : '';
+                filterName = $('#txtFilterName').val() ? $('#txtFilterName').val().trim() : '';
+                filterOrder = $('#txtFilterOrder').val() ? $('#txtFilterOrder').val().trim() : '';
                 isActive = $('#chkIsActive').is(":checked");
                 isGlobal = $('#chkIsGlobalFilter').is(":checked");
                 isDisplayAsTab = $('#chkDisplayAsTab').is(":checked");
                 isDisplayInDropDown = $('#chkDisplayAsDDL').is(":checked");
+
+                if(!filterName){
+                    commonjs.showWarning('Please Enter FilterName');
+                    return;
+                }
+                if(!filterOrder){
+                    commonjs.showWarning('Please Enter FilterOrder');
+                    return;
+                }
 
                 if ($('#rbtPreformatted').is(':checked')) {
                     var dateJsonCondition = "Preformatted";
@@ -1261,9 +1275,13 @@ define([
                 this.model.save({},
                     {
                         success: function (model, response) {
-                            commonjs.hideLoading();
-                            commonjs.showStatus("Saved Succesfully");
-                            self.showGrid();
+                            if (!response.length)
+                                commonjs.showStatus("Already Exists");
+                            else{
+                                commonjs.showStatus("Saved Succesfully");
+                                commonjs.hideLoading();
+                                self.showGrid();
+                            }
                         },
                         error: function (model, response) {
                             commonjs.handleXhrError(model, response);
@@ -1337,7 +1355,6 @@ define([
                 var self = this;
                 var opt = document.createElement('Option');
                 var IdName = e.target.nodeName == 'I' ? $(e.target).closest('button') : $(e.target);
-                //switch ((e.target || e.srcElement).id) {
                 switch ($(IdName).attr('id')) {
                     case 'btnAddPatientName':
                         if (commonjs.checkNotEmpty($('#txtPatientName').val()) && self.validateRadioButton('PatientName', 'PatientName')) {
@@ -1347,8 +1364,8 @@ define([
                             document.getElementById('listPatientName').options.add(opt);
                             $('#txtPatientName').val('');
                         }
-                        else {
-                            commonjs.showWarning("messages.warning.setup.entertextandselect");
+                        else if (!commonjs.checkNotEmpty($('#txtPatientName').val())) {
+                            commonjs.showWarning("setup.studyFilters.entertextandselect");
                             return false;
                         }
                         break;
@@ -1360,8 +1377,8 @@ define([
                             document.getElementById('listPatientID').options.add(opt);
                             $('#txtPatientID').val('');
                         }
-                        else {
-                            commonjs.showWarning("messages.warning.setup.entertextandselect");
+                        else if (!commonjs.checkNotEmpty($('#txtPatientID').val())) {
+                            commonjs.showWarning("setup.studyFilters.entertextandselect");
                             return false;
                         }
                         break;
@@ -1373,8 +1390,8 @@ define([
                             document.getElementById('listReadPhy').options.add(opt);
                             $('#txtReadPhy').val('');
                         }
-                        else {
-                            commonjs.showWarning("messages.warning.setup.entertextandselect");
+                        else if (!commonjs.checkNotEmpty($('#txtReadPhy').val())) {
+                            commonjs.showWarning("setup.studyFilters.entertextandselect");
                             return false;
                         }
                         break;
@@ -1386,8 +1403,8 @@ define([
                             document.getElementById('listRefPhy').options.add(opt);
                             $('#txtRefPhy').val('');
                         }
-                        else {
-                            commonjs.showWarning("messages.warning.setup.entertextandselect");
+                        else if (!commonjs.checkNotEmpty($('#txtRefPhy').val())) {
+                            commonjs.showWarning("setup.studyFilters.entertextandselect");
                             return false;
                         }
                         break;
@@ -1399,14 +1416,13 @@ define([
                             document.getElementById('listInsurance').options.add(opt);
                             $('#txtInsurance').val('');
                         }
-                        else {
-                            commonjs.showWarning("messages.warning.setup.entertextandselect");
+                        else if (!commonjs.checkNotEmpty($('#txtInsurance').val())) {
+                            commonjs.showWarning("setup.studyFilters.entertextandselect");
                             return false;
                         }
                         break;
-                    case '':
-                        break;
                 }
+                e.preventDefault();
                 return false;
             },
 
@@ -1510,9 +1526,9 @@ define([
                         app.facilities :
                         app.userfacilities;
                     setupList('listModality', app.modalities, 'modality_code');
-                    setupList('listBodyPart', app.settings.bodyParts);
+                    setupList('listBodyPart', app.bodyParts);
                     setupList('listStat', app.stat_level.slice(1), 'description', 'level');
-                    setupList('listFlag', app.settings.studyflag);
+                    setupList('listFlag', app.studyflag,'description');
                     setupList('listStatus', statusCodes, 'status_desc', 'status_code');
                     setupList('listVehicle', app.vehicles, 'vehicle_name');
                     setupList('listFacility', facilities, 'facility_name');
@@ -1709,5 +1725,154 @@ define([
                 $radioButtons.filter('[name=PayerType]').prop('checked', false);
                 $radioButtons.filter('[name=Balance]').prop('checked', false);
             },
+
+            summary: function () {
+                var self = this;
+                var text = "";
+                if ($('#rbtLast').is(':checked') || $('#rbtNext').is(':checked')) {
+                    text = $('#rbtLast').is(':checked') ? 'Last ' : 'Next ';
+                    if (commonjs.checkNotEmpty($('#txtLastTime').val())) {
+                        var lastFromTo = "",
+                            fromTime = $('#txtFromTimeLast').val(),
+                            toTime = $('#txtToTimeLast').val();
+                        if (fromTime && toTime) {
+                            lastFromTo = " " + fromTime + " " + toTime;
+                        }
+                        $('#lblSummaryDate').text(text + $.trim($('#txtLastTime').val()) + ' ' + $('#ddlLast').val() + lastFromTo);
+                    }
+                    else {
+                        $('#lblSummaryDate').text('');
+                    }
+                }
+                // Date From - Date To
+                else {
+                    var fromDt = $('#txtDateFrom').val(),
+                        toDt = $('#txtDateFrom').val();
+                    if (fromDt && toDt) {
+                        var fromTime = $('#txtFromTimeDate').val() ? " " + $('#txtFromTimeDate').val() : "";
+                        var toTime = $('#txtToTimeDate').val() ? " " + $('#txtToTimeDate').val(): "";
+                        $('#lblSummaryDate').text('Date: from ' + fromDt + fromTime + ' to ' + toDt + toTime);
+                    }
+                }
+
+                $('#lblSummaryPName').text(this.listBoxAllArray('listPatientName'));
+                $('#lblSummaryPID').text(this.listBoxAllArray('listPatientID'));
+                $('#lblSummaryReadPhy').text(this.listBoxAllArray('listReadPhy'));
+                $('#lblSummaryRefPhy').text(this.listBoxAllArray('listRefPhy'));
+                $('#lblSummaryInsurance').text(this.listBoxAllArray('listInsurance'));
+                if (this.listBoxAllArray('listInstitution').length > 0) {
+                    $('#lblSummaryInstitution').text('Institution :' + $('input[name=Institution]:checked').val() + ' ' + this.listBoxAllArray('listInstitution'));
+                }
+                $('#lblFacility').text('Facility :' + this.listBoxSelectedArray('listFacility', 'Facility'));
+                $('#lblSummaryModality').text('Modality :' + this.listBoxSelectedArray('listModality', 'Modality'));
+                $('#lblSummaryStatus').text('Status :' + this.listBoxSelectedArray('listStatus', 'Status'));
+                $('#lblSummaryVehicle').text('Vehicle :' + this.listBoxSelectedArray('listVehicle', 'Vehicle'));
+                $('#lblSummaryBodyPart').text('BodyPart :' + this.listBoxSelectedArray('listBodyPart', 'BodyPart'));
+                $('#lblSummaryStat').text('Stat :' + this.listBoxSelectedArray('listStat', 'State'));
+                $('#lblSummaryFlag').text('Flag :' + this.listBoxSelectedArray('listFlag', 'Flag'));
+                $('#lblSummaryAccession').text('Accession :' + ($.trim($('#txtAccession').val()).length > 0 ? $('input[name=Accession]:checked').val() + " " + $.trim($('#txtAccession').val()) : ""));
+                $('#lblSummaryAttorney').text('Attorney :' + ($.trim($('#txtAttorney').val()).length > 0 ? $('input[name=Attorney]:checked').val() + " " + $.trim($('#txtAttorney').val()) : ""));
+                $('#lblSummaryStudyDescription').text('Study Description :' + ($.trim($('#txtStudyDescription').val()).length > 0 ? $('input[name=StudyDescription]:checked').val() + " " + $.trim($('#txtStudyDescription').val()) : ""));
+                $('#lblSummaryStudyID').text('StudyID :' + ($.trim($('#txtStudyID').val()).length > 0 ? $('input[name=StudyID]:checked').val() + " " + $.trim($('#txtStudyID').val()) : ""));
+                this.removeEmpty();
+                this.hideSummaryLabel();
+            },
+
+            removeEmpty: function () {
+                var arr = [];
+                $('#ulSummary li').each(function (i, selected) {
+                    switch ($(selected)[0].id) {
+                        case 'liDate':
+                            ($('#lblSummaryDate').text().length > 0) ? $('#liDate').show() : $('#liDate').hide();
+                            break;
+                        case 'liPName':
+                            ($('#lblSummaryPName').text().length > 0) ? $('#liPName').show() : $('#liPName').hide();
+                            break;
+                        case 'liPID':
+                            ($('#lblSummaryPID').text().length > 0) ? $('#liPID').show() : $('#liPID').hide();
+                            break;
+                        case 'liModality':
+                            ($('#lblSummaryModality').text().length > 10) ? $('#liModality').show() : $('#liModality').hide();
+                            break;
+                        case 'liFacility':
+                            ($('#lblFacility').text().length > 10) ? $('#liFacility').show() : $('#liFacility').hide();
+                            break;
+                        case 'liBodyPart':
+                            ($('#lblSummaryBodyPart').text().length > 10) ? $('#liBodyPart').show() : $('#liBodyPart').hide();
+                            break;
+                        case 'liFlag':
+                            ($('#lblSummaryFlag').text().length > 6) ? $('#liFlag').show() : $('#liFlag').hide();
+                            break;
+                        case 'liInstitution':
+                            ($('#lblSummaryInstitution').text().length > 13) ? $('#liInstitution').show() : $('#liInstitution').hide();
+                            break;
+                        case 'liStatus':
+                            ($('#lblSummaryStatus').text().length > 8) ? $('#liStatus').show() : $('#liStatus').hide();
+                            break;
+                        case 'liVehicle':
+                            ($('#lblSummaryVehicle').text().length > 9) ? $('#liVehicle').show() : $('#liVehicle').hide();
+                            break;
+                        case 'liStat':
+                            ($('#lblSummaryStat').text().length > 6) ? $('#liStat').show() : $('#liStat').hide();
+                            break;
+                        case 'liReadPhy':
+                            ($('#lblSummaryReadPhy').text().length > 0) ? $('#liReadPhy').show() : $('#liReadPhy').hide();
+                            break;
+                        case 'liRefPhy':
+                            ($('#lblSummaryRefPhy').text().length > 0) ? $('#liRefPhy').show() : $('#liRefPhy').hide();
+                            break;
+                        case 'liStudyID':
+                            ($('#lblSummaryStudyID').text().length > 9) ? $('#liStudyID').show() : $('#liStudyID').hide();
+                            break;
+                        case 'liAccession':
+                            ($('#lblSummaryAccession').text().length > 11) ? $('#liAccession').show() : $('#liAccession').hide();
+                            break;
+                        case 'liAttorney':
+                            ($('#lblSummaryAttorney').text().length > 11) ? $('#liAttorney').show() : $('#liAttorney').hide();
+                            break;
+                        case 'liStudyDescription':
+                            ($('#lblSummaryStudyDescription').text().length > 19) ? $('#liStudyDescription').show() : $('#liStudyDescription').hide();
+                            break;
+                        case 'liInsurance':
+                            ($('#lblSummaryInsurance').text().length > 11) ? $('#liInsurance').show() : $('#liInsurance').hide();
+                            break;
+                    }
+                });
+            },
+
+            hideSummaryLabel: function () {
+                var isExist = false;
+                for (var i = 0; i < $('#ulSummary li').length; i++) {
+                    if ($('#ulSummary li')[i].style.display != 'none') {
+                        isExist = true;
+                        break;
+                    }
+                }
+                if (!isExist) {
+                    $('#divSummary').hide();
+                }
+                else
+                    $('#divSummary').show();
+            },
+
+            listBoxAllArray: function (listID) {
+                var arrAll = [];
+                $('#' + listID + ' option').each(function (i, selected) {
+                    arrAll[i] = $(selected).text();
+                });
+
+                return arrAll;
+            },
+
+            listBoxSelectedArray: function (listID, radioName) {
+                var arrSummary = [];
+                $('#' + listID + ' option:selected').each(function (i, selected) {
+                    arrSummary[i] = $(selected).text();
+                });
+                if (arrSummary.length > 0) {
+                    arrSummary = " " + $('input[name=' + radioName + ']:checked').val() + " " + arrSummary
+                }
+                return arrSummary;
+            }
         })
     });

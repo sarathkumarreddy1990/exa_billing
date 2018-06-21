@@ -44,20 +44,20 @@ define(['jquery',
                 this.model = new BillingProvidersModel();
                 this.billingProvidersList = new BillingProvidersCollections();
                 this.pager = new Pager();
+                $(this.el).html(this.billingProvidersGridTemplate());
             },
 
             render: function () {
                 var self = this;
                 $('#divBillingProvidersGrid').show();
                 $('#divBillingProvidersForm').hide();
-                $(this.el).html(this.billingProvidersGridTemplate());
                 this.billingProvidersTable = new customGrid();
                 this.billingProvidersTable.render({
                     gridelementid: '#tblBillingProvidersGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['', '', '', '', '', '', ''],
-                    i18nNames: ['', '', '', 'shared.common.code', 'shared.common.name', 'setup.billingprovider.address', 'setup.billingprovider.phoneno'],
+                    colNames: ['', '', '', '', '', '', '', ''],
+                    i18nNames: ['', '', '', 'shared.common.code', 'shared.common.name', 'setup.billingprovider.address', 'setup.billingprovider.phoneno', 'in_active'],
                     colModel: [
                         {
                             name: 'id',
@@ -124,7 +124,17 @@ define(['jquery',
                             width: 200,
                             searchFlag: '%'
                         },
+                        {
+                            name: 'inactivated_dt',
+                            hidden: true
+                        }
                     ],
+                    afterInsertRow: function (rowid, rowdata) {
+                        if (rowdata.inactivated_dt) {
+                            var $row = $('#tblBillingProvidersGrid').find('#' + rowid);
+                            $row.css('text-decoration', 'line-through');
+                        }
+                    },
                     datastore: self.billingProvidersList,
                     container: self.el,
                     customizeSort: true,
@@ -246,6 +256,24 @@ define(['jquery',
                 }
                 commonjs.initializeScreen({header: {screen: 'BillingProviders', ext: 'billingProvider'}, buttons: [
                     {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
+                        $("#txtName").val($.trim($('#txtName').val()) || null);
+                        $("#txtCode").val($.trim($('#txtCode').val()) || null);
+                        $("#txtShortDesc").val($.trim($('#txtShortDesc').val()) || null);
+                        $("#txtFederalTaxID").val($.trim($('#txtFederalTaxID').val()) || null);
+                        $("#txtNpi").val($.trim($('#txtNpi').val()) || null);
+                        $("#txtTaxonomy").val($.trim($('#txtTaxonomy').val()) || null);
+                        $("#txtContactName").val($.trim($('#txtContactName').val()) || null);
+                        $("#txtAddressLine1").val($.trim($('#txtAddressLine1').val()) || null);
+                        $("#txtCity").val($.trim($('#txtCity').val()) || null);
+                        $("#txtZip").val($.trim($('#txtZip').val()) || null);
+                        $("#txtBillProPhoneNo").val($.trim($('#txtBillProPhoneNo').val()) || null);
+                        $("#txtFaxNo").val($.trim($('#txtFaxNo').val()) || null);
+                        $("#txtHostName").val($.trim($('#txtHostName').val()) || null);
+                        $("#txtPort").val($.trim($('#txtPort').val()) || null);
+                        $("#txtUserName").val($.trim($('#txtUserName').val()) || null);
+                        $("#txtPassword").val($.trim($('#txtPassword').val()) || null);
+                        $("#txtSentFolder").val($.trim($('#txtSentFolder').val()) || null);
+                        $("#txtReceiveFolder").val($.trim($('#txtReceiveFolder').val()) || null);
                         self.saveBillingProviders();
                     }},
                     {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
@@ -301,16 +329,10 @@ define(['jquery',
                     addressLine1: {
                         required: true
                     },
-                    addressLine2: {
-                        required: true
-                    },
                     city: {
                         required: true
                     },
                     zip: {
-                        required: true
-                    },
-                    zipPlus: {
                         required: true
                     },
                     phoneNo: {
@@ -318,23 +340,25 @@ define(['jquery',
                     },
                     faxNo: {
                         required: true
+                    },
+                    email: {
+                        email: true
                     }
                 }
                 var messages = {
-                    providerName: commonjs.getMessage("*", "Billing Provider Name"),
-                    providerCode: commonjs.getMessage("*", "Billing Provider Code"),
-                    shortDescription: commonjs.getMessage("*", "Billing Provider Short Desc"),
-                    federalTaxID: commonjs.getMessage("*", "Federal Tax ID"),
-                    npiNo: commonjs.getMessage("*", "Npi No"),
-                    taxonomy: commonjs.getMessage("*", "Taxonomy Code"),
-                    contactPersonName: commonjs.getMessage("*", "Contact Person Name"),
-                    addressLine1: commonjs.getMessage("*", "AddressLine1"),
-                    addressLine2: commonjs.getMessage("*", "AddressLine2"),
-                    city: commonjs.getMessage("*", "City"),
-                    zip: commonjs.getMessage("*", "Zip"),
-                    zipPlus: commonjs.getMessage("*", "Zip Plus"),
-                    phoneNo: commonjs.getMessage("*", "Phone Number"),
-                    faxNo: commonjs.getMessage("*", "Fax Number")
+                    providerName: commonjs.getMessage("e", "Billing Provider Name"),
+                    providerCode: commonjs.getMessage("e", "Billing Provider Code"),
+                    shortDescription: commonjs.getMessage("e", "Billing Provider Short Desc"),
+                    federalTaxID: commonjs.getMessage("e", "Federal Tax ID"),
+                    npiNo: commonjs.getMessage("e", "Npi No"),
+                    taxonomy: commonjs.getMessage("e", "Taxonomy Code"),
+                    contactPersonName: commonjs.getMessage("e", "Contact Person Name"),
+                    addressLine1: commonjs.getMessage("e", "AddressLine1"),
+                    city: commonjs.getMessage("e", "City"),
+                    zip: commonjs.getMessage("e", "Zip"),
+                    phoneNo: commonjs.getMessage("e", "Phone Number"),
+                    faxNo: commonjs.getMessage("e", "Fax Number"),
+                    email: commonjs.getMessage("e", "Email")
                 }
                 if($('#chkEnableFTP').prop('checked')) {
                     rules.hostname = { required: true }
@@ -343,12 +367,12 @@ define(['jquery',
                     rules.port = { required: true }
                     rules.sentFolder = { required: true }
                     rules.receiveFolder = { required: true }
-                    messages.hostname = commonjs.getMessage("*", "FTP Host Name");
-                    messages.username = commonjs.getMessage("*", "FTP User Name");
-                    messages.password = commonjs.getMessage("*", "FTP Passord");
-                    messages.port = commonjs.getMessage("*", "FTP Port");
-                    messages.sentFolder = commonjs.getMessage("*", "FTP Sent Folder");
-                    messages.ReceiveFolder = commonjs.getMessage("*", "FTP Receive Folder");
+                    messages.hostname = commonjs.getMessage("e", "FTP Host Name");
+                    messages.username = commonjs.getMessage("e", "FTP User Name");
+                    messages.password = commonjs.getMessage("e", "FTP Passord");
+                    messages.port = commonjs.getMessage("e", "FTP Port");
+                    messages.sentFolder = commonjs.getMessage("e", "FTP Sent Folder");
+                    messages.ReceiveFolder = commonjs.getMessage("e", "FTP Receive Folder");
                 }
                 commonjs.validateForm({
                     rules: rules,
@@ -356,7 +380,8 @@ define(['jquery',
                     submitHandler: function () {
                         self.save();
                     },
-                    formID: '#formBillingProviders'
+                    formID: '#formBillingProviders',
+                    onkeyup: function(element) { $(element).valid(); },
                 });
                 $('#formBillingProviders').submit();
             },
@@ -365,42 +390,37 @@ define(['jquery',
                 if (!$('#ddlState').val()) {
                     return commonjs.showWarning("Please Select the state");
                 }
-                if (!commonjs.checkInteger($('#txtBillProPhoneNo').val())) {
-                    return commonjs.showWarning("Please Enter a valid phone number");
-                }
-                if (!commonjs.checkInteger($('#txtFaxNo').val())) {
-                    return commonjs.showWarning("Please Enter a valid fax number");
-                }
+                let isFtpEnabled = $('#chkEnableFTP').prop('checked');
                 let communication_info = {
-                    "enable_ftp": $('#chkEnableFTP').prop('checked'),
-                    "Ftp_host": $.trim($('#txtHostName').val()),
-                    "Ftp_port": $.trim($('#txtPort').val()),
-                    "Ftp_user_name": $.trim($('#txtUserName').val()),
-                    "Ftp_password": $.trim($('#txtPassword').val()),
-                    "Ftp_type": $.trim($('#ddlFtpType').val()),
-                    "Ftp_sent_folder": $.trim($('#txtSentFolder').val()),
-                    "Ftp_receive_folder": $.trim($('#txtReceiveFolder').val()),
-                    "Ftp_identity_file": $.trim($('#txtIdentityFilePath').val())
+                    "enable_ftp": isFtpEnabled,
+                    "Ftp_host": isFtpEnabled ? $('#txtHostName').val(): "",
+                    "Ftp_port": isFtpEnabled ? $('#txtPort').val(): "",
+                    "Ftp_user_name": isFtpEnabled ? $('#txtUserName').val(): "",
+                    "Ftp_password": isFtpEnabled ? $('#txtPassword').val(): "",
+                    "Ftp_type": isFtpEnabled ? $.trim($('#ddlFtpType').val()): "",
+                    "Ftp_sent_folder": isFtpEnabled ? $('#txtSentFolder').val(): "",
+                    "Ftp_receive_folder": isFtpEnabled ? $('#txtReceiveFolder').val(): "",
+                    "Ftp_identity_file": isFtpEnabled ? $.trim($('#txtIdentityFilePath').val()): ""
                 }
                 this.model.set({
-                    "name": $.trim($('#txtName').val()),
+                    "name": $('#txtName').val(),
                     "isActive": !$('#chkIsActive').prop('checked'),
                     "companyId": app.companyID,
-                    "code": $.trim($('#txtCode').val()),
-                    "shortDescription": $.trim($('#txtShortDesc').val()),
-                    "federalTaxId": $.trim($('#txtFederalTaxID').val()),
-                    "npiNo": $.trim($('#txtNpi').val()),
-                    "taxonomyCode": $.trim($('#txtTaxonomy').val()),
-                    "contactPersonName": $.trim($('#txtContactName').val()),
-                    "addressLine1": $.trim($('#txtAddressLine1').val()),
+                    "code": $('#txtCode').val(),
+                    "shortDescription": $('#txtShortDesc').val(),
+                    "federalTaxId": $('#txtFederalTaxID').val(),
+                    "npiNo": $('#txtNpi').val(),
+                    "taxonomyCode": $('#txtTaxonomy').val(),
+                    "contactPersonName": $('#txtContactName').val(),
+                    "addressLine1": $('#txtAddressLine1').val(),
                     "addressLine2": $.trim($('#txtAddressLine2').val()),
-                    "city": $.trim($('#txtCity').val()),
+                    "city": $('#txtCity').val(),
                     "state": $('#ddlState').val(),
-                    "zipCode": $.trim($('#txtZip').val()),
+                    "zipCode": $('#txtZip').val(),
                     "zipCodePlus": $.trim($('#txtZipPlus').val()),
                     "email": $.trim($('#txtEmail').val()),
-                    "phoneNumber": $.trim($('#txtBillProPhoneNo').val()),
-                    "faxNumber": $.trim($('#txtFaxNo').val()),
+                    "phoneNumber": $('#txtBillProPhoneNo').val(),
+                    "faxNumber": $('#txtFaxNo').val(),
                     "webUrl": $.trim($('#txtWebURL').val()),
                     "payToAddressLine1": $.trim($('#txtPayAddressLine1').val()),
                     "payToAddressLine2": $.trim($('#txtPayAddressLine2').val()),
@@ -486,7 +506,7 @@ define(['jquery',
                 var billing_provider_id = this.model.id;
                 var width = $('#divBillingProvidersForm').width() - 50;
                 $('#tblProviderIDCodesGrid').jqGrid({
-                    colNames: ['', '', '', '', '', 'Insurance Name', 'Payer Assigned Provider ID', 'Legacy ID Qualifier'],
+                    colNames: ['', '', '', '', '', 'Insurance Name', 'Payer Assigned Provider ID', 'Legacy ID Qualifier', 'in_active'],
                     colModel: [
                         { name: 'id', key: true, hidden: true },
                         { name: 'insurance_provider_id', hidden: true },
@@ -505,8 +525,18 @@ define(['jquery',
                         },
                         { name: 'insurance_name', width: 300 },
                         { name: 'payer_assigned_provider_id', width: 200 },
-                        { name: 'qualifier_desc', width: 300 }
+                        { name: 'qualifier_desc', width: 300 },
+                        {
+                            name: 'isActive',
+                            hidden: true
+                        }
                     ],
+                    afterInsertRow: function (rowid, rowdata) {
+                        if (rowdata.isActive) {
+                            var $row = $('#tblProviderIDCodesGrid').find('#' + rowid);
+                            $row.css('text-decoration', 'line-through');
+                        }
+                    },
                     ondblClickRow: function (rowID) {
                         self.editingProviderIDCodes(rowID);
                     },

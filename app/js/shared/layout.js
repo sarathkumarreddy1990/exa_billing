@@ -18,6 +18,17 @@ var layout = {
         'Log': '#aLog',
     },
 
+    moduleHeaders: {
+        'Payments': 'Payments',
+        'Setup': 'Setup',
+        'Report': 'Report',
+        'report': 'Report',
+        'Claims': 'Claims',
+        'Studies': 'Studies',
+        'EOB': 'EOB',
+        'Log': 'Log',
+    },
+
     screenLinkIds: {
         'Adjustment Codes': '#aAdjustmentCodes',
         'Billing Codes': '#aBillingCodes',
@@ -30,7 +41,10 @@ var layout = {
         'CAS Reason Codes': '#aCasReasonCodes',
         'Provider Level Codes': '#aProviderLevelCodes',
         'Billing Validations': '#aBillingValidations',
-
+        'Status Color Codes': '#aStatusColorCodes',
+        'EDI ClearingHouses': '#aEDIClearingHouses',
+        'Insurance EDI Mapping': '#aInsuranceX12Mapping',
+        'Billing Messages': '#aBillingMessages',
         /// report navs
         'Charges': '#aCharges',
         'Claim Activity': '#aClaimActivity',
@@ -120,6 +134,7 @@ var layout = {
                 window.location.href = '#config/company/edit/' + app.company_code;
             });
         }
+        commonjs.hideLoading();
     },
 
     hasInitialized: function (options) {
@@ -157,6 +172,9 @@ var layout = {
         if (layout.screenLinkIds[currentScreen]) {
             $(layout.screenLinkIds[currentScreen]).addClass('active');
         }
+
+        $('#aNavTitlebar').text(layout.moduleHeaders[module]);
+        document.title = layout.moduleHeaders[module] + ' - EXA Billing';
     },
 
     highlightMainMenu: function (currentModule) {

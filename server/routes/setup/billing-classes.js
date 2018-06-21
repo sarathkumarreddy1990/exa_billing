@@ -33,6 +33,8 @@ router.delete('/:id', async function (req, res) {
 
     const data = await classController.delete(params);
     httpHandler.sendRows(req, res, data);
+
+
 });
 
 

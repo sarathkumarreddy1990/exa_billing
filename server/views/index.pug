@@ -10,7 +10,7 @@ block content
     div(class="loadingMsg", id="divSuccess", style="display:none")
         span(class="badge badge-success" id="divSuccessMsg")
     nav.navbar.fixed-top.navbar-expand-lg.navbar-dark.bg-primary(style="display:none")
-        a.navbar-brand(href='#billing/studies/list') #{title}
+        a#aNavTitlebar.navbar-brand(href='#billing/studies/list') #{title}
         button.navbar-toggler(type='button', data-toggle='collapse', data-target='#navbarNavAltMarkup', aria-controls='navbarNavAltMarkup', aria-expanded='false', aria-label='Toggle navigation')
             span.navbar-toggler-icon
         #navbarNavAltMarkup.collapse.navbar-collapse
@@ -33,6 +33,7 @@ block content
                         a.dropdown-item(href='#reports/r/claim-transaction') Claim Transaction
                         a.dropdown-item(href='#reports/r/credit-balance-encounters') Credit Balance Encounters
                         a.dropdown-item(href='#reports/r/diagnosis-count') Diagnosis Count  
+                        .dropdown-divider
                         a.dropdown-item(href='#reports/r/modality-summary') Modality Summary
                         a.dropdown-item(href='#reports/r/monthly-recap') Monthly Recap
                         a.dropdown-item(href='#reports/r/patient-statement') Patient Statement
@@ -42,6 +43,7 @@ block content
                         a.dropdown-item(href='#reports/r/payments-by-ins-company') Payments By Ins. Company
                         a.dropdown-item(href='#reports/r/procedure-analysis-by-insurance') Procedure Analysis By
                         a.dropdown-item(href='#reports/r/procedure-count') Procedure Count
+                        .dropdown-divider
                         a.dropdown-item(href='#reports/r/reading-provider-fees') Reading Provider Fees
                         a.dropdown-item(href='#reports/r/referring-provider-count') Referring Provider Count
                         a.dropdown-item(href='#reports/r/referring-provider-summary') Referring Provider Summary
@@ -58,15 +60,18 @@ block content
                         a.dropdown-item(href='#setup/billing_providers/list') Billing Providers
                         a.dropdown-item(href='#setup/provider_id_code_qualifiers/list') Provider ID Code Qualifiers
                         .dropdown-divider
-                        a.dropdown-item(href='#') Billing Messages
+                        a.dropdown-item(href='#setup/billing_messages/list') Billing Messages
                         a.dropdown-item(href='#setup/payment_reasons/list') Payment Reasons
                         a.dropdown-item(href='#setup/cas_group_codes/list') CAS Group Codes
                         a.dropdown-item(href='#setup/cas_reason_codes/list') CAS Reason Codes
                         //a.dropdown-item(href='#setup/provider_level_codes/list') Provider Level Codes
                         a.dropdown-item(href='#setup/status_color_codes/list') Status Color Codes
                         .dropdown-divider
-                        a.dropdown-item(href='#setup/edi_clearinghouses/list') EDI ClearingHouses
+                        a.dropdown-item(href='#setup/edi_clearinghouses/list') EDI Clearinghouses
+                        a.dropdown-item(href='#setup/insurance_x12_mapping/list') Insurance EDI Mapping
                         a.dropdown-item(href='#setup/validations/all') Billing Validations
+                        a.dropdown-item(href='#setup/edi_templates/all') EDI Templates
+                        a.dropdown-item(href='#setup/paper_claim_templates/list') Paper Claim Templates
 
                 li.nav-item.dropdown
                     a#aLog.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Log
@@ -75,7 +80,7 @@ block content
                         a.dropdown-item(href='#setup/user_log/list') User Log
 
                 li.nav-item
-                    a.nav-link(href='#') Logout
+                    a.nav-link(href='/logout') Logout
 
     #root
 
@@ -84,4 +89,5 @@ block content
             p Loading
                 img(src=staticAssetsRoot + "/images/ajax-loader.gif", style="padding-left:10px;")
 
+    script(type='text/javascript', src=staticAssetsRoot + '/node_modules/immutable/dist/immutable.min.js')
     script(type='text/javascript', src=staticAssetsRoot + '/node_modules/requirejs/require.js', data-main=staticAssetsRoot + '/js/main.js')

@@ -1,5 +1,25 @@
-define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale', 'text!templates/app/payments.html', 'collections/app/payments', 'models/pager', 'views/reports/payments-pdf'],
-    function (jQuery, Immutable, _, Backbone, JGrid, JGridLocale, paymentsGrid, paymentsLists, ModelPaymentsPager, paymentPDF) {
+define(['jquery',
+    'immutable',
+    'underscore',
+    'backbone',
+    'jqgrid',
+    'jqgridlocale',
+    'text!templates/app/payments.html',
+    'collections/app/payments',
+    'models/pager',
+    'views/reports/payments-pdf'],
+
+    function (jQuery,
+        Immutable,
+        _,
+        Backbone,
+        JGrid,
+        JGridLocale,
+        paymentsGrid,
+        paymentsLists,
+        ModelPaymentsPager,
+        paymentPDF)
+    {
         var paymentsView = Backbone.View.extend({
             el: null,
             pager: null,
@@ -22,7 +42,6 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 'click #btnPaymentRefresh': 'refreshPayments',
                 "click #btnGenerateExcel": "exportExcel",
                 "click #btnGeneratePDF": "generatePDF"
-
             },
 
             initialize: function (options) {
@@ -74,8 +93,6 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
 
             initializeDateTimePickers: function () {
                 var self = this;
-
-                // Payments Tab
                 var companyCurrentDateTime = commonjs.getCompanyCurrentDateTime();
                 var startFrom = moment(companyCurrentDateTime).subtract(2, 'months');
                 var endTo = companyCurrentDateTime;
@@ -83,14 +100,6 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 self.dtpPayTo = commonjs.bindDateTimePicker("divPaymentToDate", { format: 'L', useCurrent: false });
                 self.dtpPayFrom.date(startFrom);
                 self.dtpPayTo.date(endTo);
-
-                // Pending Payments Tab
-                // startFrom = moment(companyCurrentDateTime).subtract(1, 'year');
-                // endTo = moment(companyCurrentDateTime).add(1, 'day');
-                // self.dtpPendFrom = commonjs.bindDateTimePicker("divPendPaymentFromDate", { format: 'L', useCurrent: false });
-                // self.dtpPendTo = commonjs.bindDateTimePicker("divPendPaymentToDate", { format: 'L', useCurrent: false });
-                // self.dtpPendFrom.date(startFrom);
-                // self.dtpPendTo.date(endTo);
             },
 
             render: function (opener) {
@@ -107,18 +116,12 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                 $('#btnTabNavPayRight').click(function () {
                     $('#divPaymentTabsContainer').scrollTo({ top: '0px', left: '+=70' }, 300);
                 });
-                // self.initializeDateTimePickers();
-            },
-
-            validateFromAndToDate: function (objFromDate, objToDate) {
-                var validationResult = commonjs.validateDateTimePickerRange(objFromDate, objToDate, false, 'day');
-
-                if (!validationResult.valid) {
-                    commonjs.showWarning(validationResult.message);
-                    return false;
-                }
-
-                return true;
+                $('#ulPaymentStatus').multiselect({
+                    maxHeight: 300,
+                    selectAllText: true,
+                    numberDisplayed: 2,
+                    selectAllValue: 'multiselect-all'
+                });                
             },
 
             refreshPayments: function () {
@@ -129,18 +132,11 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
 
             searchPayments: function () {
                 var self = this;
-
-                if (self.validateFromAndToDate(self.dtpPayFrom, self.dtpPayTo)) {
-                    self.paymentTable.options.customargs = {
-                        filterByDateType: $('input[name=filterByDateType]:checked').val(),
-                        fromDate: self.dtpPayFrom.date().format('YYYY-MM-DD'),
-                        toDate: self.dtpPayTo.date().format('YYYY-MM-DD'),
-                        paymentStatus: $("#ulPaymentStatus").val(),
-                        facility_id: $("#ddlPaymentFacility").val()
-                    };
-                    self.pager.set({ "PageNo": 1 });
-                    self.paymentTable.refresh();
-                }
+                self.paymentTable.options.customargs = {
+                    paymentStatus: $("#ulPaymentStatus").val()
+                };
+                self.pager.set({ "PageNo": 1 });
+                self.paymentTable.refresh();
             },
 
             showGrid: function (opener) {
@@ -183,9 +179,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                                 name: 'edit', width: 50, sortable: false, search: false,
                                 className: 'icon-ic-edit',
                                 formatter: function (a, b, c) {
-                                    return "<span class='icon-ic-edit' title='click Here to Edit'></span>"
-                                    // var url = "#billing/payments/edit/" + b.rowId;
-                                    // return '<a href=' + url + '> Edit'
+                                    return "<span class='icon-ic-edit' title='click Here to Edit'></span>";
                                 },
                                 customAction: function (rowID, e) {
                                     self.editPayment(rowID);
@@ -240,28 +234,19 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         disableadd: true,
                         disablereload: true,
                         customargs: {
-                            filterByDateType: $('input[name=filterByDateType]:checked').val(),
-                            fromDate: self.dtpPayFrom && self.dtpPayFrom.date() ? self.dtpPayFrom.date().format('YYYY-MM-DD') : "",
-                            toDate: self.dtpPayTo && self.dtpPayTo.date() ? self.dtpPayTo.date().format('YYYY-MM-DD') : "",
-                            paymentStatus: $("#ulPaymentStatus").val(),
-                            facility_id: $("#ddlPaymentFacility").val()
+                            paymentStatus: $("#ulPaymentStatus").val()
                         },
                         afterInsertRow: function (rowid, rowdata) {
                             if (rowdata.current_status) {
-                                console.log(rowdata.current_status)
                                 var status = commonjs.getClaimColorCodeForStatus(rowdata.current_status, 'payment');
-                                var statusColor = status[0];                            
-                                $("#" + rowid).css({ 'background-color' : statusColor.color_code });         
+                                var statusColor = status[0];
+                                if (statusColor)
+                                    $("#" + rowid).css({ 'background-color': statusColor.color_code });
                             }
                         }
                     });
 
                     this.gridLoaded = true;
-                    $("#tblpaymentsGrid").bind("reloadGrid", function (e) {
-                        $("#divAmountTotal").html("$0.00");
-                        $("#divAppliedTotal").html("$0.00");
-                        $("#divAdjTotal").html("$0.00");
-                    });
 
                     $("#tblpaymentsGrid").bind("jqGridAfterGridComplete", function (e) {
                         clearTimeout(self.amountTimer);
@@ -271,11 +256,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                         clearTimeout(self.appliedTimer);
                         self.appliedTimer = setTimeout(self.calculateAppliedTotal, 25);
                         let dataSet={
-                            filterByDateType: $('input[name=filterByDateType]:checked').val(),
-                            fromDate: self.dtpPayFrom && self.dtpPayFrom.date() ? self.dtpPayFrom.date().format('YYYY-MM-DD') : "",
-                            toDate: self.dtpPayTo && self.dtpPayTo.date() ? self.dtpPayTo.date().format('YYYY-MM-DD') : "",
                             paymentStatus: $("#ulPaymentStatus").val(),
-                            facility_id: $("#ddlPaymentFacility").val(),
                             filterData:JSON.stringify(self.pager.get("FilterData")),
                             filterCol:JSON.stringify(self.pager.get("FilterCol")),
                             sortField:self.pager.get("SortField"), 
@@ -297,8 +278,6 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                                 commonjs.handleXhrError(err);
                             }
                         });
-                        // $('#tblpaymentsGrid').jqGrid('setGridHeight', '390px');
-
                         commonjs.docResize();
                     });
                 }
@@ -306,6 +285,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
                     this.paymentTable.refresh();
                 }
             },
+            
             editPayment: function (rowId) {
                 Backbone.history.navigate('#billing/payments/edit/' + rowId, true);
             },
@@ -349,9 +329,7 @@ define(['jquery', 'immutable', 'underscore', 'backbone', 'jqgrid', 'jqgridlocale
             generatePDF: function (e) {
                 var self = this;
                 self.paymentPDF = new paymentPDF({ el: $('#modal_div_container') });
-                var paymentPDFArgs = {
-                    'txtPaymentFromDate': $('#txtPaymentFromDate').val(),
-                    'txtPaymentToDate': $('#txtPaymentToDate').val(),
+                var paymentPDFArgs = {                   
                     'isDateFlag': $('#filterByPostingDt').prop('checked') ? true : false
                 }
                 self.paymentPDF.onReportViewClick(e, paymentPDFArgs);

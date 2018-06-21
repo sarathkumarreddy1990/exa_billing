@@ -29,8 +29,10 @@ router.delete('/:id', async function (req, res) {
         ...req.params,
         ...req.audit
     };
+
     const data = await providerLevelCodeControllers.delete(params);
     httpHandler.sendRows(req, res, data);
+
 });
 
 module.exports = router;

@@ -34,18 +34,8 @@ router.put('/claim_comment', async (req, res) => {
     httpHandler.sendRows(req, res, data);
 });
 
-router.post('/followup', async (req, res) => {
-    const data = await inquiryController.saveFollowUpDate(req.body);
-    httpHandler.sendRows(req, res, data);
-});
-
 router.get('/followup', async (req, res) => {
     const data = await inquiryController.getFollowupDate(req.query);
-    httpHandler.sendRows(req, res, data);
-});
-
-router.put('/billing_note', async (req, res) => {
-    const data = await inquiryController.updateBillingNotes(req.body);
     httpHandler.sendRows(req, res, data);
 });
 

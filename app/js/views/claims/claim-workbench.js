@@ -4,6 +4,7 @@ define(['jquery',
     'backbone',
     'jqgrid',
     'jqgridlocale',
+    'shared/paper-claim',
     'collections/claim-filters',
     'text!templates/claims/claims.html',
     'text!templates/index.html',
@@ -11,13 +12,15 @@ define(['jquery',
     'grid',
     'shared/fields',
     'text!templates/claims/ediResult.html',
-    'text!templates/claims/claim-validation.html'],
+    'text!templates/claims/claim-validation.html',
+],
     function ($,
               Immutable,
               _,
               Backbone,
               JGrid,
               JGridLocale,
+              PaperClaim,
               ClaimFiltersCollection,
               ClaimHTML,
               IndexHTML,
@@ -26,6 +29,9 @@ define(['jquery',
               ListFields,
               ediResultHTML,
               claimValidation) {
+
+        var paperClaim = new PaperClaim();
+
         var MergeQueueBase = Immutable.Record({
             'filterIndexSet': Immutable.OrderedSet(),
             /**
@@ -286,7 +292,6 @@ define(['jquery',
                         claimsFilters = claimsFilters.concat(response)
                         commonjs.claimsFilters = Immutable.List(claimsFilters);
                         self.setFiltertabs(claimsFilters);
-
                     },
                     error: function (model, response) {
                         commonjs.handleXhrError(model, response);
@@ -384,24 +389,29 @@ define(['jquery',
                 let claimIds =[],existingBillingMethod='';       
 
                 for (let i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
-                    let rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;                   
-                    
+                    let rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;
+
                     var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'billing_method');
                     if (existingBillingMethod == '') existingBillingMethod = billingMethod
-                    if (existingBillingMethod != billingMethod||(billingMethod !='electronic_billing')) {
-                        commonjs.showWarning('Please select claims with same type of billing method and electronic billing method');
-                        return false;
-                    }
-                    else {
+                    if (existingBillingMethod != billingMethod || (billingMethod != 'electronic_billing')) {
+                        //commonjs.showWarning('Please select claims with same type of billing method and electronic billing method');
+                        //return false;
+                    } else {
                         existingBillingMethod = billingMethod;
                     }
+
                     claimIds.push(rowId);
                 }
 
 
-                if(claimIds&&claimIds.length==0){
+                if (claimIds && claimIds.length == 0) {
                     commonjs.showWarning('Please select claims with same type of billing method and electronic billing method');
                     return false;
+                }
+
+                if(existingBillingMethod === 'paper_claim') {
+                    paperClaim.print(claimIds);
+                    return;
                 }
 
                 self.ediResultTemplate = _.template(ediResultHTML);

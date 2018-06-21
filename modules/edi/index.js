@@ -18,12 +18,16 @@ const ediProxyServer = {
     apiUri: ediServerUri,
 
     init: function (uri) {
+        if (uri && uri.indexOf('edi/api') == -1) {
+            uri = uri + '/edi/api';
+        }
+
         this.apiUri = uri || ediServerUri;
     },
 
     getTemplatesList: async function (flag = 'edi') {
-        
-        if (!(flag == 'era' || flag == 'edi')) { 
+
+        if (!(flag == 'era' || flag == 'edi')) {
             throw new Error('Invalid flag name. Should be edi/era');
         }
 
@@ -35,9 +39,19 @@ const ediProxyServer = {
         return await doRequest(options);
     },
 
+    getDefaultEraTemplate: async function () {
+        const templates = await this.getTemplatesList('era');
+
+        if (templates.length > 0) {
+            return templates[0];
+        }
+
+        return false;
+    },
+
     getTemplate: async function (flag = 'edi', templateName) {
 
-        if (!(flag == 'era' || flag == 'edi')) { 
+        if (!(flag == 'era' || flag == 'edi')) {
             throw new Error('Invalid flag name. Should be edi/era');
         }
 
@@ -55,7 +69,7 @@ const ediProxyServer = {
 
     createTemplate: async function (flag = 'edi', templateName) {
 
-        if (!(flag == 'era' || flag == 'edi')) { 
+        if (!(flag == 'era' || flag == 'edi')) {
             throw new Error('Invalid flag name. Should be edi/era');
         }
 
@@ -77,7 +91,7 @@ const ediProxyServer = {
 
     updateTemplate: async function (flag = 'edi', templateName, templateBody) {
 
-        if (!(flag == 'era' || flag == 'edi')) { 
+        if (!(flag == 'era' || flag == 'edi')) {
             throw new Error('Invalid flag name. Should be edi/era');
         }
 
@@ -97,7 +111,7 @@ const ediProxyServer = {
 
     deleteTemplate: async function (flag = 'edi', templateName) {
 
-        if (!(flag == 'era' || flag == 'edi')) { 
+        if (!(flag == 'era' || flag == 'edi')) {
             throw new Error('Invalid flag name. Should be edi/era');
         }
 

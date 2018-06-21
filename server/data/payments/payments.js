@@ -206,6 +206,7 @@ module.exports = {
                         , (select payments_applied_total from billing.get_payment_totals(payments.id)) AS applied       
                         , (select adjustments_applied_total from billing.get_payment_totals(payments.id)) AS adjustment_amount
                         , (select payment_status from billing.get_payment_totals(payments.id)) AS current_status
+                        , billing.payments.XMIN as payment_row_version
                     FROM billing.payments
                     INNER JOIN public.users ON users.id = payments.created_by
                     LEFT JOIN public.patients ON patients.id = payments.patient_id
@@ -239,75 +240,135 @@ module.exports = {
             notes,
             payment_mode,
             credit_card_name,
-            credit_card_number } = params;
+            credit_card_number,
+            payment_row_version,
+            screenName,
+            moduleName,
+            clientIp,
+            logDescription } = params;
 
         payer_type = payer_type == 'provider' ? 'ordering_provider' : payer_type;
-        facility_id = facility_id != 0 ? facility_id : null; 
+        facility_id = facility_id != 0 ? facility_id : null;
 
-        const sql = SQL`WITH insert_data as ( INSERT INTO billing.payments
-                                                (   company_id
-                                                  , facility_id
-                                                  , patient_id
-                                                  , insurance_provider_id
-                                                  , provider_group_id
-                                                  , provider_contact_id
-                                                  , payment_reason_id
-                                                  , amount
-                                                  , accounting_dt
-                                                  , created_by
-                                                  , payment_dt
-                                                  , invoice_no
-                                                  , alternate_payment_id
-                                                  , payer_type
-                                                  , notes
-                                                  , mode
-                                                  , card_name
-                                                  , card_number)
-                                                SELECT
-                                                    ${company_id}
-                                                  , ${facility_id}
-                                                  , ${patient_id}
-                                                  , ${insurance_provider_id}
-                                                  , ${provider_group_id}
-                                                  , ${provider_contact_id}
-                                                  , ${payment_reason_id}
-                                                  , ${amount}
-                                                  , ${accounting_date}
-                                                  , ${user_id}
-                                                  , now()
-                                                  , ${invoice_no}
-                                                  , ${display_id}
-                                                  , ${payer_type}
-                                                  , ${notes}
-                                                  , ${payment_mode}
-                                                  , ${credit_card_name}
-                                                  , ${credit_card_number}
-                                                WHERE NOT EXISTS( SELECT 1 FROM billing.payments where id = ${paymentId})
-                                                RETURNING id ),
-                                                payment_update AS(UPDATE billing.payments SET
-                                                    facility_id = ${facility_id}
-                                                  , patient_id = ${patient_id}
-                                                  , insurance_provider_id = ${insurance_provider_id}
-                                                  , provider_group_id = ${provider_group_id}
-                                                  , provider_contact_id = ${provider_contact_id}
-                                                  , amount = ${amount}::money
-                                                  , accounting_dt = ${accounting_date}
-                                                  , invoice_no = ${invoice_no}
-                                                  , alternate_payment_id = ${display_id}
-                                                  , payer_type = ${payer_type}
-                                                  , payment_reason_id = ${payment_reason_id}
-                                                  , notes = ${notes}
-                                                  , mode = ${payment_mode}
-                                                  , card_name = ${credit_card_name}
-                                                  , card_number = ${credit_card_number}
-                                                  WHERE 
-                                                    id = ${paymentId}
-                                                  AND NOT EXISTS(SELECT 1 FROM insert_data) 
-                                                  RETURNING id
-                                                )
-                                                  SELECT id from insert_data
-                                                  UNION 
-                                                  SELECT id from payment_update `;
+        if (paymentId) {
+            logDescription = ` ${paymentId} Payment updated `;
+        }
+        else {
+            logDescription = `Created Payment As $${amount}`;
+        }
+
+        const sql = SQL`WITH insert_data as 
+                        ( INSERT INTO billing.payments
+                            (   company_id
+                                , facility_id
+                                , patient_id
+                                , insurance_provider_id
+                                , provider_group_id
+                                , provider_contact_id
+                                , payment_reason_id
+                                , amount
+                                , accounting_dt
+                                , created_by
+                                , payment_dt
+                                , invoice_no
+                                , alternate_payment_id
+                                , payer_type
+                                , notes
+                                , mode
+                                , card_name
+                                , card_number)
+                            SELECT
+                                ${company_id}
+                                , ${facility_id}
+                                , ${patient_id}
+                                , ${insurance_provider_id}
+                                , ${provider_group_id}
+                                , ${provider_contact_id}
+                                , ${payment_reason_id}
+                                , ${amount}
+                                , ${accounting_date}
+                                , ${user_id}
+                                , now()
+                                , ${invoice_no}
+                                , ${display_id}
+                                , ${payer_type}
+                                , ${notes}
+                                , ${payment_mode}
+                                , ${credit_card_name}
+                                , ${credit_card_number}
+                            WHERE NOT EXISTS( SELECT 1 FROM billing.payments where id = ${paymentId})
+                            RETURNING *, '{}'::jsonb old_values),
+                            payment_update AS(UPDATE billing.payments SET
+                                facility_id = ${facility_id}
+                                , patient_id = ${patient_id}
+                                , insurance_provider_id = ${insurance_provider_id}
+                                , provider_group_id = ${provider_group_id}
+                                , provider_contact_id = ${provider_contact_id}
+                                , amount = ${amount}::money
+                                , accounting_dt = ${accounting_date}
+                                , invoice_no = ${invoice_no}
+                                , alternate_payment_id = ${display_id}
+                                , payer_type = ${payer_type}
+                                , payment_reason_id = ${payment_reason_id}
+                                , notes = ${notes}
+                                , mode = ${payment_mode}
+                                , card_name = ${credit_card_name}
+                                , card_number = ${credit_card_number}
+                                WHERE 
+                                id = ${paymentId}
+                                AND NOT EXISTS(SELECT 1 FROM insert_data) 
+                                AND (SELECT (SELECT xmin as claim_row_version from billing.payments WHERE id = ${paymentId}) =  ${payment_row_version})
+                                RETURNING *,
+                                (
+                                    SELECT row_to_json(old_row) 
+                                    FROM   (SELECT * 
+                                            FROM   billing.payments 
+                                            WHERE  id = ${paymentId}) old_row 
+                                ) old_values
+                            ),
+                            insert_audit_cte AS(
+                                SELECT billing.create_audit(
+                                    company_id
+                                  , ${screenName}
+                                  , id
+                                  , ${screenName}
+                                  , ${moduleName}
+                                  , ${logDescription}
+                                  , ${clientIp}
+                                  , json_build_object(
+                                      'old_values', COALESCE(old_values, '{}'),
+                                      'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM insert_data) temp_row)
+                                    )::jsonb
+                                  , ${user_id}
+                                ) AS id 
+                                FROM insert_data
+                                WHERE id IS NOT NULL
+                            ),
+                            update_audit_cte as(
+                                SELECT billing.create_audit(
+                                    company_id
+                                  , ${screenName}
+                                  , id
+                                  , ${screenName}
+                                  , ${moduleName}
+                                  , ${logDescription}
+                                  , ${clientIp}
+                                  , json_build_object(
+                                      'old_values', COALESCE(old_values, '{}'),
+                                      'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM payment_update) temp_row)
+                                    )::jsonb
+                                  , ${user_id}
+                                ) AS id 
+                                FROM payment_update
+                                WHERE id IS NOT NULL
+                            )
+                            SELECT id from insert_data
+                            UNION 
+                            SELECT id from payment_update
+                            UNION 
+                            SELECT id from insert_audit_cte
+                            UNION
+                            SELECT id from update_audit_cte `;
 
         return await query(sql);
     },
@@ -324,8 +385,15 @@ module.exports = {
     },
 
     createPaymentapplications: async function (params) {
-        let { user_id, paymentId, line_items, adjestmentId } = params;
+        let { user_id,
+            paymentId,
+            line_items,
+            adjestmentId,
+            auditDetails,
+            logDescription } = params;
         adjestmentId = adjestmentId ? adjestmentId : null;
+        logDescription = `Claim updated Id : ${params.claimId}`;
+        
         const sql = SQL`WITH claim_comment_details AS(
                                     SELECT 
                                           claim_id
@@ -339,7 +407,7 @@ module.exports = {
                                         , created_by BIGINT)
                                     ),
                              insert_application AS(
-                                SELECT billing.create_payment_applications(${paymentId},${adjestmentId},${user_id},(${line_items})::jsonb)
+                                SELECT billing.create_payment_applications(${paymentId},${adjestmentId},${user_id},(${line_items})::jsonb,(${JSON.stringify(auditDetails)})::json) AS details
                              ),
                              update_claims AS(
                                     UPDATE billing.claims
@@ -347,7 +415,15 @@ module.exports = {
                                         billing_notes = ${params.billingNotes}
                                       , payer_type = ${params.payerType}
                                     WHERE
-                                        id = ${params.claimId}),
+                                        id = ${params.claimId}
+                                    RETURNING *,
+                                    (
+                                        SELECT row_to_json(old_row) 
+                                        FROM   (SELECT * 
+                                            FROM   billing.claims 
+                                            WHERE  id = ${params.claimId}) old_row 
+                                    ) old_values
+                            ),
                              insert_calim_comments AS(
                                     INSERT INTO billing.claim_comments
                                     ( claim_id
@@ -363,8 +439,50 @@ module.exports = {
                                     , false
                                     , created_by
                                     , now()
-                                    FROM claim_comment_details)
-                                    SELECT * FROM insert_application`;
+                                    FROM claim_comment_details
+                                    RETURNING *, '{}'::jsonb old_values
+                            ),
+                            update_claims_audit_cte as(
+                                SELECT billing.create_audit(
+                                    ${auditDetails.company_id}
+                                    , ${auditDetails.screen_name}
+                                    , id
+                                    , ${auditDetails.screen_name}
+                                    , ${auditDetails.module_name}
+                                    , ${logDescription}
+                                    , ${auditDetails.client_ip}
+                                    , json_build_object(
+                                        'old_values', COALESCE(old_values, '{}'),
+                                        'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_claims) temp_row)
+                                    )::jsonb
+                                    , ${user_id}
+                                ) AS id 
+                                FROM update_claims
+                                WHERE id IS NOT NULL
+                            ),
+                            insert_claim_comment_audit_cte as(
+                                SELECT billing.create_audit(
+                                    ${auditDetails.company_id}
+                                    , ${auditDetails.screen_name}
+                                    , id
+                                    , ${auditDetails.screen_name}
+                                    , ${auditDetails.module_name}
+                                    , 'Claim Comments inserted AS ' || ${params.claimCommentDetails}
+                                    , ${auditDetails.client_ip}
+                                    , json_build_object(
+                                        'old_values', COALESCE(old_values, '{}'),
+                                        'new_values', (${params.claimCommentDetails})::text
+                                    )::jsonb
+                                    , ${user_id}
+                                ) AS id 
+                                FROM insert_calim_comments
+                                WHERE id IS NOT NULL
+                            )
+                            SELECT details,null FROM insert_application
+                            UNION ALL
+                            SELECT null,id FROM update_claims_audit_cte
+                            UNION ALL
+                            SELECT null,id FROM insert_claim_comment_audit_cte`;
 
         return await query(sql);
     },
@@ -463,23 +581,6 @@ module.exports = {
                             )
                             SELECT true`;
 
-        return await query(sql);
-    },
-
-    saveCasDetails: async function (params) {
-
-        const sql = `INSERT INTO billing.cas_payment_application_details
-                                            (   payment_application_id
-                                              , cas_group_code_id
-                                              , cas_reason_code_id
-                                              , amount
-                                            )
-                                            (SELECT
-                                                ${params.application_id}
-                                              , ${params.group_code}
-                                              , ${params.reason_code}
-                                              , ${params.amount})
-                                              RETURNING id`;
         return await query(sql);
     }
 

@@ -48,8 +48,8 @@ define(['jquery',
                     gridelementid: '#tblStatusColorCodesGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['','','','',''],
-                    i18nNames: ['', '', 'setup.statusColorCode.processType', 'setup.statusColorCode.processStatus', 'setup.statusColorCode.colorCode' ],
+                    colNames: ['','','','','',''],
+                    i18nNames: ['', '', '', 'setup.statusColorCode.processType', 'setup.statusColorCode.processStatus', 'setup.statusColorCode.colorCode' ],
                     colModel: [
                         {
                             name: 'id',
@@ -67,6 +67,28 @@ define(['jquery',
                             route: '#setup/status_color_codes/edit/',
                             formatter: function(e, model, data) {
                                 return "<span class='icon-ic-edit' title='click here to Edit'></span>"
+                            }
+                        },
+                        {
+                            name: 'del', width: 10, sortable: false, search: false,
+                            className: 'icon-ic-delete',
+                            customAction: function (rowID) {
+                                if (confirm("Are you sure want to delete")) {
+                                    var gridData = $('#tblStatusColorCodesGrid').jqGrid('getRowData', rowID);
+                                    self.model.set({ "id": rowID });
+                                    self.model.destroy({
+                                        success: function (model, response) {
+                                            commonjs.showStatus("Deleted Successfully");
+                                            self.statusColorCodesTable.refresh();
+                                        },
+                                        error: function (model, response) {
+                                            commonjs.handleXhrError(model, response);
+                                        }
+                                    });
+                                }
+                            },
+                            formatter: function(e, model, data) {
+                                return "<span class='icon-ic-delete' title='click here to Delete'></span>"
                             }
                         },
                         {
@@ -106,6 +128,9 @@ define(['jquery',
                 });
 
                 commonjs.initializeScreen({header: {screen: 'StatusColorCodes', ext: 'statusColorCodes'}, grid: {id: '#tblStatusColorCodesGrid'}, buttons: [
+                    {value: 'Add', class: 'btn btn-danger', i18n: 'shared.buttons.add', clickEvent: function () {
+                        Backbone.history.navigate('#setup/status_color_codes/new', true);
+                    }},
                     {value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
                         self.pager.set({"PageNo": 1});
                         self.statusColorCodesTable.refreshAll();
@@ -146,9 +171,6 @@ define(['jquery',
                 }
 
                 commonjs.initializeScreen({header: {screen: 'StatusColorCodes', ext: 'statusColorCodes'}, buttons: [
-                    {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
-                        self.saveStatusColorCodes();
-                    }},
                     {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
                         Backbone.history.navigate('#setup/status_color_codes/list', true);
                     }}

@@ -16,6 +16,7 @@ const claimInquiry = require('../routes/claim/claim-inquiry');
 const patientRouter = require('../routes/patients');
 const studyFilterRouter = require('../routes/setup/study-filter');
 const eraRouter = require('../routes/era');
+const splitClaimRouter = require('../routes/claim/split-claim');
 
 const router = function (app) {
 
@@ -33,6 +34,7 @@ const router = function (app) {
     app.use('/exa_modules/billing/setup', setupRouters);
     app.use('/exa_modules/billing/payments', paymentsRouter);
     app.use('/exa_modules/billing/pending_payments', paymentsRouter);
+    app.use('/exa_modules/billing/claims/split_claim', splitClaimRouter);
     app.use('/exa_modules/billing/claims', claimsRouters);
     app.use('/exa_modules/billing/user_settings', userSettingRouter);
     app.use('/exa_modules/billing/claim_workbench', claimsWorkbenchRouters);
