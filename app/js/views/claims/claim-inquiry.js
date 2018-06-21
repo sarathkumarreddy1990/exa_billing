@@ -150,7 +150,7 @@ define([
                     shrinkToFit: true,
                     width: $('#claimDetails').width() - 50
                 });
-                //$('#gview_tblCIDiagnosis').find('.ui-jqgrid-bdiv').css('max-height', '180px')
+                $('#gview_tblCIDiagnosis').find('.ui-jqgrid-bdiv').css('max-height', '180px')
             },
 
             showClaimCommentsGrid: function () {

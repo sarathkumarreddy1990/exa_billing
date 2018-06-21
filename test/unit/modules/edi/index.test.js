@@ -33,6 +33,15 @@ describe('EDI-Connect', () => {
             });
         });
 
+        describe('getDefaultEraTemplate - ' + flag, () => {
+            it('should return default ERA template name', async () => {
+                const template = await ediConnect.getDefaultEraTemplate();
+
+                should.exist(template);
+                template.should.be.a('string');
+            });
+        });
+
         describe('createTemplate - ' + flag, () => {
             it('should create and return all template names', async () => {
                 const templates = await ediConnect.createTemplate(flag, templateName);

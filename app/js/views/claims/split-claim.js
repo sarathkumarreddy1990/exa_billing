@@ -22,15 +22,15 @@ define([
             render: function () {
                 this.rendered = true;
                 commonjs.showDialog({
-                    header: 'Claim Creation',
-                    width: '95%',
+                    header: 'Create/SPlit',
+                    width: '85%',
                     height: '75%',
                     html: this.splitCLaimTemplate()
                 });
 
                 this.showCharge();
                 this.validateSplitClaim(this.claim_id);
-                $('#divAllCPTList, #divSelectedCPTList').height($('#body_content').height() - 60).css('padding', '0');
+                $('#divAllCPTList, #divSelectedCPTList').height($('#modal_div_container').height() - 60).css('padding', '0');
             },
 
             validateSplitClaim: function (claim_id) {
@@ -74,22 +74,22 @@ define([
 
             bindSplitEvents: function () {
                 var self = this;
-                
+
                 $('#btnCreateClaim').off().click(function () {
                     self.splitClaim();
                 });
 
-                $('#btnReload').off().click(function (){
+                $('#btnReload').off().click(function () {
                     self.reloadChargeList();
                 });
 
-                // $('section').off().dblclick(function(){
-                //     self.selectCharge(e);
-                // });
-                    
+                $('section').off().dblclick(function (e) {
+                    self.selectCharge(e);
+                });
+
             },
 
-            showCharge: function(){
+            showCharge: function () {
                 var self = this;
 
                 $.ajax({
@@ -103,7 +103,8 @@ define([
                             var CPTList = self.cptListTemplate({ charges: data[0].claim_details });
                             $('#divAllCPTList').append(CPTList).fadeIn("slow");
                             self.setEvents();
-                            commonjs.initializeScreen({header: {screen: 'Split Claim', ext: 'createSplit'}}, true);
+                            commonjs.hideLoading();
+                            commonjs.initializeScreen({ header: { screen: 'Split Claim', ext: 'createSplit' } }, true);
                         }
 
                     },
@@ -159,10 +160,10 @@ define([
                         let charge_id = $(this).attr('data-charge_id');
                         _cpt_ids.push(charge_id);
                     });
-                    
+
                     if (confirm('Are you sure to create order with the selected stud(y)ies?')) {
-                      //  $('#btnCreateClaim').attr('disabled', true);
-                        commonjs.showLoading('Processing please wait..');                      
+                        //  $('#btnCreateClaim').attr('disabled', true);
+                        commonjs.showLoading('Processing please wait..');
                         $.ajax({
                             url: "/exa_modules/billing/claims/split_claim",
                             type: "PUT",
@@ -171,7 +172,7 @@ define([
                                 claim_id: self.claim_id
                             },
                             success: function (data, response) {
-                                commonjs.showStatus('Order has been merged successfully');
+                                commonjs.showStatus('Claim has been splited successfully');
                                 self.reloadChargeList();
                                 $('#btnCreateClaim').removeAttr('disabled');
                             },
@@ -203,10 +204,12 @@ define([
             },
 
             reloadChargeList: function () {
-                this.showCharge();
-                $('#divAllStudiesList').empty();
-                $('#divSelectedStudiesList').empty();
-                $('#btnMergeStudy').removeAttr('disabled');
-            },
+                var self = this;
+
+                self.showCharge();
+                $('#divAllCPTList').empty();
+                $('#divSelectedCPTList').empty();
+                $('#btnCreateClaim').removeAttr('disabled');
+            }
         });
     });

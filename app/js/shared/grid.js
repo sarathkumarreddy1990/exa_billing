@@ -232,8 +232,8 @@ define('grid', [
                 $('#anc_claim_inquiry').click(function () {
                      commonjs.showDialog({
                     'header': 'Claim Inquiry',
-                    'width': '95%',
-                    'height': '85%',
+                    'width': '90%',
+                    'height': '75%',
                     'needShrink': true
                 });
                 self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
