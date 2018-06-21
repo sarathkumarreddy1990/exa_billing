@@ -390,14 +390,11 @@ module.exports = {
             line_items,
             adjestmentId,
             auditDetails,
-            screenName,
-            moduleName,
-            clientIp,
             logDescription,
             companyId } = params;
         adjestmentId = adjestmentId ? adjestmentId : null;
         logDescription = `Claim updated Id : ${params.claimId}`;
-
+        
         const sql = SQL`WITH claim_comment_details AS(
                                     SELECT 
                                           claim_id
@@ -411,7 +408,7 @@ module.exports = {
                                         , created_by BIGINT)
                                     ),
                              insert_application AS(
-                                SELECT billing.create_payment_applications(${paymentId},${adjestmentId},${user_id},(${line_items})::jsonb,(${JSON.stringify(auditDetails)})::jsonb)
+                                SELECT billing.create_payment_applications(${paymentId},${adjestmentId},${user_id},(${line_items})::jsonb,(${JSON.stringify(auditDetails)})::json) AS details
                              ),
                              update_claims AS(
                                     UPDATE billing.claims
@@ -449,12 +446,12 @@ module.exports = {
                             update_claims_audit_cte as(
                                 SELECT billing.create_audit(
                                     ${companyId}
-                                    , ${screenName}
+                                    , ${auditDetails.screen_name}
                                     , id
-                                    , ${screenName}
-                                    , ${moduleName}
+                                    , ${auditDetails.screen_name}
+                                    , ${auditDetails.module_name}
                                     , ${logDescription}
-                                    , ${clientIp}
+                                    , ${auditDetails.client_ip}
                                     , json_build_object(
                                         'old_values', COALESCE(old_values, '{}'),
                                         'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_claims) temp_row)
@@ -467,27 +464,26 @@ module.exports = {
                             insert_claim_comment_audit_cte as(
                                 SELECT billing.create_audit(
                                     ${companyId}
-                                    , ${screenName}
+                                    , ${auditDetails.screen_name}
                                     , id
-                                    , ${screenName}
-                                    , ${moduleName}
-                                    , 'Claim Comment inserted'
-                                    , ${clientIp}
+                                    , ${auditDetails.screen_name}
+                                    , ${auditDetails.module_name}
+                                    , 'Claim Comments inserted AS ' || ${params.claimCommentDetails}
+                                    , ${auditDetails.client_ip}
                                     , json_build_object(
                                         'old_values', COALESCE(old_values, '{}'),
-                                        'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM insert_calim_comments limit 1) temp_row)
+                                        'new_values', (${params.claimCommentDetails})::text
                                     )::jsonb
                                     , ${user_id}
                                 ) AS id 
                                 FROM insert_calim_comments
                                 WHERE id IS NOT NULL
-                            ),
-                            audit_select As(
-                                SELECT id, null FROM update_claims_audit_cte
-                                UNION 
-                                SELECT id, null FROM insert_claim_comment_audit_cte
                             )
-                            SELECT * FROM insert_application`;
+                            SELECT details,null FROM insert_application
+                            UNION ALL
+                            SELECT null,id FROM update_claims_audit_cte
+                            UNION ALL
+                            SELECT null,id FROM insert_claim_comment_audit_cte`;
 
         return await query(sql);
     },
