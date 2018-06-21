@@ -16,19 +16,19 @@ module.exports = {
         const {
             claim_status_id,
             billing_code_id,
-            billing_class_id,            
-            claimIds           
+            billing_class_id,
+            claimIds
         } = params;
 
         let updateData;
 
-        if(params.claim_status_id){
-            updateData=`claim_status_id = ${claim_status_id}`;
-        }else if(params.billing_code_id){
-            updateData=`billing_code_id = ${billing_code_id}`;
+        if (params.claim_status_id) {
+            updateData = `claim_status_id = ${claim_status_id}`;
+        } else if (params.billing_code_id) {
+            updateData = `billing_code_id = ${billing_code_id}`;
         }
-        else if(params.billing_class_id){
-            updateData=`billing_class_id = ${billing_class_id}`;
+        else if (params.billing_class_id) {
+            updateData = `billing_class_id = ${billing_class_id}`;
         }
 
 
@@ -37,18 +37,29 @@ module.exports = {
                         SET                      
                         
                     `;
-        sql.append(updateData);        
+        sql.append(updateData);
         sql.append(`WHERE  id in (${claimIds})`);
 
         return await query(sql);
     },
 
-    getEDIClaim:async (params) => {
+    getPaperClaimTemplate: async function () {
+        let sql = SQL`
+				SELECT * 
+				FROM   billing.paper_claim_templates 
+				ORDER  BY id DESC 
+				LIMIT  1 
+		`;
 
-        const {           
-            claimIds           
+        return await query(sql);
+    },
+
+    getEDIClaim: async (params) => {
+
+        const {
+            claimIds
         } = params;
-        
+
         let sql = SQL`
         
 	SELECT  
@@ -438,7 +449,7 @@ FROM billing.claims
 
         return await query(sql, params);
     },
-	
+
     validateClaim: async (params) => {
 
         let sql = SQL`SELECT 
@@ -590,7 +601,7 @@ FROM billing.claims
 						LATERAL (SELECT icd_id FROM billing.claim_icds ci WHERE ci.claim_id = bc.id LIMIT 1) claim_icd ON true
 					WHERE bc.id = ANY(${params.claim_ids})`;
 
-        return await query(sql)	;									
+        return await query(sql);
     },
 
     movetoPendingSub: async (params) => {

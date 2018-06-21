@@ -27,6 +27,7 @@
         "jstorage": "^0.4.8",
         "moment": "^2.22.1",
         "moment-timezone": "^0.5.16",
+        "pdfmake": "^0.1.36",
         "popper.js": "^1.14.3",
         "requirejs": "^2.3.5",
         "requirejs-text": "^2.0.15",

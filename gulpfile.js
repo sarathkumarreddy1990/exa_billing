@@ -27,7 +27,8 @@ gulp.task('less', () => {
         .pipe(less({
             paths: [path.join(__dirname, 'app/skins/default/index.less')]
         }))
-        .pipe(gulp.dest('./dist/css'))
+        //.pipe(gulp.dest('./dist/css'))
+        .pipe(gulp.dest('./app/skins/default'))
 });
 
 /// TODO: Auto prefix
@@ -39,12 +40,11 @@ gulp.task('concat-css', ['less'], () => {
         './app/node_modules/bootstrap-daterangepicker/daterangepicker.css',
         './app/node_modules/font-awesome/css/font-awesome.css',
         './app/libs/datetimepicker/less/bootstrap-datetimepicker-build.css',
-        './app/libs/jqgrid/css/ui.jqgrid.css',
-        './dist/css/index.css',
+        './app/libs/jqgrid/css/ui.jqgrid.css'
     ])
         .pipe(concat('index.min.css'))
-        .pipe(gulp.dest('./dist/css'))
-        // .pipe(gulp.dest('./app/skins/default'))
+        //.pipe(gulp.dest('./dist/css'))
+         .pipe(gulp.dest('./app/skins/default'))
 });
 
 gulp.task('requirejsBuild', ['copy'], (done) => {

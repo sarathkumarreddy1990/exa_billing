@@ -7785,10 +7785,6 @@ var commonjs = {
 
         app.currentCulture = cultureCode;
         commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
-
-        if (screenTitle) {
-            document.title = screenTitle + '';
-        }
     },
 
     beautifyMe: function () {

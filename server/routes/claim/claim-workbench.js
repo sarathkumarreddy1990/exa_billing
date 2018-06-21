@@ -28,6 +28,16 @@ router.put('/update', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/claim_json', async function (req, res) {
+    const data = await claimWorkbenchController.getClaimObject(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
+router.get('/paper_claim_template', async function (req, res) {
+    const data = await claimWorkbenchController.getPaperClaimTemplate(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
 router.get('/submitClaim', async function (req, res) {
     const data = await claimWorkbenchController.getEDIClaim(req.query);
     httpHandler.send(req, res, data);
