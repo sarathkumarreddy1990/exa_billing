@@ -4,6 +4,7 @@ define(['jquery',
     'backbone',
     'jqgrid',
     'jqgridlocale',
+    'shared/paper-claim',
     'collections/claim-filters',
     'text!templates/claims/claims.html',
     'text!templates/index.html',
@@ -11,13 +12,15 @@ define(['jquery',
     'grid',
     'shared/fields',
     'text!templates/claims/ediResult.html',
-    'text!templates/claims/claim-validation.html'],
+    'text!templates/claims/claim-validation.html',
+],
     function ($,
               Immutable,
               _,
               Backbone,
               JGrid,
               JGridLocale,
+              PaperClaim,
               ClaimFiltersCollection,
               ClaimHTML,
               IndexHTML,
@@ -26,6 +29,9 @@ define(['jquery',
               ListFields,
               ediResultHTML,
               claimValidation) {
+
+        var paperClaim = new PaperClaim();
+
         var MergeQueueBase = Immutable.Record({
             'filterIndexSet': Immutable.OrderedSet(),
             /**
@@ -286,7 +292,6 @@ define(['jquery',
                         claimsFilters = claimsFilters.concat(response)
                         commonjs.claimsFilters = Immutable.List(claimsFilters);
                         self.setFiltertabs(claimsFilters);
-
                     },
                     error: function (model, response) {
                         commonjs.handleXhrError(model, response);
@@ -384,30 +389,35 @@ define(['jquery',
                 let claimIds =[],existingBillingMethod='';       
 
                 for (let i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
-                    let rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;                   
-                    
+                    let rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;
+
                     var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'billing_method');
                     if (existingBillingMethod == '') existingBillingMethod = billingMethod
-                    if (existingBillingMethod != billingMethod||(billingMethod !='electronic_billing')) {
-                        commonjs.showWarning('Please select claims with same type of billing method and electronic billing method');
-                        return false;
-                    }
-                    else {
+                    if (existingBillingMethod != billingMethod || (billingMethod != 'electronic_billing')) {
+                        //commonjs.showWarning('Please select claims with same type of billing method and electronic billing method');
+                        //return false;
+                    } else {
                         existingBillingMethod = billingMethod;
                     }
+
                     claimIds.push(rowId);
                 }
 
 
-                if(claimIds&&claimIds.length==0){
+                if (claimIds && claimIds.length == 0) {
                     commonjs.showWarning('Please select claims with same type of billing method and electronic billing method');
                     return false;
+                }
+
+                if(existingBillingMethod === 'paper_claim') {
+                    paperClaim.print(claimIds);
+                    return;
                 }
 
                 self.ediResultTemplate = _.template(ediResultHTML);
 
                 jQuery.ajax({
-                    url: "/exa_modules/billing/claimWorkbench/submitClaim",
+                    url: "/exa_modules/billing/claim_workbench/create_claim",
                     type: "GET",
                     data: {
                         claimIds:claimIds
@@ -427,7 +437,7 @@ define(['jquery',
                             })
                             
                             commonjs.showDialog({
-                                header: 'EDI Claim',
+                                header: 'EDI Claim', 
                                 width: '95%',
                                 height: '75%',
                                 html: self.ediResultTemplate()
@@ -1013,7 +1023,7 @@ define(['jquery',
                 filterObj.options.filterid = filterID;
 
                 if (filterObj.options.isSearch) {
-                    var url ="/exa_modules/billing/claimWorkbench/claims_total_records";
+                    var url ="/exa_modules/billing/claim_workbench/claims_total_records";
                     var flag = /Exceedclaims/.test(filterID);
                     jQuery.ajax({
                         url: url,
@@ -1439,7 +1449,7 @@ define(['jquery',
 
             toggleTabContents: function (index) {
                 var _self = this;
-                commonjs.processPostRender({screen: 'PACS Home'});
+                commonjs.processPostRender({screen: 'Claim Workbench'});
                 $('#divPageLoading').hide();
                 $('#diveHomeIndex').show();
                 $('#divStudyFooter').show();
@@ -1506,7 +1516,7 @@ define(['jquery',
                 } 
                 
                 $.ajax({
-                    url: '/exa_modules/billing/claimWorkbench/validate_claims',
+                    url: '/exa_modules/billing/claim_workbench/validate_claims',
                     type: 'GET',
                     data: {
                         claim_ids: claimIds 

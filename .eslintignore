@@ -1,5 +1,7 @@
 /node_modules/**
 /app/**
+/dist/**
 /test/**
 /modules/reporting/**
 .eslintrc.js
+gulpfile.js

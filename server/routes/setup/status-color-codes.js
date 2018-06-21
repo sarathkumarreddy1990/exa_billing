@@ -24,9 +24,15 @@ router.put('/:id', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
-router.delete('/', async function (req, res) {
-    const data = await colorController.delete(req.body);
+router.delete('/:id', async function (req, res) {
+    let params = {
+        ...req.params,
+        ...req.audit
+    };
+
+    const data = await colorController.delete(params);
     httpHandler.sendRows(req, res, data);
+    
 });
 
 module.exports = router;

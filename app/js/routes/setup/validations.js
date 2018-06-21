@@ -25,7 +25,7 @@ define([
             },
 
             initializeRouter: function () {
-                this.options.screen = "Billing Validation";
+                this.options.screen = "Billing Validations";
                 this.options.currentView = this.validationsScreen;
                 layout.initializeLayout(this);
                 if (!layout.initialized) {

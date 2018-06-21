@@ -247,8 +247,9 @@ var commonjs = {
     },
 
     setFilter: function (id, data) {
-        var root = window.parent || window;
-        var cjs = root.commonjs;
+        //var root = window.parent || window;
+        var root = window;
+        var cjs = root.commonjs || commonjs;
         var filters = cjs.loadedStudyFilters;
         var filter = filters.get(id);
         if (data !== null) {
@@ -2227,9 +2228,14 @@ var commonjs = {
 
     handleXhrError: function (err, response) {
 
+        var errorMessage = '';
         commonjs.hideLoading();
+        if (response.responseJSON && response.responseJSON.errorCode) {
+            response.status = response.responseJSON.errorCode;
+            errorMessage = response.responseJSON.errorDesc;
+        }
 
-        switch (err.status || response.status) {
+        switch (err.status || response.status ) {
             case 0:
                 commonjs.showError('messages.errors.notconnected');
                 break;
@@ -2238,6 +2244,15 @@ var commonjs = {
                 break;
             case 500:
                 commonjs.showError('messages.errors.serversideerror');
+                break;
+            case 100:
+                commonjs.showError(errorMessage);
+                break;
+            case '23503':
+                commonjs.showError('Dependent records found');
+                break;
+            case '23505':
+                commonjs.showError('Duplicate record found');
                 break;
             default:
                 commonjs.showError('messages.errors.someerror');
@@ -3225,6 +3240,57 @@ var commonjs = {
         //$(".maskMonthYear").inputmask("dd/MM/yyyy hh:mm:ss",{ "placeholder": "dd/MM/yyyy hh:mm:ss" });
         $(".maskHourmin").inputmask("h:s", { "placeholder": "HH/MM" });
         $(".maskYear").inputmask("9999", { "placeholder": "YYYY" });
+        $('.maskUnits').inputmask("numeric", {
+            radixPoint: ".",
+            groupSeparator: "",
+            digits: 3,
+            autoGroup: true,
+            prefix: '',
+            rightAlign: true,
+            allowMinus:false
+        });
+        $('.maskUnits').attr('placeholder','0.000');
+
+        $(".maskUnits").on("keypress", function (e) {     // function for allow 3 digits before decimal point in amount
+            value1 = $(this).val();
+            value = value1;
+            if (value1 > 999.999)
+                this.value =  this.oldvalue;
+            else
+                this.oldvalue = this.value;
+        });
+
+        $('.maskFee').inputmask("numeric", {  
+            radixPoint: ".",
+            groupSeparator: "",
+            digits: 2,
+            autoGroup: true,
+            prefix: '',
+            rightAlign: true,
+            allowMinus:false,
+            oncomplete: function () {return false;}
+        });
+
+        $('.maskFee, .maskUnits').focus(function(e){
+            if(parseFloat($(this).val()) == 0){
+                $(this).val('');
+            }
+        });
+
+        $(".maskFee").on("keypress", function (e) {     // function for allow 8 digits before decimal point in amount
+            value1 = $(this).val();
+            value = value1;
+            if (value1 > 99999999.99)
+                this.value = this.oldvalue;
+            else
+                this.oldvalue = this.value;
+        });
+        $('.maskFee').attr('placeHolder','0.00');
+
+        $(".maskFee, .maskUnits").on("keydown", function (e) {
+            if(e.ctrlKey) return false;
+        });        
+
     },
     parseDicomDate: function (str) {
         if (!/^(\d){8}$/.test(str)) return "invalid date";
@@ -3763,10 +3829,10 @@ var commonjs = {
                     height = $(window).height() - ($('body>.topbar').outerHeight() + $('body>header').outerHeight() + $('body>.top-nav').outerHeight() + 235);
                     break;
                 case 'Payments':
-                    height = $(window).height() - ($('#formBillingProviders').outerHeight() + $('body>nav').outerHeight() + 160);
+                    height = $(window).height() - ($('#divPaymentFilter').height() + 155);
                     break;
                 case 'Setup':
-                    height = $(window).height() - ($('body>nav').outerHeight() + $('#divPageHeaderButtons').outerHeight() + 100);
+                    height = $(window).height() - ($('body>nav').outerHeight() + $('#divPageHeaderButtons').outerHeight() + 100 + ($('#auditFilterdiv').outerHeight() ? $('#auditFilterdiv').outerHeight() : 0));
                     break;
                 case 'Patient':
                     height = $(window).height() - ($('header.header').outerHeight() + $('#patientDocHeader').outerHeight() + 200);
@@ -3780,6 +3846,8 @@ var commonjs = {
                 case 'Order':
                     height = $(window).height() - (50 + 40 + 120) < 100 ? $(window).height() : $(window).height() - (50 + 40 + 120);
                     break;
+                case 'EOB':
+                    height = $(window).height() - 225;
             }
         }
 
@@ -7603,7 +7671,7 @@ var commonjs = {
         commonjs.processPostRender(args.header);
         commonjs.initializeCheckBoxSelection();
         commonjs.validateControls();
-       // commonjs.isMaskValidate();
+        commonjs.isMaskValidate();
         commonjs.setupCityStateZipInputs();
         if (parent.editStudyID && parent.editStudyID > 0 && app.transcriptionLock) {
             commonjs.lockUnlockTranscription({ study_id: parent.editStudyID, lockType: "unlock", user_id: app.userID });
@@ -7770,10 +7838,6 @@ var commonjs = {
 
         app.currentCulture = cultureCode;
         commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
-
-        if (screenTitle) {
-            document.title = screenTitle + '';
-        }
     },
 
     beautifyMe: function () {
@@ -7905,7 +7969,7 @@ var commonjs = {
     },
 
     getColorCodeForStatus: function (facility_id, code, screenName) {
-        var statusCodes = app.study_status.length && app.study_status ||parent.app.study_status;
+        var statusCodes = app.study_status && app.study_status.length && app.study_status ||parent.app.study_status;
         if (statusCodes && statusCodes.length > 0) {
             return $.grep(statusCodes, function (currentObj) {
                 return ((currentObj.facility_id == facility_id) && (currentObj.status_code == code));
@@ -7915,7 +7979,7 @@ var commonjs = {
     },
 
     getClaimColorCodeForStatus: function (code, processType) {
-        var statusCodes = app.status_color_codes.length && app.status_color_codes ||parent.app.status_color_codes;
+        var statusCodes = app.status_color_codes && app.status_color_codes.length && app.status_color_codes || parent.app.status_color_codes;
         if (statusCodes && statusCodes.length > 0) {
             return $.grep(statusCodes, function (currentObj) {
                 return ((currentObj.process_type == processType) && (currentObj.process_status == code));

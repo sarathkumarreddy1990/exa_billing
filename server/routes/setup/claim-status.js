@@ -29,8 +29,10 @@ router.delete('/:id', async function (req, res) {
         ...req.params,
         ...req.audit
     };
+
     const data = await claimStatusController.delete(params);
     httpHandler.sendRows(req, res, data);
+
 });
 
 

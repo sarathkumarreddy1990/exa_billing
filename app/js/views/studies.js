@@ -190,7 +190,7 @@ define(['jquery',
                 "change #chkAppointmentStatus": "chooseStatusForFilter",
                 "change #chkRadStatus": "chooseStatusForFilter",
                 "change #chkStudyProgress": "chooseStatusForFilter", 
-                "click #btnRefresh": "underConstruction",
+                "click #btnFileInsuranceRefresh": "refreshStudies",
                 "click #btnValidateExport": "underConstruction",
                 "click #btnStudiesRefreshAll": "refreshAllStudies"
             },
@@ -1129,7 +1129,7 @@ define(['jquery',
             refreshStudies: function (isFromDatepicker, IsUnload, filter, callback) {
 
                 // Retrieve scroll position
-                var curScroll = $('.tab-pane.active .ui-jqgrid-bdiv').scrollTop();
+                var curScroll = $('.tab-pane.active .ui-jqgrid-bdiv').scroll();
                 // Retreive selected rows
                 var curSelection = $('.tab-pane.active .ui-jqgrid-bdiv table tr.customRowSelect');
 
@@ -1396,7 +1396,7 @@ define(['jquery',
 
             toggleTabContents: function (index) {
                 var _self = this;
-                commonjs.processPostRender({screen: 'PACS Home'});
+                commonjs.processPostRender({screen: 'Studies'});
                 $('#divPageLoading').hide();
                 $('#diveHomeIndex').show();
                 $('#divStudyFooter').show();

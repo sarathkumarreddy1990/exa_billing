@@ -37,9 +37,9 @@ module.exports = {
                             id
                             , company_id
                             , insurance_name
-                            , insurance_info->'claimClearingHouse'
-                            , insurance_info->'claimRequestTemplate'
-                            , insurance_info->'claim_req_temp_prov'
+                            , insurance_info->'claimClearingHouse' AS claimClearingHouse
+                            , insurance_info->'claimRequestTemplate' AS claimRequestTemplate
+                            , insurance_info->'claim_req_temp_prov' AS claimReqTempProv
                             , COUNT(1) OVER (range unbounded preceding) as total_records
                         FROM   public.insurance_providers`;
 
@@ -67,9 +67,9 @@ module.exports = {
                               id
                               , company_id
                               , insurance_name
-                              , insurance_info->'claimClearingHouse'
-                              , insurance_info->'claimRequestTemplate'
-                              , insurance_info->'claim_req_temp_prov'
+                              , insurance_info->'claimClearingHouse' AS claimClearingHouse
+                              , insurance_info->'claimRequestTemplate' AS claimRequestTemplate
+                              , insurance_info->'claim_req_temp_prov' AS claimReqTempProv
                         FROM   public.insurance_providers
                         WHERE 
                             id = ${id} `;
@@ -89,8 +89,8 @@ module.exports = {
         const sql = SQL` UPDATE
                             public.insurance_providers
                          SET
-                            insurance_info = insurance_info || [hstore(ARRAY['claimClearingHouse','claimRequestTemplate','claim_req_temp_prov'],
-                                                                ARRAY[${claimClearingHouse},${claimRequestTemplate},${claimReqTempProv}])]
+                            insurance_info = insurance_info || hstore(ARRAY['claimClearingHouse','claimRequestTemplate','claim_req_temp_prov'],
+                                                                ARRAY[${claimClearingHouse},${claimRequestTemplate},${claimReqTempProv}])
                          WHERE
                               id = ${id} 
                               RETURNING *,

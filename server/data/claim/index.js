@@ -40,9 +40,12 @@ module.exports = {
                                 , display_description
                                 , additional_info
                                 , sc.cpt_code_id AS cpt_id
+                                , ARRAY( SELECT icd_codes.id||'~'|| code ||'~'|| icd_codes.description FROM public.icd_codes WHERE id = ANY(o.icd_code_ids_billing) ) as icd_codes_billing
+				                , o.icd_code_ids_billing as icd_codes_billing_order 
                             FROM public.study_cpt sc
                             INNER JOIN public.studies s ON s.id = sc.study_id
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
+                            INNER JOIN public.orders o on o.id = s.order_id
                             WHERE
                                 study_id = ANY(${studyIds})
                             ORDER BY s.accession_no DESC
@@ -54,7 +57,7 @@ module.exports = {
                                         facility_id,
                                         order_info->'currentDate' AS current_illness_date,
                                         order_info->'similarIll' AS same_illness_first_date,
-                                        order_info->'wTo' AS hospitalization_to_date,
+                                        order_info->'wTo' AS unable_to_work_to_date,
                                         order_info->'wFrom' AS unable_to_work_from_date,
                                         order_info->'hTo' AS hospitalization_to_dt,
                                         order_info->'hFrom' AS hospitalization_from_date,
@@ -111,7 +114,60 @@ module.exports = {
 
     getPatientInsurances: async function (params) {
 
-        const sql = SQL`SELECT
+        const sql = SQL`WITH 
+                beneficiary_details as (
+                        SELECT
+                              pi.id
+                            , ip.id AS insurance_provider_id
+                            , ip.insurance_name
+                            , ip.insurance_info->'billingMethod' AS billing_method
+                            , ip.insurance_info->'City' AS ins_city
+                            , ip.insurance_info->'State' AS ins_state
+                            , ip.insurance_info->'ZipCode' AS ins_zip_code
+                            , ip.insurance_info->'Address1' AS ins_pri_address
+                            , ip.insurance_code
+                            , pi.coverage_level
+                            , pi.subscriber_relationship_id   
+                            , pi.valid_to_date
+                            , pi.subscriber_employment_status_id                     
+                            , pi.subscriber_dob
+                            , pi.medicare_insurance_type_code
+                            , pi.coverage_level
+                            , pi.policy_number
+                            , pi.group_name
+                            , pi.group_number
+                            , pi.precertification_phone_number
+                            , pi.precertification_fax_number
+                            , pi.subscriber_firstname
+                            , pi.subscriber_lastname
+                            , pi.subscriber_middlename
+                            , pi.subscriber_name_suffix
+                            , pi.subscriber_gender
+                            , pi.subscriber_address_line1
+                            , pi.subscriber_address_line2
+                            , pi.subscriber_city
+                            , pi.subscriber_state
+                            , pi.subscriber_zipcode
+                            , pi.assign_benefits_to_patient
+                        FROM 
+                            public.patient_insurances pi
+                        INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id  
+                        LEFT JOIN LATERAL ( 
+                            SELECT 
+                                coverage_level,
+                                MIN(valid_to_date) as valid_to_date
+                            FROM 
+                                public.patient_insurances 
+                            WHERE 
+                                patient_id = ${params.patient_id} AND valid_to_date >= (${params.claim_date})::date 
+                                GROUP BY coverage_level 
+                        ) as expiry ON TRUE                           
+                        WHERE 
+                            pi.patient_id = ${params.patient_id}  AND expiry.valid_to_date = pi.valid_to_date AND expiry.coverage_level = pi.coverage_level 
+                            ORDER BY id ASC
+                ),
+                existing_insurance as (
+                        SELECT
                               pi.id
                             , ip.id AS insurance_provider_id
                             , ip.insurance_name
@@ -154,7 +210,27 @@ module.exports = {
                         LEFT JOIN public.facilities f ON p.facility_id = f.id
                         WHERE 
                             pi.patient_id = ${params.patient_id}
-                        ORDER BY pi.id asc `;
+                        ORDER BY pi.id asc
+                )
+                SELECT
+                  ( SELECT json_agg(row_to_json(beneficiary_details)) beneficiary_details
+                      FROM (
+                              SELECT
+                                    *
+                              FROM
+                                  beneficiary_details
+
+                          ) AS beneficiary_details
+                  ) AS beneficiary_details,
+                  ( SELECT json_agg(row_to_json(existing_insurance)) existing_insurance
+                      FROM (
+                              SELECT
+                                    *
+                              FROM
+                                  existing_insurance
+
+                          ) AS existing_insurance
+                  ) AS existing_insurance `;
 
         return await query(sql);
     },
@@ -871,7 +947,7 @@ module.exports = {
                 , claim_notes = ${ claims.claim_notes}
                 , original_reference = ${ claims.original_reference}
                 , authorization_no = ${ claims.authorization_no}
-                , frequency = ${ claims.claim_frequency}
+                , frequency = ${ claims.frequency}
                 , is_auto_accident = ${ claims.is_auto_accident}
                 , is_other_accident = ${ claims.is_other_accident}
                 , is_employed = ${ claims.is_employed}

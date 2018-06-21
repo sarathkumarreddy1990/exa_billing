@@ -15,20 +15,28 @@ module.exports = {
         return data.deletePayment(params);
     },
 
-    createOrUpdatePaymentapplications: function (args) {
+    createOrUpdatePaymentapplications: async function (args) {
         let { paymentStatus } = args;
+        let auditDetails = {
+            company_id: args.companyId,
+            screen_name: args.screenName,
+            module_name: args.moduleName,
+            client_ip: args.clientIp,
+            user_id: parseInt(args.user_id)
+        };
 
         if (paymentStatus == 'pending') {
-            pendingApplications(args);
+            return pendingApplications(args);
         }
 
         if (paymentStatus == 'applied') {
-            appliedApplications(args);
+            return appliedApplications(args);
         }
 
         async function pendingApplications(params) {
 
             let coPaycoInsDeductdetails = [];
+            let claimCommentDetails = {};
             let { user_id, coPay, coInsurance, deductible, claimId } = params;
 
             if (coInsurance > 0) {
@@ -38,6 +46,8 @@ module.exports = {
                     type: 'co_insurance',
                     created_by: user_id
                 });
+
+                claimCommentDetails.coInsurance = coInsurance; 
             }
 
             if (coPay > 0) {
@@ -47,6 +57,8 @@ module.exports = {
                     type: 'co_pay',
                     created_by: user_id
                 });
+
+                claimCommentDetails.coPay = coPay; 
             }
 
             if (deductible > 0) {
@@ -56,9 +68,13 @@ module.exports = {
                     type: 'deductible',
                     created_by: user_id
                 });
+
+                claimCommentDetails.deductible = deductible; 
             }
 
             params.coPaycoInsDeductdetails = coPaycoInsDeductdetails;
+            params.auditDetails = auditDetails;
+            params.claimCommentDetails = claimCommentDetails;
 
             return await data.createPaymentapplications(params);
 

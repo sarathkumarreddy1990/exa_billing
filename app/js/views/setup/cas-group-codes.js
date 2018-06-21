@@ -37,20 +37,20 @@ define(['jquery',
                 this.model = new CasGroupCodesModel();
                 this.casGroupCodesList = new CasGroupCodesCollections();
                 this.pager = new Pager();
+                $(this.el).html(this.casGroupCodesGridTemplate());
             },
 
             render: function() {
                 var self = this;
                 $('#divCasGroupCodesGrid').show();
                 $('#divCasGroupCodesForm').hide();
-                $(this.el).html(this.casGroupCodesGridTemplate());
                 this.casGroupCodesTable = new customGrid();
                 this.casGroupCodesTable.render({
                     gridelementid: '#tblCasGroupCodesGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['','','','','',''],
-                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.name', 'setup.common.description'],
+                    colNames: ['','','','','','', ''],
+                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.name', 'setup.common.description', 'in_active'],
                     colModel: [
                         {
                             name: 'id',
@@ -103,8 +103,18 @@ define(['jquery',
                         {
                             name: 'description',
                              width: 180
+                        },
+                        {
+                            name: 'inactivated_dt',
+                            hidden: true
                         }
                     ],
+                    afterInsertRow: function (rowid, rowdata) {
+                        if (rowdata.inactivated_dt) {
+                            var $row = $('#tblCasGroupCodesGrid').find('#' + rowid);
+                            $row.css('text-decoration', 'line-through');
+                        }
+                    },
                     datastore: self.casGroupCodesList,
                     container:self.el,
                     customizeSort: true,
@@ -167,6 +177,9 @@ define(['jquery',
                 }
                 commonjs.initializeScreen({header: {screen: 'CasGroupCodes', ext: 'casGroupCodes'}, buttons: [
                     {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
+                        $("#txtCode").val($.trim($('#txtCode').val()) || null);
+                        $("#txtDescription").val($.trim($('#txtDescription').val()) || null);
+                        $("#txtName").val($.trim($('#txtName').val()) || null);
                         self.saveCasGroupCodes();
                     }},
                     {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
@@ -206,9 +219,9 @@ define(['jquery',
                         }
                     },
                     messages: {
-                        casGroupCode: commonjs.getMessage("*", "Cas Group Code"),
-                        casGroupCodeName: commonjs.getMessage("*", "Cas Group Code Name"),
-                        description: commonjs.getMessage("*", "Description")
+                        casGroupCode: commonjs.getMessage("e", "Cas Group Code"),
+                        casGroupCodeName: commonjs.getMessage("e", "Cas Group Code Name"),
+                        description: commonjs.getMessage("e", "Description")
                     },
                     submitHandler: function () {
                         self.save();
@@ -220,9 +233,9 @@ define(['jquery',
 
             save: function() {
                 this.model.set({
-                    "code": $.trim($('#txtCode').val()),
-                    "description": $.trim($('#txtDescription').val()),
-                    "name": $.trim($('#txtName').val()),
+                    "code": $('#txtCode').val(),
+                    "description": $('#txtDescription').val(),
+                    "name": $('#txtName').val(),
                     "isActive" : !$('#chkActive').prop('checked'),
                     "companyId" : app.companyID
                 });

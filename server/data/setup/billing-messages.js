@@ -45,6 +45,21 @@ module.exports = {
         return await query(sql);
     },
 
+    getDataById: async (params) => {
+        const { id } = params;
+
+        const sql = SQL`SELECT
+        id
+            , code
+            , description
+        FROM
+        billing.messages
+        WHERE
+        id = ${id} `;
+
+        return await query(sql);
+    },
+
     create: async (params) => {
         let {
             code,
@@ -76,34 +91,5 @@ module.exports = {
             ...params,
             logDescription: `Created ${description}(${code})`
         });
-    },
-
-    update: async (params) => {
-
-        let {
-            code,
-            description,
-            id
-        } = params;
-
-        const sql = SQL`UPDATE
-                             billing.messages 
-                        SET  
-                              code = ${code}
-                            , description = ${description}
-                        WHERE
-                            id = ${id}  
-                            RETURNING *,
-                                (
-                                    SELECT row_to_json(old_row) 
-                                    FROM   (SELECT * 
-                                            FROM   billing.messages 
-                                            WHERE  id = ${id}) old_row 
-                                ) old_values`;
-
-        return await queryWithAudit(sql, {
-            ...params,
-            logDescription: `Updated ${description}(${code})`
-        });
-    },
+    }
 };

@@ -4,20 +4,16 @@ module.exports = {
 
     getData: async function (params) {
 
-        params.name = '';
-        params.receiverName = '';
-        params.pageNo = 1;
-        params.pageSize = 10;
-        params.sortField = ' code ';
         params.sortOrder = params.sortOrder || ' DESC';
-
+ 
         let {
             name,
             receiverName,
             sortOrder,
             sortField,
             pageNo,
-            pageSize
+            pageSize,
+            isFrom
         } = params;
 
         let whereQuery = [];
@@ -47,13 +43,15 @@ module.exports = {
                 .append(whereQuery.join(' AND '));
         }
 
-        sql.append(SQL` ORDER BY `)
-            .append(sortField)
-            .append(' ')
-            .append(sortOrder)
-            .append(SQL` LIMIT ${pageSize}`)
-            .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
-
+        if (isFrom != 'InsuranceEDIMapping') {
+            sql.append(SQL ` ORDER BY `)
+                .append(sortField)
+                .append(' ')
+                .append(sortOrder)
+                .append(SQL ` LIMIT ${pageSize}`)
+                .append(SQL ` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+        }
+        
         return await query(sql);
 
     },

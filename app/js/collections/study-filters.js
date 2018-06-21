@@ -1,7 +1,7 @@
 define([ 'backbone', 'models/study-filters' ], function ( Backbone, StudyFilterModel ) {
     return Backbone.Collection.extend({
         model: StudyFilterModel,
-        url:'/exa_modules/billing/studyFilters',
+        url:'/exa_modules/billing/study_filters',
         parse:function( response ){
             var rows = response;
             return Array.isArray(rows) ? rows.map(function ( row ) {

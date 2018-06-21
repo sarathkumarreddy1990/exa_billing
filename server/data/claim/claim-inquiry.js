@@ -10,8 +10,8 @@ module.exports = {
             claim_id
         } = params;
 
-        let sql = SQL`WITH encounter_details AS
-        (SELECT json_agg(row_to_json(encounter)) encounter_details
+        let sql = SQL`WITH claim_details AS
+        (SELECT json_agg(row_to_json(encounter)) claim_details
         FROM (
             SELECT 
                   ref_pr.full_name  AS ref_provider_name
@@ -21,11 +21,9 @@ module.exports = {
                 , SUM(ch.bill_fee) AS bill_fee
                 , pg.group_name
                 , SUM(ch.allowed_amount) AS allowed_fee
-                , COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient'),0::money) AS patient_paid
-                , COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient'),0::money) AS others_paid
-                , SUM(CASE WHEN amount_type = 'adjustment' THEN bpa.amount ELSE 0::money END) AS adjustment_amount
                 , (SELECT SUM(claim_balance_total) FROM billing.get_claim_totals(bc.id)) AS claim_balance
                 , bc.billing_notes
+                , claim_dt
             FROM billing.claims bc
             INNER JOIN billing.claim_status st ON st.id = bc.claim_status_id
             INNER JOIN public.facilities f ON f.id = bc.facility_id
@@ -34,8 +32,6 @@ module.exports = {
             LEFT JOIN public.provider_contacts rend_pc ON rend_pc.id = bc.rendering_provider_contact_id
             LEFT JOIN public.providers ref_pr ON ref_pr.id = ref_pc.provider_id
             LEFT JOIN public.providers rend_pr ON rend_pr.id = rend_pc.provider_id
-            LEFT JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id 
-            LEFT JOIN billing.payments bp ON bp.id = bpa.payment_id
             LEFT JOIN public.provider_groups pg ON pg.id = bc.ordering_facility_id
             WHERE 
                 bc.id = ${claim_id}
@@ -47,7 +43,22 @@ module.exports = {
                 , st.description
                 , pg.group_name
             ) AS encounter
-        )  
+        )
+    , payment_details AS 
+        (SELECT json_agg(row_to_json(pay)) payment_details
+         FROM(
+            SELECT 
+                  COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient'),0::money) AS patient_paid
+                , COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient'),0::money) AS others_paid
+                , SUM(CASE WHEN amount_type = 'adjustment' THEN bpa.amount ELSE 0::money END) AS adjustment_amount
+            FROM billing.claims bc
+            INNER JOIN billing.charges ch ON ch.claim_id = bc.id
+            LEFT JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id 
+            LEFT JOIN billing.payments bp ON bp.id = bpa.payment_id
+            WHERE 
+                bc.id = ${claim_id}
+         ) AS pay     
+    )      
     , icd_details AS
         (SELECT json_agg(row_to_json(icd)) icdcode_details
          FROM (
@@ -82,18 +93,8 @@ module.exports = {
             INNER JOIN insurance_providers ip ON ip.id = pi.insurance_provider_id 
             WHERE pi.id = ANY(SELECT UNNEST(pi_ids) FROM  pat_ins_ids)
             ) AS ins
-        )
-    , followup_details AS
-        ( SELECT json_agg(row_to_json(fol)) follow_details
-            FROM(
-                SELECT
-                    followup_date
-                FROM billing.claim_followups
-            WHERE claim_id = ${claim_id}
-            ) AS fol
-        )
-                            
-    SELECT * FROM  encounter_details, icd_details, insurance_details , followup_details `;
+        )                            
+    SELECT * FROM  claim_details, payment_details, icd_details, insurance_details  `;
         return await query(sql);
     },
 
@@ -104,7 +105,7 @@ module.exports = {
 
         let sql = SQL`WITH agg AS (SELECT
                           cc.id AS id
-                        , null AS payment_id
+                        , COALESCE(null, '') AS payment_id
                         , type
                         , type AS code
                         , note AS comments
@@ -120,7 +121,7 @@ module.exports = {
                     UNION ALL
                     SELECT  
                           ch.id AS id
-                        , null AS payment_id
+                        , COALESCE(null, '') AS payment_id
                         , cpt.display_code AS code
                         , 'charge' AS type
                         , cpt.short_description AS comments
@@ -203,7 +204,11 @@ module.exports = {
             commentId,
             note,
             comments,
-            from
+            from,
+            followupDate,
+            claim_id,
+            assignedTo,
+            notes
         } = params;
         let sql; 
 
@@ -215,14 +220,56 @@ module.exports = {
                                 isinternal boolean,
                                 commentid bigint
                             )
-                        )
-                        UPDATE 
+                        ),
+                        update_cmt AS (UPDATE 
                             billing.claim_comments cc
                         SET 
                             is_internal = agg_cmt.isInternal
                         FROM agg_cmt
                         WHERE 
-                            id = commentid `;
+                            id = commentid 
+                        RETURNING id), 
+                        update_billNotes AS ( UPDATE 
+                                billing.claims SET billing_notes  = ${notes}
+                             WHERE id = ${claim_id} 
+                            RETURNING id), `;
+
+            if(followupDate == '')
+            {
+                sql.append(`update_followup AS (DELETE FROM 
+                            billing.claim_followups
+                        WHERE 
+                            claim_id = ${claim_id} RETURNING id )
+                        SELECT * FROM update_cmt, update_billNotes`);
+            }
+            else{
+                sql.append(`update_followup AS(
+                    UPDATE 
+                        billing.claim_followups 
+                    SET 
+                          followup_date = '${followupDate}'::DATE
+                        , assigned_to= ${assignedTo} 
+                    WHERE 
+                        claim_id = ${claim_id}
+                    RETURNING *
+                ), 
+                insert_followup AS(
+                    INSERT INTO billing.claim_followups(
+                          claim_id
+                        , followup_date
+                        , assigned_to
+                    )
+                    SELECT
+                          ${claim_id}
+                        , '${followupDate}'::DATE  
+                        , ${assignedTo}
+                    WHERE 
+                    NOT EXISTS(SELECT * FROM update_followup) 
+                    RETURNING *
+                ) 
+                SELECT * FROM update_followup UNION SELECT * FROM insert_followup`);
+            }
+
         } else {   
             sql = SQL`UPDATE 
                         billing.claim_comments
@@ -236,6 +283,7 @@ module.exports = {
     },
 
     saveClaimComment: async (params) => {
+
         let {
             note,
             type,
@@ -283,54 +331,6 @@ module.exports = {
         });
     },
 
-    saveFollowUpDate: async (params) => {
-        let followup_query = '';
-
-        let {
-            claim_id,
-            followupDate,
-            assignedTo
-        } = params;
-
-        if (followupDate == '') {
-            followup_query = SQL`DELETE FROM 
-                                    billing.claim_followups
-                                WHERE 
-                                    claim_id = ${claim_id}`;
-        }
-        else {
-            followup_query = SQL`WITH 
-                                update_followup AS(
-                                    UPDATE 
-                                        billing.claim_followups 
-                                    SET 
-                                          followup_date = ${followupDate} 
-                                        , assigned_to= ${assignedTo} 
-                                    WHERE 
-                                        claim_id = ${claim_id}
-                                    RETURNING *
-                                ), 
-                                insert_followup AS(
-                                    INSERT INTO billing.claim_followups(
-                                          claim_id
-                                        , followup_date
-                                        , assigned_to
-                                    )
-                                    SELECT
-                                          ${claim_id}
-                                        , ${followupDate}
-                                        , ${assignedTo}
-                                    WHERE 
-                                    NOT EXISTS(SELECT * FROM update_followup) 
-                                    RETURNING *
-                                    )
-                            SELECT * FROM update_followup UNION SELECT * FROM insert_followup `;
-
-        }
-
-        return await query(followup_query);
-    },
-
     getFollowupDate: async (params) => {
         let {
             claim_id
@@ -341,31 +341,6 @@ module.exports = {
                             FROM 
                                 billing.claim_followups 
                             WHERE claim_id = ${claim_id}`);
-    },
-
-    updateBillingNotes: async (params) => {
-        let {
-            claim_id,
-            notes
-        } = params;
-
-        let sql = SQL`UPDATE 
-                        billing.claims SET billing_notes  = ${notes}
-                    WHERE id = ${claim_id} 
-                    RETURNING *,
-                    (
-                        SELECT row_to_json(old_row) 
-                        FROM   (SELECT * 
-                                FROM   billing.claims 
-                                WHERE  id = ${claim_id}) old_row 
-                    ) old_values`;
-        // return await queryWithAudit(sql, {
-        //     ...params,
-        //     logDescription: `Updated ${notes}(${claim_id})`
-        // });
-
-        return await query(sql);
-        
     },
 
     viewPaymentDetails: async(params) => {
@@ -430,5 +405,63 @@ module.exports = {
                     ORDER BY applied_dt ASC `;
                     
         return await query(sql);
-    }
+    },
+
+    getclaimPatient: async function (params) {
+        params.sortOrder = params.sortOrder || ' ASC';        
+        let {
+            sortOrder,
+            sortField,
+            pageNo,
+            pageSize,     
+            patientId
+        } = params;
+
+        let sql = SQL`SELECT
+                        claims.id as claim_id
+                        ,(  CASE payer_type 
+                            WHEN 'primary_insurance' THEN insurance_providers.insurance_name
+                            WHEN 'secondary_insurance' THEN insurance_providers.insurance_name
+                            WHEN 'teritary_insurance' THEN insurance_providers.insurance_name
+                            WHEN 'ordering_facility' THEN provider_groups.group_name
+                            WHEN 'referring_provider' THEN ref_provider.full_name
+                            WHEN 'rendering_provider' THEN render_provider.full_name
+                            WHEN 'patient' THEN patients.full_name        END) AS payer_name
+                        , claim_dt
+                        , claim_status.description as claim_status
+                        , (select payment_patient_total from billing.get_claim_payments(claims.id)) AS total_patient_payment
+                        , (select payment_insurance_total from billing.get_claim_payments(claims.id)) AS total_insurance_payment 
+                        , (select charges_bill_fee_total from BILLING.get_claim_payments(claims.id)) as billing_fee
+                        , (select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from BILLING.get_claim_payments(claims.id)) as claim_balance
+                        , COUNT(1) OVER (range unbounded preceding) AS total_records
+                        ,(select Row_to_json(agg_arr) agg_arr FROM (SELECT * FROM billing.get_age_claim_payments (patients.id) )as agg_arr) as age_summary
+                    FROM billing.claims
+                    INNER JOIN patients ON claims.patient_id = patients.id 
+                    LEFT JOIN provider_contacts  ON provider_contacts.id=claims.referring_provider_contact_id 
+                    LEFT JOIN providers as ref_provider ON ref_provider.id=provider_contacts.id 
+                    LEFT JOIN provider_contacts as rendering_pro_contact ON rendering_pro_contact.id=claims.rendering_provider_contact_id
+                    LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.id
+                    LEFT JOIN patient_insurances ON patient_insurances.id = 
+                        (  CASE payer_type 
+                        WHEN 'primary_insurance' THEN primary_patient_insurance_id
+                        WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
+                        WHEN 'teritary_insurance' THEN tertiary_patient_insurance_id
+                        END)
+                    LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id
+                    LEFT JOIN provider_groups ON claims.ordering_facility_id = provider_groups.id 
+                    LEFT JOIN billing.claim_status  ON claim_status.id=claims.claim_status_id
+                     WHERE patients.id=${patientId}
+                    `;
+
+
+        sql.append(SQL` ORDER BY  `)
+            .append(sortField)
+            .append(' ')
+            .append(sortOrder)
+            .append(SQL` LIMIT ${pageSize}`)
+            .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+
+        return await query(sql);
+    },
+
 };

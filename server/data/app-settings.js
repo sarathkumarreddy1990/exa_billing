@@ -89,7 +89,7 @@ module.exports = {
                                         description,
                                         is_system_status
                                     FROM   billing.claim_status
-                                    WHERE  NOT is_system_status AND company_id=${companyID} ) AS claim_status)
+                                    WHERE  NOT is_system_status AND company_id=${companyID} AND inactivated_dt IS NULL ) AS claim_status)
                 , cte_billing_codes AS(
                                     SELECT Json_agg(Row_to_json(billing_codes)) billing_codes
                                     FROM  (
@@ -97,7 +97,7 @@ module.exports = {
                                         code,
                                         description
                                     FROM   billing.billing_codes
-                                    WHERE  company_id=${companyID} ) AS billing_codes)
+                                    WHERE  company_id=${companyID} AND inactivated_dt IS NULL ) AS billing_codes)
                 , cte_billing_classes AS(
                                     SELECT Json_agg(Row_to_json(billing_classes)) billing_classes
                                     FROM  (
@@ -105,7 +105,7 @@ module.exports = {
                                         code,
                                         description
                                     FROM   billing.billing_classes
-                                    WHERE  company_id=${companyID} ) AS billing_classes)
+                                    WHERE  company_id=${companyID} AND inactivated_dt IS NULL ) AS billing_classes)
                 , cte_provider_id_code_qualifiers AS(
                                     SELECT Json_agg(Row_to_json(provider_id_code_qualifiers)) provider_id_code_qualifiers
                                     FROM  (
@@ -113,7 +113,7 @@ module.exports = {
                                     qualifier_code,
                                     description
                                     FROM   billing.provider_id_code_qualifiers
-                                    WHERE  company_id=${companyID} ) AS provider_id_code_qualifiers)
+                                    WHERE  company_id=${companyID} AND inactivated_dt IS NULL) AS provider_id_code_qualifiers)
                 , cte_studyflag AS(
                                     SELECT Json_agg(Row_to_json(studyflag)) studyflag
                                     FROM  (
@@ -125,7 +125,8 @@ module.exports = {
                 , cte_sites AS(                                   
                                 SELECT id as siteID,
                                     stat_level_config,
-                                    tat_config 
+                                    tat_config,
+                                    modifiers 
                                     FROM   sites
                                     WHERE  id=${siteID})
                 , cte_employment_status AS(

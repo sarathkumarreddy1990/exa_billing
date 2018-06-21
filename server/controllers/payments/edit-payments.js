@@ -23,5 +23,13 @@ module.exports = {
 
     getTotalPatients: function (params) {
         return data.getTotalPatients(params);
+    },
+
+    getFeeDetails: function (params) {
+        return data.getFeeDetails(params);
+    },
+
+    deletePayment: function (params) {
+        return data.deletePayment(params);
     }
 };

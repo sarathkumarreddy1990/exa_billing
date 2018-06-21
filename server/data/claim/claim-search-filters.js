@@ -182,8 +182,9 @@ const api = {
         case 'study_dt':
         case 'study_received_dt': return 'claims.claim_dt';
         case 'claim_status': return 'claim_status.description';
+        case 'id': return 'claims.id';
         case 'patient_name': return 'patients.full_name';
-        case 'birth_date': return 'patients.birth_date';
+        case 'birth_date': return 'patients.birth_date::text';
         case 'account_no': return 'patients.account_no';
         case 'patient_ssn': return `patients.patient_info->'ssn'`;
         case 'billing_provider': return 'billing_providers.name';
@@ -193,8 +194,8 @@ const api = {
         case 'billing_fee': return '(select charges_bill_fee_total from BILLING.get_claim_totals(claims.id))';
         case 'invoice_no': return 'claims.invoice_no';
         case 'billing_method': return 'claims.billing_method';
-        case 'followup_date': return 'claim_followups.followup_date';
-        case 'current_illness_date': return 'claims.current_illness_date';
+        case 'followup_date': return 'claim_followups.followup_date::text';
+        case 'current_illness_date': return 'claims.current_illness_date::text';
         case 'claim_no': return 'claims.id';
         case 'policy_number': return 'patient_insurances.policy_number';
         case 'group_number': return 'patient_insurances.group_number';
@@ -302,7 +303,7 @@ const api = {
             'claim_status.description as claim_status',
             'patients.full_name as patient_name',
             'patients.account_no',
-            'patients.birth_date',
+            'patients.birth_date::text as birth_date',
             `patients.patient_info->'ssn' 
             as patient_ssn`,
             'billing_providers.name as billing_provider',
@@ -310,8 +311,8 @@ const api = {
             'ref_provider.full_name as   referring_providers',
             'render_provider.full_name as   rendering_provider',
             '(select charges_bill_fee_total from BILLING.get_claim_totals(claims.id)) as billing_fee',
-            'claim_followups.followup_date',
-            'claims.current_illness_date',
+            'claim_followups.followup_date::text as followup_date',
+            'claims.current_illness_date::text as current_illness_date',
             'claims.id As claim_no',
             'patient_insurances.policy_number',
             'patient_insurances.group_number',
@@ -331,7 +332,8 @@ const api = {
             'billing_codes.description as billing_code',
             'billing_classes.description as billing_class',
             'claims.claim_notes',
-            'patients.gender'
+            'patients.gender',
+            'patients.id as patient_id'
         ];
         return stdcolumns;
     },

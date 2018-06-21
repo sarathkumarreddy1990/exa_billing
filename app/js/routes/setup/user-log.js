@@ -7,8 +7,7 @@ define([
     function ($, Backbone, SubRoute, UserLogView) {
         var UserLogRouter = Backbone.SubRoute.extend({
             routes: {
-                'list': 'showGrid',
-                'view/:id': 'showDetails'
+                'list': 'showGrid'
             },
 
             showGrid: function () {
@@ -26,12 +25,6 @@ define([
                 if (!layout.initialized) {
                     this.userLogScreen = new UserLogView(this.options);
                 }
-            },
-
-            showDetails: function(id){
-                this.initializeRouter();
-                this.userLogScreen.displayDetails(id);
-
             }
         });
         return UserLogRouter;
