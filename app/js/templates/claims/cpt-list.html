@@ -1,6 +1,6 @@
 <% _.each(charges, function(charge) { %>
 <section>
-        <cpt class="mergeContainer selectionTask dragStudy sectionOver modal-header" data-cpt_id="<%= charge.charge_id %>"
+        <cpt class="mergeContainer selectionTask dragStudy sectionOver modal-header" data-charge_id="<%= charge.charge_id %>"
             data-claim_id="<%= charge.claim_no %>" data-patient_id="<%= charge.patient_id %>">
             <div class="mergeStudy flex-parent-horiz flex-vert-center dragSeries">
                 <div class="icon-ic-plus mergePlusIcon triggerMergeStudyPlus disableDrag" title="Add to Selected">

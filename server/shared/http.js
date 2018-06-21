@@ -4,7 +4,7 @@ module.exports = {
 
     send: function (req, res, responseData) {
 
-        if (responseData.name === 'error') {
+        if (responseData && responseData.name === 'error') {
             return this.sendError(req, res, responseData);
         }
 
@@ -17,7 +17,7 @@ module.exports = {
 
     sendRows: function (req, res, responseData) {
 
-        if (responseData.name === 'error') {
+        if (responseData && responseData.name === 'error') {
             return this.sendError(req, res, responseData);
         }
 

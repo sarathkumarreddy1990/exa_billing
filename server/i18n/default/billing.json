@@ -358,7 +358,10 @@
             "serviceType" : "Service Type",
             "benefitOnDate" : "BenefitOnDate",
             "checkEligibility" : "Check Eligibility",
-            "viewReport" : "View Report"
+            "viewReport" : "View Report",
+            "insuranceStartExpiryDate" : "Coverage Start/End Date",
+            "insuranceStartDate" : "Start Date",
+            "insuranceExpDate" : "Expiry Date"
         }
     }
 }

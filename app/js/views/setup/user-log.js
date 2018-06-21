@@ -54,12 +54,14 @@ define([
                             sortable: false,
                             search: false,
                             className: 'icon-ic-reports',
-                            route: '#setup/user_log/view/',
                             formatter: function (e, model, data) {
                                 return `<span class='icon-ic-reports' title='click here to view this log'></span>`;
                             },
                             cellattr: function () {
                                 return 'style=text-align:center;cursor:pointer;'
+                            },
+                            customAction: function(rowID){
+                                self.displayDetails(rowID) ;
                             }
                         },
                         {

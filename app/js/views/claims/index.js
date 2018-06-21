@@ -469,6 +469,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
             bindEditClaimInsuranceDetails: function (claimData) {
                 var self = this;
 
+
                 if (claimData.p_insurance_provider_id || null) {
 
                     self.priInsID = claimData.p_insurance_provider_id
@@ -494,6 +495,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     $('#ddlPriState').val(claimData.p_subscriber_state);
                     $('#txtPriZipCode').val(claimData.p_subscriber_zipcode);
                     document.querySelector('#txtPriDOB').value = claimData.p_subscriber_dob ? moment(claimData.p_subscriber_dob).format('YYYY-MM-DD') : '';
+                    document.querySelector('#txtPriStartDate').value = claimData.p_valid_from_date ? moment(claimData.p_valid_from_date).format('DD/MM/YYYY') : '';
+                    document.querySelector('#txtPriExpDate').value = claimData.p_valid_to_date ? moment(claimData.p_valid_to_date).format('DD/MM/YYYY') : '';
 
                     // append to ResponsibleList
                     self.updateResponsibleList({
@@ -530,7 +533,10 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     $('#txtSecCity').val(claimData.s_subscriber_city);
                     $('#ddlSecState').val(claimData.s_subscriber_state);
                     $('#txtSecZipCode').val(claimData.s_subscriber_zipcode);
-                    document.querySelector('#txtSecDOB').value = claimData.p_subscriber_dob ? moment(claimData.p_subscriber_dob).format('YYYY-MM-DD') : '';
+                    document.querySelector('#txtSecDOB').value = claimData.s_subscriber_dob ? moment(claimData.s_subscriber_dob).format('YYYY-MM-DD') : '';
+                    document.querySelector('#txtSecStartDate').value = claimData.s_valid_from_date ? moment(claimData.s_valid_from_date).format('DD/MM/YYYY') : '';
+                    document.querySelector('#txtSecExpDate').value = claimData.s_valid_to_date ? moment(claimData.s_valid_to_date).format('DD/MM/YYYY') : '';
+
                     // append to ResponsibleList
                     self.updateResponsibleList({
                         payer_type: 'PIP_S',
@@ -563,7 +569,10 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     $('#txtTerCity').val(claimData.t_subscriber_city);
                     $('#ddlTerState').val(claimData.t_subscriber_state);
                     $('#txtTerZipCode').val(claimData.t_subscriber_zipcode);
-                    document.querySelector('#txtTerDOB').value = claimData.p_subscriber_dob ? moment(claimData.p_subscriber_dob).format('YYYY-MM-DD') : '';
+                    document.querySelector('#txtTerDOB').value = claimData.t_subscriber_dob ? moment(claimData.t_subscriber_dob).format('YYYY-MM-DD') : '';
+                    document.querySelector('#txtTerStartDate').value = claimData.t_valid_from_date ? moment(claimData.t_valid_from_date).format('DD/MM/YYYY') : '';
+                    document.querySelector('#txtTerExpDate').value = claimData.t_valid_to_date ? moment(claimData.t_valid_to_date).format('DD/MM/YYYY') : '';
+
                     // append to ResponsibleList
                     self.updateResponsibleList({
                         payer_type: 'PIP_T',
@@ -1372,7 +1381,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     url: '/exa_modules/billing/claims/get_patient_insurances',
                     type: 'GET',
                     data: {
-                        'patient_id': self.cur_patient_id || 0
+                        'patient_id': self.cur_patient_id || 0,
+                        'claim_date': self.cur_study_date || 'now()'
                     },
                     success: function (response) {
 
@@ -1381,17 +1391,19 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                             self.existingPrimaryInsurance = [];
                             self.existingSecondaryInsurance = [];
                             self.existingTriInsurance = [];
-                            self.npiNo = response[0].npi_no ? response[0].npi_no : '';
-                            self.federalTaxId = response[0].federal_tax_id ? response[0].federal_tax_id : '';
-                            self.enableInsuranceEligibility = response[0].enable_insurance_eligibility ? response[0].enable_insurance_eligibility : '';
-                            self.subscriberLastName = response[0].subscriber_lastname ? response[0].subscriber_lastname : '';
-                            self.subscriberFirstName = response[0].subscriber_firstname ? response[0].subscriber_firstname : '';
-                            self.subscriberAddress = response[0].subscriber_address_line1 ? response[0].subscriber_address_line1 : '';
-                            self.policyNumber = response[0].policy_number ? response[0].policy_number : '';
-                            self.insuranceName = response[0].insurance_name ? response[0].insurance_name : '';
-                            self.tradingPartnerId = response[0].ins_partner_id ? response[0].ins_partner_id : '';
+                            var existing_insurance = response[0].existing_insurance || [];
+                            var beneficiary_details = response[0].beneficiary_details || [];
 
-                            var existing_insurance = response || [];
+                            self.npiNo = existing_insurance[0].npi_no ? existing_insurance[0].npi_no : '';
+                            self.federalTaxId = existing_insurance[0].federal_tax_id ? existing_insurance[0].federal_tax_id : '';
+                            self.enableInsuranceEligibility = existing_insurance[0].enable_insurance_eligibility ? existing_insurance[0].enable_insurance_eligibility : '';
+                            self.subscriberLastName = existing_insurance[0].subscriber_lastname ? existing_insurance[0].subscriber_lastname : '';
+                            self.subscriberFirstName = existing_insurance[0].subscriber_firstname ? existing_insurance[0].subscriber_firstname : '';
+                            self.subscriberAddress = existing_insurance[0].subscriber_address_line1 ? existing_insurance[0].subscriber_address_line1 : '';
+                            self.policyNumber = existing_insurance[0].policy_number ? existing_insurance[0].policy_number : '';
+                            self.insuranceName = existing_insurance[0].insurance_name ? existing_insurance[0].insurance_name : '';
+                            self.tradingPartnerId = existing_insurance[0].ins_partner_id ? existing_insurance[0].ins_partner_id : '';
+
                             $.each(existing_insurance, function (index, value) {
                                 switch (value.coverage_level) {
                                     case 'primary':
@@ -1407,6 +1419,13 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                             self.bindExistingInsurance(self.existingPrimaryInsurance, 'ddlExistPriIns')
                             self.bindExistingInsurance(self.existingSecondaryInsurance, 'ddlExistSecIns')
                             self.bindExistingInsurance(self.existingTriInsurance, 'ddlExistTerIns')
+                            
+                            beneficiary_details = beneficiary_details && beneficiary_details.length ? _.groupBy(beneficiary_details, function(obj) { return obj.coverage_level}) : {};
+                            $.each(beneficiary_details, function (index, object) {
+                                var insurance_details = object.length ? _.sortBy(object, "id")[0] : {}
+                                self.bindExistInsurance(insurance_details, insurance_details.coverage_level);
+                            });
+                           
                         }
                     },
                     error: function (err, response) {
@@ -1762,7 +1781,6 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                             self.priInsCode = result.insurance_code;
                             self.priInsName = result.insurance_name;
                             flag = 'Pri';
-                            document.querySelector('#txtPriDOB').value = result.subscriber_dob ? moment(result.subscriber_dob).format('YYYY-MM-DD') : '';
                             // append to ResponsibleList
                             self.updateResponsibleList({
                                 payer_type: 'PIP_P',
@@ -1778,8 +1796,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                             self.secInsCode = result.insurance_code;
                             self.SecInsName = result.insurance_name;
                             flag = 'Sec';
-                            document.querySelector('#txtSecDOB').value = result.subscriber_dob ? moment(result.subscriber_dob).format('YYYY-MM-DD') : '';
-                            // append to ResponsibleList
+                           // append to ResponsibleList
                             self.updateResponsibleList({
                                 payer_type: 'PIP_S',
                                 payer_id: result.insurance_provider_id,
@@ -1794,7 +1811,6 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                             self.terInsCode = result.insurance_code;
                             self.terInsName = result.insurance_name;
                             flag = 'Ter';
-                            document.querySelector('#txtTerDOB').value = result.subscriber_dob ? moment(result.subscriber_dob).format('YYYY-MM-DD') : '';
                             // append to ResponsibleList
                             self.updateResponsibleList({
                                 payer_type: 'PIP_T',
@@ -1805,6 +1821,10 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                             self.is_tertiary_available = true;
                             break;
                     }
+
+                    document.querySelector('#txt' + flag + 'StartDate').value = result.valid_from_date ? moment(result.valid_from_date).format('DD/MM/YYYY') : '';
+                    document.querySelector('#txt' + flag + 'ExpDate').value = result.valid_to_date ? moment(result.valid_to_date).format('DD/MM/YYYY') : '';
+                    document.querySelector('#txt' + flag + 'DOB').value = result.subscriber_dob ? moment(result.subscriber_dob).format('YYYY-MM-DD') : '';
                     $('#select2-ddl' + flag + 'Insurance-container').html(result.insurance_name);
                     $('#chk' + flag + 'AcptAsmt').prop('checked', result.assign_benefits_to_patient);
                     $('#lbl' + flag + 'InsPriAddr').html(result.ins_pri_address);
@@ -1864,6 +1884,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     subscriber_zipcode: $('#txtPriZipCode').val() != '' ? parseInt($('#txtPriZipCode').val()) : null,
                     assign_benefits_to_patient: $('#chkPriAcptAsmt').prop("checked"),
                     medicare_insurance_type_code: null,
+                    //valid_from_date: $('#txtPriStartDate').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtPriStartDate').val()).format('YYYY-MM-DD')) : null,
+                    //valid_to_date: $('#txtPriExpDate').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtPriExpDate').val()).format('YYYY-MM-DD')) : null,
                     is_deleted: self.priClaimInsID && self.priInsID == '' ? true : false
                 },
                     secondary_insurance_details = {
@@ -1887,6 +1909,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                         assign_benefits_to_patient: $('#chkSecAcptAsmt').prop("checked"),
                         subscriber_dob: $('#txtSecDOB').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtSecDOB').val()).format('YYYY-MM-DD')) : null,
                         medicare_insurance_type_code: $('#selectMedicalPayer option:selected').val() != '' ? parseInt($('#selectMedicalPayer option:selected').val()) : null,
+                        //valid_from_date: $('#txtPriStartDate').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtPriStartDate').val()).format('YYYY-MM-DD')) : null,
+                        //valid_to_date: $('#txtPriExpDate').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtPriExpDate').val()).format('YYYY-MM-DD')) : null,
                         is_deleted: self.secClaimInsID && self.secInsID == '' ? true : false
                     },
                     teritiary_insurance_details = {
@@ -1910,6 +1934,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                         assign_benefits_to_patient: $('#chkTerAcptAsmt').prop("checked"),
                         subscriber_dob: $('#txtTerDOB').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtTerDOB').val()).format('YYYY-MM-DD')) : null,
                         medicare_insurance_type_code: null,
+                        //valid_from_date: $('#txtPriStartDate').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtPriStartDate').val()).format('YYYY-MM-DD')) : null,
+                        //valid_to_date: $('#txtPriExpDate').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtPriExpDate').val()).format('YYYY-MM-DD')) : null,
                         is_deleted: self.terClaimInsID && self.terInsID == '' ? true : false
                     }
                 if (self.is_primary_available || self.priClaimInsID)

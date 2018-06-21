@@ -1,0 +1,52 @@
+<div class="form-group row">
+    <div class="col-lg-10">
+        <form id="formPaperClaimTemplates" class="form-horizontal">
+            <div id="divTemplateFields">
+                <div class="form-group row">
+                    <label for="txtTemplateName" class="col-sm-2 col-form-label field-required" i18n="setup.common.name"></label>
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control" id="txtTemplateName" name="templateName">
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="chkActive">
+                        <label class="form-check-label" for="chkActive" i18n="shared.fields.inactive"></label>
+                    </div>
+                </div>
+                <!-- <div class="form-group row">
+                    <label for="txtLeftMargin" class="col-sm-2 col-form-label field-required" i18n="setup.paperClaimTemplates.leftMargin"></label>
+                    <div class="col-sm-2">
+                        <input type="text" class="form-control" id="txtLeftMargin" name="leftMargin">
+                    </div>
+                    <label for="txtTopMargin" class="col-sm-2 col-form-label field-required" i18n="setup.paperClaimTemplates.topMargin"></label>
+                    <div class="col-sm-2">
+                        <input type="text" class="form-control" id="txtTopMargin" name="topMargin">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtRightMargin" class="col-sm-2 col-form-label field-required" i18n="setup.paperClaimTemplates.rightMargin"></label>
+                    <div class="col-sm-2">
+                        <input type="text" class="form-control" id="txtRightMargin" name="rightMargin">
+                    </div>
+                    <label for="txtBottomMargin" class="col-sm-2 col-form-label field-required" i18n="setup.paperClaimTemplates.bottomMargin"></label>
+                    <div class="col-sm-2">
+                        <input type="text" class="form-control" id="txtBottomMargin" name="bottomMargin">
+                    </div>
+                </div>
+            </div> -->
+        </form>
+    </div>
+</div>
+<nav id="navPaperClaimTemplates" class="navbar navbar-expand-sm bg-light">
+    <ul class="navbar-nav">
+        <li class="nav-item active">
+            <a id="aShowOriginalForm" class="nav-link active" href="javascript:void(0)" i18n="setup.paperClaimTemplates.originalForm"></a>
+        </li>
+        <li class="nav-item">
+            <a id="aShowFullForm" class="nav-link" href="javascript:void(0)" i18n="setup.paperClaimTemplates.fullForm"></a>
+        </li>
+    </ul>
+</nav>
+<div id="divPaperClaimEditor" class="col-lg-12 form-group row">
+    <div id="paperClaimEditor" class="col-lg-12" style="min-height:200px;">
+    </div>
+</div>
