@@ -34,7 +34,8 @@ module.exports = {
         user_log : 'User Log',
         audit_log : 'Audit Log',
         paper_claim_templates: 'Paper Claim Templates',
-        payments: 'payments'
+        payments: 'Payments',
+        applyPayments:'Applied Payments'
     },
 
     permissionsMap: {

@@ -3,7 +3,38 @@ const { query, SQL } = require('./../index');
 module.exports = {
 
     getEraFiles: async function (params) {
-        const sql = `        
+        
+        let whereQuery = [];
+        params.sortOrder = params.sortOrder || ' ASC';
+        params.sortField = params.sortField == 'id' ? ' payments.id ' : params.sortField;
+        let { 
+            file_name,
+            size,
+            updated_date_time,
+            current_status,
+            sortOrder,
+            sortField,
+            pageNo,
+            pageSize
+        } = params;
+
+        if (file_name) {
+            whereQuery.push(` id = ${file_name}`);
+        }
+
+        if (size) {
+            whereQuery.push(` file_size = ${size}`);
+        }
+        
+        if (updated_date_time) {
+            whereQuery.push(` created_dt::date = '${updated_date_time}'::date`);
+        }
+        
+        if (current_status) {
+            whereQuery.push(` status = '${current_status}'`);
+        }
+
+        const sql = SQL`        
             SELECT
                 id,
                 id AS file_name,
@@ -13,12 +44,30 @@ module.exports = {
                 file_type,
                 file_path,
                 file_size AS size,
-                file_md5
+                file_md5,
+                COUNT(1) OVER (range unbounded preceding) AS total_records
             FROM
                 billing.edi_files
             WHERE
-                company_id =  ${params.customArgs.companyID};
+                company_id =  ${params.customArgs.companyID}
+                
         `;
+
+        if (whereQuery.length) {               
+            sql.append(SQL` AND `);
+        }
+
+        if (whereQuery.length) {
+            sql.append(whereQuery.join(' AND '));
+        }
+
+        sql.append(SQL` ORDER BY  `)
+            .append(sortField)
+            .append(' ')
+            .append(sortOrder)
+            .append(SQL` LIMIT ${pageSize}`)
+            .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+
         return await query(sql);
     },
 
@@ -236,7 +285,8 @@ module.exports = {
                 SELECT Json_agg(Row_to_json(file_store_info)) file_store_info
                     FROM(
                         Select  
-                            root_directory
+                            root_directory,
+                            companies.file_store_id
                         FROM 
                             file_stores
                             LEFT JOIN companies ON companies.file_store_id = file_stores.id

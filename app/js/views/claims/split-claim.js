@@ -22,15 +22,15 @@ define([
             render: function () {
                 this.rendered = true;
                 commonjs.showDialog({
-                    header: 'Claim Creation',
-                    width: '95%',
+                    header: 'Create/SPlit',
+                    width: '85%',
                     height: '75%',
                     html: this.splitCLaimTemplate()
                 });
 
                 this.showCharge();
                 this.validateSplitClaim(this.claim_id);
-                $('#divAllCPTList, #divSelectedCPTList').height($('#body_content').height() - 60).css('padding', '0');
+                $('#divAllCPTList, #divSelectedCPTList').height($('#modal_div_container').height() - 60).css('padding', '0');
             },
 
             validateSplitClaim: function (claim_id) {
@@ -83,8 +83,8 @@ define([
                     self.reloadChargeList();
                 });
 
-                $('section').off().dblclick(function(){
-                    self.selectCharge();
+                $('section').off().dblclick(function (e) {
+                    self.selectCharge(e);
                 });
 
             },

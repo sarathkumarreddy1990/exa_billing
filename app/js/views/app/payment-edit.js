@@ -946,7 +946,6 @@ define(['jquery',
                         payerId: payerId,
                         payerType: payerType
                     },
-                    // onaftergridbind: self.afterAppliedGridBind
                     onaftergridbind: function (model, gridObj) {
                         self.afterAppliedGridBind(model, gridObj, self);
                     }
@@ -992,7 +991,7 @@ define(['jquery',
                     $('#divPaymentApply').remove();
                     $('#siteModal').hide();
                 });
-                self.getClaimBasedCharges(claimId, paymentID, paymentStatus, chargeId);
+                self.getClaimBasedCharges(claimId, paymentID, paymentStatus, chargeId, true);
             },
 
             setFeeFields: function (claimDetail, isInitial) {
@@ -1009,7 +1008,7 @@ define(['jquery',
                 $('#lblPatient').text(order_info.patient_paid ? order_info.patient_paid : "0.00");
             },
 
-            getClaimBasedCharges: function (claimId, paymentId, paymentStatus, chargeId) {
+            getClaimBasedCharges: function (claimId, paymentId, paymentStatus, chargeId, isInitialBind) {
                 var self = this;
                 self.casSave = [];
                 $.ajax({
@@ -1287,7 +1286,10 @@ define(['jquery',
                         },
                         success: function (model, response) {
                             commonjs.showStatus('Payment has been applied successfully');
-                            self.reloadPaymentFields(claimId);
+                            // self.reloadPaymentFields(claimId);
+                            // self.getClaimBasedCharges(claimId, paymentId, paymentStatus, chargeId, false);
+                            self.closeAppliedPendingPayments(e);
+                            commonjs.hideDialog();
                         },
                         error: function (err, response) {
                             commonjs.handleXhrError(err, response);
