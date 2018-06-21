@@ -5,13 +5,13 @@ define([
     , 'shared/report-utils'
     , 'text!templates/reports/patient-activity-statement.html'
 ],
-    function ($, _, Backbone, UI, patientActivityStatementTemplate) {
+    function ($, _, Backbone, UI, billingPaymentsPDFTemplate) {
 
-        var patientActivityStatementView = Backbone.View.extend({
+        var billingPaymentsPDFView = Backbone.View.extend({
             rendered: false,
             drpStudyDt: null,
             expanded: false,
-            mainTemplate: _.template(patientActivityStatementTemplate),
+            mainTemplate: _.template(billingPaymentsPDFTemplate),
             viewModel: {
                 facilities: null,
                 dateFrom: null,
@@ -59,7 +59,7 @@ define([
 
             },
 
-            onReportViewClick: function (e, claimInfo) {
+            onReportViewClick: function (e, reportArgs) {
                 var btnClicked = e && e.target ? $(e.target) : null;
                 this.getSelectedFacility();
                 this.getBillingProvider();
@@ -67,32 +67,16 @@ define([
                     btnClicked = btnClicked.parent(); // in case FA icon 'inside'' button was clicked...
                 }
                 var rFormat = btnClicked ? btnClicked.attr('data-rformat') : null;
-                var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnCIPatientInquiry' : false;
+                var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnGeneratePDF' : false;
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = openInNewTab && rFormat === 'pdf';
                 this.viewModel.paymentOptions = $('#ddlPaymentOption').val();
-                if (claimInfo.flag == "patientInvoice") {
-                    reportName = "patient-invoice";
-                    var urlParams = {
-                        claimIds: claimInfo.claimID,
-                        sDate: '2018-06-23'
-                       
-                    }
+                var urlParams = {
+                    claimId: reportArgs.claimIDs
                 }
-                else {
-                    var reportName = "patient-activity-statement";
-                    var urlParams = {
-                        claimID: claimInfo,
-                        sDate: '2018-06-23'
-                    }
-                }
-                UI.showReport(reportName, this.viewModel.reportCategory, 'pdf', urlParams, true);
+
+                UI.showReport('direct-invoice', this.viewModel.reportCategory, 'pdf', urlParams, true);
             },
-
-
-
-
-
 
             getSelectedFacility: function (e) {
                 var selected = $("#ddlFacilityFilter option:selected");
@@ -120,8 +104,13 @@ define([
                     usersArray.push(~~$(this).attr('data-id'));
                     userNameArray.push($(this).closest('li').find('span').text());
                 });
+                return urlParams = {
+                    'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
+                    'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
+                    'sDate': '2018-06-23'
+                };
             }
         });
 
-        return patientActivityStatementView;
+        return billingPaymentsPDFView;
     });

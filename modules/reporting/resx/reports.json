@@ -1443,5 +1443,31 @@
                 }
             }
         }
+    },
+    {
+        "id": "direct-invoice",
+        "category": "billing",
+        "title": "Invoice Generated",
+        "description": "",
+        "jsreport": {
+            "pdf": {
+                "template": {
+                    "name": "billing-direct-invoice-pdf"
+                }
+            }
+        }
+    },
+    {
+        "id": "patient-invoice",
+        "category": "billing",
+        "title": "Patient Invoice Generated",
+        "description": "",
+        "jsreport": {
+            "pdf": {
+                "template": {
+                    "name": "billing-patient-statement-pdf"
+                }
+            }
+        }
     }
 ]
