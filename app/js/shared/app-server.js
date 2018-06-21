@@ -3,7 +3,7 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
 
         initialize: function (callback) {
             var self = this;
-            var qs = commonjs.getParametersByName();
+            var qs = {}; // commonjs.getParametersByName();
             var settingsData = qs.def_session ? { def_session: qs.def_session } : {};
             
             new AppCollection().fetch({
@@ -11,6 +11,8 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                 processData: true,
                 success: function (model, response) {
                     _.extend(window.app, response[0]);
+                    _.extend(app, response[0]);
+                    //app = response[0];
 
                     app.study_user_settings = _.where(app.usersettings, { grid_name: 'studies' })[0];
                     app.claim_user_settings = _.where(app.usersettings, { grid_name: 'claims' })[0];
