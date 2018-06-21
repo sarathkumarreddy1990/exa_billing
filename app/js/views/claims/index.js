@@ -785,6 +785,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 commonjs.enableModifiersOnbind('M'); // Modifier
                 commonjs.enableModifiersOnbind('P'); // Diagnostic Pointer
                 commonjs.validateControls();
+                commonjs.isMaskValidate();
 
             },
 
