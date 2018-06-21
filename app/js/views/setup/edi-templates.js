@@ -57,17 +57,39 @@ define([
                     url: `/exa_modules/billing/setup/x12/${this.templateFlag}`,
                     type: 'GET',
                     success: function (data, response) {
-                        if (data && data.length > 0) {
-                            $('#divTemlateList').empty();
-                            for (var i = 0; i < data.length; i++) {
-                                $('#divTemlateList').append(
-                                    $('<a/>').attr('href','javascript:void(0)').addClass('dropdown-item').text(data[i]).css({ 'cursor': 'pointer', 'padding' : '5px' }).click(function () {
-                                        self.getEDITemplate($(this).html());
-                                    })
-                                );
+                        $('#divTemlateList').empty();
+                        if (self.templateFlag == 'edi') {
+                            if (data && data.length > 0) {
+                                $('#dropdownMenuButton').addClass('dropdown-toggle').prop('disabled',false);
+                                $('#btnCreateNewTemplate,#btnDeleteTemplate,#dropdownMenuButton').show();
+                                for (var i = 0; i < data.length; i++) {
+                                    $('#divTemlateList').append(
+                                        $('<a/>').attr('href', 'javascript:void(0)').addClass('dropdown-item').text(data[i]).css({
+                                            'cursor': 'pointer',
+                                            'padding': '5px'
+                                        }).click(function () {
+                                            self.getEDITemplate($(this).html());
+                                        })
+                                    );
+                                    $('#divTemlateList').css({
+                                        'height': $('#editor').height(),
+                                        'overflow-x': 'hidden'
+                                    });
+                                    self.getEDITemplate(data[0]);
+                                }
                             }
-                            $('#divTemlateList').css({'height':$('#editor').height(),'overflow-x' : 'hidden'});
-                            self.getEDITemplate(data[0]);
+                        } else {
+                            $('#dropdownMenuButton').prop('disabled',true).removeClass('dropdown-toggle btn-secondary').addClass('btn-primary');
+                            $('#btnDeleteTemplate').hide();
+                            if (data && data.length > 0) {
+                                self.getEDITemplate(data[0]);
+                                $('#btnCreateNewTemplate').hide();
+                                $('#dropdownMenuButton').show();
+                            } else {
+                                $('#btnCreateNewTemplate').show();
+                                $('#dropdownMenuButton').hide();
+                                ace.edit('editor').setValue("{}");
+                            }
                         }
                     },
                     error: function (err) {

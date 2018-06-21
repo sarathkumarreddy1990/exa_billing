@@ -27,6 +27,7 @@ define([
             pager: null,
             inquiryTemplate: _.template(claimInquiryTemplate),
             paymentTemplate: _.template(paymentDetails),
+            payCmtGrid:'',
             claim_id: null,
             events: {
                 "blur #txtCIFollowUpDate": "saveFollowUpDate",
@@ -38,7 +39,8 @@ define([
                 "click #btnCICommentCancel": "closeSaveComment",
                 "click #btnCIAddBillingComments": "billingCommentsReadonly",
                 "click #btnCISaveBillingNote": "saveBillingComment",
-                "click #btnCIPayCancel": "closePaymentDetails"
+                "click #btnCIPayCancel": "closePaymentDetails",
+                "click .claimProcess" :"applyToggleInquiry"
             },
 
             initialize: function (options) {
@@ -51,14 +53,14 @@ define([
               this.rendered = true;
               this.$el.html(this.inquiryTemplate());
                 commonjs.bindDateTimePicker("divFollowUpDate", { format: 'L' }); //to bind date picker to followup date
-                this.encounterDetails(cid)
+                this.claimInquiryDetails(cid, false)
             },
 
-            encounterDetails: function (claimID) {
+            claimInquiryDetails: function (claimID, fromTogglePreNext) {
                 var self = this;
                 self.claim_id = claimID;
-                if (!self.rendered)
-                self.render();
+                // if (!self.rendered)
+                // self.render();
                 $.ajax({
                     url: '/exa_modules/billing/claims/claim_inquiry',
                     type: 'GET',
@@ -92,10 +94,26 @@ define([
                                 $('#lblCIAdj').text(payment_data.adjustment_amount);
                             }
 
-                            self.showInsuranceGrid(data.insurance_details);
-                            self.showDiagnosisGrid(data.icdcode_details);
+                            if (fromTogglePreNext) {
+
+                                data.icdcode_details = data.icdcode_details && data.insurance_details.length > 0 ? data.icdcode_details : '[]';
+                                data.insurance_details = data.insurance_details && data.insurance_details.length > 0 ? data.insurance_details : '[]';
+
+                                self.showClaimCommentsGrid();
+                                $("#tblCIInsurance").jqGrid('clearGridData');
+                                $("#tblCIDiagnosis").jqGrid('clearGridData');
+
+                                $("#tblCIInsurance").jqGrid('setGridParam', { datatype: 'local', data: data.insurance_details }).trigger("reloadGrid");
+                                $("#tblCIDiagnosis").jqGrid('setGridParam', { datatype: 'local', data: data.icdcode_details }).trigger("reloadGrid");
+
+                            } else {
+                                self.showInsuranceGrid(data.insurance_details);
+                                self.showDiagnosisGrid(data.icdcode_details);
+                                self.showClaimCommentsGrid();
+                            }
+
                             self.getFollowupDate();
-                            self.showClaimCommentsGrid();
+                            $('.claimProcess').prop('disabled', false);
                         }
                     },
                     error: function (err) {
@@ -150,7 +168,7 @@ define([
                     shrinkToFit: true,
                     width: $('#claimDetails').width() - 50
                 });
-                $('#gview_tblCIDiagnosis').find('.ui-jqgrid-bdiv').css('max-height', '180px')
+                $('#gview_tblCIDiagnosis').find('.ui-jqgrid-bdiv').css('max-height', '300px')
             },
 
             showClaimCommentsGrid: function () {
@@ -293,7 +311,7 @@ define([
             showCommentPopup: function (from, comment, commentId) {
                 var self = this;
 
-               $('#divCIFormComment').css({ top: '10%', height: '20%' });
+               $('#divCIFormComment').css({ top: '25%', height: '20%' });
                $('#divCIFormComment').show();
                 if (from == 'edit') {
                     $('#siteModal').find('#txtCIAddComment').val(comment);
@@ -520,6 +538,31 @@ define([
             closePaymentDetails: function(e){
                 $('#divCIpaymentDetails').hide();
                 $("#tBodyCIPayment").empty();
+            },
+
+            applyToggleInquiry: function (e) {
+
+                var self = this;
+                var $tblGrid = $('#tblClaimGridAll_Claims');
+
+                if (self.claim_id) {
+
+                    var rowData = $($tblGrid, parent.document).find('tr#' + self.claim_id);
+                    var nextRowData = $(e.target).attr('id') == 'btnPreviousInquiry' ? rowData.prev() : rowData.next();
+
+                    if (nextRowData.attr('id') && nextRowData.length > 0) {
+                        var rowId = nextRowData.attr('id');
+                        $(e.target).prop('disabled',true);
+                        $($tblGrid, parent.document).closest('tr').find('tr#' + rowId);
+
+                        self.claimInquiryDetails(rowId, true);
+                    } else {
+                        commonjs.showWarning('No more order found')
+                    }
+
+                } else {
+                    commonjs.showWarning('Error on process claim');
+                }
             }
         });
 

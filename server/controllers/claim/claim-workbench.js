@@ -1,6 +1,9 @@
 const data = require('../../data/claim/claim-workbench');
 const ediConnect = require('../../../modules/edi');
+
 const _ = require('lodash');
+//const PdfPrinter = require('pdfmake');
+
 ediConnect.init('http://192.168.1.102:5580/edi/api');
 
 module.exports = {
@@ -17,6 +20,20 @@ module.exports = {
 
     updateClaimStatus: function (params) {
         return data.updateClaimStatus(params);
+    },
+
+    getClaimObject: async function (params) {
+        return data.getEDIClaim(params);
+        // let claimObject = await data.getEDIClaim(params);
+        // let claimTemplate = await data.getPaperClaimTemplate(params);
+
+        // let pdfPrinter = PdfPrinter();
+        // let docDefinition = { content: 'This is an sample PDF printed with pdfMake' };
+        // pdfPrinter.createPdf(docDefinition).download('optionalName.pdf');
+    },
+
+    getPaperClaimTemplate: function (params) {
+        return data.getPaperClaimTemplate(params);
     },
 
     getEDIClaim: async (params) => {    
