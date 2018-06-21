@@ -1,13 +1,13 @@
 define([
-    'jquery', 
-    'immutable', 
-    'underscore', 
-    'backbone', 
-    'jqgrid', 
-    'jqgridlocale', 
-    'text!templates/app/eraGrid.html', 
-    'text!templates/app/era-progress.html', 
-    'collections/app/era', 
+    'jquery',
+    'immutable',
+    'underscore',
+    'backbone',
+    'jqgrid',
+    'jqgridlocale',
+    'text!templates/app/eraGrid.html',
+    'text!templates/app/era-progress.html',
+    'collections/app/era',
     'models/pager'],
     function (jQuery, Immutable, _, Backbone, JGrid, JGridLocale, eraGrid, eraProgress, eraLists, EobFilesPager) {
         var eraView = Backbone.View.extend({
@@ -16,7 +16,7 @@ define([
             eraProgressTemplate: _.template(eraProgress),
             subGridFilesTable: null,
             subGridPager: null,
-            eobStatus: {"": "All", "P": "Pending", "IP": "In Progress", "S": "Success", "RP": "Ready for Processing"},
+            eobStatus: { "": "All", "pending": "Pending", "in_progress": "In Progress", "success": "Success", "failure": "Failure", "RP": "Ready for Processing" },
             parent_file_id: 0,
 
             events: {
@@ -26,7 +26,7 @@ define([
                 'change #myFile': 'processSelectedERAFile'
             },
 
-            initialize: function ( options ) {
+            initialize: function (options) {
                 this.options = options;
                 var _self = this;
                 this.pager = new EobFilesPager();
@@ -34,22 +34,29 @@ define([
                 app.fileStoreId = 1;
                 app.settings.eraInboxPath = 'D:eraInbox';
             },
-            
+
             showGrid: function () {
                 var self = this;
                 commonjs.showLoading();
                 $(this.el).html(this.eraGridTemplate());
                 self.getEobFilesList();
-                commonjs.initializeScreen({header: {screen: 'ERA', ext: 'eob'}});
+                commonjs.currentModule = 'EOB';
+                commonjs.initializeScreen({ header: { screen: 'ERA', ext: 'eob' } });
                 commonjs.hideLoading();
             },
 
             reloadERAFilesLocal: function () {
-                this.pager.set({"PageNo": 1});
+                this.pager.set({ "PageNo": 1 });
                 $('.ui-jqgrid-htable:visible').find('input, select').val('');
                 this.eobFilesTable.refresh();
+
+                var fileUploadedObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileNameUploaded');
+                var fileDuplicateObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileIsDuplicate');            
+
+                fileDuplicateObj.innerHTML = '';
+                fileUploadedObj.innerHTML = '';
             },
-            
+
             getEobFilesList: function () {
                 var self = this;
                 var offsetHeight = (commonjs.currentModule == "Setup") ? '30' : '0';
@@ -69,16 +76,21 @@ define([
                                 return '<input type="radio" class="studyChk" name="chkStudy" id="' + rowObject.id + '" />'
                             }
                         },
-                        { name: 'file_name', width: 600, searchFlag: 'hstore', searchoptions: {defaultValue: commonjs.filterData['file_name']}},
-                        { name: 'size', width: 200, searchFlag: 'hstore', searchoptions: {defaultValue: commonjs.filterData['size']}, formatter: function (cellvalue, options, rowObject) {
-                            return self.fileSizeTypeFormatter(cellvalue, options, rowObject);
-                        }},
-                        { name: 'updated_date_time', width: 200, searchFlag: 'hstore', searchoptions: {defaultValue: commonjs.filterData['updated_date_time']}, formatter: function (cellvalue, options, rowObject) {
-                            return self.fileUpdatedDateFormatter(cellvalue, options, rowObject);
-                        }},
-                        { name: 'current_status', width: 200, stype: 'select',
-                            searchoptions: { value: self.eobStatus, defaultValue: commonjs.filterData['current_status']},
-                            edittype: 'select', editoptions: { value: self.eobStatus},
+                        { name: 'file_name', width: 400, searchFlag: 'hstore', searchoptions: { defaultValue: commonjs.filterData['file_name'] } },
+                        {
+                            name: 'size', width: 100, searchFlag: 'hstore', searchoptions: { defaultValue: commonjs.filterData['size'] }, formatter: function (cellvalue, options, rowObject) {
+                                return self.fileSizeTypeFormatter(cellvalue, options, rowObject);
+                            }
+                        },
+                        {
+                            name: 'updated_date_time', width: 200, searchFlag: 'hstore', searchoptions: { defaultValue: commonjs.filterData['updated_date_time'] }, formatter: function (cellvalue, options, rowObject) {
+                                return self.fileUpdatedDateFormatter(cellvalue, options, rowObject);
+                            }
+                        },
+                        {
+                            name: 'current_status', width: 200, stype: 'select',
+                            searchoptions: { value: self.eobStatus, defaultValue: commonjs.filterData['current_status'] },
+                            edittype: 'select', editoptions: { value: self.eobStatus },
                             cellattr: function (rowId, value, rowObject, colModel, arrData) {
                                 return 'style=text-transform: capitalize;'
                             }
@@ -105,8 +117,8 @@ define([
                         showParentFileOnly: true,
                         companyID: app.companyID
                     },
-                    beforeSearch: function () {
-                        //self.setSearchQuery();
+                    onaftergridbind: function (model, gridObj) {
+                        self.afterEraGridBind(model, gridObj, self);
                     },
                     ondblClickRow: function (rowID) {
                         var gridData = $('#tblEOBFileList').jqGrid('getRowData', rowID);
@@ -115,10 +127,17 @@ define([
                 });
             },
 
+            afterEraGridBind: function (dataset, e, self) {
+                var fileUploadedObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileNameUploaded');
+
+                if (fileUploadedObj && fileUploadedObj.innerHTML)
+                    $('#tblEOBFileList #' + fileUploadedObj.innerHTML).dblclick();
+            },
+
             fileUpdatedDateFormatter: function (cellvalue, options, rowObject) {
                 return rowObject.updated_date_time ? moment(rowObject.updated_date_time).format('L, h:mm a') : ''
             },
-            
+
             fileSizeTypeFormatter: function (cellvalue, options, rowObject) {
                 var i = parseInt(Math.floor(Math.log(rowObject.size) / Math.log(1024)));
                 var sizes = ['Bytes', 'KB'];
@@ -129,17 +148,17 @@ define([
                 return rowObject.updated_date_time ? moment(rowObject.updated_date_time).format('L, h:mm a') : ''
             },
 
-            processFile: function(file_id, gridData, currentStatus){
+            processFile: function (file_id, gridData, currentStatus) {
                 var self = this
 
                 var $InsuranceProvider = $('#select2-ddlInsuranceProviders-container') || null;
-                
-                var payerDetails = JSON.stringify({ 
-                    payer_id: $InsuranceProvider.attr('data_id') || null, 
-                    payer_name: $InsuranceProvider.attr('data_description') || null, 
+
+                var payerDetails = JSON.stringify({
+                    payer_id: $InsuranceProvider.attr('data_id') || null,
+                    payer_name: $InsuranceProvider.attr('data_description') || null,
                     payer_code: $InsuranceProvider.attr('data_code') || null,
-                    created_by : app.userID,
-                    company_id : app.companyID
+                    created_by: app.userID,
+                    company_id: app.companyID
                 });
 
                 $.ajax({
@@ -158,20 +177,20 @@ define([
                         if (model && model.payer_id) {
                             model.file_store_id = gridData.file_store_id;
                             self.showProgressDialog(file_id, model, 'initialize');
-                        } 
-                        else if(model.rows && model.rows.length){
+                        }
+                        else if (model.rows && model.rows.length) {
                             var processedClaims = model.rows[0].insert_edi_file_claims ? model.rows[0].insert_edi_file_claims : [];
-                            _.each(processedClaims, function(dataResult, index) {
+                            _.each(processedClaims, function (dataResult, index) {
                                 var status = dataResult.applied ? 'DONE' : 'FAILED';
-                                $('#eraProcessTable').append( '<tr><td>' + dataResult.edi_file_id + '</td><td>' + dataResult.claim_number + '</td><td>' + status  + '</td></tr>' );
+                                $('#eraProcessTable').append('<tr><td>' + dataResult.edi_file_id + '</td><td>' + dataResult.claim_number + '</td><td>' + status + '</td></tr>');
                             });
-                            if(processedClaims.length == 0){
-                                $('#eraProcessTable').append( '<tr><td>Payment failed for all claims</td></tr>' );
+                            if (processedClaims.length == 0) {
+                                $('#eraProcessTable').append('<tr><td>Payment failed for all claims</td></tr>');
                             }
                             $('#divEraProcess').show();
-                            $('#btnProcessPayment').prop('disabled',true);
+                            $('#btnProcessPayment').prop('disabled', true);
 
-                        }else if(model && model.type && model.type == 'none'){
+                        } else if (model && model.type && model.type == 'none') {
                             model.file_store_id = gridData.file_store_id;
                             self.showProgressDialog(file_id, model, 'initialize');
                         }
@@ -181,6 +200,7 @@ define([
                     }
                 });
             },
+
             showProgressDialog: function (file_id, payerDetails, isFrom) {
                 var self = this;
                 if (isFrom == 'initialize') {
@@ -197,6 +217,7 @@ define([
                         $('#select2-ddlInsuranceProviders-container').html(payerDetails.payer_name).prop('title', payerDetails.payer_name).attr({ 'data_code': payerDetails.payer_code, 'data_description': payerDetails.payer_name, 'data_id': payerDetails.payer_id });
                         $("#ddlInsuranceProviders").prop("disabled", true);
                     } else {
+                        $('#select2-ddlInsuranceProviders-container').html('Select Insurance Provider');
                         $("#ddlInsuranceProviders").prop("disabled", false);
                     }
                 }
@@ -210,6 +231,7 @@ define([
                 });
 
             },
+
             setAutoComplete: function () {
                 var self = this;
 
@@ -258,7 +280,7 @@ define([
 
                 }
                 function formatRepoSelection(res) {
-                    if(res.id && res.id !='0'){
+                    if (res.id && res.id != '0') {
                         $('#select2-ddlInsuranceProviders-container').html(res.insurance_name).prop('title', res.insurance_name).attr({ 'data_code': res.insurance_code, 'data_description': res.insurance_name, 'data_id': res.id });
                         var hstoreInfo = commonjs.hstoreParse(res.insurance_info);
                         $('#eobpaymentIdentifier').text(hstoreInfo.PayerID || '');
@@ -267,33 +289,23 @@ define([
                     return res.insurance_name;
                 }
             },
- 
+
             reloadERAFiles: function () {
                 commonjs.filterData = {};
                 var iframeObj = document.getElementById("ifrEobFileUpload") && document.getElementById("ifrEobFileUpload").contentWindow ? document.getElementById("ifrEobFileUpload").contentWindow : null;
-                var inputObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('eraFile');
-                if (!app.settings.eraInboxPath) {
-                    inputObj.disabled = true;
-                    commonjs.showWarning('ERA Inbox path not yet set.', '', true);
+                var fileUploadedObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileNameUploaded');
+                var fileDuplicateObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileIsDuplicate');
+
+                if (fileDuplicateObj.innerHTML == 'true') {
+                    commonjs.showWarning('This file has been already processed');
+                    fileDuplicateObj.innerHTML = '';
+                    fileUploadedObj.innerHTML = '';
+                    return false;
                 }
                 else {
-                    if (inputObj.getAttribute('data-isDuplicate') == 'true')
-                        commonjs.showWarning('File already processed');
-                    else {
-                        this.pager.set({ "PageNo": 1 });
-                        $('.ui-jqgrid-htable:visible').find('input, select').val('');
-                        if (inputObj.getAttribute('data-uploaded') == 'true') {
-                            this.eobFilesTable.refresh();
-                        }
-                        else
-                            this.eobFilesTable.refreshAll();
-                        inputObj.setAttribute('data-isDuplicate', '');
-                    }
-                    if (iframeObj && inputObj) {
-                        inputObj.style.display = 'block'
-                        inputObj.value = '';
-                    }
-                    inputObj.setAttribute('data-isDuplicate', '');
+                    this.pager.set({ "PageNo": 1 });
+                    $('.ui-jqgrid-htable:visible').find('input, select').val('');
+                    this.eobFilesTable.refreshAll();
                 }
             }
         });

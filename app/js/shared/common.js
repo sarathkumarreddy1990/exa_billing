@@ -3795,6 +3795,8 @@ var commonjs = {
                 case 'Order':
                     height = $(window).height() - (50 + 40 + 120) < 100 ? $(window).height() : $(window).height() - (50 + 40 + 120);
                     break;
+                case 'EOB':
+                    height = $(window).height() - 225;
             }
         }
 
