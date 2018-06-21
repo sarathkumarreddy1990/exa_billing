@@ -1,36 +1,49 @@
 <div class="form-group row">
     <div class="col-lg-12">
-        <div class="col-lg-6">
-            <form id="formInsuranceX12Mapping" class="form-horizontal">
-                <div class="form-group row">
-                    <label for="ddlInsuranceName" class="col-sm-3 col-form-label field-required" i18n="setup.insuranceX12Mapping.insuranceName"></label>
-                    <div class="col-sm-5">
-                        <select id="ddlInsuranceName" class="form-control" style="height:32px;" name="insuranceName">
+        <form id="formInsuranceX12Mapping" class="form-horizontal">
+            <div class="form-group row">
+                <label for="ddlInsuranceName" class="col-sm-2 col-form-label field-required" i18n="setup.insuranceX12Mapping.insuranceName"></label>
+                <label id="lblInsuranceName" class="col-sm-5 col-form-label font-weight-bold"></label>
+            </div>
+            <div class="form-group row">
+                <label for="ddlClaimClearingHouse" class="col-sm-2 col-form-label field-required" i18n="setup.insuranceX12Mapping.claimClearingHouse"></label>
+                <div class="col-sm-5">
+                    <select id="ddlClaimClearingHouse" class="form-control"  style="height:32px;" name="claimClearingHouse">
+                            <option value="" i18n="shared.buttons.select"></option>
+                            <% _.each(ediClearingHouseList, function(list) { %>
+                                <option value='<%= list.id %>'>
+                                    <%=list.name%>
+                                </option>
+                                <% }); %>
                         </select>
-                    </div>
                 </div>
-                <div class="form-group row">
-                    <label for="ddlClaimClearingHouse" class="col-sm-3 col-form-label field-required" i18n="setup.insuranceX12Mapping.claimClearingHouse"></label>
-                    <div class="col-sm-5">
-                        <select id="ddlClaimClearingHouse" class="form-control" style="height:32px;" name="claimClearingHouse">
+            </div>
+            <div class="form-group row">
+                <label for="ddlClaimTemplateRad" class="col-sm-2 col-form-label field-required" i18n="setup.insuranceX12Mapping.claimTemplateRad"></label>
+                <div class="col-sm-5">
+                        <select id="ddlClaimTemplateRad" class="form-control"  style="height:32px;" name="claimTemplateRad">
+                                <option value="" i18n="shared.buttons.select"></option>
+                                <% _.each(ediTemplatesList, function(value) { %>
+                                    <option value='<%= value %>'>
+                                        <%=value%>
+                                    </option>
+                                    <% }); %>
+                            </select>
+                </div>
+            </div>
+            <div class="form-group row" style="display:none;">
+                <label for="ddlClaimTemplateProv" class="col-sm-2 col-form-label field-required" i18n="setup.insuranceX12Mapping.claimTemplateProv"></label>
+                <div class="col-sm-5">
+                    <select id="ddlClaimTemplateProv" class="form-control"  style="height:32px;" name="claimTemplateProv">
+                            <option value="" i18n="shared.buttons.select"></option>
+                            <% _.each(ediTemplatesList, function(value) { %>
+                                <option value='<%= value %>'>
+                                    <%=value%>
+                                </option>
+                                <% }); %>
                         </select>
-                    </div>
                 </div>
-                <div class="form-group row">
-                    <label for="ddlClaimTemplateRad" class="col-sm-3 col-form-label field-required" i18n="setup.insuranceX12Mapping.claimTemplateRad"></label>
-                    <div class="col-sm-5">
-                        <select id="ddlClaimTemplateRad" class="form-control" style="height:32px;" name="claimTemplateRad">
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label for="ddlClaimTemplateProv" class="col-sm-3 col-form-label field-required" i18n="setup.insuranceX12Mapping.claimTemplateProv"></label>
-                    <div class="col-sm-5">
-                        <select id="ddlClaimTemplateProv" class="form-control" style="height:32px;" name="claimTemplateProv">
-                        </select>
-                    </div>
-                </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
 </div>

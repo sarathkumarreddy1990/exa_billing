@@ -171,9 +171,6 @@ define(['jquery',
                 }
 
                 commonjs.initializeScreen({header: {screen: 'StatusColorCodes', ext: 'statusColorCodes'}, buttons: [
-                    {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
-                        self.saveStatusColorCodes();
-                    }},
                     {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
                         Backbone.history.navigate('#setup/status_color_codes/list', true);
                     }}

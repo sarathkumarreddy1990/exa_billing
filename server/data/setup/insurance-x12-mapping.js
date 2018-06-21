@@ -89,8 +89,8 @@ module.exports = {
         const sql = SQL` UPDATE
                             public.insurance_providers
                          SET
-                            insurance_info = insurance_info || [hstore(ARRAY['claimClearingHouse','claimRequestTemplate','claim_req_temp_prov'],
-                                                                ARRAY[${claimClearingHouse},${claimRequestTemplate},${claimReqTempProv}])]
+                            insurance_info = insurance_info || hstore(ARRAY['claimClearingHouse','claimRequestTemplate','claim_req_temp_prov'],
+                                                                ARRAY[${claimClearingHouse},${claimRequestTemplate},${claimReqTempProv}])
                          WHERE
                               id = ${id} 
                               RETURNING *,
