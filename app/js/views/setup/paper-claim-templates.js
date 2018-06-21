@@ -181,6 +181,10 @@ define(['jquery',
                                 if (data) {
                                     $('#txtTemplateName').val(data.name ? data.name : '');
                                     $('#chkActive').prop('checked', data.inactivated_dt ? true : false);
+                                    $('#numRightMargin').val(data.right_margin ? data.right_margin : 0);
+                                    $('#numLeftMargin').val(data.left_margin ? data.left_margin : 0),
+                                    $('#numTopMargin').val(data.top_margin ? data.top_margin : 0),
+                                    $('#numBottomMargin').val(data.bottom_margin ? data.bottom_margin : 0),
                                     self.templateData.originalForm = data.orginal_form_template ? data.orginal_form_template : "{}";
                                     self.templateData.fullForm = data.full_form_template ? data.full_form_template : "{}";
                                     self.setEditorContents(self.templateData.originalForm);
@@ -233,7 +237,7 @@ define(['jquery',
                         // }
                     },
                     messages: {
-                        templateName: commonjs.getMessage("e", "Template Name")
+                        templateName: commonjs.getMessage("e", "Template Name"),
                         // leftMargin: commonjs.getMessage("e", "Margin Left"),
                         // topMargin: commonjs.getMessage("e", "Margin Top"),
                         // rightMargin: commonjs.getMessage("e", "Margin Right"),
@@ -265,6 +269,10 @@ define(['jquery',
                 this.model.set({
                     "name": $('#txtTemplateName').val(),
                     "isActive": !$('#chkActive').prop('checked'),
+                    "marginRight": $('#numRightMargin').val() ? $('#numRightMargin').val() : 0,
+                    "marginLeft": $('#numLeftMargin').val() ? $('#numLeftMargin').val() : 0,
+                    "marginTop": $('#numTopMargin').val() ? $('#numLeftMargin').val() : 0,
+                    "marginBottom": $('#numBottomMargin').val() ? $('#numBottomMargin').val(): 0,
                     "orginalFormTemplate": this.templateData.originalForm,
                     "fullFormTemplate": this.templateData.fullForm,
                     "companyId": app.companyID
