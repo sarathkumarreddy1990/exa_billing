@@ -292,11 +292,11 @@ module.exports = {
         }
 
         if (adjustment) {    
-            whereQuery.push( `(SELECT adjustments_applied_total from billing.get_claim_totals(bc.id)) = '${adjustment}'::money`);
+            whereQuery.push( `(SELECT adjustments_applied_total from billing.get_claim_totals(bc.id)) = (${adjustment})::money`);
         }
 
         if (balance) {
-            whereQuery.push(`((SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from billing.get_claim_totals(bc.id)) = ${balance}::money)`);
+            whereQuery.push(`((SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from billing.get_claim_totals(bc.id)) = (${balance})::money)`);
         }
 
         const sql = SQL `SELECT 
