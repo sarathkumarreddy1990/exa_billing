@@ -363,7 +363,10 @@
             "viewReport" : "View Report",
             "insuranceStartExpiryDate" : "Coverage Start/End Date",
             "insuranceStartDate" : "Start Date",
-            "insuranceExpDate" : "Expiry Date"
+            "insuranceExpDate" : "Expiry Date",
+            "totalInsurancePayments":"Total Insurance Payment",
+            "totalPatientPayments":"Total Patient Payment",
+            "currentResponsibility":"Current Responsibility Assigned"
         }
     }
 }

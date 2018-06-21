@@ -28,8 +28,33 @@ define(['jquery',
             statusColorCodesList : [],
             model: null,
             statusColorCodesTable :null,
+            claimStatus : [],
+            studyStatus: [
+                {
+                    description: 'billed'
+                }, 
+                {
+                    description: 'unbilled'
+                }
+            ],
+            paymentStatus: [
+                {
+                    description: 'applied'
+                }, 
+                {
+                    description: 'unbilled'
+                }, 
+                {
+                    description: 'pending_payment'
+                }, 
+                {
+                    description: 'over_payment'
+                }
+            ],
             pager: null,
-            events: { },
+            events: { 
+                'change #ddlProcessType' : 'changeProcessType'
+            },
             initialize: function (options) {
                 var self = this;
                 this.options = options;
@@ -43,6 +68,9 @@ define(['jquery',
                 $('#divStatusColorCodesGrid').show();
                 $('#divStatusColorCodesForm').hide();
                 $(this.el).html(this.statusColorCodesGridTemplate());
+                if(this.claimStatus && !this.claimStatus.length) {
+                    this.getClaimStatus();
+                }
                 this.statusColorCodesTable = new customGrid();
                 this.statusColorCodesTable.render({
                     gridelementid: '#tblStatusColorCodesGrid',
@@ -152,6 +180,7 @@ define(['jquery',
             renderForm: function(id) {
                 var self = this;
                 $('#divStatusColorCodesForm').html(this.statusColorCodesFormTemplate());
+                self.loadProcessStatus(self.claimStatus);
                 if(id > 0) {
                     this.model.set({id: id});
                     this.model.fetch({
@@ -160,8 +189,16 @@ define(['jquery',
                                 var data = response[0];
                                 if (data) {
                                     $('#ddlProcessType').val(data.process_type ? data.process_type : '');
-                                    $('#txtProcessStatus').val(data.process_status ? data.process_status : '');
+                                    if(data.process_type == 'payment') {
+                                        self.loadProcessStatus(self.paymentStatus);
+                                    } else if(data.process_type == 'study') {
+                                        self.loadProcessStatus(self.studyStatus);
+                                    } else {
+                                        self.loadProcessStatus(self.claimStatus);
+                                    }
+                                    $('#ddlProcessStatus').val(data.process_status ? data.process_status : '');
                                     $('#txtColor').val(data.color_code ? data.color_code : '');
+                                    commonjs.processPostRender();
                                 }
                             }
                         }
@@ -171,6 +208,9 @@ define(['jquery',
                 }
 
                 commonjs.initializeScreen({header: {screen: 'StatusColorCodes', ext: 'statusColorCodes'}, buttons: [
+                    {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
+                        self.saveStatusColorCodes();
+                    }},
                     {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
                         Backbone.history.navigate('#setup/status_color_codes/list', true);
                     }}
@@ -179,6 +219,25 @@ define(['jquery',
                 $('#divStatusColorCodesGrid').hide();
                 $('#divStatusColorCodesForm').show();
                 commonjs.processPostRender();
+            },
+
+            loadProcessStatus : function(paymentStatusList) {
+                var elPaymentStatus = $('#ddlProcessStatus');
+                elPaymentStatus.empty();
+                for(var i = 0; i < paymentStatusList.length; i++) {
+                    $('<option/>',{value:paymentStatusList[i].description}).html(paymentStatusList[i].description).appendTo(elPaymentStatus);
+                }
+            },
+
+            changeProcessType : function(e) {
+                var processType = $('#ddlProcessType').val();
+                if (processType == 'claim') {
+                    this.loadProcessStatus(this.claimStatus);
+                } else if (processType == 'payment') {
+                    this.loadProcessStatus(this.paymentStatus);
+                } else {
+                    this.loadProcessStatus(this.studyStatus);
+                }
             },
 
             saveStatusColorCodes: function() {
@@ -204,10 +263,26 @@ define(['jquery',
                 $('#formStatusColorCodes').submit();
             },
 
+            getClaimStatus : function() {
+                 var self = this;
+                 $.ajax({
+                     url: `/exa_modules/billing/setup/claim_status?isFrom=claimStatus`,
+                     type: 'GET',
+                     success: function (response) {
+                         if (response && response.length > 0) {
+                             self.claimStatus = response;
+                         }
+                     },
+                     error: function (err) {
+                         commonjs.showWarning(err);
+                     }
+                 });
+            },
+
             save: function () {
                 this.model.set({
                     "processType": $.trim($('#ddlProcessType').val()),
-                    "processStatus": $.trim($('#txtProcessStatus').val()),
+                    "processStatus": $.trim($('#ddlProcessStatus').val()),
                     "colorCode" : $('#txtColor').val(),
                     "companyId" : app.companyID
                 });
