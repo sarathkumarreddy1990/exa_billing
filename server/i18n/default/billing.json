@@ -76,7 +76,9 @@
             "billingComments": "Billing Notes",
             "comment": "comments",
             "chargeList": "Charge List",
-            "selectedChargeList": "Selected Charge List"
+            "selectedChargeList": "Selected Charge List",
+            "previous": "Prevoius",
+            "next": "Next"
         },
         "payments": {
             "postingDate": "Posting Date",
