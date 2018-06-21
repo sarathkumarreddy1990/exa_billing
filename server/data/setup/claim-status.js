@@ -12,7 +12,8 @@ module.exports = {
             sortOrder,
             sortField,
             pageNo,
-            pageSize
+            pageSize,
+            isFrom
         } = params;
 
         if (code) {
@@ -44,12 +45,14 @@ module.exports = {
                 .append(whereQuery.join(' AND '));
         }
 
-        sql.append(SQL` ORDER BY `)
-            .append(sortField)
-            .append(' ')
-            .append(sortOrder)
-            .append(SQL` LIMIT ${pageSize} `)
-            .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+        if (isFrom != 'claimStatus') {
+            sql.append(SQL ` ORDER BY `)
+                .append(sortField)
+                .append(' ')
+                .append(sortOrder)
+                .append(SQL ` LIMIT ${pageSize} `)
+                .append(SQL ` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+        }
 
         return await query(sql);
     },

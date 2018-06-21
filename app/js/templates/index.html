@@ -65,7 +65,6 @@ div.multiStudyColumnList input[type=checkbox] {
     <div style="float:right;">
         <form class="small_dd tn-menu">
             <ul class="tn-menu-right">
-                <!--TODO  Put back study fliter dropdown and left and right nav buttons-->
                 <li class="studyBtnPadding">
                     <i class="icon-ic-expand" id="btnTabNavLeft" title="Move tab bar by left side"></i>
                 </li>
@@ -77,17 +76,6 @@ div.multiStudyColumnList input[type=checkbox] {
                     <ul id="ulTabCollection" class="dropdown-menu" style="overflow:auto!important;max-height:400px;margin-top:8px!important;"
                         role="menu" aria-labelledby="btnShowTabItems">
                     </ul>
-                </li>
-                <li>
-                    <input type="button" value="Claim" id="btnInsuranceClaim" class="btn btn-primary" i18n="billing.fileInsurance.claim">
-                </li>
-                <li>
-                    <input type="button" value="Validate" id="btnValidateOrder" class="btn btn-primary" i18n="shared.buttons.validate">
-                </li>
-                <li>
-                    <button type="button" class="btn btn-primary" id="btnValidateExport" i18n="shared.buttons.export" i18n="report.reportFilter.exportToExel"
-                        data-rformat="xlsx">
-                        <i class="fa fa-file-excel-o"></i></button>
                 </li>
                 <li>
                     <a>
@@ -105,10 +93,21 @@ div.multiStudyColumnList input[type=checkbox] {
                         <i title="Settings" id="mySettings" class="icon-ic-actions"></i>
                     </a>
                 </li>
-                <li>
+                <li style="margin-right: 25px;">
                     <a>
                         <i title="Filters" id="btnStudyFilter" class="icon-ic-filter"></i>
                     </a>
+                </li>
+                <li>
+                    <input type="button" value="Claim" id="btnInsuranceClaim" class="btn btn-primary" i18n="billing.fileInsurance.claim">
+                </li>
+                <li>
+                    <input type="button" value="Validate" id="btnValidateOrder" class="btn btn-primary" i18n="shared.buttons.validate">
+                </li>
+                <li>
+                    <button type="button" class="btn btn-primary" id="btnValidateExport" i18n="shared.buttons.export" i18n="report.reportFilter.exportToExel"
+                        data-rformat="xlsx">
+                        <i class="fa fa-file-excel-o"></i></button>
                 </li>
             </ul>
         </form>

@@ -405,5 +405,63 @@ module.exports = {
                     ORDER BY applied_dt ASC `;
                     
         return await query(sql);
-    }
+    },
+
+    getclaimPatient: async function (params) {
+        params.sortOrder = params.sortOrder || ' ASC';        
+        let {
+            sortOrder,
+            sortField,
+            pageNo,
+            pageSize,     
+            patientId
+        } = params;
+
+        let sql = SQL`SELECT
+                        claims.id as claim_id
+                        ,(  CASE payer_type 
+                            WHEN 'primary_insurance' THEN insurance_providers.insurance_name
+                            WHEN 'secondary_insurance' THEN insurance_providers.insurance_name
+                            WHEN 'teritary_insurance' THEN insurance_providers.insurance_name
+                            WHEN 'ordering_facility' THEN provider_groups.group_name
+                            WHEN 'referring_provider' THEN ref_provider.full_name
+                            WHEN 'rendering_provider' THEN render_provider.full_name
+                            WHEN 'patient' THEN patients.full_name        END) AS payer_name
+                        , claim_dt
+                        , claim_status.description as claim_status
+                        , (select payment_patient_total from billing.get_claim_payments(claims.id)) AS total_patient_payment
+                        , (select payment_insurance_total from billing.get_claim_payments(claims.id)) AS total_insurance_payment 
+                        , (select charges_bill_fee_total from BILLING.get_claim_payments(claims.id)) as billing_fee
+                        , (select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from BILLING.get_claim_payments(claims.id)) as claim_balance
+                        , COUNT(1) OVER (range unbounded preceding) AS total_records
+                        ,(select Row_to_json(agg_arr) agg_arr FROM (SELECT * FROM billing.get_age_claim_payments (patients.id) )as agg_arr) as age_summary
+                    FROM billing.claims
+                    INNER JOIN patients ON claims.patient_id = patients.id 
+                    LEFT JOIN provider_contacts  ON provider_contacts.id=claims.referring_provider_contact_id 
+                    LEFT JOIN providers as ref_provider ON ref_provider.id=provider_contacts.id 
+                    LEFT JOIN provider_contacts as rendering_pro_contact ON rendering_pro_contact.id=claims.rendering_provider_contact_id
+                    LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.id
+                    LEFT JOIN patient_insurances ON patient_insurances.id = 
+                        (  CASE payer_type 
+                        WHEN 'primary_insurance' THEN primary_patient_insurance_id
+                        WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
+                        WHEN 'teritary_insurance' THEN tertiary_patient_insurance_id
+                        END)
+                    LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id
+                    LEFT JOIN provider_groups ON claims.ordering_facility_id = provider_groups.id 
+                    LEFT JOIN billing.claim_status  ON claim_status.id=claims.claim_status_id
+                     WHERE patients.id=${patientId}
+                    `;
+
+
+        sql.append(SQL` ORDER BY  `)
+            .append(sortField)
+            .append(' ')
+            .append(sortOrder)
+            .append(SQL` LIMIT ${pageSize}`)
+            .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+
+        return await query(sql);
+    },
+
 };

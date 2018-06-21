@@ -37,9 +37,8 @@ const log = new ln({
 });
 
 // log.info('Log files goes here', { 'a': 10 });
-// log.info(getFilePath());
+log.info(getFilePath());
 
 log.logInfo = log.info;
-log.logInfo('Log files goes here - test');
 
 module.exports = log;

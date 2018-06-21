@@ -55,12 +55,14 @@ define([
                             sortable: false,
                             search: false,
                             className: 'icon-ic-reports',
-                            route: '#setup/audit_log/view/',
                             formatter: function (e, model, data) {
                                 return `<span class='icon-ic-reports' title='click here to view this log'></span>`;
                             },
                             cellattr: function () {
                                 return 'style=text-align:center;cursor:pointer;'
+                            },
+                            customAction: function(rowID){
+                                self.displayDetails(rowID) ;
                             }
                         },
                         {
@@ -80,7 +82,8 @@ define([
                         },
                         {
                             name: 'created_dt',
-                            width: 180
+                            width: 180,
+                            formatter: self.loggedDateFormatter
                         },
                         {
                             name: 'screen_name',
@@ -138,8 +141,8 @@ define([
                 this.render();
             },
 
-            showDetails: function (id) {
-                this.displayDetails(id);
+            loggedDateFormatter: function (cellvalue, options, rowObject) {
+                return rowObject.created_dt ? commonjs.getFormattedDateTime(rowObject.created_dt) : '';
             },
 
             displayDetails: function (id) {

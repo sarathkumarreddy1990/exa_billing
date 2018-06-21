@@ -60,16 +60,16 @@ input[id^="ddlPointer"] {
   width: 45px !important;
 }
 input[id^="txtUnits"] {
-  width: 70px;
+  width: 70px !important;
 }
 input[id^="txtTotalBillFee"] {
-  width: 125px;
+  width: 125px !important;
 }
 input[id^="txtAllowedFee"] {
-  width: 100px;
+  width: 100px !important;
 }
 input[id^="txtTotalAllowedFee"] {
-  width: 120px;
+  width: 120px !important;
 }
 .select2-container {
   z-index: 10000;
@@ -102,11 +102,12 @@ li {
 }
 #newClaimNav .tn-menu > li {
   float: left;
-  padding: 20px 20px 10px;
+  padding: 10px 20px 8px;
   border-bottom: 4px solid transparent;
 }
 #newClaimNav > .tn-menu {
   margin: 0px !important;
+  padding-left: 5px;
 }
 #newClaimNav > .new-menu-right {
   margin: 0px !important;
@@ -115,6 +116,23 @@ li {
 #newClaimNav {
   padding: 0px;
 }
+
+#newClaimNav {
+  .new-menu-right{
+    .btn{
+      height: 31px !important;
+    }
+  }
+}
+
+#headerContainer{
+  width: 100%;
+  position: absolute;
+  top: 0;
+  z-index: 10001;
+  margin-left: -18px;
+}
+
 #headerContainer .top-nav {
   background: #2b547e;
   padding: 0 25px 0 0px;
@@ -123,6 +141,7 @@ li {
   min-width: 1250px;
   min-width: 0;
 }
+
 #tab_menu {
   position: relative;
   float: left;
@@ -132,7 +151,7 @@ li {
 }
 .new-menu-right > li {
   float: left;
-  padding: 6px 11px 3px;
+  padding: 6px 11px 2px 8px;
   border-bottom: 4px solid transparent;
 }
 .top-buffer {

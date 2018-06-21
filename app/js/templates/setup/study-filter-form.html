@@ -59,7 +59,7 @@
     }
 
 </style>
-    <div id="headerContainer" style="background-color:#fff;text-align:right;width:100%;display: inline-block;">
+    <div id="headerContainer" style="z-index:0;">
         <ul class="new-menu-right">
             <li class="saveAll">
                 <button type="button" class="btn top-buffer" id="btnSaveStudyFilter">SAVE</button>
@@ -75,6 +75,7 @@
 <form class="form-horizontal" id="studyFiltersForm">
     <div id="divStudyFilterDefaultContent">
         <div class="form-group" id="divStudyFilterInputs">
+            <div class="row">
             <ul class="form-list col-md-7 col-sm-7" style="padding-left:5%;">
                 <li>
                     <div class="form-group row">
@@ -121,6 +122,33 @@
                     </div>
                 </li>
             </ul>
+            <ul class="form-list col-md-offset-1 col-md-4 col-sm-4">
+                <li>
+                    <div id="divSummary" style="display:none">
+                        <h6><b><label i18n="setup.studyFilters.summary"></label></b></h6>
+                        <div id="divulSummary">
+                            <ul id='ulSummary'>
+                                <li id="liDate"><label id="lblSummaryDate"></label></li>
+                                <li id="liPName"><label id="lblSummaryPName"></label></li>
+                                <li id="liPID"><label id="lblSummaryPID"></label></li>
+                                <li id="liModality"><label id="lblSummaryModality"></label></li>
+                                <li id="liBodyPart"><label id="lblSummaryBodyPart"></label></li>
+                                <li id="liFlag"><label id="lblSummaryFlag"></label></li>
+                                <li id="liInstitution"><label id="lblSummaryInstitution"></label></li>
+                                <li id="liStatus"><label id="lblSummaryStatus"></label></li>
+                                <li id="liStat"><label id="lblSummaryStat"></label></li>
+                                <li id="liStudyID"><label id="lblSummaryStudyID"></label></li>
+                                <li id="liAccession"><label id="lblSummaryAccession"></label></li>
+                                <li id="liAttorney"><label id="lblSummaryAttorney"></label></li>
+                                <li id="liReadPhy"><label id="lblSummaryReadPhy"></label></li>
+                                <li id="liInsurance"><label id="lblSummaryInsurance"></label></li>
+                                <li id="liFacility"><label id="lblFacility"></label></li>
+                            </ul>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+            </div>
         </div>
         <legend class="viztekLegend">
             <div class="row" style="width:100%"></div>

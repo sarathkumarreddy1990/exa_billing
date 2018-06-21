@@ -27,21 +27,21 @@ const router = function (app) {
 
     app.use('/exa_modules/billing/studies', studiesRouter);
     app.use('/exa_modules/billing/reports', reportingRoutes);
-    app.use('/exa_modules/billing/studyFilters', studyFiltersRouter);
+    app.use('/exa_modules/billing/study_filters', studyFiltersRouter);
     app.use('/exa_modules/billing/app_settings', appSettingsRouter);
-    app.use('/exa_modules/billing/claimFilters', claimFiltersRouter);
+    app.use('/exa_modules/billing/claim_filters', claimFiltersRouter);
     app.use('/exa_modules/billing/autoCompleteRouter', autoCompleteRouter);
     app.use('/exa_modules/billing/setup', setupRouters);
     app.use('/exa_modules/billing/payments', paymentsRouter);
     app.use('/exa_modules/billing/pending_payments', paymentsRouter);
+    app.use('/exa_modules/billing/claims/split_claim', splitClaimRouter);
     app.use('/exa_modules/billing/claims', claimsRouters);
     app.use('/exa_modules/billing/user_settings', userSettingRouter);
-    app.use('/exa_modules/billing/claimWorkbench', claimsWorkbenchRouters);
+    app.use('/exa_modules/billing/claim_workbench', claimsWorkbenchRouters);
     app.use('/exa_modules/billing/claims/claim_inquiry', claimInquiry);
     app.use('/exa_modules/billing/patient', patientRouter);
     app.use('/exa_modules/billing/setup/study_filters', studyFilterRouter);
     app.use('/exa_modules/billing/era', eraRouter);
-    app.use('/exa_modules/billing/claims/split_claim', splitClaimRouter);
 };
 
 module.exports = router;
