@@ -99,7 +99,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
 
                  $('#btnCheckEligibility, #btnCheckEligibility2, #btnCheckEligibility3').unbind().click(function (e) {
                      self.checkInsuranceEligibility(e);
-                 }); 
+                 });
+                 this.bindTabMenuEvents();
             },
 
             checkInsuranceEligibility: function (e) {
@@ -2494,6 +2495,33 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 } else {
                     commonjs.showWarning('Error on process claim');
                 }
+            },
+            
+            bindTabMenuEvents: function () {
+                var self = this;
+
+                var tab_menu_link = $('ul#tab_menu li a');
+                var tab_menu_item = $('ul#tab_menu li');
+                var width_tab_menu_item = tab_menu_item.width();
+                $('ul#tab_menu li.active_item').width(width_tab_menu_item + 143);
+                var $header_container = $('#headerContainer');
+                var $root = $('html, body');
+                tab_menu_link.click(function () {
+                    var val = $($(this).attr('href')).offset().top;
+                    var offset = $header_container.height() - 20
+                    $root.animate({
+                        scrollTop: val - offset
+                    }, 500)
+                    tab_menu_item.removeClass('active');
+                    $(this).parent().addClass('active');
+                    var width_tab_menu_item = $(this).parent().width();
+                    var _el_position = $(this).parent().position().left;
+                    $('ul#tab_menu li.active_item').animate({
+                        left: _el_position,
+                        width: width_tab_menu_item + 40
+                    }, 300);
+                });
+
             }
 
         });
