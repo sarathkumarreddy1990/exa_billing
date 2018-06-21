@@ -1395,15 +1395,10 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                             var existing_insurance = response[0].existing_insurance || [];
                             var beneficiary_details = response[0].beneficiary_details || [];
 
-                            self.npiNo = existing_insurance[0].npi_no ? existing_insurance[0].npi_no : '';
-                            self.federalTaxId = existing_insurance[0].federal_tax_id ? existing_insurance[0].federal_tax_id : '';
-                            self.enableInsuranceEligibility = existing_insurance[0].enable_insurance_eligibility ? existing_insurance[0].enable_insurance_eligibility : '';
-                            self.subscriberLastName = existing_insurance[0].subscriber_lastname ? existing_insurance[0].subscriber_lastname : '';
-                            self.subscriberFirstName = existing_insurance[0].subscriber_firstname ? existing_insurance[0].subscriber_firstname : '';
-                            self.subscriberAddress = existing_insurance[0].subscriber_address_line1 ? existing_insurance[0].subscriber_address_line1 : '';
-                            self.policyNumber = existing_insurance[0].policy_number ? existing_insurance[0].policy_number : '';
-                            self.insuranceName = existing_insurance[0].insurance_name ? existing_insurance[0].insurance_name : '';
-                            self.tradingPartnerId = existing_insurance[0].ins_partner_id ? existing_insurance[0].ins_partner_id : '';
+                            self.npiNo = existing_insurance.length &&  existing_insurance[0].npi_no ? existing_insurance[0].npi_no : '';
+                            self.federalTaxId = existing_insurance.length && existing_insurance[0].federal_tax_id ? existing_insurance[0].federal_tax_id : '';
+                            self.enableInsuranceEligibility = existing_insurance.length && existing_insurance[0].enable_insurance_eligibility ? existing_insurance[0].enable_insurance_eligibility : '';
+                            self.tradingPartnerId = existing_insurance.length && existing_insurance[0].ins_partner_id ? existing_insurance[0].ins_partner_id : '';
 
                             $.each(existing_insurance, function (index, value) {
                                 switch (value.coverage_level) {
