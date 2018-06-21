@@ -315,7 +315,11 @@
             "serviceType" : "Service Type",
             "benefitOnDate" : "BenefitOnDate",
             "checkEligibility" : "Check Eligibility",
-            "viewReport" : "View Report"
+            "viewReport" : "View Report",
+            "totalInsurancePayments":"Total Insurance Payment",
+            "totalPatientPayments":"Total Patient Payment",
+            "currentResponsibility":"Current Responsibility Assigned"
+
         } 
     }
 }

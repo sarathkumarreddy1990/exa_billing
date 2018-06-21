@@ -9,7 +9,10 @@ define([
     'collections/claim-inquiry',
     'views/reports/patient-activity-statement' ,
     'views/reports/payment-invoice',
-    'text!templates/claims/claimInquiryPayment.html' 
+    'text!templates/claims/claimInquiryPayment.html' ,
+    'collections/claim-patient-inquiry',
+    'text!templates/claims/claim-patient.html' ,
+    'text!templates/claims/age-summary.html' 
 ], function (
     $,
     _,
@@ -21,19 +24,24 @@ define([
     claimCommentsList,
     patientActivityStatement,
     paymentInvoice,
-    paymentDetails) {
+    paymentDetails,
+    claimPatientList,
+    claimPatientInquiryTemplate,
+    agingSummaryHTML
+) {
         return Backbone.View.extend({
             el: null,
             pager: null,
             inquiryTemplate: _.template(claimInquiryTemplate),
+            claimPatientTemplate: _.template(claimPatientInquiryTemplate),
             paymentTemplate: _.template(paymentDetails),
+            agingSummaryTemplate: _.template(agingSummaryHTML),
             claim_id: null,
             events: {
                 "blur #txtCIFollowUpDate": "saveFollowUpDate",
                 "click #btnCIAddComment": "showCommentPopup",
                 "click #btnCISaveComment": "saveComment",
                 "click #btnCISaveIsInternal": "saveIsInternalComment",
-                "click #btnCIPatientInquiry": "patientInquiryForm",
                 "click #btnCIPrintInvoice": "printPaymentInvoice",
                 "click #btnCICommentCancel": "closeSaveComment",
                 "click #btnCIAddBillingComments": "billingCommentsReadonly",
@@ -45,13 +53,18 @@ define([
                 this.options = options;
                 this.pager = new Pager();
                 this.claimCommentsList = new claimCommentsList();
+                this.claimPatientList = new claimPatientList();
             },
 
-            render: function (cid) {
+            render: function (cid,patientId) {
+                let self=this;
               this.rendered = true;
               this.$el.html(this.inquiryTemplate());
                 commonjs.bindDateTimePicker("divFollowUpDate", { format: 'L' }); //to bind date picker to followup date
-                this.encounterDetails(cid)
+                this.encounterDetails(cid);
+                $("#btnCIPatientInquiry").unbind().click(function (e) {
+                   self.patientInquiryForm(cid,patientId);
+                });
             },
 
             encounterDetails: function (claimID) {
@@ -149,6 +162,92 @@ define([
                     width: $('#encounterDetails').width() - 50
                 });
                 $('#gview_tblCIDiagnosis').find('.ui-jqgrid-bdiv').css('max-height', '180px')
+            },
+            showPatientClaimsGrid: function (claimID,patientId) {
+                var self = this;
+                $('#divPatientClaimsGrid').show();
+                this.patientClaimsTable = new customGrid(); 
+                this.patientClaimsTable.render({
+                    gridelementid: '#tblPatientClaimsGrid',
+                    custompager: new Pager(),
+                    emptyMessage: 'No Record found',
+                    colNames: ['','Claim Number', 'Claim Date','Billing Fee','Total Insurance Payments','Total Patient Payments','Balance','Claim Status','Current responsibility'],
+                    i18nNames: ['', 'billing.fileInsurance.claimNo', 'billing.claims.claimDate','billing.COB.billingFee','billing.claims.totalInsurancePayments','billing.claims.totalPatientPayments','billing.claims.Balance','billing.claims.claimStatus','billing.claims.currentResponsibility'],
+                    colModel: [                       
+                        { name: '', index: 'claim_id', key: true, hidden: true,search: false },
+                        {
+                            name: 'claim_id', search: false,width:'70px'
+                        },
+                        {
+                            name: 'claim_dt', search: false,formatter:self.dateFormatter,width:'130px'
+                        },
+                        {
+                            name: 'billing_fee', search: false,width:'100px'
+                        },
+                        {
+                            name: 'total_insurance_payment',search: false,width:'150px'
+                        },
+                        {
+                            name: 'total_patient_payment',search: false,width:'150px'
+                        },
+                        {
+                            name: 'claim_balance',search: false,width:'100px'
+                        },
+                        {
+                            name: 'claim_status',search: false,width:'100px'
+                        },
+                        {
+                            name: 'payer_name',search: false,width:'150px'
+                        }
+
+
+                    ],
+                    datastore: self.claimPatientList,
+                    container: self.el,
+                    cmTemplate: { sortable: false },
+                    customizeSort: false,
+                    sortname: "claims.id",
+                    sortorder: "desc",
+                    dblClickActionIndex: 1,
+                    disablesearch: false,
+                    disablesort: false,
+                    disablepaging: false,
+                    showcaption: false,
+                    disableadd: true,
+                    disablereload: true,
+                    customargs:{
+                        claimID:claimID,
+                        patientId:patientId
+                    },
+                    pager: '#gridPager_PatientClaim',
+                    onaftergridbind: self.afterGridBind,
+                });
+                
+
+                setTimeout(function () {
+                    $("#tblPatientClaimsGrid").setGridWidth($(".modal-body").width());
+                    $("#tblPatientClaimsGrid").setGridHeight(($(".modal-body").height()/2)*2);
+                }, 200);
+                $('#divAgeSummary').html(self.agingSummaryTemplate());
+            },
+
+            dateFormatter: function (cellvalue, options, rowObject) {
+                return commonjs.checkNotEmpty(cellvalue) ?
+                    commonjs.convertToFacilityTimeZone(rowObject.facility_id, cellvalue).format('L LT z') :
+                    '';
+            },
+
+            afterGridBind: function (model, gridObj) {
+                let self = this;
+                if (model && model.length > 0) {
+                    let age_summary=model[0].get('age_summary');
+                    $('#tdCurrent').html(age_summary.age_0_30 || '$0.00');
+                    $('#tdAge30').html(age_summary.age_31_60 || '$0.00');
+                    $('#tdAge60').html(age_summary.age_61_90 || '$0.00');
+                    $('#tdAge90').html(age_summary.age_91_120 || '$0.00');
+                    $('#tdAge120').html(age_summary.age_121 || '$0.00');
+                    $('#tdAgeTotal').html(age_summary.total_balance || '$0.00');
+                }
             },
 
             showClaimCommentsGrid: function () {
@@ -452,11 +551,16 @@ define([
                 return colValue;
             },
 
-            patientInquiryForm: function (e) {
+            patientInquiryForm: function (claimId,patientId) {
                 var self = this;
-                var claimID = self.claim_id;
-                self.patientActivityStatement = new patientActivityStatement({el: $('#modal_div_container')});
-                self.patientActivityStatement.onReportViewClick(e, claimID);                         
+                // commonjs.showDialog({
+                //     header: 'Patient Claim Inquiry', 
+                //     width: '95%',
+                //     height: '75%',
+                //     html: self.claimPatientTemplate()
+                // });        
+                this.$el.html(this.claimPatientTemplate()); 
+                self.showPatientClaimsGrid(claimId,patientId);            
             },
 
             printPaymentInvoice: function (e) {

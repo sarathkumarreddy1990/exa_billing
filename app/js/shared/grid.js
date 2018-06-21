@@ -236,7 +236,22 @@ define('grid', [
                     'needShrink': true
                 });
                 self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
-                self.claimInquiryView.render(studyIds);
+                self.claimInquiryView.render(studyIds,selectedStudies[0].patient_id);
+                });
+
+
+                var liPatientClaimInquiry = commonjs.getRightClickMenu('anc_patient_claim_inquiry','setup.rightClickMenu.patientClaimInquiry',false,'Patient Claim Inquiry',false);
+                if(studyArray.length == 1)
+                    $divObj.append(liPatientClaimInquiry);
+                $('#anc_patient_claim_inquiry').click(function () {
+                     commonjs.showDialog({
+                    'header': 'Patient Claim Inquiry',
+                    'width': '95%',
+                    'height': '95%',
+                    'needShrink': true
+                });
+                self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
+                self.claimInquiryView.patientInquiryForm(studyIds,selectedStudies[0].patient_id);
                 });
                 
                 var liSplitOrders = commonjs.getRightClickMenu('anc_split_orders','setup.rightClickMenu.splitOrders',false,'Split Orders',false);

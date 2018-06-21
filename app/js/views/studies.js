@@ -1396,7 +1396,7 @@ define(['jquery',
 
             toggleTabContents: function (index) {
                 var _self = this;
-                commonjs.processPostRender({screen: 'PACS Home'});
+                commonjs.processPostRender({screen: 'Studies'});
                 $('#divPageLoading').hide();
                 $('#diveHomeIndex').show();
                 $('#divStudyFooter').show();

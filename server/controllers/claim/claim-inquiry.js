@@ -44,5 +44,9 @@ module.exports = {
 
     viewChargePaymentDetails: (params) => {
         return data.viewChargePaymentDetails(params); 
+    },
+
+    getclaimPatient: (params) => {
+        return data.getclaimPatient(params); 
     }
 };
