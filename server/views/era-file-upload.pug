@@ -2,7 +2,7 @@ doctype html
 html
     head
         meta(http-equiv="Content-Type", content="text/html;charset=Windows-1252")
-        title EOB FIle Upload
+        title EOB File Upload
     script.
                function seletImportProviders(e){
                  if (!/edi|era|835|txt/i.test(e.target.files[0].name.slice(-3))) {
@@ -19,9 +19,11 @@ html
                   }
                }
     body(class="exportFrame" style="background-color: transparent !important;")
-        form#eraFileUpload(name='formEraUpload', action='/exa_modules/billing/era/upload?companyID=#{companyID}', method='post',style="float:right;", enctype="multipart/form-data")
-            input#eraFile(type="file", name="displayImage", data-isDuplicate="#{duplicate_file}", data-fileNameUploaded="#{fileNameUploaded}", onchange="seletImportProviders(event);" )
+        form#eraFileUpload(name='formEraUpload', action='/exa_modules/billing/era/upload', method='POST', style="float:right;", enctype="multipart/form-data")
+            input#eraFile(type="file", name="displayImage" , onchange="seletImportProviders(event);" )
             input#inSubmit(type="submit", style="visibility:hidden;height:0px")
+            span#fileNameUploaded(style="visibility:hidden") #{fileNameUploaded}
+            span#fileIsDuplicate(style="visibility:hidden") #{duplicate_file}
     script.
         parent.commonjs.hideLoading();
         parent.document.getElementById('btnReloadERA').click();

@@ -14,12 +14,7 @@ router.get('/list', async function (req, res) {
 });
 
 router.get('/upload', function (req, res) {
-    return res.render('../server/views/era-file-upload.pug',
-        {
-            'companyID': 1,
-            'isUploaded': false,
-            'fileName': ''
-        });
+    return res.render('../server/views/era-file-upload.pug');
 });
 
 const storage = multer.memoryStorage();
@@ -42,6 +37,7 @@ router.post('/upload', upload.single('displayImage'), async function (req, res) 
         const dataRes = await eraController.checkERAFileIsProcessed(fileMd5, 1);
 
         const fileStorePath = dataRes.rows[0].file_store_info[0].root_directory;
+        const fileStoreId = dataRes.rows[0].file_store_info[0].file_store_id;
         const fileExist = dataRes.rows[0].file_exists[0];
 
         const currentTime = new Date();
@@ -58,18 +54,19 @@ router.post('/upload', upload.single('displayImage'), async function (req, res) 
             }
         }
         else {
-            throw 'Directory not found in file store';
+            throw new Error('Directory not found in file store');
         }
 
         if (fileExist != false) {
             return res.render('../server/views/era-file-upload.pug', {
-                companyID: 1,
+                companyID: req.audit.companyId,
+                fileNameUploaded: '',
                 duplicate_file: true,
             });
         }
 
-        req.file_store_id = '1';
-        req.company_id = '1';
+        req.file_store_id = fileStoreId;
+        req.company_id = req.audit.companyId;
         req.status = 'pending';
         req.file_type = '835';
         req.file_path = localPath;
@@ -85,10 +82,8 @@ router.post('/upload', upload.single('displayImage'), async function (req, res) 
                 }
 
                 return res.render('../server/views/era-file-upload.pug', {
-                    'companyID': req.query.companyID,
-                    'fileNameUploaded': dataResponse.rows[0].id,
-                    'duplicate_file': false,
-                    'valid_format': true
+                    fileNameUploaded: dataResponse.rows[0].id,
+                    duplicate_file: false
                 });
             });
         }
