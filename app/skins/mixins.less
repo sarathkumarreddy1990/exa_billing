@@ -927,3 +927,50 @@
     height: auto;
   }
 }
+
+
+.animation(@i:0.3s) {
+  -webkit-transition: a11 ease-out @i;
+  -moz-transition: all ease-out @i;
+  -o-transition: all ease-out @i;
+  transition: all ease-out @i;
+}
+.transition (@transition) {
+  -webkit-transition: @transition;
+  -moz-transition: @transition;
+  -o-transition: @transition;
+  transition: @transition;
+}
+
+.transform(@string) {
+  -webkit-transform: @string;
+  -moz-transform: @string;
+  -ms-transform: @string;
+  -o-transform: @string;
+  transform: @string;
+}
+.box-shadow(@shadow) {
+  -webkit-box-shadow:  @shadow;
+  box-shadow: @shadow;
+}
+@-webkit-keyframes flash-animation {
+  0%    { background-color: default; }
+  49%   { background-color: default; }
+  50%   { background-color: @helpTutorialHighlight; }
+  99%   { background-color: @helpTutorialHighlight; }
+  100%  { background-color: default; }
+}
+@-moz-keyframes flash-animation {
+  0%    { background-color: default; }
+  49%   { background-color: default; }
+  50%   { background-color: @helpTutorialHighlight; }
+  99%   { background-color: @helpTutorialHighlight; }
+  100%  { background-color: default; }
+}
+@keyframes flash-animation {
+  0%    { background-color: default; }
+  49%   { background-color: default; }
+  50%   { background-color: @helpTutorialHighlight; }
+  99%   { background-color: @helpTutorialHighlight; }
+  100%  { background-color: default; }
+}

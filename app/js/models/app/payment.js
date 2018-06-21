@@ -18,7 +18,6 @@ define(['backbone'], function (Backbone) {
             credit_card_name: null,
             payment_mode: null,
             payment_reason_id: null,
-            user_id: app.userID,
             notes: null
         },
         initialize: function (models) {

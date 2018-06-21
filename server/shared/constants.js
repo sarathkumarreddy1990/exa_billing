@@ -33,7 +33,9 @@ module.exports = {
         insurance_x12_mapping: 'Insurance X12 Mapping',
         user_log : 'User Log',
         audit_log : 'Audit Log',
-        payments: 'payments'
+        paper_claim_templates: 'Paper Claim Templates',
+        payments: 'Payments',
+        applyPayments:'Applied Payments'
     },
 
     permissionsMap: {

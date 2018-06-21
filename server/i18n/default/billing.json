@@ -74,7 +74,11 @@
             "icd": "ICD Codes",
             "claimNotes": "Claim Notes",
             "billingComments": "Billing Notes",
-            "comment": "comments"
+            "comment": "comments",
+            "chargeList": "Charge List",
+            "selectedChargeList": "Selected Charge List",
+            "previous": "Prevoius",
+            "next": "Next"
         },
         "payments": {
             "postingDate": "Posting Date",
@@ -356,7 +360,10 @@
             "serviceType" : "Service Type",
             "benefitOnDate" : "BenefitOnDate",
             "checkEligibility" : "Check Eligibility",
-            "viewReport" : "View Report"
+            "viewReport" : "View Report",
+            "insuranceStartExpiryDate" : "Coverage Start/End Date",
+            "insuranceStartDate" : "Start Date",
+            "insuranceExpDate" : "Expiry Date"
         }
     }
 }

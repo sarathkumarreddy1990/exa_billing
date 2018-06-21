@@ -18,6 +18,7 @@ module.exports = {
                         , public.get_full_name(p.last_name, p.first_name, p.middle_name, p.prefix_name, p.suffix_name)
                         , p.account_no
                         , (COALESCE(TRIM(pr.last_name),'') ||' '|| COALESCE(TRIM(pr.first_name),'')) AS referringPhysician
+                        , ch.id AS charge_id
                     FROM billing.claims bc
                     INNER JOIN public.patients p ON p.id = bc.patient_id
                     INNER JOIN billing.charges ch ON ch.claim_id = bc.id
@@ -30,8 +31,149 @@ module.exports = {
 
     },
 
-    createClaim: async () => {
+    createClaim: async (params) => {
 
+        let {
+            claim_id,
+            cpt_ids
+        } = params;
+
+        cpt_ids = cpt_ids.split(',');
+
+        let sql =SQL` WITH new_claim AS (
+                        INSERT INTO billing.claims
+                            (
+                                company_id 
+                                , facility_id
+                                , patient_id 
+                                , billing_provider_id
+                                , rendering_provider_contact_id 
+                                , referring_provider_contact_id 
+                                , primary_patient_insurance_id 
+                                , secondary_patient_insurance_id 
+                                , tertiary_patient_insurance_id 
+                                , ordering_facility_id 
+                                , place_of_service_id 
+                                , claim_status_id 
+                                , billing_code_id 
+                                , billing_class_id 
+                                , created_by 
+                                , claim_dt 
+                                , submitted_dt 
+                                , current_illness_date 
+                                , same_illness_first_date 
+                                , unable_to_work_from_date 
+                                , unable_to_work_to_date 
+                                , hospitalization_from_date 
+                                , hospitalization_to_date 
+                                , payer_type 
+                                , billing_method 
+                                , billing_notes 
+                                , claim_notes 
+                                , original_reference 
+                                , authorization_no 
+                                , frequency 
+                                , invoice_no 
+                                , is_auto_accident 
+                                , is_other_accident 
+                                , is_employed 
+                                , service_by_outside_lab
+                            )
+                            SELECT  
+                                company_id 
+                                , facility_id
+                                , patient_id 
+                                , billing_provider_id
+                                , rendering_provider_contact_id 
+                                , referring_provider_contact_id 
+                                , primary_patient_insurance_id 
+                                , secondary_patient_insurance_id 
+                                , tertiary_patient_insurance_id 
+                                , ordering_facility_id 
+                                , place_of_service_id 
+                                , (SELECT id FROM billing.claim_status WHERE code = 'PV') 
+                                , billing_code_id 
+                                , billing_class_id 
+                                , created_by 
+                                , claim_dt 
+                                , submitted_dt 
+                                , current_illness_date 
+                                , same_illness_first_date 
+                                , unable_to_work_from_date 
+                                , unable_to_work_to_date 
+                                , hospitalization_from_date 
+                                , hospitalization_to_date 
+                                , payer_type 
+                                , billing_method 
+                                , billing_notes 
+                                , claim_notes 
+                                , original_reference 
+                                , authorization_no 
+                                , frequency 
+                                , invoice_no 
+                                , is_auto_accident 
+                                , is_other_accident 
+                                , is_employed 
+                                , service_by_outside_lab 
+                            FROM billing.claims bc
+                            WHERE bc.id = ${claim_id}
+                            RETURNING id 
+                        ),
+                        update_charge AS (
+                            UPDATE 
+                                billing.charges ch
+                            SET
+                                claim_id  = (SELECT id FROM new_claim)
+                            WHERE 
+                                ch.id = ANY(${cpt_ids})
+                            RETURNING *
+                        ),
+                        new_icd AS (
+                            INSERT INTO 
+                                billing.claim_icds
+                                (
+                                    claim_id
+                                    , icd_id
+                                )
+                                SELECT 
+                                    (SELECT id FROM new_claim)
+                                    , icd_id
+                                FROM
+                                    billing.claim_icds
+                                WHERE 
+                                    claim_id = ${claim_id}
+                                RETURNING *
+                        ),
+                        claim_data AS (
+                            SELECT json_agg(row_to_json(claim)) claim_data 
+                            FROM (
+                                SELECT 
+                                    * 
+                                FROM 
+                                    new_claim
+                            ) AS claim
+                        ),
+                        charge_details AS (
+                            SELECT json_agg(row_to_json(charge)) charge_data 
+                            FROM (
+                                SELECT 
+                                    * 
+                                FROM 
+                                    update_charge
+                            ) AS charge
+                        ),
+                        icd_details AS (
+                            SELECT json_agg(row_to_json(icd)) icd_data 
+                            FROM (
+                                SELECT 
+                                    * 
+                                FROM 
+                                new_icd
+                            ) AS icd
+                        )
+                        SELECT * FROM claim_data, charge_details, icd_details`;
+
+        return await query(sql);
     },
 
     getvalidatedData: async (params) =>{

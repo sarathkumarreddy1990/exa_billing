@@ -14,27 +14,23 @@ define([
             el: null,
             splitCLaimTemplate: _.template(splitCLaimTemplate),
             cptListTemplate: _.template(cptListTemplate),
-            events: {
-                "dblclick section": "selectStudy"
-            },
 
             initialize: function (options) {
                 this.options = options;
             },
 
             render: function () {
-                //this.claim_id = claim_id;
                 this.rendered = true;
                 commonjs.showDialog({
-                    header: 'Claim Creation',
-                    width: '95%',
+                    header: 'Create/SPlit',
+                    width: '85%',
                     height: '75%',
                     html: this.splitCLaimTemplate()
-                })
-                //this.$el.html(this.splitCLaimTemplate());
-                this.showCPT();
-               this.validateSplitClaim(this.claim_id);
-                $('#divAllCPTList, #divSelectedCPTList').height($('#body_content').height() - 60).css('padding', '0');
+                });
+
+                this.showCharge();
+                this.validateSplitClaim(this.claim_id);
+                $('#divAllCPTList, #divSelectedCPTList').height($('#modal_div_container').height() - 60).css('padding', '0');
             },
 
             validateSplitClaim: function (claim_id) {
@@ -58,9 +54,7 @@ define([
                             } else if (data.payment_count > 0) {
                                 commonjs.showWarning('Can not split the claim with payment');
                             } else {
-                                 if (!self.rendered)
-                                     self.render();
-                                //self.showCPT()
+                                self.initializeCPTList();
                             }
                         }
 
@@ -71,7 +65,31 @@ define([
                 })
             },
 
-            showCPT: function(){
+            initializeCPTList: function () {
+                var self = this;
+                if (!self.rendered)
+                    self.render();
+                self.bindSplitEvents();
+            },
+
+            bindSplitEvents: function () {
+                var self = this;
+
+                $('#btnCreateClaim').off().click(function () {
+                    self.splitClaim();
+                });
+
+                $('#btnReload').off().click(function () {
+                    self.reloadChargeList();
+                });
+
+                $('section').off().dblclick(function (e) {
+                    self.selectCharge(e);
+                });
+
+            },
+
+            showCharge: function () {
                 var self = this;
 
                 $.ajax({
@@ -82,10 +100,11 @@ define([
                     },
                     success: function (data, response) {
                         if (data && data[0]) {
-                            var CPTList = self.cptListTemplate({ claim: data[0].claim_details });
+                            var CPTList = self.cptListTemplate({ charges: data[0].claim_details });
                             $('#divAllCPTList').append(CPTList).fadeIn("slow");
-                            //self.setEvents();
-                            commonjs.initializeScreen({header: {screen: 'Split Claim', ext: 'createSplit'}}, true);
+                            self.setEvents();
+                            commonjs.hideLoading();
+                            commonjs.initializeScreen({ header: { screen: 'Split Claim', ext: 'createSplit' } }, true);
                         }
 
                     },
@@ -97,9 +116,10 @@ define([
 
             setEvents: function () {
                 var self = this;
+
                 $('.icon-ic-plus').on('click', function (e) {
                     if (e && e.target) {
-                        if (self.validateMinimumStudy(e)) {
+                        if (self.validateMinimumCharge(e)) {
                             var el = $(e.target || e.srcElement).closest('section');
                             $(this)
                                 .removeClass('icon-ic-plus')
@@ -117,7 +137,7 @@ define([
                             $('#divSelectedCPTList').append($('<section/>').append($(this).closest('cpt')))
                         }
                         else {
-                            commonjs.showWarning('Minimum one study required for the order')
+                            commonjs.showWarning('Minimum one Charge required for the Claim')
                             return false;
                         }
                     }
@@ -125,11 +145,51 @@ define([
                 })
             },
 
+            validateMinimumCharge: function (e) {
+                if ($(e.target).is('.icon-ic-minus'))
+                    return true
+                else
+                    return $('#divAllCPTList section cpt').length > 1;
+            },
+
             splitClaim: function () {
+                var self = this;
+                var _cpt_ids = [];
+                if ($('#divSelectedCPTList section cpt').length > 0) {
+                    $.each($('#divSelectedCPTList section cpt'), function () {
+                        let charge_id = $(this).attr('data-charge_id');
+                        _cpt_ids.push(charge_id);
+                    });
+
+                    if (confirm('Are you sure to create order with the selected stud(y)ies?')) {
+                        //  $('#btnCreateClaim').attr('disabled', true);
+                        commonjs.showLoading('Processing please wait..');
+                        $.ajax({
+                            url: "/exa_modules/billing/claims/split_claim",
+                            type: "PUT",
+                            data: {
+                                cpt_ids: _cpt_ids.join(','),
+                                claim_id: self.claim_id
+                            },
+                            success: function (data, response) {
+                                commonjs.showStatus('Claim has been splited successfully');
+                                self.reloadChargeList();
+                                $('#btnCreateClaim').removeAttr('disabled');
+                            },
+                            error: function (err) {
+                                commonjs.handleXhrError(err);
+                            }
+                        });
+                    }
+                }
+                else {
+                    commonjs.showWarning('Please select atleast one charge to merge')
+                    return false;
+                }
 
             },
 
-            selectStudy: function (e) {
+            selectCharge: function (e) {
                 if (e.target || e.srcElement) {
                     var selectedStudy = $(e.target || e.srcElement).closest('section');
                     if (selectedStudy.find('.icon-ic-plus').length) {
@@ -141,6 +201,15 @@ define([
                         return false;
                     }
                 }
+            },
+
+            reloadChargeList: function () {
+                var self = this;
+
+                self.showCharge();
+                $('#divAllCPTList').empty();
+                $('#divSelectedCPTList').empty();
+                $('#btnCreateClaim').removeAttr('disabled');
             }
-        })
-    })
+        });
+    });

@@ -190,6 +190,7 @@ define(['jquery',
                 if (paymentID == 0) {
                     this.model = new ModelPayments();
                     $('#btnPaymentClear').show();
+                    $('#btnPaymentDelete').hide();
                     $('#divPendingPay').hide();
                     $('#btnPaymentAddNew').hide();
                     $('#btnPaymentPrint').hide();
@@ -200,6 +201,7 @@ define(['jquery',
                 else {
                     this.model.set({ id: paymentID });
                     $('#btnPaymentClear').hide();
+                    $('#btnPaymentDelete').show();
                     this.model.fetch({
                         data: { id: this.model.id },
                         success: function (model, result) {
@@ -216,8 +218,10 @@ define(['jquery',
             clearPayemntForm: function () {
                 this.payer_id = 0;
                 $('#PaymentForm input[type=radio]').prop('ckecked', false);
-                $('#ddlpaymentReason').val(0);
+                $('#ddlpaymentReason').val('');
                 $('#ddlPaidLocation').val(0);
+                $('#selectPayerType').val(0);
+                $('#selectPaymentMode').val(0);
                 $('#PaymentForm input[type=text]').val('');
                 this.changePayerMode('');
                 $('#select2-txtautoPayerPIP-container').html('Select Insurance');
@@ -558,7 +562,7 @@ define(['jquery',
                 $("#ddlpaymentReason").val(response.payment_reason_id)
                 $("#txtNotes").val(response.notes)
                 $('#selectPaymentMode').val(response.payment_mode);
-                self.changePayerMode(response.payment_mode);
+                self.changePayerMode(response.payment_mode, true);
                 
                 commonjs.checkNotEmpty(response.accounting_date) ? self.dtpAccountingDate.date(response.accounting_date) : self.dtpAccountingDate.clear();
 
@@ -643,7 +647,12 @@ define(['jquery',
 
             validatepayments: function () {
                 var self = this;
-                var amount = $.trim($("#txtAmount").val());
+                var amount = $.trim($("#txtAmount").val());                              
+                if ($('#selectPayerType').val() === '0') {
+                    commonjs.showWarning("Please select payer type");
+                    $('#selectPayerType').focus();
+                    return false;
+                }                   
                 if (!self.validatePayer($('#selectPayerType').val())) {
                     return false;
                 }
@@ -658,6 +667,11 @@ define(['jquery',
                 }
                 if (amount == "" || (amount.indexOf('-') > 0)) {
                     commonjs.showWarning("Please enter valid amount");
+                    return false;
+                }             
+                if ($('#selectPaymentMode').val() === '0') {
+                    commonjs.showWarning("Please select payment mode");
+                    $('#selectPaymentMode').focus();
                     return false;
                 }
                 if ($('#chkModeCheck').prop('checked') && $.trim($("#txtCheque").val()) == "") {
@@ -932,7 +946,6 @@ define(['jquery',
                         payerId: payerId,
                         payerType: payerType
                     },
-                    // onaftergridbind: self.afterAppliedGridBind
                     onaftergridbind: function (model, gridObj) {
                         self.afterAppliedGridBind(model, gridObj, self);
                     }
@@ -978,7 +991,7 @@ define(['jquery',
                     $('#divPaymentApply').remove();
                     $('#siteModal').hide();
                 });
-                self.getClaimBasedCharges(claimId, paymentID, paymentStatus, chargeId);
+                self.getClaimBasedCharges(claimId, paymentID, paymentStatus, chargeId, true);
             },
 
             setFeeFields: function (claimDetail, isInitial) {
@@ -995,7 +1008,7 @@ define(['jquery',
                 $('#lblPatient').text(order_info.patient_paid ? order_info.patient_paid : "0.00");
             },
 
-            getClaimBasedCharges: function (claimId, paymentId, paymentStatus, chargeId) {
+            getClaimBasedCharges: function (claimId, paymentId, paymentStatus, chargeId, isInitialBind) {
                 var self = this;
                 self.casSave = [];
                 $.ajax({
@@ -1273,7 +1286,10 @@ define(['jquery',
                         },
                         success: function (model, response) {
                             commonjs.showStatus('Payment has been applied successfully');
-                            self.reloadPaymentFields(claimId);
+                            // self.reloadPaymentFields(claimId);
+                            // self.getClaimBasedCharges(claimId, paymentId, paymentStatus, chargeId, false);
+                            self.closeAppliedPendingPayments(e);
+                            commonjs.hideDialog();
                         },
                         error: function (err, response) {
                             commonjs.handleXhrError(err, response);
@@ -1638,7 +1654,7 @@ define(['jquery',
                 alert('Under construction');
             },
             
-            changePayerMode: function (e) {
+            changePayerMode: function (e, isBind) {
                 var valueType = $("#selectPaymentMode").val();
 
                 switch (valueType) {
@@ -1654,7 +1670,9 @@ define(['jquery',
                     case "check":
                     case "EFT":
                         $("#txtCheque").removeAttr("disabled");
-                        $("#txtCheque").focus();
+                        if (!isBind) {
+                            $("#txtCheque").focus();
+                        }    
                         $("#txtCardName").attr("disabled", "disabled");
                         $("#paymentExpiryMonth").attr("disabled", "disabled");
                         $("#paymentExpiryYear").attr("disabled", "disabled");
@@ -1662,7 +1680,9 @@ define(['jquery',
                         $("#txtCVN").attr("disabled", "disabled");
                         break;
                     case "card":
-                        $("#txtCheque").focus();
+                        if (!isBind) {
+                            $("#txtCheque").focus();
+                        }
                         $("#txtCheque").removeAttr("disabled");
                         $("#txtCardName").removeAttr("disabled");
                         $("#paymentExpiryMonth").removeAttr("disabled");

@@ -432,6 +432,15 @@
         },
         "billingMessages": {
             "collections": "Collections"
+        },
+        "paperClaimTemplates": {
+            "templateName": "Template Name",
+            "leftMargin": "Margin Left",
+            "topMargin": "Margin Top",
+            "rightMargin": "Margin Right",
+            "bottomMargin": "Margin Bottom",
+            "originalForm": "Original Form",
+            "fullForm": "Full Form"
         }
     }
 }

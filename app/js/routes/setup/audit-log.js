@@ -7,8 +7,7 @@ define([
     function ($, Backbone, SubRoute, AuditLogView) {
         var AuditLogRouter = Backbone.SubRoute.extend({
             routes: {
-                'list': 'showGrid',
-                'view/:id': 'showDetails'
+                'list': 'showGrid'
             },
 
             showGrid: function () {
@@ -26,11 +25,6 @@ define([
                 if (!layout.initialized) {
                     this.auditLogScreen = new AuditLogView(this.options);
                 }
-            },
-
-            showDetails: function (id) {
-                this.initializeRouter();
-                this.auditLogScreen.showDetails(id);
             }
         });
         return AuditLogRouter;

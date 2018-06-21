@@ -247,8 +247,9 @@ var commonjs = {
     },
 
     setFilter: function (id, data) {
-        var root = window.parent || window;
-        var cjs = root.commonjs;
+        //var root = window.parent || window;
+        var root = window;
+        var cjs = root.commonjs || commonjs;
         var filters = cjs.loadedStudyFilters;
         var filter = filters.get(id);
         if (data !== null) {
@@ -3845,6 +3846,8 @@ var commonjs = {
                 case 'Order':
                     height = $(window).height() - (50 + 40 + 120) < 100 ? $(window).height() : $(window).height() - (50 + 40 + 120);
                     break;
+                case 'EOB':
+                    height = $(window).height() - 225;
             }
         }
 
