@@ -18,6 +18,10 @@ const ediProxyServer = {
     apiUri: ediServerUri,
 
     init: function (uri) {
+        if (uri && uri.indexOf('edi/api') == -1) {
+            uri = uri + '/edi/api';
+        }
+
         this.apiUri = uri || ediServerUri;
     },
 
