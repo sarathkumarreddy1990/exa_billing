@@ -417,7 +417,7 @@ define(['jquery',
                 self.ediResultTemplate = _.template(ediResultHTML);
 
                 jQuery.ajax({
-                    url: "/exa_modules/billing/claimWorkbench/submitClaim",
+                    url: "/exa_modules/billing/claim_workbench/create_claim",
                     type: "GET",
                     data: {
                         claimIds:claimIds
@@ -437,7 +437,7 @@ define(['jquery',
                             })
                             
                             commonjs.showDialog({
-                                header: 'EDI Claim',
+                                header: 'EDI Claim', 
                                 width: '95%',
                                 height: '75%',
                                 html: self.ediResultTemplate()
@@ -1023,7 +1023,7 @@ define(['jquery',
                 filterObj.options.filterid = filterID;
 
                 if (filterObj.options.isSearch) {
-                    var url ="/exa_modules/billing/claimWorkbench/claims_total_records";
+                    var url ="/exa_modules/billing/claim_workbench/claims_total_records";
                     var flag = /Exceedclaims/.test(filterID);
                     jQuery.ajax({
                         url: url,
@@ -1449,7 +1449,7 @@ define(['jquery',
 
             toggleTabContents: function (index) {
                 var _self = this;
-                commonjs.processPostRender({screen: 'PACS Home'});
+                commonjs.processPostRender({screen: 'Claim Workbench'});
                 $('#divPageLoading').hide();
                 $('#diveHomeIndex').show();
                 $('#divStudyFooter').show();
@@ -1516,7 +1516,7 @@ define(['jquery',
                 } 
                 
                 $.ajax({
-                    url: '/exa_modules/billing/claimWorkbench/validate_claims',
+                    url: '/exa_modules/billing/claim_workbench/validate_claims',
                     type: 'GET',
                     data: {
                         claim_ids: claimIds 
