@@ -390,8 +390,7 @@ module.exports = {
             line_items,
             adjestmentId,
             auditDetails,
-            logDescription,
-            companyId } = params;
+            logDescription } = params;
         adjestmentId = adjestmentId ? adjestmentId : null;
         logDescription = `Claim updated Id : ${params.claimId}`;
         
