@@ -444,7 +444,7 @@ module.exports = {
                             ),
                             update_claims_audit_cte as(
                                 SELECT billing.create_audit(
-                                    ${companyId}
+                                    ${auditDetails.company_id}
                                     , ${auditDetails.screen_name}
                                     , id
                                     , ${auditDetails.screen_name}
@@ -462,7 +462,7 @@ module.exports = {
                             ),
                             insert_claim_comment_audit_cte as(
                                 SELECT billing.create_audit(
-                                    ${companyId}
+                                    ${auditDetails.company_id}
                                     , ${auditDetails.screen_name}
                                     , id
                                     , ${auditDetails.screen_name}
