@@ -49,6 +49,15 @@ var layout = {
         'Charges': '#aCharges',
         'Claim Activity': '#aClaimActivity',
         'Claim Inquiry': '#aClaimInquiry',
+        'Claim Transaction': '#aClaimTransaction',
+        'Credit Balance Encounter': '#aCreditBalance',
+        'Date Of SVC Payment':'#aDateSVC',
+        'Diagnosis Count': '#aDiagnosisCount',
+        'Modality Summary': '#aModalitySummary',
+        'Monthly Recap': '#aMonthlyRecap',
+        'Patient Statement': '#aPatientStatement',
+        'Payer Mix': '#aPayerMix',
+        'Payments': '#aPayments',
         /// To be added
     },
 
