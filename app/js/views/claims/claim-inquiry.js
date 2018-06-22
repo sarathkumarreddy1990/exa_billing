@@ -39,14 +39,12 @@ define([
             payCmtGrid:'',
             claim_id: null,
             events: {
-                "blur #txtCIFollowUpDate": "saveFollowUpDate",
                 "click #btnCIAddComment": "showCommentPopup",
                 "click #btnCISaveComment": "saveComment",
                 "click #btnCISaveIsInternal": "saveIsInternalComment",
                 "click #btnCIPrintInvoice": "printPaymentInvoice",
                 "click #btnCICommentCancel": "closeSaveComment",
                 "click #btnCIAddBillingComments": "billingCommentsReadonly",
-                "click #btnCISaveBillingNote": "saveBillingComment",
                 "click #btnCIPayCancel": "closePaymentDetails",
                 "click .claimProcess" :"applyToggleInquiry"
             },
@@ -62,7 +60,7 @@ define([
                 let self=this;
               this.rendered = true;
               this.$el.html(this.inquiryTemplate());
-                commonjs.bindDateTimePicker("divFollowUpDate", { format: 'L' }); //to bind date picker to followup date
+               // commonjs.bindDateTimePicker("divFollowUpDate", { format: 'L' }); //to bind date picker to followup date  . Now noy working that's y commented
 
                 this.encounterDetails(cid);                
                 this.claimInquiryDetails(cid, false);
