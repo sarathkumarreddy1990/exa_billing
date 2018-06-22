@@ -60,8 +60,8 @@ var layout = {
         'Payments': '#aPayments',
         'Audit Log': '#aAuditLog',
         'User Log': '#aUserLog',
-        'EDI Templates':'#aEDITemplate',
-        'Paper Claim Templates':'#aPaperClaimTemplate'
+        'EDI Templates': '#aEDITemplate',
+        'Paper Claim Templates': '#aPaperClaimTemplate'
         /// To be added
     },
 
@@ -198,6 +198,8 @@ var layout = {
         }
 
         $('#aNavTitlebar').text(layout.moduleHeaders[module]);
+        $('#aNavTitlebar').attr("href", location.href)
+
         document.title = layout.moduleHeaders[module] + ' - EXA Billing';
     },
 

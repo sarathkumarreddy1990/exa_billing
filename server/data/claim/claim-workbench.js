@@ -45,7 +45,7 @@ module.exports = {
 
     getPaperClaimTemplate: async function () {
         let sql = SQL`
-				SELECT * 
+				SELECT orginal_form_template
 				FROM   billing.paper_claim_templates 
 				ORDER  BY id DESC 
 				LIMIT  1 
