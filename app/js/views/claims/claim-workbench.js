@@ -683,7 +683,7 @@ define(['jquery',
                         };
 
                         $btnTabNavLeft.off('click').on('click', function (navState, event) {
-                            self.underConstruction();
+                            //self.underConstruction();
                             if (navState.getState('isScrolling') === true || navState.getState('isMeasuring') === true) {
                                 return;
                             }
@@ -750,7 +750,7 @@ define(['jquery',
                          */
 
                         $btnTabNavRight.off('click').on('click', function (navState, event) {
-                            self.underConstruction();
+                            //self.underConstruction();
                             if (navState.getState('isScrolling') === true || navState.getState('isMeasuring') === true) {
                                 return;
                             }

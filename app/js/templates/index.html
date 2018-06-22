@@ -1,56 +1,59 @@
 <header class="header">
 </header>
 <style>
-   
-#divStatusSearch {
-    position: fixed;
-    display: none;
-    max-height: 400px;
-    max-width: 420px;
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
-  .statusMenu {
-  height: auto;
-  border: 2px #d4d4d4 solid;
-  background-color: #F6F6F6;
-  z-index: 110000;
-  position: absolute;
-  font-size: 1em !important;
-}
-.header-status {
-  background-color: #5A5A5A !important;
-  color: #FFFFFF !important;
-  line-height: 25px;
-}
+    #divStatusSearch {
+        position: fixed;
+        display: none;
+        max-height: 400px;
+        max-width: 420px;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
 
-.statusList li {
-    padding: 0px;
-}
+    .statusMenu {
+        height: auto;
+        border: 2px #d4d4d4 solid;
+        background-color: #F6F6F6;
+        z-index: 110000;
+        position: absolute;
+        font-size: 1em !important;
+    }
 
-.statusList li label {
-  font-size: 0.8em !important;
-}
+    .header-status {
+        background-color: #5A5A5A !important;
+        color: #FFFFFF !important;
+        line-height: 25px;
+    }
 
-.statusList {
-  margin-left: 0px !important;
-  margin-bottom: 4px !important;
-}
+    .statusList li {
+        padding: 0px;
+    }
 
-.statusList .inline {
-  padding-top: 0px !important;
-}
+    .statusList li label {
+        font-size: 0.8em !important;
+    }
 
-div.multiStudyColumnList input[type=checkbox] {
-  display: block;
-}
-.multiStudyColumnList {
-  column-count: 3;
-  -moz-column-count: 3; /* Firefox */
-  -webkit-column-count: 3; /* Safari and Chrome */
-  padding: 0px;
-}
+    .statusList {
+        margin-left: 0px !important;
+        margin-bottom: 4px !important;
+    }
 
+    .statusList .inline {
+        padding-top: 0px !important;
+    }
+
+    div.multiStudyColumnList input[type=checkbox] {
+        display: block;
+    }
+
+    .multiStudyColumnList {
+        column-count: 3;
+        -moz-column-count: 3;
+        /* Firefox */
+        -webkit-column-count: 3;
+        /* Safari and Chrome */
+        padding: 0px;
+    }
 </style>
 
 <div class="controls" style="float:left;">
@@ -66,13 +69,17 @@ div.multiStudyColumnList input[type=checkbox] {
         <form class="small_dd tn-menu">
             <ul class="tn-menu-right">
                 <li class="studyBtnPadding">
-                    <i class="icon-ic-expand" id="btnTabNavLeft" title="Move tab bar by left side"></i>
+                    <a>
+                        <i class="icon-ic-expand" id="btnTabNavLeft" title="Move tab bar by left side"></i>
+                    </a>
                 </li>
                 <li class="studyBtnPadding">
-                    <i class="icon-ic-expand-flipped" id="btnTabNavRight" title="Move tab bar by right side"></i>
+                    <a>
+                        <i class="icon-ic-expand-flipped" id="btnTabNavRight" title="Move tab bar by right side"></i>
+                    </a>
                 </li>
-                <li class="dropdown active studyBtnPadding">
-                    <i id="btnShowTabItems" class="icon-chevron-down" data-toggle="dropdown" title="Show all Tabs by list"></i>
+                <li class="dropdown active studyBtnPadding" style="padding-top: 11px;">
+                    <i id="btnShowTabItems" class="icon-chevron-down" data-toggle="dropdown" title="Show all Tabs by list" style="color: #FFF;"></i>
                     <ul id="ulTabCollection" class="dropdown-menu" style="overflow:auto!important;max-height:400px;margin-top:8px!important;"
                         role="menu" aria-labelledby="btnShowTabItems">
                     </ul>
@@ -107,7 +114,8 @@ div.multiStudyColumnList input[type=checkbox] {
                 <li>
                     <button type="button" class="btn btn-primary" id="btnValidateExport" i18n="shared.buttons.export" i18n="report.reportFilter.exportToExel"
                         data-rformat="xlsx">
-                        <i class="fa fa-file-excel-o"></i></button>
+                        <i class="fa fa-file-excel-o"></i>
+                    </button>
                 </li>
             </ul>
         </form>
