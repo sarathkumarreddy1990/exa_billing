@@ -440,8 +440,14 @@
             "topMargin": "Margin Top",
             "rightMargin": "Margin Right",
             "bottomMargin": "Margin Bottom",
-            "originalForm": "Original Form",
-            "fullForm": "Full Form"
+            "paperClaimFull": "Paper Claim Full",
+            "paperClaimOrg": "Paper Claim Original",
+            "directingInvoice":"Direct Invoice",
+            "patientInvoice":"Patient Invoice",
+            "templateType":"Template Type",
+            "definition":"Template Definition",
+            "pageHeight": "Page Height",
+            "pageWidth": "Page Width"
         }
     }
 }
