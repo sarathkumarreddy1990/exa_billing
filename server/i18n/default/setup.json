@@ -365,6 +365,7 @@
             "insuranceAuthorization": "Insurance Authorization",
             "entertextandselect" : "Please enter text and select condition",
             "mu": "MU",
+            "globalFilter" : "Global Filter",
             "ddlLastMetric": {
               "hours": "Hour(s)",
               "days": "Day(s)",
