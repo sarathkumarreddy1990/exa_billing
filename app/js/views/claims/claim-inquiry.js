@@ -221,13 +221,13 @@ define([
                     colNames: ['', 'Code', 'Description'],
                     colModel: [
                         { name: '', index: 'id', key: true, hidden: true },
-                        { name: 'code', width: 100, search: false },
+                        { name: 'code', width: 20, search: false },
                         { name: 'description', width: 100, search: false }
                     ],
                     cmTemplate: { sortable: false },
                     customizeSort: true,
                     shrinkToFit: true,
-                    width: $('#claimDetails').width() - 50
+                    width: $('#icdGrid').width() - 10
                 });
                 $('#gview_tblCIDiagnosis').find('.ui-jqgrid-bdiv').css('max-height', '300px')
             },
