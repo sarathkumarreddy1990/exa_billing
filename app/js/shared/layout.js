@@ -58,6 +58,8 @@ var layout = {
         'Patient Statement': '#aPatientStatement',
         'Payer Mix': '#aPayerMix',
         'Payments': '#aPayments',
+        'EDI Templates':'#aEDITemplate',
+        'Paper Claim Templates':'#aPaperClaimTemplate'
         /// To be added
     },
 
