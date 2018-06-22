@@ -1046,6 +1046,7 @@ define(['jquery',
                             paymentDet.allowed_fee = '0.00';
                             paymentDet.payment_application_id = payment.payment_application_id;
                             paymentDet.payment_adjustment_id = payment.adjustment_id;
+                            paymentDet.allowed_amount = payment.allowed_amount ? parseFloat(payment.allowed_amount).toFixed(2) : '0.00';
                             var balance = parseFloat(paymentDet.bill_fee) - (parseFloat(paymentDet.other_payment) + parseFloat(paymentDet.other_adjustment) + parseFloat(paymentDet.adjustment) + parseFloat(paymentDet.payment_amount)).toFixed(2);
                             paymentDet.balance = parseFloat(balance).toFixed(2);
 
