@@ -423,6 +423,8 @@ module.exports = {
                             bch.id, 
                             (bch.bill_fee * bch.units)::NUMERIC AS bill_fee,
                             (bch.allowed_amount * bch.units)::NUMERIC AS allowed_amount,
+                            (select other_payment FROM billing.get_charge_other_payment_adjustmet(bch.id,${params.paymentId}))::numeric AS other_payment,
+                            (select other_adjustment FROM billing.get_charge_other_payment_adjustmet(bch.id,${params.paymentId}))::numeric AS other_adjustment,
                             bch.charge_dt,
                             array_agg(pcc.short_description) as cpt_description, 
                             array_agg(pcc.display_code) as cpt_code
@@ -732,13 +734,6 @@ module.exports = {
                     GROUP BY bc.id
                     `
         );
-    },
-
-    deletePayment: async function (params) {
-        return await query(
-            ` 
-            DELETE FROM billing.payments WHERE id = ${params.payment_id}
-            `
-        );
     }
+    
 };
