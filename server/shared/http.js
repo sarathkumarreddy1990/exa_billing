@@ -4,7 +4,7 @@ module.exports = {
 
     send: function (req, res, responseData) {
 
-        if (responseData && responseData.name === 'error') {
+        if (responseData && ['error', 'RequestError'].indexOf(responseData.name) > -1) {
             return this.sendError(req, res, responseData);
         }
 
@@ -17,7 +17,7 @@ module.exports = {
 
     sendRows: function (req, res, responseData) {
 
-        if (responseData && responseData.name === 'error') {
+        if (responseData && ['error', 'RequestError'].indexOf(responseData.name) > -1) {
             return this.sendError(req, res, responseData);
         }
 

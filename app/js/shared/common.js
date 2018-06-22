@@ -2254,6 +2254,9 @@ var commonjs = {
             case '23505':
                 commonjs.showError('Duplicate record found');
                 break;
+            case '55801':
+                commonjs.showError('Unable to connect EDI Server');
+                break;
             default:
                 commonjs.showError('messages.errors.someerror');
                 break;
