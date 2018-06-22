@@ -47,8 +47,8 @@ define(['jquery',
                 this.pager = new Pager();
                 this.templateType = [
                     { 'value': "direct_invoice", 'text': "Direct Invoice" },
-                    { 'value': "paper_claim_full", 'text': "Paper Claim Full" },
                     { 'value': "patient_invoice", 'text': "Patient Invoice" },
+                    { 'value': "paper_claim_full", 'text': "Paper Claim Full" },
                     { 'value': "paper_claim_original", 'text': "Paper Claim Original" }
                     
                 ];
