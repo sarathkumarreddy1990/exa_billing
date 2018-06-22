@@ -223,6 +223,7 @@ define(['jquery',
                 $('#selectPayerType').val(0);
                 $('#selectPaymentMode').val(0);
                 $('#PaymentForm input[type=text]').val('');
+                $('.payerFields').hide();
                 this.changePayerMode('');
                 $('#select2-txtautoPayerPIP-container').html('Select Insurance');
                 $('#select2-txtautoPayerPP-container').html('Select Patient');
