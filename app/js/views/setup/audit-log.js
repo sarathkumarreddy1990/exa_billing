@@ -66,7 +66,7 @@ define([
                             }
                         },
                         {
-                            name: 'secure_data', width: 50, sortable: false, search: false,
+                            name: 'secure_data', width: 50, sortable: false, search: false, hidden: true,
                             className: 'icon-ic-secureData',
                             customAction: function (rowID) {
 
@@ -98,6 +98,9 @@ define([
                             width: 180
                         }
                     ],
+                    ondblClickRow: function (rowID) {
+                        self.displayDetails(rowID);
+                    },
                     datastore: self.auditLogList,
                     container: self.el,
                     customizeSort: true,
