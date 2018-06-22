@@ -3140,6 +3140,10 @@ var commonjs = {
         }, {
                 type: type,
                 z_index: 1061,
+                delay: 2000,
+                placement: {
+                    align: 'right',
+                }
             });
     },
 
