@@ -109,7 +109,6 @@ define(['jquery',
                             searchFlag: '%',
                             stype: 'select',
                             formatter: self.entryTypeFormatter,
-                            sortable: false,
                             searchoptions: {
                                 value: self.entryType
                             },

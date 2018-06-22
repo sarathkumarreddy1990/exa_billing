@@ -88,6 +88,9 @@ define([
                             width: 180
                         }
                     ],
+                    ondblClickRow: function (rowID) {
+                        self.displayDetails(rowID);
+                    },
                     datastore: self.userLogList,
                     container: self.el,
                     customizeSort: true,

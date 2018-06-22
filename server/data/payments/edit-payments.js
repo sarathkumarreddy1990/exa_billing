@@ -284,11 +284,11 @@ module.exports = {
         }
 
         if (patient_paid) {    
-            havingQuery.push(` COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient'),0::money) = '${patient_paid}'::money`);
+            havingQuery.push(` COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient' and bpa.amount_type = 'payment'),0::money) = '${patient_paid}'::money`);
         }
 
         if (others_paid) {  
-            havingQuery.push(` COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient'),0::money) = '${others_paid}'::money`);  
+            havingQuery.push(` COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient' and bpa.amount_type = 'payment'),0::money) = '${others_paid}'::money`);  
         }
 
         if (adjustment) {    
@@ -307,8 +307,8 @@ module.exports = {
             get_full_name(pp.last_name,pp.first_name) AS full_name,
             bc.claim_dt,
             (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) as bill_fee,
-            COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient'),0::money) as patient_paid,
-            COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient'),0::money) as others_paid,
+            COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient' and bpa.amount_type = 'payment'),0::money) as patient_paid,
+            COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient' and bpa.amount_type = 'payment'),0::money) as others_paid,
             (SELECT adjustments_applied_total from billing.get_claim_totals(bc.id)) as adjustment,
             (SELECT payments_applied_total from billing.get_claim_totals(bc.id)) as payment,
             (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from billing.get_claim_totals(bc.id)) as balance,
@@ -721,8 +721,8 @@ module.exports = {
             `            
                 SELECT
                     (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) AS bill_fee,
-                    COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient'),0::money) AS patient_paid,
-                    COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient'),0::money) AS others_paid,
+                    COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient' and bpa.amount_type = 'payment'),0::money) AS patient_paid,
+                    COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient' and bpa.amount_type = 'payment'),0::money) AS others_paid,
                     (SELECT adjustments_applied_total from billing.get_claim_totals(bc.id)) AS adjustment,
                     (SELECT payments_applied_total from billing.get_claim_totals(bc.id)) AS payment,
                     (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) AS balance

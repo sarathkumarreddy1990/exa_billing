@@ -60,59 +60,8 @@ define([
                 let self=this;
               this.rendered = true;
               this.$el.html(this.inquiryTemplate());
-               // commonjs.bindDateTimePicker("divFollowUpDate", { format: 'L' }); //to bind date picker to followup date  . Now noy working that's y commented
-
-                this.encounterDetails(cid);                
+               // commonjs.bindDateTimePicker("divFollowUpDate", { format: 'L' }); //to bind date picker to followup date  . Now noy working that's y commented               
                 this.claimInquiryDetails(cid, false);
-            },
-
-            encounterDetails: function (claimID) {
-                var self = this;
-                self.claim_id = claimID;
-                if (!self.rendered)
-                self.render();
-                $.ajax({
-                    url: '/exa_modules/billing/claims/claim_inquiry',
-                    type: 'GET',
-                    data: {
-                        'claim_id': self.claim_id  
-                    },
-                    success: function (data, response) {
-                        if (data) {
-                            data = data[0];
-                            var claim_data = data.claim_details && data.claim_details.length > 0 ? data.claim_details : '[]';
-                            var payment_data = data.payment_details && data.payment_details.length > 0 ? data.payment_details : '[]';
-                            if(claim_data.length > 0){
-                                claim_data = claim_data[0];
-                                //binding the values from data base
-                                $('#lblCIReadPhy').text(claim_data.rend_provider_name);
-                                $('#lblCIRefPhy').text(claim_data.ref_provider_name);
-                                $('#lblCIOrdFac').text(claim_data.group_name);
-                                $('#lblCIfac').text(claim_data.facility_name);
-                                $('#lblCIStatus').text(claim_data.claim_status);
-                                $('#lblCIBillFee').text(claim_data.bill_fee);
-                                $('#lblCIBalance').text(claim_data.claim_balance);
-                                $('#lblCIAllowed').text(claim_data.allowed_fee);
-                                $('#txtCIBillingComment').text(claim_data.billing_notes)
-                            }
-
-                            if(payment_data.length > 0){
-                                $('#lblCIPatientPaid').text(payment_data.patient_paid);
-                                $('#lblCIOthersPaid').text(payment_data.others_paid);
-                                $('#lblCIAdj').text(payment_data.adjustment_amount);
-                            }
-
-                            self.showInsuranceGrid(data.insurance_details);
-                            self.showDiagnosisGrid(data.icdcode_details);
-                            self.getFollowupDate();
-                            self.showClaimCommentsGrid();
-                        }
-                    },
-                    error: function (err) {
-                        commonjs.handleXhrError(err);
-                    }
-
-                })
             },
 
             claimInquiryDetails: function (claimID, fromTogglePreNext) {
