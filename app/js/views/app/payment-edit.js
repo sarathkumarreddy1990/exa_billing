@@ -223,6 +223,7 @@ define(['jquery',
                 $('#selectPayerType').val(0);
                 $('#selectPaymentMode').val(0);
                 $('#PaymentForm input[type=text]').val('');
+                $('.payerFields').hide();
                 $('#txtNotes').val('');
                 this.changePayerMode('');
                 $('#select2-txtautoPayerPIP-container').html('Select Insurance');
@@ -1139,9 +1140,10 @@ define(['jquery',
                 var self = this;
                 var charge_id = $('#divPaymentCAS').attr('data-charge_id');
                 var cas = self.vaidateCasCodeAndReason(payment_application_id, paymentStatus);
-                self.casSegmentsSelected = cas ;
-                self.closePaymentsCAS();
-                self.closePaymentsCAS();
+                if (cas) {
+                    self.casSegmentsSelected = cas;
+                    self.closePaymentsCAS();
+                }
             },
 
             vaidateCasCodeAndReason: function (payment_application_id, paymentStatus) {

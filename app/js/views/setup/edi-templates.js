@@ -77,6 +77,10 @@ define([
                                     });
                                     self.getEDITemplate(data[0]);
                                 }
+                            } else {
+                                if(data && data.error) {
+                                    commonjs.showWarning("Unable To Connect EDI Server");
+                                }
                             }
                         } else {
                             $('#dropdownMenuButton').prop('disabled',true).removeClass('dropdown-toggle btn-secondary').addClass('btn-primary');
@@ -89,6 +93,9 @@ define([
                                 $('#btnCreateNewTemplate').show();
                                 $('#dropdownMenuButton').hide();
                                 ace.edit('editor').setValue("{}");
+                                if(data && data.error) {
+                                    commonjs.showWarning("Unable To Connect EDI Server");
+                                }
                             }
                         }
                     },

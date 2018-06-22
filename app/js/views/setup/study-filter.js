@@ -1301,32 +1301,26 @@ define([
                 switch (this.previous) {
                     case "tabDateTime":
                         $('#divDateTime').hide();
-                        $('#divStudyFilterDefaultContent').removeAttr('style').addClass('divStudyFilterDefaultContentHeightInfo')
                         this.previous = (e.currentTarget || e.srcElement).id;
                         break;
                     case "tabPatientInformation":
                         $('#divPatientInformation').hide();
-                        $('#divStudyFilterDefaultContent').addClass('divStudyFilterDefaultContentHeightInfo')
                         this.previous = (e.currentTarget || e.srcElement).id;
                         break;
                     case "tabStudyInformation":
                         $('#divStudyInformation').hide();
-                        $('#divStudyFilterDefaultContent').addClass('divStudyFilterDefaultContentHeightInfo')
                         this.previous = (e.currentTarget || e.srcElement).id;
                         break;
                     case "tabPhysician":
                         $('#divPhysician').hide();
-                        $('#divStudyFilterDefaultContent').removeClass('divStudyFilterDefaultContentHeightInfo')
                         this.previous = (e.currentTarget || e.srcElement).id;
                         break;
                     case "tabInsurance":
                         $('#divInsurance').hide();
-                        $('#divStudyFilterDefaultContent').removeClass('divStudyFilterDefaultContentHeightInfo')
                         this.previous = (e.currentTarget || e.srcElement).id;
                         break;
                     case "tabAssignToUser":
                         $('#divAssignToUser').hide();
-                        $('#divStudyFilterDefaultContent').removeClass('divStudyFilterDefaultContentHeightInfo')
                         this.previous = (e.currentTarget || e.srcElement).id;
                         break;
                     default :
