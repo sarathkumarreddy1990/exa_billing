@@ -202,19 +202,13 @@ module.exports = {
                                 , ${clientIp}
                                 , json_build_object(
                                     'old_values', COALESCE(old_values, '{}'),
-                                    'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM new_icd) temp_row)
+                                    'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM new_icd limit 1) temp_row)
                                   )::jsonb
                                 , ${userId}
                               ) AS id 
                             FROM new_icd
                             WHERE id IS NOT NULL
                         )
-                        SELECT id from new_claim
-                        UNION 
-                        SELECT id from update_charge
-                        UNION 
-                        SELECT id from new_icd
-                        UNION
                         SELECT id from insert_audit_claim 
                         UNION
                         SELECT id from update_audit_charge 
