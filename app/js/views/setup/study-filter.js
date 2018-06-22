@@ -421,6 +421,12 @@ define([
                         }
 
                     ],
+                    afterInsertRow: function (rowid, rowdata) {
+                        if (!rowdata.is_active) {
+                            var $row = $('#tblStudyFilterGrid').find('#' + rowid);
+                            $row.css('text-decoration', 'line-through');
+                        }
+                    },
                     datastore: self.studyFiltersList,
                     container: self.el,
                     customizeSort: true,
@@ -556,7 +562,7 @@ define([
                             if (response) {
                                 $('#txtFilterName').val(response.filter_name);
                                 $('#txtFilterOrder').val(response.filter_order);
-                                $('#chkIsActive').prop('checked', response.is_active ? true : false);
+                                $('#chkIsActive').prop('checked', response.is_active ? false : true);
                                 $('#chkIsGlobalFilter').prop('checked', response.is_global_filter ? true : false);
                                 $('#chkDisplayAsTab').prop('checked', response.display_as_tab ? true : false);
                                 $('#chkDisplayAsDDL').prop('checked', response.display_in_ddl ? true : false);
@@ -848,7 +854,7 @@ define([
                     var filterType = 'claims';
                 filterName = $('#txtFilterName').val() ? $('#txtFilterName').val().trim() : '';
                 filterOrder = $('#txtFilterOrder').val() ? $('#txtFilterOrder').val().trim() : '';
-                isActive = $('#chkIsActive').is(":checked");
+                isActive = !$('#chkIsActive').is(":checked");
                 isGlobal = $('#chkIsGlobalFilter').is(":checked");
                 isDisplayAsTab = $('#chkDisplayAsTab').is(":checked");
                 isDisplayInDropDown = $('#chkDisplayAsDDL').is(":checked");

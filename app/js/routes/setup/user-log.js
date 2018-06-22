@@ -19,7 +19,7 @@ define([
             },
 
             initializeRouter: function () {
-                this.options.screen = "Aser Log";
+                this.options.screen = "User Log";
                 this.options.currentView = this.userLogScreen;
                 layout.initializeLayout(this);
                 if (!layout.initialized) {

@@ -172,7 +172,7 @@ define(['jquery',
                         gridelementid: '#tblpaymentsGrid',
                         custompager: this.pager,
                         emptyMessage: 'No Record found',
-                        colNames: ['','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                        colNames: ['<span  id="spnStatus" class="icon-ic-worklist" onclick="commonjs.popOverActions(event)" ></span>','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
                         i18nNames: ['','', '', 'billing.payments.paymentID', '', 'billing.payments.referencePaymentID', 'billing.payments.paymentDate', 'billing.payments.accountingDate', 'billing.payments.payertype', 'billing.payments.payerName', 'billing.payments.paymentAmount', 'billing.payments.paymentApplied', 'billing.payments.balance', 'billing.payments.adjustment', 'billing.payments.postedBy', 'billing.payments.paymentmode', 'billing.payments.facility_name', '', '', ''],
                         colModel: [
                             {
@@ -219,9 +219,6 @@ define(['jquery',
                         datastore: self.paymentsList,
                         container: this.el,
                         offsetHeight: 01,
-                        gridComplete: function () {
-                            self.setupActionClickOver();
-                        },
                         dblClickActionIndex: 1,
                         ondblClickRow: function (rowID) {
                             self.editPayment(rowID);
@@ -264,7 +261,7 @@ define(['jquery',
                         };
 
                         jQuery.ajax({
-                            url: "/exa_modules/billing/payments/totalAmount",
+                            url: "/exa_modules/billing/payments/total_amount",
                             type: "GET",
                             data: dataSet,
                             success: function (data, textStatus, jqXHR) {
@@ -353,6 +350,7 @@ define(['jquery',
                     var row = "";
 
                     row += 'PAYMENT ID' + ',';
+                    row += 'REF. PAYMENT ID' + ',';
                     row += 'PAYMENT DATE' + ',';
                     row += 'ACCOUNTING DATE' + ',';
                     row += 'PAYER TYPE' + ',';
@@ -372,6 +370,7 @@ define(['jquery',
                     var row = "";
                     var paymentResult = paymentExcelData.models[i].attributes;
                     row += '"' + paymentResult.id + '",';
+                    row += '"' + (paymentResult.display_id > 0) ? paymentResult.display_id : '0' + '",';
                     row += '"' + moment(paymentResult.payment_dt).format('L') + '",';
                     row += '"' + moment(paymentResult.accounting_dt).format('L') + '",';
                     row += '"' + paymentResult.payer_type + '",';

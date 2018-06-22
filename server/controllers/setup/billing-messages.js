@@ -14,7 +14,7 @@ module.exports = {
         return data.getDataById(params);
     },
 
-    create: (params) => {
-        return data.create(params);
+    createOrUpdate: (params) => {
+        return data.createOrUpdate(params);
     }
 };

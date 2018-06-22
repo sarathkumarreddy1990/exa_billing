@@ -22,9 +22,9 @@ define([
             render: function () {
                 this.rendered = true;
                 commonjs.showDialog({
-                    header: 'Create/SPlit',
+                    header: 'Create/Split',
                     width: '85%',
-                    height: '75%',
+                    height: '70%',
                     html: this.splitCLaimTemplate()
                 });
 

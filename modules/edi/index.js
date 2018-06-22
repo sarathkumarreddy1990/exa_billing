@@ -18,11 +18,14 @@ const ediProxyServer = {
     apiUri: ediServerUri,
 
     init: function (uri) {
+        logger.info(`Initializing EDI with URL: ${uri}`);
+
         if (uri && uri.indexOf('edi/api') == -1) {
             uri = uri + '/edi/api';
         }
 
         this.apiUri = uri || ediServerUri;
+        logger.info(`EDI Server initialized with URL: ${this.apiUri}`);
     },
 
     getTemplatesList: async function (flag = 'edi') {

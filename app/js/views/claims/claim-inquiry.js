@@ -39,14 +39,12 @@ define([
             payCmtGrid:'',
             claim_id: null,
             events: {
-                "blur #txtCIFollowUpDate": "saveFollowUpDate",
                 "click #btnCIAddComment": "showCommentPopup",
                 "click #btnCISaveComment": "saveComment",
                 "click #btnCISaveIsInternal": "saveIsInternalComment",
                 "click #btnCIPrintInvoice": "printPaymentInvoice",
                 "click #btnCICommentCancel": "closeSaveComment",
                 "click #btnCIAddBillingComments": "billingCommentsReadonly",
-                "click #btnCISaveBillingNote": "saveBillingComment",
                 "click #btnCIPayCancel": "closePaymentDetails",
                 "click .claimProcess" :"applyToggleInquiry"
             },
@@ -62,7 +60,7 @@ define([
                 let self=this;
               this.rendered = true;
               this.$el.html(this.inquiryTemplate());
-                commonjs.bindDateTimePicker("divFollowUpDate", { format: 'L' }); //to bind date picker to followup date
+               // commonjs.bindDateTimePicker("divFollowUpDate", { format: 'L' }); //to bind date picker to followup date  . Now noy working that's y commented
 
                 this.encounterDetails(cid);                
                 this.claimInquiryDetails(cid, false);
@@ -157,7 +155,7 @@ define([
 
                             if (fromTogglePreNext) {
 
-                                data.icdcode_details = data.icdcode_details && data.insurance_details.length > 0 ? data.icdcode_details : '[]';
+                                data.icdcode_details = data.icdcode_details && data.icdcode_details.length > 0 ? data.icdcode_details : '[]';
                                 data.insurance_details = data.insurance_details && data.insurance_details.length > 0 ? data.insurance_details : '[]';
 
                                 self.showClaimCommentsGrid();
@@ -221,13 +219,13 @@ define([
                     colNames: ['', 'Code', 'Description'],
                     colModel: [
                         { name: '', index: 'id', key: true, hidden: true },
-                        { name: 'code', width: 100, search: false },
+                        { name: 'code', width: 20, search: false },
                         { name: 'description', width: 100, search: false }
                     ],
                     cmTemplate: { sortable: false },
                     customizeSort: true,
                     shrinkToFit: true,
-                    width: $('#claimDetails').width() - 50
+                    width: $('#icdGrid').width() - 10
                 });
                 $('#gview_tblCIDiagnosis').find('.ui-jqgrid-bdiv').css('max-height', '300px')
             },
@@ -441,7 +439,7 @@ define([
                     success: function (data, response) {
                         data  = data[0];
                         if (data) {
-                            self.previousFollowUpDate = (commonjs.checkNotEmpty(data.followup_date)) ? moment(data.followup_date).format('MM/DD/YYYY') : '';
+                            self.previousFollowUpDate = (commonjs.checkNotEmpty(data.followup_date)) ? moment(data.followup_date).format('YYYY-MM-DD') : '';
                             $('#txtCIFollowUpDate').val(self.previousFollowUpDate);
                         }
                         else {
