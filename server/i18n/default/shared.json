@@ -149,7 +149,7 @@
         },
         "screens": {},
         "fields": {
-            "inactive" : "Inactive",
+            "inactive" : "InActive",
             "isSystemStatus": "System Status",
             "dateofBirth":"Date of Birth ",
             "cptDescription":"cpt Description",
