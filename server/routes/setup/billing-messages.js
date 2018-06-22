@@ -15,12 +15,12 @@ router.get('/:id', async function (req, res) {
 });
 
 router.post('/', async function (req, res) {
-    const data = await msgController.create(req.body);
+    const data = await msgController.createOrUpdate(req.body);
     httpHandler.sendRows(req, res, data);
 });
 
-router.put('/', async function (req, res) {
-    const data = await msgController.create(req.body);
+router.put('/:id', async function (req, res) {
+    const data = await msgController.createOrUpdate(req.body);
     httpHandler.sendRows(req, res, data);
 });
 

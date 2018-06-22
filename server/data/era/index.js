@@ -145,6 +145,7 @@ module.exports = {
             lineItems
             , ediFileClaims
             , claimComments
+            , audit_details
         } = params;
 
         const sql =SQL` WITH application_details AS (
@@ -190,6 +191,7 @@ module.exports = {
                                         ,( SELECT id FROM billing.adjustment_codes WHERE code ='ERA' ORDER BY id ASC LIMIT 1 )
                                         ,${paymentDetails.created_by}
                                         ,json_build_array(selected_Items.json_build_object)::jsonb
+                                        ,(${JSON.stringify(audit_details)})::json
                                     )
                                 FROM
 	                                selected_Items

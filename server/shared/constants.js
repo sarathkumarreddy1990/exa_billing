@@ -8,6 +8,7 @@ module.exports = {
         claims: 'claims',
         payment: 'payments',
         payments: 'payments',
+        pending_payments: 'payments',
         era: 'era',
         edi: 'edi',
     },
@@ -59,7 +60,7 @@ module.exports = {
         insurance_x12_mapping: 'insurance_x12_mapping',
         paper_claim_templates: 'paper_claim_templates',
         payments: 'payments',
-        applyPayments:'payments'
+        applyPayments:'payment_applications'
     },
 
     permissionsMap: {

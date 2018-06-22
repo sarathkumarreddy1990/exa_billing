@@ -12,6 +12,15 @@ module.exports = {
     },
 
     deletePayment: function (params) {
+        let auditDetails = {
+            company_id: params.companyId,
+            screen_name: params.screenName,
+            module_name: params.moduleName,
+            client_ip: params.clientIp,
+            user_id: parseInt(params.userId)
+        };
+        
+        params.auditDetails = auditDetails;
         return data.deletePayment(params);
     },
 
