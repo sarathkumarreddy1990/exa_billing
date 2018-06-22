@@ -27,6 +27,7 @@ define([
             initializeRouter: function () {
                 this.options.screen = "Studies";//facilityModules.setupScreens.icd;
                 this.options.currentView = this.studiesScreen;
+                this.options.module ="Home";
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
