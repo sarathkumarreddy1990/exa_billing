@@ -423,7 +423,11 @@ define(['jquery',
                         claimIds:claimIds
                     },
                     success: function (data, textStatus, jqXHR) {
-                        if (data && data.ediText.length) {
+                        if (data && data.err) {
+                            commonjs.showWarning(data.err);
+                        }
+
+                        if (data && data.ediText && data.ediText.length) {
                             let str='';
                             $.each(data.ediText.split('~'), function (index, val) {
                                 if (val != '') {

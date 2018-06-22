@@ -1541,7 +1541,7 @@ define([
                     this.setOrderingFacilityAutoComplete()
                 }
                 else {
-                    setupList('listClaimInfo', app.claim_status, 'description', 'code');
+                    setupList('listClaimInfo', app.claim_status, 'description', 'id');
                     setupList('listBillingMethod', defaultBillingMethod, 'desc', 'code');
                     setupList('listPayerType', defaultPayerType, 'desc', 'code');
                     setupList('listBalance', app.balance, 'balance');
