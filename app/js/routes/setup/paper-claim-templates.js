@@ -37,7 +37,7 @@ define([
             },
 
             initializeRouter: function () {
-                this.options.screen = "Paper Claim Templates";//facilityModules.setupScreens.icd;
+                this.options.screen = "Printer Templates";//facilityModules.setupScreens.icd;
                 this.options.currentView = this.paperClaimTemplatesScreen;
                 layout.initializeLayout(this);
 
