@@ -6,9 +6,9 @@ module.exports = {
 
         params.sortOrder = params.sortOrder || ' DESC';
         let {
-            name,
-            claimClearingHouse,
-            claimRequestTemplate,
+            insurance_name,
+            claimclearinghouse,
+            claimrequesttemplate,
             claimReqTempProv,
             sortOrder,
             sortField,
@@ -17,16 +17,16 @@ module.exports = {
 
         let whereQuery = [];
 
-        if (name) {
-            whereQuery.push(` insurance_name ILIKE '%${name}%'`);
+        if (insurance_name) {
+            whereQuery.push(` insurance_name ILIKE '%${insurance_name}%'`);
         }
 
-        if (claimClearingHouse) {
-            whereQuery.push(` insurance_info->'claimClearingHouse' ILIKE '%${claimClearingHouse}%'`);
+        if (claimclearinghouse) {
+            whereQuery.push(` insurance_info->'claimClearingHouse' ILIKE '%${claimclearinghouse}%'`);
         }
 
-        if (claimRequestTemplate) {
-            whereQuery.push(` insurance_info->'claimRequestTemplate' ILIKE '%${claimRequestTemplate}%'`);
+        if (claimrequesttemplate) {
+            whereQuery.push(` insurance_info->'claimRequestTemplate' ILIKE '%${claimrequesttemplate}%'`);
         }
 
         if (claimReqTempProv) {
