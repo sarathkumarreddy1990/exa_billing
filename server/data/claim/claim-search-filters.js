@@ -486,7 +486,7 @@ const api = {
             // Default conditions and study filter conditions
             whereClause.query = whereClause.default;
 
-            if (whereClause.studyFilter) { whereClause.query += ` AND ${whereClause.studyFilter} `; }
+            if (whereClause.studyFilter) { whereClause.query += `  AND ${whereClause.studyFilter} `; }
 
             const query_options = {
                 defaultwherefilter: whereClause.query,
