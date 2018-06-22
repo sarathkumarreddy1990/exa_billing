@@ -175,7 +175,11 @@ define([
                     success: function (model, response) {
                         console.log(model);
                         model = model.length  && model[0].length ? model[0][0] : model[0];
-                        if (model && model.payer_id) {
+                        
+                        if (model.status == 100) {
+                            commonjs.showWarning(model.message);
+                        }
+                        else if (model && model.payer_id) {
                             
                             model.file_store_id = gridData.file_store_id;
                             self.showProgressDialog(file_id, model, 'initialize');
@@ -195,9 +199,6 @@ define([
                         } else if (model && model.type && model.type == 'none') {
                             model.file_store_id = gridData.file_store_id;
                             self.showProgressDialog(file_id, model, 'initialize');
-                        }
-                        else if (model.status == 100) {
-                            commonjs.showWarning(model.message);
                         }
                         else if (model.name =='error') {
                             var msg =  model.table +' '+ model.detail 

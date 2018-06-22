@@ -97,9 +97,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     
                 $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr for select2 search text can't editable
 
-                 $('#btnCheckEligibility, #btnCheckEligibility2, #btnCheckEligibility3').unbind().click(function (e) {
-                     self.checkInsuranceEligibility(e);
-                 });
+                
                  this.bindTabMenuEvents();
             },
 
@@ -657,6 +655,14 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
 
                 $(".claimProcess").off().click(function (e) {
                     self.processClaim(e);
+                });
+
+                $('#btnCheckEligibility, #btnCheckEligibility2, #btnCheckEligibility3').off().click(function (e) {
+                    self.checkInsuranceEligibility(e);
+                });
+                
+                $('#tab_menu a').off().click(function (e) {
+                    self.urlNavigation(e);
                 });
 
             },

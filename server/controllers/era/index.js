@@ -20,6 +20,7 @@ module.exports = {
             eraPath,
             rootDir;
         let processDetailsArray = [];
+        let message = [];
 
         const eraFileDir = await data.getERAFilePathById(params);
 
@@ -33,7 +34,13 @@ module.exports = {
 
             if (!dirExists) {
 
-                return 'Directory not found in file store';
+                message.push({
+                    status: 100,
+                    message: 'Directory not found in file store'
+                });
+
+                return message;
+               
             }
 
             eraPath = path.join(eraPath, params.file_id);
@@ -43,6 +50,16 @@ module.exports = {
             ediConnect.init('http://192.168.1.102:5581/edi/api');
 
             let templateName = await ediConnect.getDefaultEraTemplate();
+            
+            if(!templateName){
+                message.push({
+                    status: 100,
+                    message: 'ERA template not found'
+                });
+
+                return message;
+            }
+            
             const eraResponseJson = await ediConnect.parseEra(templateName, eraRequestText);
 
             if (params.status != 'applypayments') {
@@ -50,29 +67,26 @@ module.exports = {
                 processDetailsArray.push(processDetails);
             }
             else {
-
                 processDetails = await self.applyERAPayments(eraResponseJson, params);
-
                 processDetailsArray.push(processDetails);
             }
 
             return processDetailsArray;
 
         } catch (err) {
-            let msg;
-
+            
             if (err.message && err.message == 'Invalid template name') {
                 logger.error(err);
 
-                msg = {
+                message.push({
                     status: 100,
                     message: 'Invalid template name'
-                };
+                });
             } else {
-                msg = err;
+                message = err;
             }
 
-            return msg;
+            return message;
         }
 
     },
