@@ -13,7 +13,8 @@ define(['jquery',
     'text!templates/app/payment-apply-cas.html',
     'text!templates/app/apply-payment.html',
     'collections/app/patientsearch',
-    'text!templates/app/patientSearchResult.html'],
+    'text!templates/app/patientSearchResult.html',
+    'views/reports/payments-pdf'],
 
     function (
         jQuery,
@@ -31,7 +32,8 @@ define(['jquery',
         ApplyCasHtml,
         ApplyPaymentTemplate,
         patientCollection,
-        patSearchContent)
+        patSearchContent,
+        paymentEditPDF)
     {
         return Backbone.View.extend({
             el: null,
@@ -78,8 +80,9 @@ define(['jquery',
                 'click #btnPaymentPendingRefresh': 'refreshPayments',
                 'click #btnAppliedPayRefresh': 'refreshPayments',
                 "change #selectPaymentMode": "changePayerMode",
-                'click #btnPaymentPrint, #btnPrintReceipt, #btnPayfullAppliedPendingPayments': "underConstruction",
-                'click #btnPaymentDelete' : 'deletePayment'
+                'click  #btnPrintReceipt, #btnPayfullAppliedPendingPayments': "underConstruction",
+                'click #btnPaymentDelete' : 'deletePayment',
+                'click #btnPaymentPrint': 'paymentPrintPDF'
             },
 
             initialize: function (options) {
@@ -1728,6 +1731,16 @@ define(['jquery',
                 else {
                     commonjs.showWarning('You cannot delete the payment since the payment has been already applied');
                 }
+            },
+            
+            paymentPrintPDF: function (e) {
+                var self = this;
+                self.paymentEditPDF = new paymentEditPDF({ el: $('#modal_div_container') });
+                var paymentEditPDFArgs = {
+                   payment_id : this.payment_id,
+                   flag:true
+                }
+                self.paymentEditPDF.onReportViewClick(e, paymentEditPDFArgs);
             }
             
         });
