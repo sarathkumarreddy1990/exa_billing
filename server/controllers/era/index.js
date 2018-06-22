@@ -20,7 +20,7 @@ module.exports = {
             eraPath,
             rootDir;
         let processDetailsArray = [];
-        
+
         const eraFileDir = await data.getERAFilePathById(params);
 
         rootDir = eraFileDir.rows && eraFileDir.rows.length && eraFileDir.rows[0].root_directory ? eraFileDir.rows[0].root_directory : '';
@@ -77,7 +77,7 @@ module.exports = {
 
     },
 
-    applyERAPayments: async function(eraResponseJson, params){
+    applyERAPayments: async function (eraResponseJson, params) {
         let self = this;
 
         const results = [];
@@ -183,10 +183,10 @@ module.exports = {
         let self = this;
 
         let paymentDetails = await self.createPaymentFromERA(params, eraObject);
-        
+
         let claimLists = eraObject && eraObject.headerNumber ? eraObject.headerNumber : {};
 
-        let LineItemsAndClaimLists =  await eraParser.getFormatedLineItemsAndClaims(claimLists, params);
+        let LineItemsAndClaimLists = await eraParser.getFormatedLineItemsAndClaims(claimLists, params);
 
         let processedClaims = await data.createPaymentApplication(LineItemsAndClaimLists, paymentDetails);
 

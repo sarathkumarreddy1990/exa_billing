@@ -196,9 +196,13 @@ define([
                             model.file_store_id = gridData.file_store_id;
                             self.showProgressDialog(file_id, model, 'initialize');
                         }
-                        else if (model.status == 100 || model.name =='error') {
-                            var msg =  model.name =='error' ? model.table +' '+ model.detail : model.message;
+                        else if (model.status == 100) {
+                            commonjs.showWarning(model.message);
+                        }
+                        else if (model.name =='error') {
+                            var msg =  model.table +' '+ model.detail 
                             commonjs.showWarning(msg);
+                            commonjs.showWarning('Already Payment Processed');
                         }
                     },
                     error: function (err, response) {
