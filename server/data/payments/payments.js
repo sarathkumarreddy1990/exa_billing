@@ -375,12 +375,12 @@ module.exports = {
 
     deletePayment: async function (params) {
 
-        let { id } = params;
+        let {
+            payment_id,
+            auditDetails } = params;
 
-        const sql = SQL` DELETE FROM
-                             billing.payments
-                         WHERE
-                             id = ${id}`;
+        const sql = SQL` SELECT billing.purge_payment (${payment_id}, (${JSON.stringify(auditDetails)})::json) AS details`;
+        
         return await query(sql);
     },
 
