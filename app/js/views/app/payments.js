@@ -261,7 +261,7 @@ define(['jquery',
                         };
 
                         jQuery.ajax({
-                            url: "/exa_modules/billing/payments/totalAmount",
+                            url: "/exa_modules/billing/payments/total_amount",
                             type: "GET",
                             data: dataSet,
                             success: function (data, textStatus, jqXHR) {
