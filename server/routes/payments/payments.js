@@ -32,4 +32,9 @@ router.post('/applyPayments', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.delete('/payment', async function (req, res) {
+    const data = await paymentsController.deletePayment(req.body);
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;
