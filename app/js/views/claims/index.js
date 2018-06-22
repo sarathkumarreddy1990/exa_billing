@@ -661,9 +661,10 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     self.checkInsuranceEligibility(e);
                 });
                 
-                $('#tab_menu a').off().click(function (e) {
-                    self.urlNavigation(e);
-                });
+                //Todo
+                // $('#tab_menu a').off().click(function (e) {
+                //     self.urlNavigation(e);
+                // });
 
             },
             getLineItemsAndBind: function (selectedStudyIds) {
