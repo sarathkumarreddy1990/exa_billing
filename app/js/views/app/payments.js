@@ -219,9 +219,6 @@ define(['jquery',
                         datastore: self.paymentsList,
                         container: this.el,
                         offsetHeight: 01,
-                        // gridComplete: function () {
-                        //     self.setupActionClickOver();
-                        // },
                         dblClickActionIndex: 1,
                         ondblClickRow: function (rowID) {
                             self.editPayment(rowID);
@@ -403,20 +400,6 @@ define(['jquery',
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-            },
-
-            setupActionClickOver: function () {
-                var actionMenu = '<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu" style="display: block;position: relative;min-width:100px"> \
-                              <li><a tabindex="-1" href="#" class="row_action_show" data-dismiss="clickover"><i class="icon-eye-open"></i> show</a></li> \
-                              <li><a tabindex="-1" href="#" class="row_action_edit" data-dismiss="clickover"><i class="icon-ic-edit"></i> edit</a></li> \
-                              <li><a tabindex="-1" href="#" class="row_action_delete" data-dismiss="clickover"><i class="icon-trash"></i> delete</a></li> \
-                          </ul>';
-                $('#spnStatus').click({
-                    html: true,
-                    content: actionMenu,
-                    template: '<div class="popover row-action-popover"><div class="arrow"></div><div class="popover-content dropdown clearfix" style="padding:0;"></div></div>'
-
-                });
             }
 
         });

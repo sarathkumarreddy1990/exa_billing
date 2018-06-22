@@ -7242,27 +7242,29 @@ var commonjs = {
         }
         else {
             var statusCodes = app.status_color_codes && app.status_color_codes.length && app.status_color_codes || parent.app.status_color_codes;
-            var paymentStatus = $.grep(statusCodes, function (currentObj) {
-                return ((currentObj.process_type == 'payment'));
-            });
+            if (statusCodes && statusCodes.length) {
+                var paymentStatus = $.grep(statusCodes, function (currentObj) {
+                    return ((currentObj.process_type == 'payment'));
+                });
 
-            $('#showColor').empty();
-            $.each(paymentStatus, function (index, status) {
-                $('#showColor').append(
-                    $('<div/>').append(
-                        $('<span/>').css({ 'width': '30px', 'height': '15px', 'display': 'inline-block', 'border': '1px solid ' + status.color_code, 'background-color': status.color_code }),
-                        $('<span/>').css({ 'margin-left': '20px', 'font-weight': 'bold' }).text(status.process_status)
+                $('#showColor').empty();
+                $.each(paymentStatus, function (index, status) {
+                    $('#showColor').append(
+                        $('<div/>').append(
+                            $('<span/>').css({ 'width': '30px', 'height': '15px', 'display': 'inline-block', 'border': '1px solid ' + status.color_code, 'background-color': status.color_code }),
+                            $('<span/>').css({ 'margin-left': '20px', 'font-weight': 'bold' }).text(status.process_status)
+                        )
                     )
-                )
-            });
+                });
 
-            $("#showColor").show();
-            var div = $('#showColor');
-            $(document.body).append(div);
+                $("#showColor").show();
+                var div = $('#showColor');
+                $(document.body).append(div);
 
-            var posX = $((e.target || e.srcElement)).offset().left;
-            var posY = $((e.target || e.srcElement)).offset().top + 20;
-            $(div).css({ top: posY, left: posX, position: 'absolute' });
+                var posX = $((e.target || e.srcElement)).offset().left;
+                var posY = $((e.target || e.srcElement)).offset().top + 20;
+                $(div).css({ top: posY, left: posX, position: 'absolute' });
+            }    
         }    
     },
     disableKeys: function (e) {
