@@ -11,7 +11,7 @@ router.get('/', async function (req, res) {
 });
 
 
-router.get('/totalAmount', async function (req, res) {
+router.get('/total_amount', async function (req, res) {
     req.query.isGetTotal = true;
     const data = await paymentsController.getPayments(req.query);
     httpHandler.sendRows(req, res, data);
@@ -29,6 +29,11 @@ router.put('/', async function (req, res) {
 
 router.post('/applyPayments', async function (req, res) {
     const data = await paymentsController.createOrUpdatePaymentapplications(req.body);
+    httpHandler.sendRows(req, res, data);
+});
+
+router.delete('/payment', async function (req, res) {
+    const data = await paymentsController.deletePayment(req.body);
     httpHandler.sendRows(req, res, data);
 });
 
