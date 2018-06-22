@@ -1244,7 +1244,7 @@ define([
                             toDate: $('#txtDateTo').val() ? $('#txtDateTo').val() : null,
                             toDateTime: $('#txtToTimeDate').val() ? $('#txtToTimeDate').val() : null,
                             isStudyDate: $('#rbtStudyDate').is(":checked"),
-                            dateType: $('#rbtStudyDate').is(":checked") ? "study_dt" : $('#rbtStudyReceivedDate').is(":checked") ? "study_received_dt" : $('#rbtScheduledDate').is(":checked") ? "scheduled_dt" : $('#rbtStatusChangeDate').is(":checked") ? "status_last_changed_dt" : "study_dt"
+                            dateType:  "claim_dt"
                         },
                         ClaimInformation: {
                             claimStatus: {
