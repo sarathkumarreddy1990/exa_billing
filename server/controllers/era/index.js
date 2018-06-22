@@ -82,6 +82,12 @@ module.exports = {
                     status: 100,
                     message: 'Invalid template name'
                 });
+            }
+            else if(err.code == 'ENOENT'){
+                message.push({
+                    status: 100,
+                    message: err.message
+                });
             } else {
                 message = err;
             }

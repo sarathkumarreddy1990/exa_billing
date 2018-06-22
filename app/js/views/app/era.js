@@ -173,37 +173,40 @@ define([
                         company_id: app.companyID
                     },
                     success: function (model, response) {
-                        console.log(model);
-                        model = model.length  && model[0].length ? model[0][0] : model[0];
-                        
-                        if (model.status == 100) {
-                            commonjs.showWarning(model.message);
-                        }
-                        else if (model && model.payer_id) {
-                            
-                            model.file_store_id = gridData.file_store_id;
-                            self.showProgressDialog(file_id, model, 'initialize');
-                        }
-                        else if (model && model.rows && model.rows.length) {
-                            var processedClaims = model.rows[0].insert_edi_file_claims ? model.rows[0].insert_edi_file_claims : [];
-                            _.each(processedClaims, function (dataResult, index) {
-                                var status = dataResult.applied ? 'DONE' : 'FAILED';
-                                $('#eraProcessTable').append('<tr><td>' + dataResult.edi_file_id + '</td><td>' + dataResult.claim_number + '</td><td>' + status + '</td></tr>');
-                            });
-                            if (processedClaims.length == 0) {
-                                $('#eraProcessTable').append('<tr><td>Payment failed for all claims</td></tr>');
-                            }
-                            $('#divEraProcess').show();
-                            $('#btnProcessPayment').prop('disabled', true);
 
-                        } else if (model && model.type && model.type == 'none') {
-                            model.file_store_id = gridData.file_store_id;
-                            self.showProgressDialog(file_id, model, 'initialize');
-                        }
-                        else if (model.name =='error') {
-                            var msg =  model.table +' '+ model.detail 
-                            commonjs.showWarning(msg);
-                            commonjs.showWarning('Already Payment Processed');
+                        if (model && model != undefined) {
+
+                            model = model && model.length && model[0].length ? model[0][0] : model[0];
+
+                            if (model && model.status == 100) {
+                                commonjs.showWarning(model.message);
+                            }
+                            else if (model && model.payer_id) {
+
+                                model.file_store_id = gridData.file_store_id;
+                                self.showProgressDialog(file_id, model, 'initialize');
+                            }
+                            else if (model && model.rows && model.rows.length) {
+                                var processedClaims = model.rows[0].insert_edi_file_claims ? model.rows[0].insert_edi_file_claims : [];
+                                _.each(processedClaims, function (dataResult, index) {
+                                    var status = dataResult.applied ? 'DONE' : 'FAILED';
+                                    $('#eraProcessTable').append('<tr><td>' + dataResult.edi_file_id + '</td><td>' + dataResult.claim_number + '</td><td>' + status + '</td></tr>');
+                                });
+                                if (processedClaims.length == 0) {
+                                    $('#eraProcessTable').append('<tr><td>Payment failed for all claims</td></tr>');
+                                }
+                                $('#divEraProcess').show();
+                                $('#btnProcessPayment').prop('disabled', true);
+
+                            } else if (model && model.type && model.type == 'none') {
+                                model.file_store_id = gridData.file_store_id;
+                                self.showProgressDialog(file_id, model, 'initialize');
+                            }
+                            else if (model.name == 'error') {
+                                var msg = model.table + ' ' + model.detail
+                                commonjs.showWarning(msg);
+                                commonjs.showWarning('Already Payment Processed');
+                            }
                         }
                     },
                     error: function (err, response) {
