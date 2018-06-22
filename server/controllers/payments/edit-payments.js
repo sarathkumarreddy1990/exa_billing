@@ -27,9 +27,6 @@ module.exports = {
 
     getFeeDetails: function (params) {
         return data.getFeeDetails(params);
-    },
-
-    deletePayment: function (params) {
-        return data.deletePayment(params);
     }
+    
 };
