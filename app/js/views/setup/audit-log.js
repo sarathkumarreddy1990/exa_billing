@@ -158,16 +158,31 @@ define([
                         commonjs.showDialog({
                             'header': 'Log Details',
                             'width': '50%',
-                            'height': '60%',
+                            'height': '80%',
                             'needShrink': true,
                             'html': self.auditLogDetailsTemplate
                         });
+                        $("#showDetailsRow").hide();
+                        $("#oldInfoRow").hide();
+                        if(response.detailed_info && response.detailed_info.oldValues){
+                            $("#showDetailsRow").show();
+                            for(element in response.detailed_info.oldValues){
+                            var html = "<tr>" +
+                                "<td style='width: 25%;border:1px solid #dee2e6;'>"+element+"</td>" +
+                                "<td style='width: 75%;border:1px solid #dee2e6;'>"+response.detailed_info.oldValues[element]+"</td>" +
+                                "</tr>";
+                                $("#chngTblBdy").append(html);
+                            }
+                        }
                         $("#userName").html(response.username);
                         $("#clientIp").html(response.client_ip);
                         $("#module").html(response.module_name);
                         $("#screen").html(response.screen_name);
                         $("#loggedDate").html(response.created_dt);
                         $("#description").html(response.description);
+                        $("#showDetails").click(function(){
+                            $("#oldInfoRow").toggle();
+                        });
                     }
                 });
             },
