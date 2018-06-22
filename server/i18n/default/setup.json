@@ -14,7 +14,10 @@
             "module": "Module",
             "browser":"Browser",
             "operatingSystem":"Operating System",
-            "version": "Version"
+            "version": "Version",
+            "changes": "Changes",
+            "columns": "Columns",
+            "queriedValues": "Queried Values"
         },
         "adjustmentcodes": {
             "credit": "Credit",
