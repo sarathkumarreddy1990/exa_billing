@@ -22,13 +22,13 @@ gulp.task('copy', ['clean'], () => {
         .pipe(gulp.dest('./build'));
 });
 
-gulp.task('less', () => {
+gulp.task('less', ['copy'], () => {
     return gulp.src('./app/skins/default/*.less')
         .pipe(less({
             paths: [path.join(__dirname, 'app/skins/default/index.less')]
         }))
-        //.pipe(gulp.dest('./dist/css'))
-        .pipe(gulp.dest('./app/skins/default'))
+        .pipe(gulp.dest('./build/app/skins/default'))
+        //.pipe(gulp.dest('./app/skins/default'))
 });
 
 /// TODO: Auto prefix
@@ -47,7 +47,7 @@ gulp.task('concat-css', ['less'], () => {
          .pipe(gulp.dest('./app/skins/default'))
 });
 
-gulp.task('requirejsBuild', ['copy'], (done) => {
+gulp.task('requirejsBuild', ['less'], (done) => {
 
     requirejsConfig = {
         ...requirejsConfig,

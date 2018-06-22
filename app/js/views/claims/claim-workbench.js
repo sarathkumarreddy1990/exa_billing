@@ -423,7 +423,11 @@ define(['jquery',
                         claimIds:claimIds
                     },
                     success: function (data, textStatus, jqXHR) {
-                        if (data && data.ediText.length) {
+                        if (data && data.err) {
+                            commonjs.showWarning(data.err);
+                        }
+
+                        if (data && data.ediText && data.ediText.length) {
                             let str='';
                             $.each(data.ediText.split('~'), function (index, val) {
                                 if (val != '') {
@@ -683,7 +687,7 @@ define(['jquery',
                         };
 
                         $btnTabNavLeft.off('click').on('click', function (navState, event) {
-                            self.underConstruction();
+                            //self.underConstruction();
                             if (navState.getState('isScrolling') === true || navState.getState('isMeasuring') === true) {
                                 return;
                             }
@@ -750,7 +754,7 @@ define(['jquery',
                          */
 
                         $btnTabNavRight.off('click').on('click', function (navState, event) {
-                            self.underConstruction();
+                            //self.underConstruction();
                             if (navState.getState('isScrolling') === true || navState.getState('isMeasuring') === true) {
                                 return;
                             }

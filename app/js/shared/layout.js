@@ -60,6 +60,8 @@ var layout = {
         'Payments': '#aPayments',
         'Audit Log': '#aAuditLog',
         'User Log': '#aUserLog',
+        'EDI Templates':'#aEDITemplate',
+        'Paper Claim Templates':'#aPaperClaimTemplate'
         /// To be added
     },
 

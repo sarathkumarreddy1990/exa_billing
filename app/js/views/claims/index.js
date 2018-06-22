@@ -2394,6 +2394,19 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     $('#txt' + flag + 'City').val('');
                     $('#ddl' + flag + 'State').val('');
                     $('#txt' + flag + 'ZipCode').val('');
+                    if(flag == 'Pri'){
+                        $('#ddlServiceType').multiselect("deselectAll", false).multiselect("refresh");
+                        $('#txtBenefitOnDate').val('');
+                    }
+                    else 
+                    if(flag == 'Sec'){
+                        $('#ddlServiceType2').multiselect("deselectAll", false).multiselect("refresh");
+                        $('#txtBenefitOnDate2').val('');
+                    }
+                    else {
+                         $('#ddlServiceType3').multiselect("deselectAll", false).multiselect("refresh");
+                         $('#txtBenefitOnDate3').val('');
+                    }
 
                     // remove from ResponsibleList
                     self.updateResponsibleList({
