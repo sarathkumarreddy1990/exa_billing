@@ -172,7 +172,7 @@ define(['jquery',
                         gridelementid: '#tblpaymentsGrid',
                         custompager: this.pager,
                         emptyMessage: 'No Record found',
-                        colNames: ['','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                        colNames: ['<span  id="spnStatus" class="icon-ic-worklist" onclick="commonjs.popOverActions(event)" ></span>','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
                         i18nNames: ['','', '', 'billing.payments.paymentID', '', 'billing.payments.referencePaymentID', 'billing.payments.paymentDate', 'billing.payments.accountingDate', 'billing.payments.payertype', 'billing.payments.payerName', 'billing.payments.paymentAmount', 'billing.payments.paymentApplied', 'billing.payments.balance', 'billing.payments.adjustment', 'billing.payments.postedBy', 'billing.payments.paymentmode', 'billing.payments.facility_name', '', '', ''],
                         colModel: [
                             {
@@ -219,9 +219,6 @@ define(['jquery',
                         datastore: self.paymentsList,
                         container: this.el,
                         offsetHeight: 01,
-                        gridComplete: function () {
-                            self.setupActionClickOver();
-                        },
                         dblClickActionIndex: 1,
                         ondblClickRow: function (rowID) {
                             self.editPayment(rowID);
