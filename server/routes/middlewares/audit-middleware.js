@@ -15,7 +15,8 @@ app.use(function (req, res, next) {
 
         let {
             screenName,
-            moduleName
+            moduleName,
+            entityName
         } = shared.getScreenDetails(req.path);
 
         if (!screenName) {
@@ -24,9 +25,10 @@ app.use(function (req, res, next) {
 
         req.audit = {
             ...ids,
+            screenName,
+            moduleName,
+            entityName,
             clientIp: '127.0.0.1',
-            screenName: screenName,
-            moduleName: moduleName,
         };
 
         req.body = {
