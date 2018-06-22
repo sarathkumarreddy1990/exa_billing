@@ -3,13 +3,13 @@ const _ = require('lodash');
 
 module.exports = {
     
-    getFormatedLineItemsAndClaims: async function (claimLists, file_id, payer_details) {
+    getFormatedLineItemsAndClaims: async function (claimLists, params) {
 
         let ediFileClaims = [];
         let claimComments = [];
         let lineItems = [];
 
-        payer_details = JSON.parse(payer_details);
+        let payer_details = params.payer_details ? JSON.parse(params.payer_details) : {};
 
         let cas_details = await data.getcasReasonGroupCodes(payer_details);
 
@@ -117,6 +117,8 @@ module.exports = {
 
                 });
 
+                
+
                 lineItems.push({
                     payment: val.paidamount,
                     adjustment: adjustmentAmount,
@@ -130,7 +132,7 @@ module.exports = {
 
             ediFileClaims.push({
                 claim_number: value.claimNumber,
-                edi_file_id: file_id,
+                edi_file_id: params.file_id,
                 co_pay: co_pay,
                 co_insurance: co_insurance,
                 deductible: deductible
@@ -165,10 +167,19 @@ module.exports = {
 
         });
 
+        let auditDetails = {
+            company_id: payer_details.company_id,
+            screen_name: params.screenName,
+            module_name: params.moduleName,
+            client_ip: params.clientIp,
+            user_id: parseInt(payer_details.created_by)
+        };
+
         return {
             lineItems: lineItems,
             ediFileClaims: ediFileClaims,
-            claimComments: claimComments
+            claimComments: claimComments,
+            audit_details: auditDetails
         };
 
     }
