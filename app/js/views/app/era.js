@@ -174,11 +174,13 @@ define([
                     },
                     success: function (model, response) {
                         console.log(model);
+                        model = model.length  && model[0].length ? model[0][0] : model[0];
                         if (model && model.payer_id) {
+                            
                             model.file_store_id = gridData.file_store_id;
                             self.showProgressDialog(file_id, model, 'initialize');
                         }
-                        else if (model.rows && model.rows.length) {
+                        else if (model && model.rows && model.rows.length) {
                             var processedClaims = model.rows[0].insert_edi_file_claims ? model.rows[0].insert_edi_file_claims : [];
                             _.each(processedClaims, function (dataResult, index) {
                                 var status = dataResult.applied ? 'DONE' : 'FAILED';
@@ -193,6 +195,10 @@ define([
                         } else if (model && model.type && model.type == 'none') {
                             model.file_store_id = gridData.file_store_id;
                             self.showProgressDialog(file_id, model, 'initialize');
+                        }
+                        else if (model.status == 100 || model.name =='error') {
+                            var msg =  model.name =='error' ? model.table +' '+ model.detail : model.message;
+                            commonjs.showWarning(msg);
                         }
                     },
                     error: function (err, response) {
@@ -227,7 +233,11 @@ define([
                     self.reloadERAFilesLocal();
                 });
                 $('#btnProcessPayment').off().click(function (e) {
-                    self.processFile(file_id, payerDetails, 'applypayments');
+                    if(!$('#select2-ddlInsuranceProviders-container').attr('data_description') || !$('#select2-ddlInsuranceProviders-container').attr('data_id')){
+                        commonjs.showWarning('Please select Insurance provider');
+                    }else{
+                        self.processFile(file_id, payerDetails, 'applypayments');
+                    }
                 });
 
             },
