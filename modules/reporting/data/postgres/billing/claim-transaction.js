@@ -8,41 +8,70 @@ const _ = require('lodash')
 // generate query template ***only once*** !!!
 
 const claimTransactionDataSetQueryTemplate = _.template(`
-WITH claimTransaction as (
-  SELECT
-    icd.code  AS code
-   , COALESCE(f.facility_name, 'Total') AS facility_name
-   , CASE
-      WHEN COALESCE(f.facility_name, 'Total')  !=   'Total' THEN max(icd.description)
-      ELSE  NULL
-      END AS  description,  
-    COUNT(1) AS icd_code_count
-  FROM 
-     billing.claim_icds claim_icd
-    INNER JOIN billing.claims cl ON cl.id = claim_icd.claim_id
-    INNER JOIN public.icd_codes icd ON icd.id = claim_icd.icd_id
-    INNER JOIN public.facilities f ON f.id = cl.facility_id
-    INNER JOIN billing.providers p ON p.id = cl.billing_provider_id
-    <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = cl.billing_provider_id <% } %>
-    WHERE 1 = 1
-    AND <%=companyId%>
-    AND <%= claimDate %>
-    <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
-    <% if(billingProID) { %> AND <% print(billingProID); } %>
-    GROUP BY
-        ROLLUP(icd.code, f.facility_name)
-    ORDER BY
-         icd.code
-        , f.facility_name
-        , icd_code_count
-  )
-  SELECT 
-        code AS "ICD CODE",
-        facility_name AS "FAC. NAME",
-        description AS "DESCRIPTION",
-        icd_code_count  AS "COUNT"
-  FROM
-        claimTransaction
+WITH details AS(
+    SELECT 
+        bc.id AS "Claim#",
+        pp.last_name AS "Last Name",
+        pp.first_name AS "First Name",
+        pip.insurance_name AS "Insurance Name",
+        pip.insurance_code AS  "Insurance Code",
+        (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) AS paid_amount,
+        MAX(to_char(bp.payment_dt,'MM/DD/YYYY'))           AS "Payment Date",
+        MAX(to_char(bp.accounting_dt,'MM/DD/YYYY') )       AS "Accounting Date",
+        SUM(bch.bill_fee * bch.units) AS charge_amount,
+        CASE WHEN bc.payer_type = 'primary_insurance'  OR  bc.payer_type = 'secondary_insurance' OR bc.payer_type = 'tertiary_insurance' THEN (SELECT claim_balance_total FROM billing.get_claim_totals(bc.id)) END AS ins_balance,
+        to_char(bc.claim_dt,'MM/DD/YYYY') AS "Claim Date",
+        CASE WHEN (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) != 0::money AND bc.payer_type = 'primary_insurance' THEN  pip.insurance_name
+         WHEN (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) != 0::money AND bc.payer_type = 'secondary_insurance' THEN  pip.insurance_name
+         WHEN (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) != 0::money AND bc.payer_type = 'tertiary_insurance' THEN  pip.insurance_name
+        ELSE pip.insurance_name 
+        END AS "Insurance Paid", 
+       CASE WHEN  (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) != 0::money AND bc.payer_type = 'primary_insurance' THEN  pip.insurance_code
+         WHEN (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) != 0::money AND bc.payer_type = 'secondary_insurance' THEN  pip.insurance_code
+         WHEN (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) != 0::money AND bc.payer_type = 'tertiary_insurance' THEN  pip.insurance_code
+        ELSE pip.insurance_code
+        END AS Ins_Cur,
+        pr.full_name AS "Ref. Doctor"
+        --, ac.description       AS "Insurance Payer Type"
+    FROM billing.claims bc
+    INNER JOIN billing.charges bch ON bch.claim_id = bc.id 
+    INNER JOIN public.patients pp on pp.id = bc.patient_id  
+    INNER JOIN billing.payment_applications bpa ON bpa.charge_id = bch.id
+    INNER JOIN billing.payments bp ON bp.id = bpa.payment_id
+    LEFT JOIN public.patient_insurances ppi ON ppi.id = CASE WHEN bc.payer_type = 'primary_insurance' THEN bc.primary_patient_insurance_id
+                                                             WHEN bc.payer_type = 'secondary_insurance' THEN bc.secondary_patient_insurance_id
+                                                             WHEN bc.payer_type = 'tertiary_insurance' THEN bc.tertiary_patient_insurance_id
+                                 ELSE bc.primary_patient_insurance_id
+                                                             END
+    LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
+    LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
+    LEFT JOIN public.providers pr ON  pr.id = ppc.provider_id
+     INNER JOIN public.facilities f ON f.id = bc.facility_id
+    <% if (billingProID) { %> INNER JOIN billing.providers bpp ON bp.id = bc.billing_provider_id <% } %>
+        WHERE 1 = 1
+        AND <%=companyId%>       
+   
+        <% if(claimDate) { %> AND <%=claimDate%> <%}%>
+        <% if(CPTDate) { %> AND <%=CPTDate%> <%}%>
+        <% if(sumbittedDt) { %> AND <%=sumbittedDt%> <%}%>
+        <% if(insuranceIds) { %> AND <%=insuranceIds%> <%}%>
+        <% if(insGroups) { %> AND <%=insGroups%> <%}%>
+    
+        <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+        <% if(billingProID) { %> AND <% print(billingProID); } %>
+        
+    GROUP BY bc.id,pip.insurance_name,pip.insurance_code,pp.last_name,pp.first_name,pr.full_name
+         )
+        SELECT * FROM details
+        UNION ALL
+        SELECT
+             null,'---','---','---','---'
+             ,(SELECT SUM(a.paid_amount) from details AS a)
+         ,null,null
+             ,(SELECT SUM(a.charge_amount) FROM details AS a)
+             ,(SELECT SUM(a.ins_balance)::money from details AS a)
+            ,null,'---','---','---'
+        WHERE (SELECT COUNT(*) FROM details) > 0
 `);
 
 const api = {
@@ -52,13 +81,49 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
+        initialReportData.filters = api.createReportFilters(initialReportData);
+
+        //convert array of insuranceProviderIds array of string to integer
+        if (initialReportData.report.params.insuranceIds) {
+            initialReportData.report.params.insuranceIds = initialReportData.report.params.insuranceIds.map(Number);
+        }
+        //convert array of Referring Provider array of string to integer
+        if (initialReportData.report.params.referringProIds) {
+            initialReportData.report.params.referringProIds = initialReportData.report.params.referringProIds.map(Number);
+        }
+        //convert array of cpt code id array of string to integer
+        if (initialReportData.report.params.cptCodeLists) {
+            initialReportData.report.params.cptCodeLists = initialReportData.report.params.cptCodeLists.map(Number);
+        }
+
+        // convert adjustmentCodeIds array of string to integer
+        if (initialReportData.report.params.adjustmentCodeIds) {
+            initialReportData.report.params.adjustmentCodeIds = initialReportData.report.params.adjustmentCodeIds.map(Number);
+        }
+
         return Promise.join(
+
+            dataHelper.getAdjustmentCodeInfo(initialReportData.report.params.companyId, initialReportData.report.params.adjustmentCodeIds),
+            dataHelper.getCptCodesInfo(initialReportData.report.params.companyId, initialReportData.report.params.cptCodeLists),
+            dataHelper.getInsuranceProvidersInfo(initialReportData.report.params.companyId, initialReportData.report.params.insuranceIds),
+            dataHelper.getProviderGroupInfo(initialReportData.report.params.companyId, initialReportData.report.params.groupIds),
+            dataHelper.getPatientInfo(initialReportData.report.params.companyId, initialReportData.report.params.patientIds),
+            dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
+            dataHelper.getReferringPhysicianInfo(initialReportData.report.params.companyId, initialReportData.report.params.referringProIds),
+
             api.createclaimTransactionDataSet(initialReportData.report.params),
             // other data sets could be added here...
-            (claimTransactionDataSet) => {
-                // add report filters                
-                initialReportData.filters = api.createReportFilters(initialReportData);
+            (adjustmentCodeInfo, cptCodesInfo, insuranceProvidersInfo, providerGroupInfo, patientInfo, providerInfo, referringPhysicianInfo, claimTransactionDataSet) => {
+                // add report filters            
+                initialReportData.lookups.adjustmentCodes = adjustmentCodeInfo || [];
+                initialReportData.lookups.cptCodeLists = cptCodesInfo || [];
+                initialReportData.lookups.insuranceProviders = insuranceProvidersInfo || [];
+                initialReportData.lookups.providerGroup = providerGroupInfo || [];
+                initialReportData.lookups.patientInfo = patientInfo || [];
+                initialReportData.lookups.billingProviderInfo = providerInfo || [];
+                initialReportData.lookups.referringPhyInfo = referringPhysicianInfo || [];
 
+                initialReportData.filters = api.createReportFilters(initialReportData);
                 // add report specific data sets
                 initialReportData.dataSets.push(claimTransactionDataSet);
                 initialReportData.dataSetCount = initialReportData.dataSets.length;
@@ -112,9 +177,21 @@ const api = {
             const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
             filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
         }
+        if (params.fromDate != '' && params.toDate != '') {
+            filtersUsed.push({ name: 'fromDate', label: 'Claim Date From', value: params.fromDate });
+            filtersUsed.push({ name: 'toDate', label: 'Claim Date To', value: params.toDate });
+        }
 
-        filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
-        filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
+        if (params.cptDateFrom != '' && params.cptDateTo != '') {
+            filtersUsed.push({ name: 'FromPayDate', label: 'PayDate From', value: params.cptDateFrom });
+            filtersUsed.push({ name: 'ToPayDate', label: 'PayDate To', value: params.cptDateTo });
+        }
+
+        if (params.billCreatedDateFrom != '' && params.billCreatedDateTo != '') {
+            filtersUsed.push({ name: 'FromBillCreated', label: 'Bill Created From', value: params.billCreatedDateFrom });
+            filtersUsed.push({ name: 'ToBillCreated', label: 'Bill Created To', value: params.billCreatedDateTo });
+        }
+
         return filtersUsed;
     },
 
@@ -139,34 +216,88 @@ const api = {
             companyId: null,
             claimDate: null,
             facilityIds: null,
-            billingProID: null
-
+            billingProID: null,
+            adjustmentCodeIds: null,
+            studyDate: null,
+            insuranceIds: null,
+            referringProIds: null,
+            sumbittedDt: null,
+            CPTDate: null,
+            allClaim: true,
+            insPaid: null,
+            patPaid: null,
+            unPaid: null,
+            claimNoSearch: null,
+            orderBySelection: null,
+            insGroups: null,
+            cptPaymentDate: null,
+            cptCodeLists: null,
+            CPTDate_count: null
         };
 
         // company id
         params.push(reportParams.companyId);
-        filters.companyId = queryBuilder.where('cl.company_id', '=', [params.length]);
+        filters.companyId = queryBuilder.where('bc.company_id', '=', [params.length]);
 
         //claim facilities
         if (!reportParams.allFacilities && reportParams.facilityIds) {
             params.push(reportParams.facilityIds);
-            filters.facilityIds = queryBuilder.whereIn('cl.facility_id', [params.length]);
+            filters.facilityIds = queryBuilder.whereIn('bc.facility_id', [params.length]);
         }
 
-        //  scheduled_dt
-        if (reportParams.fromDate === reportParams.toDate) {
-            params.push(reportParams.fromDate);
-            filters.claimDate = queryBuilder.whereDate('cl.claim_dt', '=', [params.length], 'f.time_zone');
-        } else {
-            params.push(reportParams.fromDate);
-            params.push(reportParams.toDate);
-            filters.claimDate = queryBuilder.whereDateBetween('cl.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+        //  claim Date 
+        if (reportParams.fromDate != '' && reportParams.toDate != '') {
+            if (reportParams.fromDate === reportParams.toDate) {
+                params.push(reportParams.fromDate);
+                filters.claimDate = queryBuilder.whereDate('bc.claim_dt', '=', [params.length], 'f.time_zone');
+            } else {
+                params.push(reportParams.fromDate);
+                params.push(reportParams.toDate);
+                filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+            }
+        }
+
+        // Date filter  (CPT Date)
+        if (reportParams.cmtFromDate != '' && reportParams.cmtToDate != '') {
+            let filterDate = reportParams.cptDateOption ? reportParams.cptDateOption : 'payment_dt';
+            filters.cptPaymentDate = reportParams.cptDateOption == 'accounting_dt' ? false : true;
+            if (reportParams.cptDateFrom === reportParams.toDate && (reportParams.cptDateFrom && reportParams.toDate)) {
+                params.push(reportParams.cptDateFrom);
+                filters.CPTDate = queryBuilder.whereDate('bp.' + filterDate, '=', [params.length]);
+            } else {
+                params.push(reportParams.cmtFromDate);
+                params.push(reportParams.cmtToDate);
+                filters.CPTDate = queryBuilder.whereDateBetween('bp.' + filterDate, [params.length - 1, params.length]);
+                filters.CPTDate_count = queryBuilder.whereDateBetween('bp.' + filterDate, [params.length - 1, params.length]);
+            }
+        }
+
+        if (reportParams.billCreatedDateFrom != '' && reportParams.billCreatedDateTo != '') {
+            if (reportParams.billCreatedDateFrom === reportParams.toDate) {
+                params.push(reportParams.billCreatedDateFrom);
+                filters.sumbittedDt = queryBuilder.whereDateInTz('bc.submitted_dt', '=', [params.length], 'f.time_zone');
+            } else {
+                params.push(reportParams.billCreatedDateFrom);
+                params.push(reportParams.billCreatedDateTo);
+                filters.sumbittedDt = queryBuilder.whereDateInTzBetween('bc.submitted_dt', [params.length - 1, params.length], 'f.time_zone');
+            }
         }
 
         // billingProvider single or multiple
         if (reportParams.billingProvider) {
             params.push(reportParams.billingProvider);
-            filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
+            filters.billingProID = queryBuilder.whereIn('bpp.id', [params.length]);
+        }
+
+        if (reportParams.insuranceIds && reportParams.insuranceIds.length > 0) {
+            params.push(reportParams.insuranceIds);
+            filters.insuranceIds = queryBuilder.whereIn(`ppi.id`, [params.length]);
+        }
+       
+
+        if (reportParams.insuranceGroupList && reportParams.insuranceGroupList.length > 0) {
+            params.push(reportParams.insuranceGroupList);
+            filters.insGroups = queryBuilder.whereIn(`pip.id`, [params.length]);
         }
 
         return {

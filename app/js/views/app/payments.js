@@ -353,6 +353,7 @@ define(['jquery',
                     var row = "";
 
                     row += 'PAYMENT ID' + ',';
+                    row += 'REF. PAYMENT ID' + ',';
                     row += 'PAYMENT DATE' + ',';
                     row += 'ACCOUNTING DATE' + ',';
                     row += 'PAYER TYPE' + ',';
@@ -372,6 +373,7 @@ define(['jquery',
                     var row = "";
                     var paymentResult = paymentExcelData.models[i].attributes;
                     row += '"' + paymentResult.id + '",';
+                    row += '"' + (paymentResult.display_id > 0) ? paymentResult.display_id : '0' + '",';
                     row += '"' + moment(paymentResult.payment_dt).format('L') + '",';
                     row += '"' + moment(paymentResult.accounting_dt).format('L') + '",';
                     row += '"' + paymentResult.payer_type + '",';

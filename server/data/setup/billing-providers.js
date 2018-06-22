@@ -4,7 +4,10 @@ module.exports = {
 
     getData: async function (params) {
 
-
+        if(params.sortField == 'phoneNumber') {
+            params.sortField = 'phone_number';
+        }
+        
         params.sortOrder = params.sortOrder || ' DESC';
         let {
             code,

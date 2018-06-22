@@ -38,7 +38,7 @@ router.get('/paper_claim_template', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
-router.get('/submitClaim', async function (req, res) {
+router.get('/create_claim', async function (req, res) {
     const data = await claimWorkbenchController.getEDIClaim(req.query);
     httpHandler.send(req, res, data);
 });

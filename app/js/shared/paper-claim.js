@@ -76,7 +76,7 @@ define([
             this.getClaimObject = function (claimIDs, callback) {
 
                 $.ajax({
-                    url: '/exa_modules/billing/claimWorkbench/claim_json',
+                    url: '/exa_modules/billing/claim_workbench/claim_json',
                     data: {
                         claimIds: claimIDs
                     }, success: function (data, response) {
@@ -91,7 +91,7 @@ define([
             this.getTemplate = function (claimIDs, callback) {
 
                 $.ajax({
-                    url: '/exa_modules/billing/claimWorkbench/paper_claim_template',
+                    url: '/exa_modules/billing/claim_workbench/paper_claim_template',
                     data: {
                         claimIds: claimIDs
                     }, success: function (data, response) {

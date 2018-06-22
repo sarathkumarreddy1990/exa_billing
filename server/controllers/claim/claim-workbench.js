@@ -4,7 +4,9 @@ const ediConnect = require('../../../modules/edi');
 const _ = require('lodash');
 //const PdfPrinter = require('pdfmake');
 
-ediConnect.init('http://192.168.1.102:5580/edi/api');
+const config = require('../../config');
+const ediServerUrl = config.get('ediServerUrl');
+ediConnect.init(ediServerUrl);
 
 module.exports = {
 
@@ -65,7 +67,7 @@ module.exports = {
                 },
                 data:data
             };
-            ediResponse = await ediConnect.generateEdi('837_template4', ediRequestJson);
+            ediResponse = await ediConnect.generateEdi(result.rows[0].edi_template, ediRequestJson);
         }
 
         return ediResponse;

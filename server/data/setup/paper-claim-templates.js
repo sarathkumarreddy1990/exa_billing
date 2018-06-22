@@ -50,6 +50,10 @@ module.exports = {
         const sql = SQL`SELECT 
                           id
                         , name
+                        , left_margin 
+                        , right_margin 
+                        , top_margin 
+                        , bottom_margin 
                         , orginal_form_template
                         , full_form_template
                         , inactivated_dt
@@ -67,7 +71,11 @@ module.exports = {
             orginalFormTemplate,
             fullFormTemplate,
             isActive,
-            companyId
+            companyId,
+            marginRight,
+            marginLeft,
+            marginTop,
+            marginBottom,
         } = params;
 
         let inactivated_date = isActive ? null : ' now() ';
@@ -79,7 +87,11 @@ module.exports = {
                         name, 
                         orginal_form_template,
                         full_form_template,
-                        inactivated_dt 
+                        inactivated_dt,
+                        left_margin,
+                        right_margin,
+                        top_margin,
+                        bottom_margin
                     ) 
                     VALUES 
                     ( 
@@ -87,7 +99,11 @@ module.exports = {
                         ${name}, 
                         ${orginalFormTemplate}, 
                         ${fullFormTemplate}, 
-                        ${inactivated_date} 
+                        ${inactivated_date},
+                        ${marginLeft},
+                        ${marginRight},
+                        ${marginTop},
+                        ${marginBottom} 
                     )
                     RETURNING *, '{}'::jsonb old_values
         `;
@@ -106,7 +122,11 @@ module.exports = {
             orginalFormTemplate,
             fullFormTemplate,
             id,
-            isActive
+            isActive,
+            marginRight,
+            marginLeft,
+            marginTop,
+            marginBottom,
         } = params;
 
         let inactivated_date = isActive ? null : ' now() ';
@@ -118,6 +138,10 @@ module.exports = {
                               , orginal_form_template = ${orginalFormTemplate}
                               , full_form_template = ${fullFormTemplate}
                               , inactivated_dt = ${inactivated_date}
+                              , left_margin = ${marginLeft}
+                              , right_margin = ${marginRight}
+                              , top_margin = ${marginTop}
+                              , bottom_margin = ${marginBottom}
                         WHERE
                             id = ${id} 
                         RETURNING *,

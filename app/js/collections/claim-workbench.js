@@ -2,7 +2,7 @@
 define([ 'backbone','models/claims-workbench'], function ( Backbone,claimsModel) {
     return Backbone.Collection.extend({
         'model': claimsModel,
-        'url': '/exa_modules/billing/claimWorkbench',
+        'url': '/exa_modules/billing/claim_workbench',
         'initialize': function ( models, options ) {
             var self = this;
 
