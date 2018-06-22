@@ -6,6 +6,7 @@ const readFile = promisify(fs.readFile);
 const ediConnect = require('../../../modules/edi');
 const paymentController = require('../payments/payments');
 const eraParser = require('./era-parser');
+const logger = require('../../../logger');
 
 module.exports = {
 
@@ -18,13 +19,13 @@ module.exports = {
             processDetails,
             eraPath,
             rootDir;
-        let templateName = '835_template_1';
+        let processDetailsArray = [];
 
         const eraFileDir = await data.getERAFilePathById(params);
 
         rootDir = eraFileDir.rows && eraFileDir.rows.length && eraFileDir.rows[0].root_directory ? eraFileDir.rows[0].root_directory : '';
         eraPath = eraFileDir.rows && eraFileDir.rows.length && eraFileDir.rows[0].file_path ? eraFileDir.rows[0].file_path : '';
-        
+
         eraPath = path.join(rootDir, eraPath);
 
         try {
@@ -41,32 +42,54 @@ module.exports = {
 
             ediConnect.init('http://192.168.1.102:5581/edi/api');
 
-            const eraResponseJson = await ediConnect.parseEra(templateName, eraRequestText); 
+            let templateName = await ediConnect.getDefaultEraTemplate();
+            const eraResponseJson = await ediConnect.parseEra(templateName, eraRequestText);
 
             if (params.status != 'applypayments') {
-
                 processDetails = await self.checkExistInsurance(params, eraResponseJson);
+                processDetailsArray.push(processDetails);
             }
             else {
 
-                let paymentResult = await self.createPaymentFromERA(params, eraResponseJson);
-                
-                let claimLists = eraResponseJson.length && eraResponseJson[0].headerNumber ? eraResponseJson[0].headerNumber : {};
-                
-                let LineItemsAndClaimLists = await eraParser.getFormatedLineItemsAndClaims(claimLists, params.file_id, params.payer_details);
+                processDetails = await self.applyERAPayments(eraResponseJson, params);
 
-                processDetails = await self.processPayments(LineItemsAndClaimLists, paymentResult);
-
+                processDetailsArray.push(processDetails);
             }
 
-            return processDetails;
+            return processDetailsArray;
 
         } catch (err) {
-            throw err;
+            let msg;
+
+            if (err.message && err.message == 'Invalid template name') {
+                logger.error(err);
+
+                msg = {
+                    status: 100,
+                    message: 'Invalid template name'
+                };
+            } else {
+                msg = err;
+            }
+
+            return msg;
         }
 
     },
 
+    applyERAPayments: async function (eraResponseJson, params) {
+        let self = this;
+
+        const results = [];
+
+        for (const eraObject of eraResponseJson) {
+
+            results.push(self.processPayments(params, eraObject));
+        }
+
+        return await Promise.all(results);
+
+    },
     checkExistInsurance: async function (params, eraResponseJson) {
 
         let payerDetails = {};
@@ -76,7 +99,7 @@ module.exports = {
         const existsInsurance = await data.selectInsuranceEOB({
             payer_id: payerIdentification
             , company_id: 1
-            , file_id : params.file_id
+            , file_id: params.file_id
         });
 
         if (existsInsurance && existsInsurance.rows && existsInsurance.rows.length) {
@@ -94,7 +117,7 @@ module.exports = {
 
         return payerDetails;
     },
-    
+
     createPaymentFromERA: async function (params, eraResponseJson) {
 
         let paymentResult;
@@ -106,7 +129,7 @@ module.exports = {
         let monetoryAmount = financialInfo.monetoryAmount ? parseFloat(financialInfo.monetoryAmount).toFixed(2) : 0.00;
         let notes = 'Amount shown in EOB:' + monetoryAmount;
 
-        notes += '\n \n'+params.file_id + '.ERA';
+        notes += '\n \n' + params.file_id + '.ERA';
         payerDetails.paymentId = null;
         payerDetails.company_id = payerDetails.company_id;
         payerDetails.user_id = payerDetails.created_by;
@@ -125,31 +148,51 @@ module.exports = {
         payerDetails.payment_mode = 'check';
         payerDetails.credit_card_name = null;
         payerDetails.credit_card_number = reassociation.referenceIdent || null; // card_number
+        payerDetails.clientIp = params.clientIp;
+        payerDetails.screenName = params.screenName;
+        payerDetails.moduleName = params.moduleName;
+        payerDetails.logDescription = 'Payment created via ERA';
+
 
         paymentResult = await data.checkExistsERAPayment(params);
         paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
 
-        if(!paymentResult.id){
-            paymentResult = await paymentController.createOrUpdatePayment(payerDetails);
-            paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
+        try {
+
+            if (!paymentResult.id) {
+                paymentResult = await paymentController.createOrUpdatePayment(payerDetails);
+                paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
+            }
+
+            paymentResult.file_id = params.file_id;
+            paymentResult.created_by = payerDetails.created_by;
+
+            await data.createEdiPayment(paymentResult);
+
+            return paymentResult;
+
+        } catch (err) {
+
+            throw err;
         }
-        
-        paymentResult.file_id = params.file_id;
-        paymentResult.created_by = payerDetails.created_by;
 
-        await data.createEdiPayment(paymentResult);
 
-        return paymentResult;
     },
 
-    processPayments: async function (LineItemsAndClaimLists, paymentDetails) {
+    processPayments: async function (params, eraObject) {
+        let self = this;
+
+        let paymentDetails = await self.createPaymentFromERA(params, eraObject);
+
+        let claimLists = eraObject && eraObject.headerNumber ? eraObject.headerNumber : {};
+
+        let LineItemsAndClaimLists = await eraParser.getFormatedLineItemsAndClaims(claimLists, params);
 
         let processedClaims = await data.createPaymentApplication(LineItemsAndClaimLists, paymentDetails);
-        
-        
+
         return processedClaims;
     },
-    
+
     checkERAFileIsProcessed: async function (fileMd5, company_id) {
         return data.checkERAFileIsProcessed(fileMd5, company_id);
     },
@@ -157,7 +200,7 @@ module.exports = {
     saveERAFile: async function (params) {
         return data.saveERAFile(params);
     },
-    
+
     getFileStorePath: async function (params) {
         return data.getFileStorePath(params);
     }
