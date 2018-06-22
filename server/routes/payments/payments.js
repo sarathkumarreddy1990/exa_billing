@@ -11,7 +11,7 @@ router.get('/', async function (req, res) {
 });
 
 
-router.get('/totalAmount', async function (req, res) {
+router.get('/total_amount', async function (req, res) {
     req.query.isGetTotal = true;
     const data = await paymentsController.getPayments(req.query);
     httpHandler.sendRows(req, res, data);
