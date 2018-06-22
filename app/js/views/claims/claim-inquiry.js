@@ -155,7 +155,7 @@ define([
 
                             if (fromTogglePreNext) {
 
-                                data.icdcode_details = data.icdcode_details && data.insurance_details.length > 0 ? data.icdcode_details : '[]';
+                                data.icdcode_details = data.icdcode_details && data.icdcode_details.length > 0 ? data.icdcode_details : '[]';
                                 data.insurance_details = data.insurance_details && data.insurance_details.length > 0 ? data.insurance_details : '[]';
 
                                 self.showClaimCommentsGrid();
@@ -439,7 +439,7 @@ define([
                     success: function (data, response) {
                         data  = data[0];
                         if (data) {
-                            self.previousFollowUpDate = (commonjs.checkNotEmpty(data.followup_date)) ? moment(data.followup_date).format('MM/DD/YYYY') : '';
+                            self.previousFollowUpDate = (commonjs.checkNotEmpty(data.followup_date)) ? moment(data.followup_date).format('YYYY-MM-DD') : '';
                             $('#txtCIFollowUpDate').val(self.previousFollowUpDate);
                         }
                         else {
