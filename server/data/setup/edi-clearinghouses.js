@@ -8,7 +8,7 @@ module.exports = {
  
         let {
             name,
-            receiverName,
+            receiver_name,
             sortOrder,
             sortField,
             pageNo,
@@ -19,11 +19,11 @@ module.exports = {
         let whereQuery = [];
 
         if (name) {
-            whereQuery.push(` code ILIKE '%${name}%'`);
+            whereQuery.push(` name ILIKE '%${name}%'`);
         }
 
-        if (receiverName) {
-            whereQuery.push(` description ILIKE '%${receiverName}%'`);
+        if (receiver_name) {
+            whereQuery.push(` receiver_name ILIKE '%${receiver_name}%'`);
         }
 
         const sql = SQL`SELECT 

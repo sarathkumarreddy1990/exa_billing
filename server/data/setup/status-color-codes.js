@@ -9,9 +9,12 @@ module.exports = {
     getData: async function (params) {
         let whereQuery = [];
         params.sortOrder = params.sortOrder || ' ASC';
+
+        console.log("parmas" + JSON.stringify(params));
+
         let {
-            processType,
-            processStatus,
+            process_type,
+            process_status,
             colorCode,
             sortOrder,
             sortField,
@@ -19,12 +22,12 @@ module.exports = {
             pageSize
         } = params;
 
-        if (processType) {
-            whereQuery.push(` process_type ILIKE '%${processType}%'`);
+        if (process_type) {
+            whereQuery.push(` process_type ILIKE '%${process_type}%'`);
         }
 
-        if (processStatus) {
-            whereQuery.push(` process_status ILIKE '%${processStatus}%'`);
+        if (process_status) {
+            whereQuery.push(` process_status ILIKE '%${process_status}%'`);
         }
 
         if (colorCode) {
@@ -60,7 +63,7 @@ module.exports = {
 
         const sql = SQL`SELECT 
                           id
-                          , process_type
+                          , process_type  
                           , process_status
                           , color_code
                     FROM   

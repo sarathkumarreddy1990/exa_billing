@@ -173,7 +173,7 @@ define([
             },
 
             startEDIClearingHouses: function () {
-                if (this.checkLicense('EDIClearingHouse') && !this.paymentReasons) {
+                if (this.checkLicense('EDIClearingHouse') && !this.ediClearingHouses) {
                     this.defaultArgs.routePrefix = 'setup/edi_clearinghouses/';
                     this.ediClearingHouses = new EdiClearingHousesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
