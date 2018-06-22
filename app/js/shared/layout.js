@@ -51,13 +51,15 @@ var layout = {
         'Claim Inquiry': '#aClaimInquiry',
         'Claim Transaction': '#aClaimTransaction',
         'Credit Balance Encounter': '#aCreditBalance',
-        'Date Of SVC Payment':'#aDateSVC',
+        'Date Of SVC Payment': '#aDateSVC',
         'Diagnosis Count': '#aDiagnosisCount',
         'Modality Summary': '#aModalitySummary',
         'Monthly Recap': '#aMonthlyRecap',
         'Patient Statement': '#aPatientStatement',
         'Payer Mix': '#aPayerMix',
         'Payments': '#aPayments',
+        'Audit Log': '#aAuditLog',
+        'User Log': '#aUserLog',
         /// To be added
     },
 
@@ -168,6 +170,17 @@ var layout = {
             case 'Era':
                 module = 'EOB';
                 break;
+        }
+
+        if (module == 'Setup') {
+            $('#ulSetupNav').show();
+            $('#ulLogNav').hide();
+
+            if (currentScreen == 'User Log' || currentScreen == 'Audit Log') {
+                $('#ulSetupNav').hide();
+                $('#ulLogNav').show();
+                module = 'Log';
+            }
         }
 
         $('#navbarNavAltMarkup .active').removeClass('active');
