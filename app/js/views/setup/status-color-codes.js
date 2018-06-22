@@ -39,16 +39,16 @@ define(['jquery',
             ],
             paymentStatus: [
                 {
-                    description: 'applied'
+                    description: 'unapplied'
                 }, 
                 {
-                    description: 'unbilled'
+                    description: 'partially_applied'
                 }, 
                 {
-                    description: 'pending_payment'
+                    description: 'fully_applied'
                 }, 
                 {
-                    description: 'over_payment'
+                    description: 'over_applied'
                 }
             ],
             pager: null,
