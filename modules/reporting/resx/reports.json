@@ -520,7 +520,7 @@
         }
     },
     {
-        "id": "agedARSummary",
+        "id": "aged-ar-summary",
         "category": "billing",
         "title": "Aged AR Summary",
         "description": "Report shows AR aging by facility, responsible party and payer for given cut off date and selected facilities.",
@@ -1217,7 +1217,7 @@
         }
     },
     {
-        "id": "agedARDetail",
+        "id": "aged-ar-details",
         "category": "billing",
         "title": "Aged AR Detail",
         "description": "Report shows AR aging by facility, responsible party and payer for given cut off date and selected facilities in detail.",
@@ -1442,6 +1442,19 @@
         "id": "payment-print-pdf",
         "category": "billing",
         "title": "Payment Print",
+        "description": "",
+        "jsreport": {
+            "pdf": {
+                "template": {
+                    "name": "billing-print-payment-receipt-pdf"
+                }
+            }
+        }
+    },
+    {
+        "id": "payment-receipt-pdf",
+        "category": "billing",
+        "title": "Payment Receipt Print payment id wise",
         "description": "",
         "jsreport": {
             "pdf": {

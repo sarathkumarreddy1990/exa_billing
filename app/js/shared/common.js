@@ -10836,6 +10836,7 @@ var facilityModules = {
         'bloodPressure': 'Blood Pressure',
         'provider': 'Report Provider',
         agedarsummary: 'Aged AR Summary',
+        agedardetails: 'Aged AR Details',
         dailychargereport: 'Daily Charge Report',
         procedureanalysisbyinsurance: 'Procedure Analysis By Insurance',
         'appointmentListDateRange': 'Appointment List Date Range',
