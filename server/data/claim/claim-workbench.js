@@ -65,7 +65,7 @@ module.exports = {
         
 	SELECT  
 	 relationship_status.description as subscriper_relationShip,
-	 insurance_info->'claimRequestTemplate' as edi_template,
+	 insurance_info->'edi_template' as edi_template,
 	(SELECT (Row_to_json(header)) "header"
 
 				FROM ( 
