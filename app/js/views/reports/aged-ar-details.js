@@ -47,9 +47,9 @@ define(['jquery',
                 var modelCollection = Backbone.Collection.extend({
                     model: Backbone.Model.extend({})
                 });
-                // Set date range to Facility Date
-                this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(app.facilityID);
-                this.viewModel.dateTo = this.viewModel.dateFrom.clone();
+                 // Set date range to Facility Date
+                 this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(app.facilityID);
+                 this.viewModel.dateTo = this.viewModel.dateFrom.clone();
             },
 
             showForm: function () {
@@ -67,9 +67,11 @@ define(['jquery',
                 this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
                 this.$el.html(this.mainTemplate(this.viewModel));
                 // bind DRP and initialize it
-                this.bindDateRangePicker();
-                this.drpStudyDt.setStartDate(this.viewModel.dateFrom);
-                this.drpStudyDt.setEndDate(this.viewModel.dateTo);
+                // this.bindDateRangePicker();
+                // this.drpStudyDt.setStartDate(this.viewModel.dateFrom);
+                // this.drpStudyDt.setEndDate(this.viewModel.dateTo);
+                this.viewModel.fromDate = commonjs.bindDateTimePicker("divFromDate", { format: "L" });
+                this.viewModel.fromDate.date(commonjs.getFacilityCurrentDateTime(app.facilityID));
 
                 UI.bindBillingProvider();
                 $('#ddlFacilityFilter').multiselect({
@@ -95,40 +97,27 @@ define(['jquery',
                 this.viewModel.openInNewTab = (openInNewTab && rFormat === 'html') ? true : false;
                 if (this.hasValidViewModel()) {
                     var urlParams = this.getReportParams();
-                    UI.showReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
+                    UI.showReport('aged-ar-details', 'billing', this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
                 }             
             },
 
 
             hasValidViewModel: function () {
-                if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
-                    commonjs.showWarning('Please check report id, category, and/or format!');
-                    return false;
-                }
+                // if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
+                //     commonjs.showWarning('Please check report id, category, and/or format!');
+                //     return false;
+                // }
                 if (!(this.viewModel.fromDate && this.viewModel.fromDate.date())) {
                     commonjs.showWarning('Please select date!');
                     return false;
                 }
-                if (this.viewModel.fromDate.date().diff(commonjs.getFacilityCurrentDateTime(app.default_facility_id)) > 0) {
+                if (this.viewModel.fromDate.date().diff(commonjs.getFacilityCurrentDateTime(app.facilityID)) > 0) {
                     commonjs.showWarning('Please do not select future date ');
                     return false;
                 }
                 return true;
             },
 
-            bindDateRangePicker: function () {
-                var self = this;
-                var drpEl = $('#txtDateRangeFromTo');
-                var drpOptions = { autoUpdateInput: true, locale: { format: 'L' } };
-                this.drpStudyDt = commonjs.bindDateRangePicker(drpEl, drpOptions, 'past', function (start, end, format) {
-                    self.viewModel.dateFrom = start;
-                    self.viewModel.dateTo = end;
-                });
-                drpEl.on('cancel.daterangepicker', function (ev, drp) {
-                    self.viewModel.dateFrom = null;
-                    self.viewModel.dateTo = null;
-                });
-            },
 
             getSelectedFacility: function (e) {
                 var selected = $("#ddlFacilityFilter option:selected");
