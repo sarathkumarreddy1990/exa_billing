@@ -416,6 +416,8 @@ define(['jquery',
 
                 self.ediResultTemplate = _.template(ediResultHTML);
 
+                commonjs.showLoading();
+
                 jQuery.ajax({
                     url: "/exa_modules/billing/claim_workbench/create_claim",
                     type: "GET",
@@ -423,10 +425,10 @@ define(['jquery',
                         claimIds:claimIds
                     },
                     success: function (data, textStatus, jqXHR) {
+                        commonjs.hideLoading();
                         data.err=data.err||data.message;
                         if (data && data.err) {
                             commonjs.showWarning(data.err);
-                            return false;
                         }
 
                         if (data && data.ediText && data.ediText.length) {

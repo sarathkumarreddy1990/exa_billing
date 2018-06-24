@@ -9,6 +9,8 @@ const doRequest = async function (options) {
         return await request(options);
     } catch (err) {
         logger.error(err);
+        
+        err.status = '55801';
         return err;
     }
 };

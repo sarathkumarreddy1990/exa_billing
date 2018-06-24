@@ -10,8 +10,6 @@ module.exports = {
         let whereQuery = [];
         params.sortOrder = params.sortOrder || ' ASC';
 
-        console.log("parmas" + JSON.stringify(params));
-
         let {
             process_type,
             process_status,

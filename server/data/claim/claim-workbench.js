@@ -61,8 +61,9 @@ module.exports = {
 
     getPaperClaimTemplate: async function () {
         let sql = SQL`
-				SELECT * 
-				FROM   billing.paper_claim_templates 
+				SELECT template_content
+				FROM   billing.printer_templates 
+				WHERE template_type = 'paper_claim_full'
 				ORDER  BY id DESC 
 				LIMIT  1 
 		`;
@@ -80,7 +81,7 @@ module.exports = {
         
 	SELECT  
 	 relationship_status.description as subscriper_relationShip,
-	 insurance_info->'claimRequestTemplate' as edi_template,
+	 insurance_info->'edi_template' as edi_template,
 	(SELECT (Row_to_json(header)) "header"
 
 				FROM ( 

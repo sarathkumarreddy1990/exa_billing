@@ -39,16 +39,19 @@ define(['jquery',
             highlighClass: {
                 'background': '#bbddff', 'border-radius': '6px'
             },
-            events: {
-                'click #aShowOriginalForm': 'showOriginalFormTemplates',
-                'click #aShowFullForm': 'showFullFormTemplates'
-            },
 
             initialize: function (options) {
                 var self = this;
                 this.options = options;
                 this.model = new PaperClaimTemplatesModel();
                 this.pager = new Pager();
+                this.templateType = [
+                    { 'value': "direct_invoice", 'text': "Direct Invoice" },
+                    { 'value': "patient_invoice", 'text': "Patient Invoice" },
+                    { 'value': "paper_claim_full", 'text': "Paper Claim Full" },
+                    { 'value': "paper_claim_original", 'text': "Paper Claim Original" }
+                    
+                ];
                 this.paperClaimTemplatesList = new PaperClaimTemplatesCollections();
                 $(this.el).html(this.paperClaimTemplatesGridTemplate());
             },
@@ -57,13 +60,21 @@ define(['jquery',
                 var self = this;
                 $('#divPaperClaimTemplatesGrid').show();
                 $('#divPaperClaimTemplatesForm').hide();
+
+                var templateType = commonjs.buildGridSelectFilter({
+                    arrayOfObjects: this.templateType,
+                    searchKey: "value",
+                    textDescription: "text",
+                    sort: true
+                });
+
                 this.paperClaimTemplatesTable = new customGrid();
                 this.paperClaimTemplatesTable.render({
                     gridelementid: '#tblPaperClaimTemplatesGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['', '', '', '', ''],
-                    i18nNames: ['', '', '', 'setup.paperClaimTemplates.templateName', 'is_active'],
+                    colNames: ['', '', '', '', '', ''],
+                    i18nNames: ['', '', '', 'setup.paperClaimTemplates.templateName', 'setup.paperClaimTemplates.templateType', 'is_active'],
                     colModel: [
                         {
                             name: 'id',
@@ -108,6 +119,13 @@ define(['jquery',
                         {
                             name: 'name',
                             searchFlag: '%'
+                        },
+                        {
+                            name: 'template_type',
+                            search: true,
+                            stype: 'select',
+                            searchoptions: { value: templateType } ,
+                            formatter: self.templateTypeFormatter
                         },
                         {
                             name: 'inactivated_dt',
@@ -185,9 +203,11 @@ define(['jquery',
                                     $('#numLeftMargin').val(data.left_margin ? data.left_margin : 0),
                                     $('#numTopMargin').val(data.top_margin ? data.top_margin : 0),
                                     $('#numBottomMargin').val(data.bottom_margin ? data.bottom_margin : 0),
-                                    self.templateData.originalForm = data.orginal_form_template ? data.orginal_form_template : "{}";
-                                    self.templateData.fullForm = data.full_form_template ? data.full_form_template : "{}";
-                                    self.setEditorContents(self.templateData.originalForm);
+                                    self.templateData = data.template_content ? data.template_content : "{}";
+                                    self.setEditorContents(self.templateData);
+                                    $('#numPageHeight').val(data.page_width ? data.page_width : 0);
+                                    $('#numpageWidth').val(data.page_height ? data.page_height : 0);
+                                    $('#ddlTemplateType').val(data.template_type ? data.template_type : '');
                                 }
                             }
                         }
@@ -223,6 +243,9 @@ define(['jquery',
                         templateName: {
                             required: true
                         }
+                        // templateType: {
+                        //     requires: true
+                        // }
                         // leftMargin: {
                         //     required: true
                         // },
@@ -237,7 +260,8 @@ define(['jquery',
                         // }
                     },
                     messages: {
-                        templateName: commonjs.getMessage("e", "Template Name"),
+                        templateName: commonjs.getMessage("e", "Template Name")
+                        // templateName: commonjs.getMessage("e", "Template type")
                         // leftMargin: commonjs.getMessage("e", "Margin Left"),
                         // topMargin: commonjs.getMessage("e", "Margin Top"),
                         // rightMargin: commonjs.getMessage("e", "Margin Right"),
@@ -261,11 +285,9 @@ define(['jquery',
             },
 
             save: function () {
-                if (this.templateToogleMode) {
-                    this.templateData.originalForm = ace.edit('paperClaimEditor').getValue();
-                } else {
-                    this.templateData.fullForm = ace.edit('paperClaimEditor').getValue();
-                }
+
+                    this.templateData = ace.edit('paperClaimEditor').getValue();
+
                 this.model.set({
                     "name": $('#txtTemplateName').val(),
                     "isActive": !$('#chkActive').prop('checked'),
@@ -273,9 +295,11 @@ define(['jquery',
                     "marginLeft": $('#numLeftMargin').val() ? $('#numLeftMargin').val() : 0,
                     "marginTop": $('#numTopMargin').val() ? $('#numLeftMargin').val() : 0,
                     "marginBottom": $('#numBottomMargin').val() ? $('#numBottomMargin').val(): 0,
-                    "orginalFormTemplate": this.templateData.originalForm,
-                    "fullFormTemplate": this.templateData.fullForm,
-                    "companyId": app.companyID
+                    "templateContent": this.templateData,
+                    "companyId": app.companyID,
+                    "height":$('#numPageHeight').val() ? $('#numPageHeight').val() : 0,
+                    "width": $('#numpageWidth').val() ? $('#numpageWidth').val() : 0,
+                    "type" : $('#ddlTemplateType').val() 
                 });
 
                 this.model.save({
@@ -292,23 +316,25 @@ define(['jquery',
                     });
             },
 
-            showOriginalFormTemplates: function () {
-                this.templateToogleMode = true;
-                $('#aShowOriginalForm').parent('li:first').css(this.highlighClass);
-                $('#aShowFullForm').parent('li:first').css({ 'background': 'none' });
-                var editor = ace.edit('paperClaimEditor');
-                this.templateData.fullForm = editor.getValue();
-                editor.setValue(this.templateData.originalForm);
+            templateTypeFormatter: function (cellvalue, options, rowObject) {
+                var colvalue = '';
+                switch (rowObject.template_type) {
+                    case "paper_claim_original":
+                        colvalue = 'Paper Claim Original';
+                        break;
+                    case "paper_claim_full":
+                        colvalue = 'Paper Claim Full';
+                        break;
+                    case "direct_invoice":
+                        colvalue = 'Direct Invoice';
+                        break;
+                    case "patient_invoice":
+                        colvalue = 'Patient Invoice';
+                        break;
+                }
+                return colvalue;
             },
 
-            showFullFormTemplates: function () {
-                this.templateToogleMode = false;
-                $('#aShowFullForm').parent('li:first').css(this.highlighClass);
-                $('#aShowOriginalForm').parent('li:first').css({ 'background': 'none' });
-                var editor = ace.edit('paperClaimEditor');
-                this.templateData.originalForm = editor.getValue();
-                editor.setValue(this.templateData.fullForm);
-            }
         });
         return PaperClaimTemplatesView;
     });

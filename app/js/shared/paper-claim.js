@@ -33,17 +33,37 @@ define([
                 template = template.orginal_form_template;
                 claimData = claimData.data[0];
 
-                template = { content: 'Corrected Claim', style: 'header', mergeField: 'data.date1' };
-                claimData = {
-                    data: {
-                        date1: 'hello'
-                    }
-                };
+                // template = { content: 'Corrected Claim', style: 'header', mergeField: 'data.date1' };
+                // claimData = {
+                //     data: {
+                //         date1: 'hello'
+                //     }
+                // };
 
+                var dd = null;
+
+                try {
+                    eval(template);
+                } catch (err) { console.log(err); }
+
+                if (!dd || typeof dd !== 'object') {
+                    return commonjs.showError('Invalid template');
+                }
+
+                template = this.mergeData(dd, claimData);
+
+                return template;
+            }
+
+            this.mergeData = function (template, data) {
                 for (var key in template) {
                     if (key === 'mergeField') {
-                        template.content = this.getDescendantProp(claimData, template[key]);
-                        delete template[key];
+                        template.text = this.getDescendantProp(data, template[key]);
+                        //delete template[key];
+                    }
+
+                    if (typeof template[key] === 'object' && Object.keys(template[key]).length > 0) {
+                        template[key] = this.mergeData(template[key], data);
                     }
                 }
 

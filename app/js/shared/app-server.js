@@ -10,7 +10,6 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                 data: settingsData,
                 processData: true,
                 success: function (model, response) {
-                    _.extend(window.app, response[0]);
                     _.extend(app, response[0]);
                     //app = response[0];
 
@@ -28,6 +27,8 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                     app.fileStoreId = app.company.file_store_id;
                     app.facilityID = app.userInfo.default_facility_id;
                     
+                    _.extend(window.app, app);
+
                     commonjs.setAppSettingsReportQueueStatus();
                     callback();
                 },
