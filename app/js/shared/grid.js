@@ -138,7 +138,7 @@ define('grid', [
                         $claimStatusLink.click(function () {
 
                             $.ajax({
-                                url: '/exa_modules/billing/claimWorkbench/update',
+                                url: '/exa_modules/billing/claim_workbench/update',
                                 type: 'PUT',
                                 data: {
                                     claimIds: studyIds,
@@ -165,7 +165,7 @@ define('grid', [
                        
                         $billingCodeLink.click(function () {
                             $.ajax({
-                                url: '/exa_modules/billing/claimWorkbench/update',
+                                url: '/exa_modules/billing/claim_workbench/update',
                                 type: 'PUT',
                                 data: {
                                     claimIds: studyIds,
@@ -192,7 +192,7 @@ define('grid', [
                         
                         $BillingClassLink.click(function () {
                                 $.ajax({
-                                    url: '/exa_modules/billing/claimWorkbench/update',
+                                    url: '/exa_modules/billing/claim_workbench/update',
                                     type: 'PUT',
                                     data: {
                                         claimIds: studyIds,
@@ -225,6 +225,27 @@ define('grid', [
                     self.claimView = new claimsView();
                     self.claimView.showEditClaimForm(studyIds);
                 });
+
+                // var liDeleteClaim = commonjs.getRightClickMenu('anc_delete_claim','setup.rightClickMenu.deleteClaim',false,'Delete Claim',false);         
+                
+                // if(studyArray.length == 1)
+                //     $divObj.append(liDeleteClaim);
+
+                // $('#anc_delete_claim').off().click(function () {
+                //     $.ajax({
+                //         url: '/exa_modules/billing/claim_workbench/claims/delete',
+                //         type: 'PUT',
+                //         data: {
+                //             claim_id: studyIds,
+                //         },
+                //         success: function (data, response) {
+                //             commonjs.showStatus('Billing Classes has been changed');
+                //         },
+                //         error: function (err, response) {
+                //             commonjs.handleXhrError(err, response);
+                //         }
+                //     });
+                // });
                          
                 var liClaimInquiry = commonjs.getRightClickMenu('anc_claim_inquiry','setup.rightClickMenu.claimInquiry',false,'Claim Inquiry',false);
                 if(studyArray.length == 1)
@@ -651,6 +672,11 @@ define('grid', [
                     if (!options.isClaimGrid) {
                         enableField = _selectEle.is(':checked');
                         validateClaimSelection(rowID, enableField, _selectEle, studyStore);
+                    }
+                    let i=(e.target || e.srcElement).parentNode.cellIndex;
+
+                    if ( i > 0 ) {
+                        options.colModel[i].customAction(rowID, e, self);
                     }
                 },
                 beforeSearch: function () {

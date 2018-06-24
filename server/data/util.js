@@ -273,9 +273,9 @@ const util = {
                     let obj = filterObj.ClaimInformation.balance.list;
                     let BalanceQuery = '';
 
-                    BalanceQuery += '  (select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from BILLING.get_claim_totals(claims.id))::numeric' +  obj.value +'::numeric';
+                    BalanceQuery += '  (select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from BILLING.get_claim_totals(claims.id))::numeric' +  obj +'::numeric';
 
-                    query += BalanceQuery ;
+                    query += util.getRelationOperator(query) + BalanceQuery ;
 
                    
                 }
