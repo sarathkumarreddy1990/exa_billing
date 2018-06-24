@@ -394,8 +394,8 @@ define(['jquery',
                     var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'billing_method');
                     if (existingBillingMethod == '') existingBillingMethod = billingMethod
                     if (existingBillingMethod != billingMethod || (billingMethod != 'electronic_billing')) {
-                        //commonjs.showWarning('Please select claims with same type of billing method and electronic billing method');
-                        //return false;
+                        commonjs.showWarning('Please select claims with same type of billing method and electronic billing method');
+                        return false;
                     } else {
                         existingBillingMethod = billingMethod;
                     }
