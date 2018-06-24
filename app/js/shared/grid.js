@@ -350,12 +350,12 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 (options.isClaimGrid ? '<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />' : ''),
-                '', '', '', '', '','',''
+                '', '', '', '', '','','','',''
 
             ]);
 
             i18nName = i18nName.concat([
-                '', '', '', '', '', '','',''
+                '', '', '', '', '', '','','','',''
             ]);
 
             colModel = colModel.concat([
@@ -423,6 +423,24 @@ define('grid', [
                 },
                 {
                     name: 'account_no',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true
+                },
+                {
+                    name: 'clearing_house',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true
+                },                
+                {
+                    name: 'edi_template',
                     width: 20,
                     sortable: false,
                     resizable: false,

@@ -386,7 +386,7 @@ define(['jquery',
                 let filterID = commonjs.currentStudyFilter;
                 let filter = commonjs.loadedStudyFilters.get(filterID);
 
-                let claimIds =[],existingBillingMethod='';       
+                let claimIds =[],existingBillingMethod='',existingClearingHouse='',existingEdiTemplate='';       
 
                 for (let i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
                     let rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;
@@ -398,6 +398,24 @@ define(['jquery',
                         return false;
                     } else {
                         existingBillingMethod = billingMethod;
+                    }
+
+                    var clearingHouse = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'clearing_house');
+                    if (existingClearingHouse == '') existingClearingHouse = clearingHouse;
+                    if (existingClearingHouse != clearingHouse) {
+                        commonjs.showWarning('Please select claims with same type of clearing house Claims ');
+                        return false;
+                    } else {
+                        existingClearingHouse = clearingHouse;
+                    }
+
+                    var ediTemplate = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'edi_template');
+                    if (existingEdiTemplate == '') existingEdiTemplate = ediTemplate;
+                    if (existingEdiTemplate != ediTemplate) {
+                        commonjs.showWarning('Please select claims with same type of  edi template Claims ');
+                        return false;
+                    } else {
+                        existingEdiTemplate = ediTemplate;
                     }
 
                     claimIds.push(rowId);
