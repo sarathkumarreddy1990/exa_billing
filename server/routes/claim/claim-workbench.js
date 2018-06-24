@@ -48,4 +48,9 @@ router.get('/validate_claims', async function (req, res) {
     httpHandler.send(req, res, data);
 });
 
+router.put('/claims/delete', async function (req, res) {
+    const data = await claimWorkbenchController.deleteClaim(req.body);
+    httpHandler.send(req, res, data);
+});
+
 module.exports = router;

@@ -179,6 +179,11 @@ module.exports = {
         }
 
         return insSubsInvalidFields;
+    },
+
+    deleteClaim:function (params) {
+        return data.deleteClaim(params);
     }
+
 
 };

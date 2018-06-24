@@ -1,14 +1,30 @@
 const SearchFilter = require('./claim-search-filters');
-
-const {
-    SQL,
-    query
-} = require('../index');
+const {SQL,	query,	queryWithAudit } = require('../index');
 
 module.exports = {
 
     getData: async function (args) {
         return await SearchFilter.getWL(args);
+	},
+
+	deleteClaim: async (params) => {
+		const { claim_id, clientIp, screenName, entityName, moduleName, userId, companyId } = params;
+		
+		let audit_json={
+			client_ip:clientIp,
+			screen_name:screenName,			
+			entity_name:entityName,
+			module_name:moduleName,
+			user_id:userId,
+			company_id:companyId
+		};
+
+        const sql = SQL` SELECT ${claim_id} as id,'{}'::jsonb old_values, billing.purge_claim(${claim_id},${audit_json}::json)`;
+
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: 'Deleted claim.'
+        });
     },
 
     updateClaimStatus: async (params) => {
@@ -40,7 +56,7 @@ module.exports = {
         sql.append(updateData);
         sql.append(`WHERE  id in (${claimIds})`);
 
-        return await query(sql);
+        return await queryWithAudit(sql);
     },
 
     getPaperClaimTemplate: async function () {
@@ -70,31 +86,31 @@ module.exports = {
 
 				FROM ( 
 						SELECT id,
-						more_info->'authInfoQualifier' as "authInfoQualifier",
-						more_info->'authInfo' as "authInfo",
-						more_info->'securityInfoQualifier' as "securityInfoQualifier",
- 						more_info->'securityInfo' as "securityInfo",
- 						more_info->'interchangeSenderIDQualifier' as "interchangeSenderIDQualifier",
-						more_info->'interchangeSenderID' as "interchangeSenderID",
-						more_info->'interchangeReceiverIDQualifier' as "interchangeReceiverIDQualifier", 
-						more_info->'interchangeReceiverID' as "interchangeReceiverID",
-						more_info->'interchangeCtrlStdIdentifier' as "interchangeCtrlStdIdentifier",
-						more_info->'interchangeCtrlVersionNo' as "interchangeCtrlVersionNo",
-						more_info->'interchangeCtrlNo' as "interchangeCtrlNo",
-						more_info->'acqRequested' as "acqRequested",
-						more_info->'usageIndicator' as "usageIndicator",
-						more_info->'functionalIDCode' as "functionalIDCode",
-						more_info->'applicationSenderCode' as "applicationSenderCode",
-						more_info->'applicationReceiverCode' as "applicationReceiverCode",
-						more_info->'fgDate' as "fgDate",
-						more_info->'fgTime' as "fgTime",
-						more_info->'groupControlNo' as "groupControlNo",
-						more_info->'responsibleAgencyCode' as "responsibleAgencyCode",
-						more_info->'verReleaseIDCode' as "verReleaseIDCode",
-						more_info->'tsIDCode' as "tsIDCode",
-						more_info->'tsControlNo' as "tsControlNo"						
-                                    FROM   edi_clearinghouses
-                                    WHERE  edi_clearinghouses.id::text=insurance_info->'claimClearingHouse'::text)
+						communication_info->'AuthInfoQualifier' as "authInfoQualifier",
+						communication_info->'AuthInfo' as "authInfo",
+						communication_info->'SecurityInfoQualifier' as "securityInfoQualifier",
+ 						communication_info->'SecurityInfo' as "securityInfo",
+ 						communication_info->'InterchangeSenderIDQualifier' as "interchangeSenderIDQualifier",
+						communication_info->'InterchangeSenderID' as "interchangeSenderID",
+						communication_info->'InterchangeReceiverIDQualifier' as "interchangeReceiverIDQualifier", 
+						communication_info->'InterchangeReceiverID' as "interchangeReceiverID",
+						communication_info->'InterchangeCtrlStdIdentifier' as "interchangeCtrlStdIdentifier",
+						communication_info->'InterchangeCtrlVersionNo' as "interchangeCtrlVersionNo",
+						communication_info->'InterchangeCtrlNo' as "interchangeCtrlNo",
+						communication_info->'AqRequested' as "acqRequested",
+						communication_info->'UsageIndicator' as "usageIndicator",
+						communication_info->'FunctionalIDCode' as "functionalIDCode",
+						communication_info->'ApplicationSenderCode' as "applicationSenderCode",
+						communication_info->'ApplicationReceiverCode' as "applicationReceiverCode",
+						communication_info->'FgDate' as "fgDate",
+						communication_info->'FgTime' as "fgTime",
+						communication_info->'GroupControlNo' as "groupControlNo",
+						communication_info->'ResponsibleAgencyCode' as "responsibleAgencyCode",
+						communication_info->'VerReleaseIDCode' as "verReleaseIDCode",
+						communication_info->'TsIDCode' as "tsIDCode",
+						communication_info->'TsControlNo' as "tsControlNo"						
+                                    FROM   billing.edi_clearinghouses
+                                    WHERE  billing.edi_clearinghouses.id::text=insurance_info->'claimClearingHouse'::text)
 
 					as header),
 					(SELECT Json_agg(Row_to_json(data1)) "data"
