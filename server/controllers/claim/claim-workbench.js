@@ -44,8 +44,12 @@ module.exports = {
 
         if (result.rows && result.rows.length) { 
 
-            if(!result.rows[0].edi_template) {
-                return new Error('EDI Template not yet mapped with payer :(');
+            if(!result.rows[0].header) {
+                return new Error('Clearinghouse not yet mapped with payer :(');
+            }
+
+            if(!result.rows[0].header.edi_template_name) {
+                return new Error('EDI Template not yet mapped with Clearinghouse :(');
             }
             
             let data = _.map( result.rows, function (obj) {
@@ -70,7 +74,7 @@ module.exports = {
                 data:data
             };
 
-            ediResponse = await ediConnect.generateEdi(result.rows[0].edi_template, ediRequestJson);
+            ediResponse = await ediConnect.generateEdi(result.rows[0].header.edi_template_name, ediRequestJson);
         }
 
         return ediResponse;

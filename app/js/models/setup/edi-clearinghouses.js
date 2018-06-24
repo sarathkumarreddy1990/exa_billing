@@ -9,6 +9,7 @@ define(['backbone'], function (Backbone) {
             "recevier_name": "",
             "receiver_id": "",
             "receiver_name": "",
+            "ediTemplateName": "",
             "isActive": "",
             "communicationInfo": "",
             "company_id":""

@@ -1,23 +1,23 @@
 const SearchFilter = require('./claim-search-filters');
-const {SQL,	query,	queryWithAudit } = require('../index');
+const { SQL, query, queryWithAudit } = require('../index');
 
 module.exports = {
 
     getData: async function (args) {
         return await SearchFilter.getWL(args);
-	},
+    },
 
-	deleteClaim: async (params) => {
-		const { claim_id, clientIp, screenName, entityName, moduleName, userId, companyId } = params;
-		
-		let audit_json={
-			client_ip:clientIp,
-			screen_name:screenName,			
-			entity_name:entityName,
-			module_name:moduleName,
-			user_id:userId,
-			company_id:companyId
-		};
+    deleteClaim: async (params) => {
+        const { claim_id, clientIp, screenName, entityName, moduleName, userId, companyId } = params;
+
+        let audit_json = {
+            client_ip: clientIp,
+            screen_name: screenName,
+            entity_name: entityName,
+            module_name: moduleName,
+            user_id: userId,
+            company_id: companyId
+        };
 
         const sql = SQL` SELECT ${claim_id} as id,'{}'::jsonb old_values, billing.purge_claim(${claim_id},${audit_json}::json)`;
 
@@ -81,11 +81,11 @@ module.exports = {
         
 	SELECT  
 	 relationship_status.description as subscriper_relationShip,
-	 insurance_info->'edi_template' as edi_template,
 	(SELECT (Row_to_json(header)) "header"
 
 				FROM ( 
-						SELECT id,
+                        SELECT id,
+                        edi_template_name,
 						communication_info->'AuthInfoQualifier' as "authInfoQualifier",
 						communication_info->'AuthInfo' as "authInfo",
 						communication_info->'SecurityInfoQualifier' as "securityInfoQualifier",
