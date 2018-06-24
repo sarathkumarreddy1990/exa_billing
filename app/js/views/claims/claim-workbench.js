@@ -423,8 +423,10 @@ define(['jquery',
                         claimIds:claimIds
                     },
                     success: function (data, textStatus, jqXHR) {
+                        data.err=data.err||data.message;
                         if (data && data.err) {
                             commonjs.showWarning(data.err);
+                            return false;
                         }
 
                         if (data && data.ediText && data.ediText.length) {

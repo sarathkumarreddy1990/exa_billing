@@ -1,14 +1,30 @@
 const SearchFilter = require('./claim-search-filters');
-
-const {
-    SQL,
-    query
-} = require('../index');
+const {SQL,	query,	queryWithAudit } = require('../index');
 
 module.exports = {
 
     getData: async function (args) {
         return await SearchFilter.getWL(args);
+	},
+
+	deleteClaim: async (params) => {
+		const { claim_id, clientIp, screenName, entityName, moduleName, userId, companyId } = params;
+		
+		let audit_json={
+			client_ip:clientIp,
+			screen_name:screenName,			
+			entity_name:entityName,
+			module_name:moduleName,
+			user_id:userId,
+			company_id:companyId
+		};
+
+        const sql = SQL` SELECT ${claim_id} as id,'{}'::jsonb old_values, billing.purge_claim(${claim_id},${audit_json}::json)`;
+
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: 'Deleted claim.'
+        });
     },
 
     updateClaimStatus: async (params) => {
@@ -40,7 +56,7 @@ module.exports = {
         sql.append(updateData);
         sql.append(`WHERE  id in (${claimIds})`);
 
-        return await query(sql);
+        return await queryWithAudit(sql);
     },
 
     getPaperClaimTemplate: async function () {
