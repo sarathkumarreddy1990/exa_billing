@@ -44,7 +44,9 @@ module.exports = {
 
         if (result.rows && result.rows.length) { 
 
-           
+            if(!result.rows[0].edi_template) {
+                return new Error('EDI Template not yet mapped with payer :(');
+            }
             
             let data = _.map( result.rows, function (obj) {
                 if((obj.subscriper_relationship).toUpperCase()!='SELF'){
@@ -67,6 +69,7 @@ module.exports = {
                 },
                 data:data
             };
+
             ediResponse = await ediConnect.generateEdi(result.rows[0].edi_template, ediRequestJson);
         }
 
@@ -176,6 +179,11 @@ module.exports = {
         }
 
         return insSubsInvalidFields;
+    },
+
+    deleteClaim:function (params) {
+        return data.deleteClaim(params);
     }
+
 
 };

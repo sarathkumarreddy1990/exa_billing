@@ -386,7 +386,7 @@ define(['jquery',
                 let filterID = commonjs.currentStudyFilter;
                 let filter = commonjs.loadedStudyFilters.get(filterID);
 
-                let claimIds =[],existingBillingMethod='';       
+                let claimIds =[],existingBillingMethod='',existingClearingHouse='',existingEdiTemplate='';       
 
                 for (let i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
                     let rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;
@@ -394,10 +394,28 @@ define(['jquery',
                     var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'billing_method');
                     if (existingBillingMethod == '') existingBillingMethod = billingMethod
                     if (existingBillingMethod != billingMethod || (billingMethod != 'electronic_billing')) {
-                        //commonjs.showWarning('Please select claims with same type of billing method and electronic billing method');
-                        //return false;
+                        commonjs.showWarning('Please select claims with same type of billing method and electronic billing method');
+                        return false;
                     } else {
                         existingBillingMethod = billingMethod;
+                    }
+
+                    var clearingHouse = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'clearing_house');
+                    if (existingClearingHouse == '') existingClearingHouse = clearingHouse;
+                    if (existingClearingHouse != clearingHouse) {
+                        commonjs.showWarning('Please select claims with same type of clearing house Claims ');
+                        return false;
+                    } else {
+                        existingClearingHouse = clearingHouse;
+                    }
+
+                    var ediTemplate = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'edi_template');
+                    if (existingEdiTemplate == '') existingEdiTemplate = ediTemplate;
+                    if (existingEdiTemplate != ediTemplate) {
+                        commonjs.showWarning('Please select claims with same type of  edi template Claims ');
+                        return false;
+                    } else {
+                        existingEdiTemplate = ediTemplate;
                     }
 
                     claimIds.push(rowId);
@@ -416,6 +434,8 @@ define(['jquery',
 
                 self.ediResultTemplate = _.template(ediResultHTML);
 
+                commonjs.showLoading();
+
                 jQuery.ajax({
                     url: "/exa_modules/billing/claim_workbench/create_claim",
                     type: "GET",
@@ -423,6 +443,8 @@ define(['jquery',
                         claimIds:claimIds
                     },
                     success: function (data, textStatus, jqXHR) {
+                        commonjs.hideLoading();
+                        data.err=data.err||data.message;
                         if (data && data.err) {
                             commonjs.showWarning(data.err);
                         }
