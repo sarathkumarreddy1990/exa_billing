@@ -61,6 +61,7 @@ define([
 
             onReportViewClick: function (e, reportArgs) {
                 var btnClicked = e && e.target ? $(e.target) : null;
+                var reportArgsFlag = null
                 this.getSelectedFacility();
                 this.getBillingProvider();
                 if (btnClicked && btnClicked.prop('tagName') === 'I') {
@@ -74,7 +75,16 @@ define([
                 var urlParams = {
                     pamentIds: reportArgs.payment_id,
                 }
-                UI.showReport(reportArgs.flag ? 'payment-print-pdf' : 'payments-pdf', this.viewModel.reportCategory, 'pdf', urlParams, true);
+                if (reportArgs.flag == 'paymentPDF') {
+                    reportArgsFlag = 'payment-print-pdf';
+                }
+                else if (reportArgs.flag == 'payment-print-pdf') {
+                    reportArgsFlag = 'payment-receipt-pdf';
+                }
+                else {
+                    reportArgsFlag = 'payments-pdf';
+                }
+                UI.showReport(reportArgsFlag, this.viewModel.reportCategory, 'pdf', urlParams, true);
             },
 
             getSelectedFacility: function (e) {
