@@ -12,7 +12,9 @@ define([
     'text!templates/claims/claimInquiryPayment.html' ,
     'collections/claim-patient-inquiry',
     'text!templates/claims/claim-patient.html' ,
-    'text!templates/claims/age-summary.html' 
+    'text!templates/claims/age-summary.html' ,
+    'text!templates/claims/claim-patient-log.html',
+    'collections/claim-patient-log',
 ], function (
     $,
     _,
@@ -27,7 +29,9 @@ define([
     paymentDetails,
     claimPatientList,
     claimPatientInquiryTemplate,
-    agingSummaryHTML
+    agingSummaryHTML,
+    claimPatientLogHTML,
+    claimPatientLogList
 ) {
         return Backbone.View.extend({
             el: null,
@@ -36,6 +40,7 @@ define([
             claimPatientTemplate: _.template(claimPatientInquiryTemplate),
             paymentTemplate: _.template(paymentDetails),
             agingSummaryTemplate: _.template(agingSummaryHTML),
+            claimPatientLogTemplate: _.template(claimPatientLogHTML),
             payCmtGrid:'',
             claim_id: null,
 
@@ -48,6 +53,7 @@ define([
                 this.pager = new Pager();
                 this.claimCommentsList = new claimCommentsList();
                 this.claimPatientList = new claimPatientList();
+                this.claimPatientLogList = new claimPatientLogList();
             },
 
             render: function (cid,patientId, from) {
@@ -284,6 +290,61 @@ define([
                     $("#tblPatientClaimsGrid").setGridHeight(($(".modal-body").height()/2)*2);
                 }, 200);
                 $('#divAgeSummary').html(self.agingSummaryTemplate());
+            },            
+            
+            showPatientClaimsLogGrid: function (claimID,patientId) {
+                var self = this;
+                $('#divPatientClaimsLogGrid').show();
+                this.patientClaimsLogTable = new customGrid(); 
+                this.patientClaimsLogTable.render({
+                    gridelementid: '#tblPatientClaimsLogGrid',
+                    custompager: new Pager(),
+                    emptyMessage: 'No Record found',
+                    colNames: ['','Logged date', 'Screen','User','Log Description'],
+                    i18nNames: ['', 'setup.log.logDt', 'setup.common.screen','setup.billingprovider.Username','setup.log.logDescription'],
+                    colModel: [                       
+                        { name: 'id', index: 'id', key: true, hidden: true},
+                        {
+                            name: 'created_dt', search: true,formatter:self.dateFormatter,width:'100px'
+                        },
+                        {
+                            name: 'screen_name', search: true,width:'70px'
+                        },                        
+                        {
+                            name: 'username', search: true,width:'70px'
+                        },
+                        {
+                            name: 'description',search: true,width:'130px'
+                        }
+
+                    ],
+                    datastore: self.claimPatientLogList,
+                    container: self.el,
+                    cmTemplate: { sortable: false },
+                    customizeSort: false,
+                    sortname: "audit_log.id",
+                    sortorder: "desc",
+                    dblClickActionIndex: 1,
+                    disablesearch: false,
+                    disablesort: false,
+                    disablepaging: false,
+                    showcaption: false,
+                    disableadd: true,
+                    disablereload: true,
+                    customargs:{
+                        claimID:claimID,
+                        patientId:patientId
+                    },
+                    pager: '#gridPager_PatientClaimLog'
+                });
+                
+
+                setTimeout(function () {
+                    $("#tblPatientClaimsLogGrid").setGridWidth($(".modal-body").width());
+                    $("#tblPatientClaimsLogGrid").setGridHeight(($(".modal-body").height()-200));
+                }, 200);
+
+                commonjs.initializeScreen({ header: { screen: 'Claim Log', ext: 'Claim log' } });
             },
 
             dateFormatter: function (cellvalue, options, rowObject) {
@@ -593,14 +654,14 @@ define([
 
             patientInquiryForm: function (claimId,patientId) {
                 var self = this;
-                // commonjs.showDialog({
-                //     header: 'Patient Claim Inquiry', 
-                //     width: '95%',
-                //     height: '75%',
-                //     html: self.claimPatientTemplate()
-                // });        
                 this.$el.html(this.claimPatientTemplate()); 
                 self.showPatientClaimsGrid(claimId,patientId);            
+            },
+
+            patientInquiryLog: function (claimId,patientId) {
+                var self = this;
+                this.$el.html(this.claimPatientLogTemplate()); 
+                self.showPatientClaimsLogGrid(claimId,patientId);            
             },
 
             printPaymentInvoice: function (e) {

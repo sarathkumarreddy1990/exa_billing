@@ -23,7 +23,7 @@ router.get('/claims_total_records', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
-router.put('/update', async function (req, res) {
+router.put('/claims/update', async function (req, res) {
     const data = await claimWorkbenchController.updateClaimStatus(req.body);
     httpHandler.sendRows(req, res, data);
 });
