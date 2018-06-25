@@ -41,7 +41,7 @@ define([
                 editor.setTheme();
                 editor.setTheme("ace/theme/monokai");
                 editor.getSession().setMode("ace/mode/javascript");
-                $('#editor').height($('#data_container').outerHeight() - ($('#navEraTempltes').outerHeight() + $('#ediHeaders').outerHeight() + $('#eraHeaderButtons').outerHeight() + $('#btnSaveDefinitionData').outerHeight()))
+                $('#editor').height($('#data_container').outerHeight() - ($('#navEraTempltes').outerHeight() + $('#ediHeaders').outerHeight() + $('#eraHeaderButtons').outerHeight() + $('#btnSaveDefinitionData').outerHeight()) - 20)
                 commonjs.processPostRender();
                 $('#aShowEdiTemplates').parent('li:first').css(this.highlighClass);
                 $('#data_container').click(function () {

@@ -34,7 +34,7 @@ module.exports = {
         insurance_x12_mapping: 'Insurance X12 Mapping',
         user_log : 'User Log',
         audit_log : 'Audit Log',
-        paper_claim_templates: 'Paper Claim Templates',
+        printer_templates: 'Printer Templates',
         payments: 'Payments',
         applyPayments:'Applied Payments'
     },
@@ -58,7 +58,7 @@ module.exports = {
         status_color_codes: 'status_color_codes',
         x12: 'edi_templates',
         insurance_x12_mapping: 'insurance_x12_mapping',
-        paper_claim_templates: 'paper_claim_templates',
+        printer_templates: 'printer_templates',
         payments: 'payments',
         applyPayments:'payment_applications'
     },

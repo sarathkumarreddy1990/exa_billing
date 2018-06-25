@@ -271,7 +271,7 @@ define('grid', [
                     'needShrink': true
                 });
                 self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
-                self.claimInquiryView.render(studyIds,selectedStudies[0].patient_id);
+                self.claimInquiryView.render(studyIds,selectedStudies[0].patient_id, false);
                 });
 
 
@@ -445,7 +445,7 @@ define('grid', [
                             'needShrink': true
                         });
                         self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
-                        self.claimInquiryView.render(rowID);                       
+                        self.claimInquiryView.render(rowID, '', false);                       
                     }
                 },
                 {

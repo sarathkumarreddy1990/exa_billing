@@ -161,8 +161,8 @@ define([
                         _cpt_ids.push(charge_id);
                     });
 
-                    if (confirm('Are you sure to create order with the selected stud(y)ies?')) {
-                        //  $('#btnCreateClaim').attr('disabled', true);
+                    if (confirm('Are you sure to create claim with the selected charge(s)?')) {
+                          $('#btnCreateClaim').attr('disabled', true);
                         commonjs.showLoading('Processing please wait..');
                         $.ajax({
                             url: "/exa_modules/billing/claims/split_claim",

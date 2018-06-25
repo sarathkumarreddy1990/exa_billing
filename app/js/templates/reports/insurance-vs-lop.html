@@ -1,61 +1,40 @@
 <form class="form-horizonta form-list" novalidate="" _lpchecked="1">
 
     <!-- row: form elements -->
-    <div class="row">
+    <div class="col-xs-12 col-md-12 col-lg-12">
         <!-- col: form elements -->
-        <div class="col-3">
+        <div class="col-xs-4">
             <div class="form-group form-inline">
                 <div class="col-form-label">
-                    <label class="control-label field-required" for="txtDateRange" i18n="billing.payments.arcutoffdate" />
+                    <label class="control-label field-required" for="txtDateRange" i18n="billing.payments.claimDate" />
                 </div>
                 <div class="col-form-content">
-                    <div id="divFromDate" class="input-group">
+                    <div id="divReportDate" class="input-group">
                         <span class="input-group-addon add-on">
                             <i class="fa fa-calendar"></i>
                         </span>
-                        <input type="text" id="txtFromDate" class="form-control" required="required" name="fromDate">
+                        <input type="text" id="txtDateRangeFromTo" class="form-control" required="required" name="dateRange">
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-3">
+        <!-- /col: form elements -->
+        <div class="col-xs-3" style="display:none;">
             <div class="form-group form-inline">
-                <div class="col-form-label" class="multiselect">
-                    <label class="control-label">Facilities
+                <div class="col-form-label">
+                    <label class="control-label field-required report__select-label" for="ddlStudyStatuses" i18n="report.reportFilter.studyStatuses">
                     </label>
-                    <select id="ddlFacilityFilter" multiple="multiple">
-                        <% _.each(facilities.toJSON(), function(facility) { %>
-                            <option value='<%= facility.id %>'>
-                                <%=facility.facility_name%>
-                            </option>
-                            <% }); %>
+                    <span id="selStudyStatusesCount" class="control-label report__select-label"></span>
+                </div>
+                <div class="col-form-content">
+                    <select id="ddlStudyStatuses" class="form-control multiselect" name="studyStatuses[]" required="required" multiple="multiple"
+                        size="8">
                     </select>
                 </div>
             </div>
         </div>
-        <div class="col-3">
-            <div class="form-group form-inline">
-                <div class="col-form-label" class="multiselect">
-                    <label class="control-label">Billing Provider
-                    </label>
-                    <select id="ddlBillingProvider" multiple="multiple" />
-                </div>
-            </div>
-        </div>
-
-        <div class="col-3">
-            <div style="padding-top:10px">
-                <label class="checkbox-inline" for="incPat">
-                    <input type="checkbox" id="incPat" value="IncludePatient" style="display: inline"> Report By Primary Payer
-                </label>
-            </div>
-            <div style="padding-top:10px">
-                <label class="checkbox-inline" for="excCreBal">
-                    <input type="checkbox" id="excCreBal" value="ExcludeCreditBalance" style="display: inline"> Exclude Credit Balance
-                </label>
-            </div>
-        </div>
     </div>
+    <!-- /row: form elements -->
 
     <!-- row: form buttons -->
     <div class="col-xs-12 <!--col-xs-offset-1-->">
@@ -72,8 +51,6 @@
                     <i class="fa fa-file-pdf-o"></i> PDF</button>
                 <button type="button" class="btn btn-primary" id="btnExcelReport" data-rformat="xlsx">
                     <i class="fa fa-file-excel-o"></i> Excel</button>
-                <button type="button" class="btn btn-primary" id="btnExcelReportExtended" data-rformat="xlsx">
-                    <i class="fa fa-file-excel-o"></i> Excel Extended</button>
                 <button type="button" class="btn btn-primary" id="btnCsvReport" data-rformat="csv">
                     <i class="fa fa-file-text-o"></i> CSV</button>
                 <button type="button" class="btn btn-primary" id="btnXmlReport" data-rformat="xml">
@@ -82,6 +59,7 @@
         </div>
     </div>
     <!-- /row: form buttons -->
+
 </form>
 
 
