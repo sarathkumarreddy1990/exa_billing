@@ -54,7 +54,7 @@ module.exports = {
             if(!templateName){
                 message.push({
                     status: 100,
-                    message: 'ERA template not found'
+                    message: 'ERA template not found to process file'
                 });
 
                 return message;
@@ -83,7 +83,7 @@ module.exports = {
                     message: 'Invalid template name'
                 });
             }
-            else if(err.code == 'ENOENT'){
+            else if (err.code == 'ENOENT') {
                 message.push({
                     status: 100,
                     message: err.message
