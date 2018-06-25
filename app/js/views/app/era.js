@@ -167,7 +167,6 @@ define([
                     dataType: 'json',
                     data: {
                         status: currentStatus || gridData.current_status,
-                        //file_store_id: gridData.file_store_id,
                         file_id: file_id || null,
                         payer_details: payerDetails,
                         company_id: app.companyID
@@ -202,7 +201,7 @@ define([
                                 model.file_store_id = gridData.file_store_id;
                                 self.showProgressDialog(file_id, model, 'initialize');
                             }
-                            else if (model.name == 'error') {
+                            else if (model && model.name == 'error') {
                                 var msg = model.table + ' ' + model.detail
                                 commonjs.showWarning(msg);
                                 commonjs.showWarning('Already Payment Processed');

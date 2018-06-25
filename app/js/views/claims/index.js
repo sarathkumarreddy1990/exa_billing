@@ -1176,16 +1176,16 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     if (!repo.is_active) {
                         var markup1 = "<table class='ref-result' style='width: 100%'><tr class='inActiveRow'>";
                         markup1 += "<td><div><b>" + repo.full_name + "</b><b>" + '(' + repo.provider_code + ')' + "</b></div>";
-                        markup1 += "<div>" + contactInfo.ADDR1 == "undefined" ? "" : contactInfo.ADDR1 + contactInfo.ADDR2 == "undefined" ? "" : ", " + contactInfo.ADDR2 + "</div>";
-                        markup1 += "<div>" + contactInfo.CITY == "undefined" ? "" : contactInfo.CITY + ", " + contactInfo.STATE + contactInfo.ZIP == "undefined" ? "" : ", " + contactInfo.ZIP + contactInfo.MOBNO == "undefined" ? "" : ", " + contactInfo.MOBNO + "</div>";
+                        markup1 += "<div>" + contactInfo.ADDR1 == undefined ? "" : contactInfo.ADDR1 + contactInfo.ADDR2 == undefined ? "" : ", " + contactInfo.ADDR2 + "</div>";
+                        markup1 += "<div>" + contactInfo.CITY == undefined ? "" : contactInfo.CITY + ", " + contactInfo.STATE + contactInfo.ZIP == undefined ? "" : ", " + contactInfo.ZIP + contactInfo.MOBNO == undefined ? "" : ", " + contactInfo.MOBNO + "</div>";
                         markup1 += "</td></tr></table>";
                         return markup1;
                     }
                     else {
                         var markup = "<table class='ref-result' style='width: 100%'><tr>";
                         markup += "<td><div><b>" + repo.full_name + "</b><b>" + '(' + repo.provider_code + ')' + "</b></div>";
-                        markup += "<div>" + (contactInfo.ADDR1 == "undefined" ? "" : contactInfo.ADDR1) + ", " + (contactInfo.ADDR2 == "undefined" ? "" : contactInfo.ADDR2) + "</div>";
-                        markup += "<div>" + (contactInfo.CITY == "undefined" ? "" : contactInfo.CITY) + ", " + contactInfo.STATE + (contactInfo.ZIP == "undefined" ? "" : ", " + contactInfo.ZIP) + (contactInfo.MOBNO == "undefined" ? "" : ", " + contactInfo.MOBNO) + "</div>";
+                        markup += "<div>" + (contactInfo.ADDR1 == undefined ? "" : contactInfo.ADDR1) + ", " + (contactInfo.ADDR2 == undefined ? "" : contactInfo.ADDR2) + "</div>";
+                        markup += "<div>" + (contactInfo.CITY == undefined ? "" : contactInfo.CITY) + ", " + contactInfo.STATE + (contactInfo.ZIP == undefined ? "" : ", " + contactInfo.ZIP) + (contactInfo.MOBNO == undefined ? "" : ", " + contactInfo.MOBNO) + "</div>";
                         markup += "</td></tr></table>"
                         return markup;
                     }
