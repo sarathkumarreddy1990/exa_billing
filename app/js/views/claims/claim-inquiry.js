@@ -38,15 +38,6 @@ define([
             agingSummaryTemplate: _.template(agingSummaryHTML),
             payCmtGrid:'',
             claim_id: null,
-            events: {
-                "click #btnCIAddComment": "showCommentPopup",
-                "click #btnCISaveIsInternal": "saveIsInternalComment",
-                "click #btnCIPrintInvoice": "printPaymentInvoice",
-                "click #btnCICommentCancel": "closeSaveComment",
-                "click #btnCIAddBillingComments": "billingCommentsReadonly",
-                "click #btnCIPayCancel": "closePaymentDetails",
-                "click .claimProcess" :"applyToggleInquiry"
-            },
 
             initialize: function (options) {
                 this.options = options;
@@ -56,11 +47,44 @@ define([
             },
 
             render: function (cid,patientId, from) {
-                let self=this;
               this.rendered = true;
               this.$el.html(this.inquiryTemplate());
-               // commonjs.bindDateTimePicker("divFollowUpDate", { format: 'L' }); //to bind date picker to followup date  . Now noy working that's y commented               
+              this.bindEvents();
+               // commonjs.bindDateTimePicker("divFollowUpDate", { format: 'L' }); //to bind date picker to followup date  . Now not working that's y commented               
                 this.claimInquiryDetails(cid, false, from);
+            },
+
+            bindEvents: function () {
+                var self = this;
+
+                $('#btnCIAddComment').off().click(function () {
+                    self.showCommentPopup();
+                });
+
+                $('#btnCISaveIsInternal').off().click(function () {
+                    self.saveIsInternalComment();
+                });
+
+                $('btnCIPrintInvoice').off().dblclick(function (e) {
+                    self.printPaymentInvoice(e);
+                });
+
+                $('#btnCICommentCancel').off().click(function () {
+                    self.closeSaveComment();
+                });
+
+                $('#btnCIAddBillingComments').off().click(function () {
+                    self.billingCommentsReadonly();
+                });
+
+                $('#btnCIPayCancel').off().dblclick(function (e) {
+                    self.closePaymentDetails(e);
+                });
+
+                $('.claimProcess').off().dblclick(function (e) {
+                    self.closePaymentDetails(e);
+                });
+
             },
 
             claimInquiryDetails: function (claimID, fromTogglePreNext, from) {
@@ -77,7 +101,7 @@ define([
                     success: function (data, response) {
 
                         if (from) {
-                            $('#headerbtn').hide();
+                            $('#headerbtn').hide(); //to hide the prevoius/next button in claim inquiry when  from payments section
                         }
 
                         if (data) {
@@ -85,7 +109,9 @@ define([
                             var claim_data = data.claim_details && data.claim_details.length > 0 ? data.claim_details : '[]';
                             var payment_data = data.payment_details && data.payment_details.length > 0 ? data.payment_details : '[]';
                             var patient_details = data.patient_details && data.patient_details.length > 0 ? data.patient_details :'[]';
+
                             if(claim_data.length > 0){
+
                                 claim_data = claim_data[0];
                                 //binding the values from data base
                                 $('#lblCIReadPhy').text(claim_data.rend_provider_name);
@@ -137,8 +163,7 @@ define([
                     error: function (err) {
                         commonjs.handleXhrError(err);
                     }
-
-                })
+                });
             },
 
             showInsuranceGrid: function (data) {
@@ -188,6 +213,7 @@ define([
                 });
                 $('#gview_tblCIDiagnosis').find('.ui-jqgrid-bdiv').css('max-height', '300px')
             },
+
             showPatientClaimsGrid: function (claimID,patientId) {
                 var self = this;
                 $('#divPatientClaimsGrid').show();
@@ -450,6 +476,7 @@ define([
                     }
                 });
             },
+
             getClaimComment: function (commentId) {
                 var self = this;
                 $.ajax({
@@ -491,7 +518,9 @@ define([
                             commonjs.handleXhrError(err);
                         }
                     });
+
                 } else if (commentId == 0) {
+
                     $.ajax({
                         url: '/exa_modules/billing/claims/claim_inquiry/claim_comment',
                         type: 'POST',
