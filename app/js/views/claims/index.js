@@ -373,6 +373,8 @@ define(['jquery',
                             self.ICDID = self.icd_code = self.icd_description = '';
 
                             $('#btnSaveClaim').attr('disabled', false);
+                            
+                            $("#txtClaimDate").attr("disabled", "disabled");                             
 
                             setTimeout(function () {
                                 self.bindDefaultClaimDetails(claimDetails);
@@ -768,7 +770,10 @@ define(['jquery',
                                 var _defaultDetails = modelDetails.claim_details && modelDetails.claim_details.length > 0 ? modelDetails.claim_details[0] : {};
                                 self.bindDefaultClaimDetails(_defaultDetails)
                                 self.bindProblemsContent(diagnosisCodes,diagnosisCodesOrder);
-                            }
+
+                                if(modelDetails && modelDetails.charges && modelDetails.charges.length)
+                                    $("#txtClaimDate").attr("disabled", "disabled"); 
+                            }                            
                         },
                         error: function (model, response) {
                             commonjs.handleXhrError(model, response);
