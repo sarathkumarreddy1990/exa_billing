@@ -8,6 +8,12 @@ module.exports = {
             return this.sendError(req, res, responseData);
         }
 
+        /// Handled Error
+        if(responseData && responseData instanceof Error) {
+            responseData.status = 'HANDLED_EXCEPTION';
+            return this.sendError(req, res, responseData);
+        }
+
         try {
             return res.send(responseData);
         } catch (err) {
@@ -18,6 +24,12 @@ module.exports = {
     sendRows: function (req, res, responseData) {
 
         if (responseData && ['error', 'RequestError'].indexOf(responseData.name) > -1) {
+            return this.sendError(req, res, responseData);
+        }
+
+        /// Handled Error
+        if(responseData && responseData instanceof Error) {
+            responseData.status = 'HANDLED_EXCEPTION';
             return this.sendError(req, res, responseData);
         }
 

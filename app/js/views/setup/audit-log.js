@@ -18,6 +18,7 @@ define([
             model: null,
             auditLogTable: null,
             pager: null,
+            excelFlag: false,
             events: {
             },
 
@@ -27,6 +28,7 @@ define([
                 this.model = new AuditLogModel();
                 this.pager = new Pager();
                 this.auditLogList = new AuditLogCollections();
+                this.auditInfoList = new AuditLogCollections(true);
             },
 
             render: function () {
@@ -61,8 +63,8 @@ define([
                             cellattr: function () {
                                 return 'style=text-align:center;cursor:pointer;'
                             },
-                            customAction: function(rowID){
-                                self.displayDetails(rowID) ;
+                            customAction: function (rowID) {
+                                self.displayDetails(rowID);
                             }
                         },
                         {
@@ -120,24 +122,31 @@ define([
                     pager: '#gridPager_AuditLog',
                     customargs: {
                         fromDate: self.dtpFrom && self.dtpFrom.date() ? self.dtpFrom.date().format() : "",
-                        toDate: self.dtpTo && self.dtpTo.date() ? self.dtpTo.date().format() : ""
+                        toDate: self.dtpTo && self.dtpTo.date() ? self.dtpTo.date().format() : "",
+                        flag: self.excelFlag ? true : false
                     }
                 });
 
-                commonjs.initializeScreen({header: {screen: 'AuditLog', ext: 'auditLog'}, grid: {id: '#tblAuditLogGrid'}, buttons: [
-                    {value: 'Export To Excel', class: 'btn btn-danger', i18n: 'shared.buttons.exportToExcel', clickEvent: function () {
-
-                    }},
-                    {value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
-                        self.auditLogTable.options.customargs = {
-                            fromDate: self.dtpFrom.date().format(),
-                            toDate: self.dtpTo.date().format()
+                commonjs.initializeScreen({
+                    header: { screen: 'AuditLog', ext: 'auditLog' }, grid: { id: '#tblAuditLogGrid' }, buttons: [
+                        {
+                            value: 'Export To Excel', class: 'btn btn-danger', i18n: 'shared.buttons.exportToExcel', clickEvent: function () {
+                                self.exportExcel();
+                            }
+                        },
+                        {
+                            value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
+                                self.auditLogTable.options.customargs = {
+                                    fromDate: self.dtpFrom.date().format(),
+                                    toDate: self.dtpTo.date().format()
+                                }
+                                self.pager.set({ "PageNo": 1 });
+                                self.auditLogTable.refreshAll();
+                                commonjs.showStatus("Reloaded Successfully");
+                            }
                         }
-                        self.pager.set({"PageNo": 1});
-                        self.auditLogTable.refreshAll();
-                        commonjs.showStatus("Reloaded Successfully");
-                    }}
-                ]});
+                    ]
+                });
             },
 
             showGrid: function () {
@@ -150,9 +159,9 @@ define([
 
             displayDetails: function (id) {
                 var self = this;
-                this.model.set({id: id});
+                this.model.set({ id: id });
                 this.model.fetch({
-                    data: { id: this.model.id},
+                    data: { id: this.model.id },
                     success: function (model, response) {
                         response = response[0];
                         commonjs.showDialog({
@@ -164,13 +173,13 @@ define([
                         });
                         $("#showDetailsRow").hide();
                         $("#oldInfoRow").hide();
-                        if(response.detailed_info && response.detailed_info.oldValues){
+                        if (response.detailed_info && response.detailed_info.oldValues) {
                             $("#showDetailsRow").show();
-                            for(element in response.detailed_info.oldValues){
-                            var html = "<tr>" +
-                                "<td style='width: 25%;border:1px solid #dee2e6;'>"+element+"</td>" +
-                                "<td style='width: 75%;border:1px solid #dee2e6;'>"+response.detailed_info.oldValues[element]+"</td>" +
-                                "</tr>";
+                            for (element in response.detailed_info.oldValues) {
+                                var html = "<tr>" +
+                                    "<td style='width: 25%;border:1px solid #dee2e6;'>" + element + "</td>" +
+                                    "<td style='width: 75%;border:1px solid #dee2e6;'>" + response.detailed_info.oldValues[element] + "</td>" +
+                                    "</tr>";
                                 $("#chngTblBdy").append(html);
                             }
                         }
@@ -180,7 +189,7 @@ define([
                         $("#screen").html(response.screen_name);
                         $("#loggedDate").html(response.created_dt);
                         $("#description").html(response.description);
-                        $("#showDetails").click(function(){
+                        $("#showDetails").click(function () {
                             $("#oldInfoRow").toggle();
                         });
                     }
@@ -197,8 +206,55 @@ define([
                 this.dtpFrom.date(startFrom);
                 this.dtpTo = commonjs.bindDateTimePicker('divToDate', this.dtpOptions);
                 this.dtpTo.date(endTo);
-            }
+            },
 
+            exportExcel() {
+                var self = this;
+                self.excelFlag = true;
+                var self = this;
+                var responseJSON = self.auditLogList;
+                var ReportTitle = 'Audit Log';
+                var ShowLabel = 'Audit';
+                var auditExcelData = typeof responseJSON != 'object' ? JSON.parse(responseJSON) : responseJSON;
+                var CSV = '';
+                CSV += ReportTitle + '\r';
+                if (ShowLabel) {
+                    var row = "";
+
+                    row += 'LOGGED DATE' + ',';
+                    row += 'SCREEN' + ',';
+                    row += 'USER' + ',';
+                    row += 'LOG DESCRIPTION' + ',';
+                }
+                row = row.slice(0, -1);
+                CSV += row + '\r\n';
+
+                for (var i = 0; i < auditExcelData.models.length; i++) {
+                    var row = "";
+                    var auditResult = auditExcelData.models[i].attributes;
+                    row += '"' + moment(auditResult.created_dt).format('L') + '",';
+                    row += '"' + auditResult.screen_name + '",';
+                    row += '"' + auditResult.username + '",';
+                    row += '"' + auditResult.description + '",';
+                    row.slice(0, row.length - 1);
+                    CSV += row + '\r\n';
+                }
+
+                if (CSV == '') {
+                    alert("Invalid data");
+                    return;
+                }
+                var fileName = "";
+                fileName += ReportTitle.replace(/ /g, "_");
+                var uri = 'data:text/csv;charset=utf-8,' + escape(CSV);
+                var link = document.createElement("a");
+                link.href = uri;
+                link.style = "visibility:hidden";
+                link.download = fileName + ".csv";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
 
         });
         return AuditLogView;

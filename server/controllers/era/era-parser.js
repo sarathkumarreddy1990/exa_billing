@@ -28,13 +28,13 @@ module.exports = {
                 *  Functionality  : To get co_pay, co_insurance and deductible
                 *  DESC : SUM of CAS groups code (Ex:'PR')
                 */
-                let PatientResponsibility = _.pickBy(val.serviceAdjustment, { groupCode: 'PR' });
+                let PatientResponsibility = _.filter(val.serviceAdjustment, { groupCode: 'PR' });
 
                 if (Object.keys(PatientResponsibility).length) {
 
-                    co_pay += PatientResponsibility && PatientResponsibility[0].monetaryAmount1 ? parseFloat(PatientResponsibility[0].monetaryAmount1) : 0;
-                    deductible += PatientResponsibility && PatientResponsibility[0].monetaryAmount3 ? parseFloat(PatientResponsibility[0].monetaryAmount3) : 0;
-                    co_insurance += PatientResponsibility && PatientResponsibility[0].monetaryAmount2 ? parseFloat(PatientResponsibility[0].monetaryAmount2) : 0;
+                    co_pay += PatientResponsibility && PatientResponsibility[0] && PatientResponsibility[0].monetaryAmount1 ? parseFloat(PatientResponsibility[0].monetaryAmount1) : 0;
+                    deductible += PatientResponsibility && PatientResponsibility[0] && PatientResponsibility[0].monetaryAmount3 ? parseFloat(PatientResponsibility[0].monetaryAmount3) : 0;
+                    co_insurance += PatientResponsibility && PatientResponsibility[0] && PatientResponsibility[0].monetaryAmount2 ? parseFloat(PatientResponsibility[0].monetaryAmount2) : 0;
                 }
 
                 let serviceAdjustment = _.reject(val.serviceAdjustment, { groupCode: 'PR' });

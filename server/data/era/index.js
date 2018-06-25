@@ -162,6 +162,7 @@ module.exports = {
                             ),
                            selected_Items AS (
                                 SELECT 
+                                    application_details.claim_number,
                                     json_build_object(
                                         'charge_id',application_details.charge_id,
                                         'payment',application_details.payment,
@@ -175,18 +176,25 @@ module.exports = {
                                        ch.id
                                     FROM 
                                         billing.charges ch	
-                                   INNER JOIN cpt_codes on cpt_codes.id = ch.cpt_id AND cpt_codes.display_code = application_details.cpt_code 
+                                   INNER JOIN cpt_codes on cpt_codes.id = ch.cpt_id 
                                    WHERE 
                                     ch.claim_id = c.id 
                                     AND NOT cpt_codes.has_deleted 
                                     AND cpt_codes.is_active 
-                                    AND application_details.charge_id = ch.id
+                                    AND (
+                                        CASE 
+                                          WHEN ( application_details.charge_id != 0 AND application_details.cpt_code  ='' ) THEN application_details.charge_id = ch.id
+                                          WHEN ( application_details.charge_id  = 0 AND application_details.cpt_code !='' ) THEN cpt_codes.display_code = application_details.cpt_code
+                                          WHEN ( application_details.charge_id != 0 AND application_details.cpt_code !='' ) THEN application_details.charge_id = ch.id AND cpt_codes.display_code = application_details.cpt_code
+                                        END
+                                    )
                                     ORDER BY id ASC LIMIT 1
                                 ) AS charges ON true
                            ), 
                            insert_payment_adjustment AS (
                                 SELECT
-                                    billing.create_payment_applications(
+                                    selected_Items.claim_number
+                                    ,billing.create_payment_applications(
                                         ${paymentDetails.id}
                                         ,( SELECT id FROM billing.adjustment_codes WHERE code ='ERA' ORDER BY id ASC LIMIT 1 )
                                         ,${paymentDetails.created_by}
@@ -195,6 +203,12 @@ module.exports = {
                                     )
                                 FROM
 	                                selected_Items
+                            ),
+                            inserted_claims AS ( 
+                                SELECT 
+                                    DISTINCT claim_number as claim_id 
+                                FROM 
+                                    insert_payment_adjustment 
                             ),
                             insert_edi_file_claims AS (
                                 INSERT INTO billing.edi_file_claims
@@ -211,7 +225,7 @@ module.exports = {
                                         claim_number bigint
                                         ,edi_file_id bigint
                                     )
-                                INNER JOIN billing.claims c on c.id = edi_claims.claim_number
+                                INNER JOIN inserted_claims ic on ic.claim_id = edi_claims.claim_number
                                 RETURNING claim_id, edi_file_id
                                 ),
                             insert_claim_comments AS (
@@ -236,7 +250,7 @@ module.exports = {
                                         ,note text
                                         ,type text
                                     )
-                                INNER JOIN billing.claims c on c.id = claim_notes.claim_number
+                                INNER JOIN inserted_claims ic on ic.claim_id = claim_notes.claim_number
                                 RETURNING id AS claim_comment_id
                                 )
                             SELECT
@@ -259,7 +273,7 @@ module.exports = {
                                                     insert_edi_file_claims
                                             
                                                 ) AS insert_edi_file_claims
-                                     ) AS insert_edi_file_claims
+                                ) AS insert_edi_file_claims
                             `;
         
         return await query(sql);

@@ -34,8 +34,8 @@ module.exports = {
         // pdfPrinter.createPdf(docDefinition).download('optionalName.pdf');
     },
 
-    getPaperClaimTemplate: function (params) {
-        return data.getPaperClaimTemplate(params);
+    getPrinterTemplate: function (params) {
+        return data.getPrinterTemplate(params);
     },
 
     getEDIClaim: async (params) => {    
@@ -44,7 +44,13 @@ module.exports = {
 
         if (result.rows && result.rows.length) { 
 
-           
+            if(!result.rows[0].header) {
+                return new Error('Clearinghouse not yet mapped with payer :(');
+            }
+
+            if(!result.rows[0].header.edi_template_name) {
+                return new Error('EDI Template not yet mapped with Clearinghouse :(');
+            }
             
             let data = _.map( result.rows, function (obj) {
                 if((obj.subscriper_relationship).toUpperCase()!='SELF'){
@@ -67,7 +73,8 @@ module.exports = {
                 },
                 data:data
             };
-            ediResponse = await ediConnect.generateEdi(result.rows[0].edi_template, ediRequestJson);
+
+            ediResponse = await ediConnect.generateEdi(result.rows[0].header.edi_template_name, ediRequestJson);
         }
 
         return ediResponse;
@@ -176,6 +183,11 @@ module.exports = {
         }
 
         return insSubsInvalidFields;
+    },
+
+    deleteClaim:function (params) {
+        return data.deleteClaim(params);
     }
+
 
 };

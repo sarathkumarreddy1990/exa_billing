@@ -53,8 +53,8 @@ define(['jquery',
                     gridelementid: '#tblInsuranceX12MappingGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['','','','','',''],
-                    i18nNames: ['', '', '', 'setup.insuranceX12Mapping.insuranceName', 'setup.insuranceX12Mapping.claimClearingHouse', 'setup.insuranceX12Mapping.claimTemplateRad'],
+                    colNames: ['','','','',''],
+                    i18nNames: ['', '', '', 'setup.insuranceX12Mapping.insuranceName', 'setup.insuranceX12Mapping.claimClearingHouse'],
                     colModel: [
                         {
                             name: 'id',
@@ -114,9 +114,6 @@ define(['jquery',
                                 }
                                 return name;
                             }
-                        },
-                        {
-                            name: 'claimrequesttemplate'
                         }
                     ],
                     datastore: self.insuranceX12MappingList,
