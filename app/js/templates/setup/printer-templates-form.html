@@ -15,41 +15,41 @@
                 <div class="form-group row">
                     <label for="txtLeftMargin" class="col-sm-2 col-form-label field-required" i18n="setup.paperClaimTemplates.leftMargin"></label>
                     <div class="col-sm-2">
-                        <input type="number" class="form-control" id="numLeftMargin" name="leftMargin"  step="0.100" min="-3.000" max="6.500" value="0.0">
+                        <input type="number" class="form-control" id="txtLeftMargin" name="leftMargin" step="0.100" min="-3.000" max="6.500" value="0.0">
                     </div>
                     <label for="txtTopMargin" class="col-sm-2 col-form-label field-required" i18n="setup.paperClaimTemplates.topMargin"></label>
                     <div class="col-sm-2">
-                        <input type="number" class="form-control" id="numTopMargin" name="topMargin" step="0.100" min="-3.000" max="15.000" value="0.0">
+                        <input type="number" class="form-control" id="txtTopMargin" name="topMargin" step="0.100" min="-3.000" max="15.000" value="0.0">
                     </div>
-                    <label for="txtTempplateType" class="col-sm-2 col-form-label field-required" i18n="setup.paperClaimTemplates.templateType"></label>
+                    <label for="ddlTemplateType" class="col-sm-2 col-form-label field-required" i18n="setup.paperClaimTemplates.templateType"></label>
                     <div class="col-sm-2">
-                            <select id="ddlTemplateType" class="form-control" name="templateType" style="width: 250px">
-                                    <option value i18n="shared.button.select"></option>
-                                    <option value="direct_invoice" i18n="setup.paperClaimTemplates.directingInvoice"></option>
-                                    <option value="patient_invoice" i18n="setup.paperClaimTemplates.patientInvoice"></option>
-                                    <option value="paper_claim_full" i18n="setup.paperClaimTemplates.paperClaimFull" selected="selected"></option>
-                                    <option value="paper_claim_original" i18n="setup.paperClaimTemplates.paperClaimOrg"></option>
-                            </select>
+                        <select id="ddlTemplateType" class="form-control" name="templateType" style="width: 250px">
+                            <option value i18n="shared.button.select"></option>
+                            <option value="direct_invoice" i18n="setup.paperClaimTemplates.directingInvoice"></option>
+                            <option value="patient_invoice" i18n="setup.paperClaimTemplates.patientInvoice"></option>
+                            <option value="paper_claim_full" i18n="setup.paperClaimTemplates.paperClaimFull" selected="selected"></option>
+                            <option value="paper_claim_original" i18n="setup.paperClaimTemplates.paperClaimOrg"></option>
+                        </select>
                     </div>
                 </div>
                 <div class="form-group row">
                     <label for="txtRightMargin" class="col-sm-2 col-form-label field-required" i18n="setup.paperClaimTemplates.rightMargin"></label>
                     <div class="col-sm-2">
-                        <input type="number" class="form-control" id="numRightMargin" name="rightMargin" step="0.100" min="0.000" max="12.000" value="0.0">
+                        <input type="number" class="form-control" id="txtRightMargin" name="rightMargin" step="0.100" min="0.000" max="12.000" value="0.0">
                     </div>
                     <label for="txtBottomMargin" class="col-sm-2 col-form-label field-required" i18n="setup.paperClaimTemplates.bottomMargin"></label>
                     <div class="col-sm-2">
-                        <input type="number" class="form-control" id="numBottomMargin" name="bottomMargin" step="0.100" min="0.000" max="6.500" value="0.0">
+                        <input type="number" class="form-control" id="txtBottomMargin" name="bottomMargin" step="0.100" min="0.000" max="6.500" value="0.0">
                     </div>
                 </div>
                 <div class="form-group row">
                     <label for="txtPageHeight" class="col-sm-2 col-form-label field-required" i18n="setup.paperClaimTemplates.pageHeight"></label>
                     <div class="col-sm-2">
-                        <input type="number" class="form-control" id="numPageHeight" name="pageHeight" value="0">
+                        <input type="number" class="form-control" id="txtPageHeight" name="pageHeight" value="0">
                     </div>
                     <label for="txtPageWidth" class="col-sm-2 col-form-label field-required" i18n="setup.paperClaimTemplates.pageWidth"></label>
                     <div class="col-sm-2">
-                        <input type="number" class="form-control" id="numpageWidth" name="pageWidth" value="0">
+                        <input type="number" class="form-control" id="txtPageWidth" name="pageWidth" value="0">
                     </div>
                 </div>
                 <div class="form-group row">
@@ -62,6 +62,10 @@
     </div>
 </div>
 <div id="divPaperClaimEditor" class="col-lg-12 form-group row">
-    <div id="paperClaimEditor" class="col-lg-12" style="min-height:200px;">
+    <div id="paperClaimEditor" class="col-lg-6" style="min-height:200px;">
+    </div>
+    <div id="paperClaimPreview" class="col-lg-6" style="min-height:200px;">
+        <div id="divPreviewLabel" style="position: relative; top: 45%; left: 30%; font-size: 1.2em; width: 200px; height: 50px;">PREVIEW</div>
+        <iframe id="ifrTemplatePreview" style="min-height:200px; width: 100%; height: 100%; padding: 0; margin: 0; border: 1px solid #ced7db; display: none;"></iframe>
     </div>
 </div>

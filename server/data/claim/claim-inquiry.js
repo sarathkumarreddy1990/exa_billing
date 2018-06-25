@@ -44,6 +44,19 @@ module.exports = {
                 , pg.group_name
             ) AS encounter
         )
+    , patient_details AS 
+        ( SELECT json_agg(row_to_json(patient)) patient_details
+        FROM (
+            SELECT 
+                  public.get_full_name(p.last_name, p.first_name, p.middle_name, p.prefix_name, p.suffix_name) AS patient_name
+                , p.account_no
+                , p.birth_date
+                , gender
+            FROM patients p
+            INNER JOIN billing.claims bc ON bc.patient_id = p.id
+            WHERE bc.id = ${claim_id}
+            ) AS patient
+    )
     , payment_details AS 
         (SELECT json_agg(row_to_json(pay)) payment_details
          FROM(
@@ -94,7 +107,7 @@ module.exports = {
             WHERE pi.id = ANY(SELECT UNNEST(pi_ids) FROM  pat_ins_ids)
             ) AS ins
         )                            
-    SELECT * FROM  claim_details, payment_details, icd_details, insurance_details  `;
+    SELECT * FROM  claim_details, payment_details, icd_details, insurance_details, patient_details  `;
         return await query(sql);
     },
 
@@ -178,7 +191,10 @@ module.exports = {
                     , payment
                     , adjustment
                     , COUNT(1) OVER (range unbounded preceding) AS total_records
-                FROM agg`;
+                FROM agg
+                ORDER BY 
+                      commented_dt
+                    , code `;
 
         return await query(sql);
     },

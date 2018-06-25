@@ -32,10 +32,12 @@ define([
                 if (window.location && window.location.hash.split('/')[1] == 'studies') {
                     self.gridFilterName = 'studies';
                     self.default_tab = 'All Studies';
+                    $('#divPrinterTemplates').hide();
                 }
                 if (window.location && window.location.hash.split('/')[1] == 'claim_workbench') {
                     self.gridFilterName = 'claims';
                     self.default_tab = 'All Claims';
+                    $('#divPrinterTemplates').show();
                 }
                 var height = $('#modal_div_container').height() - 70;
                 $("#ulSortList").css('height', height);
@@ -65,6 +67,7 @@ define([
                         billingClaimGridFields.push({ "name": input.val(), "id": input.attr('id').split('~')[1], "width": $(this).find('input[type=hidden]')[0].value });
                     }
                 });
+                
                 this.model.set({
                     flag: self.gridFilterName,
                     default_tab: self.default_tab,
@@ -73,7 +76,12 @@ define([
                     claim_sort_order: claim_sort_order,
                     billingClaimGridFields: billingClaimGridFields,
                     claimFieldOrder: JSON.stringify(claimFieldOrder),
-                    claimSettingFields: claimSettingFields
+                    claimSettingFields: claimSettingFields,
+                    paper_claim_full: $('#ddlPaperClaimFullForm').val() ? parseInt($('#ddlPaperClaimFullForm').val()) : null,
+                    paper_claim_original: $('#ddlPaperClaimOriginalForm').val() ? $('#ddlPaperClaimOriginalForm').val() : null,
+                    direct_invoice: $('#ddlDirectInvoice').val() ? $('#ddlDirectInvoice').val() : null,
+                    patient_invoice: $('#ddlPatientInvoice').val() ? $('#ddlPatientInvoice').val() : null
+
                 });
                 this.model.save({},
                     {
@@ -196,13 +204,30 @@ define([
 
                         $('#ddlBillingDefaultColumns').val(result_data.default_column);
                         $('#ddlBillingSortOrder').val(result_data.default_column_order_by);
+                        self.loadPrinterTemplates('ddlPaperClaimFullForm','paper_claim_full', result_data.paper_claim_full);
+                        self.loadPrinterTemplates('ddlPaperClaimOriginalForm','paper_claim_original', result_data.paper_claim_original);
+                        self.loadPrinterTemplates('ddlDirectInvoice','direct_invoice', result_data.direct_invoice);
+                        self.loadPrinterTemplates('ddlPatientInvoice','patient_invoice', result_data.patient_invoice);
+
                     },
                     error: function (err, response) {
                         if (err)
                             commonjs.showError('Error to Fetch the information...')
                     }
                 });
-            }
+            },
 
+            loadPrinterTemplates : function(elID, templateType,templateValue) {
+                var element = $('#' + elID);
+                var printerTemplats = app.printer_templates.filter(function(template) {
+                    return template.template_type == templateType;
+                });
+                if(printerTemplats && printerTemplats.length > 0) {
+                    for(var i = 0; i < printerTemplats.length; i++) {
+                        element.append($('<option/>',{value:printerTemplats[i].id}).html(printerTemplats[i].name));
+                    }
+                }
+                element.val(templateValue);
+            }
         });
     });

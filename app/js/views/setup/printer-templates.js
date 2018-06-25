@@ -4,10 +4,10 @@ define(['jquery',
     'backbone',
     'jqgrid',
     'jqgridlocale',
-    'text!templates/setup/paper-claim-templates-grid.html',
-    'text!templates/setup/paper-claim-templates-form.html',
-    'collections/setup/paper-claim-templates',
-    'models/setup/paper-claim-templates',
+    'text!templates/setup/printer-templates-grid.html',
+    'text!templates/setup/printer-templates-form.html',
+    'collections/setup/printer-templates',
+    'models/setup/printer-templates',
     'models/pager',
     'ace/ace'
 ],
@@ -89,7 +89,7 @@ define(['jquery',
                             sortable: false,
                             search: false,
                             className: 'icon-ic-edit',
-                            route: '#setup/paper_claim_templates/edit/',
+                            route: '#setup/printer_templates/edit/',
                             formatter: function (e, model, data) {
                                 return "<span class='icon-ic-edit' title='click Here to Edit'></span>"
                             }
@@ -161,7 +161,7 @@ define(['jquery',
                     header: { screen: 'PaperClaimTemplates', ext: 'paperClaimTemplates' }, grid: { id: '#tblPaperClaimTemplatesGrid' }, buttons: [
                         {
                             value: 'Add', class: 'btn btn-danger', i18n: 'shared.buttons.add', clickEvent: function () {
-                                Backbone.history.navigate('#setup/paper_claim_templates/new', true);
+                                Backbone.history.navigate('#setup/printer_templates/new', true);
                             }
                         },
                         {
@@ -199,14 +199,14 @@ define(['jquery',
                                 if (data) {
                                     $('#txtTemplateName').val(data.name ? data.name : '');
                                     $('#chkActive').prop('checked', data.inactivated_dt ? true : false);
-                                    $('#numRightMargin').val(data.right_margin ? data.right_margin : 0);
-                                    $('#numLeftMargin').val(data.left_margin ? data.left_margin : 0),
-                                    $('#numTopMargin').val(data.top_margin ? data.top_margin : 0),
-                                    $('#numBottomMargin').val(data.bottom_margin ? data.bottom_margin : 0),
+                                    $('#txtRightMargin').val(data.right_margin ? data.right_margin : 0);
+                                    $('#txtLeftMargin').val(data.left_margin ? data.left_margin : 0),
+                                    $('#txtTopMargin').val(data.top_margin ? data.top_margin : 0),
+                                    $('#txtBottomMargin').val(data.bottom_margin ? data.bottom_margin : 0),
                                     self.templateData = data.template_content ? data.template_content : "{}";
                                     self.setEditorContents(self.templateData);
-                                    $('#numPageHeight').val(data.page_width ? data.page_width : 0);
-                                    $('#numpageWidth').val(data.page_height ? data.page_height : 0);
+                                    $('#txtPageHeight').val(data.page_height ? data.page_height : 0);
+                                    $('#txtPageWidth').val(data.page_width ? data.page_width : 0);
                                     $('#ddlTemplateType').val(data.template_type ? data.template_type : '');
                                 }
                             }
@@ -214,7 +214,7 @@ define(['jquery',
                     });
                 } else {
                     this.model = new PaperClaimTemplatesModel();
-                    this.setEditorContents("{}");
+                    this.setEditorContents("var dd = { content: 'Test Data' }");
                 }
                 $('#aShowOriginalForm').parent('li:first').css(this.highlighClass);
                 
@@ -228,7 +228,7 @@ define(['jquery',
                         },
                         {
                             value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
-                                Backbone.history.navigate('#setup/paper_claim_templates/list', true);
+                                Backbone.history.navigate('#setup/printer_templates/list', true);
                             }
                         }
                     ]
@@ -276,29 +276,77 @@ define(['jquery',
             },
 
             setEditorContents: function (content) {
+                var timer;
+                var lastGen, lastChanged;
+                var self = this;
                 var editor = ace.edit('paperClaimEditor');
+
                 editor.setTheme();
                 editor.setTheme("ace/theme/monokai");
                 editor.getSession().setMode("ace/mode/javascript");
-                $('#paperClaimEditor').height($('#data_container').outerHeight() - ($('#navPaperClaimTemplates').outerHeight() + $('#formPaperClaimTemplates').outerHeight()));
+                $('#paperClaimEditor').height($('#data_container').outerHeight() - $('#formPaperClaimTemplates').outerHeight());
                 editor.setValue(content);
+
+                generatePreview();
+
+                editor.getSession().on('change', function(e) {
+                    if (timer) {
+                        clearTimeout(timer);
+                    }
+
+                    lastChanged = new Date();
+        
+                    timer = setTimeout(function() {
+                        if (!lastGen || lastGen < lastChanged) {
+                            generatePreview();
+                        };
+                    }, 300);
+                });
+
+                function showStatus(msg) {
+                    $('#divPreviewLabel').html(msg);
+                    $('#divPreviewLabel').show();
+                    $('#ifrTemplatePreview').hide();
+                }
+
+                function generatePreview() {
+                    lastGen = new Date();
+
+                    try {
+                        eval(editor.getSession().getValue());
+
+                        $('#divPreviewLabel').hide();
+                        $('#ifrTemplatePreview').show();
+
+                        if (typeof dd === 'undefined') {
+                            return showStatus('Invalid template');
+                        }
+
+                        pdfMake.createPdf(dd).getDataUrl(function (outDoc) {
+                            document.getElementById('ifrTemplatePreview').src = outDoc;
+                        });
+                    } catch (err) {
+                        showStatus(err);
+                        return;
+                    }
+                }
             },
 
             save: function () {
 
-                    this.templateData = ace.edit('paperClaimEditor').getValue();
+                this.templateData = ace.edit('paperClaimEditor').getValue();
 
                 this.model.set({
                     "name": $('#txtTemplateName').val(),
                     "isActive": !$('#chkActive').prop('checked'),
-                    "marginRight": $('#numRightMargin').val() ? $('#numRightMargin').val() : 0,
-                    "marginLeft": $('#numLeftMargin').val() ? $('#numLeftMargin').val() : 0,
-                    "marginTop": $('#numTopMargin').val() ? $('#numLeftMargin').val() : 0,
-                    "marginBottom": $('#numBottomMargin').val() ? $('#numBottomMargin').val(): 0,
+                    "marginRight": $('#txtRightMargin').val() ? $('#txtRightMargin').val() : 0,
+                    "marginLeft": $('#txtLeftMargin').val() ? $('#txtLeftMargin').val() : 0,
+                    "marginTop": $('#txtTopMargin').val() ? $('#txtTopMargin').val() : 0,
+                    "marginBottom": $('#txtBottomMargin').val() ? $('#txtBottomMargin').val(): 0,
                     "templateContent": this.templateData,
                     "companyId": app.companyID,
-                    "height":$('#numPageHeight').val() ? $('#numPageHeight').val() : 0,
-                    "width": $('#numpageWidth').val() ? $('#numpageWidth').val() : 0,
+                    "height":$('#txtPageHeight').val() ? $('#txtPageHeight').val() : 0,
+                    "width": $('#txtPageWidth').val() ? $('#txtPageWidth').val() : 0,
                     "type" : $('#ddlTemplateType').val() 
                 });
 
@@ -307,7 +355,7 @@ define(['jquery',
                         success: function (model, response) {
                             if (response) {
                                 commonjs.showStatus("Saved Successfully");
-                                location.href = "#setup/paper_claim_templates/list";
+                                location.href = "#setup/printer_templates/list";
                             }
                         },
                         error: function (model, response) {
