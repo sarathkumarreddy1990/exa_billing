@@ -29,5 +29,31 @@
                                                                  i18n='setup.common.description'></label></td>
         <td><label class="logFields1" id="description"></label></td>
     </tr>
+    <tr id="showDetailsRow">
+        <td class="moreLightbgColor " style="width: 25%;"><label class="logFields"
+                                                                 i18n='setup.common.changes'></label></td>
+        <td><a class="logFields1" id="showDetails">Show Details</a></td>
+    </tr>
+    <tr id="oldInfoRow">
+        <td class="moreLightbgColor " style="width: 25%;"></td>
+        <td>
+            <div id="oldInfo">
+                <div class="validateTags activeValTag">Change</div><br>
+                <br>
+
+                <div style="height: 300px;overflow-y: scroll;">
+                    <div><br><b>Queried For Printing Results:</b></div>
+                    <table >
+                        <tbody id="chngTblBdy">
+                        <tr>
+                            <th style="width: 25%;border:1px solid #dee2e6;"><label i18n='setup.common.columns'></label></th>
+                            <th style='width: 75%;border:1px solid #dee2e6;'><label i18n='setup.common.queriedValues'></label></th>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </td>
+    </tr>
     </tbody>
 </table>

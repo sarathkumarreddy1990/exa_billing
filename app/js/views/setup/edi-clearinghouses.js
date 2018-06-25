@@ -168,6 +168,7 @@ define(['jquery',
                                     $('#txtCode').val(data.code ? data.code : '');
                                     $('#txtReceiverName').val(data.receiver_name ? data.receiver_name : '');
                                     $('#txtReceiverID').val(data.receiver_id ? data.receiver_id : '');
+                                    $('#txtEdiTemplateName').val(data.edi_template_name ? data.edi_template_name : '');
                                     $('#chkIsActive').prop('checked', data.inactivated_dt ? true : false);
                                     $('#txtAuthInfo').val(info.AuthorizationInformation ? info.AuthorizationInformation : '');
                                     $('#txtAuthInfoQualifier').val(info.AuthorizationInformationQualifier ? info.AuthorizationInformationQualifier : '');
@@ -214,6 +215,7 @@ define(['jquery',
                         $("#txtName").val($.trim($('#txtName').val()) || null);
                         $("#txtReceiverName").val($.trim($('#txtReceiverName').val()) || null);
                         $("#txtReceiverID").val($.trim($('#txtReceiverID').val()) || null);
+                        $("#txtEdiTemplateName").val($.trim($('#txtEdiTemplateName').val()) || null);
                         $("#txtAuthInfo").val($.trim($('#txtAuthInfo').val()) || null);
                         $("#txtAuthInfoQualifier").val($.trim($('#txtAuthInfoQualifier').val()) || null);
                         $("#txtSecurityInfo").val($.trim($('#txtSecurityInfo').val()) || null);
@@ -330,6 +332,7 @@ define(['jquery',
                     "code": $('#txtCode').val(),
                     "receiverName": $('#txtReceiverName').val(),
                     "receiverId": $('#txtReceiverID').val(),
+                    "ediTemplateName": $('#txtEdiTemplateName').val(),
                     "company_id": app.companyID,
                     "isActive": !$('#chkIsActive').prop('checked'),
                     "communicationInfo": JSON.stringify(communication_info)

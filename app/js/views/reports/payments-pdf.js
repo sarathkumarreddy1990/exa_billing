@@ -59,8 +59,9 @@ define([
 
             },
 
-            onReportViewClick: function (e,reportArgs) {
+            onReportViewClick: function (e, reportArgs) {
                 var btnClicked = e && e.target ? $(e.target) : null;
+                var reportArgsFlag = null
                 this.getSelectedFacility();
                 this.getBillingProvider();
                 if (btnClicked && btnClicked.prop('tagName') === 'I') {
@@ -72,9 +73,18 @@ define([
                 this.viewModel.openInNewTab = openInNewTab && rFormat === 'pdf';
                 this.viewModel.paymentOptions = $('#ddlPaymentOption').val();
                 var urlParams = {
-                    
+                    pamentIds: reportArgs.payment_id,
                 }
-                UI.showReport('payments-pdf', this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
+                if (reportArgs.flag == 'paymentPDF') {
+                    reportArgsFlag = 'payment-print-pdf';
+                }
+                else if (reportArgs.flag == 'payment-print-pdf') {
+                    reportArgsFlag = 'payment-receipt-pdf';
+                }
+                else {
+                    reportArgsFlag = 'payments-pdf';
+                }
+                UI.showReport(reportArgsFlag, this.viewModel.reportCategory, 'pdf', urlParams, true);
             },
 
             getSelectedFacility: function (e) {
