@@ -147,7 +147,7 @@ define(['jquery',
                     'fromDate': this.viewModel.fromDate.date().format('YYYY-MM-DD'),
                     'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
-                    'incPatDetail': $('#incPat').prop('checked'),
+                    'incPatDetail': $('#byPrimaryPayer').prop('checked'),
                     'excCreditBal': $('#excCreBal').prop('checked'),
                     'excelExtended': this.excelExtended ? this.excelExtended : 'false',
                     'changeByPayer': $('#byPrimaryPayer').prop('checked')
