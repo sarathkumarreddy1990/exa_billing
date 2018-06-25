@@ -2230,9 +2230,22 @@ var commonjs = {
 
         var errorMessage = '';
         commonjs.hideLoading();
-        if (response.responseJSON && response.responseJSON.errorCode) {
+
+        if (!response && err) {
+            response = err;
+        }
+
+        if (response && response.responseJSON && response.responseJSON.errorCode) {
             response.status = response.responseJSON.errorCode;
+        }
+
+        if (response && response.responseJSON && response.responseJSON.errorDesc) {
             errorMessage = response.responseJSON.errorDesc;
+        }
+
+        /// To handle http(EDI) connect issues
+        if (response && response.responseJSON && response.responseJSON.err) {
+            err = response.responseJSON.err;
         }
 
         switch (err.status || response.status ) {
@@ -2254,12 +2267,18 @@ var commonjs = {
             case '23505':
                 commonjs.showError('Duplicate record found');
                 break;
+            case '55801':
+                commonjs.showError('Unable to connect EDI Server');
+                break;
+            case 'HANDLED_EXCEPTION':
+                commonjs.showError(errorMessage || 'Error :(');
+                break;
             default:
                 commonjs.showError('messages.errors.someerror');
                 break;
         }
 
-        if(response.responseText && response.responseText.indexOf('INVALID_SESSION') > -1) {
+        if(response && response.responseText && response.responseText.indexOf('INVALID_SESSION') > -1) {
             $('#divPageLoading').hide();
             commonjs.showDialog({ header: 'Error', i18nHeader: 'messages.errors.serversideerror', width: '50%', height: '50%', html: response.responseText }, true);
         }
@@ -10833,6 +10852,7 @@ var facilityModules = {
         'bloodPressure': 'Blood Pressure',
         'provider': 'Report Provider',
         agedarsummary: 'Aged AR Summary',
+        agedardetails: 'Aged AR Details',
         dailychargereport: 'Daily Charge Report',
         procedureanalysisbyinsurance: 'Procedure Analysis By Insurance',
         'appointmentListDateRange': 'Appointment List Date Range',

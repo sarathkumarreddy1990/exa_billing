@@ -530,14 +530,28 @@ module.exports = {
                                     amount = uad.amount
                                   , adjustment_code_id = uad.adjestment_id
                             FROM update_application_details uad
-                            WHERE id = uad.payment_application_id),
+                            WHERE id = uad.payment_application_id
+                            RETURNING *,
+                            (
+                                SELECT row_to_json(old_row) 
+                                FROM   (SELECT * 
+                                    FROM   billing.payment_applications 
+                                    WHERE  id = uad.payment_application_id) old_row 
+                            ) old_value),
                         update_claim_details AS(
                             UPDATE billing.claims
                             SET
                                 billing_notes = ${params.billingNotes}
                               , payer_type = ${params.payerType}
                             WHERE
-                                id = ${params.claimId}),
+                                id = ${params.claimId}
+                            RETURNING *,
+                            (
+                                SELECT row_to_json(old_row) 
+                                FROM   (SELECT * 
+                                    FROM   billing.claims 
+                                    WHERE  id = ${params.claimId}) old_row 
+                            ) old_value),
                         update_claim_comments AS(
                             INSERT INTO billing.claim_comments
                             ( claim_id
@@ -553,7 +567,8 @@ module.exports = {
                             , false
                             , created_by
                             , now()
-                            FROM claim_comment_details),
+                            FROM claim_comment_details
+                            RETURNING *, '{}'::jsonb old_values),
                         update_cas_application AS(
                                     UPDATE billing.cas_payment_application_details bcpad
                                         SET
@@ -562,6 +577,13 @@ module.exports = {
                                           , amount = cad.amount
                                     FROM cas_application_details cad
                                     WHERE cad.cas_id = bcpad.id 
+                                    RETURNING *,
+                                    (
+                                        SELECT row_to_json(old_row) 
+                                        FROM   (SELECT * 
+                                            FROM   billing.cas_payment_application_details 
+                                            WHERE  id = cad.cas_id) old_row 
+                                    ) old_values
                                 ),
                         insert_cas_applications AS (
                                 INSERT INTO billing.cas_payment_application_details
@@ -578,8 +600,107 @@ module.exports = {
                                   , amount
                                 FROM cas_application_details
                                 WHERE cas_id is null
+                                RETURNING *, '{}'::jsonb old_values
+                            ),
+                            update_applications_audit_cte as(
+                                SELECT billing.create_audit(
+                                    ${params.companyId}
+                                    , ${params.entityName}
+                                    , id
+                                    , ${params.screenName}
+                                    , ${params.moduleName}
+                                    , 'Payment application updated payment id : ' || payment_id
+                                    , ${params.clientIp}
+                                    , json_build_object(
+                                        'old_values', COALESCE(old_value, '{}'),
+                                        'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_applications limit 1) temp_row)
+                                    )::jsonb
+                                    , ${params.userId}
+                                ) AS id 
+                                FROM update_applications
+                                WHERE id IS NOT NULL
+                            ),
+                            update_claims_audit_cte as(
+                                SELECT billing.create_audit(
+                                    ${params.companyId}
+                                    , 'claims'
+                                    , id
+                                    , ${params.screenName}
+                                    , ${params.moduleName}
+                                    , 'Claim updated id :' || id
+                                    , ${params.clientIp}
+                                    , json_build_object(
+                                        'old_values', COALESCE(old_value, '{}'),
+                                        'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_claim_details) temp_row)
+                                    )::jsonb
+                                    , ${params.userId}
+                                ) AS id 
+                                FROM update_claim_details
+                                WHERE id IS NOT NULL
+                            ),
+                            insert_claim_comment_audit_cte as(
+                                SELECT billing.create_audit(
+                                    ${params.companyId}
+                                    ,'claim_comments'
+                                    , id
+                                    , ${params.screenName}
+                                    , ${params.moduleName}
+                                    , 'Claim Comments inserted AS ' || ${params.claimCommentDetails}
+                                    , ${params.clientIp}
+                                    , json_build_object(
+                                        'old_values', COALESCE(old_values, '{}'),
+                                        'new_values', (${params.claimCommentDetails})::text
+                                    )::jsonb
+                                    , ${params.userId}
+                                ) AS id 
+                                FROM update_claim_comments
+                                WHERE id IS NOT NULL
+                            ),
+                            insert_cas_applications_audit as(
+                                SELECT billing.create_audit(
+                                    ${params.companyId}
+                                    , 'cas_payment_application_details'
+                                    , id
+                                    , ${params.screenName}
+                                    , ${params.moduleName}
+                                    , 'Cas details inserted For payment id : ' || ${params.paymentId}
+                                    , ${params.clientIp}
+                                    , json_build_object(
+                                        'old_values', COALESCE(old_values, '{}'),
+                                        'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM insert_cas_applications limit 1) temp_row)
+                                    )::jsonb
+                                    , ${params.userId}
+                                ) AS id 
+                                FROM insert_cas_applications
+                                WHERE id IS NOT NULL
+                            ),
+                            update_cas_applications_audit as(
+                                SELECT billing.create_audit(
+                                    ${params.companyId}
+                                    , 'cas_payment_application_details'
+                                    , id
+                                    , ${params.screenName}
+                                    , ${params.moduleName}
+                                    , 'Cas details Updated For payment id : ' || ${params.paymentId}
+                                    , ${params.clientIp}
+                                    , json_build_object(
+                                        'old_values', COALESCE(old_values, '{}'),
+                                        'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_cas_application limit 1) temp_row)
+                                    )::jsonb
+                                    , ${params.userId}
+                                ) AS id 
+                                FROM update_cas_application
+                                WHERE id IS NOT NULL
                             )
-                            SELECT true`;
+                            SELECT id from update_applications_audit_cte
+                            UNION
+                            SELECT id from update_claims_audit_cte
+                            UNION
+                            SELECT id from insert_claim_comment_audit_cte
+                            UNION
+                            SELECT id from update_cas_applications_audit
+                            UNION
+                            SELECT id from insert_cas_applications_audit`;
 
         return await query(sql);
     }

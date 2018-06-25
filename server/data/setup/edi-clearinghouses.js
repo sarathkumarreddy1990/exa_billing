@@ -8,7 +8,8 @@ module.exports = {
  
         let {
             name,
-            receiverName,
+            receiver_name,
+            edi_template_name,
             sortOrder,
             sortField,
             pageNo,
@@ -19,11 +20,15 @@ module.exports = {
         let whereQuery = [];
 
         if (name) {
-            whereQuery.push(` code ILIKE '%${name}%'`);
+            whereQuery.push(` name ILIKE '%${name}%'`);
         }
 
-        if (receiverName) {
-            whereQuery.push(` description ILIKE '%${receiverName}%'`);
+        if (receiver_name) {
+            whereQuery.push(` receiver_name ILIKE '%${receiver_name}%'`);
+        }
+
+        if (edi_template_name) {
+            whereQuery.push(` edi_template_name ILIKE '%${edi_template_name}%'`);
         }
 
         const sql = SQL`SELECT 
@@ -33,6 +38,7 @@ module.exports = {
                             , code
                             , name
                             , receiver_name
+                            , edi_template_name
                             , receiver_id
                             , communication_info
                             , COUNT(1) OVER (range unbounded preceding) as total_records
@@ -67,6 +73,7 @@ module.exports = {
                               , code
                               , name
                               , receiver_name
+                              , edi_template_name
                               , receiver_id
                               , communication_info
                         FROM   billing.edi_clearinghouses
@@ -83,6 +90,7 @@ module.exports = {
             code,
             name,
             receiverName,
+            ediTemplateName,
             receiverId,
             communicationInfo,
             isActive } = params;
@@ -96,6 +104,7 @@ module.exports = {
                                                   , code
                                                   , name
                                                   , receiver_name
+                                                  , edi_template_name
                                                   , receiver_id
                                                   , communication_info)
                                                 values
@@ -105,6 +114,7 @@ module.exports = {
                                                   , ${code}
                                                   , ${name}
                                                   , ${receiverName}
+                                                  , ${ediTemplateName}
                                                   , ${receiverId}
                                                   , ${communicationInfo} )
                                                   RETURNING *, '{}'::jsonb old_values`;
@@ -122,6 +132,7 @@ module.exports = {
             code,
             name,
             receiverName,
+            ediTemplateName,
             receiverId,
             communicationInfo,
             isActive } = params;
@@ -134,6 +145,7 @@ module.exports = {
                               code = ${code}
                             , name = ${name}
                             , receiver_name = ${receiverName}
+                            , edi_template_name = ${ediTemplateName}
                             , receiver_id = ${receiverId}
                             , communication_info = ${communicationInfo}
                             , inactivated_dt = ${inactivated_dt}

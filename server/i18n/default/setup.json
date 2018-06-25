@@ -14,7 +14,10 @@
             "module": "Module",
             "browser":"Browser",
             "operatingSystem":"Operating System",
-            "version": "Version"
+            "version": "Version",
+            "changes": "Changes",
+            "columns": "Columns",
+            "queriedValues": "Queried Values"
         },
         "adjustmentcodes": {
             "credit": "Credit",
@@ -85,6 +88,7 @@
             "name": "clearing houses name",
             "receiverName": "Receiver Name",
             "receiverID": "Receiver ID",
+            "ediTemplate": "EDI Template",
             "clearingHouseControlHeader"  : "Clearing House Control Header",
             "authInfo": "Auth. Info",
             "securityinfo":"Security. Info",
@@ -440,8 +444,14 @@
             "topMargin": "Margin Top",
             "rightMargin": "Margin Right",
             "bottomMargin": "Margin Bottom",
-            "originalForm": "Original Form",
-            "fullForm": "Full Form"
+            "paperClaimFull": "Paper Claim Full",
+            "paperClaimOrg": "Paper Claim Original",
+            "directingInvoice":"Direct Invoice",
+            "patientInvoice":"Patient Invoice",
+            "templateType":"Template Type",
+            "definition":"Template Definition",
+            "pageHeight": "Page Height",
+            "pageWidth": "Page Width"
         }
     }
 }
