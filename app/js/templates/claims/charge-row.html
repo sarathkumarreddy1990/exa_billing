@@ -5,7 +5,7 @@
         <td>
             <span id="spDeleteCharge_<%= row.data_row_id %>" class="icon  icon-ic-close removecharge"></span>
         </td>
-        <td>
+        <td style="display: none">
             <span class="charges__accession-num" id="spAccessionNo_<%= row.data_row_id %>">
                 <%= row.accession_no %>
             </span>
@@ -16,10 +16,10 @@
             </span>
         </td>
         <td class="charges__cpt-code">
-            <select id="txtCptCode_<%= row.data_row_id %>"  class="cptIsExists cptcode" style="width: 250px"></select>
+            <select id="txtCptCode_<%= row.data_row_id %>"  class="cptIsExists cptcode" ></select>
         </td>
         <td class="charges__cpt-description">
-            <select id="txtCptDescription_<%= row.data_row_id %>" class="cptdescription" style="width: 250px"></select>
+            <select id="txtCptDescription_<%= row.data_row_id %>" class="cptdescription"></select>
         </td>
         <td>
             <input id="ddlPointer1_<%= row.data_row_id %>" class="form-control inputModifiers typeahead diagCodes" data-type="P1" data-value="<%= row.data_row_id %>" type="text">

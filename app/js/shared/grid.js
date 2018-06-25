@@ -287,12 +287,18 @@ define('grid', [
                 var liCreateClaim = commonjs.getRightClickMenu('anc_create_claim','setup.rightClickMenu.createClaim',false,'Create Claim',false);
                 $divObj.append(liCreateClaim);
                 $('#anc_create_claim').off().click(function () {
-                    window.localStorage.setItem('selected_studies', null);
-                    window.localStorage.setItem('first_study_details', null);
-                    window.localStorage.setItem('primary_study_details', JSON.stringify(selectedStudies[0]));
-                    window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
+
+                    /**
+                     * ToDo:: Once listout studies from patient have to remove this function
+                    */
+                    // window.localStorage.setItem('selected_studies', null);
+                    // window.localStorage.setItem('first_study_details', null);
+                    // window.localStorage.setItem('primary_study_details', JSON.stringify(selectedStudies[0]));
+                    // window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
+                    
                     self.claimView = new claimsView();
-                    self.claimView.showClaimForm(studyIds);
+                    //self.claimView.showClaimForm(studyIds); 
+                    self.claimView.showPatientForm();
                 });
             }
 

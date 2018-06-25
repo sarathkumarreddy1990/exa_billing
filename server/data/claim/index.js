@@ -556,6 +556,47 @@ module.exports = {
         return await query(sql);
     },
 
+    saveChargesOnly: async function (params) {
+
+        const sql = SQL`INSERT INTO billing.charges 
+                                    ( claim_id     
+                                    , cpt_id
+                                    , modifier1_id
+                                    , modifier2_id
+                                    , modifier3_id
+                                    , modifier4_id
+                                    , bill_fee
+                                    , allowed_amount
+                                    , units
+                                    , created_by
+                                    , charge_dt
+                                    , pointer1
+                                    , pointer2
+                                    , pointer3
+                                    , pointer4
+                                    , authorization_no)
+                                values 
+                                    ( ${params.claim_id}
+                                    , ${params.cpt_id}
+                                    , ${params.modifier1_id}
+                                    , ${params.modifier2_id}
+                                    , ${params.modifier3_id}
+                                    , ${params.modifier4_id}
+                                    , ${params.bill_fee}
+                                    , ${params.allowed_amount}
+                                    , ${params.units}
+                                    , ${params.created_by}
+                                    , ${params.charge_dt}
+                                    , ${params.pointer1}
+                                    , ${params.pointer2}
+                                    , ${params.pointer3}
+                                    , ${params.pointer4}
+                                    , ${params.authorization_no}
+                                ) RETURNING billing.charges.id `;
+
+        return await query(sql);
+    },
+
     getClaimData: async (params) => {
 
         const get_claim_sql = SQL`
@@ -721,10 +762,10 @@ module.exports = {
                                 , ch.authorization_no
                                 , (ch.units * ch.bill_fee)::numeric as total_bill_fee
                                 , (ch.units * ch.allowed_amount)::numeric as total_allowed_fee
-                                , chs.study_id
+                                -- , chs.study_id
                             FROM billing.charges ch 
                                 INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id 
-                                INNER JOIN billing.charges_studies chs ON chs.charge_id = ch.id
+                                -- INNER JOIN billing.charges_studies chs ON chs.charge_id = ch.id
                             WHERE claim_id = c.id 
                             ORDER BY ch.id, ch.line_num ASC
                       ) pointer) AS claim_charges
