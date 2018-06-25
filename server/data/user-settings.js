@@ -19,6 +19,10 @@ module.exports = {
                  ,default_column_order_by
                  ,default_column
                  ,default_tab
+                 ,paper_claim_full_template_id
+                 ,paper_claim_original_template_id
+                 ,direct_invoice_template_id
+                 ,patient_invoice_template_id
                 )
             SELECT
                   ${args.userId}
@@ -27,6 +31,10 @@ module.exports = {
                 , ${args.claim_sort_order}
                 , ${args.claim_col_name}
                 , ${args.default_tab}
+                , ${args.paper_claim_full}
+                , ${args.paper_claim_original}
+                , ${args.direct_invoice}
+                , ${args.patient_invoice}
             WHERE NOT EXISTS (
                 SELECT * FROM billing.user_settings WHERE user_id = ${args.userId} AND grid_name = ${args.flag}
             )
@@ -41,6 +49,10 @@ module.exports = {
                 ,default_column_order_by = ${args.claim_sort_order}
                 ,default_column = ${args.claim_col_name}
                 ,default_tab = ${args.default_tab}
+                ,paper_claim_full_template_id = ${args.paper_claim_full}
+                ,paper_claim_original_template_id = ${args.paper_claim_original}
+                ,direct_invoice_template_id = ${args.direct_invoice}
+                ,patient_invoice_template_id = ${args.patient_invoice}
             WHERE 
                 user_id = ${args.userId}
                 AND grid_name = ${args.flag}
@@ -63,7 +75,11 @@ module.exports = {
             , default_column 
             , default_column_order_by
             , id AS user_setting_id
-            , default_column
+            , default_column 
+            , paper_claim_full_template_id AS "paper_claim_full"
+            , paper_claim_original_template_id AS "paper_claim_original"
+            , direct_invoice_template_id AS "direct_invoice"
+            , patient_invoice_template_id AS "patient_invoice"
 
         FROM 
            billing.user_settings WHERE user_id = ${params.userId} 
