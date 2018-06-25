@@ -670,5 +670,21 @@ module.exports = {
 						RETURNING bc.id`;
 
         return await query(sql);
-    }
+	},
+	
+	getClaimStudy: async (params) => {
+
+		let {
+			claim_id
+		} = params;
+
+		let sql = SQL`				
+					SELECT study_id 
+					FROM billing.charges_studies 
+					INNER JOIN billing.charges ON billing.charges.id = billing.charges_studies.charge_id 
+					WHERE billing.charges.claim_id = ${claim_id}
+					LIMIT 1`;
+
+		return await query(sql);
+	}
 };

@@ -187,6 +187,10 @@ module.exports = {
 
     deleteClaim:function (params) {
         return data.deleteClaim(params);
+    },
+
+    getClaimStudy: function(params) {
+        return data.getClaimStudy(params);
     }
 
 
