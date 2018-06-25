@@ -370,6 +370,8 @@ define(['jquery',
                             self.ICDID = self.icd_code = self.icd_description = '';
 
                             $('#btnSaveClaim').attr('disabled', false);
+                            
+                            $("#txtClaimDate").attr("disabled", "disabled");                             
 
                             setTimeout(function () {
                                 self.bindDefaultClaimDetails(claimDetails);
