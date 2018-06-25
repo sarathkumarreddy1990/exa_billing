@@ -15,7 +15,7 @@ WITH claim_data as(
        id as claim_id 
     FROM billing.claims bcc
     WHERE 1=1 
-    AND <%= claimIds %>
+    AND  bcc.id = 7331
    
     and payer_type = 'patient'
     ),
@@ -693,14 +693,14 @@ const api = {
         params.push(reportParams.companyId);
         filters.companyId = queryBuilder.where('bc.id', '=', [params.length]);
 
-        params.push(reportParams.claimID);
-        filters.claimIds = queryBuilder.where('bcc.id', '=', [params.length]);
+        // params.push(reportParams.claimID);
+        // filters.claimIds = queryBuilder.where('bcc.id', '=', [params.length]);
 
-          // patients
-          if (reportParams.patientOption === 'S' && reportParams.patientIds) {
-            params.push(reportParams.patientIds);
-            filters.patientIds = queryBuilder.whereIn(`p.id`, [params.length]);
-          }
+        //   // patients
+        //   if (reportParams.patientOption === 'S' && reportParams.patientIds) {
+        //     params.push(reportParams.patientIds);
+        //     filters.patientIds = queryBuilder.whereIn(`p.id`, [params.length]);
+        //   }
 
 
            // billing providers

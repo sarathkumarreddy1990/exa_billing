@@ -10901,7 +10901,7 @@ var facilityModules = {
         patientStatement: 'Patient Statement',
         patientActivityStatement: 'Patient Statement',
         claimTransaction: 'Claim Transaction',
-        insuranceVsLOP: 'Insurance Vs. LOP',
+        insuranceVsLOP: 'Insurance Vs LOP',
         claimInquiry: 'Claim Inquiry',
         monthlyGoals: 'Monthly/Daily Study Goals',
         statTracking: 'STAT Tracking',

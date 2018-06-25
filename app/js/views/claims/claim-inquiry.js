@@ -39,6 +39,10 @@ define([
             payCmtGrid:'',
             claim_id: null,
 
+            events: {
+                "click #btnCIPatientInquiry":"generatePatientActivity"  
+            },
+
             initialize: function (options) {
                 this.options = options;
                 this.pager = new Pager();
@@ -701,6 +705,14 @@ define([
                 } else {
                     commonjs.showWarning('Error on process claim');
                 }
+            },
+            generatePatientActivity: function(e){  
+                var self = this;
+                self.patientActivityStatement = new patientActivityStatement({ el: $('#modal_div_container') });
+                var claimInfo = {                   
+                    'claimID':self.claim_id
+                }
+                self.patientActivityStatement.onReportViewClick(e, claimInfo);
             }
         });
 
