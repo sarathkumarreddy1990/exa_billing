@@ -34,8 +34,8 @@ module.exports = {
         // pdfPrinter.createPdf(docDefinition).download('optionalName.pdf');
     },
 
-    getPaperClaimTemplate: function (params) {
-        return data.getPaperClaimTemplate(params);
+    getPrinterTemplate: function (params) {
+        return data.getPrinterTemplate(params);
     },
 
     getEDIClaim: async (params) => {    

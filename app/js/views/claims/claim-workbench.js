@@ -393,8 +393,8 @@ define(['jquery',
 
                     var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'billing_method');
                     if (existingBillingMethod == '') existingBillingMethod = billingMethod
-                    if (existingBillingMethod != billingMethod || (billingMethod != 'electronic_billing')) {
-                        commonjs.showWarning('Please select claims with same type of billing method and electronic billing method');
+                    if (existingBillingMethod != billingMethod) {
+                        commonjs.showWarning('Please select claims with same type of billing method');
                         return false;
                     } else {
                         existingBillingMethod = billingMethod;
@@ -409,14 +409,14 @@ define(['jquery',
                         existingClearingHouse = clearingHouse;
                     }
 
-                    var ediTemplate = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'edi_template');
-                    if (existingEdiTemplate == '') existingEdiTemplate = ediTemplate;
-                    if (existingEdiTemplate != ediTemplate) {
-                        commonjs.showWarning('Please select claims with same type of  edi template Claims ');
-                        return false;
-                    } else {
-                        existingEdiTemplate = ediTemplate;
-                    }
+                    // var ediTemplate = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'edi_template');
+                    // if (existingEdiTemplate == '') existingEdiTemplate = ediTemplate;
+                    // if (existingEdiTemplate != ediTemplate) {
+                    //     commonjs.showWarning('Please select claims with same type of  edi template Claims ');
+                    //     return false;
+                    // } else {
+                    //     existingEdiTemplate = ediTemplate;
+                    // }
 
                     claimIds.push(rowId);
                 }
@@ -427,8 +427,13 @@ define(['jquery',
                     return false;
                 }
 
+                /// Possible values for template type --
+                /// "direct_invoice"
+                /// "paper_claim_full"
+                /// "paper_claim_original"
+                /// "patient_invoice"
                 if(existingBillingMethod === 'paper_claim') {
-                    paperClaim.print(claimIds);
+                    paperClaim.print('paper_claim_original', claimIds);
                     return;
                 }
 
