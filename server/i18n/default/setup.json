@@ -88,6 +88,7 @@
             "name": "clearing houses name",
             "receiverName": "Receiver Name",
             "receiverID": "Receiver ID",
+            "ediTemplate": "EDI Template",
             "clearingHouseControlHeader"  : "Clearing House Control Header",
             "authInfo": "Auth. Info",
             "securityinfo":"Security. Info",
@@ -209,9 +210,14 @@
             "billingProvider": "Billing Provider",
             "defaultColumn": "Default Column",
             "defaultSortOrder": "Default Sort Order",
+            "paperClaimFullForm": "Paper Claim(Full)",
+            "paperClaimOriginalForm" : "Paper Claim(Original)",
+            "directInvoice": "Direct Invoice",
+            "patientInvoice": "Patient Invoice",
             "headings":{
               "Settings":"Settings",
-              "columnSort":"Column Order"
+              "columnSort":"Column Order",
+              "printerTemplates" : "Printer Template"
             }
       },
         "rightClickMenu":{
