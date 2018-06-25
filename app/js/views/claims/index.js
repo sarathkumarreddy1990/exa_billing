@@ -2895,6 +2895,8 @@ define(['jquery',
                     payer_id: self.cur_patient_id
                 });
                 
+                $('#ddlFacility').val(app.facilityID || '');
+
                 if (app.facilityID) {
                     self.updateResponsibleList({
                         payer_type: 'PF',
@@ -2903,7 +2905,6 @@ define(['jquery',
                     });
                 }
 
-                $('#ddlFacility').val(app.facilityID || '');
                 $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
                 $('#ddlResponsible').val('PPP');
 
