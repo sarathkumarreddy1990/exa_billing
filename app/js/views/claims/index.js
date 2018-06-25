@@ -2426,7 +2426,7 @@ define(['jquery',
                 }
 
                 if (flag && payer_type) {
-
+                    $('#ddlExist' + flag + 'Ins').val('');
                     $('#txt' + flag + 'Insurance').val('');
                     $('#select2-ddl' + flag + 'Insurance-container').html(self.usermessage.selectCarrier);
 
