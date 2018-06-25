@@ -1876,7 +1876,7 @@ define(['jquery',
                     document.querySelector('#txt' + flag + 'ExpDate').value = result.valid_to_date ? moment(result.valid_to_date).format('DD/MM/YYYY') : '';
                     document.querySelector('#txt' + flag + 'DOB').value = result.subscriber_dob ? moment(result.subscriber_dob).format('YYYY-MM-DD') : '';
                     $('#select2-ddl' + flag + 'Insurance-container').html(result.insurance_name);
-                    $('#chk' + flag + 'AcptAsmt').prop('checked', result.assign_benefits_to_patient);
+                    $('#chk' + flag + 'AcptAsmt').prop('checked', result.assign_benefits_to_patient);                    
                     $('#lbl' + flag + 'InsPriAddr').html(result.ins_pri_address);
                     var csz = result.ins_city + (commonjs.checkNotEmpty(result.ins_state) ? ',' + result.ins_state : "") + (commonjs.checkNotEmpty(result.ins_zip_code) ? ',' + result.ins_zip_code : "");
                     $('#lbl' + flag + 'InsCityStateZip').html(csz);
@@ -2423,7 +2423,7 @@ define(['jquery',
                 }
 
                 if (flag && payer_type) {
-
+                    $('#ddlExist' + flag + 'Ins').val('');
                     $('#txt' + flag + 'Insurance').val('');
                     $('#select2-ddl' + flag + 'Insurance-container').html(self.usermessage.selectCarrier);
 
