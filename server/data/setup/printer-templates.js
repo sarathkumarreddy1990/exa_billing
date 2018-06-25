@@ -11,6 +11,7 @@ module.exports = {
         params.sortOrder = params.sortOrder || ' ASC';
         let {
             name,
+            template_type,
             sortOrder,
             sortField,
             pageNo,
@@ -21,13 +22,18 @@ module.exports = {
             whereQuery.push(` name ILIKE '%${name}%'`);
         }
 
+        if (template_type) {
+            whereQuery.push(` template_type ILIKE '%${template_type}%'`);
+        }
+
         const sql = SQL`SELECT 
                           id
                         , name
                         , inactivated_dt
+                        , template_type
                         , COUNT(1) OVER (range unbounded preceding) AS total_records
                     FROM   
-                        billing.paper_claim_templates `;
+                        billing.printer_templates `;
 
         if (whereQuery.length) {
             sql.append(SQL` WHERE `)
@@ -50,11 +56,17 @@ module.exports = {
         const sql = SQL`SELECT 
                           id
                         , name
-                        , orginal_form_template
-                        , full_form_template
+                        , left_margin 
+                        , right_margin 
+                        , top_margin 
+                        , bottom_margin 
+                        , template_content
                         , inactivated_dt
+                        , page_width
+                        , page_height
+                        , template_type
                     FROM   
-                        billing.paper_claim_templates 
+                        billing.printer_templates 
                     WHERE 
                         id = ${id} `;
 
@@ -64,30 +76,48 @@ module.exports = {
     create: async (params) => {
         let {
             name,
-            orginalFormTemplate,
-            fullFormTemplate,
             isActive,
-            companyId
+            companyId,
+            marginRight,
+            marginLeft,
+            marginTop,
+            marginBottom,
+            height,
+            width,
+            type,
+            templateContent
         } = params;
 
         let inactivated_date = isActive ? null : ' now() ';
 
         const sql = SQL`
-                    INSERT INTO billing.paper_claim_templates 
+                    INSERT INTO billing.printer_templates 
                     ( 
                         company_id, 
                         name, 
-                        orginal_form_template,
-                        full_form_template,
-                        inactivated_dt 
+                        template_content,
+                        inactivated_dt,
+                        left_margin,
+                        right_margin,
+                        top_margin,
+                        bottom_margin,
+                        page_height,
+                        page_width,
+                        template_type
                     ) 
                     VALUES 
                     ( 
                         ${companyId}, 
                         ${name}, 
-                        ${orginalFormTemplate}, 
-                        ${fullFormTemplate}, 
-                        ${inactivated_date} 
+                        ${templateContent}, 
+                        ${inactivated_date},
+                        ${marginLeft},
+                        ${marginRight},
+                        ${marginTop},
+                        ${marginBottom},
+                        ${height},
+                        ${width},
+                        ${type} 
                     )
                     RETURNING *, '{}'::jsonb old_values
         `;
@@ -103,28 +133,40 @@ module.exports = {
         let {
             name,
             //flag,
-            orginalFormTemplate,
-            fullFormTemplate,
             id,
-            isActive
+            isActive,
+            marginRight,
+            marginLeft,
+            marginTop,
+            marginBottom,
+            height,
+            width,
+            type,
+            templateContent
         } = params;
 
         let inactivated_date = isActive ? null : ' now() ';
 
         let sql = SQL`UPDATE
-                             billing.paper_claim_templates 
+                             billing.printer_templates 
                         SET  
-                              name = ${name}
-                              , orginal_form_template = ${orginalFormTemplate}
-                              , full_form_template = ${fullFormTemplate}
+                                name = ${name}
+                              , template_content = ${templateContent}
                               , inactivated_dt = ${inactivated_date}
+                              , left_margin = ${marginLeft}
+                              , right_margin = ${marginRight}
+                              , top_margin = ${marginTop}
+                              , bottom_margin = ${marginBottom}
+                              , page_height = ${height}
+                              , page_width = ${width}
+                              , template_type = ${type}
                         WHERE
                             id = ${id} 
                         RETURNING *,
                             (
                                 SELECT row_to_json(old_row) 
                                 FROM   (SELECT * 
-                                        FROM   billing.paper_claim_templates 
+                                        FROM   billing.printer_templates 
                                         WHERE  id = ${id}) old_row 
                             ) old_values
                     `;
@@ -139,7 +181,7 @@ module.exports = {
         const { id } = params;
 
         const sql = SQL`DELETE FROM 
-                            billing.paper_claim_templates 
+                            billing.printer_templates 
                         WHERE id = ${id}
                         RETURNING *, '{}'::jsonb old_values
                         `;

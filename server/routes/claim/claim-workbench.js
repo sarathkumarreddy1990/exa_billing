@@ -23,7 +23,7 @@ router.get('/claims_total_records', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
-router.put('/update', async function (req, res) {
+router.put('/claims/update', async function (req, res) {
     const data = await claimWorkbenchController.updateClaimStatus(req.body);
     httpHandler.sendRows(req, res, data);
 });
@@ -33,8 +33,8 @@ router.get('/claim_json', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
-router.get('/paper_claim_template', async function (req, res) {
-    const data = await claimWorkbenchController.getPaperClaimTemplate(req.query);
+router.get('/printer_template', async function (req, res) {
+    const data = await claimWorkbenchController.getPrinterTemplate(req.query);
     httpHandler.sendRows(req, res, data);
 });
 
@@ -45,6 +45,11 @@ router.get('/create_claim', async function (req, res) {
 
 router.get('/validate_claims', async function (req, res) {
     const data = await claimWorkbenchController.validateClaim(req.query);
+    httpHandler.send(req, res, data);
+});
+
+router.put('/claims/delete', async function (req, res) {
+    const data = await claimWorkbenchController.deleteClaim(req.body);
     httpHandler.send(req, res, data);
 });
 

@@ -27,6 +27,9 @@ block content
                 li.nav-item.dropdown
                     a#aReports.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Reports
                     .dropdown-menu
+                        a.dropdown-item(href='#reports/r/aged-ar-summary') Aged AR Summary
+                        a.dropdown-item(href='#reports/r/aged-ar-details') Aged AR Details
+                        .dropdown-divider
                         a.dropdown-item(href='#reports/r/charges') Charges                        
                         a.dropdown-item(href='#reports/r/claim-activity') Claim Activity
                         a.dropdown-item(href='#reports/r/claim-inquiry') Claim Inquiry
@@ -34,14 +37,15 @@ block content
                         a.dropdown-item(href='#reports/r/credit-balance-encounters') Credit Balance Encounters
                         a.dropdown-item(href='#reports/r/diagnosis-count') Diagnosis Count  
                         .dropdown-divider
+                        a.dropdown-item(href='#reports/r/insurance-vs-lop') Insurance VS LOP
                         a.dropdown-item(href='#reports/r/modality-summary') Modality Summary
                         a.dropdown-item(href='#reports/r/monthly-recap') Monthly Recap
                         a.dropdown-item(href='#reports/r/patient-statement') Patient Statement
                         a.dropdown-item(href='#reports/r/payer-mix') Payer Mix
                         a.dropdown-item(href='#reports/r/payments') Payments  
-                        a.dropdown-item(href='#reports/r/patients-by-insurance-company') Patients By Ins. Company
-                        a.dropdown-item(href='#reports/r/payments-by-ins-company') Payments By Ins. Company
-                        a.dropdown-item(href='#reports/r/procedure-analysis-by-insurance') Procedure Analysis By
+                        a.dropdown-item(href='#reports/r/patients-by-insurance-company') Patients By Ins Company
+                        a.dropdown-item(href='#reports/r/payments-by-ins-company') Payments By Ins Company
+                        a.dropdown-item(href='#reports/r/procedure-analysis-by-insurance') Procedure Analysis By Insurance
                         a.dropdown-item(href='#reports/r/procedure-count') Procedure Count
                         .dropdown-divider
                         a.dropdown-item(href='#reports/r/reading-provider-fees') Reading Provider Fees
@@ -67,11 +71,11 @@ block content
                         //a.dropdown-item(href='#setup/provider_level_codes/list') Provider Level Codes
                         a.dropdown-item(href='#setup/status_color_codes/list') Status Color Codes
                         .dropdown-divider
+                        a.dropdown-item(href='#setup/validations/all') Billing Validations
+                        a.dropdown-item(href='#setup/edi_templates/all') EDI/ERA Templates
                         a.dropdown-item(href='#setup/edi_clearinghouses/list') EDI Clearinghouses
                         a.dropdown-item(href='#setup/insurance_x12_mapping/list') Insurance EDI Mapping
-                        a.dropdown-item(href='#setup/validations/all') Billing Validations
-                        a.dropdown-item(href='#setup/edi_templates/all') EDI Templates
-                        a.dropdown-item(href='#setup/paper_claim_templates/list') Paper Claim Templates
+                        a.dropdown-item(href='#setup/printer_templates/list') Printer Templates
 
                 li.nav-item.dropdown
                     a#aLog.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Log

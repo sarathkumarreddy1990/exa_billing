@@ -13,12 +13,12 @@ define([
 ) {
         return function () {
 
-            this.print = function (claimIDs) {
+            this.print = function (templateType, claimIDs) {
                 var self = this;
                 var win = window.open('', '_blank');
 
-                this.getTemplate(claimIDs, function (err, template) {
-                    self.getClaimObject(claimIDs, function (err, claimData) {
+                this.getTemplate(claimIDs, templateType, function (err, template) {
+                    self.getClaimObject(claimIDs, templateType, function (err, claimData) {
                         var docDefinition = self.mergeTemplate(template, claimData);
                         pdfMake.createPdf(docDefinition).open({}, win);
                         return;
@@ -30,20 +30,40 @@ define([
             };
 
             this.mergeTemplate = function (template, claimData) {
-                template = template.orginal_form_template;
+                template = template.template_content;
                 claimData = claimData.data[0];
 
-                template = { content: 'Corrected Claim', style: 'header', mergeField: 'data.date1' };
-                claimData = {
-                    data: {
-                        date1: 'hello'
-                    }
-                };
+                // template = { content: 'Corrected Claim', style: 'header', mergeField: 'data.date1' };
+                // claimData = {
+                //     data: {
+                //         date1: 'hello'
+                //     }
+                // };
 
+                var dd = null;
+
+                try {
+                    eval(template);
+                } catch (err) { console.log(err); }
+
+                if (!dd || typeof dd !== 'object') {
+                    return commonjs.showError('Invalid template');
+                }
+
+                template = this.mergeData(dd, claimData);
+
+                return template;
+            }
+
+            this.mergeData = function (template, data) {
                 for (var key in template) {
                     if (key === 'mergeField') {
-                        template.content = this.getDescendantProp(claimData, template[key]);
-                        delete template[key];
+                        template.text = this.getDescendantProp(data, template[key]);
+                        //delete template[key];
+                    }
+
+                    if (typeof template[key] === 'object' && Object.keys(template[key]).length > 0) {
+                        template[key] = this.mergeData(template[key], data);
                     }
                 }
 
@@ -73,10 +93,21 @@ define([
                 } catch (err) { return '' }
             }
 
-            this.getClaimObject = function (claimIDs, callback) {
+            this.getClaimObject = function (claimIDs, templateType, callback) {
+
+                var apis = {
+                    'paper_claim_original': '/exa_modules/billing/claim_workbench/claim_json',
+                    'paper_claim_full': '/exa_modules/billing/claim_workbench/claim_json',
+                    'direct_invoice': '/exa_modules/billing/claim_workbench/invoice_json',
+                    'patient_invoice': '/exa_modules/billing/claim_workbench/patient_invoice_json',
+                };
+
+                if (!apis[templateType]) {
+                    return callback(new Error('Invalid template type'));
+                }
 
                 $.ajax({
-                    url: '/exa_modules/billing/claimWorkbench/claim_json',
+                    url: apis[templateType],
                     data: {
                         claimIds: claimIDs
                     }, success: function (data, response) {
@@ -88,12 +119,13 @@ define([
                 });
             }
 
-            this.getTemplate = function (claimIDs, callback) {
+            this.getTemplate = function (claimIDs, templateType, callback) {
 
                 $.ajax({
-                    url: '/exa_modules/billing/claimWorkbench/paper_claim_template',
+                    url: '/exa_modules/billing/claim_workbench/printer_template',
                     data: {
-                        claimIds: claimIDs
+                        claimIds: claimIDs,
+                        templateType: templateType
                     }, success: function (data, response) {
                         callback(null, data.length > 0 ? data[0] : {});
                     }, error: function (err, response) {

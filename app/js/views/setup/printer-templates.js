@@ -4,10 +4,10 @@ define(['jquery',
     'backbone',
     'jqgrid',
     'jqgridlocale',
-    'text!templates/setup/paper-claim-templates-grid.html',
-    'text!templates/setup/paper-claim-templates-form.html',
-    'collections/setup/paper-claim-templates',
-    'models/setup/paper-claim-templates',
+    'text!templates/setup/printer-templates-grid.html',
+    'text!templates/setup/printer-templates-form.html',
+    'collections/setup/printer-templates',
+    'models/setup/printer-templates',
     'models/pager',
     'ace/ace'
 ],
@@ -39,16 +39,19 @@ define(['jquery',
             highlighClass: {
                 'background': '#bbddff', 'border-radius': '6px'
             },
-            events: {
-                'click #aShowOriginalForm': 'showOriginalFormTemplates',
-                'click #aShowFullForm': 'showFullFormTemplates'
-            },
 
             initialize: function (options) {
                 var self = this;
                 this.options = options;
                 this.model = new PaperClaimTemplatesModel();
                 this.pager = new Pager();
+                this.templateType = [
+                    { 'value': "direct_invoice", 'text': "Direct Invoice" },
+                    { 'value': "patient_invoice", 'text': "Patient Invoice" },
+                    { 'value': "paper_claim_full", 'text': "Paper Claim Full" },
+                    { 'value': "paper_claim_original", 'text': "Paper Claim Original" }
+                    
+                ];
                 this.paperClaimTemplatesList = new PaperClaimTemplatesCollections();
                 $(this.el).html(this.paperClaimTemplatesGridTemplate());
             },
@@ -57,13 +60,21 @@ define(['jquery',
                 var self = this;
                 $('#divPaperClaimTemplatesGrid').show();
                 $('#divPaperClaimTemplatesForm').hide();
+
+                var templateType = commonjs.buildGridSelectFilter({
+                    arrayOfObjects: this.templateType,
+                    searchKey: "value",
+                    textDescription: "text",
+                    sort: true
+                });
+
                 this.paperClaimTemplatesTable = new customGrid();
                 this.paperClaimTemplatesTable.render({
                     gridelementid: '#tblPaperClaimTemplatesGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['', '', '', '', ''],
-                    i18nNames: ['', '', '', 'setup.paperClaimTemplates.templateName', 'is_active'],
+                    colNames: ['', '', '', '', '', ''],
+                    i18nNames: ['', '', '', 'setup.paperClaimTemplates.templateName', 'setup.paperClaimTemplates.templateType', 'is_active'],
                     colModel: [
                         {
                             name: 'id',
@@ -78,7 +89,7 @@ define(['jquery',
                             sortable: false,
                             search: false,
                             className: 'icon-ic-edit',
-                            route: '#setup/paper_claim_templates/edit/',
+                            route: '#setup/printer_templates/edit/',
                             formatter: function (e, model, data) {
                                 return "<span class='icon-ic-edit' title='click Here to Edit'></span>"
                             }
@@ -108,6 +119,13 @@ define(['jquery',
                         {
                             name: 'name',
                             searchFlag: '%'
+                        },
+                        {
+                            name: 'template_type',
+                            search: true,
+                            stype: 'select',
+                            searchoptions: { value: templateType } ,
+                            formatter: self.templateTypeFormatter
                         },
                         {
                             name: 'inactivated_dt',
@@ -143,7 +161,7 @@ define(['jquery',
                     header: { screen: 'PaperClaimTemplates', ext: 'paperClaimTemplates' }, grid: { id: '#tblPaperClaimTemplatesGrid' }, buttons: [
                         {
                             value: 'Add', class: 'btn btn-danger', i18n: 'shared.buttons.add', clickEvent: function () {
-                                Backbone.history.navigate('#setup/paper_claim_templates/new', true);
+                                Backbone.history.navigate('#setup/printer_templates/new', true);
                             }
                         },
                         {
@@ -181,16 +199,22 @@ define(['jquery',
                                 if (data) {
                                     $('#txtTemplateName').val(data.name ? data.name : '');
                                     $('#chkActive').prop('checked', data.inactivated_dt ? true : false);
-                                    self.templateData.originalForm = data.orginal_form_template ? data.orginal_form_template : "{}";
-                                    self.templateData.fullForm = data.full_form_template ? data.full_form_template : "{}";
-                                    self.setEditorContents(self.templateData.originalForm);
+                                    $('#txtRightMargin').val(data.right_margin ? data.right_margin : 0);
+                                    $('#txtLeftMargin').val(data.left_margin ? data.left_margin : 0),
+                                    $('#txtTopMargin').val(data.top_margin ? data.top_margin : 0),
+                                    $('#txtBottomMargin').val(data.bottom_margin ? data.bottom_margin : 0),
+                                    self.templateData = data.template_content ? data.template_content : "{}";
+                                    self.setEditorContents(self.templateData);
+                                    $('#txtPageHeight').val(data.page_height ? data.page_height : 0);
+                                    $('#txtPageWidth').val(data.page_width ? data.page_width : 0);
+                                    $('#ddlTemplateType').val(data.template_type ? data.template_type : '');
                                 }
                             }
                         }
                     });
                 } else {
                     this.model = new PaperClaimTemplatesModel();
-                    this.setEditorContents("{}");
+                    this.setEditorContents("var dd = { content: 'Test Data' }");
                 }
                 $('#aShowOriginalForm').parent('li:first').css(this.highlighClass);
                 
@@ -204,7 +228,7 @@ define(['jquery',
                         },
                         {
                             value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
-                                Backbone.history.navigate('#setup/paper_claim_templates/list', true);
+                                Backbone.history.navigate('#setup/printer_templates/list', true);
                             }
                         }
                     ]
@@ -219,6 +243,9 @@ define(['jquery',
                         templateName: {
                             required: true
                         }
+                        // templateType: {
+                        //     requires: true
+                        // }
                         // leftMargin: {
                         //     required: true
                         // },
@@ -234,6 +261,7 @@ define(['jquery',
                     },
                     messages: {
                         templateName: commonjs.getMessage("e", "Template Name")
+                        // templateName: commonjs.getMessage("e", "Template type")
                         // leftMargin: commonjs.getMessage("e", "Margin Left"),
                         // topMargin: commonjs.getMessage("e", "Margin Top"),
                         // rightMargin: commonjs.getMessage("e", "Margin Right"),
@@ -248,26 +276,78 @@ define(['jquery',
             },
 
             setEditorContents: function (content) {
+                var timer;
+                var lastGen, lastChanged;
+                var self = this;
                 var editor = ace.edit('paperClaimEditor');
+
                 editor.setTheme();
                 editor.setTheme("ace/theme/monokai");
                 editor.getSession().setMode("ace/mode/javascript");
-                $('#paperClaimEditor').height($('#data_container').outerHeight() - ($('#navPaperClaimTemplates').outerHeight() + $('#formPaperClaimTemplates').outerHeight()));
+                $('#paperClaimEditor').height($('#data_container').outerHeight() - $('#formPaperClaimTemplates').outerHeight());
                 editor.setValue(content);
+
+                generatePreview();
+
+                editor.getSession().on('change', function(e) {
+                    if (timer) {
+                        clearTimeout(timer);
+                    }
+
+                    lastChanged = new Date();
+        
+                    timer = setTimeout(function() {
+                        if (!lastGen || lastGen < lastChanged) {
+                            generatePreview();
+                        };
+                    }, 300);
+                });
+
+                function showStatus(msg) {
+                    $('#divPreviewLabel').html(msg);
+                    $('#divPreviewLabel').show();
+                    $('#ifrTemplatePreview').hide();
+                }
+
+                function generatePreview() {
+                    lastGen = new Date();
+
+                    try {
+                        eval(editor.getSession().getValue());
+
+                        $('#divPreviewLabel').hide();
+                        $('#ifrTemplatePreview').show();
+
+                        if (typeof dd === 'undefined') {
+                            return showStatus('Invalid template');
+                        }
+
+                        pdfMake.createPdf(dd).getDataUrl(function (outDoc) {
+                            document.getElementById('ifrTemplatePreview').src = outDoc;
+                        });
+                    } catch (err) {
+                        showStatus(err);
+                        return;
+                    }
+                }
             },
 
             save: function () {
-                if (this.templateToogleMode) {
-                    this.templateData.originalForm = ace.edit('paperClaimEditor').getValue();
-                } else {
-                    this.templateData.fullForm = ace.edit('paperClaimEditor').getValue();
-                }
+
+                this.templateData = ace.edit('paperClaimEditor').getValue();
+
                 this.model.set({
                     "name": $('#txtTemplateName').val(),
                     "isActive": !$('#chkActive').prop('checked'),
-                    "orginalFormTemplate": this.templateData.originalForm,
-                    "fullFormTemplate": this.templateData.fullForm,
-                    "companyId": app.companyID
+                    "marginRight": $('#txtRightMargin').val() ? $('#txtRightMargin').val() : 0,
+                    "marginLeft": $('#txtLeftMargin').val() ? $('#txtLeftMargin').val() : 0,
+                    "marginTop": $('#txtTopMargin').val() ? $('#txtTopMargin').val() : 0,
+                    "marginBottom": $('#txtBottomMargin').val() ? $('#txtBottomMargin').val(): 0,
+                    "templateContent": this.templateData,
+                    "companyId": app.companyID,
+                    "height":$('#txtPageHeight').val() ? $('#txtPageHeight').val() : 0,
+                    "width": $('#txtPageWidth').val() ? $('#txtPageWidth').val() : 0,
+                    "type" : $('#ddlTemplateType').val() 
                 });
 
                 this.model.save({
@@ -275,7 +355,7 @@ define(['jquery',
                         success: function (model, response) {
                             if (response) {
                                 commonjs.showStatus("Saved Successfully");
-                                location.href = "#setup/paper_claim_templates/list";
+                                location.href = "#setup/printer_templates/list";
                             }
                         },
                         error: function (model, response) {
@@ -284,23 +364,25 @@ define(['jquery',
                     });
             },
 
-            showOriginalFormTemplates: function () {
-                this.templateToogleMode = true;
-                $('#aShowOriginalForm').parent('li:first').css(this.highlighClass);
-                $('#aShowFullForm').parent('li:first').css({ 'background': 'none' });
-                var editor = ace.edit('paperClaimEditor');
-                this.templateData.fullForm = editor.getValue();
-                editor.setValue(this.templateData.originalForm);
+            templateTypeFormatter: function (cellvalue, options, rowObject) {
+                var colvalue = '';
+                switch (rowObject.template_type) {
+                    case "paper_claim_original":
+                        colvalue = 'Paper Claim Original';
+                        break;
+                    case "paper_claim_full":
+                        colvalue = 'Paper Claim Full';
+                        break;
+                    case "direct_invoice":
+                        colvalue = 'Direct Invoice';
+                        break;
+                    case "patient_invoice":
+                        colvalue = 'Patient Invoice';
+                        break;
+                }
+                return colvalue;
             },
 
-            showFullFormTemplates: function () {
-                this.templateToogleMode = false;
-                $('#aShowFullForm').parent('li:first').css(this.highlighClass);
-                $('#aShowOriginalForm').parent('li:first').css({ 'background': 'none' });
-                var editor = ace.edit('paperClaimEditor');
-                this.templateData.originalForm = editor.getValue();
-                editor.setValue(this.templateData.fullForm);
-            }
         });
         return PaperClaimTemplatesView;
     });

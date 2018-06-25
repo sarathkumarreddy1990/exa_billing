@@ -33,11 +33,11 @@ define([
             selectedBillingProList: [],
             selectedFacilityList: [],
             defaultyFacilityId: null,
-           
-          
+
+
             initialize: function (options) {
                 this.showForm();
-                this.$el.html(this.mainTemplate(this.viewModel));               
+                this.$el.html(this.mainTemplate(this.viewModel));
                 UI.initializeReportingViewModel(options, this.viewModel);
 
                 this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(1);
@@ -56,9 +56,9 @@ define([
                 var modelCollection = Backbone.Collection.extend({
                     model: Backbone.Model.extend({})
                 });
-               
-            },         
-           
+
+            },
+
             onReportViewClick: function (e, claimInfo) {
                 var btnClicked = e && e.target ? $(e.target) : null;
                 this.getSelectedFacility();
@@ -71,16 +71,28 @@ define([
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = openInNewTab && rFormat === 'pdf';
                 this.viewModel.paymentOptions = $('#ddlPaymentOption').val();
+                if (claimInfo.flag == "patientInvoice") {
+                    reportName = "patient-invoice";
                     var urlParams = {
-                        claimID : claimInfo
+                        claimIds: claimInfo.claimID,
+                        sDate: '2018-06-23'
+                       
                     }
-                    UI.showReport('patient-activity-statement', this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
+                }
+                else {
+                    var reportName = "patient-activity-statement";
+                    var urlParams = {
+                        claimID: claimInfo.claimID,
+                        sDate: '2018-06-23'
+                    }
+                }
+                UI.showReport(reportName, this.viewModel.reportCategory, 'pdf', urlParams, true);
             },
-          
 
-            
 
-           
+
+
+
 
             getSelectedFacility: function (e) {
                 var selected = $("#ddlFacilityFilter option:selected");
@@ -104,29 +116,10 @@ define([
             },
             getReportParams: function () {
                 var usersArray = [], userNameArray = [];
-                 $('#ulListUsers li a').each(function () {
-                     usersArray.push(~~$(this).attr('data-id'));
-                     userNameArray.push($(this).closest('li').find('span').text());
-                 });
-                return urlParams = {
-                    // 'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
-                    // 'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
-                    // 'fromDate': this.viewModel.dateFrom.format('YYYY-MM-DD'),
-                    // 'toDate': this.viewModel.dateTo.format('YYYY-MM-DD'),
-                    // 'summaryFlag': $('#chkSummary').prop('checked'),
-                    // 'detailsFlag': $('#chkDetails').prop('checked'),
-                    // 'paymentOption': this.viewModel.paymentOptions ? this.viewModel.paymentOptions : '',
-                    // 'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
-                    // 'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
-                    // 'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
-                    // 'userIds': $('#ddlUsersOption').val() == 'S' ? usersArray : '',
-                    // 'userName': $('#ddlUsersOption').val() == 'S' ? userNameArray : ''
-                    
-                    'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
-                    'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
-                    'sDate': '2018-06-23'
-                   
-                };
+                $('#ulListUsers li a').each(function () {
+                    usersArray.push(~~$(this).attr('data-id'));
+                    userNameArray.push($(this).closest('li').find('span').text());
+                });
             }
         });
 

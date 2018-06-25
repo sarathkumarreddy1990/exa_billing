@@ -2230,9 +2230,22 @@ var commonjs = {
 
         var errorMessage = '';
         commonjs.hideLoading();
-        if (response.responseJSON && response.responseJSON.errorCode) {
+
+        if (!response && err) {
+            response = err;
+        }
+
+        if (response && response.responseJSON && response.responseJSON.errorCode) {
             response.status = response.responseJSON.errorCode;
+        }
+
+        if (response && response.responseJSON && response.responseJSON.errorDesc) {
             errorMessage = response.responseJSON.errorDesc;
+        }
+
+        /// To handle http(EDI) connect issues
+        if (response && response.responseJSON && response.responseJSON.err) {
+            err = response.responseJSON.err;
         }
 
         switch (err.status || response.status ) {
@@ -2254,12 +2267,18 @@ var commonjs = {
             case '23505':
                 commonjs.showError('Duplicate record found');
                 break;
+            case '55801':
+                commonjs.showError('Unable to connect EDI Server');
+                break;
+            case 'HANDLED_EXCEPTION':
+                commonjs.showError(errorMessage || 'Error :(');
+                break;
             default:
                 commonjs.showError('messages.errors.someerror');
                 break;
         }
 
-        if(response.responseText && response.responseText.indexOf('INVALID_SESSION') > -1) {
+        if(response && response.responseText && response.responseText.indexOf('INVALID_SESSION') > -1) {
             $('#divPageLoading').hide();
             commonjs.showDialog({ header: 'Error', i18nHeader: 'messages.errors.serversideerror', width: '50%', height: '50%', html: response.responseText }, true);
         }
@@ -3140,6 +3159,10 @@ var commonjs = {
         }, {
                 type: type,
                 z_index: 1061,
+                delay: 2000,
+                placement: {
+                    align: 'right',
+                }
             });
     },
 
@@ -7233,13 +7256,35 @@ var commonjs = {
     },
 
     popOverActions: function (e) {
-        $("#showColor").show();
-        var div = $('#showColor');
-        $(document.body).append(div);
+        if ($('#showColor').is(':visible')) {
+            $('#showColor').hide();
+        }
+        else {
+            var statusCodes = app.status_color_codes && app.status_color_codes.length && app.status_color_codes || parent.app.status_color_codes;
+            if (statusCodes && statusCodes.length) {
+                var paymentStatus = $.grep(statusCodes, function (currentObj) {
+                    return ((currentObj.process_type == 'payment'));
+                });
 
-        var posX = $((e.target || e.srcElement)).offset().left - 20;
-        var posY = $((e.target || e.srcElement)).offset().top + 20;
-        $(div).css({ top: posY, left: posX, position: 'absolute' });
+                $('#showColor').empty();
+                $.each(paymentStatus, function (index, status) {
+                    $('#showColor').append(
+                        $('<div/>').append(
+                            $('<span/>').css({ 'width': '30px', 'height': '15px', 'display': 'inline-block', 'border': '1px solid ' + status.color_code, 'background-color': status.color_code }),
+                            $('<span/>').css({ 'margin-left': '20px', 'font-weight': 'bold' }).text(status.process_status)
+                        )
+                    )
+                });
+
+                $("#showColor").show();
+                var div = $('#showColor');
+                $(document.body).append(div);
+
+                var posX = $((e.target || e.srcElement)).offset().left;
+                var posY = $((e.target || e.srcElement)).offset().top + 20;
+                $(div).css({ top: posY, left: posX, position: 'absolute' });
+            }    
+        }    
     },
     disableKeys: function (e) {
         $("#" + element.id).data('tooltip').destroy();
@@ -10807,6 +10852,7 @@ var facilityModules = {
         'bloodPressure': 'Blood Pressure',
         'provider': 'Report Provider',
         agedarsummary: 'Aged AR Summary',
+        agedardetails: 'Aged AR Details',
         dailychargereport: 'Daily Charge Report',
         procedureanalysisbyinsurance: 'Procedure Analysis By Insurance',
         'appointmentListDateRange': 'Appointment List Date Range',
@@ -10855,7 +10901,7 @@ var facilityModules = {
         patientStatement: 'Patient Statement',
         patientActivityStatement: 'Patient Statement',
         claimTransaction: 'Claim Transaction',
-        insuranceVsLOP: 'Insurance Vs. LOP',
+        insuranceVsLOP: 'Insurance Vs LOP',
         claimInquiry: 'Claim Inquiry',
         monthlyGoals: 'Monthly/Daily Study Goals',
         statTracking: 'STAT Tracking',

@@ -12,6 +12,15 @@ module.exports = {
     },
 
     deletePayment: function (params) {
+        let auditDetails = {
+            company_id: params.companyId,
+            screen_name: params.screenName,
+            module_name: params.moduleName,
+            client_ip: params.clientIp,
+            user_id: parseInt(params.userId)
+        };
+        
+        params.auditDetails = auditDetails;
         return data.deletePayment(params);
     },
 
@@ -81,7 +90,7 @@ module.exports = {
         }
 
         async function appliedApplications(params) {
-
+            let claimCommentDetails = {};
             let updateAppliedPayments = [];
             let coPaycoInsDeductdetails = [];
             let { paymentId, line_items, user_id, coPay, coInsurance, deductible, claimId, adjestmentId } = params;
@@ -126,6 +135,8 @@ module.exports = {
                     type: 'co_insurance',
                     created_by: user_id
                 });
+
+                claimCommentDetails.coInsurance = coInsurance; 
             }
 
             if (coPay > 0) {
@@ -135,6 +146,8 @@ module.exports = {
                     type: 'co_pay',
                     created_by: user_id
                 });
+
+                claimCommentDetails.coPay = coPay; 
             }
 
             if (deductible > 0) {
@@ -144,11 +157,14 @@ module.exports = {
                     type: 'deductible',
                     created_by: user_id
                 });
+
+                claimCommentDetails.deductible = deductible; 
             }
 
             params.coPaycoInsDeductdetails = coPaycoInsDeductdetails;
             params.updateAppliedPayments = updateAppliedPayments;
             params.save_cas_details = save_cas_details;
+            params.claimCommentDetails = claimCommentDetails;
             return await data.updatePaymentApplication(params);
         }
 

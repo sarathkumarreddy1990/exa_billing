@@ -421,6 +421,12 @@ define([
                         }
 
                     ],
+                    afterInsertRow: function (rowid, rowdata) {
+                        if (!rowdata.is_active) {
+                            var $row = $('#tblStudyFilterGrid').find('#' + rowid);
+                            $row.css('text-decoration', 'line-through');
+                        }
+                    },
                     datastore: self.studyFiltersList,
                     container: self.el,
                     customizeSort: true,
@@ -556,7 +562,7 @@ define([
                             if (response) {
                                 $('#txtFilterName').val(response.filter_name);
                                 $('#txtFilterOrder').val(response.filter_order);
-                                $('#chkIsActive').prop('checked', response.is_active ? true : false);
+                                $('#chkIsActive').prop('checked', response.is_active ? false : true);
                                 $('#chkIsGlobalFilter').prop('checked', response.is_global_filter ? true : false);
                                 $('#chkDisplayAsTab').prop('checked', response.display_as_tab ? true : false);
                                 $('#chkDisplayAsDDL').prop('checked', response.display_in_ddl ? true : false);
@@ -848,7 +854,7 @@ define([
                     var filterType = 'claims';
                 filterName = $('#txtFilterName').val() ? $('#txtFilterName').val().trim() : '';
                 filterOrder = $('#txtFilterOrder').val() ? $('#txtFilterOrder').val().trim() : '';
-                isActive = $('#chkIsActive').is(":checked");
+                isActive = !$('#chkIsActive').is(":checked");
                 isGlobal = $('#chkIsGlobalFilter').is(":checked");
                 isDisplayAsTab = $('#chkDisplayAsTab').is(":checked");
                 isDisplayInDropDown = $('#chkDisplayAsDDL').is(":checked");
@@ -1238,7 +1244,7 @@ define([
                             toDate: $('#txtDateTo').val() ? $('#txtDateTo').val() : null,
                             toDateTime: $('#txtToTimeDate').val() ? $('#txtToTimeDate').val() : null,
                             isStudyDate: $('#rbtStudyDate').is(":checked"),
-                            dateType: $('#rbtStudyDate').is(":checked") ? "study_dt" : $('#rbtStudyReceivedDate').is(":checked") ? "study_received_dt" : $('#rbtScheduledDate').is(":checked") ? "scheduled_dt" : $('#rbtStatusChangeDate').is(":checked") ? "status_last_changed_dt" : "study_dt"
+                            dateType:  "claim_dt"
                         },
                         ClaimInformation: {
                             claimStatus: {
@@ -1295,32 +1301,26 @@ define([
                 switch (this.previous) {
                     case "tabDateTime":
                         $('#divDateTime').hide();
-                        $('#divStudyFilterDefaultContent').removeAttr('style').addClass('divStudyFilterDefaultContentHeightInfo')
                         this.previous = (e.currentTarget || e.srcElement).id;
                         break;
                     case "tabPatientInformation":
                         $('#divPatientInformation').hide();
-                        $('#divStudyFilterDefaultContent').addClass('divStudyFilterDefaultContentHeightInfo')
                         this.previous = (e.currentTarget || e.srcElement).id;
                         break;
                     case "tabStudyInformation":
                         $('#divStudyInformation').hide();
-                        $('#divStudyFilterDefaultContent').addClass('divStudyFilterDefaultContentHeightInfo')
                         this.previous = (e.currentTarget || e.srcElement).id;
                         break;
                     case "tabPhysician":
                         $('#divPhysician').hide();
-                        $('#divStudyFilterDefaultContent').removeClass('divStudyFilterDefaultContentHeightInfo')
                         this.previous = (e.currentTarget || e.srcElement).id;
                         break;
                     case "tabInsurance":
                         $('#divInsurance').hide();
-                        $('#divStudyFilterDefaultContent').removeClass('divStudyFilterDefaultContentHeightInfo')
                         this.previous = (e.currentTarget || e.srcElement).id;
                         break;
                     case "tabAssignToUser":
                         $('#divAssignToUser').hide();
-                        $('#divStudyFilterDefaultContent').removeClass('divStudyFilterDefaultContentHeightInfo')
                         this.previous = (e.currentTarget || e.srcElement).id;
                         break;
                     default :
@@ -1535,7 +1535,7 @@ define([
                     this.setOrderingFacilityAutoComplete()
                 }
                 else {
-                    setupList('listClaimInfo', app.claim_status, 'description', 'code');
+                    setupList('listClaimInfo', app.claim_status, 'description', 'id');
                     setupList('listBillingMethod', defaultBillingMethod, 'desc', 'code');
                     setupList('listPayerType', defaultPayerType, 'desc', 'code');
                     setupList('listBalance', app.balance, 'balance');

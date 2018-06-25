@@ -22,7 +22,10 @@ define([
     'routes/reports/monthly-recap',
     'routes/reports/claim-transaction',
     'routes/reports/procedure-analysis-by-insurance',
-    'routes/reports/credit-balance-encounters'
+    'routes/reports/credit-balance-encounters',
+    'routes/reports/aged-ar-summary',
+    'routes/reports/aged-ar-details',
+    'routes/reports/insurance-vs-lop'
 ], function (
     Backbone,
     BackboneSubroute,
@@ -31,7 +34,7 @@ define([
     ChargeReportRoute,
     ClaimActivityReportRoute,
     ClaimInquiryReportRoute,
-    PaymentReportRoute,   
+    PaymentReportRoute,
     PatientStatementRoute,
     MoadalitySummaryRoute,
     PayerMixRoute,
@@ -47,7 +50,10 @@ define([
     MonthlyRecapRoute,
     ClaimTransactionRoute,
     ProcedureAnalysisByInsuranceRoute,
-    CreditBalanceEncountersRoute
+    CreditBalanceEncountersRoute,
+    AgedArSummaryRoute,
+    AgedArDetailsRoute,
+    InsuranceVSLopRoute
 ) {
         return Backbone.SubRoute.extend({
             routes: {
@@ -71,6 +77,9 @@ define([
                 "r/claim-transaction": "startClaimTransactionReporting",
                 "r/procedure-analysis-by-insurance": "startProcedureAnalysisByInsuranceReporting",
                 "r/credit-balance-encounters": "startCreditBalanceEncountersReporting",
+                "r/aged-ar-summary": "startAgedARSummaryReporting",
+                "r/aged-ar-details": "startAgedARDetailsReporting",
+                "r/insurance-vs-lop": "startInsuranceVSLopReporting",
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -212,7 +221,7 @@ define([
                 }
             },
 
-            startProcedureCountViewReporting: function (subroute) {                
+            startProcedureCountViewReporting: function (subroute) {
                 if (this.checkLicense('Procedure Count') && !this.procedureCountRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.procedureCountRouter = new ProcedureCountRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -258,9 +267,36 @@ define([
             },
 
             startCreditBalanceEncountersReporting: function (subroute) {
-                if (this.checkLicense('Procedure Analysis By Insurance') && !this.creditBalanceEncounterRouter) {
+                if (this.checkLicense('Credit Balance Encounters') && !this.creditBalanceEncounterRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.creditBalanceEncounterRouter = new CreditBalanceEncountersRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startAgedARSummaryReporting: function (subroute) {
+                if (this.checkLicense('Aged AR Summary') && !this.agedARSummaryRouter) {
+                    this.defaultArgs.routePrefix = 'reports/r/';
+                    this.agedARSummaryRouter = new AgedArSummaryRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startAgedARDetailsReporting: function (subroute) {
+                if (this.checkLicense('Aged AR Details') && !this.agedARDetailsRouter) {
+                    this.defaultArgs.routePrefix = 'reports/r/';
+                    this.agedARDetailsRouter = new AgedArDetailsRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startInsuranceVSLopReporting: function (subroute) {
+                if (this.checkLicense('Insurance VS LOP') && !this.insuranceVsLOPRouter) {
+                    this.defaultArgs.routePrefix = 'reports/r/';
+                    this.insuranceVsLOPRouter = new InsuranceVSLopRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }

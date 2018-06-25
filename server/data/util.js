@@ -248,7 +248,7 @@ const util = {
 
                 if (filterObj.ClaimInformation.payerType) {
                     let obj = filterObj.ClaimInformation.payerType;
-                    let l = obj.length;
+                    let l = obj.list.length;
                     let PayerTypeQuery = '';
 
                     if (l > 0) {
@@ -269,13 +269,13 @@ const util = {
                     }
                 }  
 
-                if (filterObj.ClaimInformation.balance) {
-                    let obj = filterObj.ClaimInformation.balance;
+                if (filterObj.ClaimInformation.balance&&filterObj.ClaimInformation.balance.list) {
+                    let obj = filterObj.ClaimInformation.balance.list;
                     let BalanceQuery = '';
 
-                    BalanceQuery += ' AND (select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from BILLING.get_claim_totals(claims.id))::numeric' +  obj.value +'::numeric';
+                    BalanceQuery += '  (select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from BILLING.get_claim_totals(claims.id))::numeric' +  obj +'::numeric';
 
-                    query += BalanceQuery ;
+                    query += util.getRelationOperator(query) + BalanceQuery ;
 
                    
                 }

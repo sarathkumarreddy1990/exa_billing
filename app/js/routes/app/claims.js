@@ -27,6 +27,7 @@ define([
             initializeRouter: function () {
                 this.options.screen = "ClaimWorkbench";//facilityModules.setupScreens.icd;
                 this.options.currentView = this.claimWorkbenchScreen;
+                this.options.module ="Claims";
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {

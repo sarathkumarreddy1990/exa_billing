@@ -72,6 +72,7 @@ const pgData = {
     queryWithAudit: async function (query, args) {
         let {
             userId,
+            entityName,
             screenName,
             moduleName,
             logDescription,
@@ -87,7 +88,7 @@ const pgData = {
                 audit_cte AS (
                     SELECT billing.create_audit(
                         ${companyId},
-                        ${screenName},
+                        ${entityName || screenName},
                         cte.id,
                         ${screenName},
                         ${moduleName},

@@ -1,7 +1,15 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-2 settings-nav">
-            <ul class="nav nav-pills flex-column">
+            <ul class="nav nav-pills flex-column" id="ulLogNav">
+                <li class="nav-item">
+                    <a class="nav-link" id="aAuditLog" href="#setup/audit_log/list">Audit Log</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="aUserLog" href="#setup/user_log/list">User Log</a>
+                </li>
+            </ul>
+            <ul class="nav nav-pills flex-column" id="ulSetupNav">
                 <li class="nav-item">
                     <a class="nav-link" id="aAdjustmentCodes" href="#setup/adjustment_codes/list">Adjustment Codes</a>
                 </li>
@@ -38,7 +46,7 @@
                     <a class="nav-link" id="aStatusColorCodes" href="#setup/status_color_codes/list">Status Color Codes</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" id="aEDIClearingHouses" href="#setup/edi_clearinghouses/list">EDI ClearingHouses</a>
+                    <a class="nav-link" id="aEDIClearingHouses" href="#setup/edi_clearinghouses/list">EDI Clearinghouses</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" id="aInsuranceX12Mapping" href="#setup/insurance_x12_mapping/list">Insurance EDI Mapping</a>
@@ -50,6 +58,12 @@
                 -->
                 <li class="nav-item">
                     <a class="nav-link" id="aBillingValidations" href="#setup/validations/all">Billing Validations</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="aEDITemplate" href="#setup/edi_templates/all">EDI/ERA Templates</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="aPaperClaimTemplate" href="#setup/printer_templates/list">Printer Templates</a>
                 </li>
             </ul>
         </div>

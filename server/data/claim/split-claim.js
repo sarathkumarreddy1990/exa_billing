@@ -35,7 +35,12 @@ module.exports = {
 
         let {
             claim_id,
-            cpt_ids
+            cpt_ids,
+            screenName,
+            moduleName,
+            clientIp,
+            userId,
+            companyId
         } = params;
 
         cpt_ids = cpt_ids.split(',');
@@ -43,7 +48,7 @@ module.exports = {
         let sql =SQL` WITH new_claim AS (
                         INSERT INTO billing.claims
                             (
-                                company_id 
+                                  company_id 
                                 , facility_id
                                 , patient_id 
                                 , billing_provider_id
@@ -117,7 +122,7 @@ module.exports = {
                                 , service_by_outside_lab 
                             FROM billing.claims bc
                             WHERE bc.id = ${claim_id}
-                            RETURNING id 
+                            RETURNING *, '{}'::jsonb old_values 
                         ),
                         update_charge AS (
                             UPDATE 
@@ -126,7 +131,13 @@ module.exports = {
                                 claim_id  = (SELECT id FROM new_claim)
                             WHERE 
                                 ch.id = ANY(${cpt_ids})
-                            RETURNING *
+                            RETURNING *,
+                            (
+                                SELECT row_to_json(old_row) 
+                                FROM   (SELECT * 
+                                        FROM   billing.charges 
+                                        WHERE  claim_id = ${claim_id} LIMIT 1) old_row 
+                            ) old_values
                         ),
                         new_icd AS (
                             INSERT INTO 
@@ -142,36 +153,67 @@ module.exports = {
                                     billing.claim_icds
                                 WHERE 
                                     claim_id = ${claim_id}
-                                RETURNING *
+                                RETURNING *, '{}'::jsonb old_values 
                         ),
-                        claim_data AS (
-                            SELECT json_agg(row_to_json(claim)) claim_data 
-                            FROM (
-                                SELECT 
-                                    * 
-                                FROM 
-                                    new_claim
-                            ) AS claim
+                        insert_audit_claim AS (
+                            SELECT billing.create_audit(
+                                  company_id
+                                , ${screenName}
+                                , id
+                                , ${screenName}
+                                , ${moduleName}
+                                , 'new claim created '
+                                , ${clientIp}
+                                , json_build_object(
+                                    'old_values', COALESCE(old_values, '{}'),
+                                    'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM new_claim) temp_row)
+                                  )::jsonb
+                                , ${userId}
+                              ) AS id 
+                            FROM new_claim
+                            WHERE id IS NOT NULL
                         ),
-                        charge_details AS (
-                            SELECT json_agg(row_to_json(charge)) charge_data 
-                            FROM (
-                                SELECT 
-                                    * 
-                                FROM 
-                                    update_charge
-                            ) AS charge
+                        update_audit_charge AS (
+                            SELECT billing.create_audit(
+                                  ${companyId}
+                                , ${screenName}
+                                , id
+                                , ${screenName}
+                                , ${moduleName}
+                                , ' Claim Id updated'
+                                , ${clientIp}
+                                , json_build_object(
+                                    'old_values', COALESCE(old_values, '{}'),
+                                    'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_charge limit 1) temp_row)
+                                  )::jsonb
+                                , ${userId}
+                              ) AS id 
+                            FROM update_charge
+                            WHERE id IS NOT NULL
                         ),
-                        icd_details AS (
-                            SELECT json_agg(row_to_json(icd)) icd_data 
-                            FROM (
-                                SELECT 
-                                    * 
-                                FROM 
-                                new_icd
-                            ) AS icd
+                        insert_audit_icd AS (
+                            SELECT billing.create_audit(
+                                  ${companyId}
+                                , ${screenName}
+                                , id
+                                , ${screenName}
+                                , ${moduleName}
+                                , 'New icd created '
+                                , ${clientIp}
+                                , json_build_object(
+                                    'old_values', COALESCE(old_values, '{}'),
+                                    'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM new_icd limit 1) temp_row)
+                                  )::jsonb
+                                , ${userId}
+                              ) AS id 
+                            FROM new_icd
+                            WHERE id IS NOT NULL
                         )
-                        SELECT * FROM claim_data, charge_details, icd_details`;
+                        SELECT id from insert_audit_claim 
+                        UNION
+                        SELECT id from update_audit_charge 
+                        UNION
+                        SELECT id from insert_audit_icd   `;
 
         return await query(sql);
     },

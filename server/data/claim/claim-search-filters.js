@@ -115,6 +115,11 @@ const colModel = [
         searchFlag: '%'
     },
     {
+        name: 'edi_template',
+        searchColumns: [`insurance_providers.insurance_info->'edi_template'`],
+        searchFlag: '%'
+    },   
+    {
         name: 'claim_balance',
         searchColumns: ['(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from BILLING.get_claim_totals(claims.id)) '],
         searchFlag: 'money'
@@ -320,6 +325,8 @@ const api = {
             'claims.billing_method',
             `insurance_providers.insurance_info->'claimCHDescription' 
             as clearing_house`,
+            `insurance_providers.insurance_info->'edi_template' 
+            as edi_template`,           
             `(  CASE payer_type 
             WHEN 'primary_insurance' THEN insurance_providers.insurance_name
             WHEN 'secondary_insurance' THEN insurance_providers.insurance_name
@@ -486,7 +493,7 @@ const api = {
             // Default conditions and study filter conditions
             whereClause.query = whereClause.default;
 
-            if (whereClause.studyFilter) { whereClause.query += ` AND ${whereClause.studyFilter} `; }
+            if (whereClause.studyFilter) { whereClause.query += `  AND ${whereClause.studyFilter} `; }
 
             const query_options = {
                 defaultwherefilter: whereClause.query,

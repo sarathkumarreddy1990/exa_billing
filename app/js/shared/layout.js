@@ -49,6 +49,31 @@ var layout = {
         'Charges': '#aCharges',
         'Claim Activity': '#aClaimActivity',
         'Claim Inquiry': '#aClaimInquiry',
+        'Claim Transaction': '#aClaimTransaction',
+        'Credit Balance Encounters': '#aCreditBalanceEncounters',
+        'Date Of SVC Payment': '#aDateSVC',
+        'Diagnosis Count': '#aDiagnosisCount',
+        'Insurance VS LOP': '#aInsuraceLOP',
+        'Modality Summary': '#aModalitySummary',
+        'Monthly Recap': '#aMonthlyRecap',
+        'Patient Statement': '#aPatientStatement',
+        'Payer Mix': '#aPayerMix',       
+        'Payment': '#aPaymentDetails',       
+        'Patients By Ins Company': '#aPatientsByInsCompany',
+        'Aged AR Summary':'#aAgedARSummary',
+        'Aged AR Details':'#aAgedARDetails',
+        'Procedure Count':'#aProcedureCount',
+        'Reading Provider Fees':'#aReadingProviderFees',
+        'Referring Provider Summary':'#aRefProSummary',
+        'Referring Provider Count':'#aRefProCount',
+        'Procedure Analysis By Insurance': '#aProcedureAnlaysis',
+        'Payments By Ins Company': '#aPaymentsInsurance',
+        'Transaction Summary': '#aTransactionSummary',
+        'Audit Log': '#aAuditLog',
+        'User Log': '#aUserLog',
+        'EDI Templates': '#aEDITemplate',
+        'Paper Claim Templates': '#aPaperClaimTemplate',
+        'Insurance VS LOP' : '#aInsuranceLOP'
         /// To be added
     },
 
@@ -161,6 +186,17 @@ var layout = {
                 break;
         }
 
+        if (module == 'Setup') {
+            $('#ulSetupNav').show();
+            $('#ulLogNav').hide();
+
+            if (currentScreen == 'User Log' || currentScreen == 'Audit Log') {
+                $('#ulSetupNav').hide();
+                $('#ulLogNav').show();
+                module = 'Log';
+            }
+        }
+
         $('#navbarNavAltMarkup .active').removeClass('active');
 
         if (layout.moduleLinkIds[module]) {
@@ -174,6 +210,8 @@ var layout = {
         }
 
         $('#aNavTitlebar').text(layout.moduleHeaders[module]);
+        $('#aNavTitlebar').attr("href", location.href)
+
         document.title = layout.moduleHeaders[module] + ' - EXA Billing';
     },
 

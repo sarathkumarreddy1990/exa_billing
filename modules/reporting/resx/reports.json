@@ -520,7 +520,7 @@
         }
     },
     {
-        "id": "agedARSummary",
+        "id": "aged-ar-summary",
         "category": "billing",
         "title": "Aged AR Summary",
         "description": "Report shows AR aging by facility, responsible party and payer for given cut off date and selected facilities.",
@@ -640,39 +640,6 @@
             "xlsx": {
                 "template": {
                     "name": "default-table-excel"
-                }
-            },
-            "csv": {
-                "template": {
-                    "name": "default-table-csv"
-                }
-            },
-            "xml": {
-                "template": {
-                    "name": "default-table-xml"
-                }
-            }
-        }
-    },
-    {
-        "id": "claim-inquiry",
-        "category": "billing",
-        "title": "Claim Inquiry",
-        "description": "Report shows all submitted claims and order payment/balance.",
-        "jsreport": {
-            "html": {
-                "template": {
-                    "name": "billing-claim-inquiry-html"
-                }
-            },
-            "pdf": {
-                "template": {
-                    "name": "billing-claim-inquiry-pdf"
-                }
-            },
-            "xlsx": {
-                "template": {
-                    "name": "billing-claim-inquiry-excel"
                 }
             },
             "csv": {
@@ -1249,7 +1216,7 @@
         }
     },
     {
-        "id": "agedARDetail",
+        "id": "aged-ar-details",
         "category": "billing",
         "title": "Aged AR Detail",
         "description": "Report shows AR aging by facility, responsible party and payer for given cut off date and selected facilities in detail.",
@@ -1440,6 +1407,91 @@
             "pdf": {
                 "template": {
                     "name": "default-table-pdf"
+                }
+            }
+        }
+    },
+    {
+        "id": "direct-invoice",
+        "category": "billing",
+        "title": "Invoice Generated",
+        "description": "",
+        "jsreport": {
+            "pdf": {
+                "template": {
+                    "name": "billing-direct-invoice-pdf"
+                }
+            }
+        }
+    },
+    {
+        "id": "patient-invoice",
+        "category": "billing",
+        "title": "Patient Invoice Generated",
+        "description": "",
+        "jsreport": {
+            "pdf": {
+                "template": {
+                    "name": "billing-patient-statement-pdf"
+                }
+            }
+        }
+    },
+    {
+        "id": "payment-print-pdf",
+        "category": "billing",
+        "title": "Payment Print",
+        "description": "",
+        "jsreport": {
+            "pdf": {
+                "template": {
+                    "name": "billing-print-payment-receipt-pdf"
+                }
+            }
+        }
+    },
+    {
+        "id": "payment-receipt-pdf",
+        "category": "billing",
+        "title": "Payment Receipt Print payment id wise",
+        "description": "",
+        "jsreport": {
+            "pdf": {
+                "template": {
+                    "name": "billing-payment-receipt-pdf"
+                }
+            }
+        }
+    },
+    {
+        "id": "insurance-vs-lop",
+        "category": "billing",
+        "title": "Insurance Vs LOP",
+        "description": "",
+        "jsreport": {
+            "html": {
+                "template": {
+                    "name": "default-table-html"
+                }
+            },
+            "pdf": {
+                "template": {
+                    "name": "default-table-pdf"
+                }
+            },
+            "xlsx": {
+                "template": {
+                    "name": "default-table-excel"
+                }
+            },
+            "csv": {
+                "template": {
+                    "name": "default-table-csv"
+                }
+            },
+            "xml": {
+                "template": {
+                    "name": "default-table-xml"
                 }
             }
         }

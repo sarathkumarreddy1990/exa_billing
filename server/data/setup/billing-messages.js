@@ -1,4 +1,4 @@
-const { query, SQL, queryWithAudit } = require('../index');
+const { query, SQL } = require('../index');
 
 module.exports = {
 
@@ -60,36 +60,82 @@ module.exports = {
         return await query(sql);
     },
 
-    create: async (params) => {
+    createOrUpdate: async (params) => {
         let {
+            id,
             code,
             description,
-            companyId
+            companyId,
+            screenName,
+            moduleName,
+            clientIp,
+            userId
         } = params;
 
-        const sql = SQL`WITH update_message AS(
-                        UPDATE
-                            billing.messages 
-                        SET  
-                              code = ${code}
-                            , description = ${description}
-                        WHERE 
-                        code = ${code}
-                        RETURNING id)
-                        INSERT INTO  billing.messages (
-                              company_id
-                            , code
-                            , description)
-                        SELECT 
-                              ${companyId}
-                            , ${code}
-                            , ${description} 
-                        WHERE NOT EXISTS(SELECT * FROM update_message)
-                        RETURNING *, '{}'::jsonb old_values`;
 
-        return await queryWithAudit(sql, {
-            ...params,
-            logDescription: `Created ${description}(${code})`
-        });
+        const sql = SQL`WITH insert_message AS(
+                            INSERT INTO  billing.messages (
+                                company_id
+                                , code
+                                , description)
+                            SELECT 
+                                ${companyId}
+                              , ${code}
+                              , ${description}    
+                            WHERE NOT EXISTS(SELECT 1 FROM billing.messages WHERE id = ${id})
+                            RETURNING *, '{}'::jsonb old_values),
+                            update_messages AS(UPDATE
+                                billing.messages 
+                            SET  
+                                code = ${code}
+                              , description = ${description} 
+                            WHERE id = ${id} 
+                            AND NOT EXISTS (SELECT 1 FROM insert_message)
+                            RETURNING *,
+                            (
+                            SELECT row_to_json(old_row) 
+                            FROM   (SELECT * 
+                                        FROM   billing.messages 
+                                        WHERE  id = ${id}) old_row 
+                            ) old_values),
+                        insert_audit_cte AS(
+                            SELECT billing.create_audit(
+                                ${companyId},
+                                ${screenName},
+                                id,
+                                ${screenName},
+                                ${moduleName},
+                                'Billing message created ' || code ,
+                                ${clientIp || '127.0.0.1'},
+                                json_build_object(
+                                    'old_values', (SELECT COALESCE(old_values, '{}') FROM insert_message),
+                                    'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM insert_message) temp_row)
+                                )::jsonb,
+                                ${userId || 0}
+                            ) id
+                            from insert_message
+                        ),
+                        update_audit_cte AS(
+                            SELECT billing.create_audit(
+                                ${companyId},
+                                ${screenName},
+                                id,
+                                ${screenName},
+                                ${moduleName},
+                                'Billing message updated ' || code ,
+                                ${clientIp || '127.0.0.1'},
+                                json_build_object(
+                                    'old_values', (SELECT COALESCE(old_values, '{}') FROM update_messages),
+                                    'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_messages) temp_row)
+                                )::jsonb,
+                                ${userId || 0}
+                            ) id
+                            from update_messages
+                        )
+                        SELECT id FROM insert_audit_cte 
+                        UNION
+                        SELECT id FROM update_audit_cte `;
+
+        return await query(sql);
     }
 };

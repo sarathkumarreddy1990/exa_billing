@@ -174,6 +174,7 @@ if (require && require.config) {
         ) {
             window.browserLocale = typeof browserLocale == 'undefined' ? 'en-US' : browserLocale;
             window.Immutable = Immutable;
+            window.commonjs = commonjs;
 
             Backbone.emulateHTTP = false;
 

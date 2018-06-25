@@ -6,9 +6,9 @@ module.exports = {
 
         params.sortOrder = params.sortOrder || ' DESC';
         let {
-            name,
-            claimClearingHouse,
-            claimRequestTemplate,
+            insurance_name,
+            claimclearinghouse,
+            claimrequesttemplate,
             claimReqTempProv,
             sortOrder,
             sortField,
@@ -17,16 +17,16 @@ module.exports = {
 
         let whereQuery = [];
 
-        if (name) {
-            whereQuery.push(` insurance_name ILIKE '%${name}%'`);
+        if (insurance_name) {
+            whereQuery.push(` insurance_name ILIKE '%${insurance_name}%'`);
         }
 
-        if (claimClearingHouse) {
-            whereQuery.push(` insurance_info->'claimClearingHouse' ILIKE '%${claimClearingHouse}%'`);
+        if (claimclearinghouse) {
+            whereQuery.push(` insurance_info->'claimClearingHouse' ILIKE '%${claimclearinghouse}%'`);
         }
 
-        if (claimRequestTemplate) {
-            whereQuery.push(` insurance_info->'claimRequestTemplate' ILIKE '%${claimRequestTemplate}%'`);
+        if (claimrequesttemplate) {
+            whereQuery.push(` insurance_info->'edi_template' ILIKE '%${claimrequesttemplate}%'`);
         }
 
         if (claimReqTempProv) {
@@ -38,7 +38,7 @@ module.exports = {
                             , company_id
                             , insurance_name
                             , insurance_info->'claimClearingHouse' AS claimClearingHouse
-                            , insurance_info->'claimRequestTemplate' AS claimRequestTemplate
+                            , insurance_info->'edi_template' AS claimRequestTemplate
                             , insurance_info->'claim_req_temp_prov' AS claimReqTempProv
                             , COUNT(1) OVER (range unbounded preceding) as total_records
                         FROM   public.insurance_providers`;
@@ -68,7 +68,7 @@ module.exports = {
                               , company_id
                               , insurance_name
                               , insurance_info->'claimClearingHouse' AS claimClearingHouse
-                              , insurance_info->'claimRequestTemplate' AS claimRequestTemplate
+                              , insurance_info->'edi_template' AS claimRequestTemplate
                               , insurance_info->'claim_req_temp_prov' AS claimReqTempProv
                         FROM   public.insurance_providers
                         WHERE 
@@ -89,7 +89,7 @@ module.exports = {
         const sql = SQL` UPDATE
                             public.insurance_providers
                          SET
-                            insurance_info = insurance_info || hstore(ARRAY['claimClearingHouse','claimRequestTemplate','claim_req_temp_prov'],
+                            insurance_info = insurance_info || hstore(ARRAY['claimClearingHouse','edi_template','claim_req_temp_prov'],
                                                                 ARRAY[${claimClearingHouse},${claimRequestTemplate},${claimReqTempProv}])
                          WHERE
                               id = ${id} 

@@ -53,5 +53,10 @@ router.get('/claim_patient', async (req, res) => {
     const data = await inquiryController.getclaimPatient(req.query);
     httpHandler.sendRows(req, res, data);
 });
+
+router.get('/claim_patient_log', async (req, res) => {
+    const data = await inquiryController.getclaimPatientLog(req.query);
+    httpHandler.sendRows(req, res, data);
+});
     
 module.exports = router;

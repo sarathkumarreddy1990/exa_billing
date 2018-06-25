@@ -190,7 +190,7 @@ define(['jquery',
                 "change #chkAppointmentStatus": "chooseStatusForFilter",
                 "change #chkRadStatus": "chooseStatusForFilter",
                 "change #chkStudyProgress": "chooseStatusForFilter", 
-                "click #btnFileInsuranceRefresh": "refreshStudies",
+                "click #btnStudiesRefresh": "refreshStudies",
                 "click #btnValidateExport": "underConstruction",
                 "click #btnStudiesRefreshAll": "refreshAllStudies"
             },
@@ -249,9 +249,8 @@ define(['jquery',
                     customStudyStatus: []
                 }));
 
-                $("#btnInsuranceClaim, #btnValidateOrder, #btnClaimRefreshAll, #diveHomeIndex, #divStudyFooter").hide();
-                $("#btnValidateOrder").hide();
-                $("#btnClaimRefreshAll").hide();
+                $("#btnInsuranceClaim, #btnValidateOrder, #btnClaimsRefresh, #btnClaimRefreshAll, #diveHomeIndex, #divStudyFooter").hide();
+                
                 if (queryString && !queryString.target && commonjs.getParameterByName(queryString).admin && commonjs.getParameterByName(queryString).admin == 1) {
                     self.isAdmin = true;
                 }
@@ -589,7 +588,7 @@ define(['jquery',
                         };
 
                         $btnTabNavLeft.off('click').on('click', function (navState, event) {
-                            self.underConstruction();
+                            //self.underConstruction();
                             if (navState.getState('isScrolling') === true || navState.getState('isMeasuring') === true) {
                                 return;
                             }
@@ -656,7 +655,7 @@ define(['jquery',
                          */
 
                         $btnTabNavRight.off('click').on('click', function (navState, event) {
-                            self.underConstruction();
+                            //self.underConstruction();
                             if (navState.getState('isScrolling') === true || navState.getState('isMeasuring') === true) {
                                 return;
                             }

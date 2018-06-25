@@ -48,16 +48,13 @@ define(['jquery',
                 if (this.ediClearingHouses && !this.ediClearingHouses.length)
                     this.getEDIClearingHousesList();
 
-                if (this.ediTemplates && !this.ediTemplates.length)
-                    this.getEDITemplateList();
-
                 this.insuranceX12MappingTable = new customGrid();
                 this.insuranceX12MappingTable.render({
                     gridelementid: '#tblInsuranceX12MappingGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['','','','','',''],
-                    i18nNames: ['', '', '', 'setup.insuranceX12Mapping.insuranceName', 'setup.insuranceX12Mapping.claimClearingHouse', 'setup.insuranceX12Mapping.claimTemplateRad'],
+                    colNames: ['','','','',''],
+                    i18nNames: ['', '', '', 'setup.insuranceX12Mapping.insuranceName', 'setup.insuranceX12Mapping.claimClearingHouse'],
                     colModel: [
                         {
                             name: 'id',
@@ -117,9 +114,6 @@ define(['jquery',
                                 }
                                 return name;
                             }
-                        },
-                        {
-                            name: 'claimrequesttemplate'
                         }
                     ],
                     datastore: self.insuranceX12MappingList,
@@ -160,6 +154,8 @@ define(['jquery',
 
             renderForm: function(id) {
                 var self = this;
+                if (this.ediTemplates && !this.ediTemplates.length)
+                    this.getEDITemplateList();
                 $('#divInsuranceX12MappingForm').html(this.insuranceX12MappingFormTemplate({'ediClearingHouseList' : self.ediClearingHouses,'ediTemplatesList' : self.ediTemplates}));
                 if(id > 0) {
                     this.model.set({id: id});
@@ -217,6 +213,8 @@ define(['jquery',
                     success: function (data, response) {
                         if (data && data.length > 0) {
                             self.ediTemplates = data;
+                        } else if(data && data.error){
+                            commonjs.showWarning("Unable to Connect EDI Server");
                         }
                     },
                     error: function (err) {
