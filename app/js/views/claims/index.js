@@ -1619,7 +1619,7 @@ define(['jquery',
             },
 
             bindInsurance: function (element_id, res) {
-                var self = this, payer_typ, coverage_level;
+                var self = this, payer_type, coverage_level;
                 switch (element_id) {
                     case 'ddlPriInsurance':
                         self.priInsID = res.id;
@@ -1670,6 +1670,11 @@ define(['jquery',
                     payer_name: res.insurance_name + '( ' + coverage_level + ' )',
                     billing_method: res.insurance_info && res.insurance_info.billingMethod ? res.insurance_info.billingMethod : null
                 });
+                
+                //Assign primary insurance as responsible
+                if(payer_type == 'PIP_P'){
+                    $('#ddlResponsible').val('PIP_P');
+                }
             },
 
             updateInsAddress: function (level, res) {
@@ -2876,11 +2881,8 @@ define(['jquery',
                 var patient_name = $(e.target || e.srcElement).closest('.selectionpatient').data('name');
                 var account_no = $(e.target || e.srcElement).closest('.selectionpatient').data('value');
                 var patient_dob = $(e.target || e.srcElement).closest('.selectionpatient').data('patient_dob');
-
                 self.cur_patient_id = patientId || 0;
-                
-                $(parent.document).find('#spanModalHeader').html('Claim Creation : <STRONG>' + patient_name + '</STRONG> (Acc#:' + account_no + '), <i>' + patient_dob + '</i>  ');
-
+                $('#divPageLoading').show();
                 // bind claim details
                 self.bindDetails();
 
@@ -2910,8 +2912,14 @@ define(['jquery',
 
                 self.cur_study_date = commonjs.convertToFacilityTimeZone(app.facilityID, moment()).format('L LT z')
                 document.querySelector('#txtClaimDate').value = moment().format('YYYY-MM-DD');
-                $('#divPatient').hide();
-                $('.woClaimRelated').show();
+
+                setTimeout(function () {
+                    $('#divPageLoading').hide();
+                    $(parent.document).find('#spanModalHeader').html('Claim Creation : <STRONG>' + patient_name + '</STRONG> (Acc#:' + account_no + '), <i>' + patient_dob + '</i>  ');
+                    $('#divPatient').hide();
+                    $('.woClaimRelated').show();
+                }, 200);
+                
             }
 
         });
