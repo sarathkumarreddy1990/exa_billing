@@ -24,7 +24,8 @@ define([
     'routes/reports/procedure-analysis-by-insurance',
     'routes/reports/credit-balance-encounters',
     'routes/reports/aged-ar-summary',
-    'routes/reports/aged-ar-details'
+    'routes/reports/aged-ar-details',
+    'routes/reports/insurance-vs-lop'
 ], function (
     Backbone,
     BackboneSubroute,
@@ -51,7 +52,8 @@ define([
     ProcedureAnalysisByInsuranceRoute,
     CreditBalanceEncountersRoute,
     AgedArSummaryRoute,
-    AgedArDetailsRoute
+    AgedArDetailsRoute,
+    InsuranceVSLopRoute
 ) {
         return Backbone.SubRoute.extend({
             routes: {
@@ -77,6 +79,7 @@ define([
                 "r/credit-balance-encounters": "startCreditBalanceEncountersReporting",
                 "r/aged-ar-summary": "startAgedARSummaryReporting",
                 "r/aged-ar-details": "startAgedARDetailsReporting",
+                "r/insurance-vs-lop": "startInsuranceVSLopReporting",
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -285,6 +288,15 @@ define([
                 if (this.checkLicense('Aged AR Details') && !this.agedARDetailsRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.agedARDetailsRouter = new AgedArDetailsRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startInsuranceVSLopReporting: function (subroute) {
+                if (this.checkLicense('Insurance VS LOP') && !this.insuranceVsLOPRouter) {
+                    this.defaultArgs.routePrefix = 'reports/r/';
+                    this.insuranceVsLOPRouter = new InsuranceVSLopRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }

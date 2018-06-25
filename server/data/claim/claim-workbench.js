@@ -8,23 +8,22 @@ module.exports = {
     },
 
     deleteClaim: async (params) => {
-        const { claim_id, clientIp, screenName, entityName, moduleName, userId, companyId } = params;
+        const { claim_id, clientIp, screenName, entityName, userId, companyId } = params;
 
         let audit_json = {
             client_ip: clientIp,
             screen_name: screenName,
             entity_name: entityName,
-            module_name: moduleName,
+            module_name: screenName,
             user_id: userId,
             company_id: companyId
         };
 
-        const sql = SQL` SELECT ${claim_id} as id,'{}'::jsonb old_values, billing.purge_claim(${claim_id},${audit_json}::json)`;
+		params.audit_json=JSON.stringify(audit_json);
 
-        return await queryWithAudit(sql, {
-            ...params,
-            logDescription: 'Deleted claim.'
-        });
+        const sql = SQL` SELECT billing.purge_claim(${claim_id},${params.audit_json}::json)`;
+
+        return await query(sql);
     },
 
     updateClaimStatus: async (params) => {
@@ -33,9 +32,12 @@ module.exports = {
             claim_status_id,
             billing_code_id,
             billing_class_id,
-            claimIds
-        } = params;
+			claimIds,
+			process,			
+		} = params;
 
+		params.moduleName='claims';
+		
         let updateData;
 
         if (params.claim_status_id) {
@@ -54,9 +56,10 @@ module.exports = {
                         
                     `;
         sql.append(updateData);
-        sql.append(`WHERE  id in (${claimIds})`);
+        sql.append(`WHERE  id in (${claimIds}) RETURNING id, '{}'::jsonb old_values`);
 
-        return await queryWithAudit(sql);
+        return await queryWithAudit(sql, {...params,
+            logDescription: 'Updated Claim'+ params.process});
     },
 
     getPrinterTemplate: async function (params) {

@@ -480,4 +480,61 @@ module.exports = {
         return await query(sql);
     },
 
+    getclaimPatientLog: async function (params) {
+        let whereQuery = [];
+        params.sortOrder = params.sortOrder || ' ASC';        
+        let {
+            sortOrder,
+            sortField,
+            pageNo,
+            pageSize,     
+            patientId,
+            username,
+            screen_name,
+            description,
+            created_dt
+        } = params;
+
+        if (username) {
+            whereQuery.push(` username ILIKE '%${username}%'`);
+        }
+
+        if (screen_name) {
+            whereQuery.push(` screen_name ILIKE '%${screen_name}%'`);
+        }
+
+        if (description) {
+            whereQuery.push(` description ILIKE '%${description}%'`);
+        }
+
+        if (created_dt) {
+            whereQuery.push(` ((created_dt)::date =('${created_dt}')::date) `);
+        }
+
+        let sql = SQL`SELECT audit_log.id  
+                        username,
+                        created_dt,        
+                        screen_name,
+                        description
+                        FROM billing.claims 
+                        INNER JOIN billing.audit_log on audit_log.entity_key =claims.id 
+                        INNER JOIN  users on  users.id=audit_log.created_by
+                        WHERE  patient_id=${patientId}  AND entity_name='claims'
+                    `;
+
+        if (whereQuery.length) {
+            sql.append(SQL` AND `)
+                .append(whereQuery.join(' AND '));
+        }
+            
+        sql.append(SQL` ORDER BY  `)
+            .append(sortField)
+            .append(' ')
+            .append(sortOrder)
+            .append(SQL` LIMIT ${pageSize}`)
+            .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+
+        return await query(sql);
+    }
+
 };

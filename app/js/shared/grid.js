@@ -138,14 +138,16 @@ define('grid', [
                         $claimStatusLink.click(function () {
 
                             $.ajax({
-                                url: '/exa_modules/billing/claim_workbench/update',
+                                url: '/exa_modules/billing/claim_workbench/claims/update',
                                 type: 'PUT',
                                 data: {
                                     claimIds: studyIds,
-                                    claim_status_id:claimStatus.id
+                                    claim_status_id:claimStatus.id,
+                                    process:"Claim Status"
                                 },
                                 success: function (data, response) {
-                                    commonjs.showStatus('Claim Status has been changed');
+                                    commonjs.showStatus('Claim Status has been changed');                                    
+                                    $("#btnClaimsRefresh").click();
                                 },
                                 error: function (err, response) {
                                     commonjs.handleXhrError(err, response);
@@ -165,14 +167,16 @@ define('grid', [
                        
                         $billingCodeLink.click(function () {
                             $.ajax({
-                                url: '/exa_modules/billing/claim_workbench/update',
+                                url: '/exa_modules/billing/claim_workbench/claims/update',
                                 type: 'PUT',
                                 data: {
                                     claimIds: studyIds,
-                                    billing_code_id:billing_code.id
+                                    billing_code_id:billing_code.id,
+                                    process:"Billing Code"
                                 },
                                 success: function (data, response) {
-                                    commonjs.showStatus('Billing Code has been changed');
+                                    commonjs.showStatus('Billing Code has been changed');                                    
+                                    $("#btnClaimsRefresh").click();
                                 },
                                 error: function (err, response) {
                                     commonjs.handleXhrError(err, response);
@@ -192,14 +196,16 @@ define('grid', [
                         
                         $BillingClassLink.click(function () {
                                 $.ajax({
-                                    url: '/exa_modules/billing/claim_workbench/update',
+                                    url: '/exa_modules/billing/claim_workbench/claims/update',
                                     type: 'PUT',
                                     data: {
                                         claimIds: studyIds,
-                                        billing_class_id:billing_class.id
+                                        billing_class_id:billing_class.id,
+                                        process:"Billing Class"
                                     },
                                     success: function (data, response) {
                                         commonjs.showStatus('Billing Classes has been changed');
+                                        $("#btnClaimsRefresh").click();
                                     },
                                     error: function (err, response) {
                                         commonjs.handleXhrError(err, response);
@@ -226,26 +232,33 @@ define('grid', [
                     self.claimView.showEditClaimForm(studyIds);
                 });
 
-                // var liDeleteClaim = commonjs.getRightClickMenu('anc_delete_claim','setup.rightClickMenu.deleteClaim',false,'Delete Claim',false);         
+                var liDeleteClaim = commonjs.getRightClickMenu('anc_delete_claim','setup.rightClickMenu.deleteClaim',false,'Delete Claim',false);         
                 
-                // if(studyArray.length == 1)
-                //     $divObj.append(liDeleteClaim);
+                if(studyArray.length == 1)
+                    $divObj.append(liDeleteClaim);
 
-                // $('#anc_delete_claim').off().click(function () {
-                //     $.ajax({
-                //         url: '/exa_modules/billing/claim_workbench/claims/delete',
-                //         type: 'PUT',
-                //         data: {
-                //             claim_id: studyIds,
-                //         },
-                //         success: function (data, response) {
-                //             commonjs.showStatus('Billing Classes has been changed');
-                //         },
-                //         error: function (err, response) {
-                //             commonjs.handleXhrError(err, response);
-                //         }
-                //     });
-                // });
+              
+                    
+                $('#anc_delete_claim').off().click(function () {
+                if(confirm("If you want delete claims")){
+                    if(confirm("Please confirm claim has been deleted and also dependent deleted ")){
+                    $.ajax({
+                        url: '/exa_modules/billing/claim_workbench/claims/delete',
+                        type: 'PUT',
+                        data: {
+                            claim_id: studyIds,
+                        },
+                        success: function (data, response) {                            
+                            commonjs.showStatus('Claim has been deleted');
+                            $("#btnClaimsRefresh").click();
+                        },
+                        error: function (err, response) {
+                            commonjs.handleXhrError(err, response);
+                        }
+                    });
+                    }
+                 }
+                });
                          
                 var liClaimInquiry = commonjs.getRightClickMenu('anc_claim_inquiry','setup.rightClickMenu.claimInquiry',false,'Claim Inquiry',false);
                 if(studyArray.length == 1)
@@ -258,7 +271,7 @@ define('grid', [
                     'needShrink': true
                 });
                 self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
-                self.claimInquiryView.render(studyIds,selectedStudies[0].patient_id);
+                self.claimInquiryView.render(studyIds,selectedStudies[0].patient_id, false);
                 });
 
 
@@ -274,6 +287,20 @@ define('grid', [
                 });
                 self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
                 self.claimInquiryView.patientInquiryForm(studyIds,selectedStudies[0].patient_id);
+                });
+
+                var liPatientClaimLog = commonjs.getRightClickMenu('anc_patient_claim_log','setup.rightClickMenu.patientClaimLog',false,'Patient Claim Log',false);
+                if(studyArray.length == 1)
+                    $divObj.append(liPatientClaimLog);
+                $('#anc_patient_claim_log').click(function () {
+                     commonjs.showDialog({
+                    'header': 'Patient Claim Log',
+                    'width': '95%',
+                    'height': '75%',
+                    'needShrink': true
+                });
+                self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
+                self.claimInquiryView.patientInquiryLog(studyIds,selectedStudies[0].patient_id);
                 });
                 
                 var liSplitOrders = commonjs.getRightClickMenu('anc_split_orders','setup.rightClickMenu.splitOrders',false,'Split Orders',false);
@@ -424,7 +451,7 @@ define('grid', [
                             'needShrink': true
                         });
                         self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
-                        self.claimInquiryView.render(rowID);                       
+                        self.claimInquiryView.render(rowID, '', false);                       
                     }
                 },
                 {
