@@ -15,6 +15,8 @@ WITH get_claim_details AS(
        (SELECT coalesce(claim_balance_total,0::money) FROM billing.get_claim_totals(bc.id)) AS balance
     FROM billing.claims bc
     INNER JOIN billing.charges bch ON bch.claim_id = bc.id
+    AND (bc.claim_dt < <%= claimDate %>)   
+    <% if(incPatDetail == 'true') { %> AND payer_type = 'primary_insurance' <%}%>
  )
  SELECT
  CASE WHEN payer_type = 'primary_insurance' THEN 'Insurance'
@@ -230,6 +232,7 @@ const api = {
 
         filters.excelExtented = reportParams.excelExtended;
         filters.excCreditBal = reportParams.excCreditBal
+        filters.incPatDetail = reportParams.incPatDetail
 
         return {
             queryParams: params,

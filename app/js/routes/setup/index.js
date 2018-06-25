@@ -21,7 +21,7 @@ define([
     'routes/setup/edi-templates',
     'routes/setup/billing-messages',
     'routes/setup/insurance-x12-mapping',
-	'routes/setup/paper-claim-templates'
+	'routes/setup/printer-templates'
 ], function (
     Backbone,
     BackboneSubroute,
@@ -67,7 +67,7 @@ define([
                 "edi_templates/*subroute" : "startEDITemplates",
                 "billing_messages/*subroute" : "startBillingMessages",
                 "insurance_x12_mapping/*subroute" : "startInsuranceX12Mapping",
-				"paper_claim_templates/*subroute" : "startPaperClaimTemplates"
+				"printer_templates/*subroute" : "startPaperClaimTemplates"
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -246,7 +246,7 @@ define([
 
 			 startPaperClaimTemplates: function () {
                 if (this.checkLicense('PaperClaimTemplates') && !this.paperClaimTemplatesRouter) {
-                    this.defaultArgs.routePrefix = 'setup/paper_claim_templates/';
+                    this.defaultArgs.routePrefix = 'setup/printer_templates/';
                     this.paperClaimTemplatesRouter = new PaperClaimTemplatesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();

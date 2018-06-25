@@ -80,6 +80,7 @@ define([
                             data = data[0];
                             var claim_data = data.claim_details && data.claim_details.length > 0 ? data.claim_details : '[]';
                             var payment_data = data.payment_details && data.payment_details.length > 0 ? data.payment_details : '[]';
+                            var patient_details = data.patient_details && data.patient_details.length > 0 ? data.patient_details :'[]';
                             if(claim_data.length > 0){
                                 claim_data = claim_data[0];
                                 //binding the values from data base
@@ -96,10 +97,15 @@ define([
                                 $('#lblCIClaimDate').text(claim_date);
                             }
 
-                            if(payment_data.length > 0){
+                            if(payment_data && payment_data.length > 0){
                                 $('#lblCIPatientPaid').text(payment_data.patient_paid);
                                 $('#lblCIOthersPaid').text(payment_data.others_paid);
                                 $('#lblCIAdj').text(payment_data.adjustment_amount);
+                            }
+
+                            if(patient_details && patient_details.length > 0){
+                                var patient_details = 'Claim Inquiry: ' + patient_details[0].patient_name + ' (Acc#:' + patient_details[0].account_no + ')' + ',  ' + patient_details[0].birth_date + ',  ' + patient_details[0].gender;
+                                $(parent.document).find('#spanModalHeader').html(patient_details) 
                             }
 
                             if (fromTogglePreNext) {

@@ -1,7 +1,7 @@
 const Router = require('express-promise-router');
 const router = new Router();
 
-const paperController = require('../../controllers/setup/paper-claim-templates');
+const paperController = require('../../controllers/setup/printer-templates');
 const httpHandler = require('../../shared/http');
 
 router.get('/', async function (req, res) {

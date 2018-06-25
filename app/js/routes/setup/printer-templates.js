@@ -2,7 +2,7 @@ define([
     'jquery',
     'backbone',
     'backbonesubroute',
-    'views/setup/paper-claim-templates'
+    'views/setup/printer-templates'
 ],
     function (
         $,
