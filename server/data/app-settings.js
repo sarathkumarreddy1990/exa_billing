@@ -160,6 +160,15 @@ module.exports = {
                                     color_code
                                     FROM   billing.status_color_codes
                                     WHERE  company_id=${companyID} ) AS status_color_codes)
+                , cte_printer_templates AS(
+                                    SELECT Json_agg(Row_to_json(printer_templates)) printer_templates
+                                    FROM  (
+                                    SELECT 
+                                    id,
+                                    name,
+                                    template_type
+                                    FROM   billing.printer_templates
+                                    WHERE  company_id=${companyID} ) AS printer_templates)
                SELECT *
                FROM   cte_company,
                       cte_facilities,
@@ -176,7 +185,8 @@ module.exports = {
                       cte_employment_status,
                       cte_relationship_status,
                       cte_states,
-                      cte_status_color_codes
+                      cte_status_color_codes,
+                      cte_printer_templates
                `;
 
         return await query(sql);
