@@ -654,7 +654,6 @@
             }
         }
     },
-  
     {
         "id": "referringPhysicianStudyCount",
         "category": "operations",
@@ -1459,7 +1458,40 @@
         "jsreport": {
             "pdf": {
                 "template": {
-                    "name": "billing-print-payment-receipt-pdf"
+                    "name": "billing-payment-receipt-pdf"
+                }
+            }
+        }
+    },
+    {
+        "id": "insurance-vs-lop",
+        "category": "billing",
+        "title": "Insurance Vs LOP",
+        "description": "",
+        "jsreport": {
+            "html": {
+                "template": {
+                    "name": "default-table-html"
+                }
+            },
+            "pdf": {
+                "template": {
+                    "name": "default-table-pdf"
+                }
+            },
+            "xlsx": {
+                "template": {
+                    "name": "default-table-excel"
+                }
+            },
+            "csv": {
+                "template": {
+                    "name": "default-table-csv"
+                }
+            },
+            "xml": {
+                "template": {
+                    "name": "default-table-xml"
                 }
             }
         }
