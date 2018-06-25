@@ -1,8 +1,8 @@
-define(['backbone','models/setup/paper-claim-templates'], function (Backbone,PaperClaimTemplatesModel) {
+define(['backbone','models/setup/printer-templates'], function (Backbone,PaperClaimTemplatesModel) {
 
     var PaperClaimTemplatesList = Backbone.Collection.extend({
         model: PaperClaimTemplatesModel,
-        url: "/exa_modules/billing/setup/paper_claim_templates",
+        url: "/exa_modules/billing/setup/printer_templates",
 
         initialize: function () {
         },

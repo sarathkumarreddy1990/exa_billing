@@ -1,4 +1,4 @@
-const data = require('../../data/setup/paper-claim-templates');
+const data = require('../../data/setup/printer-templates');
 
 module.exports = {
 
