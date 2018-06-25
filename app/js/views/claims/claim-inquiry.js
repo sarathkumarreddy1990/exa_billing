@@ -56,15 +56,15 @@ define([
                 this.claimPatientList = new claimPatientList();
             },
 
-            render: function (cid,patientId) {
+            render: function (cid,patientId, from) {
                 let self=this;
               this.rendered = true;
               this.$el.html(this.inquiryTemplate());
                // commonjs.bindDateTimePicker("divFollowUpDate", { format: 'L' }); //to bind date picker to followup date  . Now noy working that's y commented               
-                this.claimInquiryDetails(cid, false);
+                this.claimInquiryDetails(cid, false, from);
             },
 
-            claimInquiryDetails: function (claimID, fromTogglePreNext) {
+            claimInquiryDetails: function (claimID, fromTogglePreNext, from) {
                 var self = this;
                 self.claim_id = claimID;
                 // if (!self.rendered)
@@ -76,6 +76,11 @@ define([
                         'claim_id': self.claim_id  
                     },
                     success: function (data, response) {
+
+                        if (from) {
+                            $('#headerbtn').hide();
+                        }
+
                         if (data) {
                             data = data[0];
                             var claim_data = data.claim_details && data.claim_details.length > 0 ? data.claim_details : '[]';
@@ -660,7 +665,7 @@ define([
                         $(e.target).prop('disabled',true);
                         $($tblGrid, parent.document).closest('tr').find('tr#' + rowId);
 
-                        self.claimInquiryDetails(rowId, true);
+                        self.claimInquiryDetails(rowId, true, false);
                     } else {
                         commonjs.showWarning('No more order found')
                     }

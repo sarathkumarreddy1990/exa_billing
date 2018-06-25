@@ -14,7 +14,8 @@ define(['jquery',
     'text!templates/app/apply-payment.html',
     'collections/app/patientsearch',
     'text!templates/app/patientSearchResult.html',
-    'views/reports/payments-pdf'],
+    'views/reports/payments-pdf',
+    'views/claims/claim-inquiry'],
 
     function (
         jQuery,
@@ -33,7 +34,8 @@ define(['jquery',
         ApplyPaymentTemplate,
         patientCollection,
         patSearchContent,
-        paymentEditPDF) {
+        paymentEditPDF,
+        claimInquiryView) {
         return Backbone.View.extend({
             el: null,
             pager: null,
@@ -786,7 +788,14 @@ define(['jquery',
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblpendPaymentsGrid').jqGrid('getRowData', rowID);
-                                commonjs.showDialog({ header: 'Claim Inquiry', i18nHeader: 'menuTitles.rightClickMenu.claimInquiry', onLoad: 'removeIframeHeader()', width: '85%', height: '75%', url: '/vieworder#patient/paymentDetails/' + gridData.order_id + '/' + gridData.patient_id });
+                                commonjs.showDialog({
+                                    'header': 'Claim Inquiry',
+                                    'width': '90%',
+                                    'height': '85%',
+                                    'needShrink': true
+                                });
+                                self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
+                                self.claimInquiryView.render(gridData.claim_id, '', true); 
                             }
                         },
                         { name: 'id', index: 'id', key: true, searchFlag: 'int', hidden: true },
@@ -908,7 +917,14 @@ define(['jquery',
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblAppliedPaymentsGrid').jqGrid('getRowData', rowID);
-                                commonjs.showDialog({ header: 'Claim Inquiry', i18nHeader: 'menuTitles.rightClickMenu.claimInquiry', onLoad: 'removeIframeHeader()', width: '85%', height: '75%', url: '/vieworder#patient/paymentDetails/' + gridData.order_id + '/' + gridData.patient_id });
+                                commonjs.showDialog({
+                                    'header': 'Claim Inquiry',
+                                    'width': '95%',
+                                    'height': '85%',
+                                    'needShrink': true
+                                });
+                                self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
+                                self.claimInquiryView.render(gridData.claim_id, '', true); 
                             }
                         },
                         { name: 'id', index: 'id', key: true, searchFlag: 'int', hidden: true },
