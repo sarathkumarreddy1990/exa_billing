@@ -134,12 +134,16 @@ define('grid', [
                 var liClaimStatus = commonjs.getRightClickMenu('ul_change_claim_status','setup.rightClickMenu.billingStatus',false,'Change Claim Status',true); 
                 $divObj.append(liClaimStatus);
                 var liArray = [];
+
                 $.ajax({
                     url: '/exa_modules/billing/claim_workbench/claim_study?claim_id=' + selectedStudies[0].study_id,
                     type: 'GET',
                     success: function (data, response) {
                         if(data && data.length > 0) {
                             study_id = data[0].study_id;
+                            
+                            $('#anc_view_documents').removeClass('disabled')
+                            $('#anc_view_reports').removeClass('disabled')
                         }
                     },
                     error: function (err, response) {
@@ -253,7 +257,7 @@ define('grid', [
               
                     
                 $('#anc_delete_claim').off().click(function () {
-                if(confirm("If you want delete claims")){
+                if(confirm("Are you sure want to delete claims")){
                     if(confirm("Please confirm claim has been deleted and also dependent deleted ")){
                     $.ajax({
                         url: '/exa_modules/billing/claim_workbench/claims/delete',
@@ -327,6 +331,10 @@ define('grid', [
                     var liViewDocumetns = commonjs.getRightClickMenu('anc_view_documents', 'setup.rightClickMenu.viewDocuments', false, 'View Documents', false);
                     $divObj.append(liViewDocumetns);
                     $('#anc_view_documents').click(function () {
+                        if ($('#anc_view_documents').hasClass('disabled')) {
+                            return false;
+                        }
+
                         commonjs.showDialog({
                             header: 'Patient Documents',
                             i18nHeader: 'setup.rightClickMenu.patientDocuments',
@@ -339,6 +347,10 @@ define('grid', [
                     var liViewReports = commonjs.getRightClickMenu('anc_view_reports', 'setup.rightClickMenu.viewReports', false, 'View Reports', false);
                     $divObj.append(liViewReports);
                     $('#anc_view_reports').click(function () {
+                        if ($('#anc_view_reports').hasClass('disabled')) {
+                            return false;
+                        }
+
                         commonjs.showDialog({
                             header: 'Approved Reports',
                             i18nHeader: 'setup.rightClickMenu.approvedReports',
@@ -347,6 +359,9 @@ define('grid', [
                             url: '/vieworder#order/transcription/0/' + study_id + '/' + selectedStudies[0].patient_id + '/model/' + selectedStudies[0].patient_name
                         });
                     });
+
+                    $('#anc_view_documents').addClass('disabled')
+                    $('#anc_view_reports').addClass('disabled')
                 }
             } else {                
                 var liCreateClaim = commonjs.getRightClickMenu('anc_create_claim','setup.rightClickMenu.createClaim',false,'Create Claim',false);

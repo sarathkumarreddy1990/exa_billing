@@ -20,6 +20,7 @@ define([
                 this.getTemplate(claimIDs, templateType, function (err, template) {
                     self.getClaimObject(claimIDs, templateType, function (err, claimData) {
                         var docDefinition = self.mergeTemplate(template, claimData);
+
                         pdfMake.createPdf(docDefinition).open({}, win);
                         return;
 

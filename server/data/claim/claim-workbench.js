@@ -19,7 +19,7 @@ module.exports = {
             company_id: companyId
         };
 
-		params.audit_json=JSON.stringify(audit_json);
+        params.audit_json = JSON.stringify(audit_json);
 
         const sql = SQL` SELECT billing.purge_claim(${claim_id},${params.audit_json}::json)`;
 
@@ -32,34 +32,33 @@ module.exports = {
             claim_status_id,
             billing_code_id,
             billing_class_id,
-			claimIds,
-			process,			
-		} = params;
+            claimIds,
+        } = params;
 
-		params.moduleName='claims';
-		
+        params.moduleName = 'claims';
+
         let updateData;
 
         if (params.claim_status_id) {
-            updateData = `claim_status_id = ${claim_status_id}`;
+            updateData = SQL`claim_status_id = ${claim_status_id}`;
         } else if (params.billing_code_id) {
-            updateData = `billing_code_id = ${billing_code_id}`;
+            updateData = SQL`billing_code_id = ${billing_code_id}`;
+        } else if (params.billing_class_id) {
+            updateData = SQL`billing_class_id = ${billing_class_id}`;
         }
-        else if (params.billing_class_id) {
-            updateData = `billing_class_id = ${billing_class_id}`;
-        }
-
 
         let sql = SQL`UPDATE
                              billing.claims 
-                        SET                      
-                        
+                        SET                          
                     `;
-        sql.append(updateData);
-        sql.append(`WHERE  id in (${claimIds}) RETURNING id, '{}'::jsonb old_values`);
 
-        return await queryWithAudit(sql, {...params,
-            logDescription: 'Updated Claim'+ params.process});
+        sql.append(updateData);
+        sql.append(SQL`WHERE  id in (${claimIds}) RETURNING id, '{}'::jsonb old_values`);
+
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: 'Updated Claim' + params.process
+        });
     },
 
     getPrinterTemplate: async function (params) {
@@ -670,21 +669,21 @@ module.exports = {
 						RETURNING bc.id`;
 
         return await query(sql);
-	},
-	
-	getClaimStudy: async (params) => {
+    },
 
-		let {
-			claim_id
-		} = params;
+    getClaimStudy: async (params) => {
 
-		let sql = SQL`				
+        let {
+            claim_id
+        } = params;
+
+        let sql = SQL`				
 					SELECT study_id 
 					FROM billing.charges_studies 
 					INNER JOIN billing.charges ON billing.charges.id = billing.charges_studies.charge_id 
 					WHERE billing.charges.claim_id = ${claim_id}
 					LIMIT 1`;
 
-		return await query(sql);
-	}
+        return await query(sql);
+    }
 };
