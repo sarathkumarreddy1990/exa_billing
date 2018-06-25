@@ -93,6 +93,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 // Hide non-edit tabs
                 if (!self.isEdit) {
                     $('.editClaimRelated').hide();
+                    $('.woClaimRelated').hide();
                 }
                     
                 $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr for select2 search text can't editable
@@ -1907,12 +1908,12 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     subscriber_lastname: $('#txtSecSubLastName').val(),
                     subscriber_middlename: $('#txtSecSubMiName').val(),
                     subscriber_name_suffix: $('#txtSecSubSuffix').val(),
-                    subscriber_gender: $('#ddlPriGender option:selected').val() || null,
+                    subscriber_gender: $('#ddlSecGender option:selected').val() || null,
                     subscriber_address_line1: $('#txtSecSubPriAddr').val(),
                     subscriber_address_line2: $('#txtSecSubSecAddr').val(),
                     subscriber_city: $('#txtSecCity').val(),
                     subscriber_zipcode: $('#txtSecZipCode').val() != '' ? parseInt($('#txtSecZipCode').val()) : null,
-                    subscriber_state: $('#ddlPriState option:selected').val() || null,
+                    subscriber_state: $('#ddlSecState option:selected').val() || null,
                     assign_benefits_to_patient: $('#chkSecAcptAsmt').prop("checked"),
                     subscriber_dob: $('#txtSecDOB').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtSecDOB').val()).format('YYYY-MM-DD')) : null,
                     medicare_insurance_type_code: $('#selectMedicalPayer option:selected').val() != '' ? parseInt($('#selectMedicalPayer option:selected').val()) : null,
@@ -1932,12 +1933,12 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     subscriber_lastname: $('#txtTerSubLastName').val(),
                     subscriber_middlename: $('#txtTerSubMiName').val(),
                     subscriber_name_suffix: $('#txtTerSubSuffix').val(),
-                    subscriber_gender: $('#ddlPriGender option:selected').val() || null,
+                    subscriber_gender: $('#ddlTerGender option:selected').val() || null,
                     subscriber_address_line1: $('#txtTerSubPriAddr').val(),
                     subscriber_address_line2: $('#txtTerSubSecAddr').val(),
                     subscriber_city: $('#txtTerCity').val(),
                     subscriber_zipcode: $('#txtTerZipCode').val() != '' ? parseInt($('#txtTerZipCode').val()) : null,
-                    subscriber_state: $('#ddlPriState option:selected').val() || null,
+                    subscriber_state: $('#ddlTerState option:selected').val() || null,
                     assign_benefits_to_patient: $('#chkTerAcptAsmt').prop("checked"),
                     subscriber_dob: $('#txtTerDOB').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtTerDOB').val()).format('YYYY-MM-DD')) : null,
                     medicare_insurance_type_code: null,
@@ -2096,28 +2097,37 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                         $('#txtPriPolicyNo').val(),
                         $('#txtPriSubFirstName').val(),
                         $('#txtPriSubLastName').val(),
-                        $('#ddlPriGender option:selected').val(),
+                        $('#ddlPriGender option:selected').val() || '',
                         $('#txtPriSubPriAddr').val(),
-                        $('#ddlPriRelationShip option:selected').val(),
-                        $('#txtPriDOB').val()
+                        $('#ddlPriRelationShip option:selected').val() || '',
+                        $('#txtPriDOB').val(),
+                        $('#txtPriCity').val(),
+                        $('#ddlPriState option:selected').val() || '',
+                        $('#txtPriZipCode').val()
                     ],
                     secondaryfields: [
                         $('#txtSecPolicyNo').val(),
                         $('#txtSecSubFirstName').val(),
                         $('#txtSecSubLastName').val(),
-                        $('#ddlSecGender option:selected').val(),
+                        $('#ddlSecGender option:selected').val() || '',
                         $('#txtSecSubPriAddr').val(),
-                        $('#ddlSecRelationShip option:selected').val(),
-                        $('#txtSecDOB').val()
+                        $('#ddlSecRelationShip option:selected').val() || '',
+                        $('#txtSecDOB').val(),
+                        $('#txtSecCity').val(),
+                        $('#ddlSecState option:selected').val() || '',
+                        $('#txtSecZipCode').val()
                     ],
                     tertiaryfields: [
                         $('#txtTerPolicyNo').val(),
                         $('#txtTerSubFirstName').val(),
                         $('#txtTerSubLastName').val(),
-                        $('#ddlTerGender option:selected').val(),
+                        $('#ddlTerGender option:selected').val() || '',
                         $('#txtTerSubPriAddr').val(),
-                        $('#ddlTerRelationShip option:selected').val(),
-                        $('#txtTerDOB').val()
+                        $('#ddlTerRelationShip option:selected').val() || '',
+                        $('#txtTerDOB').val(),
+                        $('#txtTerCity').val(),
+                        $('#ddlTerState option:selected').val() || '',
+                        $('#txtTerZipCode').val()
                     ]
                 }
 
