@@ -2463,7 +2463,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 }
                 $("#btnValidateClaim").attr("disabled", true);
                 $.ajax({
-                    url: '/exa_modules/billing/claimWorkbench/validate_claims',
+                    url: '/exa_modules/billing/claim_workbench/validate_claims',
                     type: 'GET',
                     data: {
                         claim_ids: claimIds 
