@@ -40,7 +40,6 @@ define([
             claim_id: null,
             events: {
                 "click #btnCIAddComment": "showCommentPopup",
-                "click #btnCISaveComment": "saveComment",
                 "click #btnCISaveIsInternal": "saveIsInternalComment",
                 "click #btnCIPrintInvoice": "printPaymentInvoice",
                 "click #btnCICommentCancel": "closeSaveComment",
