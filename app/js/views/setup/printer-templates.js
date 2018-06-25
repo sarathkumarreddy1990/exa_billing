@@ -214,7 +214,7 @@ define(['jquery',
                     });
                 } else {
                     this.model = new PaperClaimTemplatesModel();
-                    this.setEditorContents("{}");
+                    this.setEditorContents("var dd = { content: 'Test Data' }");
                 }
                 $('#aShowOriginalForm').parent('li:first').css(this.highlighClass);
                 
@@ -276,17 +276,65 @@ define(['jquery',
             },
 
             setEditorContents: function (content) {
+                var timer;
+                var lastGen, lastChanged;
+                var self = this;
                 var editor = ace.edit('paperClaimEditor');
+
                 editor.setTheme();
                 editor.setTheme("ace/theme/monokai");
                 editor.getSession().setMode("ace/mode/javascript");
                 $('#paperClaimEditor').height($('#data_container').outerHeight() - $('#formPaperClaimTemplates').outerHeight());
                 editor.setValue(content);
+
+                generatePreview();
+
+                editor.getSession().on('change', function(e) {
+                    if (timer) {
+                        clearTimeout(timer);
+                    }
+
+                    lastChanged = new Date();
+        
+                    timer = setTimeout(function() {
+                        if (!lastGen || lastGen < lastChanged) {
+                            generatePreview();
+                        };
+                    }, 300);
+                });
+
+                function showStatus(msg) {
+                    $('#divPreviewLabel').html(msg);
+                    $('#divPreviewLabel').show();
+                    $('#ifrTemplatePreview').hide();
+                }
+
+                function generatePreview() {
+                    lastGen = new Date();
+
+                    try {
+                        eval(editor.getSession().getValue());
+
+                        $('#divPreviewLabel').hide();
+                        $('#ifrTemplatePreview').show();
+
+                        if (typeof dd === 'undefined') {
+                            return showStatus('Invalid template');
+                        }
+
+                        pdfMake.createPdf(dd).getDataUrl(function (outDoc) {
+                            document.getElementById('ifrTemplatePreview').src = outDoc;
+                        });
+                    } catch (err) {
+                        showStatus(err);
+                        return;
+                    }
+                }
             },
 
             save: function () {
 
-                    this.templateData = ace.edit('paperClaimEditor').getValue();
+                this.templateData = ace.edit('paperClaimEditor').getValue();
 
                 this.model.set({
                     "name": $('#txtTemplateName').val(),
