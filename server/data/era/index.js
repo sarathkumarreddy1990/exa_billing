@@ -183,9 +183,8 @@ module.exports = {
                                     AND cpt_codes.is_active 
                                     AND (
                                         CASE 
-                                          WHEN ( application_details.charge_id != 0 AND application_details.cpt_code  ='' ) THEN application_details.charge_id = ch.id
+                                          WHEN ( application_details.charge_id != 0 ) THEN application_details.charge_id = ch.id
                                           WHEN ( application_details.charge_id  = 0 AND application_details.cpt_code !='' ) THEN cpt_codes.display_code = application_details.cpt_code
-                                          WHEN ( application_details.charge_id != 0 AND application_details.cpt_code !='' ) THEN application_details.charge_id = ch.id AND cpt_codes.display_code = application_details.cpt_code
                                         END
                                     )
                                     ORDER BY id ASC LIMIT 1
