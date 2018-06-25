@@ -767,8 +767,7 @@ define(['jquery',
 
                                 if(modelDetails && modelDetails.charges && modelDetails.charges.length)
                                     $("#txtClaimDate").attr("disabled", "disabled"); 
-                            }
-                            
+                            }                            
                         },
                         error: function (model, response) {
                             commonjs.handleXhrError(model, response);
