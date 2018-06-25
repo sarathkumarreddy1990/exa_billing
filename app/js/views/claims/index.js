@@ -1,10 +1,33 @@
-define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-insurance', 'models/patient-details', 'text!templates/claims/claim-form.html', 'text!templates/claims/charge-row.html', 'text!templates/claims/insurance-eligibility.html'],
-    function ($, _, Backbone, newClaimModel, modelPatientInsurance, patientModel, claimCreationTemplate, chargeRowTemplate, insurancePokitdokForm) {
+define(['jquery', 
+'underscore', 
+'backbone', 
+'models/claims', 
+'models/pager',
+'models/patient-insurance', 
+'models/patient-details', 
+'text!templates/claims/claim-form.html', 
+'text!templates/claims/charge-row.html', 
+'text!templates/claims/insurance-eligibility.html',
+'collections/app/patientsearch',
+'text!templates/app/patientSearchResult.html'],
+    function ($, 
+        _, 
+        Backbone, 
+        newClaimModel, 
+        modelPatientPager,
+        modelPatientInsurance, 
+        patientModel, 
+        claimCreationTemplate, 
+        chargeRowTemplate, 
+        insurancePokitdokForm,
+        patientCollection,
+        patSearchContent) {
         var claimView = Backbone.View.extend({
             el: null,
             rendered: false,
             claimCreationTemplate: _.template(claimCreationTemplate),
             chargerowtemplate: _.template(chargeRowTemplate),
+            patSearchContentTemplate: _.template(patSearchContent),
             updateResponsibleList: [],
             chargeModel: [],
             claimICDLists: [],
@@ -34,6 +57,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 selectcptcode: "Select Cpt Code",
                 selectcptdescription: "Select Cpt Description"
             },
+            patientsPager: null,
+            patientTotalRecords: 0,
             initialize: function (options) {
                 this.options = options;
                 this.model = new newClaimModel();
@@ -56,6 +81,8 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 this.billingCodesList = new modelCollection(app.billing_codes);
                 this.billingClassList = new modelCollection(app.billing_classes);
                 this.InsurancePokitdokTemplateForm = new _.template(insurancePokitdokForm);
+                this.patientsPager = new modelPatientPager();
+                this.patientListcoll = new patientCollection();
 
             },
             urlNavigation: function () { //To restrict the change in URL based on tab selection. Maintain Same URL for every tab in claim creation screen
@@ -93,7 +120,7 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 // Hide non-edit tabs
                 if (!self.isEdit) {
                     $('.editClaimRelated').hide();
-                    $('.woClaimRelated').hide();
+                    //$('.woClaimRelated').hide();
                 }
                     
                 $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr for select2 search text can't editable
@@ -666,6 +693,21 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                 // $('#tab_menu a').off().click(function (e) {
                 //     self.urlNavigation(e);
                 // });
+
+                // "keyup #searchPatient .search-field": "applySearch",
+                // "dblclick .selectionpatient": "selectPatient",
+
+                $('#anc_first, #anc_previous, #anc_next, #anc_last').off().click(function (e) {
+                    self.onpaging(e);
+                });
+
+                $('.selectionpatient').off().dblclick(function (e) {
+                    self.selectPatient(e);
+                });
+
+                $('.search-field').off().keyup(function (e) {
+                    self.applySearch(e);
+                });
 
             },
             getLineItemsAndBind: function (selectedStudyIds) {
@@ -2547,6 +2589,287 @@ define(['jquery', 'underscore', 'backbone', 'models/claims', 'models/patient-ins
                     }, 300);
                 });
 
+            },
+
+            applySearch: _.debounce(function (e) {
+                var $divPatientSearchResults = $('#divPatientSearchResults');
+                var isNotEmpty = false;
+                var canSearch = true;
+                $('#searchPatient').find('.search-field').each(function () {
+                    if ($(this).val()) {
+                        isNotEmpty = true;
+                        return false;
+                    }
+                });
+
+                if (isNotEmpty) {
+                    var dobVal = $('#dob').val();
+
+                    if (dobVal) {
+                        canSearch = moment(dobVal).isValid();
+                    }
+
+                    if (canSearch) {
+                        $divPatientSearchResults.html('<span style="text-align:center;display:block;font-size:20px;">Searching...</span>');
+                        commonjs.showLoading('Searching...');
+                        this.patientsPager.set({ "pageNo": 1 });
+                        this.patientsPager.set({ "searchId": 0 });
+                        this.patientsPager.set({ "symbol": '>' });
+                        this.patientsPager.set({ "sortOrder": 'ASC' });
+                        var user_options = commonjs.getCookieOptions(1);
+
+                        if ($('#chk_isActiveNeeded').is(':checked')) {
+                            user_options = 'yes';
+                        } else {
+                            user_options = 'no';
+                        }
+                        commonjs.setCookieOptions(1, user_options);
+                        this.patientsPager.set('pageNo', 1);
+                        this.reqId = Date.now();
+                        this.bindPatientGrid(true);
+                    }
+                }
+                else {
+                    $divPatientSearchResults.empty();
+                    $('#divPatientPaging').hide();
+                    $('#divEmptySearch').hide();
+                    $('#divNoPatients').hide();
+                    $("#ulChangeMenu").hide();
+                }
+            }, 500),
+
+            bindPatientGrid: function (isTotalRecordNeeded) {
+                $('#divPatientPaging').hide();
+                var self = this;
+                var pagesize = this.patientsPager.get('pageSize');
+                
+                this.patientListcoll = new patientCollection();
+                this.patientListcoll.fetch({
+                    data: {
+                        fromPTSL: true,
+                        combined: true,
+                        pageNo: this.patientsPager.get('pageNo'),
+                        pageSize: pagesize,
+                        facility_id: $('#ddlFacilitySearch').val(),
+                        fields: this.getSearchFields(),
+                        showInactive: $('#chk_isActiveNeeded').prop('checked'),
+                        type: $('#ddlSearchType').val(),
+                        showOwner: $('#chk_PatOwner').prop('checked'),
+                        sortField: (commonjs.checkNotEmpty(this.patientsPager.get("sortField"))) ? this.patientsPager.get("sortField") : 'patients.last_name',
+                        company_id: app.companyID
+                    },
+                    processData: true,
+                    success: function (model, response) {
+                        if (response) {
+                            self.renderGrid(response, isTotalRecordNeeded);
+                        }
+                    },
+                    error: function (model, response) {
+                        commonjs.handleXhrError(model, response);
+                    }
+                });
+            },
+
+            getSearchFields: function () {
+                var obj = {};
+                $('#searchPatient').find('.search-field').each(function () {
+                    var el = $(this);
+                    var val = $.trim(el.val());
+                    if (val) {
+                        obj[el.attr('id')] = val;
+                    }
+                });
+
+                return obj;
+            },
+
+            renderGrid: function (patients, isTotalRecordNeeded) {
+                var self = this;
+
+                if (!isTotalRecordNeeded) {
+                    this.patientsPager.set({ "patientTotalRecords": this.patientTotalRecords });
+                    this.patientsPager.set({ "LastPageNo": Math.ceil(this.patientTotalRecords / this.patientsPager.get('pageSize')) });
+                    this.setPaging();
+                    commonjs.hideLoading();
+                } else {
+                    var pagesize = this.patientsPager.get('pageSize');
+                    
+                    jQuery.ajax({
+                        url: "/exa_modules/billing/pending_payments/patient_count",
+                        type: "GET",
+                        data: {
+                            fromPTSL: true,
+                            combined: true,
+                            pageNo: this.patientsPager.get('pageNo'),
+                            pageSize: pagesize,
+                            facility_id: $('#ddlFacilitySearch').val() ? $('#ddlFacilitySearch').val() : "",
+                            flag: self.currentElementID,
+                            fields: this.getSearchFields(),
+                            showInactive: $('#chk_isActiveNeeded').prop('checked') ? $('#chk_isActiveNeeded').prop('checked') : false,
+                            showOwner: $('#chk_PatOwner').prop('checked') ? $('#chk_PatOwner').prop('checked') : false,
+                            type: $('#ddlSearchType').val(),
+                            sortField: (commonjs.checkNotEmpty(this.patientsPager.get("sortField"))) ? this.patientsPager.get("sortField") : 'patients.id',
+                            company_id: app.companyID
+                        },
+                        success: function (data, textStatus, jqXHR) {
+                            if (data) {
+                                self.patientTotalRecords = (data && data.length > 0) ? data[0].total_records : 0;
+                                self.lastId = (data && data.length > 0) ? data[0].lastid : 0;
+                                self.patientsPager.set({ "lastPageNo": Math.ceil(self.patientTotalRecords / self.patientsPager.get('pageSize')) });
+                                self.setPaging();
+                            }
+                            commonjs.hideLoading();
+                        },
+                        error: function (err) {
+                            commonjs.handleXhrError(err);
+                        }
+                    });
+                }
+
+                var content = '';
+
+                for (var j = 0; j < patients.length; j++) {
+                    var patientList = patients[j];
+                    patientList.birth_date = commonjs.getDateFormat(patientList.birth_date);
+                    var patient_info = commonjs.hstoreParse(patientList.patient_info);
+                    var owner_info = commonjs.hstoreParse(patientList.owner_info);
+                    patientList.phone = (patient_info.c1HomePhone) ? patient_info.c1HomePhone : '';
+                    patientList.address1 = (patient_info.c1AddressLine1) ? patient_info.c1AddressLine1 : '';
+                    patientList.address2 = (patient_info.c1AddressLine2) ? patient_info.c1AddressLine2 : '';
+                    patientList.zip = (patient_info.c1Zip) ? patient_info.c1Zip : '';
+                    patientList.city = (patient_info.c1City) ? patient_info.c1City : '';
+                    patientList.state = (patient_info.c1State) ? patient_info.c1State : '';
+                    patientList.home = (patient_info.c1HomePhone) ? patient_info.c1HomePhone : '';
+                    patientList.work = (patient_info.c1WorkPhone) ? patient_info.c1WorkPhone : '';
+                    patientList.mobile = (patient_info.c1MobilePhone) ? patient_info.c1MobilePhone : '';
+                    patientList.owner_address1 = (owner_info.owner_address1) ? owner_info.owner_address1 : '';
+                    patientList.owner_address2 = (owner_info.owner_address2) ? owner_info.owner_address2 : '';
+                    patientList.owner_city = (owner_info.owner_city) ? owner_info.owner_city : '';
+                    patientList.owner_state = (owner_info.owner_state) ? owner_info.owner_state : '';
+                    patientList.owner_zip = (owner_info.owner_zip) ? owner_info.owner_zip : '';
+                    patientList.owner_id = patientList.owner_id > 0 ? parseInt(patientList.owner_id) : 0;
+                    patientList.showOwner = $('#chk_PatOwner').prop('checked');
+                    content += this.patSearchContentTemplate({ patient: patientList });
+                }
+                var $results = $('#divPatientSearchResults');
+                $results.html(content).show();
+
+                $('.inactiveSpanClick').dblclick(function () {
+                    return false;
+                });
+
+                var currentSearchValue = '';
+
+                // build up 'error' text based on the user's search query
+                $('#searchPatient').find('.search-field').each(function () {
+                    var el = $(this);
+                    if (el.val()) {
+                        if (currentSearchValue) {
+                            currentSearchValue += ', '
+                        }
+                        currentSearchValue += el.attr('placeholder') + ': ' + $.trim(el.val());
+                    }
+                });
+
+                if (patients.length < 1) {
+                    $('#divEmptySearch').hide();
+                    $('#ulChangeMenu').hide();
+                    $('#divPatientPaging').hide();
+                    $('#em_SearchValue').text($.trim(currentSearchValue));
+                    $('#divNoPatients').show();
+                }
+                else {
+                    $('#divPatientPaging').show();
+                    $('#ulChangeMenu').show();
+                    $('#divNoPatients').hide();
+                    $('#divEmptySearch').hide();
+                    $results.show();
+                }
+            },
+
+            setPaging: function () {
+                if (parseInt(this.patientsPager.get('pageNo')) == 1) {
+                    this.patientsPager.set({ "previousPageNo": 1 });
+                }
+                else {
+                    this.patientsPager.set({ "previousPageNo": (parseInt(this.patientsPager.get('pageNo'))) - 1 });
+                }
+
+                if (parseInt(this.patientsPager.get('pageNo')) >= this.patientsPager.get('lastPageNo')) {
+                    this.patientsPager.set({ "nextPageNo": this.patientsPager.get('lastPageNo') });
+                }
+                else {
+                    this.patientsPager.set({ "nextPageNo": (parseInt(this.patientsPager.get('pageNo'))) + 1 });
+                }
+
+                if (this.patientsPager.get('pageNo') == 1) {
+                    $('#li_first').addClass('disabled').attr('disabled', 'disabled');
+                    $('#li_previous').addClass('disabled').attr('disabled', 'disabled');
+                }
+                else {
+                    $('#li_first').removeClass('disabled').removeAttr('disabled');
+                    $('#li_previous').removeClass('disabled').removeAttr('disabled');
+                }
+
+                if (this.patientsPager.get('pageNo') == this.patientsPager.get('lastPageNo')) {
+                    $('#li_next').addClass('disabled').attr('disabled', 'disabled');
+                    $('#li_last').addClass('disabled').attr('disabled', 'disabled');
+                }
+                else {
+                    $('#li_next').removeClass('disabled').removeAttr('disabled');
+                    $('#li_last').removeClass('disabled').removeAttr('disabled');
+                }
+
+                $('#spnPatientTotalRecords').html(this.patientTotalRecords);
+                $('#spnPatientCurrentPage').html(this.patientsPager.get('pageNo'));
+                $('#spnPatientTotalPage').html(this.patientsPager.get('lastPageNo'));
+            },
+
+            onpaging: function (e) {
+                var self = this;
+                var id = ((e.target || e.srcElement).tagName == 'I') ? (e.target || e.srcElement).parentElement.id : (e.target || e.srcElement).id;
+                if ($('#' + id).closest("li").attr('disabled') != 'disabled') {
+                    switch (id) {
+                        case "anc_first":
+                            self.patientsPager.set({ "pageNo": 1 });
+                            break;
+                        case "anc_previous":
+                            if ((self.patientsPager.get("pageNo") - 1) == 1) {
+                                self.patientsPager.set({ "pageNo": 1 });
+                            }
+                            else {
+                                self.patientsPager.set({ "pageNo": self.patientsPager.get('previousPageNo') });
+                            }
+                            break;
+
+                        case "anc_next":
+                            if ((self.patientsPager.get("pageNo") + 1) == self.patientsPager.get('lastPageNo')) {
+                                self.patientsPager.set({ "pageNo": self.patientsPager.get('lastPageNo') });
+                            }
+                            else {
+                                self.patientsPager.set({ "pageNo": self.patientsPager.get('nextPageNo') });
+                            }
+
+                            break;
+                        case "anc_last":
+                            self.patientsPager.set({ "pageNo": self.patientsPager.get('lastPageNo') });
+                            break;
+                    }
+                    self.bindPatientGrid(false);
+                }
+            },
+
+            selectPatient: function (e) {
+                var tagName = commonjs.getElementFromEventTarget(e).tagName;
+                var self = this;
+                var patientId = (tagName == 'P') ? (e.target || e.srcElement).parentElement.id.split('_')[2] : (e.target || e.srcElement).id.split('_')[2];
+                var patient_name = $(e.target || e.srcElement).closest('.selectionpatient').data('name');
+                var account_no = $(e.target || e.srcElement).closest('.selectionpatient').data('value');
+                var dicom_patient_id = $(e.target || e.srcElement).closest('.selectionpatient').data('dicom_patient_id');
+
+                this.patientId = patientId;
+                this.invoice_no_to_search = '';
+                //this.showPatientForm(patientId);
             }
 
         });
