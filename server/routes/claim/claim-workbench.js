@@ -53,4 +53,9 @@ router.put('/claims/delete', async function (req, res) {
     httpHandler.send(req, res, data);
 });
 
+router.get('/claim_study', async function (req, res) {
+    const data = await claimWorkbenchController.getClaimStudy(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;
