@@ -250,7 +250,12 @@ define('grid', [
                 $('#anc_edit_claim').off().click(function () {
 
                     self.claimView = new claimsView();
-                    self.claimView.showEditClaimForm(studyIds);
+                    self.claimView.showEditClaimForm(studyIds, null, {
+                        'study_id': study_id,
+                        'patient_name': selectedStudies[0].patient_name,
+                        'patient_id': selectedStudies[0].patient_id,
+                        'order_id': 0
+                    });
                 });
 
                 var liDeleteClaim = commonjs.getRightClickMenu('anc_delete_claim','setup.rightClickMenu.deleteClaim',false,'Delete Claim',false);         

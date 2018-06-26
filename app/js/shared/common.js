@@ -8033,6 +8033,114 @@ var commonjs = {
         return [];
     },
 
+    openDocumentsAndReports: function (options) {
+        let {
+            study_id,
+            order_id,
+            patient_id
+        } = options;
+
+        let url = `#patient/patientReport/all/${btoa(patient_id)}/${btoa(order_id)}/${btoa(study_id)}`;
+        this.openWindow(url);
+    },
+
+    openWindow: function(url) {
+        let self = this;
+        self.detectChromeExtension(function(hasEx){
+            if (hasEx) {
+                self.placeWindows(url);
+            } else {
+                let left = window.screen.availLeft;
+                let top = window.screen.availTop;
+                let width = window.screen.availWidth;
+                let height = window.screen.availHeight;
+                if (window.parent.reportWindow && !window.parent.reportWindow.closed) {
+                    window.parent.reportWindow.location.href = url + '?m_i=' + (0) + '&l=2';
+                    return;
+                } else {
+                    window.parent.reportWindow = window.open("about:blank", "mywin" + 0, "left=" + left + ",top=" + top + ",width=" + width + ",height=" + height);
+                    window.parent.reportWindow.location.href = url + '?m_i=' + (0) + '&l=' + (1);
+                }
+            }
+        });
+    },
+
+    detectChromeExtension: function (callback) {
+        let self = this;
+        let extensionId = "mlkplhocljobcbmokjlehlminmnfaddn";
+        let accessibleResource = "favicon_16.ico";
+        if (typeof (chrome) !== 'undefined') {
+            let xmlHttp = new XMLHttpRequest(),
+                testUrl = 'chrome-extension://' + extensionId + '/' + accessibleResource;
+            xmlHttp.open('HEAD', testUrl, true);
+            xmlHttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+            xmlHttp.timeout = 1000;
+            xmlHttp.onreadystatechange = function () {
+                if (xmlHttp.readyState == 4 && typeof (callback) == 'function') {
+                    if (xmlHttp.status == 200) {
+                        callback.call(this, true);
+                    } else {
+                        callback.call(this, false);
+                    }
+                }
+            }
+            xmlHttp.ontimeout = function () {
+                if (typeof (callback) == 'function')
+                    callback.call(this, false);
+            }
+            xmlHttp.send();
+        } else {
+            if (typeof (callback) == 'function')
+                callback.call(this, false);
+        }
+    },
+
+    placeWindows: function (url) {
+        var self = this;
+        if (window.parent.reportWindow && !window.parent.reportWindow.closed) {
+            window.parent.reportWindow.location.href = url + '?m_i=' + (0) + '&l=2';
+            return;
+        }
+        self.displayL = [];
+        window.parent.postMessage({ type: "FROM_PAGE", action: "0" }, "*");
+
+        const msgHandler = function(event) {
+            let indexL = -1;
+            let indexR = -1;
+            let xpoint = window.screen.
+                availLeft;
+            let ypoint = window.screen.availTop;
+            let width = window.screen.availWidth;
+            let height = window.screen.availHeight;
+            for (let d = 0; d < event.data.length; d++) {
+                if (event.data[d].left + event.data[d].width == xpoint)
+                    indexL = d;
+                if (xpoint + width == event.data[d].left)
+                    indexR = d;
+                self.displayL.push({
+                    left: event.data[d].left,
+                    top: event.data[d].top,
+                    width: event.data[d].width,
+                    height: event.data[d].height
+                });
+            }
+            let curIndex = -1;
+            if (indexR > -1)
+                curIndex = indexR;
+            else if (indexL > -1)
+                curIndex = indexL;
+            else if(curIndex < 0 && self.displayL && self.displayL.length > 0)
+                curIndex = 0;
+
+            if (curIndex > -1) {
+                window.removeEventListener("message", msgHandler);
+                window.parent.reportWindow = window.open("about:blank", "mywin" + curIndex, "left=" + self.displayL[curIndex].left + ",top=" + self.displayL[curIndex].top + ",width=" + self.displayL[curIndex].width + ",height=" + self.displayL[curIndex].height);
+                window.parent.reportWindow.location.href = url + '?m_i=' + (0) + '&l=' + (event.data.length);
+                window.parent.postMessage({ type: "FROM_PAGE", action: "1", workArea: self.displayL[curIndex], index: 0, fscreen: false, focused: true }, "*");
+            }
+        }
+        window.addEventListener("message", msgHandler, false);
+    },
 
     changeColumnValue: function (tbl, row, columnName, value, fromService, rowData, needManualToolTip, titleString) {
         var regID = /^#tblGrid/;

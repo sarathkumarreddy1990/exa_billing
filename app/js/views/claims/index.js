@@ -294,7 +294,7 @@ define(['jquery',
             },
 
             /* Get claim edit details function*/
-            showEditClaimForm: function (claim_Id, IsUpdated) {
+            showEditClaimForm: function (claim_Id, IsUpdated, options) {
                 var self = this;
                 self.model.set({ id: claim_Id });
                 self.claim_Id = claim_Id;
@@ -302,6 +302,7 @@ define(['jquery',
                 self.claimICDLists = [];
                 self.removedCharges = [];
                 self.chargeModel = [];
+                self.options = options || null;
 
                 $.ajax({
                     type: 'GET',
@@ -699,8 +700,8 @@ define(['jquery',
                     self.validateClaim();
                 });
 
-                $("#btnPatientReport").off().click(function (e) {
-                    self.checkChromeExtension();
+                $("#btPatientDocuemnt").off().click(function (e) {
+                   commonjs.openDocumentsAndReports(self.options);
                 });
 
                 $(".claimProcess").off().click(function (e) {
