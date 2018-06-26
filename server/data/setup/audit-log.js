@@ -7,11 +7,10 @@ module.exports = {
         params.sortOrder = params.sortOrder || ' ASC';
         let {
             username,
-            screenName,
-            patientName,
+            screen_name,
             description,
-            fromDate,
-            toDate,
+            from_date,
+            to_date,
             sortOrder,
             sortField,
             pageNo,
@@ -22,20 +21,16 @@ module.exports = {
             whereQuery.push(`u.last_name ILIKE '%${username}%' OR u.first_name ILIKE '%${username}%'`);
         }
 
-        if (screenName) {
-            whereQuery.push(` al.screen_name ILIKE '%${screenName}%'`);
-        }
-
-        if (patientName) {
-            whereQuery.push(` p.full_name ILIKE '%${patientName}%'`);
+        if (screen_name) {
+            whereQuery.push(` al.screen_name ILIKE '%${screen_name}%'`);
         }
 
         if(description){
-            whereQuery.push(`al.description ILIKE  '%${description}%'`);
+            whereQuery.push( `al.description ILIKE  '%${description}%'`);
         }
 
-        if(fromDate && toDate){
-            //whereQuery.push(`al.created_dt BETWEEN  ${fromDate}::date AND ${toDate}::date`);
+        if(from_date && to_date){
+            whereQuery.push(` al.created_dt BETWEEN  '${from_date}' AND '${to_date}'`);
         }
 
         const sql = SQL`SELECT
@@ -51,11 +46,9 @@ module.exports = {
                             , al.screen_name
                             , al.module_name 
                             , al.description 
-                            , p.full_name
                             , COUNT(1) OVER (range unbounded preceding) AS total_records
                         FROM billing.audit_log al    
-                        INNER JOIN public.users u ON u.id = al.created_by
-                        LEFT JOIN public.patients p ON p.id = CASE WHEN entity_name = 'claims' THEN al.entity_key ELSE null END`;
+                        INNER JOIN public.users u ON u.id = al.created_by`;
 
         if (whereQuery.length) {
             sql.append(SQL` WHERE `)
