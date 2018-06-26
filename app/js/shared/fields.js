@@ -597,6 +597,11 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                                 cellvalue;
                         }
 
+                    },
+                    "cellattr": function ( id, cellvalue, rowObject ) {
+                        var statusDetail = commonjs.getClaimColorCodeForStatus(rowObject.charge_status > 0 ? 'billed' : 'unbilled', 'study');
+                        var statusObj = statusDetail[ 0 ];
+                        return 'style="background:' + (statusObj && statusObj.color_code || 'transparent') + ';"';
                     }
                 },
                 "field_code": "patient_name"

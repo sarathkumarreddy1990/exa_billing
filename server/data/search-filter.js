@@ -718,7 +718,8 @@ const api = {
             'studies.notes as notes', // TODO: this should not be returned as column (maybe has_notes but now whole notes)
             'studies.has_deleted', // TODO: this column should not be deleted Status should be deleted and if its really purged it shouldnt be there
             'studies.study_description',
-            'studies.institution as institution',
+            'studies.institution as institution',                      
+            '(SELECT count(1) FROM billing.charges_studies  WHERE study_id = studies.id) as charge_status',
             'studies.approved_dt as approved_dt',
             'studies.study_received_dt',
             'studies.body_part',

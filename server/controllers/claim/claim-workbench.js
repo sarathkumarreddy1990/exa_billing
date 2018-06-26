@@ -52,14 +52,14 @@ module.exports = {
                 return new Error('EDI Template not yet mapped with Clearinghouse :(');
             }
             
-            // let data = _.map( result.rows, function (obj) {
-            //     if((obj.subscriper_relationship).toUpperCase()!='SELF'){
-            //         obj.data[0].subscriber[0].patient[0].claim = obj.data[0].subscriber[0].claim;
-            //         delete obj.data[0].subscriber[0].claim;
-            //     }
+            let data = _.map( result.rows, function (obj) {
+                if((obj.subscriper_relationship).toUpperCase()!='SELF'){
+                    obj.data[0].subscriber[0].patient[0].claim = obj.data[0].subscriber[0].claim;
+                    delete obj.data[0].subscriber[0].claim;
+                }
 
-            //     return obj.data[0];
-            // });
+                return obj.data[0];
+            });
 
             let ediRequestJson ={
                 'config': {

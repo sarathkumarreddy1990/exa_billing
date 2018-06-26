@@ -37,7 +37,7 @@ module.exports = {
 		} = params;
 
 		params.moduleName='claims';
-		
+
         let updateData;
 
         if (params.claim_status_id) {
@@ -59,7 +59,7 @@ module.exports = {
         sql.append(`WHERE  id in (${claimIds}) RETURNING id, '{}'::jsonb old_values`);
 
         return await queryWithAudit(sql, {...params,
-            logDescription: 'Updated Claim'+ params.process});
+            logDescription: 'Updated Claim '+ params.process+ ' for claims ('+ params.claimIds +')'});
     },
 
     getPrinterTemplate: async function (params) {

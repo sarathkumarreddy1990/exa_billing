@@ -511,8 +511,8 @@ module.exports = {
             whereQuery.push(` ((created_dt)::date =('${created_dt}')::date) `);
         }
 
-        let sql = SQL`SELECT audit_log.id  
-                        username,
+        let sql = SQL`SELECT audit_log.id,
+                        users.username,
                         created_dt,        
                         screen_name,
                         description
