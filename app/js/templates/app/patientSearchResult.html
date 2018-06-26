@@ -1,4 +1,8 @@
-<section class="selectionpatient result-part" data-name="<%= patient.full_name %>" data-facility_id="<%= patient.facility_id %>" data-value="<%= patient.account_no %>" data-rcopia="<%= patient.rcopia_id %>" style="position: relative;" id="div_p_<%= patient.id %>" data-dicom_patient_id="<%= patient.dicom_patient_id %>">
+<section class="selectionpatient result-part" data-name="<%= patient.full_name %>" data-facility_id="<%= patient.facility_id %>" 
+    data-value="<%= patient.account_no %>" 
+    data-rcopia="<%= patient.rcopia_id %>" style="position: relative;" id="div_p_<%= patient.id %>" 
+    data-dicom_patient_id="<%= patient.dicom_patient_id %>"
+    data-patient_dob="<%= patient.birth_date %>">
     <% if (patient.is_active) { %>
     <p style="font-weight: bold;overflow-wrap: break-word;"><%= patient.full_name %>&nbsp;&nbsp;<%= patient.account_no %>,<%= patient.alt_account_no %>,<%= patient.dicom_patient_id %></p>
     <% }  else { %>

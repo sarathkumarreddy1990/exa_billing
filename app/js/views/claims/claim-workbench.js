@@ -437,6 +437,16 @@ define(['jquery',
                     return;
                 }
 
+                if(existingBillingMethod === 'direct_billing') {
+                    paperClaim.print('direct_invoice', claimIds);
+                    return;
+                }
+
+                if(existingBillingMethod === 'patient_payment') {
+                    paperClaim.print('patient_invoice', claimIds);
+                    return;
+                }
+
                 self.ediResultTemplate = _.template(ediResultHTML);
 
                 commonjs.showLoading();

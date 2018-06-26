@@ -322,6 +322,15 @@ define(['jquery',
                             return showStatus('Invalid template');
                         }
 
+                        // pdfMake.fonts = {
+                        //     Roboto: {
+                        //         normal: '/static/fonts/Roboto/Roboto-Regular.ttf',
+                        //         bold: '../../../static/fonts/Roboto/Roboto-Medium.ttf',
+                        //         italics: '../../../static/fonts/Roboto/Roboto-Italic.ttf',
+                        //         bolditalics: '../../../static/fonts/Roboto/Roboto-MediumItalic.ttf'
+                        //     }
+                        // }
+                        
                         pdfMake.createPdf(dd).getDataUrl(function (outDoc) {
                             document.getElementById('ifrTemplatePreview').src = outDoc;
                         });

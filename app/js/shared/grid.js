@@ -112,6 +112,10 @@ define('grid', [
             let $checkedInputs = $tblGrid.find('input').filter('[name=chkStudy]:checked');
             let selectedCount = $checkedInputs.length;
             let _storeEle;
+
+            let study_id = 0;
+            let order_id = 0;
+
             for (var r = 0; r < selectedCount; r++) {
                 var rowId = $checkedInputs[r].parentNode.parentNode.id;
                 _storeEle = getData(rowId, store, gridID);
@@ -133,6 +137,23 @@ define('grid', [
                 var liClaimStatus = commonjs.getRightClickMenu('ul_change_claim_status','setup.rightClickMenu.billingStatus',false,'Change Claim Status',true); 
                 $divObj.append(liClaimStatus);
                 var liArray = [];
+
+                $.ajax({
+                    url: '/exa_modules/billing/claim_workbench/claim_study?claim_id=' + selectedStudies[0].study_id,
+                    type: 'GET',
+                    success: function (data, response) {
+                        if(data && data.length > 0) {
+                            study_id = data[0].study_id;
+                            order_id = data[0].order_id;
+                            
+                            $('#anc_view_documents').removeClass('disabled')
+                            $('#anc_view_reports').removeClass('disabled')
+                        }
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
                 $.each(app.claim_status, function (index, claimStatus) {                      
                     var $claimStatusLink = $(commonjs.getRightClickMenu('ancclaimStatus_' + claimStatus.id,'setup.rightClickMenu.billingCode',true,claimStatus.description ,false));                        
                         $claimStatusLink.click(function () {
@@ -240,7 +261,7 @@ define('grid', [
               
                     
                 $('#anc_delete_claim').off().click(function () {
-                if(confirm("If you want delete claims")){
+                if(confirm("Are you sure want to delete claims")){
                     if(confirm("Please confirm claim has been deleted and also dependent deleted ")){
                     $.ajax({
                         url: '/exa_modules/billing/claim_workbench/claims/delete',
@@ -310,16 +331,58 @@ define('grid', [
                     self.splitClaimView.validateSplitClaim(studyIds);
                 });
 
+                if (selectedStudies.length == 1) {
+                    var liViewDocumetns = commonjs.getRightClickMenu('anc_view_documents', 'setup.rightClickMenu.viewDocuments', false, 'View Documents', false);
+                    $divObj.append(liViewDocumetns);
+                    $('#anc_view_documents').click(function () {
+                        if ($('#anc_view_documents').hasClass('disabled')) {
+                            return false;
+                        }
+
+                        commonjs.showDialog({
+                            header: 'Patient Documents',
+                            i18nHeader: 'setup.rightClickMenu.patientDocuments',
+                            width: '95%',
+                            height: '75%',
+                            url: '/vieworder#order/document/' + btoa(order_id) + '/' + btoa(selectedStudies[0].patient_id) + '/' + btoa(study_id)
+                        });
+                    });
+
+                    var liViewReports = commonjs.getRightClickMenu('anc_view_reports', 'setup.rightClickMenu.viewReports', false, 'View Reports', false);
+                    $divObj.append(liViewReports);
+                    $('#anc_view_reports').click(function () {
+                        if ($('#anc_view_reports').hasClass('disabled')) {
+                            return false;
+                        }
+
+                        commonjs.showDialog({
+                            header: 'Approved Reports',
+                            i18nHeader: 'setup.rightClickMenu.approvedReports',
+                            width: '95%',
+                            height: '75%',
+                            url: '/vieworder#order/transcription/0/' + study_id + '/' + selectedStudies[0].patient_id + '/model/' + selectedStudies[0].patient_name
+                        });
+                    });
+
+                    $('#anc_view_documents').addClass('disabled')
+                    $('#anc_view_reports').addClass('disabled')
+                }
             } else {                
                 var liCreateClaim = commonjs.getRightClickMenu('anc_create_claim','setup.rightClickMenu.createClaim',false,'Create Claim',false);
                 $divObj.append(liCreateClaim);
                 $('#anc_create_claim').off().click(function () {
-                    window.localStorage.setItem('selected_studies', null);
-                    window.localStorage.setItem('first_study_details', null);
-                    window.localStorage.setItem('primary_study_details', JSON.stringify(selectedStudies[0]));
-                    window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
+
+                    /**
+                     * ToDo:: Once listout studies from patient have to remove this function
+                    */
+                    // window.localStorage.setItem('selected_studies', null);
+                    // window.localStorage.setItem('first_study_details', null);
+                    // window.localStorage.setItem('primary_study_details', JSON.stringify(selectedStudies[0]));
+                    // window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
+                    
                     self.claimView = new claimsView();
-                    self.claimView.showClaimForm(studyIds);
+                    //self.claimView.showClaimForm(studyIds); 
+                    self.claimView.showPatientForm();
                 });
             }
 
