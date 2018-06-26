@@ -32,6 +32,7 @@ module.exports = {
                 WHERE bc.id = ANY(${params.claimIds})),
 			charge_details as(
                 SELECT
+                    bch.claim_id as claim_no,
                     pcc.display_code,
                     pcc.display_description,
                     billing.get_charge_icds(bch.id),

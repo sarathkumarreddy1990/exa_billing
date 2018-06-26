@@ -63,6 +63,7 @@ define([
                 for (var key in template) {
                     if (key === 'mergeField') {
                         template.text = this.getDescendantProp(data, template[key]);
+                        template.content = template.text;
                         //delete template[key];
                     }
 
