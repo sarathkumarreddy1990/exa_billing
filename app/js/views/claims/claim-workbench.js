@@ -442,6 +442,11 @@ define(['jquery',
                     return;
                 }
 
+                if(existingBillingMethod === 'patient_payment') {
+                    paperClaim.print('patient_invoice', claimIds);
+                    return;
+                }
+
                 self.ediResultTemplate = _.template(ediResultHTML);
 
                 commonjs.showLoading();
