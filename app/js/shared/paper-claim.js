@@ -2,43 +2,80 @@ define([
     'jquery',
     '_get',
     'backbone',
-    'pdfmake',
-    'pdfmake-fonts'
 ], function (
     $,
     _get,
-    Backbone,
-    pdfmake,
-    pdfmakeFonts
+    Backbone
 ) {
         return function () {
 
+            this.pdfDetails = {
+                'paper_claim_original': {
+                    header: 'Paper Claim',
+                    api: '/exa_modules/billing/claim_workbench/claim_json'
+                },
+
+                'paper_claim_full': {
+                    header: 'Paper Claim',
+                    api: '/exa_modules/billing/claim_workbench/claim_json'
+                },
+
+                'direct_invoice': {
+                    header: 'Direct Billing',
+                    api: '/exa_modules/billing/claim_workbench/invoice_data'
+                },
+
+                'patient_invoice': {
+                    header: 'Patient Invoice',
+                    api: '/exa_modules/billing/claim_workbench/invoice_data'
+                },
+            };
+
             this.print = function (templateType, claimIDs) {
                 var self = this;
-                var win = window.open('', '_blank');
+                var win = null;
+
+                if (!this.pdfDetails[templateType]) {
+                    return commonjs.showError('Not yet implemented');
+                }
+
+                if (commonjs.openPdfNewWindow) {
+                    win = window.open('', '_blank');
+                }
 
                 this.getTemplate(claimIDs, templateType, function (err, template) {
                     self.getClaimObject(claimIDs, templateType, function (err, claimData) {
-                        var docDefinition = self.mergeTemplate(template, claimData);
-                        pdfMake.createPdf(docDefinition).open({}, win);
-                        return;
+                        var docDefinition = self.mergeTemplate(templateType, template, claimData);
+                        //var docDefinition = { content: 'This is an sample PDF printed with pdfMake', style: 'header', mmmm: 'sdfdsfdsf' };
 
-                        var docDefinition = { content: 'This is an sample PDF printed with pdfMake', style: 'header', mmmm: 'sdfdsfdsf' };
-                        pdfMake.createPdf(docDefinition).open({}, win);
+                        try {
+                            if (win) {
+                                pdfMake.createPdf(docDefinition).open({}, win);
+                            } else {
+                                pdfMake.createPdf(docDefinition).getDataUrl(function (outDoc) {
+                                    document.getElementById('ifrPdfPreview').src = outDoc;
+
+                                    commonjs.showDialog({
+                                        header: self.pdfDetails[templateType].header,
+                                        width: '95%',
+                                        height: '75%',
+                                        url: outDoc
+                                    });
+                                });
+                            }
+                        } catch (err) {
+                            console.log(err);
+                        }
                     });
                 });
             };
 
-            this.mergeTemplate = function (template, claimData) {
+            this.mergeTemplate = function (templateType, template, claimData) {
                 template = template.template_content;
-                claimData = claimData.data[0];
 
-                // template = { content: 'Corrected Claim', style: 'header', mergeField: 'data.date1' };
-                // claimData = {
-                //     data: {
-                //         date1: 'hello'
-                //     }
-                // };
+                if (templateType === 'paper_claim_original' || templateType === 'paper_claim_full') {
+                    claimData = claimData.data[0];
+                }
 
                 var dd = null;
 
@@ -59,6 +96,7 @@ define([
                 for (var key in template) {
                     if (key === 'mergeField') {
                         template.text = this.getDescendantProp(data, template[key]);
+                        //template.content = template.text;
                         //delete template[key];
                     }
 
@@ -95,19 +133,8 @@ define([
 
             this.getClaimObject = function (claimIDs, templateType, callback) {
 
-                var apis = {
-                    'paper_claim_original': '/exa_modules/billing/claim_workbench/claim_json',
-                    'paper_claim_full': '/exa_modules/billing/claim_workbench/claim_json',
-                    'direct_invoice': '/exa_modules/billing/claim_workbench/invoice_json',
-                    'patient_invoice': '/exa_modules/billing/claim_workbench/patient_invoice_json',
-                };
-
-                if (!apis[templateType]) {
-                    return callback(new Error('Invalid template type'));
-                }
-
                 $.ajax({
-                    url: apis[templateType],
+                    url: this.pdfDetails[templateType].api,
                     data: {
                         claimIds: claimIDs
                     }, success: function (data, response) {

@@ -321,7 +321,7 @@ define(['jquery',
                         if (typeof dd === 'undefined') {
                             return showStatus('Invalid template');
                         }
-
+                        
                         pdfMake.createPdf(dd).getDataUrl(function (outDoc) {
                             document.getElementById('ifrTemplatePreview').src = outDoc;
                         });

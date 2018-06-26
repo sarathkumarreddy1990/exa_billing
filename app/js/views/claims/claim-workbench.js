@@ -199,7 +199,7 @@ define(['jquery',
                 "click #btnValidateOrder": "validateClaim",
                 "click #btnClaimRefreshAll": "refreshAllClaims",
                 "click #btnValidateExport": "underConstruction",
-                "click #btnFileInsuranceRefresh": "underConstruction",
+                "click #btnClaimsRefresh": "refreshClaims",
             },
 
             initialize: function (options) {
@@ -260,7 +260,7 @@ define(['jquery',
                 }
                 commonjs.showLoading('Loading filters..');
                 self.userSettings = commonjs.hstoreParse(app.userInfo.user_settings);
-                $("#btnStudiesRefreshAll, #diveHomeIndex, #divclaimsFooter").hide();
+                $("#btnStudiesRefreshAll, #btnStudiesRefresh, #diveHomeIndex, #divclaimsFooter").hide();
                 $('#divPageLoading').show();
 
                 isDefaultTab = false;
@@ -434,6 +434,16 @@ define(['jquery',
                 /// "patient_invoice"
                 if(existingBillingMethod === 'paper_claim') {
                     paperClaim.print('paper_claim_original', claimIds);
+                    return;
+                }
+
+                if(existingBillingMethod === 'direct_billing') {
+                    paperClaim.print('direct_invoice', claimIds);
+                    return;
+                }
+
+                if(existingBillingMethod === 'patient_payment') {
+                    paperClaim.print('patient_invoice', claimIds);
                     return;
                 }
 
@@ -1220,7 +1230,7 @@ define(['jquery',
             refreshClaims: function (isFromDatepicker, IsUnload, filter, callback) {
 
                 // Retrieve scroll position
-                var curScroll = $('.tab-pane.active .ui-jqgrid-bdiv').scrollTop();
+                var curScroll = $('.tab-pane.active .ui-jqgrid-bdiv').scroll();
                 // Retreive selected rows
                 var curSelection = $('.tab-pane.active .ui-jqgrid-bdiv table tr.customRowSelect');
 
@@ -1291,7 +1301,7 @@ define(['jquery',
                     }
 
                     // Handle grid reload finished to scroll to last position and re-select all previously selected rows
-                    if (curScroll > 0) {
+                    if (curScroll.length > 0) {
                         var gridCompleteTimer = 0;
                         $tblClaimGrid.jqGrid("setGridParam", {
                             gridComplete: function () {
