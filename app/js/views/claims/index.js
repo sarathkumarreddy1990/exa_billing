@@ -119,11 +119,14 @@ define(['jquery',
                 // Hide non-edit tabs
                 if (!self.isEdit) {
                     $('.editClaimRelated').hide();
+                }
+
+                if (isFrom == 'patient') {
                     $('.woClaimRelated').hide();
                 } else {
                     $('#divPatient').hide();
                 }
-                    
+
                 $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr for select2 search text can't editable
 
                 if (isFrom != 'patient') {
@@ -273,17 +276,19 @@ define(['jquery',
 
             bindDetails: function () {
                 var self = this;
+
+                // set all Insurance auto_complete
+                self.bindBillingSummary();
+                self.bindServiceType();
+                self.bindInsuranceAutocomplete('ddlPriInsurance');
+                self.bindInsuranceAutocomplete('ddlSecInsurance');
+                self.bindInsuranceAutocomplete('ddlTerInsurance');
+
                 self.setProviderAutoComplete('PR'); // rendering provider auto complete
                 self.setProviderAutoComplete('RF'); // referring provider auto complete
                 self.setDiagCodesAutoComplete();
                 self.bindExistingPatientInsurance();
                 self.setOrderingFacilityAutoComplete();
-                // set all Insurance auto_complete
-                self.bindInsuranceAutocomplete('ddlPriInsurance');
-                self.bindInsuranceAutocomplete('ddlSecInsurance');
-                self.bindInsuranceAutocomplete('ddlTerInsurance');
-                self.bindBillingSummary();
-                self.bindServiceType();
             },
 
             initializeClaimEditForm: function () {
@@ -629,12 +634,15 @@ define(['jquery',
                 self.cur_study_id = primaryStudyDetails.study_id || null;
                 self.isEdit = self.claim_Id ? true : false;
 
-                //  ToDo:: Once listout studies from patient have to remove this function
-                // if (!this.rendered)
-                //     this.render('claim');
+                if (!this.rendered)
+                    this.render('claim');
 
                 $(parent.document).find('#spanModalHeader').html('Claim Creation : <STRONG>' + primaryStudyDetails.patient_name + '</STRONG> (Acc#:' + primaryStudyDetails.account_no + '), <i>' + self.cur_patient_dob + '</i>  ');
                 self.getLineItemsAndBind(selectedStudyIds);
+                if(options && options == 'patientSearch'){
+                    self.bindDetails();
+                    self.bindTabMenuEvents();
+                }
                 self.updateResponsibleList({
                     payer_type: 'PPP',
                     payer_name: self.cur_patient_name + '( Patient )',
@@ -768,7 +776,10 @@ define(['jquery',
                                     
                                 });
                                 var _defaultDetails = modelDetails.claim_details && modelDetails.claim_details.length > 0 ? modelDetails.claim_details[0] : {};
-                                self.bindDefaultClaimDetails(_defaultDetails)
+                                setTimeout(function () {
+                                    self.bindDefaultClaimDetails(_defaultDetails);
+                                }, 200);
+                                
                                 self.bindProblemsContent(diagnosisCodes,diagnosisCodesOrder);
 
                                 if(modelDetails && modelDetails.charges && modelDetails.charges.length)
@@ -1914,6 +1925,10 @@ define(['jquery',
                     $('#ddl' + flag + 'State').val(result.subscriber_state);
                     $('#txt' + flag + 'ZipCode').val(result.subscriber_zipcode);
 
+                    setTimeout(function () {
+                        $('#ddlResponsible').val('PIP_P');
+                    }, 200);
+                    
                 }
             },
 
@@ -2802,8 +2817,14 @@ define(['jquery',
                     $results.show();
                 }
 
-                $('.selectionpatient').dblclick(function (e) {
-                    self.selectPatient(e);
+                // $('.selectionpatient').dblclick(function (e) {
+                //     self.selectPatient(e);
+                // });
+                $('.selectionpatient').off().click(function (e) {
+                    var $target = $(e.target || e.srcElement).closest('.studyList').length
+                    if (!$target && $(e.target || e.srcElement).attr('id') != 'btnClaimWStudy' && $(e.target || e.srcElement).attr('id') != 'btnClaimWOStudy') {
+                        self.selectPatient(e);
+                    }
                 });
             },
 
@@ -2883,11 +2904,114 @@ define(['jquery',
                 var tagName = commonjs.getElementFromEventTarget(e).tagName;
                 var self = this;
                 var patientId = (tagName == 'P') ? (e.target || e.srcElement).parentElement.id.split('_')[2] : (e.target || e.srcElement).id.split('_')[2];
+                var $studyDetails = $(e.target || e.srcElement).closest('.selectionpatient').find('.studyDetails');
                 var patient_name = $(e.target || e.srcElement).closest('.selectionpatient').data('name');
                 var account_no = $(e.target || e.srcElement).closest('.selectionpatient').data('value');
                 var patient_dob = $(e.target || e.srcElement).closest('.selectionpatient').data('patient_dob');
+                var facility_id = $(e.target || e.srcElement).closest('.selectionpatient').data('facility_id');
                 self.cur_patient_id = patientId || 0;
+
+                if (!$studyDetails.is(':visible')) {
+
+                    $('.studyDetails').empty();
+                    $('.studyDetails').hide();
+                    
+                    $list = $('<ul class="studyList" style="width: 50%;margin:0px;"></ul>');
+                    jQuery.ajax({
+                        url: "/exa_modules/billing/claims/studiesby_patient_id",
+                        type: "GET",
+                        data: {
+                            id: patientId,
+                            company_id: app.companyID
+                        },
+                        success: function (data) {
+                            if (data && data.length) {
+                                _.each(data, function (study) {
+                                    study.study_description = study.study_description ? study.study_description : '--';
+                                    study.accession_no = study.accession_no ? study.accession_no : '--';
+                                    var study_date = study.study_dt ? commonjs.convertToFacilityTimeZone(app.facilityID, moment(study.study_dt)).format('L LT z') : '--'
+                                    $list.append('<li><input id="studyChk_' + study.id + '" type="checkbox" name="chkStudy" data-study_dt="' + study.study_dt + '" data-accession_no="' + study.accession_no + '" />'+
+                                    '<label style="font-weight: bold;overflow-wrap: break-word;"  for="studyChk_' + study.id + '" >' + study.study_description
+                                    + ' ( Accession# : ' + study.accession_no + ' , Study.Date: ' + study_date + ')</label></li>');
+                                });
+                                $studyDetails.append($list);
+                                $studyDetails.show();
+
+                                $studyDetails.append('<button style="height:33px;margin-right:5px;" type="button" class="btn top-buffer processClaim" id="btnClaimWStudy">With Study</button>');
+                                $studyDetails.append('<button style="height:33px;" type="button" class="btn top-buffer processClaim" id="btnClaimWOStudy">W/O Study</button>');
+                                $('.processClaim').off().click(function (e) {
+
+                                    if ($(e.target).attr('id') == 'btnClaimWStudy') {
+                                        var selectedStudies = [];
+                                        var $checkedInputs = $studyDetails.find('input').filter('[name=chkStudy]:checked');
+                                        var selectedCount = $checkedInputs.length;
+
+                                        if (selectedCount == 0) {
+                                            commonjs.showWarning('Please select Study');
+                                        } else {
+
+                                            for (var r = 0; r < selectedCount; r++) {
+                                                var studyId = $checkedInputs[r] && $checkedInputs[r].id ? $checkedInputs[r].id.split('_')[1] : 0;
+                                                var study_dt = $checkedInputs[r] && $checkedInputs[r].dataset ? $checkedInputs[r].dataset.study_dt : null;
+                                                var accession_no = $checkedInputs[r] && $checkedInputs[r].dataset ? $checkedInputs[r].dataset.accession_no : null;
+
+                                                var study = {
+                                                    study_id: studyId,
+                                                    patient_id: patientId,
+                                                    facility_id: facility_id,
+                                                    study_date: study_dt,
+                                                    patient_name: patient_name,
+                                                    account_no: account_no,
+                                                    patient_dob: patient_dob,
+                                                    accession_no: accession_no,
+                                                };
+                                                selectedStudies.push(study);
+                                                
+                                            }
+                                            var studyIds = selectedStudies.map(value => value.study_id);
+                                            studyIds = studyIds.join();
+                                            window.localStorage.setItem('primary_study_details', JSON.stringify(selectedStudies[0]));
+                                            window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
+
+                                            $('#divPageLoading').show();
+                                            self.showClaimForm('patientSearch');
+
+                                            setTimeout(function () {
+                                                $('#divPageLoading').hide();
+                                                $('.woClaimRelated').show();
+                                                $('#divPatient').hide();
+                                            }, 200);
+
+                                        }
+
+                                    }
+                                    else {
+                                        self.claimWOStudy(patient_name, account_no, patient_dob);
+                                    }
+
+                                });
+                            } else {
+
+                                if (confirm("Selected patient don't have study. Are you sure to process without study? ")) {
+                                    self.claimWOStudy(patient_name, account_no, patient_dob);
+                                }
+
+                            }
+                           
+                        },
+                        error: function (err) {
+                            commonjs.handleXhrError(err);
+                        }
+                    });
+                }
+                
+            },
+            claimWOStudy:function(patient_name, account_no, patient_dob){
+                var self = this;
+
+                // Claim w/o charge code  -- start
                 $('#divPageLoading').show();
+
                 // bind claim details
                 self.bindDetails();
 
@@ -2917,6 +3041,8 @@ define(['jquery',
 
                 self.cur_study_date = commonjs.convertToFacilityTimeZone(app.facilityID, moment()).format('L LT z')
                 document.querySelector('#txtClaimDate').value = moment().format('YYYY-MM-DD');
+                
+                // Claim w/o charge code  -- end
 
                 setTimeout(function () {
                     $('#divPageLoading').hide();
@@ -2924,7 +3050,7 @@ define(['jquery',
                     $('#divPatient').hide();
                     $('.woClaimRelated').show();
                 }, 200);
-                
+
             }
 
         });

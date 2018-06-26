@@ -315,17 +315,13 @@ define('grid', [
                 $divObj.append(liCreateClaim);
                 $('#anc_create_claim').off().click(function () {
 
-                    /**
-                     * ToDo:: Once listout studies from patient have to remove this function
-                    */
-                    // window.localStorage.setItem('selected_studies', null);
-                    // window.localStorage.setItem('first_study_details', null);
-                    // window.localStorage.setItem('primary_study_details', JSON.stringify(selectedStudies[0]));
-                    // window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
-                    
+                    window.localStorage.setItem('selected_studies', null);
+                    window.localStorage.setItem('primary_study_details', JSON.stringify(selectedStudies[0]));
+                    window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
+
                     self.claimView = new claimsView();
-                    //self.claimView.showClaimForm(studyIds); 
-                    self.claimView.showPatientForm();
+                    self.claimView.showClaimForm(studyIds);
+
                 });
             }
 
@@ -423,7 +419,6 @@ define('grid', [
                             return false;
                         }else{
                             window.localStorage.setItem('selected_studies', null);
-                            window.localStorage.setItem('first_study_details', null);
                             window.localStorage.setItem('primary_study_details', JSON.stringify(selectedStudies[0]));
                             window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
                             self.claimView = new claimsView();
@@ -659,7 +654,6 @@ define('grid', [
                         self.claimView.showEditClaimForm(rowID);
                     } else {
                         window.localStorage.setItem('selected_studies', null);
-                        window.localStorage.setItem('first_study_details', null);
                         window.localStorage.setItem('primary_study_details', JSON.stringify(rowID));
                         window.localStorage.setItem('selected_studies', JSON.stringify(rowID));
                         self.claimView = new claimsView();
