@@ -41,7 +41,6 @@ define([ 'backbone', 'immutable', 'models/study-field', 'shared/fields' ], funct
                                         }
                                     });
                                 });
-                                console.log(key);
                             
             this.set(key);
         }

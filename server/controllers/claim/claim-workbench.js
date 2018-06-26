@@ -1,4 +1,6 @@
 const data = require('../../data/claim/claim-workbench');
+const ediData = require('../../data/claim/claim-edi');
+const claimPrintData = require('../../data/claim/claim-print');
 const ediConnect = require('../../../modules/edi');
 
 const _ = require('lodash');
@@ -25,8 +27,8 @@ module.exports = {
     },
 
     getClaimObject: async function (params) {
-        return data.getEDIClaim(params);
-        // let claimObject = await data.getEDIClaim(params);
+        return ediData.getClaimData(params);
+        // let claimObject = await ediData.getClaimData(params);
         // let claimTemplate = await data.getPaperClaimTemplate(params);
 
         // let pdfPrinter = PdfPrinter();
@@ -34,12 +36,16 @@ module.exports = {
         // pdfPrinter.createPdf(docDefinition).download('optionalName.pdf');
     },
 
+    getInvoiceData: async function (params) {
+        return claimPrintData.getInvoiceData(params);
+    },
+
     getPrinterTemplate: function (params) {
-        return data.getPrinterTemplate(params);
+        return claimPrintData.getPrinterTemplate(params);
     },
 
     getEDIClaim: async (params) => {    
-        const result = await data.getEDIClaim(params);
+        const result = await ediData.getClaimData(params);
         let ediResponse ={};
 
         if (result.rows && result.rows.length) { 
@@ -52,14 +58,14 @@ module.exports = {
                 return new Error('EDI Template not yet mapped with Clearinghouse :(');
             }
             
-            // let data = _.map( result.rows, function (obj) {
-            //     if((obj.subscriper_relationship).toUpperCase()!='SELF'){
-            //         obj.data[0].subscriber[0].patient[0].claim = obj.data[0].subscriber[0].claim;
-            //         delete obj.data[0].subscriber[0].claim;
-            //     }
+            let data = _.map( result.rows, function (obj) {
+                if((obj.subscriper_relationship).toUpperCase()!='SELF'){
+                    obj.data[0].subscriber[0].patient[0].claim = obj.data[0].subscriber[0].claim;
+                    delete obj.data[0].subscriber[0].claim;
+                }
 
-            //     return obj.data[0];
-            // });
+                return obj.data[0];
+            });
 
             let ediRequestJson ={
                 'config': {
@@ -81,7 +87,7 @@ module.exports = {
     },
 
     validateClaim: async function (params) {
-        let claimDetails = await data.validateClaim(params);
+        let claimDetails = await ediData.validateClaim(params);
         claimDetails = claimDetails.rows;
         let validation_result = { invalidClaim_data: [], 
             validClaim_data: [] };
@@ -187,7 +193,9 @@ module.exports = {
 
     deleteClaim:function (params) {
         return data.deleteClaim(params);
+    },
+
+    getClaimStudy: function(params) {
+        return data.getClaimStudy(params);
     }
-
-
 };

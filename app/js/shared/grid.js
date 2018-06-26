@@ -112,6 +112,10 @@ define('grid', [
             let $checkedInputs = $tblGrid.find('input').filter('[name=chkStudy]:checked');
             let selectedCount = $checkedInputs.length;
             let _storeEle;
+
+            let study_id = 0;
+            let order_id = 0;
+
             for (var r = 0; r < selectedCount; r++) {
                 var rowId = $checkedInputs[r].parentNode.parentNode.id;
                 _storeEle = getData(rowId, store, gridID);
@@ -133,6 +137,23 @@ define('grid', [
                 var liClaimStatus = commonjs.getRightClickMenu('ul_change_claim_status','setup.rightClickMenu.billingStatus',false,'Change Claim Status',true); 
                 $divObj.append(liClaimStatus);
                 var liArray = [];
+
+                $.ajax({
+                    url: '/exa_modules/billing/claim_workbench/claim_study?claim_id=' + selectedStudies[0].study_id,
+                    type: 'GET',
+                    success: function (data, response) {
+                        if(data && data.length > 0) {
+                            study_id = data[0].study_id;
+                            order_id = data[0].order_id;
+                            
+                            $('#anc_view_documents').removeClass('disabled')
+                            $('#anc_view_reports').removeClass('disabled')
+                        }
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
                 $.each(app.claim_status, function (index, claimStatus) {                      
                     var $claimStatusLink = $(commonjs.getRightClickMenu('ancclaimStatus_' + claimStatus.id,'setup.rightClickMenu.billingCode',true,claimStatus.description ,false));                        
                         $claimStatusLink.click(function () {
@@ -229,7 +250,12 @@ define('grid', [
                 $('#anc_edit_claim').off().click(function () {
 
                     self.claimView = new claimsView();
-                    self.claimView.showEditClaimForm(studyIds);
+                    self.claimView.showEditClaimForm(studyIds, null, {
+                        'study_id': study_id,
+                        'patient_name': selectedStudies[0].patient_name,
+                        'patient_id': selectedStudies[0].patient_id,
+                        'order_id': 0
+                    });
                 });
 
                 var liDeleteClaim = commonjs.getRightClickMenu('anc_delete_claim','setup.rightClickMenu.deleteClaim',false,'Delete Claim',false);         
@@ -240,7 +266,7 @@ define('grid', [
               
                     
                 $('#anc_delete_claim').off().click(function () {
-                if(confirm("If you want delete claims")){
+                if(confirm("Are you sure want to delete claims")){
                     if(confirm("Please confirm claim has been deleted and also dependent deleted ")){
                     $.ajax({
                         url: '/exa_modules/billing/claim_workbench/claims/delete',
@@ -310,6 +336,42 @@ define('grid', [
                     self.splitClaimView.validateSplitClaim(studyIds);
                 });
 
+                if (selectedStudies.length == 1) {
+                    var liViewDocumetns = commonjs.getRightClickMenu('anc_view_documents', 'setup.rightClickMenu.viewDocuments', false, 'View Documents', false);
+                    $divObj.append(liViewDocumetns);
+                    $('#anc_view_documents').click(function () {
+                        if ($('#anc_view_documents').hasClass('disabled')) {
+                            return false;
+                        }
+
+                        commonjs.showDialog({
+                            header: 'Patient Documents',
+                            i18nHeader: 'setup.rightClickMenu.patientDocuments',
+                            width: '95%',
+                            height: '75%',
+                            url: '/vieworder#order/document/' + btoa(order_id) + '/' + btoa(selectedStudies[0].patient_id) + '/' + btoa(study_id) + '/encounter'
+                        });
+                    });
+
+                    var liViewReports = commonjs.getRightClickMenu('anc_view_reports', 'setup.rightClickMenu.viewReports', false, 'View Reports', false);
+                    $divObj.append(liViewReports);
+                    $('#anc_view_reports').click(function () {
+                        if ($('#anc_view_reports').hasClass('disabled')) {
+                            return false;
+                        }
+
+                        commonjs.showDialog({
+                            header: 'Approved Reports',
+                            i18nHeader: 'setup.rightClickMenu.approvedReports',
+                            width: '95%',
+                            height: '75%',
+                            url: '/vieworder#order/transcription/0/' + study_id + '/' + selectedStudies[0].patient_id + '/model/' + selectedStudies[0].patient_name
+                        });
+                    });
+
+                    $('#anc_view_documents').addClass('disabled')
+                    $('#anc_view_reports').addClass('disabled')
+                }
             } else {                
                 var liCreateClaim = commonjs.getRightClickMenu('anc_create_claim','setup.rightClickMenu.createClaim',false,'Create Claim',false);
                 $divObj.append(liCreateClaim);
@@ -379,12 +441,12 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 (options.isClaimGrid ? '<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />' : ''),
-                '', '', '', '', '','','','',''
+                '', '', '', '', '','','','','','','',''
 
             ]);
 
             i18nName = i18nName.concat([
-                '', '', '', '', '', '','','','',''
+                '', '', '', '', '', '','','','','','','',''
             ]);
 
             colModel = colModel.concat([
@@ -396,7 +458,10 @@ define('grid', [
                     search: false,
                     isIconCol: true,
                     formatter: function (cellvalue, options, rowObject) {
-                        return '<input type="checkbox" name="chkStudy" id="chk'+gridID.slice(1)+'_' + (options.isClaimGrid?rowObject.id:rowObject.id )+ '" />'
+                        if(['ABRT','CAN','NOS'].indexOf(rowObject.study_status)>-1||rowObject.has_deleted)
+                            return "";
+                        else  return '<input type="checkbox" name="chkStudy" id="chk'+gridID.slice(1)+'_' + (options.isClaimGrid?rowObject.id:rowObject.id )+ '" />'
+                        
                     },
                     customAction: function (rowID, e, that) {
                     }
@@ -409,13 +474,16 @@ define('grid', [
                     search: false,
                     hidden: false,
                     isIconCol: true,
-                    formatter: function () {
-                        return "<i class='icon-ic-edit' title='Edit'></i>"
+                    formatter: function (cellvalue, options, rowObject) {                        
+                            if(!rowObject.claim_id)
+                                return "";
+                            else  return "<i class='icon-ic-edit' title='Edit'></i>"
+                        
                     },
                     customAction: function (rowID, e, that) { 
-                        if(options.isClaimGrid){
+                        var gridData = $('#'+e.currentTarget.id).jqGrid('getRowData', rowID);
                             self.claimView = new claimsView();
-                            self.claimView.showEditClaimForm(rowID);
+                            self.claimView.showEditClaimForm(gridData.claim_id);
                             return false;
                         }else{
                             window.localStorage.setItem('selected_studies', null);
@@ -475,6 +543,15 @@ define('grid', [
                     search: false,
                     hidden: true,
                     isIconCol: true
+                }, 
+                {
+                    name: 'claim_id',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true
                 },
                 {
                     name: 'birth_date',
@@ -512,6 +589,24 @@ define('grid', [
                     hidden: true,
                     isIconCol: true
                 },
+                {
+                    name: 'study_status',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true
+                },
+                {
+                    name: 'has_deleted',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true
+                }
             ]);
 
             if (app.showserial) {
@@ -562,7 +657,6 @@ define('grid', [
                 cells = cells.concat(changeGrid.getReadPhy(rowid, rowdata));
                 cells = cells.concat(changeGrid.getAge(rowdata.patient_age));
                 setCell(cells);
-
                 if (typeof options.afterInsertRow === 'function') {
                     options.afterInsertRow(rowid, rowdata);
                 }
