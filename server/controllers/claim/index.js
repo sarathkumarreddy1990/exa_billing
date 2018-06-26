@@ -40,7 +40,7 @@ module.exports = {
 
                 }
 
-                results.push(data.saveCharges(obj));
+                results.push(data.saveChargesOnly(obj));
             }
 
             return await Promise.all(results);
@@ -74,7 +74,7 @@ module.exports = {
 
                 if (!obj1.id) {
 
-                    charge_arr.push(data.saveCharges(obj1));
+                    charge_arr.push(data.saveChargesOnly(obj1));
 
                 }
 

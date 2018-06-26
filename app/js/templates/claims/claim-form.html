@@ -3,8 +3,14 @@
     div.top-nav {
         display: none;
     }
+    .charges__cpt-code .select2-selection{
+        width: 160px !important;
+    }
+    .charges__cpt-description .select2-selection{
+        width: 250px !important;
+    }
 </style>
-<div class="row " id="headerContainer">
+<div class="row woClaimRelated" id="headerContainer">
     <nav id="newClaimNav" class="top-nav">
         <ul id="tab_menu" class="tn-menu">
             <li class="active">
@@ -29,7 +35,7 @@
                 <button type="button" class="btn top-buffer claimProcess" id="btnNextClaim">NEXT</button>
             </li>
             <li class="editClaimRelated" >
-                <button type="button" class="btn top-buffer" id="btnPatientReport">PATIENT REPORT</button>
+                <button type="button" class="btn top-buffer" id="btPatientDocuemnt">DOCUMETNS AND REPORTS</button>
             </li>
             <li class="editClaimRelated" >
                 <button type="button" class="btn top-buffer " id="btnValidateClaim">VALIDATE</button>
@@ -40,7 +46,7 @@
         </ul>
     </nav>
 </div>
-<div id="divPatient" style=" display:none;width:98%; margin-left: 20px; margin-top: 20px;">
+<div id="divPatient" style="width:98%; margin-left: 20px; margin-top: 20px;">
     <div id="divGrid">
         <div class="row" id="searchForm">
             <div id="divPatientInputs">
@@ -132,7 +138,7 @@
     </div>
 </div>
 
-<main class="container-fluid " id="mainContainer">
+<main class="container-fluid woClaimRelated" id="mainContainer">
     <section id="tab_1">
         <div class="panel" style="margin-top: 30px;">
             <div class="row">
@@ -152,7 +158,7 @@
                                     <tr>
                                         <th></th>
                                         <th></th>
-                                        <th>Accession #</th>
+                                        <th style="display: none;">Accession #</th>
                                         <th>Date</th>
                                         <th>CptCode</th>
                                         <th>CptDescription</th>

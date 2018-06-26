@@ -228,7 +228,11 @@
             "editClaim":"Edit Claim",
             "claimInquiry":"claim Inquiry",
             "splitOrders":"split Orders",
-            "createClaim":"Create Claim"
+            "createClaim":"Create Claim",
+            "patientDocuments":"Patient Documents",
+            "approvedReports":"Approved Reports",
+            "viewDocuments": "View Documents",
+            "viewReports":"View Reports"
         },
         "validation":{
             "billingGrp": "Billing Provider",
