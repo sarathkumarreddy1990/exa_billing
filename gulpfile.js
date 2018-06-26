@@ -119,18 +119,14 @@ gulp.task('git-add', ['git-init'], () => {
 gulp.task('git-commit', ['git-add'], () => {
     let newVersion;
 
-    //function computeNewVersion() {
-        const package = JSON.parse(fs.readFileSync('./package.json'));
-        newVersion = package.version;
-    //}
+    const package = JSON.parse(fs.readFileSync('./package.json'));
+    newVersion = package.version;
 
     return gulp.src('./package.json')
-        //.pipe(computeNewVersion())
         .pipe(git.commit(`Build v${newVersion}`));
-        //.pipe(git.commit(() => `Build v${newVersion}`));
 });
 
-gulp.task('git-push', ['git-commit'], () => {
+gulp.task('git-push', ['bump', 'git-commit'], () => {
     git.push('origin', 'develop', (err) => {
         if (err) throw err;
     });
@@ -143,6 +139,7 @@ gulp.task('build', [
     'zip',
     'clean-all',
     'bump',
+    'git-push',
 ]);
 
 
