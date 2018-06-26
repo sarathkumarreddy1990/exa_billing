@@ -440,12 +440,12 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 (options.isClaimGrid ? '<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />' : ''),
-                '', '', '', '', '','','','','',''
+                '', '', '', '', '','','','','','','',''
 
             ]);
 
             i18nName = i18nName.concat([
-                '', '', '', '', '', '','','','','',''
+                '', '', '', '', '', '','','','','','','',''
             ]);
 
             colModel = colModel.concat([
@@ -457,7 +457,10 @@ define('grid', [
                     search: false,
                     isIconCol: true,
                     formatter: function (cellvalue, options, rowObject) {
-                        return '<input type="checkbox" name="chkStudy" id="chk'+gridID.slice(1)+'_' + (options.isClaimGrid?rowObject.id:rowObject.id )+ '" />'
+                        if(['ABRT','CAN','NOS'].indexOf(rowObject.study_status)>-1||rowObject.has_deleted)
+                            return "";
+                        else  return '<input type="checkbox" name="chkStudy" id="chk'+gridID.slice(1)+'_' + (options.isClaimGrid?rowObject.id:rowObject.id )+ '" />'
+                        
                     },
                     customAction: function (rowID, e, that) {
                     }
@@ -470,23 +473,17 @@ define('grid', [
                     search: false,
                     hidden: false,
                     isIconCol: true,
-                    formatter: function () {
-                        return "<i class='icon-ic-edit' title='Edit'></i>"
+                    formatter: function (cellvalue, options, rowObject) {                        
+                            if(!rowObject.claim_id)
+                                return "";
+                            else  return "<i class='icon-ic-edit' title='Edit'></i>"
+                        
                     },
                     customAction: function (rowID, e, that) { 
-                        if(options.isClaimGrid){
+                        var gridData = $('#'+e.currentTarget.id).jqGrid('getRowData', rowID);
                             self.claimView = new claimsView();
-                            self.claimView.showEditClaimForm(rowID);
+                            self.claimView.showEditClaimForm(gridData.claim_id);
                             return false;
-                        }else{
-                            window.localStorage.setItem('selected_studies', null);
-                            window.localStorage.setItem('first_study_details', null);
-                            window.localStorage.setItem('primary_study_details', JSON.stringify(selectedStudies[0]));
-                            window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
-                            self.claimView = new claimsView();
-                            self.claimView.showClaimForm(studyIds);
-                            return false;
-                        }
                     }
                 },
                 {
@@ -539,7 +536,7 @@ define('grid', [
                     isIconCol: true
                 }, 
                 {
-                    name: 'charge_status',
+                    name: 'claim_id',
                     width: 20,
                     sortable: false,
                     resizable: false,
@@ -583,6 +580,24 @@ define('grid', [
                     hidden: true,
                     isIconCol: true
                 },
+                {
+                    name: 'study_status',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true
+                },
+                {
+                    name: 'has_deleted',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true
+                }
             ]);
 
             if (app.showserial) {

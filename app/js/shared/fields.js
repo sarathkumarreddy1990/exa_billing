@@ -127,7 +127,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         };
         var queuseStatusFormatter = function (cellvalue, options, rowObject) {
             if (!cellvalue) return '-';
-            return app.settings.report_queue_status[_.findIndex(app.settings.report_queue_status, {code: cellvalue})].description;
+            return app.settings.report_queue_status[_.findIndex(app.settings.report_queue_status, {code: cellvalue})] && app.settings.report_queue_status[_.findIndex(app.settings.report_queue_status, {code: cellvalue})].description;
         };
         var getStatus = function ( data ) {
             var status = data.study_status ;
@@ -599,7 +599,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
 
                     },
                     "cellattr": function ( id, cellvalue, rowObject ) {
-                        var statusDetail = commonjs.getClaimColorCodeForStatus(rowObject.charge_status > 0 ? 'billed' : 'unbilled', 'study');
+                        var statusDetail = commonjs.getClaimColorCodeForStatus(rowObject.claim_id > 0 ? 'billed' : 'unbilled', 'study');
                         var statusObj = statusDetail[ 0 ];
                         return 'style="background:' + (statusObj && statusObj.color_code || 'transparent') + ';"';
                     }
