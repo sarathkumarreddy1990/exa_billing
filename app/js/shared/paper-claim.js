@@ -19,7 +19,7 @@ define([
 
                 this.getTemplate(claimIDs, templateType, function (err, template) {
                     self.getClaimObject(claimIDs, templateType, function (err, claimData) {
-                        var docDefinition = self.mergeTemplate(template, claimData);
+                        var docDefinition = self.mergeTemplate(templateType, template, claimData);
 
                         pdfMake.createPdf(docDefinition).open({}, win);
                         return;
@@ -30,9 +30,12 @@ define([
                 });
             };
 
-            this.mergeTemplate = function (template, claimData) {
+            this.mergeTemplate = function (templateType, template, claimData) {
                 template = template.template_content;
-                claimData = claimData.data[0];
+
+                if (templateType === 'paper_claim_original' || templateType === 'paper_claim_full') {
+                    claimData = claimData.data[0];
+                }
 
                 // template = { content: 'Corrected Claim', style: 'header', mergeField: 'data.date1' };
                 // claimData = {
@@ -99,7 +102,7 @@ define([
                 var apis = {
                     'paper_claim_original': '/exa_modules/billing/claim_workbench/claim_json',
                     'paper_claim_full': '/exa_modules/billing/claim_workbench/claim_json',
-                    'direct_invoice': '/exa_modules/billing/claim_workbench/invoice_json',
+                    'direct_invoice': '/exa_modules/billing/claim_workbench/invoice_data',
                     'patient_invoice': '/exa_modules/billing/claim_workbench/patient_invoice_json',
                 };
 

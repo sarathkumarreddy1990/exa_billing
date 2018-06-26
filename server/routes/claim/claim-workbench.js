@@ -33,6 +33,11 @@ router.get('/claim_json', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/invoice_data', async function (req, res) {
+    const data = await claimWorkbenchController.getInvoiceData(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
 router.get('/printer_template', async function (req, res) {
     const data = await claimWorkbenchController.getPrinterTemplate(req.query);
     httpHandler.sendRows(req, res, data);
