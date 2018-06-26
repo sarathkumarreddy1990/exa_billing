@@ -85,7 +85,8 @@ define([
                         {
                             name: 'created_dt',
                             width: 180,
-                            formatter: self.loggedDateFormatter
+                            formatter: self.loggedDateFormatter,
+                            search: false
                         },
                         {
                             name: 'screen_name',
