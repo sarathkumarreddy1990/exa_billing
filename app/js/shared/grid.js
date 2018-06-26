@@ -344,7 +344,7 @@ define('grid', [
                             i18nHeader: 'setup.rightClickMenu.patientDocuments',
                             width: '95%',
                             height: '75%',
-                            url: '/vieworder#order/document/' + btoa(order_id) + '/' + btoa(selectedStudies[0].patient_id) + '/' + btoa(study_id)
+                            url: '/vieworder#order/document/' + btoa(order_id) + '/' + btoa(selectedStudies[0].patient_id) + '/' + btoa(study_id) + '/encounter'
                         });
                     });
 
