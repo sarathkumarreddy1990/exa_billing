@@ -7,12 +7,12 @@ define([
     'models/pager',
     'text!templates/claims/claim-inquiry.html',
     'collections/claim-inquiry',
-    'views/reports/patient-activity-statement' ,
+    'views/reports/patient-activity-statement',
     'views/reports/payment-invoice',
-    'text!templates/claims/claimInquiryPayment.html' ,
+    'text!templates/claims/claimInquiryPayment.html',
     'collections/claim-patient-inquiry',
-    'text!templates/claims/claim-patient.html' ,
-    'text!templates/claims/age-summary.html' 
+    'text!templates/claims/claim-patient.html',
+    'text!templates/claims/age-summary.html'
 ], function (
     $,
     _,
@@ -36,11 +36,12 @@ define([
             claimPatientTemplate: _.template(claimPatientInquiryTemplate),
             paymentTemplate: _.template(paymentDetails),
             agingSummaryTemplate: _.template(agingSummaryHTML),
-            payCmtGrid:'',
+            payCmtGrid: '',
             claim_id: null,
+            patientId: null,
 
-            events: {
-                "click #btnCIPatientInquiry":"generatePatientActivity"  
+            events: {              
+                "click #btnCIPrintInvoice": "generatePrintInvoice"
             },
 
             initialize: function (options) {
@@ -50,11 +51,11 @@ define([
                 this.claimPatientList = new claimPatientList();
             },
 
-            render: function (cid,patientId, from) {
-              this.rendered = true;
-              this.$el.html(this.inquiryTemplate());
-              this.bindEvents();
-               // commonjs.bindDateTimePicker("divFollowUpDate", { format: 'L' }); //to bind date picker to followup date  . Now not working that's y commented               
+            render: function (cid, patientId, from) {
+                this.rendered = true;
+                this.$el.html(this.inquiryTemplate());
+                this.bindEvents();
+                // commonjs.bindDateTimePicker("divFollowUpDate", { format: 'L' }); //to bind date picker to followup date  . Now not working that's y commented               
                 this.claimInquiryDetails(cid, false, from);
             },
 
@@ -100,7 +101,7 @@ define([
                     url: '/exa_modules/billing/claims/claim_inquiry',
                     type: 'GET',
                     data: {
-                        'claim_id': self.claim_id  
+                        'claim_id': self.claim_id
                     },
                     success: function (data, response) {
 
@@ -112,9 +113,9 @@ define([
                             data = data[0];
                             var claim_data = data.claim_details && data.claim_details.length > 0 ? data.claim_details : '[]';
                             var payment_data = data.payment_details && data.payment_details.length > 0 ? data.payment_details : '[]';
-                            var patient_details = data.patient_details && data.patient_details.length > 0 ? data.patient_details :'[]';
+                            var patient_details = data.patient_details && data.patient_details.length > 0 ? data.patient_details : '[]';
 
-                            if(claim_data.length > 0){
+                            if (claim_data.length > 0) {
 
                                 claim_data = claim_data[0];
                                 //binding the values from data base
@@ -131,15 +132,15 @@ define([
                                 $('#lblCIClaimDate').text(claim_date);
                             }
 
-                            if(payment_data && payment_data.length > 0){
+                            if (payment_data && payment_data.length > 0) {
                                 $('#lblCIPatientPaid').text(payment_data.patient_paid);
                                 $('#lblCIOthersPaid').text(payment_data.others_paid);
                                 $('#lblCIAdj').text(payment_data.adjustment_amount);
                             }
 
-                            if(patient_details && patient_details.length > 0){
+                            if (patient_details && patient_details.length > 0) {
                                 var patient_details = 'Claim Inquiry: ' + patient_details[0].patient_name + ' (Acc#:' + patient_details[0].account_no + ')' + ',  ' + patient_details[0].birth_date + ',  ' + patient_details[0].gender;
-                                $(parent.document).find('#spanModalHeader').html(patient_details) 
+                                $(parent.document).find('#spanModalHeader').html(patient_details)
                             }
 
                             if (fromTogglePreNext) {
@@ -174,7 +175,7 @@ define([
 
                 $('#tblCIInsurance').jqGrid({
                     datatype: 'local',
-                    data: data !=null ? data : [],
+                    data: data != null ? data : [],
                     colNames: ['', 'code', 'description', 'Subscriber Name', 'DOB', 'Policy No', 'Group No', 'Paper Claim'],
                     colModel: [
                         { name: 'id', hidden: true },
@@ -184,11 +185,12 @@ define([
                         { name: 'subscriber_dob', search: false },
                         { name: 'policy_number', search: false },
                         { name: 'group_number', search: false },
-                        { name: 'paper_claim', search: false, 
+                        {
+                            name: 'paper_claim', search: false,
                             customAction: function (rowID) {
                             },
                             formatter: function (cellvalue, options, rowObject) {
-                                    return "<input type='button' id='btnCIPaperClaim' class='btn btnCommentSave  btn-primary' value='Paper Claim' i18n='shared.buttons.paperclaim' id='spnPaperClaim_" + rowObject.id + "'>"
+                                return "<input type='button' id='btnCIPaperClaim' class='btn btnCommentSave  btn-primary' value='Paper Claim' i18n='shared.buttons.paperclaim' id='spnPaperClaim_" + rowObject.id + "'>"
                             }
                         }
                     ],
@@ -203,7 +205,7 @@ define([
             showDiagnosisGrid: function (data) {
                 $("#tblCIDiagnosis").jqGrid({
                     datatype: 'local',
-                    data: data !=null ? data : [],
+                    data: data != null ? data : [],
                     colNames: ['', 'Code', 'Description'],
                     colModel: [
                         { name: '', index: 'id', key: true, hidden: true },
@@ -218,45 +220,46 @@ define([
                 $('#gview_tblCIDiagnosis').find('.ui-jqgrid-bdiv').css('max-height', '300px')
             },
 
-            showPatientClaimsGrid: function (claimID,patientId) {
+            showPatientClaimsGrid: function (claimID, patientId) {
                 var self = this;
                 $('#divPatientClaimsGrid').show();
-                this.patientClaimsTable = new customGrid(); 
+                this.patientClaimsTable = new customGrid();
                 this.patientClaimsTable.render({
                     gridelementid: '#tblPatientClaimsGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['','Claim Number', 'Claim Date','Billing Fee','Total Insurance Payments','Total Patient Payments','Balance','Claim Status','Current responsibility'],
-                    i18nNames: ['', 'billing.fileInsurance.claimNo', 'billing.claims.claimDate','billing.COB.billingFee','billing.claims.totalInsurancePayments','billing.claims.totalPatientPayments','billing.claims.Balance','billing.claims.claimStatus','billing.claims.currentResponsibility'],
-                    colModel: [                       
-                        { name: '', index: 'claim_id', key: true, hidden: true,search: false },
+                    colNames: ['', 'Claim Number', 'Claim Date', 'Billing Fee', 'Total Insurance Payments', 'Total Patient Payments', 'Balance', 'Claim Status', 'Current responsibility'],
+                    i18nNames: ['', 'billing.fileInsurance.claimNo', 'billing.claims.claimDate', 'billing.COB.billingFee', 'billing.claims.totalInsurancePayments', 'billing.claims.totalPatientPayments', 'billing.claims.Balance', 'billing.claims.claimStatus', 'billing.claims.currentResponsibility'],
+                    colModel: [
+                        { name: '', index: 'claim_id', key: true, hidden: true, search: false },
                         {
-                            name: 'claim_id', search: false,width:'70px'
+                            name: 'claim_id', search: false, width: '70px'
                         },
                         {
-                            name: 'claim_dt', search: false,formatter:self.dateFormatter,width:'130px'
+                            name: 'claim_dt', search: false, formatter: self.dateFormatter, width: '130px'
                         },
                         {
-                            name: 'billing_fee', search: false,width:'70px'
+                            name: 'billing_fee', search: false, width: '70px'
                         },
                         {
-                            name: 'total_insurance_payment',search: false,width:'100px'
+                            name: 'total_insurance_payment', search: false, width: '100px'
                         },
                         {
-                            name: 'total_patient_payment',search: false,width:'100px'
+                            name: 'total_patient_payment', search: false, width: '100px'
                         },
                         {
-                            name: 'claim_balance',search: false,width:'70px'
+                            name: 'claim_balance', search: false, width: '70px'
                         },
                         {
-                            name: 'claim_status',search: false,width:'100px'
+                            name: 'claim_status', search: false, width: '100px'
                         },
                         {
-                            name: 'payer_name',search: false,width:'100px'
+                            name: 'payer_name', search: false, width: '100px'
                         }
 
 
                     ],
+
                     datastore: self.claimPatientList,
                     container: self.el,
                     cmTemplate: { sortable: false },
@@ -270,18 +273,18 @@ define([
                     showcaption: false,
                     disableadd: true,
                     disablereload: true,
-                    customargs:{
-                        claimID:claimID,
-                        patientId:patientId
+                    customargs: {
+                        claimID: claimID,
+                        patientId: patientId
                     },
                     pager: '#gridPager_PatientClaim',
                     onaftergridbind: self.afterGridBind,
                 });
-                
+
 
                 setTimeout(function () {
                     $("#tblPatientClaimsGrid").setGridWidth($(".modal-body").width());
-                    $("#tblPatientClaimsGrid").setGridHeight(($(".modal-body").height()/2)*2);
+                    $("#tblPatientClaimsGrid").setGridHeight(($(".modal-body").height() / 2) * 2);
                 }, 200);
                 $('#divAgeSummary').html(self.agingSummaryTemplate());
             },
@@ -295,7 +298,7 @@ define([
             afterGridBind: function (model, gridObj) {
                 let self = this;
                 if (model && model.length > 0) {
-                    let age_summary=model[0].get('age_summary');
+                    let age_summary = model[0].get('age_summary');
                     $('#tdCurrent').html(age_summary.age_0_30 || '$0.00');
                     $('#tdAge30').html(age_summary.age_31_60 || '$0.00');
                     $('#tdAge60').html(age_summary.age_61_90 || '$0.00');
@@ -318,9 +321,10 @@ define([
                     colModel: [
                         { name: 'id', hidden: true },
                         { name: 'commented_dt', width: 40, search: false, sortable: false, formatter: self.commentDateFormatter },
-                        { name: 'code', hidden: true},
+                        { name: 'code', hidden: true },
                         { name: 'type', width: 40, search: false, sortable: false },
-                        { name: 'payment_id', width: 80, search: false, sortable: false,
+                        {
+                            name: 'payment_id', width: 80, search: false, sortable: false,
                             customAction: function (rowID) {
                                 var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
                                 $("#tBodyCIPayment").empty();
@@ -329,16 +333,17 @@ define([
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.type && rowObject.code == 'charge')
                                     return "<span class='icon-ic-raw-transctipt' rel='tooltip' title='View Pay details of this charge'></span>"
-                                else    
+                                else
                                     return rowObject.payment_id;
                             }
                         },
                         { name: 'comments', width: 50, search: false, sortable: false },
-                        { name: 'charge_pointer', width: 20,  search: false, sortable: false }, 
-                        { name: 'charge_amount', width: 20,  search: false, sortable: false },
-                        { name: 'payment', width: 20,  search: false, sortable: false },
-                        { name: 'adjustment', width: 30,  search: false, sortable: false }, 
-                        { name: 'view_payment', width: 20, sortable: false, search: false,
+                        { name: 'charge_pointer', width: 20, search: false, sortable: false },
+                        { name: 'charge_amount', width: 20, search: false, sortable: false },
+                        { name: 'payment', width: 20, search: false, sortable: false },
+                        { name: 'adjustment', width: 30, search: false, sortable: false },
+                        {
+                            name: 'view_payment', width: 20, sortable: false, search: false,
                             customAction: function (rowID) {
                                 var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
                                 self.getDetailsOfPay(gridData.id);
@@ -349,14 +354,15 @@ define([
                                 else
                                     return "";
                             }
-                        }, 
-                        { name: 'del', width: 20, search: false, sortable: false,
+                        },
+                        {
+                            name: 'del', width: 20, search: false, sortable: false,
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
                                 if (confirm("Are you sure that you want to delete?")) {
                                     var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
                                     self.deleteClaimComment(gridData.id);
-                                } 
+                                }
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.type && commentType.indexOf(rowObject.code) == -1)
@@ -426,7 +432,7 @@ define([
                         'claim_id': self.claim_id
                     },
                     success: function (data, response) {
-                        data  = data[0];
+                        data = data[0];
                         if (data) {
                             self.previousFollowUpDate = (commonjs.checkNotEmpty(data.followup_date)) ? moment(data.followup_date).format('YYYY-MM-DD') : '';
                             $('#txtCIFollowUpDate').val(self.previousFollowUpDate);
@@ -445,8 +451,8 @@ define([
             showCommentPopup: function (from, comment, commentId) {
                 var self = this;
 
-               $('#divCIFormComment').css({ top: '25%', height: '20%' });
-               $('#divCIFormComment').show();
+                $('#divCIFormComment').css({ top: '25%', height: '20%' });
+                $('#divCIFormComment').show();
                 if (from == 'edit') {
                     $('#siteModal').find('#txtCIAddComment').val(comment);
                 }
@@ -556,7 +562,7 @@ define([
 
                 $('#tblCIClaimComments  td input:checkbox').each(function () {
                     var content = {};
-                    content.isinternal =  $(this).prop('checked');
+                    content.isinternal = $(this).prop('checked');
                     content.commentid = $(this).attr('id');
                     comments.push(content);
                 });
@@ -591,22 +597,27 @@ define([
                 return colValue;
             },
 
-            patientInquiryForm: function (claimId,patientId) {
+            patientInquiryForm: function (claimId, patientId) {
                 var self = this;
+                self.patientId = patientId;
                 // commonjs.showDialog({
                 //     header: 'Patient Claim Inquiry', 
                 //     width: '95%',
                 //     height: '75%',
                 //     html: self.claimPatientTemplate()
                 // });        
-                this.$el.html(this.claimPatientTemplate()); 
-                self.showPatientClaimsGrid(claimId,patientId);            
+                this.$el.html(this.claimPatientTemplate());
+                self.showPatientClaimsGrid(claimId, patientId);
+
+                $('#btnPatientActivity').on().click(function () {
+                    self.generatePatientActivity(claimId, patientId);
+                });
             },
 
             printPaymentInvoice: function (e) {
                 var self = this;
-                self.paymentInvoice = new paymentInvoice({el: $('#modal_div_container')});
-                self.paymentInvoice.onReportViewClick(e);                         
+                self.paymentInvoice = new paymentInvoice({ el: $('#modal_div_container') });
+                self.paymentInvoice.onReportViewClick(e);
             },
 
             closeSaveComment: function (e) {
@@ -625,7 +636,7 @@ define([
                 }
             },
 
-            getPaymentofCharge: function(charge_id) {
+            getPaymentofCharge: function (charge_id) {
                 var self = this;
 
                 $.ajax({
@@ -634,7 +645,7 @@ define([
                     data: {
                         'claim_id': self.claim_id,
                         'charge_id': charge_id
-                },
+                    },
                     success: function (data, response) {
                         if (data.length > 0) {
                             $('#divCIpaymentDetails').show();
@@ -642,16 +653,16 @@ define([
                             $('#tBodyCIPayment').append(paymentCASRow);
                         }
                         else {
-                           commonjs.showStatus('No Payment to Show');
+                            commonjs.showStatus('No Payment to Show');
                         }
-                },
+                    },
                     error: function (err) {
                         commonjs.handleXhrError(err);
                     }
                 });
             },
 
-            getDetailsOfPay: function(pay_id) {
+            getDetailsOfPay: function (pay_id) {
                 var self = this;
 
                 $.ajax({
@@ -677,7 +688,7 @@ define([
                 })
             },
 
-            closePaymentDetails: function(e){
+            closePaymentDetails: function (e) {
                 $('#divCIpaymentDetails').hide();
                 $("#tBodyCIPayment").empty();
             },
@@ -694,7 +705,7 @@ define([
 
                     if (nextRowData.attr('id') && nextRowData.length > 0) {
                         var rowId = nextRowData.attr('id');
-                        $(e.target).prop('disabled',true);
+                        $(e.target).prop('disabled', true);
                         $($tblGrid, parent.document).closest('tr').find('tr#' + rowId);
 
                         self.claimInquiryDetails(rowId, true, false);
@@ -706,11 +717,22 @@ define([
                     commonjs.showWarning('Error on process claim');
                 }
             },
-            generatePatientActivity: function(e){  
+            generatePatientActivity: function (patientIds, claimIds, e) {
                 var self = this;
-                self.patientActivityStatement = new patientActivityStatement({ el: $('#modal_div_container') });
-                var claimInfo = {                   
-                    'claimID':self.claim_id
+                self.patientActivityStatement = new patientActivityStatement({ el: $('#reportFrame') });
+                var claimInfo = {
+                    'claimID': patientIds,
+                    flag: "patient-activity-statement",
+                    'patientId': claimIds
+                }
+                self.patientActivityStatement.onReportViewClick(e, claimInfo);
+            },
+            generatePrintInvoice: function(e){
+                var self = this;
+                self.patientActivityStatement = new patientActivityStatement({ el: $('#reportFrame') });
+                var claimInfo = {
+                    'claimID': self.patientId,
+                    flag: "patientInvoice"              
                 }
                 self.patientActivityStatement.onReportViewClick(e, claimInfo);
             }
