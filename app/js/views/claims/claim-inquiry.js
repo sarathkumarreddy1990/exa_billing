@@ -75,7 +75,7 @@ define([
                     self.saveIsInternalComment();
                 });
 
-                $('btnCIPrintInvoice').off().dblclick(function (e) {
+                $('btnCIPrintInvoice').off().click(function (e) {
                     self.printPaymentInvoice(e);
                 });
 
@@ -87,12 +87,12 @@ define([
                     self.billingCommentsReadonly();
                 });
 
-                $('#btnCIPayCancel').off().dblclick(function (e) {
+                $('#btnCIPayCancel').off().click(function (e) {
                     self.closePaymentDetails(e);
                 });
 
-                $('.claimProcess').off().dblclick(function (e) {
-                    self.closePaymentDetails(e);
+                $('.claimProcess').off().click(function (e) {
+                    self.applyToggleInquiry(e);
                 });
 
             },

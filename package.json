@@ -1,6 +1,6 @@
 {
     "name": "exa-billing",
-    "version": "1.4.0",
+    "version": "1.4.2",
     "description": "EXA Billing Module",
     "main": "server/app.js",
     "scripts": {
@@ -49,10 +49,12 @@
         "del": "^3.0.0",
         "eslint": "^4.19.1",
         "gulp": "^3.9.1",
+        "gulp-bump": "^3.1.1",
         "gulp-clean": "^0.4.0",
         "gulp-clean-css": "^3.9.4",
         "gulp-concat": "^2.6.1",
         "gulp-concat-css": "^3.1.0",
+        "gulp-git": "^2.7.0",
         "gulp-less": "^3.5.0",
         "gulp-requirejs": "^1.1.1",
         "gulp-uglifycss": "^1.1.0",

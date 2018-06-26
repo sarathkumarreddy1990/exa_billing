@@ -57,7 +57,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: 'Updated Claim' + params.process
+            logDescription: 'Updated Claim '+ params.process+ ' for claims ('+ params.claimIds +')'
         });
     },
 

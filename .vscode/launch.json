@@ -7,6 +7,15 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Gulp requirejsBuild",
+      "program": "${workspaceFolder}/node_modules/gulp/bin/gulp.js",
+      "args": [
+        "requirejsBuild"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Unit Tests",
       "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
       "args": [
@@ -16,7 +25,7 @@
         "999999",
         "--colors",
         "--recursive",
-        "${workspaceFolder}/test"
+        "${workspaceFolder}/test/unit/modules"
       ],
       "internalConsoleOptions": "openOnSessionStart"
     },
