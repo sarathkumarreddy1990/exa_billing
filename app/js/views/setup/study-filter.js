@@ -826,13 +826,7 @@ define([
 
                                     var balanceJson = response.filter_info.ClaimInformation.balance;
                                     $("input:radio[name=Balance][value=" + balanceJson.condition + "]").prop('checked', true);
-                                    for (var j = 0; j < balanceJson.list.length; j++) {
-                                        $('#listBalance option').each(function (i, selected) {
-                                            if (balanceJson.list[j].value == $(selected).val()) {
-                                                document.getElementById('listBalance').options[i].selected = true;
-                                            }
-                                        });
-                                    }
+                                    $('#listBalance').val(balanceJson.value);
                                 }
                             }
                             if(self.opener == "studies"){
@@ -1261,7 +1255,7 @@ define([
                             },
                             balance: {
                                 condition: $('input[name=Balance]:checked').val(),
-                                list: $('#listBalance').val()
+                                value: $('#listBalance').val()
                             }
                         }
                     }
