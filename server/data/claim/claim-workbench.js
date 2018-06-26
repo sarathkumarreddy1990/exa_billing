@@ -87,11 +87,13 @@ module.exports = {
         } = params;
 
         let sql = SQL`				
-					SELECT study_id 
-					FROM billing.charges_studies 
-					INNER JOIN billing.charges ON billing.charges.id = billing.charges_studies.charge_id 
-					WHERE billing.charges.claim_id = ${claim_id}
-					LIMIT 1`;
+                    SELECT  study_id,
+                            studies.order_id 
+					FROM    billing.charges_studies 
+                            INNER JOIN billing.charges ON billing.charges.id = billing.charges_studies.charge_id 
+                            INNER JOIN public.studies ON public.studies.id = billing.charges_studies.study_id 
+					WHERE   billing.charges.claim_id = ${claim_id}
+					LIMIT   1`;
 
         return await query(sql);
     }

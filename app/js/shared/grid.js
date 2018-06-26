@@ -112,7 +112,10 @@ define('grid', [
             let $checkedInputs = $tblGrid.find('input').filter('[name=chkStudy]:checked');
             let selectedCount = $checkedInputs.length;
             let _storeEle;
+
             let study_id = 0;
+            let order_id = 0;
+
             for (var r = 0; r < selectedCount; r++) {
                 var rowId = $checkedInputs[r].parentNode.parentNode.id;
                 _storeEle = getData(rowId, store, gridID);
@@ -141,6 +144,7 @@ define('grid', [
                     success: function (data, response) {
                         if(data && data.length > 0) {
                             study_id = data[0].study_id;
+                            order_id = data[0].order_id;
                             
                             $('#anc_view_documents').removeClass('disabled')
                             $('#anc_view_reports').removeClass('disabled')
@@ -340,7 +344,7 @@ define('grid', [
                             i18nHeader: 'setup.rightClickMenu.patientDocuments',
                             width: '95%',
                             height: '75%',
-                            url: '/vieworder#order/document/' + btoa(0) + '/' + btoa(selectedStudies[0].patient_id) + '/' + btoa(study_id)
+                            url: '/vieworder#order/document/' + btoa(order_id) + '/' + btoa(selectedStudies[0].patient_id) + '/' + btoa(study_id)
                         });
                     });
 
