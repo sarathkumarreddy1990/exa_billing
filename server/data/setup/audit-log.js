@@ -9,8 +9,8 @@ module.exports = {
             username,
             screen_name,
             description,
-            fromDate,
-            toDate,
+            from_date,
+            to_date,
             sortOrder,
             sortField,
             pageNo,
@@ -29,8 +29,8 @@ module.exports = {
             whereQuery.push( `al.description ILIKE  '%${description}%'`);
         }
 
-        if(fromDate && toDate){
-            whereQuery.push(` al.created_dt BETWEEN  '${fromDate}' AND '${toDate}'`);
+        if(from_date && to_date){
+            whereQuery.push(` al.created_dt BETWEEN  '${from_date}' AND '${to_date}'`);
         }
 
         const sql = SQL`SELECT

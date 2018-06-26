@@ -122,8 +122,8 @@ define([
                     disablereload: true,
                     pager: '#gridPager_AuditLog',
                     customargs: {
-                        fromDate: self.dtpFrom && self.dtpFrom.date() ? self.dtpFrom.date().format() : "",
-                        toDate: self.dtpTo && self.dtpTo.date() ? self.dtpTo.date().format() : "",
+                        from_date: self.dtpFrom && self.dtpFrom.date() ? self.dtpFrom.date().format() : "",
+                        to_date: self.dtpTo && self.dtpTo.date() ? self.dtpTo.date().format() : "",
                         flag: self.excelFlag ? true : false
                     }
                 });
@@ -138,8 +138,8 @@ define([
                         {
                             value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
                                 self.auditLogTable.options.customargs = {
-                                    fromDate: self.dtpFrom.date().format(),
-                                    toDate: self.dtpTo.date().format()
+                                    from_date: self.dtpFrom.date().format(),
+                                    to_date: self.dtpTo.date().format()
                                 }
                                 self.pager.set({ "PageNo": 1 });
                                 self.auditLogTable.refreshAll();
