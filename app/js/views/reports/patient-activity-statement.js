@@ -82,7 +82,7 @@ define([
                 else {
                     var reportName = "patient-activity-statement";
                     var urlParams = {
-                        claimID: claimInfo.claimID,
+                        patientIID: claimInfo.patientId,
                         sDate: '2018-06-23'
                     }
                 }
