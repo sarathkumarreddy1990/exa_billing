@@ -434,12 +434,12 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 (options.isClaimGrid ? '<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />' : ''),
-                '', '', '', '', '','','','','','','',''
+                '', '', '', '', '','','','','','','','',''
 
             ]);
 
             i18nName = i18nName.concat([
-                '', '', '', '', '', '','','','','','','',''
+                '', '', '', '', '', '','','','','','','','',''
             ]);
 
             colModel = colModel.concat([
@@ -480,7 +480,7 @@ define('grid', [
                                 'study_id': rowID,
                                 'patient_name': gridData.patient_name,
                                 'patient_id': gridData.patient_id,
-                                'order_id': gridData.claim_no  // claim_no as order_id
+                                'order_id': gridData.order_id
                             });
 
                             return false;
@@ -592,6 +592,15 @@ define('grid', [
                 },
                 {
                     name: 'has_deleted',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true
+                },
+                {
+                    name: 'order_id',
                     width: 20,
                     sortable: false,
                     resizable: false,
@@ -738,27 +747,39 @@ define('grid', [
                     if ($('#chk'+gridID.slice(1)+'_' + rowID).length > 0) {
                         $('#chk'+gridID.slice(1)+'_' + rowID).attr('checked',true);
                     }
-                    if (options.isClaimGrid) {
-                        self.claimView = new claimsView();
-                        commonjs.getClaimStudy(rowID).then(function (result) {
-                            if (result) {
-                                study_id = result.study_id;
-                                order_id = result.order_id;
-                            }
-                        });
+                    commonjs.getClaimStudy(rowID).then(function (result) {
+                        if (result) {
+                            study_id = result.study_id;
+                            order_id = result.order_id;
+                        }
+                    });
 
-                        self.claimView.showEditClaimForm(rowID, null, {
-                            'study_id': study_id,
+                    if (options.isClaimGrid || (gridData.claim_id && gridData.claim_id != '')) {
+                        self.claimEditView = new claimsView();
+                        self.claimEditView.showEditClaimForm(gridData.claim_id, null, {
+                            'study_id': gridData.study_id,
                             'patient_name': gridData.patient_name,
                             'patient_id': gridData.patient_id,
-                            'order_id': order_id
+                            'order_id': gridData.order_id
                         });
                     } else {
+
+                        var study = {
+                            study_id: rowID,
+                            patient_id: gridData.patient_id,
+                            facility_id: gridData.facility_id,
+                            study_date: gridData.study_dt,
+                            patient_name: gridData.patient_name,
+                            account_no: gridData.account_no,
+                            patient_dob: gridData.birth_date,
+                            accession_no: gridData.accession_no,
+                        };
+
                         window.localStorage.setItem('selected_studies', null);
-                        window.localStorage.setItem('primary_study_details', JSON.stringify(rowID));
+                        window.localStorage.setItem('primary_study_details', JSON.stringify(study));
                         window.localStorage.setItem('selected_studies', JSON.stringify(rowID));
                         self.claimView = new claimsView();
-                        self.claimView.showClaimForm(rowID);
+                        self.claimView.showClaimForm();
                     }
                 },
                 disablesearch: false,
