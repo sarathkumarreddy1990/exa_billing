@@ -5,10 +5,10 @@
     "main": "server/app.js",
     "scripts": {
         "lint": "eslint .",
-        "install-node_modules": "npm install && cd app && npm install && cd..",
         "dev": "nodemon ./bin/www",
         "start": "npm-run-all lint dev",
         "gulp-build": "gulp build",
+        "install-node_modules": "npm install && cd app && npm install && cd..",
         "build": "npm-run-all install-node_modules gulp-build",
         "start-production": "nodemon ./bin/www-cluster",
         "test": "mocha --recursive test/unit"
