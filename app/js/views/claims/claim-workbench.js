@@ -443,8 +443,12 @@ define(['jquery',
                 /// "paper_claim_full"
                 /// "paper_claim_original"
                 /// "patient_invoice"
-                if(existingBillingMethod === 'paper_claim') {
-                    paperClaim.print('paper_claim_original', claimIds);
+                if (existingBillingMethod === 'paper_claim') {
+                    var paperClaimFormat =
+                        localStorage.getItem('default_paperclaim_format') === 'ORIGINAL'
+                            ? 'paper_claim_original' : 'paper_claim_full';
+
+                    paperClaim.print(paperClaimFormat, claimIds);
                     return;
                 }
 
