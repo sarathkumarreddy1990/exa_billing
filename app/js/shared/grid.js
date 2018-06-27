@@ -260,10 +260,11 @@ define('grid', [
                 if(confirm("Are you sure want to delete claims")){
                     if(confirm("Please confirm claim has been deleted and also dependent deleted ")){
                     $.ajax({
-                        url: '/exa_modules/billing/claim_workbench/claims/delete',
+                        url: '/exa_modules/billing/claim_workbench/claim_charge/delete',
                         type: 'PUT',
                         data: {
-                            claim_id: studyIds,
+                            target_id: studyIds,
+                            type: 'claim'
                         },
                         success: function (data, response) {                            
                             commonjs.showStatus('Claim has been deleted');
