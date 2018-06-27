@@ -762,10 +762,10 @@ module.exports = {
                                 , ch.authorization_no
                                 , (ch.units * ch.bill_fee)::numeric as total_bill_fee
                                 , (ch.units * ch.allowed_amount)::numeric as total_allowed_fee
-                                -- , chs.study_id
+                                , chs.study_id
                             FROM billing.charges ch 
                                 INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id 
-                                -- INNER JOIN billing.charges_studies chs ON chs.charge_id = ch.id
+                                LEFT JOIN billing.charges_studies chs ON chs.charge_id = ch.id
                             WHERE claim_id = c.id 
                             ORDER BY ch.id, ch.line_num ASC
                       ) pointer) AS claim_charges
@@ -1181,5 +1181,32 @@ module.exports = {
         SELECT xmin as claim_row_version from billing.claims where id = ${params.id} `;
 
         return await query(sqlQry);
+    },
+
+    getStudiesByPatientId: async function (params) {
+
+        let { id } = params;
+
+        const sql = SQL`SELECT
+                             studies.id
+                            ,studies.patient_id
+                            ,studies.modality_id
+                            ,studies.facility_id
+                            ,accession_no
+                            ,study_description
+                            ,study_status
+                            ,study_dt
+                            ,facilities.facility_name
+                            
+                        FROM studies
+                            LEFT JOIN orders ON orders.id=studies.order_id
+                            INNER JOIN facilities ON studies.facility_id=facilities.id
+                        WHERE  
+                            studies.has_deleted=False AND studies.patient_id = ${id}
+                            AND NOT EXISTS ( SELECT 1 FROM billing.charges_studies WHERE study_id = studies.id )
+                        ORDER BY id ASC `;
+
+        return await query(sql);
+
     }
 };

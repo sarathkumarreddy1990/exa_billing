@@ -22,4 +22,5 @@
     <% if (patient.owner_id > 0&&patient.showOwner) { %>
     <p style="overflow-wrap: break-word;">owner: <%= patient.owner_first_name %>,<%= patient.owner_last_name %>&nbsp;&nbsp;<%= patient.owner_address1 %>,<%= patient.owner_address2 %>,<%= patient.owner_city %>,<%= patient.owner_state %>,<%= patient.owner_zip %></p>
     <% } %>
+    <div class="studyDetails" style="display:none"></div>
 </section>
