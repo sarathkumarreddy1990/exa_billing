@@ -475,7 +475,13 @@ define('grid', [
                     customAction: function (rowID, e, that) { 
                         var gridData = $('#'+e.currentTarget.id).jqGrid('getRowData', rowID);
                             self.claimView = new claimsView();
-                            self.claimView.showEditClaimForm(gridData.claim_id);
+                            self.claimView.showEditClaimForm(gridData.claim_id, 'studies', {
+                                'study_id': rowID,
+                                'patient_name': gridData.patient_name,
+                                'patient_id': gridData.patient_id,
+                                'order_id': 0
+                            });
+
                             return false;
                         
                     }
@@ -724,13 +730,27 @@ define('grid', [
                 container: options.container,
                 multiselect: true,
                 ondblClickRow: function (rowID, irow, icol, event) {
-                    var data = getData(rowID, studyStore, gridID);
+                    var gridData = getData(rowID, studyStore, gridID);
+                    var study_id =0;
+                    
                     if ($('#chk'+gridID.slice(1)+'_' + rowID).length > 0) {
                         $('#chk'+gridID.slice(1)+'_' + rowID).attr('checked',true);
                     }
                     if (options.isClaimGrid) {
                         self.claimView = new claimsView();
-                        self.claimView.showEditClaimForm(rowID);
+                        commonjs.getClaimStudy(rowID).then(function (result) {
+                            if (result) {
+                                study_id = result.study_id;
+                                order_id = result.order_id;
+                            }
+                        });
+
+                        self.claimView.showEditClaimForm(rowID, null, {
+                            'study_id': study_id,
+                            'patient_name': gridData.patient_name,
+                            'patient_id': gridData.patient_id,
+                            'order_id': 0
+                        });
                     } else {
                         window.localStorage.setItem('selected_studies', null);
                         window.localStorage.setItem('primary_study_details', JSON.stringify(rowID));

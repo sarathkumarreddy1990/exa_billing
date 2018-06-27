@@ -299,7 +299,7 @@ define(['jquery',
             },
 
             /* Get claim edit details function*/
-            showEditClaimForm: function (claim_Id, IsUpdated, options) {
+            showEditClaimForm: function (claim_Id, isFrom, options) {
                 var self = this;
                 self.model.set({ id: claim_Id });
                 self.claim_Id = claim_Id;
@@ -330,6 +330,10 @@ define(['jquery',
                             self.terClaimInsID = claimDetails.tertiary_patient_insurance_id || null;
                             self.claim_row_version = claimDetails.claim_row_version || null;
                             self.initializeClaimEditForm();
+
+                            if (isFrom && isFrom == 'studies')
+                                $('.claimProcess').hide(); // hide Next/Prev btn if opened from studies worklist
+
                             /* Header Details */
                             $(parent.document).find('#spanModalHeader').html('Edit: <STRONG>' + claimDetails.patient_full_name + '</STRONG> (Acc#:' + claimDetails.patient_account_no + '), <i>' + claimDetails.patient_dob + '</i>  ');
 
@@ -851,11 +855,16 @@ define(['jquery',
                 // modifiers dropdown
                 for (var m = 1; m <= 4; m++) {
 
+                    var arr = jQuery.grep(app.modifiers, function (n, i) {
+                        return (n['M' + m] == true || n['M' + m] == 'true');
+                    });
+
                     // bind default pointer from line items
                     if (isDefault) {
                         var _pointer = data.icd_pointers && data.icd_pointers[m - 1] ? data.icd_pointers[m - 1] : '';
                         $('#ddlPointer' + m + '_' + index).val(_pointer);
                         //$('#ddlModifier' + m + '_' + index).val(data['m' + m])
+                        //self.bindModifiersData('ddlModifier' + m + '_' + index, arr);
                     }else{
                         $('#ddlPointer' + m + '_' + index).val(data['pointer' + m]);
                         // ToDo:: Once modifiers dropdown added have to bind
@@ -866,6 +875,7 @@ define(['jquery',
 
                 self.assignModifierEvent();
                 self.assignLineItemsEvents(index);
+                app.modifiers_in_order = true;
                 commonjs.enableModifiersOnbind('M'); // Modifier
                 commonjs.enableModifiersOnbind('P'); // Diagnostic Pointer
                 commonjs.validateControls();
@@ -1015,6 +1025,10 @@ define(['jquery',
                     var rowId = parseInt(rowObj.attr('data_row_id'))
                     var rowData = _.find(self.chargeModel, { 'data_row_id': rowId });
 
+                    if ($('#tBodyCharge tr').length <= 1) {
+                        commonjs.showWarning("Claim need minimum one charge required");
+                        return false;
+                    }
                     if (rowData.id) {
                         if (confirm('Are you sure to delete charge ?')) {
                             if (rowData.payment_exists) {
@@ -1024,7 +1038,7 @@ define(['jquery',
                                             removeCharge(rowData, rowId, rowObj);
                                         else
                                             commonjs.showWarning('Error on deleting charge');
-                                    })
+                                    });
                                 }
                             } else {
                                 self.removeChargeFromDB(rowData.id, function (response) {
@@ -1032,7 +1046,7 @@ define(['jquery',
                                         removeCharge(rowData, rowId, rowObj);
                                     else
                                         commonjs.showWarning('Error on deleting charge');
-                                })
+                                });
                             }
                         }
                     } else {
@@ -2327,10 +2341,10 @@ define(['jquery',
 
                 /* Charge section */
 
-                // if (!$('#tBodyCharge tr').length) {
-                //     commonjs.showWarning("messages.warning.claims.chargeValidation", 'largewarning');
-                //     return false;
-                // }
+                if (!$('#tBodyCharge tr').length) {
+                    commonjs.showWarning("messages.warning.claims.chargeValidation", 'largewarning');
+                    return false;
+                }
                 if ($('.cptcode').hasClass('cptIsExists')) {
                     commonjs.showWarning('Please select any cpt code in added line items');
                     return false;
@@ -2645,16 +2659,8 @@ define(['jquery',
 
                     if (nextRowData.attr('id') && nextRowData.length > 0) {
                         var rowId = nextRowData.attr('id');
-                        $(e.target).prop('disabled', true);
-                        var data = $($tblGrid, parent.document).getRowData(rowId);
-                        commonjs.getClaimStudy(rowId).then(function (result) {
-                            self.showEditClaimForm(rowId, null, {
-                                'study_id': result && result.study_id ? result.study_id : 0,
-                                'patient_name': data.patient_name,
-                                'patient_id': data.patient_id,
-                                'order_id': result && result.order_id ? result.order_id : 0
-                            });
-                        });
+                        $(e.target).prop('disabled',true);
+                        self.showEditClaimForm(rowId, null);
                     } else {
                         commonjs.showWarning('No more order found')
                     }
