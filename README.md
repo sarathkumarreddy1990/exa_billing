@@ -11,13 +11,13 @@
 * ``` npm run start ```
 
 ### Production deployment
-* ``` start-production ```
+* ``` npm run start-production ```
 
 ### Test
 * ``` npm run test ```
 
 ### Build
-* ``` gulp build ```
+* ``` npm run build ```
 
 ## Who do I talk to? ##
 

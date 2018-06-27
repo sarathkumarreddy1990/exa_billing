@@ -8,6 +8,8 @@
         "install-billing": "npm install && cd app && npm install && cd..",
         "dev": "nodemon ./bin/www",
         "start": "npm-run-all lint dev",
+        "gulp-build": "gulp build",
+        "build": "npm-run-all install-billing gulp-build",
         "start-production": "nodemon ./bin/www-cluster",
         "test": "mocha --recursive test/unit"
     },
