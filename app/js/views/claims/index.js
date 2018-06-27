@@ -348,6 +348,7 @@ define(['jquery',
                                     claim_id: obj.claim_id,
                                     study_id: obj.study_id,
                                     accession_no: obj.accession_no,
+                                    payment_exists: obj.payment_exists,
                                     is_deleted: false
                                 });
                             });
@@ -1009,9 +1010,47 @@ define(['jquery',
                 });
                 // Remove line item form charge table
                 $('.removecharge').off().click(function (e) {
+
                     var rowObj = $(e.target || e.srcElement).closest('tr');
                     var rowId = parseInt(rowObj.attr('data_row_id'))
                     var rowData = _.find(self.chargeModel, { 'data_row_id': rowId });
+
+                    if (rowData.id) {
+                        if (confirm('Are you sure to delete charge ?')) {
+                            if (rowData.payment_exists) {
+                                if (confirm('Payment exists for this charge, Confirm to delete')) {
+                                    self.removeChargeFromDB(rowData.id, function (response) {
+                                        if (response && response.status)
+                                            removeCharge(rowData, rowId, rowObj);
+                                        else
+                                            commonjs.showWarning('Error on deleting charge');
+                                    })
+                                }
+                            } else {
+                                self.removeChargeFromDB(rowData.id, function (response) {
+                                    if (response && response.status)
+                                        removeCharge(rowData, rowId, rowObj);
+                                    else
+                                        commonjs.showWarning('Error on deleting charge');
+                                })
+                            }
+                        }
+                    } else {
+                        removeCharge(rowData, rowId, rowObj);
+                    }
+                });
+                // Enable bill_fee 
+                $('#editBillFee_' + index).off().click(function (e) {
+                    $('#txtBillFee_' + index).attr({ disabled: false, edit: true }).focus();
+                    $('#txtAllowedFee_' + index).attr({ disabled: false, edit: true });
+                });
+                // changeFee details on keup
+                $(".units, .billFee, .allowedFee").off().blur(function (e) {
+                    ///this.value = this.value.replace(/[^0-9\.]/g, '');
+                    self.changeFeeData(e)
+                });
+
+                var removeCharge = function(rowData,  rowId, rowObj){
 
                     if (rowData.id || null) {
                         self.removedCharges.push({
@@ -1026,18 +1065,38 @@ define(['jquery',
                     rowObj.remove();
                     // trigger blur event for update Total bill fee, balance etc.
                     $(".allowedFee").blur();
-                });
-                // Enable bill_fee 
-                $('#editBillFee_' + index).off().click(function (e) {
-                    $('#txtBillFee_' + index).attr({ disabled: false, edit: true }).focus();
-                    $('#txtAllowedFee_' + index).attr({ disabled: false, edit: true });
-                });
-                // changeFee details on keup
-                $(".units, .billFee, .allowedFee").off().blur(function (e) {
-                    ///this.value = this.value.replace(/[^0-9\.]/g, '');
-                    self.changeFeeData(e)
-                });
 
+                };
+
+            },
+
+            removeChargeFromDB: function(chargeId, callback){
+                var self = this;
+
+                $.ajax({
+                    type: 'PUT',
+                    url: '/exa_modules/billing/claim_workbench/claim_charge/delete',
+                    data: {
+                        target_id: chargeId,
+                        type: 'charge',
+                        screenName: 'claims'
+                    },
+                    success: function (model, response) {
+                        console.log(model);
+                        if(model && model.rowCount){
+                            var _status = model.rows && model.rows.length && model.rows[0].purge_claim_or_charge ? model.rows[0].purge_claim_or_charge : false
+                            callback({
+                                status: _status
+                            })    
+                        }else{
+                            callback(model)
+                        }
+                    },
+                    error: function (model, response) {
+                        
+                        commonjs.handleXhrError(model, response);
+                    }
+                })
             },
 
             changeFeeData: function (e) {
@@ -1750,11 +1809,8 @@ define(['jquery',
                         $('label').css('color', 'black');
                         $('.multiselect-container li a').css('padding', '0');
 
-
-                        console.log(model);
                     },
                     error: function (model, response) {
-                        console.log(model);
                         commonjs.handleXhrError(model, response);
                     }
                 })
