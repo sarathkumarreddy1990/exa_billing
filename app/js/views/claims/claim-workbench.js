@@ -196,7 +196,9 @@ define(['jquery',
                 "click #btnClearAllStudy": "clearAllSelectedRows",
                 "click #btnSelectAllStudy": "selectAllRows",
                 "click #btnInsuranceClaim": "createClaims",
-                "click #btnPaperClaim": "createClaims",
+                "click #btnPaperClaimFormat": "createClaims",
+                "click #btnPaperClaimFull": "createClaims",
+                "click #btnPaperClaimOriginal": "createClaims",
                 "click #btnValidateOrder": "validateClaim",
                 "click #btnClaimRefreshAll": "refreshAllClaims",
                 "click #btnValidateExport": "exportExcel",
@@ -254,7 +256,7 @@ define(['jquery',
                     gadget: '',
                     customStudyStatus: []
                 }));
-
+                $("#btnPaperClaimFormat").text('Paper Claims('+(localStorage.getItem('default_paperclaim_format')||'ORIGINAL')+')')
 
                 if (queryString && !queryString.target && commonjs.getParameterByName(queryString).admin && commonjs.getParameterByName(queryString).admin == 1) {
                     self.isAdmin = true;
