@@ -4582,6 +4582,30 @@ var commonjs = {
         return [];
     },
 
+    getClaimStudy : function(claim_id) {
+        return new Promise(function(resolve,reject){
+            var result = {
+                'study_id' : 0,
+                'order_id' : 0
+            };
+            $.ajax({
+                url: '/exa_modules/billing/claim_workbench/claim_study?claim_id=' + claim_id,
+                type: 'GET',
+                success: function (data, response) {
+                    if(data && data.length > 0) {
+                        result.study_id = data[0].study_id;
+                        result.order_id = data[0].order_id;
+                        resolve(result);
+                    }
+                },
+                error: function (err, response) {
+                    commonjs.handleXhrError(err, response);
+                    reject();
+                }
+            });
+        });
+    },
+
     openDocumentsAndReports: function (options) {
         let {
             study_id,
