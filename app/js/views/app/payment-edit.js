@@ -224,7 +224,7 @@ define(['jquery',
                 this.payer_id = 0;
                 $('#PaymentForm input[type=radio]').prop('ckecked', false);
                 $('#ddlpaymentReason').val('');
-                $('#ddlPaidLocation').val(0);
+                $('#ddlPaidLocation').val(app.facilityID || 0);
                 $('#selectPayerType').val(0);
                 $('#selectPaymentMode').val(0);
                 $('#PaymentForm input[type=text]').val('');
@@ -554,7 +554,7 @@ define(['jquery',
                 self.study_id = (response.study_id) ? response.study_id : 0;
                 $('#lblPayerID').html(response.id);
                 $('#referencePaymentID').val(response.display_id);
-                $('#ddlPaidLocation').val(response.facility_id || 0);
+                $('#ddlPaidLocation').val(response.facility_id || app.facilityID);
                 self.setPayerName(response.payer_type, response)
                 $("input:radio[name=billingMethod][value=" + response.billing_method + "]").prop("checked", true);
                 if (response.billing_method && response.billing_method == "DB")
@@ -902,8 +902,8 @@ define(['jquery',
                     gridelementid: '#tblAppliedPaymentsGrid',
                     custompager: this.appliedPager,
                     emptyMessage: 'No Record found',
-                    colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                    i18nNames: ['', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.payments.billFee', 'billing.payments.patientPaid', 'billing.payments.payerPaid', 'billing.payments.adjustment', 'billing.payments.balance', 'billing.payments.cptCodes', 'patient_id', 'facility_id'],
+                    colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    i18nNames: ['', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.payments.billFee', 'billing.payments.patientPaid', 'billing.payments.payerPaid', 'billing.payments.adjustment', 'billing.payments.thisPayment', 'billing.payments.balance', 'billing.payments.cptCodes', 'patient_id', 'facility_id'],
                     colModel: [
                         {
                             name: 'edit', width: 20, sortable: false, search: false,
@@ -943,6 +943,7 @@ define(['jquery',
                         { name: 'patient_paid', searchFlag: 'hstore', searchColumn: ['more_info->patient_paid'], formatter: self.appliedPatPaidFormatter, width: 100 },
                         { name: 'others_paid', searchFlag: 'hstore', searchColumn: ['more_info->payer_paid'], formatter: self.appliedPayerPaidFormatter, width: 100 },
                         { name: 'adjustment', searchFlag: 'hstore', searchColumn: ['order_info->adjustment'], formatter: self.appliedAdjustmentFormatter, width: 100 },
+                        { name: 'payment', searchFlag: 'money', formatter: self.paymentApplied, width: 100 },
                         { name: 'balance', searchFlag: 'hstore', searchColumn: ['order_info->balance'], formatter: self.appliedBalanceFormatter, width: 100 },
                         { name: 'display_description', searchFlag: '%', width: 200 },
                         { name: 'patient_id', key: true, hidden: true },
@@ -1086,9 +1087,9 @@ define(['jquery',
                                 self.updatePaymentAdjustment();
                             });
 
-                            // $('.checkDebit').unbind().click(function (e) {
-                            //     self.updatePaymentAdjustment();
-                            // });
+                            $('.checkDebit').unbind().click(function (e) {
+                                self.updatePaymentAdjustment();
+                            });
                             
                             var cas_arr_obj = [];
                             var cas_arr_obj = payment.cas_arr_obj ? JSON.parse(payment.cas_arr_obj) : [];
@@ -1217,7 +1218,12 @@ define(['jquery',
                 else
                     $('#spPaymentApplied').text('$' + parseFloat(payment).toFixed(2));
 
-                $('#spAdjustmentApplied').text('$' + parseFloat(adjustment).toFixed(2));
+                if (payment < 0)
+                    $('#spAdjustmentApplied').text('$(' + parseFloat(adjustment).toFixed(2).substr(1) + ')');
+                else
+                    $('#spAdjustmentApplied').text('$' + parseFloat(adjustment).toFixed(2));
+
+
                 var orderBillFee = parseFloat($('#lblBillingFee').text().substr(1).replace(',', ''));
                 var orderBalance = orderBillFee - (parseFloat(adjustment) + parseFloat(payment) + parseFloat(other_payment) + parseFloat(other_adj));
                 var orderAdjustment = parseFloat(adjustment) + parseFloat(other_adj);
