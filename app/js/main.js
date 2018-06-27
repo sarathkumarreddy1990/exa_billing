@@ -23,6 +23,7 @@ var rjsConfig = {
         'datetimepicker': '../libs/datetimepicker/js/bootstrap-datetimepicker',
         'daterangepicker': '../node_modules/bootstrap-daterangepicker/daterangepicker',
         'commonjs': 'shared/common',
+        'mail-merge': 'shared/mail-merge',
         'layout': 'shared/layout',
         'debug': 'shared/debug',
         'app-settings': 'shared/app-settings',
@@ -36,6 +37,7 @@ var rjsConfig = {
         'select2': '../node_modules/select2/dist/js/select2.full',
         'jquerysortable': '../node_modules/jquery-sortable/source/js/jquery-sortable',
         'ace': '../node_modules/ace-code-editor/lib/ace',
+        'beautify': '../node_modules/js-beautify/js/lib/beautify',
     },
     shim: {
         'jquery.validate': {
@@ -111,6 +113,9 @@ var rjsConfig = {
         'jquerysortable': {
             deps: ['jquery']
         },
+        'mail-merge': {
+            deps: ['_get']
+        },
     },
 };
 
@@ -141,7 +146,10 @@ if (require && require.config) {
         'datetimepicker',
         'daterangepicker',
         'jquerysortable',
-        'maskjs'
+        'maskjs',
+        'beautify',
+        '_get',
+        'mail-merge',
     ], function (
         MomentTimezone,
         jqueryvalidate,
@@ -166,10 +174,14 @@ if (require && require.config) {
         daterangepicker,
         jquerysortable,
         maskjs,
+        beautify,
+        _get,
+        mailMerge,
         ) {
             window.browserLocale = typeof browserLocale == 'undefined' ? 'en-US' : browserLocale;
             window.Immutable = Immutable;
             window.commonjs = commonjs;
+            window._get = _get;
 
             Backbone.emulateHTTP = false;
 

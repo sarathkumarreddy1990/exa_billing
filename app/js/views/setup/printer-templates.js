@@ -9,7 +9,7 @@ define(['jquery',
     'collections/setup/printer-templates',
     'models/setup/printer-templates',
     'models/pager',
-    'ace/ace'
+    'ace/ace',
 ],
     function ($,
         Immutable,

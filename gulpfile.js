@@ -98,7 +98,7 @@ gulp.task('replace', ['bump'], () => {
     let version = getCurrentVersion();
 
     return gulp.src('./build/server/**/*.pug')
-        .pipe(replace(/(\.js|\.css)(\s*'\s*)/g, `$1?v=${version}`))
+        .pipe(replace(/(\.js|\.css)(\s*'\s*)/g, `$1?v=${version}'`))
         .pipe(gulp.dest('./build/server/'));
 });
 
