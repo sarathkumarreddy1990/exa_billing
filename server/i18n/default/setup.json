@@ -227,7 +227,7 @@
             "billingPayerType":"Change Billing Payer Type",
             "editClaim":"Edit Claim",
             "claimInquiry":"claim Inquiry",
-            "splitOrders":"split Orders",
+            "splitClaim":"split Claim",
             "createClaim":"Create Claim",
             "patientDocuments":"Patient Documents",
             "approvedReports":"Approved Reports",
