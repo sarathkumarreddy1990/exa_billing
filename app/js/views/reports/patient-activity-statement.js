@@ -79,6 +79,13 @@ define([
                        
                     }
                 }
+                else if (claimInfo.flag == "paymentInvoice"){
+                  var reportName = "payment-invoice";
+                    var urlParams = {
+                        claimIds: claimInfo.claimID,
+                        sDate: '2018-06-23'
+                    }
+                }
                 else {
                     var reportName = "patient-activity-statement";
                     var urlParams = {

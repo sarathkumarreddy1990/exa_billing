@@ -411,7 +411,8 @@ module.exports = {
                                     id,
                                     code,
                                     description,
-                                    accounting_entry_type 
+                                    accounting_entry_type ,
+                                    accounting_entry_type AS type
                             FROM billing.adjustment_codes 
                             WHERE company_id = ${params.companyID}
                             ) 
