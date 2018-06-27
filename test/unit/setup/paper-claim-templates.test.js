@@ -3,7 +3,7 @@ const should = require('chai').should();
 const config = require('../../../server/config');
 config.initialize();
 
-const paperController = require('../../../server/controllers/setup/paper-claim-templates');
+const paperController = require('../../../server/controllers/setup/printer-templates');
 
 describe('PaperClaimTemplates', () => {
     let id = null;

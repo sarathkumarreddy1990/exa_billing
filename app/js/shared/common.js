@@ -1,14 +1,10 @@
 
-// this hack is necessary because
-//  1) moment-timezone cannot be used as global var loaded from main.js
-//  2) common.js is not a regular module
-// so, we redefine moment here to be aliased as moment-timezone
 var moment;
 require.config({
     waitSeconds: 0,
     paths: {
-        'moment': '../moment/min/moment.min',
-        'moment-timezone': '../moment-timezone/builds/moment-timezone-with-data.min'
+        'moment': '../node_modules/moment/min/moment-with-locales',
+        'moment-timezone': '../node_modules/moment-timezone/builds/moment-timezone-with-data.min'
     }
 });
 
@@ -3016,6 +3012,10 @@ var commonjs = {
             $('#siteSettingsLI').show();
             $('#siteSettingsIconLI').show();
         }
+    },
+
+    initPermissionHandler: function () {
+        console.log('app.screens ---->>>>>>>> ', app.screens);
     },
 
     validateControls: function () {
