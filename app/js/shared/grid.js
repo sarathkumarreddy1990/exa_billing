@@ -480,7 +480,7 @@ define('grid', [
                                 'study_id': rowID,
                                 'patient_name': gridData.patient_name,
                                 'patient_id': gridData.patient_id,
-                                'order_id': 0
+                                'order_id': gridData.claim_no  // claim_no as order_id
                             });
 
                             return false;
@@ -733,6 +733,7 @@ define('grid', [
                 ondblClickRow: function (rowID, irow, icol, event) {
                     var gridData = getData(rowID, studyStore, gridID);
                     var study_id =0;
+                    var order_id =0;
                     
                     if ($('#chk'+gridID.slice(1)+'_' + rowID).length > 0) {
                         $('#chk'+gridID.slice(1)+'_' + rowID).attr('checked',true);
@@ -750,7 +751,7 @@ define('grid', [
                             'study_id': study_id,
                             'patient_name': gridData.patient_name,
                             'patient_id': gridData.patient_id,
-                            'order_id': 0
+                            'order_id': order_id
                         });
                     } else {
                         window.localStorage.setItem('selected_studies', null);

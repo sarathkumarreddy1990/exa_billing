@@ -307,7 +307,7 @@ define(['jquery',
                 self.claimICDLists = [];
                 self.removedCharges = [];
                 self.chargeModel = [];
-                self.options = options || null;
+                self.options = options || {};
 
                 $.ajax({
                     type: 'GET',
@@ -390,6 +390,8 @@ define(['jquery',
                             setTimeout(function () {
                                 self.bindDefaultClaimDetails(claimDetails);
                                 $('.claimProcess').prop('disabled', false);
+                                if (self.options && !self.options.study_id)
+                                    $('#btPatientDocuemnt').prop('disabled', true);
                             }, 200);
                         }
                     },
