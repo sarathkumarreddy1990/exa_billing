@@ -196,9 +196,12 @@ define(['jquery',
                 "click #btnClearAllStudy": "clearAllSelectedRows",
                 "click #btnSelectAllStudy": "selectAllRows",
                 "click #btnInsuranceClaim": "createClaims",
+                "click #btnPaperClaimFormat": "createClaims",
+                "click #btnPaperClaimFull": "createClaims",
+                "click #btnPaperClaimOriginal": "createClaims",
                 "click #btnValidateOrder": "validateClaim",
                 "click #btnClaimRefreshAll": "refreshAllClaims",
-                "click #btnValidateExport": "underConstruction",
+                "click #btnValidateExport": "exportExcel",
                 "click #btnClaimsRefresh": "refreshClaims",
             },
 
@@ -253,7 +256,7 @@ define(['jquery',
                     gadget: '',
                     customStudyStatus: []
                 }));
-
+                $("#btnPaperClaimFormat").text('Paper Claims('+(localStorage.getItem('default_paperclaim_format')||'ORIGINAL')+')')
 
                 if (queryString && !queryString.target && commonjs.getParameterByName(queryString).admin && commonjs.getParameterByName(queryString).admin == 1) {
                     self.isAdmin = true;
@@ -381,8 +384,16 @@ define(['jquery',
                 $('#chkStudyHeader_' + filterID).prop('checked', true);
                 commonjs.setFilter(filterID, filter);
             },
-            createClaims:function () {
+            createClaims:function (e) {
                 let self=this;
+                if(e.target){
+                    var  paperClaimFormat=$(e.target).attr('data-value');
+                    if(paperClaimFormat){
+                        localStorage.setItem('default_paperclaim_format',paperClaimFormat);
+                        $("#btnPaperClaimFormat").text('Paper Claims('+(localStorage.getItem('default_paperclaim_format')||'ORIGINAL')+')')
+                    }                  
+                }
+                
                 let filterID = commonjs.currentStudyFilter;
                 let filter = commonjs.loadedStudyFilters.get(filterID);
 
@@ -1024,6 +1035,10 @@ define(['jquery',
                                 'isClaimGrid': true
                             });
                             table.renderStudy();
+
+                            $('#btnValidateExport').on().click(function () {
+                                table.renderStudy(true);
+                            });
                         };
 
 
@@ -1578,6 +1593,25 @@ define(['jquery',
                         commonjs.handleXhrError(err, response);
                     }
                 })
+            },
+            exportExcel: function(filterID){
+                var self = this;
+                var table = new ClaimsGrid({
+                    'isAdmin': self.isAdmin,
+                    'gridelementid': '#tblClaimGrid' + filterID,
+                    'filterid': filterID,
+                    'setpriorstudies': '',
+                    'isPrior': false,
+                    'isDicomSearch': false,
+                    'providercontact_ids': app.providercontact_ids,
+                    'searchByAssociatedPatients': '',
+                    'isRisOrderSearch': false,
+                    'showEncOnly': false,
+                    'claims_id': 0,
+                    'container': self.el,
+                    '$container': self.$el,                  
+                    'isClaimGrid': true
+                });
             }
         });
     });

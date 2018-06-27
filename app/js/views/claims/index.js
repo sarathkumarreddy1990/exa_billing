@@ -2589,8 +2589,16 @@ define(['jquery',
 
                     if (nextRowData.attr('id') && nextRowData.length > 0) {
                         var rowId = nextRowData.attr('id');
-                        $(e.target).prop('disabled',true);
-                        self.showEditClaimForm(rowId);
+                        $(e.target).prop('disabled', true);
+                        var data = $($tblGrid, parent.document).getRowData(rowId);
+                        commonjs.getClaimStudy(rowId).then(function (result) {
+                            self.showEditClaimForm(rowId, null, {
+                                'study_id': result && result.study_id ? result.study_id : 0,
+                                'patient_name': data.patient_name,
+                                'patient_id': data.patient_id,
+                                'order_id': result && result.order_id ? result.order_id : 0
+                            });
+                        });
                     } else {
                         commonjs.showWarning('No more order found')
                     }

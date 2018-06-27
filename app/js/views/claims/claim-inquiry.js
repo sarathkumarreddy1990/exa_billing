@@ -42,11 +42,7 @@ define([
             agingSummaryTemplate: _.template(agingSummaryHTML),
             claimPatientLogTemplate: _.template(claimPatientLogHTML),
             payCmtGrid: '',
-            claim_id: null,
-
-            events: {
-                "click #btnCIPatientInquiry": "generatePatientActivity"
-            },
+            claim_id: null,      
 
             initialize: function (options) {
                 this.options = options;
@@ -173,6 +169,10 @@ define([
                     error: function (err) {
                         commonjs.handleXhrError(err);
                     }
+                });                
+
+                $('#btnCIPrintInvoice').on().click(function () {
+                    self.generatePrintInvoice(claimID);
                 });
             },
 
@@ -784,6 +784,15 @@ define([
                 }
                 self.patientActivityStatement.onReportViewClick(e, claimInfo);
             },
+            generatePrintInvoice: function(claimId, e){
+                var self = this;
+                self.patientActivityStatement = new patientActivityStatement({ el: $('#reportFrame') });
+                var claimInfo = {
+                    'claimID': claimId,
+                     flag: "paymentInvoice"                    
+                }
+                self.patientActivityStatement.onReportViewClick(e, claimInfo);
+            }
         });
 
     });
