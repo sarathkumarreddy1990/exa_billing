@@ -191,8 +191,8 @@ module.exports = {
         return insSubsInvalidFields;
     },
 
-    deleteClaim:function (params) {
-        return data.deleteClaim(params);
+    deleteClaimOrCharge:function (params) {
+        return data.deleteClaimOrCharge(params);
     },
 
     getClaimStudy: function(params) {

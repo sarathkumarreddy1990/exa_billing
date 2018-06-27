@@ -4582,6 +4582,30 @@ var commonjs = {
         return [];
     },
 
+    getClaimStudy : function(claim_id) {
+        return new Promise(function(resolve,reject){
+            var result = {
+                'study_id' : 0,
+                'order_id' : 0
+            };
+            $.ajax({
+                url: '/exa_modules/billing/claim_workbench/claim_study?claim_id=' + claim_id,
+                type: 'GET',
+                success: function (data, response) {
+                    if(data && data.length > 0) {
+                        result.study_id = data[0].study_id;
+                        result.order_id = data[0].order_id;
+                        resolve(result);
+                    }
+                },
+                error: function (err, response) {
+                    commonjs.handleXhrError(err, response);
+                    reject();
+                }
+            });
+        });
+    },
+
     openDocumentsAndReports: function (options) {
         let {
             study_id,
@@ -5163,14 +5187,12 @@ var commonjs = {
             var self = this;
             var modifier = element.getAttribute('data-type');
             var id = element.getAttribute('data-value');
-            if (isFrom == 'studyInfo')
-                var modifierElement = 'txtModifier';
-            else if (isFrom == 'chargeandpayment')
+            if (isFrom == 'M')
                 var modifierElement = 'ddlModifier';
-            else if (isFrom == 'chargeandpayment_pointer')
+            else
                 var modifierElement = 'ddlPointer';
 
-            var dataType = isFrom == 'chargeandpayment_pointer' ? 'P' : 'M'; // M -- modifier , P -- Pointer
+            var dataType = isFrom; // M -- modifier , P -- Pointer
             if (($(element).val() == "") || $(element).hasClass('invalidModifier')) {
                 if (modifier == (dataType + "1") && $('#' + modifierElement + '2_' + id).val() == "" && $('#' + modifierElement + '3_' + id).val() == "" && $('#' + modifierElement + '4_' + id).val() == "") {
                     $('#' + modifierElement + '2_' + id).prop('disabled', true);

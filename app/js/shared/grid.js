@@ -137,21 +137,12 @@ define('grid', [
                 var liClaimStatus = commonjs.getRightClickMenu('ul_change_claim_status','setup.rightClickMenu.billingStatus',false,'Change Claim Status',true); 
                 $divObj.append(liClaimStatus);
                 var liArray = [];
-
-                $.ajax({
-                    url: '/exa_modules/billing/claim_workbench/claim_study?claim_id=' + selectedStudies[0].study_id,
-                    type: 'GET',
-                    success: function (data, response) {
-                        if(data && data.length > 0) {
-                            study_id = data[0].study_id;
-                            order_id = data[0].order_id;
-                            
-                            $('#anc_view_documents').removeClass('disabled')
-                            $('#anc_view_reports').removeClass('disabled')
-                        }
-                    },
-                    error: function (err, response) {
-                        commonjs.handleXhrError(err, response);
+                commonjs.getClaimStudy(selectedStudies[0].study_id).then(function (result) {
+                    if (result) {
+                        study_id = result.study_id;
+                        order_id = result.order_id;
+                        $('#anc_view_documents').removeClass('disabled')
+                        $('#anc_view_reports').removeClass('disabled')
                     }
                 });
                 $.each(app.claim_status, function (index, claimStatus) {                      
@@ -269,10 +260,11 @@ define('grid', [
                 if(confirm("Are you sure want to delete claims")){
                     if(confirm("Please confirm claim has been deleted and also dependent deleted ")){
                     $.ajax({
-                        url: '/exa_modules/billing/claim_workbench/claims/delete',
+                        url: '/exa_modules/billing/claim_workbench/claim_charge/delete',
                         type: 'PUT',
                         data: {
-                            claim_id: studyIds,
+                            target_id: studyIds,
+                            type: 'claim'
                         },
                         success: function (data, response) {                            
                             commonjs.showStatus('Claim has been deleted');
@@ -805,6 +797,17 @@ define('grid', [
                         enableField = _selectEle.is(':checked');
                         validateClaimSelection(rowID, enableField, _selectEle, studyStore);
                     }
+
+                    var gridData = $('#'+e.currentTarget.id).jqGrid('getRowData', rowID);
+
+                    if (gridData.billing_method=='Paper Claim') {
+                        $("#btnPaperClaim").show();
+                        $("#btnInsuranceClaim").hide();
+                    }else{
+                        $("#btnPaperClaim").hide();
+                        $("#btnInsuranceClaim").show();  
+                    }
+
                     let i=(e.target || e.srcElement).parentNode.cellIndex;
 
                     if ( i > 0 ) {
