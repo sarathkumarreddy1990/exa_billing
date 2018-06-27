@@ -196,6 +196,7 @@ define(['jquery',
                 "click #btnClearAllStudy": "clearAllSelectedRows",
                 "click #btnSelectAllStudy": "selectAllRows",
                 "click #btnInsuranceClaim": "createClaims",
+                "click #btnPaperClaim": "createClaims",
                 "click #btnValidateOrder": "validateClaim",
                 "click #btnClaimRefreshAll": "refreshAllClaims",
                 "click #btnValidateExport": "underConstruction",
@@ -381,8 +382,16 @@ define(['jquery',
                 $('#chkStudyHeader_' + filterID).prop('checked', true);
                 commonjs.setFilter(filterID, filter);
             },
-            createClaims:function () {
+            createClaims:function (e) {
                 let self=this;
+                if(e.target){
+                    var  paperClaimFormat=$(e.target).attr('data-value');
+                    if(paperClaimFormat){
+                        localStorage.setItem('default_paperclaim_format',paperClaimFormat);
+                        $("#btnPaperClaimFormat").text('Paper Claims('+(localStorage.getItem('default_paperclaim_format')||'ORIGINAL')+')')
+                    }                  
+                }
+                
                 let filterID = commonjs.currentStudyFilter;
                 let filter = commonjs.loadedStudyFilters.get(filterID);
 

@@ -809,6 +809,14 @@ define('grid', [
                         enableField = _selectEle.is(':checked');
                         validateClaimSelection(rowID, enableField, _selectEle, studyStore);
                     }
+
+                    var gridData = $('#'+e.currentTarget.id).jqGrid('getRowData', rowID);
+
+                    if (gridData.billing_method=='Paper Claim') {
+                        $("#btnPaperClaim").show();
+                        $("#btnInsuranceClaim").hide();
+                    }
+
                     let i=(e.target || e.srcElement).parentNode.cellIndex;
 
                     if ( i > 0 ) {
