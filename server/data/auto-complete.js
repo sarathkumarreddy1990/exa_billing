@@ -159,7 +159,7 @@ module.exports = {
 
     getPatients: async function (params) {
         
-        let patient_q = ` AND full_name ILIKE '%${params.q}%' `;
+        let patient_q = ` AND full_name ILIKE '%${params.q}%' OR account_no ILIKE '%${params.q}%' `;
 
         const sql_patient = SQL`
               SELECT
@@ -178,19 +178,17 @@ module.exports = {
                     patients                
                 WHERE  
                     NOT patients.has_deleted 
-                    AND patients.company_id =  ${params.company_id}                                 
-                AND is_active          
-                ORDER BY patients.id ASC 
-                ) 
-            AS finalPatients INNER JOIN patients ON finalPatients.patients_id = patients.id                 
-           
-        `;
-
+                    AND patients.company_id =  ${params.company_id} `;
+        
         if (params.q != '') {
             sql_patient.append(patient_q);
         }
         
-        sql_patient.append(SQL` ORDER BY full_name `)
+        sql_patient.append(SQL` AND is_active          
+                ORDER BY patients.id ASC 
+                ) 
+            AS finalPatients INNER JOIN patients ON finalPatients.patients_id = patients.id `)
+            .append(SQL` ORDER BY full_name `)
             .append(params.sortOrder)
             .append(SQL` LIMIT ${params.pageSize}`)
             .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);

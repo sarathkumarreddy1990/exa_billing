@@ -681,12 +681,19 @@ define(['jquery',
                     $('#selectPaymentMode').focus();
                     return false;
                 }
-                if ($('#chkModeCheck').prop('checked') && $.trim($("#txtCheque").val()) == "") {
-                    commonjs.showWarning('Please enter cheque#');
+                if ($('#selectPaymentMode').val() === 'card' && $.trim($("#txtCheque").val()) == "") {
+                    commonjs.showWarning('Please enter card#');
+                    $('#txtCheque').focus();
                     return false;
                 }
-                if ($('#chkModeCard').prop('checked') && $.trim($("#txtCheque").val()) == "") {
-                    commonjs.showWarning('Please enter card no');
+                if ($('#selectPaymentMode').val() === 'card' && $.trim($("#txtCardName").val()) == "") {
+                    commonjs.showWarning('Please enter card name');
+                    $('#txtCardName').focus();
+                    return false;
+                }
+                if ($('#selectPaymentMode').val() === 'check' && $.trim($("#txtCheque").val()) == "") {
+                    commonjs.showWarning('Please enter cheque#');
+                    $('#txtCheque').focus();
                     return false;
                 }
                 return true;
@@ -850,7 +857,7 @@ define(['jquery',
                 });
 
                 setTimeout(function () {
-                    $('#tblpendPaymentsGrid').jqGrid('setGridHeight', '600px');
+                    $('#tblpendPaymentsGrid').jqGrid('setGridHeight', '300px');
                     $('#tblpendPaymentsGrid').jqGrid('setGridWidth', $(window).width() - 20);
                 }, 500);
             },
@@ -973,7 +980,7 @@ define(['jquery',
                 });
 
                 setTimeout(function () {
-                    $('#tblAppliedPaymentsGrid').jqGrid('setGridHeight', '600px');
+                    $('#tblAppliedPaymentsGrid').jqGrid('setGridHeight', '300px');
                     $('#tblAppliedPaymentsGrid').jqGrid('setGridWidth', $(window).width() - 20);
                     commonjs.processPostRender();
                 }, 500);
@@ -997,7 +1004,7 @@ define(['jquery',
                 self.casSegmentsSelected = [];
                 var patient_paid = rowData.patient_paid ? rowData.patient_paid.substr(1) : '0.00';
                 var others_paid = rowData.others_paid ? rowData.others_paid.substr(1) : '0.00';
-                commonjs.showDialog({ header: 'Claim Charges', width: '85%', height: '70%', html: self.applyCasTemplate({ adjustmentCodes: self.adjustmentCodeList.toJSON(), 'claimStatusList': this.claimStatusList.toJSON(), cas_group_codes: self.cas_group_codes, cas_reason_codes: self.cas_reason_codes, patient_paid: patient_paid, others_paid: others_paid }) });
+                commonjs.showDialog({ header: 'Claim Charges', width: '85%', height: '72%', html: self.applyCasTemplate({ adjustmentCodes: self.adjustmentCodeList.toJSON(), 'claimStatusList': this.claimStatusList.toJSON(), cas_group_codes: self.cas_group_codes, cas_reason_codes: self.cas_reason_codes, patient_paid: patient_paid, others_paid: others_paid }) });
 
                 $('#siteModal .close, #siteModal .btn-secondary').unbind().bind('click', function (e) {
                     self.closeAppliedPendingPayments(e);
@@ -1075,6 +1082,14 @@ define(['jquery',
 
                             $('#tBodyApplyPendingPayment').append(applyPaymentRow);
 
+                            // $('.this_pay, .this_adjustment').unbind().blur(function (e) {
+                            //     self.updatePaymentAdjustment();
+                            // });
+
+                            // $('.checkDebit').unbind().click(function (e) {
+                            //     self.updatePaymentAdjustment();
+                            // });
+                            
                             var cas_arr_obj = [];
                             var cas_arr_obj = payment.cas_arr_obj ? JSON.parse(payment.cas_arr_obj) : [];
                             self.casSave[index] = cas_arr_obj;
@@ -1092,9 +1107,10 @@ define(['jquery',
 
                         $('#ddlAdjustmentCode_fast').append($('<option/>', { value: '', text: 'Select' }));
                         $('#ddlResponsible').append($('<option/>', { value: '', text: 'Select' }));
+                        $('.checkDebit').prop('checked', false);
 
                         $.each(adjustmentCodes, function (index, adjustmentCode) {
-                            $('#ddlAdjustmentCode_fast').append($('<option/>', { value: adjustmentCode.id, text: adjustmentCode.description }));
+                            $('#ddlAdjustmentCode_fast').append($('<option/>', { value: adjustmentCode.id, text: adjustmentCode.description, 'data_code_type': adjustmentCode.type }));
                         });
 
                         $.each(payerTypes, function (index, payerType) {
@@ -1151,8 +1167,71 @@ define(['jquery',
 
             clearPayments: function () {
                 var pay_val = '0.00';
+                $('.checkDebit').prop('checked', false);
                 $('.this_pay').val(pay_val);
                 $('.this_adjustment').val(pay_val);
+                // this.updatePaymentAdjustment();
+            },
+            
+            updatePaymentAdjustment: function () {
+                var lineItems = $("#tBodyApplyPendingPayment tr");
+                var payment = 0.0, adjustment = 0.0, other_payment = 0.0, other_adj = 0.0;
+                var isDebit = $('.checkDebit')[0].checked;
+                var adjustment_codetype = ('#s2id_ddlAdjustmentCode_fast') && $('#s2id_ddlAdjustmentCode_fast').attr('data_code_type') == 'REFADJ'
+                    ? $('#s2id_ddlAdjustmentCode_fast a span').attr('data_code_type').trim() : '';
+                
+                $.each(lineItems, function (index) {
+                    var thisPay = $(this).find('td:nth-child(5)>input');
+                    var thisAdj = $(this).find('td:nth-child(8)>input');
+
+                    if (isDebit) {
+                        if (adjustment_codetype == 'REFADJ' && thisPay.val() != 0) {
+                            thisPay.val(0.00);
+                            commonjs.showWarning('This payment is debit adjustment(refund)');
+                        }
+                        else
+                            thisPay.val(parseFloat(-Math.abs(thisPay.val())).toFixed(2));
+                        
+                        $('#btnPayfullAppliedPendingPayments').attr('disabled', true);
+                        thisAdj.val(parseFloat(-Math.abs(thisAdj.val())).toFixed(2));
+                    }
+                    else {
+                        $('#btnPayfullAppliedPendingPayments').attr('disabled', false);
+                        thisPay.val(parseFloat(Math.abs(thisPay.val())).toFixed(2).trim());
+                        thisAdj.val(parseFloat(Math.abs(thisAdj.val())).toFixed(2).trim());
+                    }
+
+                    var otherPayment = parseFloat($(this).find('td:nth-child(4)').text().trim())
+                    var otherAdj = parseFloat($(this).find('td:nth-child(7)').text().trim())
+                    var payment_amt = $(this).find('td:nth-child(5)>input').val() ? parseFloat($(this).find('td:nth-child(5)>input').val().trim()) : 0.00;
+                    var adj_amt = $(this).find('td:nth-child(8)>input').val() ? parseFloat($(this).find('td:nth-child(8)>input').val().trim()) : 0.00;
+                    payment = payment + parseFloat(payment_amt);
+                    other_payment = other_payment + parseFloat(otherPayment);
+                    other_adj = other_adj + parseFloat(otherAdj);
+                    adjustment = adjustment + parseFloat(adj_amt);
+                    var current_balance = parseFloat($(this).find('td:nth-child(3)').text().trim()) - (otherPayment + otherAdj + payment_amt + adj_amt);
+                    $(this).find('td:nth-child(9)').text(parseFloat(current_balance).toFixed(2));
+                });
+
+                if (payment < 0)
+                    $('#spPaymentApplied').text('$(' + parseFloat(payment).toFixed(2).substr(1) + ')');
+                else
+                    $('#spPaymentApplied').text('$' + parseFloat(payment).toFixed(2));
+
+                $('#spAdjustmentApplied').text('$' + parseFloat(adjustment).toFixed(2));
+                var orderBillFee = parseFloat($('#lblBillingFee').text().substr(1).replace(',', ''));
+                var orderBalance = orderBillFee - (parseFloat(adjustment) + parseFloat(payment) + parseFloat(other_payment) + parseFloat(other_adj));
+                var orderAdjustment = parseFloat(adjustment) + parseFloat(other_adj);
+
+                if (orderBalance < 0)
+                    $('#lblBalanceNew').text('$(' + parseFloat(orderBalance).toFixed(2).substr(1) + ')');
+                else
+                    $('#lblBalanceNew').text('$' + parseFloat(orderBalance).toFixed(2));
+
+                if (orderAdjustment < 0)
+                    $('#lblAdjustment').text('$(' + parseFloat(orderAdjustment).toFixed(2).substr(1) + ')');
+                else
+                    $('#lblAdjustment').text('$' + parseFloat(orderAdjustment).toFixed(2));
             },
 
             savePaymentsCAS: function (claimId, paymentId, paymentStatus, payment_application_id) {
@@ -1190,6 +1269,11 @@ define(['jquery',
                     else if (groupCode != '' && reasonCode == '') {
                         commonjs.showWarning('Please select the reason in row ' + k);
                         $('#selectReason' + k).focus()
+                        return false;
+                    }
+                    else if (groupCode == '' && reasonCode != '') {
+                        commonjs.showWarning('Please select the group code in row ' + k);
+                        $('#selectGroupCode' + k).focus()
                         return false;
                     }
                     else if ((reasonCode != '' || groupCode != '') && amount == "") {
@@ -1288,6 +1372,7 @@ define(['jquery',
                     var deduction = $('#txtDeduction').val();
                     var coInsurance = $('#txtCoInsurance').val();
                     var coPay = $('#txtCoPay').val();
+                    var isRefund = $('.checkDebit').prop('checked');
 
                     $.ajax({
                         url: '/exa_modules/billing/payments/applyPayments',
@@ -1304,7 +1389,8 @@ define(['jquery',
                             billingNotes: billingNotes,
                             payerType: payerType,
                             adjestmentId: adjustmentType,
-                            paymentStatus: paymentStatus
+                            paymentStatus: paymentStatus,
+                            isRefund: isRefund
                         },
                         success: function (model, response) {
                             commonjs.showStatus('Payment has been applied successfully');
