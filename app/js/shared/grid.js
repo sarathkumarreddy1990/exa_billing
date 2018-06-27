@@ -803,6 +803,9 @@ define('grid', [
                     if (gridData.billing_method=='Paper Claim') {
                         $("#btnPaperClaim").show();
                         $("#btnInsuranceClaim").hide();
+                    }else{
+                        $("#btnPaperClaim").hide();
+                        $("#btnInsuranceClaim").show();  
                     }
 
                     let i=(e.target || e.srcElement).parentNode.cellIndex;
