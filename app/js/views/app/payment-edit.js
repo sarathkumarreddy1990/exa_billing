@@ -1218,11 +1218,10 @@ define(['jquery',
                 else
                     $('#spPaymentApplied').text('$' + parseFloat(payment).toFixed(2));
 
-                if (payment < 0)
+                if (adjustment < 0)
                     $('#spAdjustmentApplied').text('$(' + parseFloat(adjustment).toFixed(2).substr(1) + ')');
                 else
                     $('#spAdjustmentApplied').text('$' + parseFloat(adjustment).toFixed(2));
-
 
                 var orderBillFee = parseFloat($('#lblBillingFee').text().substr(1).replace(',', ''));
                 var orderBalance = orderBillFee - (parseFloat(adjustment) + parseFloat(payment) + parseFloat(other_payment) + parseFloat(other_adj));
