@@ -1999,7 +1999,8 @@ define(['jquery',
                     $('#txt' + flag + 'ZipCode').val(result.subscriber_zipcode);
 
                     setTimeout(function () {
-                        $('#ddlResponsible').val('PIP_P');
+                        if (!self.isEdit)
+                            $('#ddlResponsible').val('PIP_P');
                     }, 200);
                     
                 }
