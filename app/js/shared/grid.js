@@ -321,9 +321,10 @@ define('grid', [
                 self.claimInquiryView.patientInquiryLog(studyIds,selectedStudies[0].patient_id);
                 });
                 
-                var liSplitOrders = commonjs.getRightClickMenu('anc_split_orders','setup.rightClickMenu.splitOrders',false,'Split Orders',false);
-                $divObj.append(liSplitOrders);
-                $('#anc_split_orders').click(function () {
+                var liSplitOrders = commonjs.getRightClickMenu('anc_split_claim','setup.rightClickMenu.splitClaim',false,'Split Claim',false);
+                if(studyArray.length == 1)
+                    $divObj.append(liSplitOrders);
+                $('#anc_split_claim').click(function () {
                     self.splitClaimView = new splitClaimView();
                     self.splitClaimView.validateSplitClaim(studyIds);
                 });
@@ -823,6 +824,9 @@ define('grid', [
                     if (gridData.billing_method=='Paper Claim') {
                         $("#btnPaperClaim").show();
                         $("#btnInsuranceClaim").hide();
+                    }else{
+                        $("#btnPaperClaim").hide();
+                        $("#btnInsuranceClaim").show();  
                     }
 
                     let i=(e.target || e.srcElement).parentNode.cellIndex;

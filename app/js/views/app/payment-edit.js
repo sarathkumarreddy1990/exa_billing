@@ -1082,9 +1082,9 @@ define(['jquery',
 
                             $('#tBodyApplyPendingPayment').append(applyPaymentRow);
 
-                            // $('.this_pay, .this_adjustment').unbind().blur(function (e) {
-                            //     self.updatePaymentAdjustment();
-                            // });
+                            $('.this_pay, .this_adjustment').unbind().blur(function (e) {
+                                self.updatePaymentAdjustment();
+                            });
 
                             // $('.checkDebit').unbind().click(function (e) {
                             //     self.updatePaymentAdjustment();
@@ -1172,20 +1172,19 @@ define(['jquery',
                 $('.this_adjustment').val(pay_val);
                 // this.updatePaymentAdjustment();
             },
-            
+
             updatePaymentAdjustment: function () {
                 var lineItems = $("#tBodyApplyPendingPayment tr");
                 var payment = 0.0, adjustment = 0.0, other_payment = 0.0, other_adj = 0.0;
                 var isDebit = $('.checkDebit')[0].checked;
-                var adjustment_codetype = ('#s2id_ddlAdjustmentCode_fast') && $('#s2id_ddlAdjustmentCode_fast').attr('data_code_type') == 'REFADJ'
-                    ? $('#s2id_ddlAdjustmentCode_fast a span').attr('data_code_type').trim() : '';
+                var adjustment_codetype = $('#ddlAdjustmentCode_fast').find(':selected').attr('data_code_type');
                 
                 $.each(lineItems, function (index) {
                     var thisPay = $(this).find('td:nth-child(5)>input');
                     var thisAdj = $(this).find('td:nth-child(8)>input');
 
                     if (isDebit) {
-                        if (adjustment_codetype == 'REFADJ' && thisPay.val() != 0) {
+                        if (adjustment_codetype == 'debit' && thisPay.val() != 0) {
                             thisPay.val(0.00);
                             commonjs.showWarning('This payment is debit adjustment(refund)');
                         }
