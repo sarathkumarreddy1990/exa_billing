@@ -485,14 +485,7 @@ define('grid', [
                             self.claimView = new claimsView();
                             self.claimView.showEditClaimForm(gridData.claim_id);
                             return false;
-                        }else{
-                            window.localStorage.setItem('selected_studies', null);
-                            window.localStorage.setItem('primary_study_details', JSON.stringify(selectedStudies[0]));
-                            window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
-                            self.claimView = new claimsView();
-                            self.claimView.showClaimForm(studyIds);
-                            return false;
-                        }
+                        
                     }
                 },
                 {
