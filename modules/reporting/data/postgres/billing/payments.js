@@ -120,9 +120,9 @@ const detailQueryTemplate = _.template(`
                     payment_data pd
                 INNER join billing.payments p on p.id = pd.payment_id
                 INNER JOIN LATERAL billing.get_payment_totals(p.id) AS payment_totals ON TRUE
-                INNER join facilities f on f.id = p.facility_id
-                INNER join billing.claims c on c.id = pd.claim_id
-                INNER join billing.claim_status cs on cs.id = c.claim_status_id 
+                LEFT join facilities f on f.id = p.facility_id
+                LEFT join billing.claims c on c.id = pd.claim_id
+                LEFT join billing.claim_status cs on cs.id = c.claim_status_id 
                 LEFT join public.insurance_providers ip on ip.id = p.insurance_provider_id
                 LEFT join public.Provider_contacts pc on pc.id = provider_contact_id
                 LEFT join public.Providers pr on pr.id = pc.provider_id
