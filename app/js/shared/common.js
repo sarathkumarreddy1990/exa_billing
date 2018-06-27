@@ -4595,8 +4595,8 @@ var commonjs = {
                     if(data && data.length > 0) {
                         result.study_id = data[0].study_id;
                         result.order_id = data[0].order_id;
-                        resolve(result);
                     }
+                    resolve(result);
                 },
                 error: function (err, response) {
                     commonjs.handleXhrError(err, response);
