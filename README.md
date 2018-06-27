@@ -5,7 +5,7 @@
 ## How do I get set up? ##
 
 ### Install dependencies
-* ``` npm run install-billing ```
+* ``` npm run install-node_modules ```
 
 ### Debugging
 * ``` npm run start ```
