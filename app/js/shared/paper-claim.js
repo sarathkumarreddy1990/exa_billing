@@ -2,14 +2,10 @@ define([
     'jquery',
     '_get',
     'backbone',
-    'pdfmake',
-    'pdfmake-fonts'
 ], function (
     $,
     _get,
-    Backbone,
-    pdfmake,
-    pdfmakeFonts
+    Backbone
 ) {
         return function () {
 

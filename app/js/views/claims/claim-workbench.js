@@ -199,7 +199,7 @@ define(['jquery',
                 "click #btnPaperClaim": "createClaims",
                 "click #btnValidateOrder": "validateClaim",
                 "click #btnClaimRefreshAll": "refreshAllClaims",
-                "click #btnValidateExport": "underConstruction",
+                "click #btnValidateExport": "exportExcel",
                 "click #btnClaimsRefresh": "refreshClaims",
             },
 
@@ -261,7 +261,7 @@ define(['jquery',
                 }
                 commonjs.showLoading('Loading filters..');
                 self.userSettings = commonjs.hstoreParse(app.userInfo.user_settings);
-                $("#btnStudiesRefreshAll, #btnStudiesRefresh, #diveHomeIndex, #divclaimsFooter").hide();
+                $("#btnStudiesRefreshAll, .createNewClaim, #btnStudiesRefresh, #diveHomeIndex, #divclaimsFooter").hide();
                 $('#divPageLoading').show();
 
                 isDefaultTab = false;
@@ -1033,6 +1033,10 @@ define(['jquery',
                                 'isClaimGrid': true
                             });
                             table.renderStudy();
+
+                            $('#btnValidateExport').on().click(function () {
+                                table.renderStudy(true);
+                            });
                         };
 
 
@@ -1587,6 +1591,25 @@ define(['jquery',
                         commonjs.handleXhrError(err, response);
                     }
                 })
+            },
+            exportExcel: function(filterID){
+                var self = this;
+                var table = new ClaimsGrid({
+                    'isAdmin': self.isAdmin,
+                    'gridelementid': '#tblClaimGrid' + filterID,
+                    'filterid': filterID,
+                    'setpriorstudies': '',
+                    'isPrior': false,
+                    'isDicomSearch': false,
+                    'providercontact_ids': app.providercontact_ids,
+                    'searchByAssociatedPatients': '',
+                    'isRisOrderSearch': false,
+                    'showEncOnly': false,
+                    'claims_id': 0,
+                    'container': self.el,
+                    '$container': self.$el,                  
+                    'isClaimGrid': true
+                });
             }
         });
     });

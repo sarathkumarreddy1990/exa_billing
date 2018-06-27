@@ -71,4 +71,9 @@ router.post('/eligibility', async function (req, res) {
     httpHandler.send(req, res, data);
 });
 
+router.get('/studiesby_patient_id', async function (req, res) {
+    const data = await claimsController.getStudiesByPatientId(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;

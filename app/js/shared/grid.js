@@ -137,21 +137,12 @@ define('grid', [
                 var liClaimStatus = commonjs.getRightClickMenu('ul_change_claim_status','setup.rightClickMenu.billingStatus',false,'Change Claim Status',true); 
                 $divObj.append(liClaimStatus);
                 var liArray = [];
-
-                $.ajax({
-                    url: '/exa_modules/billing/claim_workbench/claim_study?claim_id=' + selectedStudies[0].study_id,
-                    type: 'GET',
-                    success: function (data, response) {
-                        if(data && data.length > 0) {
-                            study_id = data[0].study_id;
-                            order_id = data[0].order_id;
-                            
-                            $('#anc_view_documents').removeClass('disabled')
-                            $('#anc_view_reports').removeClass('disabled')
-                        }
-                    },
-                    error: function (err, response) {
-                        commonjs.handleXhrError(err, response);
+                commonjs.getClaimStudy(selectedStudies[0].study_id).then(function (result) {
+                    if (result) {
+                        study_id = result.study_id;
+                        order_id = result.order_id;
+                        $('#anc_view_documents').removeClass('disabled')
+                        $('#anc_view_reports').removeClass('disabled')
                     }
                 });
                 $.each(app.claim_status, function (index, claimStatus) {                      
@@ -377,17 +368,13 @@ define('grid', [
                 $divObj.append(liCreateClaim);
                 $('#anc_create_claim').off().click(function () {
 
-                    /**
-                     * ToDo:: Once listout studies from patient have to remove this function
-                    */
-                    // window.localStorage.setItem('selected_studies', null);
-                    // window.localStorage.setItem('first_study_details', null);
-                    // window.localStorage.setItem('primary_study_details', JSON.stringify(selectedStudies[0]));
-                    // window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
-                    
+                    window.localStorage.setItem('selected_studies', null);
+                    window.localStorage.setItem('primary_study_details', JSON.stringify(selectedStudies[0]));
+                    window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
+
                     self.claimView = new claimsView();
-                    //self.claimView.showClaimForm(studyIds); 
-                    self.claimView.showPatientForm();
+                    self.claimView.showClaimForm(studyIds);
+
                 });
             }
 
@@ -489,6 +476,7 @@ define('grid', [
                             self.claimView = new claimsView();
                             self.claimView.showEditClaimForm(gridData.claim_id);
                             return false;
+                        
                     }
                 },
                 {
@@ -744,7 +732,6 @@ define('grid', [
                         self.claimView.showEditClaimForm(rowID);
                     } else {
                         window.localStorage.setItem('selected_studies', null);
-                        window.localStorage.setItem('first_study_details', null);
                         window.localStorage.setItem('primary_study_details', JSON.stringify(rowID));
                         window.localStorage.setItem('selected_studies', JSON.stringify(rowID));
                         self.claimView = new claimsView();

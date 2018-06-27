@@ -22,17 +22,22 @@
     <div id="applyPaymentContent">
         <table class="table" style="margin-bottom: 0;">
             <tr>
-                <td style="width:15%;border:none !important;" align="center">
+                <td style="width:30%;border:none !important;" align="center">
                     <span i18n="billing.payments.totalBillFee"></span> :
                     <span id="spApplyTotalFee"></span>
                 </td>
-                <td style="width:20%;border:none !important;" align="center">
+                <td style="width:30%;border:none !important;" align="center">
                     <span i18n="billing.payments.appliedPayment"></span> : 
                     <span id="spPaymentApplied"></span>
                 </td>
-                <td style="width:20%;border:none !important;" align="center">
+                <td style="width:30%;border:none !important;" align="center">
                     <span i18n="billing.payments.appliedAdjustment"></span> :
                     <span id="spAdjustmentApplied"></span>
+                </td>
+                <td style="width:10%;border:none !important;">
+                    <label class="checkbox-inline">
+                        <input class="checkDebit" type="checkbox" style="display: block; margin-top: 4px; margin-right: 4px;"> DR
+                    </label>
                 </td>
             </tr>
         </table>
@@ -184,7 +189,7 @@
 </div>
 <div id="divPaymentCAS" class="divBackgroundPayment form-horizontal commonBorder" style="display: none; position: absolute; border-radius:10px;z-index:10000; width: 97.5%; padding:20px;background-color: white;  
           text-align: center;top: 2%;border: 1px solid #dee2e6;">
-    <div class="row">
+    <div class="row modal-header" style="margin-bottom: 10px;">
         <div class="col">
             <span class="cobAmount" i18n="billing.COB.groupCode"></span>
         </div>
@@ -384,8 +389,8 @@
             </div>
         </div>
     </div>
-    <div class="form-group" style="margin-top:10px;text-align: center;">
-        <button type="button" class="btn btn-danger" id="btnSaveCAS" i18n="shared.buttons.save"></button>
-        <button type="button" class="btn btn-primary" id="btnCancelCAS" i18n="shared.buttons.cancel" style="margin-left: 20px;"></button>
+    <div class="modal-footer">
+            <button type="button" class="btn btn-danger" id="btnSaveCAS" i18n="shared.buttons.save"></button>
+            <button type="button" class="btn btn-primary" id="btnCancelCAS" i18n="shared.buttons.cancel"></button>
     </div>
 </div>

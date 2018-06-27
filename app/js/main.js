@@ -36,8 +36,6 @@ var rjsConfig = {
         'select2': '../node_modules/select2/dist/js/select2.full',
         'jquerysortable': '../node_modules/jquery-sortable/source/js/jquery-sortable',
         'ace': '../node_modules/ace-code-editor/lib/ace',
-        'pdfmake': '../node_modules/pdfmake/build/pdfmake.min',
-        'pdfmake-fonts': '../node_modules/pdfmake/build/vfs_fonts',
     },
     shim: {
         'jquery.validate': {
@@ -112,9 +110,6 @@ var rjsConfig = {
         },
         'jquerysortable': {
             deps: ['jquery']
-        },
-        'pdfmake-fonts': {
-            deps: ['pdfmake']
         },
     },
 };

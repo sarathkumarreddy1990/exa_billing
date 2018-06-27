@@ -76,7 +76,7 @@ module.exports = {
         sql.append(`SELECT	COALESCE(${colName[templateType]},`);
 
         sql.append(SQL`
-                                (SELECT	id
+                            (SELECT	id
                                 FROM	billing.printer_templates
                                 WHERE	template_type = ${templateType}
                                 ORDER BY id DESC

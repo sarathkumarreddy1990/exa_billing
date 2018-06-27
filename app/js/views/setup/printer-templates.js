@@ -85,7 +85,7 @@ define(['jquery',
                         },
                         {
                             name: 'edit',
-                            width: 5,
+                            width: 10,
                             sortable: false,
                             search: false,
                             className: 'icon-ic-edit',
@@ -95,7 +95,7 @@ define(['jquery',
                             }
                         },
                         {
-                            name: 'del', width: 5, sortable: false, search: false,
+                            name: 'del', width: 10, sortable: false, search: false,
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
                                 if (confirm("Are you sure want to delete")) {
@@ -321,15 +321,6 @@ define(['jquery',
                         if (typeof dd === 'undefined') {
                             return showStatus('Invalid template');
                         }
-
-                        // pdfMake.fonts = {
-                        //     Roboto: {
-                        //         normal: '/static/fonts/Roboto/Roboto-Regular.ttf',
-                        //         bold: '../../../static/fonts/Roboto/Roboto-Medium.ttf',
-                        //         italics: '../../../static/fonts/Roboto/Roboto-Italic.ttf',
-                        //         bolditalics: '../../../static/fonts/Roboto/Roboto-MediumItalic.ttf'
-                        //     }
-                        // }
                         
                         pdfMake.createPdf(dd).getDataUrl(function (outDoc) {
                             document.getElementById('ifrTemplatePreview').src = outDoc;
