@@ -7,8 +7,9 @@ module.exports = {
         return await SearchFilter.getWL(args);
     },
 
-    deleteClaim: async (params) => {
-        const { claim_id, clientIp, screenName, entityName, userId, companyId } = params;
+    deleteClaimOrCharge: async (params) => {
+        const { target_id, clientIp, entityName, userId, companyId, type } = params;
+        const screenName = 'claims';
 
         let audit_json = {
             client_ip: clientIp,
@@ -21,7 +22,7 @@ module.exports = {
 
         params.audit_json = JSON.stringify(audit_json);
 
-        const sql = SQL` SELECT billing.purge_claim(${claim_id},${params.audit_json}::json)`;
+        const sql = SQL` SELECT billing.purge_claim_or_charge(${target_id}, ${type}, ${params.audit_json}::json)`;
 
         return await query(sql);
     },
