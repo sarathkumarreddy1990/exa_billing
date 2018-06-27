@@ -12,6 +12,7 @@ define([
 
             AppRouter.initialize();
             commonjs.initSessionHandler();
+            commonjs.initPermissionHandler();
         }
     }
 });
