@@ -111,6 +111,10 @@ define([
                     subscriberGrp: [],
                     payerGrp: []
                 };
+
+                if (typeof obj == "string") {
+                    obj = JSON.parse(obj);
+                }
                 for (var i = 0; i < obj.length; i++) {
                     if (obj[i].field.indexOf("billing") > -1) {
                         group.billingGrp.push(obj[i]);

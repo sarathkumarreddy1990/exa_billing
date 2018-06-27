@@ -62,10 +62,29 @@ module.exports = {
         printer_templates: 'printer_templates',
         payments: 'payments',
         applyPayments:'payment_applications',
-        claim_inquiry:'claim_comments'
+        claim_inquiry:'claim_comments',
+        audit_log: 'Audit Log',
+        user_log: 'User Log'
     },
 
     permissionsMap: {
-        adjustment_codes: 'APP'
+        adjustment_codes: 'ADJC',
+        billing_codes: 'BICO',
+        billing_classes: 'BICL',
+        claim_status: 'CLST',
+        billing_providers: 'BIPR',
+        provider_id_code_qualifiers: 'PRCQ',
+        billing_messages: 'BILM',
+        payment_reasons: 'PARE',
+        cas_group_codes: 'CASG',
+        cas_reason_codes: 'CASR',
+        status_color_codes: 'STCC',
+        validations: 'BIVA',
+        printer_templates: 'PCA',
+        x12: 'EDRT',
+        insurance_x12_mapping: 'INSM',
+        edi_clearinghouses: 'CLHO',
+        user_log: 'ULOG',
+        audit_log: 'ALOG'
     }
 };
