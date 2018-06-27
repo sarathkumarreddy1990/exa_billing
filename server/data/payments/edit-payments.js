@@ -255,7 +255,8 @@ module.exports = {
             sortOrder,
             sortField,
             pageNo,
-            pageSize
+            pageSize,
+            payment
         } = params;
 
            
@@ -281,6 +282,10 @@ module.exports = {
 
         if (bill_fee) {
             whereQuery.push(` (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) = '${bill_fee}'::money`);
+        }
+        
+        if (payment) {
+            whereQuery.push(`  (SELECT payments_applied_total from billing.get_claim_totals(bc.id)) = '${payment}'::money`);
         }
 
         if (patient_paid) {    

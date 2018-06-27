@@ -43,11 +43,15 @@ define([
                     win = window.open('', '_blank');
                 }
 
+                commonjs.showLoading();
+
                 this.getTemplate(claimIDs, templateType, function (err, template) {
                     self.getClaimObject(claimIDs, templateType, function (err, claimData) {
 
                         var docDefinition = self.mergeTemplate(templateType, template, claimData);
                         //var docDefinition = { content: 'This is an sample PDF printed with pdfMake', style: 'header', mmmm: 'sdfdsfdsf' };
+
+                        commonjs.hideLoading();
 
                         try {
                             if (win) {
@@ -88,7 +92,8 @@ define([
                     return commonjs.showError('Invalid template');
                 }
 
-                template = mailMerge.mergeData(dd, claimData);
+                //template = mailMerge.mergeData(dd, claimData);
+                template = dd;
 
                 return template;
             }

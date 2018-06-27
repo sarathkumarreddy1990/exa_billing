@@ -41,7 +41,8 @@ define(['jquery',
                 'click #btnStatusSearch': 'searchPayments',
                 'click #btnPaymentRefresh': 'refreshPayments',
                 "click #btnGenerateExcel": "exportExcel",
-                "click #btnGeneratePDF": "generatePDF"
+                "click #btnGeneratePDF": "generatePDF",
+                "change #ulPaymentStatus": 'searchPayments'
             },
 
             initialize: function (options) {
@@ -49,9 +50,9 @@ define(['jquery',
                 this.options = options;
                 var paymentStatus = [
                     { 'value': 'fully_applied', 'text': 'Applied' },
-                    { 'value': 'unapplied', 'text': 'UnApplied' },
-                    { 'value': 'partially_applied', 'text': 'PartialApplied' },
-                    { 'value': 'over_applied', 'text': 'OverApplied' }
+                    { 'value': 'unapplied', 'text': 'Un-applied' },
+                    { 'value': 'partially_applied', 'text': 'Partial Applied' },
+                    { 'value': 'over_applied', 'text': 'Over Applied' }
                 ];
                 this.payer_type = [
                     { 'value': "patient", 'text': "Patient" },

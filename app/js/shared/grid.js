@@ -820,15 +820,15 @@ define('grid', [
                         validateClaimSelection(rowID, enableField, _selectEle, studyStore);
                     }
 
-                    var gridData = $('#'+e.currentTarget.id).jqGrid('getRowData', rowID);
+                    // var gridData = $('#'+e.currentTarget.id).jqGrid('getRowData', rowID);
 
-                    if (gridData.billing_method=='Paper Claim') {
-                        $("#btnPaperClaim").show();
-                        $("#btnInsuranceClaim").hide();
-                    }else{
-                        $("#btnPaperClaim").hide();
-                        $("#btnInsuranceClaim").show();  
-                    }
+                    // if (gridData.billing_method=='Paper Claim') {
+                    //     $("#btnPaperClaim").show();
+                    //     $("#btnInsuranceClaim").hide();
+                    // }else{
+                    //     $("#btnPaperClaim").hide();
+                    //     $("#btnInsuranceClaim").show();  
+                    // }
 
                     let i=(e.target || e.srcElement).parentNode.cellIndex;
 
