@@ -3003,7 +3003,7 @@ define(['jquery',
                                 $studyDetails.show();
 
                                 $studyDetails.append('<button style="height:33px;margin-right:5px;" type="button" class="btn top-buffer processClaim" id="btnClaimWStudy">With Study</button>');
-                                $studyDetails.append('<button style="height:33px;" type="button" class="btn top-buffer processClaim" id="btnClaimWOStudy">W/O Study</button>');
+                                $studyDetails.append('<button style="height:33px;" type="button" class="btn top-buffer processClaim" id="btnClaimWOStudy">Create Without Study</button>');
                                 $('.processClaim').off().click(function (e) {
 
                                     if ($(e.target).attr('id') == 'btnClaimWStudy') {

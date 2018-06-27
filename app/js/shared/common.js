@@ -3015,7 +3015,7 @@ var commonjs = {
     },
 
     initPermissionHandler: function () {
-        console.log('app.screens ---->>>>>>>> ', app.screens);
+        //console.log('app.screens ---->>>>>>>> ', app.screens);
     },
 
     validateControls: function () {
