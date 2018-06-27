@@ -1,12 +1,25 @@
 # EXA Billing 1.5 #
 
-This README would normally document whatever steps are necessary to get your application up and running.
+##
 
-### How do I get set up? ###
+## How do I get set up? ##
 
-* To be filled
+### Install dependencies
+* ``` npm run install-billing ```
 
-### Who do I talk to? ###
+### Debugging
+* ``` npm run start ```
+
+### Production deployment
+* ``` start-production ```
+
+### Test
+* ``` npm run test ```
+
+### Build
+* ``` gulp build ```
+
+## Who do I talk to? ##
 
 * Repo owner or admin
 * Other community or team contact
