@@ -8,72 +8,88 @@ const _ = require('lodash')
 // generate query template ***only once*** !!!
 
 const paymentsPrintPDFDataSetQueryTemplate = _.template(`
-
-
-with payment_details AS(
-
-    select        
-        bp.id , 
-        mode AS payment_mode,
-        card_name as cardname,
-        card_number as cardnumber,
-        payer_type as payertype,         
-        amount as amount,
-        patients.id as patient_id,
-                              (select payment_balance_total from billing.get_payment_totals(bp.id)) AS available_balance
-                            , (select payments_applied_total from billing.get_payment_totals(bp.id)) AS applied       
-                            , (select adjustments_applied_total from billing.get_payment_totals(bp.id)) AS adjustment_amount                                
-                            , to_char(bp.payment_dt,'MM/DD/YYYY') as payment_dt
-                            , (  CASE payer_type 
-                                WHEN 'insurance' THEN insurance_providers.insurance_name
-	                            WHEN 'ordering_facility' THEN provider_groups.group_name
-	                            WHEN 'ordering_provider' THEN ref_provider.full_name
-	                            WHEN 'patient' THEN patients.full_name        END) AS payer_name    
-     FROM billing.payments bp
-            LEFT JOIN public.patients ON patients.id = bp.patient_id    
-            LEFT JOIN public.provider_groups ON provider_groups.id = bp.provider_group_id
-            LEFT JOIN public.provider_contacts ON provider_contacts.id = bp.provider_contact_id
-            LEFT JOIN public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
-            LEFT JOIN public.insurance_providers  ON insurance_providers.id = bp.insurance_provider_id
-            LEFT JOIN public.facilities ON facilities.id = bp.facility_id
-            where 1=1  AND <%= paymentId %> 
+with payment_details as (
+    SELECT
+        bc.id as claim_id,
+        bp.id as payment_id,
+        bp.mode,
+        pp.account_no,
+        bp.payment_dt,
+        bp.amount,
+        COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient' and 
+    bpa.amount_type = 'payment'),0::money) AS patient_paid,
+        COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient' 
+    and bpa.amount_type = 'payment'),0::money) AS others_paid,
+        (select charges_bill_fee_total FROM 
+    billing.get_claim_totals(bc.id)) as bill_fee,
+        (select charges_allowed_amount_total FROM 
+    billing.get_claim_totals(bc.id)) as allowed_amount,
+        (select adjustments_applied_total FROM 
+    billing.get_claim_totals(bc.id)) as adjustment,
+        (select claim_balance_total FROM billing.get_claim_totals(bc.id)) 
+    as balance
+    FROM billing.payments bp
+    INNER JOIN billing.payment_applications bpa ON bpa.payment_id = bp.id
+    INNER JOIN billing.charges bch on bch.id = bpa.charge_id
+    INNER JOIN billing.claims bc on bc.id = bch.claim_id
+    INNER JOIN public.patients pp ON pp.id = bc.patient_id
+    where  <%= paymentId %>
+    group by  bc.id,bp.id,bp.mode, 
+    pp.account_no,bp.payment_dt,bill_fee,bp.amount
     ),
-    patient_details AS(
-    SELECT 
-    to_char(claim_dt,'MM/DD/YYYY') as claim_date,
-    pp.id as patient_id,
-    pp.account_no as account_no,
-     pp.full_name as full_name,
-     SUM(amount) as pay_amount,
-    bc.claim_dt 
-    FROM billing.claims bc 
-    INNER JOIN public.patients pp ON pp.id = bc.patient_id 
-    INNER JOIN billing.charges bch on bch.id = bc.id 
-    INNER JOIN billing.payment_applications bpa on bpa.charge_id = bch.id    
-    where 1=1  AND <%= paymentApplicationId %>  
-    GROUP BY grouping sets ( (pp.full_name,pp.account_no,bc.claim_dt,pp.id),())
-
+    claim_details As(
+    SELECT
+    bc.id,
+       get_full_name(pp.last_name,pp.last_name) as patient_name,
+       pp.account_no as account_no,
+       pc.company_name as company_name,
+       bc.id as claim_no,
+       pf.facility_name,
+       bc.facility_id as facility_id,
+       pf.facility_info->'facility_address1' as facility_address1,
+       pf.facility_info->'facility_city' as facility_city,
+       pf.facility_info->'facility_state' as facility_state,
+       pf.facility_info->'facility_zip' as facility_zip,
+       pf.facility_info->'federal_tax_id' as tax_id,
+       pf.facility_info->'abbreviated_receipt' as abbreviated_receipt,
+       (SELECT claim_balance_total FROM billing.get_claim_totals(bc.id)) As 
+    claim_balance,
+       (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) 
+    As applied,
+       bc.claim_dt,
+       bp.name,
+       bp.address_line1,
+       bp.city,
+       bp.state,
+       bp.zip_code,
+       bp.federal_tax_id,
+       bp.npi_no
+    FROM billing.claims bc
+    INNER JOIN public.patients pp ON pp.id = bc.patient_id
+    INNER JOIN public.facilities pf ON pf.id = bc.facility_id
+    INNER JOIN public.companies pc ON pc.id = bc.company_id
+    INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
+    where bc.id in (SELECT claim_id from payment_details)
+    ),
+    charge_details as(
+    SELECT
+       pcc.display_code,
+       pcc.display_description,
+       billing.get_charge_icds(bch.id) as icd_code,
+       bch.charge_dt as charge_dt,
+       (bch.units * bch.bill_fee) As bill_fee
+    FROM  billing.charges bch
+    INNER JOIN  public.cpt_codes pcc ON pcc.id = bch.cpt_id
+    WHERE bch.claim_id in (SELECT claim_id from payment_details)
     )
-    select 
-        id,
-        cardname,
-        cardnumber,
-        payment_mode,
-        payertype,
-        payer_name,
-        amount,
-        available_balance,
-        applied,
-        adjustment_amount,
-        payment_dt,
-        pd.account_no,
-        pd.full_name ,
-        claim_date,
-        pay_amount
-    from 
-    payment_details    
-    FULL JOIN patient_details pd ON pd.patient_id = payment_details.patient_id
+    
+    
 
+ 
+select (SELECT json_agg(row_to_json(claim_details)) AS claim_details FROM (SELECT * FROM claim_details) AS claim_details),
+        (SELECT json_agg(row_to_json(charge_details)) AS charge_details FROM (SELECT * FROM charge_details) AS charge_details),
+       (SELECT json_agg(row_to_json(payment_details)) AS payment_details FROM (SELECT * FROM payment_details) AS payment_details)
+    
 `);
 
 const api = {
@@ -154,12 +170,10 @@ const api = {
         const params = [];
         const filters = {
             paymentId: null,
-            paymentApplicationId: null
 
         };
         params.push(reportParams.pamentIds);
         filters.paymentId = queryBuilder.where('bp.id', '=', [params.length]);
-        filters.paymentApplicationId = queryBuilder.where('bpa.payment_id', '=', [params.length]);
         
 
         return {

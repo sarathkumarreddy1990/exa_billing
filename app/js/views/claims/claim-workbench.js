@@ -260,7 +260,7 @@ define(['jquery',
                 }
                 commonjs.showLoading('Loading filters..');
                 self.userSettings = commonjs.hstoreParse(app.userInfo.user_settings);
-                $("#btnStudiesRefreshAll, #btnStudiesRefresh, #diveHomeIndex, #divclaimsFooter").hide();
+                $("#btnStudiesRefreshAll, .createNewClaim, #btnStudiesRefresh, #diveHomeIndex, #divclaimsFooter").hide();
                 $('#divPageLoading').show();
 
                 isDefaultTab = false;
