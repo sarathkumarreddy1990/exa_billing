@@ -3014,6 +3014,10 @@ var commonjs = {
         }
     },
 
+    initPermissionHandler: function () {
+        console.log('app.screens ---->>>>>>>> ', app.screens);
+    },
+
     validateControls: function () {
         $(".floatbox").on("keypress keyup blur", function (event) {
             //$(this).val($(this).val().replace(/[^0-9\.]/g, ''));
