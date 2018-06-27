@@ -4,6 +4,7 @@ const { permissionsMap } = require('../shared/constants');
 module.exports = {
 
     checkRights: function (args) {
+        const defaultAPIs =   ['/exa_modules/billing/app_settings'];
         let {
             screens,
             userType,
@@ -19,6 +20,10 @@ module.exports = {
             return true;
         }
 
+        if(defaultAPIs.indexOf(route) > -1){
+            return true;
+        }
+        
         if (!moduleNameInternal) {
             return false;
         }

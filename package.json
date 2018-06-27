@@ -1,12 +1,15 @@
 {
     "name": "exa-billing",
-    "version": "1.4.2",
+    "version": "1.4.3",
     "description": "EXA Billing Module",
     "main": "server/app.js",
     "scripts": {
         "lint": "eslint .",
+        "install-billing": "npm install && cd app && npm install && cd..",
         "dev": "nodemon ./bin/www",
         "start": "npm-run-all lint dev",
+        "gulp-build": "gulp build",
+        "build": "npm-run-all install-billing gulp-build",
         "start-production": "nodemon ./bin/www-cluster",
         "test": "mocha --recursive test/unit"
     },
@@ -56,6 +59,7 @@
         "gulp-concat-css": "^3.1.0",
         "gulp-git": "^2.7.0",
         "gulp-less": "^3.5.0",
+        "gulp-replace": "^1.0.0",
         "gulp-requirejs": "^1.1.1",
         "gulp-uglifycss": "^1.1.0",
         "gulp-zip": "^4.1.0",

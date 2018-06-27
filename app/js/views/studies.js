@@ -9,7 +9,8 @@ define(['jquery',
     'text!templates/index.html',
     'models/study-filters',
     'grid',
-    'shared/fields'],
+    'shared/fields',
+    'views/claims/index'],
     function ($,
               Immutable,
               _,
@@ -21,7 +22,8 @@ define(['jquery',
               IndexHTML,
               modelStudyFilter,
               StudyGrid,
-              ListFields) {
+              ListFields,
+              claimsView) {
         var MergeQueueBase = Immutable.Record({
             'filterIndexSet': Immutable.OrderedSet(),
             /**
@@ -192,6 +194,7 @@ define(['jquery',
                 "change #chkStudyProgress": "chooseStatusForFilter", 
                 "click #btnStudiesRefresh": "refreshStudies",
                 "click #btnValidateExport": "underConstruction",
+                "click #btnCreateNew": "createNewClaim",
                 "click #btnStudiesRefreshAll": "refreshAllStudies"
             },
 
@@ -1592,6 +1595,12 @@ define(['jquery',
                 else {
                     $('#chkAllStatus').prop('checked', false);
                 }
+            },
+
+            createNewClaim: function () {
+                var self = this;
+                self.claimView = new claimsView();
+                self.claimView.showPatientForm();
             }
         });
     });
