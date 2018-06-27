@@ -110,6 +110,7 @@ module.exports = {
         return await Promise.all(results);
 
     },
+    
     checkExistInsurance: async function (params, eraResponseJson) {
 
         let payerDetails = {};
