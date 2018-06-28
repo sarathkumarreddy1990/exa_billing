@@ -54,7 +54,7 @@ define([
                         var pdfWorker;
 
                         try {
-                            pdfWorker = new Worker('/exa_modules/billing/static/js/workers/pdf-worker.js');
+                            pdfWorker = new Worker('/exa_modules/billing/static/js/workers/pdf.js');
                         } catch (e) {
                             console.error(e);
                             return;
