@@ -197,5 +197,9 @@ module.exports = {
 
     getClaimStudy: function(params) {
         return data.getClaimStudy(params);
+    },
+
+    getBillingPayers: function(params) {
+        return data.getBillingPayers(params);
     }
 };
