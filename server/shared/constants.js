@@ -84,7 +84,7 @@ module.exports = {
         x12: 'EDRT',
         insurance_x12_mapping: 'INSM',
         edi_clearinghouses: 'CLHO',
-        user_log: 'ULOG',
-        audit_log: 'ALOG'
+        user_log: 'BULG',
+        audit_log: 'BALG'
     }
 };
