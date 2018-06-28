@@ -1,4 +1,5 @@
 const gulp = require('gulp');
+const runSequence = require('run-sequence');
 const clean = require('gulp-clean');
 const less = require('gulp-less');
 //const del = require('del');
@@ -14,6 +15,7 @@ const git = require('gulp-git');
 const fs = require('fs');
 const path = require('path');
 
+let currentBranch = 'develop';
 let requirejsConfig = require('./app/js/main').rjsConfig;
 
 let getCurrentVersion = function () {
@@ -127,6 +129,12 @@ gulp.task('git-init', () => {
     });
 });
 
+gulp.task('git-pull', ['bump', 'git-init'], () => {
+    git.pull('origin', 'develop', { args: '--rebase' }, (err) => {
+        if (err) throw err;
+    });
+});
+
 gulp.task('git-add', ['git-init'], () => {
     return gulp.src('./package.json')
         .pipe(git.add());
@@ -155,10 +163,9 @@ gulp.task('build', [
     'clean-all',
 ]);
 
-gulp.task('build-from-git', [
-    'build',
-    'git-push',
-]);
+gulp.task('build-from-repo', (done) => {
+    runSequence('git-pull', 'build', 'git-push', done);
+});
 
 
 gulp.task('default', ['requirejsBuild'], () => {
