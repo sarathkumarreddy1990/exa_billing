@@ -124,7 +124,7 @@ module.exports = {
                             adjustment: adjustmentAmount || 0.00,
                             cpt_code: val.qualifierData.cptCode,
                             claim_number: value.claimNumber,
-                            claim_status_code: value.claimStatusCode,
+                            claim_status_code: value.claimStatusCode || 0,
                             cas_details: cas_obj,
                             charge_id: val.serviceIdentification && val.serviceIdentification.assingedNumber && !isNaN(val.serviceIdentification.assingedNumber) ? val.serviceIdentification.assingedNumber : 0
                         });
