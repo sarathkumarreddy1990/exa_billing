@@ -75,15 +75,19 @@ module.exports = {
 
                         });
 
-                        if (val.serviceAdjustment && (validCAS.length != val.serviceAdjustment.length)) {
-                            adjustmentAmount = 0;
-                        }
-
                         /**
                         *  Condition : Apply adjustment only for primary payer
                         *  DESC : Primary payers are defined via the claim status of 1 or 19
                         */
                         adjustmentAmount = ['1', '19'].indexOf(value.claimStatusCode) == -1 ? 0 : adjustmentAmount[0];
+                        
+                        /**
+                        *  Condition : Check Is Valid CAS or Not
+                        *  DESC : Is any one of CAS is not Valid, Then assigne adjustment amount = 0
+                        */
+                        if (val.serviceAdjustment && (validCAS.length != val.serviceAdjustment.length)) {
+                            adjustmentAmount = 0;
+                        }
 
                         /**
                         *  Condition : ERA- Payment=0, adjustment == bill fee means should not apply adjustment 

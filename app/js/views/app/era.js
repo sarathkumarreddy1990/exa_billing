@@ -173,9 +173,13 @@ define([
                     },
                     success: function (model, response) {
 
+                        var array_to_object = function($value){
+                            return isArray($value) ? array_to_object($value[0]) : $value;
+                        }
+
                         if (model && model != undefined) {
 
-                            model = model && model.length && model[0].length ? model[0][0] : model[0];
+                            model = model && model.length ? array_to_object(model) : model;
 
                             if (model && model.status == 100) {
                                 commonjs.showWarning(model.message);
@@ -207,6 +211,7 @@ define([
                                 commonjs.showWarning('Already Payment Processed');
                             }
                         }
+                       
                     },
                     error: function (err, response) {
                         commonjs.handleXhrError(err, response);

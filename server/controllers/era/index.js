@@ -195,6 +195,7 @@ module.exports = {
 
     processPayments: async function (params, eraObject) {
         let self = this;
+        //let message = [];
 
         let paymentDetails = await self.createPaymentFromERA(params, eraObject);
 
@@ -202,6 +203,16 @@ module.exports = {
 
         let LineItemsAndClaimLists = await eraParser.getFormatedLineItemsAndClaims(claimLists, params);
 
+        // ToDo:: Have to return Error Message on Multi TRN payment
+        // if (LineItemsAndClaimLists.lineItems && !LineItemsAndClaimLists.lineItems.length) {
+        //     message.push({
+        //         status: 100,
+        //         message: 'Error on getting service segment in ERA file'
+        //     });
+
+        //     return message;
+        // } 
+       
         let processedClaims = await data.createPaymentApplication(LineItemsAndClaimLists, paymentDetails);
 
         return processedClaims;

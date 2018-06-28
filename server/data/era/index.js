@@ -311,6 +311,7 @@ module.exports = {
                                                     SELECT
                                                         claim_id as claim_number
                                                         ,edi_file_id
+                                                        ,true AS applied
                                                     FROM
                                                     insert_edi_file_claims
                                             
