@@ -787,13 +787,13 @@ define('grid', [
                         $('#chk'+gridID.slice(1)+'_' + rowID).attr('checked',true);
                     }
                     if (options.isClaimGrid || (gridData.claim_id && gridData.claim_id != '')) {
+                        self.claimView = new claimsView();
                         commonjs.getClaimStudy(rowID).then(function (result) {
                             if (result) {
                                 study_id = result.study_id;
                                 order_id = result.order_id;
                             }
-                            self.claimEditView = new claimsView();
-                            self.claimEditView.showEditClaimForm(gridData.claim_id, null, {
+                            self.claimView.showEditClaimForm(gridData.claim_id, null, {
                                 'study_id': study_id,
                                 'patient_name': gridData.patient_name,
                                 'patient_id': gridData.patient_id,
@@ -943,7 +943,6 @@ define('grid', [
                 rowattr: rowattr
             });
             if (flag == true) {
-                var self = this;
                 var colHeader = studyFields.colName;
                 $.ajax({
                     'url': '/exa_modules/billing/claim_workbench',
