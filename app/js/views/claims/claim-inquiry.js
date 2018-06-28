@@ -376,8 +376,9 @@ define([
                     gridelementid: '#tblCIClaimComments',
                     custompager: self.pager,
                     emptyMessage: 'No Records Found',
-                    colNames: ['', 'date', '', 'code', 'payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', ''],
+                    colNames: ['','', 'date', '', 'code', 'payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', ''],
                     colModel: [
+                        { name: 'row_number', hidden: true},
                         { name: 'id', hidden: true },
                         { name: 'commented_dt', width: 40, search: false, sortable: false, formatter: self.commentDateFormatter },
                         { name: 'code', hidden: true },
@@ -713,7 +714,6 @@ define([
                     url: '/exa_modules/billing/claims/claim_inquiry/charge_payment_details',
                     type: 'GET',
                     data: {
-                        'claim_id': self.claim_id,
                         'charge_id': charge_id
                     },
                     success: function (data, response) {
