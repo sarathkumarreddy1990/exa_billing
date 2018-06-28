@@ -4,10 +4,8 @@
         <!-- col: form elements -->
         <div class="col-3">
             <div class="form-group form-inline">
-                <div class="col-form-label">
-                    <label class="control-label field-required" for="txtDateRangeFromTo" i18n="billing.payments.claimDate" />
-                </div>
                 <div class="col-form-content">
+                    <label class="control-label" for="txtDateRangeFromTo" i18n="report.claimDate" />
                     <div id="divReportDate" class="input-group">
                         <span class="input-group-addon add-on">
                             <i class="fa fa-calendar"></i>
@@ -20,8 +18,7 @@
         <div class="col-3">
             <div class="form-group form-inline">
                 <div class="col-form-label" class="multiselect">
-                    <label class="control-label">Facilities
-                    </label>
+                    <label class="control-label" i18n="report.facilities" />
                     <select id="ddlFacilityFilter" multiple="multiple">
                         <% _.each(facilities.toJSON(), function(facility) { %>
                             <option value='<%= facility.id %>'>
@@ -34,11 +31,9 @@
         </div>
         <div class="col-3">
             <div class="form-group form-inline" id="procedureByInsurance">
-                <div class="col-form-label" style="max-width: 110px">
-                    <label class="control-label">Insurance</label>
-                </div>
                 <div class="form-content">
                     <div class="input-group" style="width: 250px; margin-top:10px">
+                        <label class="control-label" i18n="report.insurance" />
                         <select id="ddlInsuranceBinding" class="form-control form-control-lg">
                             <option value="All">All Insurance</option>
                             <option value="S">Insurances</option>

@@ -424,7 +424,7 @@ define('grid', [
             event.preventDefault();
         };
 
-        self.renderStudy = function () {
+        self.renderStudy = function (flag) {
             if (options.isClaimGrid)
                 var studyStore = new claimWorkbench(null, { 'filterID': filterID });
             else {
@@ -942,6 +942,112 @@ define('grid', [
                 },
                 rowattr: rowattr
             });
+            if (flag == true) {
+                var self = this;
+                var colHeader = studyFields.colName;
+                $.ajax({
+                    'url': '/exa_modules/billing/claim_workbench',
+                    type: 'GET',
+                    data: {
+                        filterData: [],
+                        filterCol: [],
+                        customArgs: {
+                            filter_id: 'All_Claims',
+                            flag: 'exportExcel'
+                        }
+                    },
+                    success: function (data, response) {
+                        var responseJSON = data;
+                        var ReportTitle = 'Claims';
+                        var ShowLabel = 'Claim List';
+                        var paymentExcelData = typeof responseJSON != 'object' ? JSON.parse(responseJSON) : responseJSON;
+                        var CSV = '';
+                        CSV += ReportTitle + '\r';
+                        if (ShowLabel) {
+                            var row = "";
+                            _.each(colHeader, function (result, index) {
+                                result == "Claim Date" ? row += 'CLAIM DATE' + ',' : ' ',
+                                    result == "Patient Name" ? row += 'PATIENT NAME' + ',' : ' ',
+                                    result == "Clearing House" ? row += 'CLEARING HOUSE' + ',' : ' ',
+                                    result == "Billing Method" ? row += 'BILLING METHOD' + ',' : ''
+                                result == "Billing Provider" ? row += 'BILLING PROVIDER' + ',' : ' ',
+                                    result == "Billing Fee" ? row += 'BILL FEE' + ',' : ' ',
+                                    result == "Account No" ? row += 'Account #' + ',' : ' ',
+                                    result == "Policy Number" ? row += 'Policy #' + ',' : ' ',
+                                    result == "Claim Status" ? row += 'Claim Status' + ',' : ' ',
+                                    result == "Date Of Birth" ? row += 'DOB' + ',' : ' ',
+                                    result == "Invoice" ? row += 'Invoice' + ',' : ' ',
+                                    result == "Follow-up Date" ? row += 'Follow-up Date' + ',' : ' ',
+                                    result == "Place OF Service" ? row += 'Place OF Service' + ',' : ' ',
+                                    result == "Referring Providers" ? row += 'Referring Providers' + ',' : ' ',
+                                    result == "Balance" ? row += 'Balance' + ',' : ' ',
+                                    result == "Rendering Providers" ? row += 'Rendering Providers' + ',' : ' ',
+                                    result == "SSN" ? row += 'SSN' + ',' : ' ',
+                                    result == "Group Number" ? row += 'Group Number' + ',' : ' ',
+                                    result == "Payer Type" ? row += 'Payer Type' + ',' : ' ',
+                                    result == "Billing Class" ? row += 'Billing Class' + ',' : ' ',
+                                    result == "Billing Code" ? row += 'Billing Code' + ',' : ' ',
+                                    result == "Notes" ? row += 'Notes' + ',' : ' ',
+                                    result == "Payer Name" ? row += 'Responsible Party' + ',' : ' ',
+                                    result == "Date of Injury" ? row += 'Date of Injury' + ',' : ' '
+                            });
+                        }
+                        row = row.slice(0, -1);
+                        CSV += row + '\r\n';
+
+                        for (var i = 0; i < paymentExcelData.length; i++) {
+                            var row = "";
+                            var paymentResult = paymentExcelData[i];
+                            _.each(colHeader, function (result, index) {
+                                result == "Claim Date" ? row += paymentResult.claim_dt + ',' : ' ',
+                                    result == "Patient Name" ? row += paymentResult.patient_name + ',' : ' ',
+                                    result == "Clearing House" ? row += paymentResult.billiclearing_houseng_fee + ',' : ' ',
+                                    result == "Billing Method" ? row += paymentResult.billing_method + ',' : ' '
+                                result == "Billing Provider" ? row += paymentResult.billing_provider + ',' : ' ',
+                                    result == "Billing Fee" ? row += paymentResult.billing_fee + ',' : ' ',
+                                    result == "Account No" ? row += paymentResult.account_no + ',' : ' ',
+                                    result == "Policy Number" ? row += paymentResult.policy_number + ',' : ' ',
+                                    result == "Claim Status" ? row += paymentResult.claim_status + ',' : ' ',
+                                    result == "Date Of Birth" ? row += paymentResult.birth_date + ',' : ' ',
+                                    result == "Invoice" ? row += paymentResult.invoice_no + ',' : ' ',
+                                    result == "Follow-up Date" ? row += paymentResult.followup_date + ',' : ' ',
+                                    result == "Place OF Service" ? row += paymentResult.place_of_service + ',' : ' ',
+                                    result == "Referring Providers" ? row += paymentResult.referring_providers + ',' : ' ',
+                                    result == "Balance" ? row += paymentResult.claim_balance + ',' : ' ',
+                                    result == "Rendering Providers" ? row += paymentResult.rendering_provider + ',' : ' ',
+                                    result == "SSN" ? row += paymentResult.patient_ssn + ',' : ' ',
+                                    result == "Group Number" ? row += paymentResult.group_number + ',' : ' ',
+                                    result == "Payer Type" ? row += paymentResult.payer_type + ',' : ' ',
+                                    result == "Billing Class" ? row += paymentResult.billing_class + ',' : ' ',
+                                    result == "Billing Code" ? row += paymentResult.billing_code + ',' : ' ',
+                                    result == "Notes" ? row += paymentResult.claim_notes + ',' : ' ',
+                                    result == "Payer Name" ? row += paymentResult.payer_name + ',' : ' ',
+                                    result == "Date of Injury" ? row += paymentResult.doj + ',' : ' '
+                            });
+
+                            CSV += row + '\r\n';
+                        }
+
+                        if (CSV == '') {
+                            alert("Invalid data");
+                            return;
+                        }
+                        var fileName = "";
+                        fileName += ReportTitle.replace(/ /g, "_");
+                        var uri = 'data:text/csv;charset=utf-8,' + escape(CSV);
+                        var link = document.createElement("a");
+                        link.href = uri;
+                        link.style = "visibility:hidden";
+                        link.download = fileName + ".csv";
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    },
+                    error: function (err) {
+                        commonjs.handleXhrError(err);
+                    }
+                });
+            }
         };
         self.setDropDownSubMenuPosition = function (e, divObj) {
             var mouseX = e.clientX;

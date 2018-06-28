@@ -1042,6 +1042,7 @@ define(['jquery',
 
                             $('#btnValidateExport').on().click(function () {
                                 table.renderStudy(true);
+                                createStudiesTable();
                             });
                         };
 
