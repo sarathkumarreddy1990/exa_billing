@@ -22,6 +22,8 @@
         "adjustmentcodes": {
             "credit": "Credit",
             "debit": "Debit",
+            "refund_debit": "Refund Debit",
+            "recoupment_debit": "Recoupment Debit",
             "entryType": "Entry Type"
         },
         "billingprovider": {
