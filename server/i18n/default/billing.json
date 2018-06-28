@@ -121,6 +121,7 @@
             "directingBilling": "Direct Billing(Invoice)",
             "invoiceNumber": "Invoice Number :",
             "pendingPayments": "Pending Payments",
+            "pendingPaymentsPat": "Pending Payments(Patient/Claim)",
             "appliedPayments": "Applied Payments",
             "paperClaim": "Paper Claim",
             "patientPayment": "Patient Payment",

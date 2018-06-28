@@ -201,6 +201,7 @@
             "balance": "Balance",
             "responsibleParty": "Responsible Party",
             "invoice": "Invoice",
+            "invoiceNo": "Invoice #",
             "billingmethod": "Billing Method",
             "followUpDate": "Follow-up Date",
             "studyStatus": "Study Status",
