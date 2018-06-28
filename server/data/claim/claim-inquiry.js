@@ -149,7 +149,7 @@ module.exports = {
                     WHERE ch.claim_id = ${claim_id}
                     UNION ALL
                     SELECT
-                          bp.id AS id
+                          pa.id AS id
                         , bp.id::text AS payment_id
                         , pa.amount_type as code
                         , pa.amount_type as type
@@ -362,7 +362,7 @@ module.exports = {
     viewPaymentDetails: async(params) => {
         let {
             claim_id,
-            pay_application_id
+            pay_id
         } = params;
 
         let sql = `SELECT
@@ -372,7 +372,7 @@ module.exports = {
                         , cas.cas_details
                         , pa.payment_amount AS payment
                         , pa.adjustment_amount AS adjustment
-                    FROM (SELECT charge_id, id, payment_amount, adjustment_amount, payment_applied_dt from billing.get_payment_applications(${pay_application_id}) ) AS pa
+                    FROM (SELECT charge_id, id, payment_amount, adjustment_amount, payment_applied_dt from billing.get_payment_applications(${pay_id}) ) AS pa
                     INNER JOIN billing.charges ch on ch.id = pa.charge_id 
                     LEFT JOIN LATERAL (
                         SELECT json_agg(row_to_json(cas)) AS cas_details

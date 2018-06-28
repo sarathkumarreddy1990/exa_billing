@@ -286,6 +286,14 @@ define(['jquery',
                 editor.getSession().setMode("ace/mode/javascript");
                 $('#paperClaimEditor').height($('#data_container').outerHeight() - $('#formPaperClaimTemplates').outerHeight());
                 editor.setValue(content);
+                        
+                var pdfWorker = null;
+
+                try {
+                    pdfWorker = new Worker('/exa_modules/billing/static/js/workers/pdf.js');
+                } catch (e) {
+                    console.error(e);
+                }
 
                 generatePreview();
 
@@ -321,10 +329,21 @@ define(['jquery',
                         if (typeof dd === 'undefined') {
                             return showStatus('Invalid template');
                         }
+
+                        if(!pdfWorker) {
+                            return showStatus('Unable to render PDF');
+                        }
+
+                        pdfWorker.onmessage = function (res) {
+                            document.getElementById('ifrTemplatePreview').src = res.data.pdfBlob;
+                        };
+
+                        pdfWorker.postMessage(dd);
+                        return;
                         
-                        pdfMake.createPdf(dd).getDataUrl(function (outDoc) {
-                            document.getElementById('ifrTemplatePreview').src = outDoc;
-                        });
+                        // pdfMake.createPdf(dd).getDataUrl(function (outDoc) {
+                        //     document.getElementById('ifrTemplatePreview').src = outDoc;
+                        // });
                     } catch (err) {
                         showStatus(err);
                         return;
