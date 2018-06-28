@@ -133,7 +133,7 @@ module.exports = {
                         WHERE 
                             c.id = ${params.id}`;
 
-         return await query(sql);
+        return await query(sql);
            
     },
 
@@ -144,6 +144,6 @@ module.exports = {
                         SET payer_type = ${params.payer_type}
                         WHERE id = ${params.id}`;
 
-         return await query(sql);
+        return await query(sql);
     }
 };
