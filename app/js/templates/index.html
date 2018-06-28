@@ -54,6 +54,9 @@
         /* Safari and Chrome */
         padding: 0px;
     }
+    .dropdown-menu li a{
+        color:black;
+    }
 </style>
 
 <div class="controls" style="float:left;">
@@ -107,13 +110,23 @@
                     </a>
                 </li>
                 <li class="worklist-menu-right">
-                    <input type="button" value="Claim" id="btnInsuranceClaim" class="btn btn-primary" i18n="billing.fileInsurance.claim">
+                    <input type="button" value="Claim" id="btnInsuranceClaim" class="btn btn-primary"  i18n="billing.fileInsurance.claim">
+                    <div class="btn-group small_dd"  id="btnPaperClaim" style="display:none;">
+                        <button type="button" class="btn btn-primary" id="btnPaperClaimFormat">PaperClaims(ORIGINAL)</button>
+                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                          <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu" role="menu" >
+                          <li><a  data-value='FULL' id="btnPaperClaimFull">PaperClaims(FULL)</a></li>
+                          <li><a  data-value="ORIGINAL" id="btnPaperClaimOriginal">PaperClaims(ORIGINAL)</a></li>
+                        </ul>
+                      </div>
                 </li>
                 <li class="worklist-menu-right">
                     <input type="button" value="Validate" id="btnValidateOrder" class="btn btn-primary" i18n="shared.buttons.validate">
                 </li>
                 <li class="worklist-menu-right createNewClaim">
-                    <input type="button" id="btnCreateNew" class="btn btn-primary" i18n="shared.buttons.createNew">
+                    <input type="button" id="btnCreateNew" class="btn btn-primary" i18n="shared.buttons.createNewClaim">
                 </li>
                 <li class="worklist-menu-right">
                     <button type="button" class="btn btn-primary" id="btnValidateExport" i18n="shared.buttons.export" i18n="report.reportFilter.exportToExel" data-rformat="xlsx">

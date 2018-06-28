@@ -260,10 +260,11 @@ define('grid', [
                 if(confirm("Are you sure want to delete claims")){
                     if(confirm("Please confirm claim has been deleted and also dependent deleted ")){
                     $.ajax({
-                        url: '/exa_modules/billing/claim_workbench/claims/delete',
+                        url: '/exa_modules/billing/claim_workbench/claim_charge/delete',
                         type: 'PUT',
                         data: {
-                            claim_id: studyIds,
+                            target_id: studyIds,
+                            type: 'claim'
                         },
                         success: function (data, response) {                            
                             commonjs.showStatus('Claim has been deleted');
@@ -320,9 +321,10 @@ define('grid', [
                 self.claimInquiryView.patientInquiryLog(studyIds,selectedStudies[0].patient_id);
                 });
                 
-                var liSplitOrders = commonjs.getRightClickMenu('anc_split_orders','setup.rightClickMenu.splitOrders',false,'Split Orders',false);
-                $divObj.append(liSplitOrders);
-                $('#anc_split_orders').click(function () {
+                var liSplitOrders = commonjs.getRightClickMenu('anc_split_claim','setup.rightClickMenu.splitClaim',false,'Split Claim',false);
+                if(studyArray.length == 1)
+                    $divObj.append(liSplitOrders);
+                $('#anc_split_claim').click(function () {
                     self.splitClaimView = new splitClaimView();
                     self.splitClaimView.validateSplitClaim(studyIds);
                 });
@@ -432,12 +434,12 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 (options.isClaimGrid ? '<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />' : ''),
-                '', '', '', '', '','','','','','','',''
+                '', '', '', '', '','','','','','','','',''
 
             ]);
 
             i18nName = i18nName.concat([
-                '', '', '', '', '', '','','','','','','',''
+                '', '', '', '', '', '','','','','','','','',''
             ]);
 
             colModel = colModel.concat([
@@ -474,7 +476,13 @@ define('grid', [
                     customAction: function (rowID, e, that) { 
                         var gridData = $('#'+e.currentTarget.id).jqGrid('getRowData', rowID);
                             self.claimView = new claimsView();
-                            self.claimView.showEditClaimForm(gridData.claim_id);
+                            self.claimView.showEditClaimForm(gridData.claim_id, 'studies', {
+                                'study_id': rowID,
+                                'patient_name': gridData.patient_name,
+                                'patient_id': gridData.patient_id,
+                                'order_id': gridData.order_id
+                            });
+
                             return false;
                         
                     }
@@ -584,6 +592,15 @@ define('grid', [
                 },
                 {
                     name: 'has_deleted',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true
+                },
+                {
+                    name: 'order_id',
                     width: 20,
                     sortable: false,
                     resizable: false,
@@ -723,19 +740,46 @@ define('grid', [
                 container: options.container,
                 multiselect: true,
                 ondblClickRow: function (rowID, irow, icol, event) {
-                    var data = getData(rowID, studyStore, gridID);
+                    var gridData = getData(rowID, studyStore, gridID);
+                    var study_id =0;
+                    var order_id =0;
+                    
                     if ($('#chk'+gridID.slice(1)+'_' + rowID).length > 0) {
                         $('#chk'+gridID.slice(1)+'_' + rowID).attr('checked',true);
                     }
-                    if (options.isClaimGrid) {
-                        self.claimView = new claimsView();
-                        self.claimView.showEditClaimForm(rowID);
+                    commonjs.getClaimStudy(rowID).then(function (result) {
+                        if (result) {
+                            study_id = result.study_id;
+                            order_id = result.order_id;
+                        }
+                    });
+
+                    if (options.isClaimGrid || (gridData.claim_id && gridData.claim_id != '')) {
+                        self.claimEditView = new claimsView();
+                        self.claimEditView.showEditClaimForm(gridData.claim_id, null, {
+                            'study_id': gridData.study_id,
+                            'patient_name': gridData.patient_name,
+                            'patient_id': gridData.patient_id,
+                            'order_id': gridData.order_id
+                        });
                     } else {
+
+                        var study = {
+                            study_id: rowID,
+                            patient_id: gridData.patient_id,
+                            facility_id: gridData.facility_id,
+                            study_date: gridData.study_dt,
+                            patient_name: gridData.patient_name,
+                            account_no: gridData.account_no,
+                            patient_dob: gridData.birth_date,
+                            accession_no: gridData.accession_no,
+                        };
+
                         window.localStorage.setItem('selected_studies', null);
-                        window.localStorage.setItem('primary_study_details', JSON.stringify(rowID));
+                        window.localStorage.setItem('primary_study_details', JSON.stringify(study));
                         window.localStorage.setItem('selected_studies', JSON.stringify(rowID));
                         self.claimView = new claimsView();
-                        self.claimView.showClaimForm(rowID);
+                        self.claimView.showClaimForm();
                     }
                 },
                 disablesearch: false,
@@ -796,6 +840,17 @@ define('grid', [
                         enableField = _selectEle.is(':checked');
                         validateClaimSelection(rowID, enableField, _selectEle, studyStore);
                     }
+
+                    // var gridData = $('#'+e.currentTarget.id).jqGrid('getRowData', rowID);
+
+                    // if (gridData.billing_method=='Paper Claim') {
+                    //     $("#btnPaperClaim").show();
+                    //     $("#btnInsuranceClaim").hide();
+                    // }else{
+                    //     $("#btnPaperClaim").hide();
+                    //     $("#btnInsuranceClaim").show();  
+                    // }
+
                     let i=(e.target || e.srcElement).parentNode.cellIndex;
 
                     if ( i > 0 ) {

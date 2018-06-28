@@ -299,7 +299,7 @@ define(['jquery',
             },
 
             /* Get claim edit details function*/
-            showEditClaimForm: function (claim_Id, IsUpdated, options) {
+            showEditClaimForm: function (claim_Id, isFrom, options) {
                 var self = this;
                 self.model.set({ id: claim_Id });
                 self.claim_Id = claim_Id;
@@ -307,7 +307,7 @@ define(['jquery',
                 self.claimICDLists = [];
                 self.removedCharges = [];
                 self.chargeModel = [];
-                self.options = options || null;
+                self.options = options || {};
 
                 $.ajax({
                     type: 'GET',
@@ -330,6 +330,10 @@ define(['jquery',
                             self.terClaimInsID = claimDetails.tertiary_patient_insurance_id || null;
                             self.claim_row_version = claimDetails.claim_row_version || null;
                             self.initializeClaimEditForm();
+
+                            if (isFrom && isFrom == 'studies')
+                                $('.claimProcess').hide(); // hide Next/Prev btn if opened from studies worklist
+
                             /* Header Details */
                             $(parent.document).find('#spanModalHeader').html('Edit: <STRONG>' + claimDetails.patient_full_name + '</STRONG> (Acc#:' + claimDetails.patient_account_no + '), <i>' + claimDetails.patient_dob + '</i>  ');
 
@@ -348,6 +352,7 @@ define(['jquery',
                                     claim_id: obj.claim_id,
                                     study_id: obj.study_id,
                                     accession_no: obj.accession_no,
+                                    payment_exists: obj.payment_exists,
                                     is_deleted: false
                                 });
                             });
@@ -385,6 +390,8 @@ define(['jquery',
                             setTimeout(function () {
                                 self.bindDefaultClaimDetails(claimDetails);
                                 $('.claimProcess').prop('disabled', false);
+                                if (self.options && !self.options.study_id)
+                                    $('#btPatientDocuemnt').prop('disabled', true);
                             }, 200);
                         }
                     },
@@ -850,11 +857,16 @@ define(['jquery',
                 // modifiers dropdown
                 for (var m = 1; m <= 4; m++) {
 
+                    var arr = jQuery.grep(app.modifiers, function (n, i) {
+                        return (n['M' + m] == true || n['M' + m] == 'true');
+                    });
+
                     // bind default pointer from line items
                     if (isDefault) {
                         var _pointer = data.icd_pointers && data.icd_pointers[m - 1] ? data.icd_pointers[m - 1] : '';
                         $('#ddlPointer' + m + '_' + index).val(_pointer);
                         //$('#ddlModifier' + m + '_' + index).val(data['m' + m])
+                        //self.bindModifiersData('ddlModifier' + m + '_' + index, arr);
                     }else{
                         $('#ddlPointer' + m + '_' + index).val(data['pointer' + m]);
                         // ToDo:: Once modifiers dropdown added have to bind
@@ -865,6 +877,7 @@ define(['jquery',
 
                 self.assignModifierEvent();
                 self.assignLineItemsEvents(index);
+                app.modifiers_in_order = true;
                 commonjs.enableModifiersOnbind('M'); // Modifier
                 commonjs.enableModifiersOnbind('P'); // Diagnostic Pointer
                 commonjs.validateControls();
@@ -1009,9 +1022,51 @@ define(['jquery',
                 });
                 // Remove line item form charge table
                 $('.removecharge').off().click(function (e) {
+
                     var rowObj = $(e.target || e.srcElement).closest('tr');
                     var rowId = parseInt(rowObj.attr('data_row_id'))
                     var rowData = _.find(self.chargeModel, { 'data_row_id': rowId });
+
+                    if ($('#tBodyCharge tr').length <= 1) {
+                        commonjs.showWarning("Claim need minimum one charge required");
+                        return false;
+                    }
+                    if (rowData.id) {
+                        if (confirm('Are you sure to delete charge ?')) {
+                            if (rowData.payment_exists) {
+                                if (confirm('Payment exists for this charge, Confirm to delete')) {
+                                    self.removeChargeFromDB(rowData.id, function (response) {
+                                        if (response && response.status)
+                                            removeCharge(rowData, rowId, rowObj);
+                                        else
+                                            commonjs.showWarning('Error on deleting charge');
+                                    });
+                                }
+                            } else {
+                                self.removeChargeFromDB(rowData.id, function (response) {
+                                    if (response && response.status)
+                                        removeCharge(rowData, rowId, rowObj);
+                                    else
+                                        commonjs.showWarning('Error on deleting charge');
+                                });
+                            }
+                        }
+                    } else {
+                        removeCharge(rowData, rowId, rowObj);
+                    }
+                });
+                // Enable bill_fee 
+                $('#editBillFee_' + index).off().click(function (e) {
+                    $('#txtBillFee_' + index).attr({ disabled: false, edit: true }).focus();
+                    $('#txtAllowedFee_' + index).attr({ disabled: false, edit: true });
+                });
+                // changeFee details on keup
+                $(".units, .billFee, .allowedFee").off().blur(function (e) {
+                    ///this.value = this.value.replace(/[^0-9\.]/g, '');
+                    self.changeFeeData(e)
+                });
+
+                var removeCharge = function(rowData,  rowId, rowObj){
 
                     if (rowData.id || null) {
                         self.removedCharges.push({
@@ -1026,18 +1081,38 @@ define(['jquery',
                     rowObj.remove();
                     // trigger blur event for update Total bill fee, balance etc.
                     $(".allowedFee").blur();
-                });
-                // Enable bill_fee 
-                $('#editBillFee_' + index).off().click(function (e) {
-                    $('#txtBillFee_' + index).attr({ disabled: false, edit: true }).focus();
-                    $('#txtAllowedFee_' + index).attr({ disabled: false, edit: true });
-                });
-                // changeFee details on keup
-                $(".units, .billFee, .allowedFee").off().blur(function (e) {
-                    ///this.value = this.value.replace(/[^0-9\.]/g, '');
-                    self.changeFeeData(e)
-                });
 
+                };
+
+            },
+
+            removeChargeFromDB: function(chargeId, callback){
+                var self = this;
+
+                $.ajax({
+                    type: 'PUT',
+                    url: '/exa_modules/billing/claim_workbench/claim_charge/delete',
+                    data: {
+                        target_id: chargeId,
+                        type: 'charge',
+                        screenName: 'claims'
+                    },
+                    success: function (model, response) {
+                        console.log(model);
+                        if(model && model.rowCount){
+                            var _status = model.rows && model.rows.length && model.rows[0].purge_claim_or_charge ? model.rows[0].purge_claim_or_charge : false
+                            callback({
+                                status: _status
+                            })    
+                        }else{
+                            callback(model)
+                        }
+                    },
+                    error: function (model, response) {
+                        
+                        commonjs.handleXhrError(model, response);
+                    }
+                })
             },
 
             changeFeeData: function (e) {
@@ -1753,11 +1828,8 @@ define(['jquery',
                         $('label').css('color', 'black');
                         $('.multiselect-container li a').css('padding', '0');
 
-
-                        console.log(model);
                     },
                     error: function (model, response) {
-                        console.log(model);
                         commonjs.handleXhrError(model, response);
                     }
                 })
@@ -1930,7 +2002,8 @@ define(['jquery',
                     $('#txt' + flag + 'ZipCode').val(result.subscriber_zipcode);
 
                     setTimeout(function () {
-                        $('#ddlResponsible').val('PIP_P');
+                        if (!self.isEdit)
+                            $('#ddlResponsible').val('PIP_P');
                     }, 200);
                     
                 }
@@ -2274,10 +2347,10 @@ define(['jquery',
 
                 /* Charge section */
 
-                // if (!$('#tBodyCharge tr').length) {
-                //     commonjs.showWarning("messages.warning.claims.chargeValidation", 'largewarning');
-                //     return false;
-                // }
+                if (!$('#tBodyCharge tr').length) {
+                    commonjs.showWarning("messages.warning.claims.chargeValidation", 'largewarning');
+                    return false;
+                }
                 if ($('.cptcode').hasClass('cptIsExists')) {
                     commonjs.showWarning('Please select any cpt code in added line items');
                     return false;
@@ -2950,7 +3023,7 @@ define(['jquery',
                                 $studyDetails.show();
 
                                 $studyDetails.append('<button style="height:33px;margin-right:5px;" type="button" class="btn top-buffer processClaim" id="btnClaimWStudy">With Study</button>');
-                                $studyDetails.append('<button style="height:33px;" type="button" class="btn top-buffer processClaim" id="btnClaimWOStudy">W/O Study</button>');
+                                $studyDetails.append('<button style="height:33px;" type="button" class="btn top-buffer processClaim" id="btnClaimWOStudy">Create Without Study</button>');
                                 $('.processClaim').off().click(function (e) {
 
                                     if ($(e.target).attr('id') == 'btnClaimWStudy') {

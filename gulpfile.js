@@ -1,4 +1,5 @@
 const gulp = require('gulp');
+const runSequence = require('run-sequence');
 const clean = require('gulp-clean');
 const less = require('gulp-less');
 //const del = require('del');
@@ -14,6 +15,7 @@ const git = require('gulp-git');
 const fs = require('fs');
 const path = require('path');
 
+let currentBranch = 'develop';
 let requirejsConfig = require('./app/js/main').rjsConfig;
 
 let getCurrentVersion = function () {
@@ -98,7 +100,7 @@ gulp.task('replace', ['bump'], () => {
     let version = getCurrentVersion();
 
     return gulp.src('./build/server/**/*.pug')
-        .pipe(replace(/(\.js|\.css)(\s*'\s*)/g, `$1?v=${version}`))
+        .pipe(replace(/(\.js|\.css)(\s*'\s*)/g, `$1?v=${version}'`))
         .pipe(gulp.dest('./build/server/'));
 });
 
@@ -106,7 +108,7 @@ gulp.task('zip', ['replace'], () => {
     let version = getCurrentVersion();
 
     return gulp.src('./build/**')
-        .pipe(zip(`exa-billing-build-${version}.zip`))
+        .pipe(zip(`exa-billing-${currentBranch}-${version}.zip`))
         .pipe(gulp.dest('./dist'));
 });
 
@@ -121,9 +123,14 @@ gulp.task('bump-release', () => {
         .pipe(gulp.dest('./'));
 });
 
-gulp.task('git-init', () => {
+gulp.task('git-init', (done) => {
     git.init((err) => {
         if (err) throw err;
+
+        git.revParse({ args: '--abbrev-ref HEAD' }, function (err, branch) {
+            currentBranch = branch;
+            done();
+        });
     });
 });
 
@@ -139,9 +146,17 @@ gulp.task('git-commit', ['git-add'], () => {
         .pipe(git.commit(`Build v${version}`));
 });
 
-gulp.task('git-push', ['bump', 'git-commit'], () => {
-    git.push('origin', 'develop', (err) => {
+gulp.task('git-pull', ['git-commit'], (done) => {
+    git.pull('origin', currentBranch, { args: '--rebase' }, (err) => {
         if (err) throw err;
+        done();
+    });
+});
+
+gulp.task('git-push', (done) => {
+    git.push('origin', currentBranch, (err) => {
+        if (err) throw err;
+        done();
     });
 });
 
@@ -155,10 +170,9 @@ gulp.task('build', [
     'clean-all',
 ]);
 
-gulp.task('build-from-git', [
-    'build',
-    'git-push',
-]);
+gulp.task('build-from-repo', (done) => {
+    runSequence('git-pull', 'build', 'git-commit', 'git-push', done);
+});
 
 
 gulp.task('default', ['requirejsBuild'], () => {

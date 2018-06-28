@@ -1,6 +1,5 @@
-// playground requires you to assign document definition to a variable called dd
-var dd = {
-	content: [
+function formatSingleClaim() {
+    return [
 		{text: 'Corrected Claim', style: 'header'},
 		{text: 'HEALTH INSURANCE CLAM FORM', fontSize:13},
 			{
@@ -30,7 +29,7 @@ var dd = {
 				    [//Ans
 					    {text: '|__| medicare',style:'ansFont', margin: [0, -5, 0, 0]},
 					    {text: '|__| medicaid', style:'ansFont', margin: [-9, -5, 0, 0]}, 
-					    {text: '|__|', style:'ansFont', margin: [-9, -8, 0, 0]}, 
+					    {image: 'tickImage', fit: [8, 8], margin: [-9, -8, 0, 0]}, 
 					    {text: '|__|', style:'ansFont', margin: [-9, -8, 0, 0]},
 					    {text: '|__|', style:'ansFont', margin: [-9, -8, 0, 0]},
 					    {text: '|__|', style:'ansFont', margin: [-9, -8, 0, 0]},
@@ -86,7 +85,7 @@ var dd = {
 			                            heights: [10],
 			    						body: [
 				    						[
-					    					    {text: 'Self__'},
+					    					    {text: 'Self__',mergeField: 'subscriber[0].relationship' },
 					    					    {text: 'Spouse'},
 					    					    {text: 'Child__'},
 					    					    {text: 'Other__'},
@@ -505,7 +504,50 @@ var dd = {
                 ],
             },layout: 'noBorders'
         },
-	],
+	]
+}
+
+function mergeData(claim) {
+    var blocks = formatSingleClaim(claim);
+    
+    if(typeof mailMerge === 'undefined') {
+        return blocks;
+    }
+    
+    for(var i = 0; i< blocks.length; i++) {
+        blocks[i] = mailMerge.mergeData(blocks[i], claim);
+    }
+    
+    
+    return blocks;
+}
+
+function claimTable(claims) {
+    var blocks = [];
+    
+    claims.forEach(function(claim, index) {
+        blocks = blocks.concat(mergeData(claim.data[0]));
+        
+        if(index < claims.length - 1) {
+            blocks.push({text: '', pageBreak: 'after'});
+        }
+    });
+    
+    return blocks;
+}
+
+var allBlocks = [];
+
+if(typeof claimData !== 'undefined'){
+    console.log(allBlocks)
+    allBlocks = claimTable(claimData);
+    console.log(allBlocks)
+} else {
+    allBlocks = claimTable([{data: [{}]}]);
+}
+
+var dd = {
+	content: allBlocks,
 	styles: {
 		myTable: {
 		    fontSize: 7,
@@ -518,6 +560,9 @@ var dd = {
 			color: 'black'
 		}
 	},
+	images: {
+        tickImage: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAMNJREFUOI3VzjEOgjAYhuGvH4mJE57A5C/pqIscQXad3byBq7fSSeMRXOAA3KGOLuDSEkWlMBn/pWnT92mBvxut9VREZn7PgXGqlCpI5iKyGQS4+AJgAoAkd72BVoyqqu5KqT0ARP5SkiSLOI5H1tpbKCa5Ksvy3PxARLYArlEU5VrrtEd88neUe70AMHdntq7rDABCcQOIyJLkEcDYI27tjBvAIRnJwxOCUPwCfEJC8RvQQhSAdVf8dYwx2hijB4c/mQeKAVWWFc2OCAAAAABJRU5ErkJggg=='
+    },
 	defaultStyle: {
 		// alignment: 'justify'
 	},
