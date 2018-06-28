@@ -286,6 +286,8 @@ module.exports = {
                                                     THEN ( SELECT COALESCE(id, claim_details.claim_status_id ) FROM billing.claim_status WHERE company_id = 1 AND code = 'PAIDFULL' AND inactivated_dt IS NULL )
                                                 WHEN claim_details.balance < 0.00
                                                     THEN ( SELECT COALESCE(id, claim_details.claim_status_id ) FROM billing.claim_status WHERE company_id = 1 AND code = 'OVERPYMT' AND inactivated_dt IS NULL )
+                                                WHEN claim_details.balance > 0.00
+                                                    THEN ( SELECT COALESCE(id, claim_details.claim_status_id ) FROM billing.claim_status WHERE company_id = 1 AND code = 'PYMTPEN' AND inactivated_dt IS NULL )
                                                 ELSE
                                                     claim_details.claim_status_id
                                             END
