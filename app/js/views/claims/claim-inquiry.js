@@ -376,14 +376,15 @@ define([
                     gridelementid: '#tblCIClaimComments',
                     custompager: self.pager,
                     emptyMessage: 'No Records Found',
-                    colNames: ['', 'date', '', 'code', 'payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', ''],
+                    colNames: ['','', 'date', '', 'code', 'payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', ''],
                     colModel: [
+                        { name: 'row_number', hidden: true},
                         { name: 'id', hidden: true },
                         { name: 'commented_dt', width: 40, search: false, sortable: false, formatter: self.commentDateFormatter },
                         { name: 'code', hidden: true },
                         { name: 'type', width: 40, search: false, sortable: false },
                         {
-                            name: 'payment_id', width: 80, search: false, sortable: false,
+                            name: 'payment_id', width: 30, search: false, sortable: false,
                             customAction: function (rowID) {
                                 var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
                                 $("#tBodyCIPayment").empty();
@@ -397,10 +398,17 @@ define([
                             }
                         },
                         { name: 'comments', width: 50, search: false, sortable: false },
-                        { name: 'charge_pointer', width: 20, search: false, sortable: false },
+                        { name: 'charge_pointer', width: 20, search: false, sortable: false, formatter: self.pointerFormatter },
                         { name: 'charge_amount', width: 20, search: false, sortable: false },
                         { name: 'payment', width: 20, search: false, sortable: false },
-                        { name: 'adjustment', width: 30, search: false, sortable: false },
+                        { name: 'adjustment', width: 30, search: false, sortable: false,
+                            formatter: function(cellvalue, options, rowObject){
+                                if(rowObject.adjustment && rowObject.adjustment == '$0.00' || rowObject.adjustment == null)
+                                    return '';
+                                else 
+                                    return rowObject.adjustment
+                            } 
+                        },
                         {
                             name: 'view_payment', width: 20, sortable: false, search: false,
                             customAction: function (rowID) {
@@ -656,6 +664,12 @@ define([
                 return colValue;
             },
 
+            pointerFormatter: function(cellvalue, options, rowObject) {
+                var pointer  = rowObject.charge_pointer.toString();
+                pointer = pointer.replace(/^,+|,(?=,+|$)/g, "");
+                return pointer;
+            },
+
             patientInquiryForm: function (claimId, patientId) {
                 var self = this;
                 this.$el.html(this.claimPatientTemplate());
@@ -700,7 +714,6 @@ define([
                     url: '/exa_modules/billing/claims/claim_inquiry/charge_payment_details',
                     type: 'GET',
                     data: {
-                        'claim_id': self.claim_id,
                         'charge_id': charge_id
                     },
                     success: function (data, response) {
@@ -727,7 +740,7 @@ define([
                     type: 'GET',
                     data: {
                         'claim_id': self.claim_id,
-                        'pay_id': pay_id
+                        'payment_id': pay_id
                     },
                     success: function (data, response) {
                         if (data.length > 0) {
