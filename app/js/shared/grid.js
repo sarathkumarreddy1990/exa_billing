@@ -239,9 +239,6 @@ define('grid', [
                         success: function (data, response) {
                             if (data && data.length > 0) {
                                 var billingPayers = data[0];
-                                if (billingPayers.facility_id) {
-                                    liPayerTypeArray.push($(commonjs.getRightClickMenu('ancFacility_' + billingPayers.facility_id, '', true, billingPayers.facility_name + '( Facility )', false)));
-                                }
                                 if (billingPayers.patient_id) {
                                     liPayerTypeArray.push($(commonjs.getRightClickMenu('ancPatient_' + billingPayers.patient_id, '', true, billingPayers.patient_full_name + '( Patient )', false)));
                                 }
@@ -261,8 +258,42 @@ define('grid', [
                                     liPayerTypeArray.push($(commonjs.getRightClickMenu('ancRenderingProvider_' + billingPayers.referring_provider_contact_id, '', true, billingPayers.ref_prov_full_name + '( Rendering Proivider )', false)));
                                 }
                                 $('#ul_change_payer_type').append(liPayerTypeArray);
-                                $('#ul_change_payer_type li').click(function() {
-                                    // click events goes here
+                                $('#ul_change_payer_type li').click(function (e) {
+                                    var payer_type = null;
+                                    var ids = e && e.target && e.target.id && e.target.id.split('_');
+                                    switch (ids[0]) {
+                                        case 'ancPatient':
+                                            payer_type = 'patient';
+                                            break;
+                                        case 'ancPrimaryIns':
+                                            payer_type = 'primary_insurance';
+                                            break;
+                                        case 'ancSecondaryIns':
+                                            payer_type = 'secondary_insurance';
+                                            break;
+                                        case 'ancTertiaryIns':
+                                            payer_type = 'tertiary_insurance';
+                                            break;
+                                        case 'ancOrderingFacility':
+                                            payer_type = 'ordering_facility';
+                                            break;
+                                        case 'ancRenderingProvider':
+                                            payer_type = 'referring_provider';
+                                            break;
+                                    }
+                                    $.ajax({
+                                        url: '/exa_modules/billing/claim_workbench/billing_payers?id=' + rowID + '&payer_type=' + payer_type,
+                                        type: 'PUT',
+                                        success: function (data, response) {
+                                            if(data) {
+                                                commonjs.showStatus("Payer Changed Succesfully");
+                                                $target.jqGrid('setCell',rowID,'payer_type', payer_type);
+                                            }
+                                        },
+                                        error: function (err, response) {
+                                            commonjs.handleXhrError(err, response);
+                                        }
+                                    });
                                 });
                             }
                         },
