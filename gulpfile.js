@@ -146,15 +146,17 @@ gulp.task('git-commit', ['git-add'], () => {
         .pipe(git.commit(`Build v${version}`));
 });
 
-gulp.task('git-pull', ['git-commit'], () => {
+gulp.task('git-pull', ['git-commit'], (done) => {
     git.pull('origin', currentBranch, { args: '--rebase' }, (err) => {
         if (err) throw err;
+        done();
     });
 });
 
-gulp.task('git-push', () => {
+gulp.task('git-push', (done) => {
     git.push('origin', currentBranch, (err) => {
         if (err) throw err;
+        done();
     });
 });
 
