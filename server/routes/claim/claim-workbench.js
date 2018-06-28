@@ -68,4 +68,9 @@ router.get('/billing_payers', async function(req, res){
     httpHandler.sendRows(req, res, data);
 });
 
+router.put('/billing_payers', async function (req, res) {
+    const data = await claimWorkbenchController.updateBillingPayers(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;
