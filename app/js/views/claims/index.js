@@ -2646,11 +2646,6 @@ define(['jquery',
                 })
             },
 
-            checkChromeExtension: function () {
-                var self = this;
-                commonjs.showWarning('Under Construction'); 
-            },
-
             processClaim: function (e) {
                 var self = this;
                 var $tblGrid = $('#tblClaimGridAll_Claims');

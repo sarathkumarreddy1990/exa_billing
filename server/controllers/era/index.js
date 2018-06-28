@@ -144,8 +144,8 @@ module.exports = {
         let paymentResult;
         let payerDetails = JSON.parse(params.payer_details);
 
-        let reassociation = eraResponseJson.length ? eraResponseJson[0].reassociationTraceNumber : {};
-        let financialInfo = eraResponseJson.length && eraResponseJson[0].financialInformation && eraResponseJson[0].financialInformation.length ? eraResponseJson[0].financialInformation[0] : {};
+        let reassociation = eraResponseJson.reassociationTraceNumber ? eraResponseJson.reassociationTraceNumber : {};
+        let financialInfo = eraResponseJson.financialInformation && eraResponseJson.financialInformation.length ? eraResponseJson.financialInformation[0] : {};
 
         let monetoryAmount = financialInfo.monetoryAmount ? parseFloat(financialInfo.monetoryAmount).toFixed(2) : 0.00;
         let notes = 'Amount shown in EOB:' + monetoryAmount;
@@ -174,17 +174,10 @@ module.exports = {
         payerDetails.moduleName = params.moduleName;
         payerDetails.logDescription = 'Payment created via ERA';
 
-
-        paymentResult = await data.checkExistsERAPayment(params);
-        paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
-
         try {
-
-            if (!paymentResult.id) {
-                paymentResult = await paymentController.createOrUpdatePayment(payerDetails);
-                paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
-            }
-
+            
+            paymentResult = await paymentController.createOrUpdatePayment(payerDetails);
+            paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
             paymentResult.file_id = params.file_id;
             paymentResult.created_by = payerDetails.created_by;
 
