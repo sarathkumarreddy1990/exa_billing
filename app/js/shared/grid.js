@@ -425,7 +425,6 @@ define('grid', [
         };
 
         self.renderStudy = function (flag) {
-            var self  = this;
             if (options.isClaimGrid)
                 var studyStore = new claimWorkbench(null, { 'filterID': filterID });
             else {
@@ -944,7 +943,6 @@ define('grid', [
                 rowattr: rowattr
             });
             if (flag == true) {
-                var self = this;
                 var colHeader = studyFields.colName;
                 $.ajax({
                     'url': '/exa_modules/billing/claim_workbench',
