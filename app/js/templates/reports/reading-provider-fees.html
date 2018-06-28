@@ -6,10 +6,8 @@
         <!-- col: form elements -->
         <div class="col-xs-4">
             <div class="form-group form-inline">
-                <div class="col-form-label">
-                    <label class="control-label field-required" for="txtDateRangeFromTo" i18n="billing.payments.accountingDate" />
-                </div>
                 <div class="col-form-content">
+                    <label class="control-label" for="txtDateRangeFromTo" i18n="report.accountingDate" />
                     <div id="divReportDate" class="input-group">
                         <span class="input-group-addon add-on">
                             <i class="fa fa-calendar"></i>
@@ -21,11 +19,8 @@
         </div>
         <div class="col-xs-4">
             <div class="form-group form-inline">
-                <div class="col-form-label">
-                    <label class="control-label">Facilities
-                    </label>
-                </div>
                 <div class="col-form-label" class="multiselect">
+                    <label class="control-label" i18n="report.facilities" />
                     <select id="ddlFacilityFilter" multiple="multiple">
                         <% _.each(facilities.toJSON(), function(facility) { %>
                             <option value='<%= facility.id %>'>

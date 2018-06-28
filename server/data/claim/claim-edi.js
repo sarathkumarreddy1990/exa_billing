@@ -206,16 +206,21 @@ module.exports = {
 					SELECT (Row_to_json(billingProvider1)) "billingProvider"
 												FROM   (
 														SELECT id,
-										taxonomy_code as "taxonomyCode",
+															taxonomy_code as "taxonomyCode",
 															billing_providers.name as "lastName",                    
 															npi_no as "npiNo",
-										address_line1 as "addressLine1",
-										address_line2 as "addressLine2",
-										city as "city",
-										state as "state",
-										zip_code as "zipCode",
-										federal_tax_id as "federalTaxID"
-
+															billing_providers.short_description as "description",
+															address_line1 as "addressLine1",
+															address_line2 as "addressLine2",
+															city as "city",
+															state as "state",
+															zip_code as "zipCode",
+															federal_tax_id as "federalTaxID",
+															phone_number as "phoneNo",
+															email  as "email",
+															fax_number as "faxNumber",
+															zip_code_plus as "zip_code_plus",
+															contact_person_name as "contactName"
 														FROM   billing.providers as billing_providers
 														WHERE  billing_providers.id=billing_provider_id)AS billingProvider1 
 
@@ -229,12 +234,15 @@ module.exports = {
 															billing_providers.name as "lastName",
 															billing_providers.name as "firstName",
 															npi_no as "npiNo",
-										pay_to_address_line1 as "addressLine1",
-										pay_to_address_line2 as "addressLine2",
-										pay_to_city as "city",
-										pay_to_state as "state",
-										pay_to_zip_code as "zipCode"
-
+															billing_providers.short_description as "description",
+															pay_to_address_line1 as "addressLine1",
+															pay_to_address_line2 as "addressLine2",
+															pay_to_city as "city",
+															pay_to_state as "state",
+															pay_to_zip_code as "zipCode",										
+															federal_tax_id as "federalTaxID",
+															phone_number as "phoneNo",
+															contact_person_name as "contactName"
 														FROM   billing.providers as billing_providers
 														WHERE  billing_providers.id=billing_provider_id)AS billingProvider
 					)
@@ -294,7 +302,9 @@ module.exports = {
 										,insurance_info->'Address2' as "insuranceprovideraddressline2"
 										,insurance_info->'City'  "payerCity"
 										,insurance_info->'State'  "payerState"
-										,insurance_info->'ZipCode'  "payerZIPCode"
+										,insurance_info->'ZipCode'  "payerZIPCode"										
+										,insurance_info->'PhoneNo' as "phoneNo"
+										,insurance_info->'ZipPlus' as "zipPlus"	
 										) as payer)
 										,(
 											SELECT Json_agg(Row_to_json(patient)) "patient"
@@ -304,13 +314,16 @@ module.exports = {
 															first_name as "firstName",
 															middle_name as "middleName",
 															suffix_name as "suffix",
-																				account_no as "accountNumber",
+															account_no as "accountNumber",
 															patient_info->'c1AddressLine1' as "addressLine1",
 															patient_info->'c1AddressLine2' as "addressLine2",
-										patient_info->'c1City' as "city",
-										patient_info->'c1State' as "state",
-										patient_info->'c1Zip' as "zipCode",
-										birth_date::text as dob,
+															patient_info->'c1City' as "city",
+															patient_info->'c1State' as "state",
+															patient_info->'c1Zip' as "zipCode",
+															patient_info->'c1HomePhone' as "homePhone",
+															patient_info->'c1WorkPhone' as "workPhone",
+															patient_info->'licenseNo' as "licenseNo",
+															birth_date::text as dob,
 											(  CASE gender 
 																WHEN 'Male' THEN 'M'						
 																WHEN 'Female' THEN 'F'
@@ -342,13 +355,23 @@ module.exports = {
 							FROM   (
 									SELECT claims.id as "claimNumber",
 										frequency as "claimFrequencyCode",
-										(select charges_bill_fee_total from BILLING.get_claim_totals(claims.id)) as "claimTotalCharge",
-										(SELECT places_of_service.description FROM  places_of_service WHERE  places_of_service.id=claims.place_of_service_id) as "POS",
-
+										(select charges_bill_fee_total from BILLING.get_claim_totals(claims.id))::numeric::text as "claimTotalCharge",
+										(SELECT places_of_service.code FROM  places_of_service WHERE  places_of_service.id=claims.place_of_service_id) as "POS",
+										to_char(date(timezone(facilities.time_zone,claim_dt)), 'YYYYMMDD') as "claimDate",							date(timezone(facilities.time_zone,claim_dt))::text as "claimDt",
 										is_employed as  "relatedCauseCode1",
 										is_other_accident as  "relatedCauseCode2",
 										is_auto_accident as  "relatedCauseCode3",
-										current_illness_date::date as "illnessDate"
+										current_illness_date::date as "illnessDate",
+										authorization_no as "authorizationNo",
+										original_reference as "originalReference",
+										claim_notes as "claimNotes",
+										same_illness_first_date::text as "sameIllnessFirstDate",
+										unable_to_work_from_date::text as "unableToWorkFromDate",
+										unable_to_work_to_date::text as "unableToWorkToDate"
+										,(SELECT Json_agg(Row_to_json(icd)) "icd" FROM
+										(SELECT icd_id,  code,description,(CASE code_type 
+											WHEN 'icd9' THEN '0'
+											WHEN 'icd10' THEN '1' END ) as code_type   FROM billing.claim_icds ci INNER JOIN icd_codes ON icd_codes.id=ci.icd_id  WHERE ci.claim_id = claims.id) as icd)
 
 							,(SELECT Json_agg(Row_to_json(renderingProvider)) "renderingProvider"
 									FROM 
@@ -359,7 +382,8 @@ module.exports = {
 											suffix as "suffix",
 											'' as "prefix",
 											provider_info->'TXC' as "taxonomyCode",
-											provider_info->'NPI' as "NPINO"
+											provider_info->'NPI' as "NPINO",
+											provider_info->'LicenseNo' as "licenseNo"
 											FROM provider_contacts   rendering_pro_contact
 											LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.id
 											WHERE  rendering_pro_contact.id=claims.rendering_provider_contact_id) 
@@ -374,7 +398,15 @@ module.exports = {
 											group_name as "suffix",
 											'' as "prefix",
 											group_info->'npi_no' as "NPINO",
-											group_info->'taxonomy_code' as "taxonomyCode"
+											group_info->'taxonomy_code' as "taxonomyCode",
+											group_info->'AddressLine1' as "addressLine1",
+											group_info->'AddressLine2' as "addressLine2",
+											group_info->'City' as "city",
+											group_info->'State' as "state",
+											group_info->'Zip' as "zip",
+											group_info->'ZipPlus' as "zipPlus",
+											group_info->'Phone' as "phone",
+											group_info->'Email' as "email"
 											FROM provider_groups 
 											WHERE  claims.ordering_facility_id = provider_groups.id) 
 										as servicefacility)
@@ -388,7 +420,8 @@ module.exports = {
 											suffix as "suffix",
 											'' as "prefix",
 											provider_info->'TXC' as "taxonomyCode",
-											provider_info->'NPI' as "NPINO"
+											provider_info->'NPI' as "NPINO",
+											provider_info->'LicenseNo' as "licenseNo"
 											FROM provider_contacts 
 											LEFT JOIN providers as ref_provider ON ref_provider.id=provider_contacts.id
 											WHERE  provider_contacts.id=claims.referring_provider_contact_id) 
@@ -420,6 +453,7 @@ module.exports = {
 						
 											policy_number  as "policyNo",
 											group_name as "groupName",
+											group_number as "groupNumber",
 											insurance_info->'claimFileIndicatorCode' as "claimFilingCode",
 					medicare_insurance_type_code as "insuranceTypeCode",
 					subscriber_firstname as "firstName",
@@ -449,9 +483,9 @@ module.exports = {
 					insurance_info->'Address2' as "addressLine2",
 					insurance_info->'City' as "city",
 					insurance_info->'State' as "state",
-					insurance_info->'ZipCode' as "zipCode"
-
-										
+					insurance_info->'ZipCode' as "zipCode",
+					insurance_info->'PhoneNo' as "phoneNo",
+					insurance_info->'ZipPlus' as "zipPlus"										
 					FROM   patient_insurances 
 										inner join insurance_providers on insurance_providers.id=insurance_provider_id
 									WHERE  patient_insurances.id = 
@@ -470,15 +504,19 @@ module.exports = {
 					modifier2.description as "mod2",
 					modifier3.description as "mod3",
 					modifier4.description as "mod4",
+					authorization_no as "authorizationNo",
+					allowed_amount::numeric::text as "allowedAmount",
 					charges.id as "iterationIndex",
-					bill_fee as "billFee",
+					display_description as "studyDescription",
+					bill_fee::numeric::text as "billFee",
+					(bill_fee*charges.units)::numeric::text  as "totalBillFee",
 					charges.units as "unit",
-					claim_dt as "studyDate",
+					date(timezone(facilities.time_zone,charge_dt))::text as  "studyDt",
+					to_char(date(timezone(facilities.time_zone,charge_dt)), 'YYYYMMDD') as "studyDate",
 					pointer1 as "pointer1",
 					pointer2 as "pointer2",
 					pointer3 as "pointer3",
 					pointer4 as "pointer4"
-
 
 					,(SELECT Json_agg(Row_to_json(lineAdjudication)) "lineAdjudication"
 									FROM 
@@ -489,44 +527,37 @@ module.exports = {
 					modifier2.description as "modifier2",
 					modifier3.description as "modifier3",
 					modifier4.description as "modifier4",
-					amount as "paidAmount",
-					charges.units as "unit",
-					payment_applications.id as id
-
+					sum(pa.amount)::numeric::text as "paidAmount",
+					charges.units as "unit"
 					,(SELECT Json_agg(Row_to_json(lineAdjustment)) "lineAdjustment"
 									FROM 
 					(SELECT 
 					cas_group_codes.code as "adjustmentGroupCode",
 					cas_reason_codes.code as "reasonCode",
-					cas_payment_application_details.amount as "monetaryAmount"
+					cas_payment_application_details.amount::numeric::text as "monetaryAmount"
 					FROM  billing.cas_payment_application_details
 					INNER JOIN   billing.cas_group_codes ON cas_group_codes.id=cas_group_code_id
 					INNER JOIN   billing.cas_reason_codes ON cas_reason_codes.id=cas_reason_code_id
-										
-									WHERE  payment_application_id=payment_applications.id) 
+					INNER JOIN 	billing.payment_applications	 ON payment_applications.id=cas_payment_application_details.payment_application_id			
+					INNER JOIN billing.payments ON  billing.payments.id=payment_applications.payment_id and payer_type='insurance'
+						AND 	payment_applications.charge_id = charges.id AND payment_applications.payment_application_id is not null ) 
 					as lineAdjustment)
 
-					FROM  billing.payment_applications
-										
-									WHERE  charge_id=charges.id) 
+					FROM  billing.payment_applications pa
+					INNER JOIN billing.payments ON  billing.payments.id=pa.payment_id and payer_type='insurance'				
+									WHERE  charge_id=charges.id AND pa.payment_application_id is null ) 
 					as lineAdjudication)
-
-
 					FROM   billing.charges 
-										inner join cpt_codes on cpt_codes.id=cpt_id
+							inner join cpt_codes on cpt_codes.id=cpt_id
 					LEFT join modifiers as modifier1 on modifier1.id=modifier1_id
 					LEFT join modifiers as modifier2 on modifier2.id=modifier2_id
 					LEFT join modifiers as modifier3 on modifier3.id=modifier3_id
 					LEFT join modifiers as modifier4 on modifier4.id=modifier4_id
-					WHERE  claim_id=claims.id order by line_num) 
+					WHERE  claim_id=claims.id order by charges.id ASC) 
 					as serviceLine)
 					)AS claim
 					)
 					) AS subscriber)
-
-
-
-
 					SELECT * 
 					FROM
 						cte_billing_providers,cte_pay_to_providers,cte_subscriber
@@ -536,7 +567,7 @@ module.exports = {
 					) 
 
 					FROM billing.claims  
-
+					INNER JOIN facilities ON facilities.id=claims.facility_id
 					INNER JOIN    patient_insurances  ON  patient_insurances.id = 
 											(  CASE payer_type 
 											WHEN 'primary_insurance' THEN primary_patient_insurance_id

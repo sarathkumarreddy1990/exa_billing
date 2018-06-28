@@ -164,11 +164,11 @@ module.exports = {
         paymentWhereQuery = params.customArgs.payerType == 'ordering_provider' ? paymentWhereQuery + ` AND bc.referring_provider_contact_id = ${params.customArgs.payerId}  AND bc.payer_type = 'referring_provider'` : paymentWhereQuery;
 
         
-        // let invoiceQuery = await this.checkInvoiceExists(params.customArgs.paymentID);
+        let invoiceQuery = await this.checkInvoiceExists(params.customArgs.paymentID);
 
-        // if (invoiceQuery.rows && invoiceQuery.rows.length && invoiceQuery.rows[0].invoice_no) {
-        //     paymentWhereQuery += ` AND bc.invoice_no LIKE '${ invoiceQuery.rows[0].invoice_no }'`;
-        // }
+        if (invoiceQuery.rows && invoiceQuery.rows.length && invoiceQuery.rows[0].invoice_no) {
+            paymentWhereQuery += ` AND bc.invoice_no = '${ invoiceQuery.rows[0].invoice_no }'`;
+        }
 
         if (params.customArgs.payerType == 'insurance') {
             joinQuery = ` 

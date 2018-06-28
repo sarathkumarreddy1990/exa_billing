@@ -1,6 +1,112 @@
-// playground requires you to assign document definition to a variable called dd
-var dd = {
-	content: [
+function getImage(needCheck) {
+    return needCheck ? 'tickImage' : 'clearDot';
+}
+
+function parseDate(date) {
+    if(date && typeof date === 'object' && date.constructor.name === 'Date') {
+        return date;
+    }
+    
+    return new Date();
+}
+
+function getDate(date) {
+    date = parseDate(date);
+    return date.getDate();
+}
+
+function getMonth(date) {
+    date = parseDate(date);
+    return date.getMonth();
+}
+
+function getYear(date) {
+    date = parseDate(date);
+    return date.getYear();
+}
+
+function getPageBreak() {
+    return {text: '', pageBreak: 'before'};
+}
+
+function getProcedureBlock(claimData) {
+    return [
+                    [
+                        {text: '24. A. ',style: 'Headers'},
+                        {text: 'DATE(S) OF SERVICE', colSpan: 5},
+                        {},{},{},{},
+                        {text: 'B.'},
+                        {text: 'C.'},
+                        {text: 'D. PROCEDURES,SERVICES,OR SUPPLIES ', colSpan: 2, alignment: 'center', margin: [-9, 0, 0, 0]},
+                        {},
+                        {text: 'E.'},
+                        {text: 'F.'},
+                        {text: 'G.'},
+                        {text: 'H.'},
+                        {text: 'I.'},
+                        {text: 'J.'}
+                    
+                    ],
+                    [
+                        {text: 'From', colSpan: 3, alignment: 'center', margin: [0, -3.5, 0, 0]},
+                        {},{},
+                        {text: 'To', colSpan: 3, alignment: 'center', margin: [0, -3.5, 0, 0]},
+                        {},{},
+                        {text: 'PLACE OF', fontSize: 6, margin: [0, -3.5, 0, 0]},
+                        {},
+                        {text: '(Explain Unusual Circumstances)', alignment: 'center', colSpan: 2, margin: [0, -3.5, 0, 0]},
+                        {},
+                        {text: 'DIAGNOSIS', margin: [0, -3.5, 0, 0]},
+                        {},
+                        {text: 'DAYS', margin: [0, -5, 0, 0]},
+                        {text: 'EPSDT', margin: [0, -5, 0, 0], fontSize: 6},
+                        {text: 'ID.', fontSize: 6, margin: [0, -3.5, 0, 0]},
+                        {text: 'RENDERING.', margin: [0, -2.5, 0, 0]},
+                    
+                    ],
+                    [
+                       {},{},{},{},{},{},{},{},{},{},{},{},
+                       {text: 'OR', fontSize: 6, margin: [0, -7, 0, 0]},
+                       {text: 'Family', margin: [0, -7, 0, 0], fontSize: 6},
+                       {},{}
+                    ],
+                    [
+                           
+                        {text: 'MM', margin: [4, -5.3, 0, 0]},
+                        {text: 'DD', margin: [0, -5.5, 0, 0]},
+                        {text: 'YY', margin: [0, -5.3, 0, 0]},
+                        {text: 'MM', margin: [0, -5.3, 0, 0]},
+                        {text: 'DD', margin: [0, -5.3, 0, 0]},
+                        {text: 'YY',margin: [0, -5.3, 0, 0]},
+                        {text: 'SERVICE', fontSize: 6, margin: [0, -5.5, 0, 0],alignment: 'center'},
+                        {text: 'EMG', margin: [0, -5.3, 0, 0]},
+                        {text: 'CPT/HCPCS', alignment: 'center', margin: [0, -5.3, 0, 0]},
+                        {text: 'MODIFIER', alignment: 'center', margin: [0, -5.3, 0, 0]},
+                        {text: 'POINTER', margin: [0, -5.3, 0, 0]},
+                        {text: '$ CHARGES', margin: [0, -5.3, 0, 0]},
+                        {text: 'UNITS', margin: [0, -5.3, 0, 0]},
+                        {text: 'Plan', margin: [0, -5.3, 0, 0]},
+                        {text: 'QUAL', fontSize: 6, margin: [0, -5.3, 0, 0]},
+                        {text: 'PROVIDER ID. #', margin: [0, -5.3, 0, 0]},
+                    ],
+                    [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}],
+                    [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{text: 'NPI',  alignment: 'center'},{}],
+                    [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}],
+                    [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}],
+                    [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}],
+                    [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}],
+                    [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}],
+                    [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}],
+                    [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}],
+                    [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}],
+                    [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}],
+                    [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}],
+                    
+                ];
+}
+
+function formatSingleClaim(claimData) {
+    return [
 		{text: 'Corrected Claim', style: 'header'},
 		{text: 'HEALTH INSURANCE CLAM FORM', fontSize:13},
 			{
@@ -30,7 +136,7 @@ var dd = {
 				    [//Ans
 					    {text: '|__| medicare',style:'ansFont', margin: [0, -5, 0, 0]},
 					    {text: '|__| medicaid', style:'ansFont', margin: [-9, -5, 0, 0]}, 
-					    {text: '|__|', style:'ansFont', margin: [-9, -8, 0, 0]}, 
+					    {image: getImage(true), fit: [8, 8], margin: [-9, -8, 0, 0]}, 
 					    {text: '|__|', style:'ansFont', margin: [-9, -8, 0, 0]},
 					    {text: '|__|', style:'ansFont', margin: [-9, -8, 0, 0]},
 					    {text: '|__|', style:'ansFont', margin: [-9, -8, 0, 0]},
@@ -86,7 +192,7 @@ var dd = {
 			                            heights: [10],
 			    						body: [
 				    						[
-					    					    {text: 'Self__'},
+					    					    {text: 'Self__',mergeField: 'subscriber[0].relationship' },
 					    					    {text: 'Spouse'},
 					    					    {text: 'Child__'},
 					    					    {text: 'Other__'},
@@ -357,80 +463,7 @@ var dd = {
             table: {
             widths: [19, 11, 11, 14, 11, 11, 28, 15, 68, 50, 50, 47, 22, 19, 20, 70],
             heights: [0,0,0,0,8,8,8,8,8,8,8,8,8,8,8,8],
-                body: [
-                    [
-                        {text: '24. A. ',style: 'Headers'},
-                        {text: 'DATE(S) OF SERVICE', colSpan: 5},
-                        {},{},{},{},
-                        {text: 'B.'},
-                        {text: 'C.'},
-                        {text: 'D. PROCEDURES,SERVICES,OR SUPPLIES ', colSpan: 2, alignment: 'center', margin: [-9, 0, 0, 0]},
-                        {},
-                        {text: 'E.'},
-                        {text: 'F.'},
-                        {text: 'G.'},
-                        {text: 'H.'},
-                        {text: 'I.'},
-                        {text: 'J.'}
-                    
-                    ],
-                    [
-                        {text: 'From', colSpan: 3, alignment: 'center', margin: [0, -3.5, 0, 0]},
-                        {},{},
-                        {text: 'To', colSpan: 3, alignment: 'center', margin: [0, -3.5, 0, 0]},
-                        {},{},
-                        {text: 'PLACE OF', fontSize: 6, margin: [0, -3.5, 0, 0]},
-                        {},
-                        {text: '(Explain Unusual Circumstances)', alignment: 'center', colSpan: 2, margin: [0, -3.5, 0, 0]},
-                        {},
-                        {text: 'DIAGNOSIS', margin: [0, -3.5, 0, 0]},
-                        {},
-                        {text: 'DAYS', margin: [0, -5, 0, 0]},
-                        {text: 'EPSDT', margin: [0, -5, 0, 0], fontSize: 6},
-                        {text: 'ID.', fontSize: 6, margin: [0, -3.5, 0, 0]},
-                        {text: 'RENDERING.', margin: [0, -2.5, 0, 0]},
-                    
-                    ],
-                    [
-                       {},{},{},{},{},{},{},{},{},{},{},{},
-                       {text: 'OR', fontSize: 6, margin: [0, -7, 0, 0]},
-                       {text: 'Family', margin: [0, -7, 0, 0], fontSize: 6},
-                       {},{}
-                    ],
-                    [
-                           
-                        {text: 'MM', margin: [4, -5.3, 0, 0]},
-                        {text: 'DD', margin: [0, -5.5, 0, 0]},
-                        {text: 'YY', margin: [0, -5.3, 0, 0]},
-                        {text: 'MM', margin: [0, -5.3, 0, 0]},
-                        {text: 'DD', margin: [0, -5.3, 0, 0]},
-                        {text: 'YY',margin: [0, -5.3, 0, 0]},
-                        {text: 'SERVICE', fontSize: 6, margin: [0, -5.5, 0, 0],alignment: 'center'},
-                        {text: 'EMG', margin: [0, -5.3, 0, 0]},
-                        {text: 'CPT/HCPCS', alignment: 'center', margin: [0, -5.3, 0, 0]},
-                        {text: 'MODIFIER', alignment: 'center', margin: [0, -5.3, 0, 0]},
-                        {text: 'POINTER', margin: [0, -5.3, 0, 0]},
-                        {text: '$ CHARGES', margin: [0, -5.3, 0, 0]},
-                        {text: 'UNITS', margin: [0, -5.3, 0, 0]},
-                        {text: 'Plan', margin: [0, -5.3, 0, 0]},
-                        {text: 'QUAL', fontSize: 6, margin: [0, -5.3, 0, 0]},
-                        {text: 'PROVIDER ID. #', margin: [0, -5.3, 0, 0]},
-                    ],
-                    [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}],
-                    [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{text: 'NPI',  alignment: 'center'},{}],
-                    [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}],
-                    [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}],
-                    [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}],
-                    [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}],
-                    [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}],
-                    [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}],
-                    [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}],
-                    [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}],
-                    [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}],
-                    [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}],
-                    
-                ],
-                
+                body: getProcedureBlock(claimData),
             }
             ,layout: 'noBorders'
         },
@@ -505,7 +538,48 @@ var dd = {
                 ],
             },layout: 'noBorders'
         },
-	],
+	]
+}
+
+function mergeData(claim) {
+    var blocks = formatSingleClaim(claim);
+    
+    if(typeof mailMerge === 'undefined') {
+        return blocks;
+    }
+    
+    for(var i = 0; i< blocks.length; i++) {
+        blocks[i] = mailMerge.mergeData(blocks[i], claim);
+    }
+    
+    
+    return blocks;
+}
+
+function claimTable(claims) {
+    var blocks = [];
+    
+    claims.forEach(function(claim, index) {
+        blocks = blocks.concat(mergeData(claim.data[0]));
+        
+        if(index < claims.length - 1) {
+            blocks.push(getPageBreak());
+        }
+    });
+    
+    return blocks;
+}
+
+var allBlocks = [];
+
+if(typeof claimData !== 'undefined'){
+    allBlocks = claimTable(claimData);
+} else {
+    allBlocks = claimTable([{data: [{}]}]);
+}
+
+var dd = {
+	content: allBlocks,
 	styles: {
 		myTable: {
 		    fontSize: 7,
@@ -518,6 +592,10 @@ var dd = {
 			color: 'black'
 		}
 	},
+	images: {
+	    clearDot: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=',
+        tickImage: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAMNJREFUOI3VzjEOgjAYhuGvH4mJE57A5C/pqIscQXad3byBq7fSSeMRXOAA3KGOLuDSEkWlMBn/pWnT92mBvxut9VREZn7PgXGqlCpI5iKyGQS4+AJgAoAkd72BVoyqqu5KqT0ARP5SkiSLOI5H1tpbKCa5Ksvy3PxARLYArlEU5VrrtEd88neUe70AMHdntq7rDABCcQOIyJLkEcDYI27tjBvAIRnJwxOCUPwCfEJC8RvQQhSAdVf8dYwx2hijB4c/mQeKAVWWFc2OCAAAAABJRU5ErkJggg=='
+    },
 	defaultStyle: {
 		// alignment: 'justify'
 	},

@@ -15,9 +15,9 @@ WITH chargeReport AS (
     FROM 
         billing.charges bch
     INNER JOIN billing.claims bc on bc.id = bch.claim_id 
+    <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
     INNER JOIN public.patients p on p.id = bc.patient_id 
     INNER JOIN facilities f on f.id = bc.facility_id
-    <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
     where 1=1 
     AND  <%= companyId %>
     AND <%= claimDate %>
@@ -55,13 +55,13 @@ const detailQueryTemplate = _.template(`
 	
 FROM billing.charges bch 
 INNER JOIN billing.claims bc on bc.id = bch.claim_id
+<% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
 INNER JOIN public.patients pp on pp.id = bc.patient_id 
 INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
 LEFT JOIN public.modifiers pm1 on pm1.id = bch.modifier1_id
 LEFT JOIN public.modifiers pm2 on pm2.id = bch.modifier2_id
 LEFT JOIN public.modifiers pm3 on pm3.id = bch.modifier3_id
 LEFT JOIN public.modifiers pm4 on pm4.id = bch.modifier4_id 
-<% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
 where 1=1 
 AND  <%= companyId %>
 AND <%= claimDate %>

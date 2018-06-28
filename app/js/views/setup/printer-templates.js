@@ -50,7 +50,7 @@ define(['jquery',
                     { 'value': "patient_invoice", 'text': "Patient Invoice" },
                     { 'value': "paper_claim_full", 'text': "Paper Claim Full" },
                     { 'value': "paper_claim_original", 'text': "Paper Claim Original" }
-                    
+
                 ];
                 this.paperClaimTemplatesList = new PaperClaimTemplatesCollections();
                 $(this.el).html(this.paperClaimTemplatesGridTemplate());
@@ -124,7 +124,7 @@ define(['jquery',
                             name: 'template_type',
                             search: true,
                             stype: 'select',
-                            searchoptions: { value: templateType } ,
+                            searchoptions: { value: templateType },
                             formatter: self.templateTypeFormatter
                         },
                         {
@@ -201,9 +201,9 @@ define(['jquery',
                                     $('#chkActive').prop('checked', data.inactivated_dt ? true : false);
                                     $('#txtRightMargin').val(data.right_margin ? data.right_margin : 0);
                                     $('#txtLeftMargin').val(data.left_margin ? data.left_margin : 0),
-                                    $('#txtTopMargin').val(data.top_margin ? data.top_margin : 0),
-                                    $('#txtBottomMargin').val(data.bottom_margin ? data.bottom_margin : 0),
-                                    self.templateData = data.template_content ? data.template_content : "{}";
+                                        $('#txtTopMargin').val(data.top_margin ? data.top_margin : 0),
+                                        $('#txtBottomMargin').val(data.bottom_margin ? data.bottom_margin : 0),
+                                        self.templateData = data.template_content ? data.template_content : "{}";
                                     self.setEditorContents(self.templateData);
                                     $('#txtPageHeight').val(data.page_height ? data.page_height : 0);
                                     $('#txtPageWidth').val(data.page_width ? data.page_width : 0);
@@ -217,13 +217,19 @@ define(['jquery',
                     this.setEditorContents("var dd = { content: 'Test Data' }");
                 }
                 $('#aShowOriginalForm').parent('li:first').css(this.highlighClass);
-                
+
                 commonjs.initializeScreen({
                     header: { screen: 'PaperClaimTemplates', ext: 'paperClaimTemplates' }, buttons: [
                         {
                             value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
                                 $("#txtTemplateName").val($.trim($('#txtTemplateName').val()) || null);
-                                self.savePaperClaimTemplates();
+                                self.savePaperClaimTemplates(false);
+                            }
+                        },
+                        {
+                            value: 'Save and Close', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.saveAndClose', clickEvent: function () {
+                                $("#txtTemplateName").val($.trim($('#txtTemplateName').val()) || null);
+                                self.savePaperClaimTemplates(true);
                             }
                         },
                         {
@@ -236,7 +242,7 @@ define(['jquery',
                 commonjs.processPostRender();
             },
 
-            savePaperClaimTemplates: function () {
+            savePaperClaimTemplates: function (doGoBack) {
                 var self = this;
                 commonjs.validateForm({
                     rules: {
@@ -268,7 +274,7 @@ define(['jquery',
                         // bottomMargin: commonjs.getMessage("e", "Margin Bottom")
                     },
                     submitHandler: function () {
-                        self.save();
+                        self.save(doGoBack);
                     },
                     formID: '#formPaperClaimTemplates'
                 });
@@ -287,16 +293,24 @@ define(['jquery',
                 $('#paperClaimEditor').height($('#data_container').outerHeight() - $('#formPaperClaimTemplates').outerHeight());
                 editor.setValue(content);
 
+                var pdfWorker = null;
+
+                try {
+                    pdfWorker = new Worker('/exa_modules/billing/static/js/workers/pdf.js');
+                } catch (e) {
+                    console.error(e);
+                }
+
                 generatePreview();
 
-                editor.getSession().on('change', function(e) {
+                editor.getSession().on('change', function (e) {
                     if (timer) {
                         clearTimeout(timer);
                     }
 
                     lastChanged = new Date();
-        
-                    timer = setTimeout(function() {
+
+                    timer = setTimeout(function () {
                         if (!lastGen || lastGen < lastChanged) {
                             generatePreview();
                         };
@@ -321,10 +335,21 @@ define(['jquery',
                         if (typeof dd === 'undefined') {
                             return showStatus('Invalid template');
                         }
-                        
-                        pdfMake.createPdf(dd).getDataUrl(function (outDoc) {
-                            document.getElementById('ifrTemplatePreview').src = outDoc;
-                        });
+
+                        if (!pdfWorker) {
+                            return showStatus('Unable to render PDF');
+                        }
+
+                        pdfWorker.onmessage = function (res) {
+                            document.getElementById('ifrTemplatePreview').src = res.data.pdfBlob;
+                        };
+
+                        pdfWorker.postMessage(dd);
+                        return;
+
+                        // pdfMake.createPdf(dd).getDataUrl(function (outDoc) {
+                        //     document.getElementById('ifrTemplatePreview').src = outDoc;
+                        // });
                     } catch (err) {
                         showStatus(err);
                         return;
@@ -332,7 +357,7 @@ define(['jquery',
                 }
             },
 
-            save: function () {
+            save: function (doGoBack) {
 
                 this.templateData = ace.edit('paperClaimEditor').getValue();
 
@@ -342,12 +367,12 @@ define(['jquery',
                     "marginRight": $('#txtRightMargin').val() ? $('#txtRightMargin').val() : 0,
                     "marginLeft": $('#txtLeftMargin').val() ? $('#txtLeftMargin').val() : 0,
                     "marginTop": $('#txtTopMargin').val() ? $('#txtTopMargin').val() : 0,
-                    "marginBottom": $('#txtBottomMargin').val() ? $('#txtBottomMargin').val(): 0,
+                    "marginBottom": $('#txtBottomMargin').val() ? $('#txtBottomMargin').val() : 0,
                     "templateContent": this.templateData,
                     "companyId": app.companyID,
-                    "height":$('#txtPageHeight').val() ? $('#txtPageHeight').val() : 0,
+                    "height": $('#txtPageHeight').val() ? $('#txtPageHeight').val() : 0,
                     "width": $('#txtPageWidth').val() ? $('#txtPageWidth').val() : 0,
-                    "type" : $('#ddlTemplateType').val() 
+                    "type": $('#ddlTemplateType').val()
                 });
 
                 this.model.save({
@@ -355,7 +380,10 @@ define(['jquery',
                         success: function (model, response) {
                             if (response) {
                                 commonjs.showStatus("Saved Successfully");
-                                location.href = "#setup/printer_templates/list";
+
+                                if (doGoBack) {
+                                    location.href = "#setup/printer_templates/list";
+                                }
                             }
                         },
                         error: function (model, response) {

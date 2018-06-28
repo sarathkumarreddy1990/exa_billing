@@ -5,28 +5,23 @@
 
         <!-- col: form elements -->
         <div class="col-xs-4">
-                <div class="form-group form-inline">
-                        <div class="col-form-label">
-                                <label class="control-label" for="txtStudyDtRange" > Claim Date</label>
-                        </div>
-                        <div class="col-form-content">
-                            <div id="divReportDate" class="input-group">
-                                <span class="input-group-addon add-on">
-                                    <i class="fa fa-calendar"></i>
-                                </span>
-                                <input type="text" id="txtDateRangeFromTo" class="form-control" required="required" name="dateRange">
-                            </div>
-                        </div>
+            <div class="form-group form-inline">
+                <div class="col-form-content">
+                    <label class="control-label" for="txtDateRangeFromTo" i18n="report.claimDate" />
+                    <div id="divReportDate" class="input-group">
+                        <span class="input-group-addon add-on">
+                            <i class="fa fa-calendar"></i>
+                        </span>
+                        <input type="text" id="txtDateRangeFromTo" class="form-control" required="required" name="dateRange">
                     </div>
+                </div>
             </div>
+        </div>
 
         <div class="col-xs-4">
             <div class="form-group form-inline">
-                <div class="col-form-label">
-                    <label class="control-label">Facilities
-                    </label>
-                </div>
                 <div class="col-form-label" class="multiselect">
+                    <label class="control-label" i18n="report.facilities" />
                     <select id="ddlFacilityFilter" multiple="multiple">
                         <% _.each(facilities.toJSON(), function(facility) { %>
                             <option value='<%= facility.id %>'>
@@ -39,11 +34,8 @@
         </div>
         <div class="col-xs-4">
             <div class="form-group form-inline">
-                <div class="col-form-label">
-                    <label class="control-label">Billing Provider
-                    </label>
-                </div>
                 <div class="col-form-label" class="multiselect">
+                    <label class="control-label" i18n="report.billingProviders" />
                     <select id="ddlBillingProvider" multiple="multiple" />
                 </div>
             </div>
