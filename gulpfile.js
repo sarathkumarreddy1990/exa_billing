@@ -169,7 +169,7 @@ gulp.task('build', [
 ]);
 
 gulp.task('build-from-repo', (done) => {
-    runSequence('git-pull', 'git-push', done);
+    runSequence('git-pull', 'build', 'git-commit', 'git-push', done);
 });
 
 
