@@ -1042,6 +1042,7 @@ define(['jquery',
 
                             $('#btnValidateExport').on().click(function () {
                                 table.renderStudy(true);
+                                createStudiesTable();
                             });
                         };
 
@@ -1589,7 +1590,7 @@ define(['jquery',
                             if (!data.invalidClaim_data.length)
                                 commonjs.showStatus(commonjs.geti18NString("messages.status.validatedSuccessfully"));
                             else
-                                commonjs.showDialog({ header: 'Validation Results', i18nHeader: 'menuTitles.order.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });  
+                                commonjs.showDialog({ header: 'Validation Results', i18nHeader: 'billing.claims.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });  
                         }
                     },
                     error: function (err, response) {

@@ -76,7 +76,7 @@ define([
                  this.bindDateRangePicker();
                  this.drpStudyDt.setStartDate(this.viewModel.dateFrom);
                  this.drpStudyDt.setEndDate(this.viewModel.dateTo);    
-                $('#ddlFacilityFilter').multiselect({
+                $('#ddlFacilityFilter, #ddlInsuranceBinding').multiselect({
                     maxHeight: 200,
                     buttonWidth: '300px',
                     width: '300px',

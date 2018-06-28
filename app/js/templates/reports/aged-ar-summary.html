@@ -6,7 +6,7 @@
         <div class="col-3">
             <div class="form-group form-inline">
                 <div class="col-form-label">
-                    <label class="control-label field-required" for="txtDateRange" i18n="billing.payments.arcutoffdate" />
+                    <label class="control-label field-required" for="txtDateRange" i18n="report.arCutoffDate" />
                 </div>
                 <div class="col-form-content">
                     <div id="divFromDate" class="input-group">
@@ -21,7 +21,7 @@
         <div class="col-3">
             <div class="form-group form-inline">
                 <div class="col-form-label" class="multiselect">
-                    <label class="control-label">Facilities
+                    <label class="control-label" i18n="report.facilities">
                     </label>
                     <select id="ddlFacilityFilter" multiple="multiple">
                         <% _.each(facilities.toJSON(), function(facility) { %>
@@ -36,7 +36,7 @@
         <div class="col-3">
             <div class="form-group form-inline">
                 <div class="col-form-label" class="multiselect">
-                    <label class="control-label">Billing Provider
+                    <label class="control-label" i18n="report.billingProviders">
                     </label>
                     <select id="ddlBillingProvider" multiple="multiple" />
                 </div>
@@ -46,12 +46,12 @@
         <div class="col-3">
             <div style="padding-top:10px">
                 <label class="checkbox-inline" for="incPat">
-                    <input type="checkbox" id="incPat" value="IncludePatient" style="display: inline"> Report By Primary Payer
+                    <input type="checkbox" id="incPat" value="IncludePatient" style="display: inline"> <span i18n="report.reportByPrimaryPayaer"> </span>
                 </label>
             </div>
             <div style="padding-top:10px">
                 <label class="checkbox-inline" for="excCreBal">
-                    <input type="checkbox" id="excCreBal" value="ExcludeCreditBalance" style="display: inline"> Exclude Credit Balance
+                    <input type="checkbox" id="excCreBal" value="ExcludeCreditBalance" style="display: inline"><span i18n="report.excludeCreditBalance"> </span>
                 </label>
             </div>
         </div>

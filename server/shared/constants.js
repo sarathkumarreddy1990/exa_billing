@@ -37,7 +37,8 @@ module.exports = {
         printer_templates: 'Printer Templates',
         payments: 'Payments',
         applyPayments:'Applied Payments',
-        claim_inquiry:'Claim Inquiry'
+        claim_inquiry:'Claim Inquiry',
+        claims:'Claims'
     },
 
     entityNames: {
@@ -64,7 +65,8 @@ module.exports = {
         applyPayments:'payment_applications',
         claim_inquiry:'claim_comments',
         audit_log: 'Audit Log',
-        user_log: 'User Log'
+        user_log: 'User Log',
+        claims:'Claims'
     },
 
     permissionsMap: {
@@ -84,7 +86,7 @@ module.exports = {
         x12: 'EDRT',
         insurance_x12_mapping: 'INSM',
         edi_clearinghouses: 'CLHO',
-        user_log: 'ULOG',
-        audit_log: 'ALOG'
+        user_log: 'BULG',
+        audit_log: 'BALG'
     }
 };

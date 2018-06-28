@@ -51,26 +51,59 @@ define([
                         var docDefinition = self.mergeTemplate(templateType, template, claimData);
                         //var docDefinition = { content: 'This is an sample PDF printed with pdfMake', style: 'header', mmmm: 'sdfdsfdsf' };
 
-                        commonjs.hideLoading();
+                        var pdfWorker;
 
                         try {
-                            if (win) {
-                                pdfMake.createPdf(docDefinition).open({}, win);
-                            } else {
-                                pdfMake.createPdf(docDefinition).getDataUrl(function (outDoc) {
-                                    document.getElementById('ifrPdfPreview').src = outDoc;
-
-                                    commonjs.showDialog({
-                                        header: self.pdfDetails[templateType].header,
-                                        width: '95%',
-                                        height: '80%',
-                                        url: outDoc
-                                    });
-                                });
-                            }
-                        } catch (err) {
-                            console.log(err);
+                            pdfWorker = new Worker('/exa_modules/billing/static/js/workers/pdf.js');
+                        } catch (e) {
+                            console.error(e);
+                            return;
                         }
+
+                        pdfWorker.onmessage = function (res) {
+                            console.log('Response received from worker');
+
+                            commonjs.hideLoading();
+                            //document.getElementById('ifrPdfPreview').src = outDoc;
+
+                            commonjs.showDialog({
+                                header: self.pdfDetails[templateType].header,
+                                width: '95%',
+                                height: '80%',
+                                url: res.data.pdfBlob
+                            });
+
+                            // const anchor = document.createElement('a');
+                            // document.body.appendChild(anchor);
+                            // anchor.href = window.URL.createObjectURL(res.data.pdfBlob);
+                            // anchor.download = 'myFileName.pdf';
+                            // anchor.click();
+                        };
+
+                        pdfWorker.postMessage(docDefinition);
+                        return;
+                      
+
+                        // commonjs.hideLoading();
+
+                        // try {
+                        //     if (win) {
+                        //         pdfMake.createPdf(docDefinition).open({}, win);
+                        //     } else {
+                        //         pdfMake.createPdf(docDefinition).getDataUrl(function (outDoc) {
+                        //             document.getElementById('ifrPdfPreview').src = outDoc;
+
+                        //             commonjs.showDialog({
+                        //                 header: self.pdfDetails[templateType].header,
+                        //                 width: '95%',
+                        //                 height: '80%',
+                        //                 url: outDoc
+                        //             });
+                        //         });
+                        //     }
+                        // } catch (err) {
+                        //     console.log(err);
+                        // }
                     });
                 });
             };
@@ -89,7 +122,8 @@ define([
                 } catch (err) { console.log(err); }
 
                 if (!dd || typeof dd !== 'object') {
-                    return commonjs.showError('Invalid template');
+                    commonjs.hideLoading();
+                    return commonjs.showError('Invalid data/template');
                 }
 
                 //template = mailMerge.mergeData(dd, claimData);

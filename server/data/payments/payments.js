@@ -8,6 +8,9 @@ module.exports = {
         let whereQuery = [];
         params.sortOrder = params.sortOrder || ' ASC';
         params.sortField = params.sortField == 'id' ? ' payments.id ' : params.sortField;
+
+        params.sortField = params.sortField == 'payment_dt' ? ' payments.payment_dt ' : params.sortField;
+
         let {
             payment_id,
             display_id,

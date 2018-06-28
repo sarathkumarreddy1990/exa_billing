@@ -26,7 +26,7 @@
                     </div>
                     <div class="form-group row">
                         <label for="referencePaymentID" class="control-label col-sm-4" i18n="billing.payments.referencePaymentID"></label>
-
+            
                         <div class="col-sm-3">
                             <input type="text" id="referencePaymentID" class="form-control">
                         </div>
@@ -40,6 +40,19 @@
                                 <option value="2" data-reason="PRE" data-copay="false">Insurance</option>
                                 <option value="3" data-reason="REF" data-copay="false">Co-Pay</option>
                                 <option value="4" data-reason="REF" data-copay="false">Account Payment</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="ddlPaidLocation" class="control-label col-sm-4" i18n="billing.payments.paidLocation"></label>
+                        <div class="col-sm-3">
+                            <select class="form-control" id="ddlPaidLocation" class="paidLocation">
+                                <option value="0">Select</option>
+                                <% _.each(paidlocation, function(facility) { %>
+                                    <option value="<%= facility.id %>">
+                                        <%= facility.facility_name %>
+                                    </option>
+                                    <% }); %>
                             </select>
                         </div>
                     </div>
@@ -101,9 +114,22 @@
                             </div>
                         </div>
                     </div>
+                    <div class="form-group row" id="divInputType">
+                        <label for="chkpayerInsurance" class="control-label col-sm-3">Input type</label>
+                        <div class="col-sm-4" style="margin-top: auto;">
+                            <span class="radio-inline" for='chkIpEob' id='lblIpEob'>
+                                <input id='chkIpEob' type='radio' class="inputType" name="ipType" value='inpEOB' style="margin-top: 3px;">
+                                <label for="chkIpEob" class="field-chk" style="min-width: 20px!important; margin: 0 0 10px 3px;">EOB</label>
+                            </span>
+                            <span class="radio-inline" for='chkIpInvoice' id='lblIpInvocie'>
+                                <input id='chkIpInvoice' type='radio' class="inputType" name="ipType" value='inpInvoice' style="margin-top: 3px;">
+                                <label for="chkIpInvoice" class="field-chk" style="min-width: 20px!important; margin: 0 0 10px 3px;">Invoice</label>
+                            </span>
+                        </div>
+                    </div>
                     <div class="form-group row payerFields" id="divMethodInsurance">
-                        <label for="txtInvoice" class="control-label col-sm-3" for="txtInvoice">Invoice</label>
-
+                        <label for="txtInvoice" class="control-label col-sm-3" i18n="setup.userSettings.invoiceNo" for="txtInvoice">Invoice</label>
+            
                         <div class="col-sm-4">
                             <input type="text" id="txtInvoice" class="form-control invoiceNo" />
                         </div>
@@ -112,19 +138,6 @@
             </div>
             <div class="row">
                 <div class="col">
-                    <div class="form-group row">
-                        <label for="ddlPaidLocation" class="control-label col-sm-4" i18n="billing.payments.paidLocation"></label>
-                        <div class="col-sm-3">
-                            <select class="form-control" id="ddlPaidLocation" class="paidLocation">
-                                <option value="0">Select</option>
-                                <% _.each(paidlocation, function(facility) { %>
-                                    <option value="<%= facility.id %>">
-                                        <%= facility.facility_name %>
-                                    </option>
-                                    <% }); %>
-                            </select>
-                        </div>
-                    </div>
                     <div class="form-group row">
                         <label class="control-label  field-required col-sm-4" for="txtAccountingDate" i18n="billing.payments.accountingDate"></label>
                         <div class="col-sm-3">

@@ -1,6 +1,9 @@
 <%  _.each(rows, function(row){ %>
     <tr  data_row_id="<%= row.charge_id %>">
             <td>
+                <span id="spCIcharge_<%= row.charge_id %>"><%= row.cpt_code %></span>
+            </td>
+            <td>
                 <span id="spCIcharge_<%= row.charge_id %>"><%= row.bill_fee %></span>
             </td>
             <td>

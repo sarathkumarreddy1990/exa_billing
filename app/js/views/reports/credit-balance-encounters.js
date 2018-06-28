@@ -82,7 +82,7 @@ define([
 
             bindDateRangePicker: function () {
                 var self = this;
-                var drpEl = $('#txtStudyDtRange');
+                var drpEl = $('#txtDateRangeFromTo');
                 var drpOptions = { autoUpdateInput: true, locale: { format: 'L' } };
                 this.drpStudyDt = commonjs.bindDateRangePicker(drpEl, drpOptions, 'past', function (start, end, format) {
                     self.viewModel.dateFrom = start;

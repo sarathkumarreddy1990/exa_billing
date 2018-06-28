@@ -5,15 +5,33 @@
                 <a href="#divPendingPayments" data-container="All_Claims" class="nav-link active show" data-toggle="tab" i18n="billing.payments.pendingPayments"
                     title="All Claims">All Claims</a>
             </li>
+            <li id="liPendingPaymentsPat" class="nav-item">
+                <a href="#divPendingPaymentsPat" data-container="All_Claims" class="nav-link" data-toggle="tab" i18n="billing.payments.pendingPaymentsPat"
+                    title="All Claims">All Claims</a>
+            </li>
             <li id="liAppliedPayments" class="nav-item">
                 <a href="#divApplidPayments" data-container="Follow_up_queue" i18n="billing.payments.appliedPayments" class="nav-link" data-toggle="tab"
                     title="Follow-Up Queue">Follow-Up Queue</a>
             </li>
-            </li>
         </ul>
             <div class="tab-content">
                 <div class="tab-pane active" id="divPendingPayments" style="margin-top: 10px;">
-                    <div id="divPendingRecords">
+                    <div id="divPendingRecordsOnly">
+                        <div align="right" style="margin-bottom:5px;">
+                            <input type="button" value="Refresh" id="btnPaymentPendingRefreshOnly" i18n="shared.buttons.refresh" class="btn pendRefresh">
+                        </div>
+                        <div class='Grid' id='divGrid_pendPaymentsOnly'>
+                            <table id="tblpendPaymentsGridOnly"></table>
+                            <div id="gridPager_pendPaymentsOnly"></div>
+                        </div>
+                        <div id="pendPaymentsBalSummaryOnly" align="center" style="margin-top:10px;">
+                            <table id="tblPendPaymentBalOnly" class="table table-bordered" style="width:50%!important;">
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane" id="divPendingPaymentsPat" style="margin-top: 10px;">
+                    <div id="divPendingRecords" style="display: none;">
                         <div align="right" style="margin-bottom:5px;">
                             <input type="button" value="Refresh" id="btnPaymentPendingRefresh" i18n="shared.buttons.refresh" class="btn pendRefresh">
                             <input type="button" value="Refresh" id="btnBackToPatient" i18n="billing.payments.backToPatients" class="btn" style="display: none;">
@@ -27,7 +45,7 @@
                             </table>
                         </div>
                     </div>
-                    <div id="diVPatient" style="width:98%; margin-left: 20px; margin-top: 20px; display: none;">
+                    <div id="diVPatient" style="width:98%; margin-left: 20px; margin-top: 20px;">
                         <div id="divGrid">
                             <div class="row" id="searchForm">
                                 <div id="divPatientInputs">
