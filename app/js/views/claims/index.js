@@ -1041,7 +1041,7 @@ define(['jquery',
             },
 
             changeFeeData: function (e) {
-                var self = this, total_bill_fee = 0.0, total_allowed = 0.0;
+                var self = this, total_bill_fee = 0.0, total_allowed = 0.0, patient_paid = 0.0, others_paid = 0.0, refund = 0.0, adjustemnt_amout = 0.0;
                 if (!commonjs.checkNotEmpty($(e.target || e.srcElement).val()))
                     $(e.target || e.srcElement).hasClass('units') ? $(e.target || e.srcElement).val('1.000') : $(e.target || e.srcElement).val('0.00');
                 if (commonjs.checkNotEmpty($(e.target || e.srcElement).val()) && !$(e.target || e.srcElement).hasClass('units')) {
@@ -1067,7 +1067,10 @@ define(['jquery',
                 $('#spBalance').text(commonjs.roundFee(total_bill_fee));
                 $('#spTotalAllowedFeeValue').text(commonjs.roundFee(total_allowed));
                 $('#spAllowed').text(commonjs.roundFee(total_allowed));
-
+                $('#spPatientPaid').text(commonjs.roundFee(patient_paid));
+                $('#spOthersPaid').text(commonjs.roundFee(others_paid));
+                $('#spAdjustment').text(commonjs.roundFee(adjustemnt_amout));
+                $('#spRefund').text(commonjs.roundFee(refund));
             },
 
             updateResponsibleList: function (payer_details) {
