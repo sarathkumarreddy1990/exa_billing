@@ -18,9 +18,9 @@ module.exports = {
                 , rend_pr.full_name AS rend_provider_name
                 , f.facility_name
                 , st.description AS claim_status
-                , SUM(ch.bill_fee) AS bill_fee
+                , SUM(ch.bill_fee * ch.units) AS bill_fee
                 , pg.group_name
-                , SUM(ch.allowed_amount) AS allowed_fee
+                , SUM(ch.allowed_amount * ch.units) AS allowed_fee
                 , (SELECT SUM(claim_balance_total) FROM billing.get_claim_totals(bc.id)) AS claim_balance
                 , bc.billing_notes
                 , claim_dt
@@ -125,7 +125,7 @@ module.exports = {
                         , created_dt::date as commented_dt
                         , is_internal 
                         , null AS charge_amount
-                        , null::text[] AS charge_pointer
+                        , '{}'::text[] AS charge_pointer
                         , null AS payment
                         , null AS adjustment
                     FROM 
@@ -141,7 +141,7 @@ module.exports = {
                         , ch.charge_dt::date as commented_dt
                         , false AS is_internal
                         , bill_fee AS charge_amount
-                        , ARRAY[pointer1, pointer2, pointer3, pointer4] AS charge_pointer
+                        , ARRAY[COALESCE(pointer1, ''), COALESCE(pointer2, ''), COALESCE(pointer3, ''), COALESCE(pointer4, '')] AS charge_pointer
                         , null AS payment
                         , null AS adjustment
                     FROM billing.charges ch
@@ -165,7 +165,7 @@ module.exports = {
                         , bp.accounting_dt::date as commented_dt
                         , false AS is_internal
                         , null AS charge_amount
-                        , null::text[] AS charge_pointer
+                        , '{}'::text[] AS charge_pointer
                         , (CASE WHEN pa.amount_type = 'payment' THEN pa.amount::text ELSE null::text END) payment
                         , (CASE WHEN pa.amount_type = 'adjustment' THEN pa.amount::text  ELSE null::text END) adjustment 
                     FROM billing.payments bp
@@ -362,7 +362,7 @@ module.exports = {
     viewPaymentDetails: async(params) => {
         let {
             claim_id,
-            pay_id
+            payment_id
         } = params;
 
         let sql = `SELECT
@@ -372,7 +372,7 @@ module.exports = {
                         , cas.cas_details
                         , pa.payment_amount AS payment
                         , pa.adjustment_amount AS adjustment
-                    FROM (SELECT charge_id, id, payment_amount, adjustment_amount, payment_applied_dt from billing.get_payment_applications(${pay_id}) ) AS pa
+                    FROM (SELECT charge_id, id, payment_amount, adjustment_amount, payment_applied_dt from billing.get_payment_applications(${payment_id}) ) AS pa
                     INNER JOIN billing.charges ch on ch.id = pa.charge_id 
                     LEFT JOIN LATERAL (
                         SELECT json_agg(row_to_json(cas)) AS cas_details
