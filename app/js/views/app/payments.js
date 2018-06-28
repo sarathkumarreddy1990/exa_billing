@@ -50,7 +50,7 @@ define(['jquery',
                 this.options = options;
                 var paymentStatus = [
                     { 'value': 'fully_applied', 'text': 'Applied' },
-                    { 'value': 'unapplied', 'text': 'Un-applied' },
+                    { 'value': 'unapplied', 'text': 'Unapplied' },
                     { 'value': 'partially_applied', 'text': 'Partial Applied' },
                     { 'value': 'over_applied', 'text': 'Over Applied' }
                 ];
