@@ -19,13 +19,19 @@ WITH get_claim_details AS(
     <% if(incPatDetail == 'true') { %> AND payer_type = 'primary_insurance' <%}%>
  )
  SELECT
+ <% if (facilityIds) { %> MAX(pf.facility_name) <% } else  { %> 'All'::text <% } %> as "Facility",
+ <% if(incPatDetail == 'true') { %>     
+            CASE WHEN payer_type = 'primary_insurance' THEN 'Primary Insurance'  END AS responsible_party,     
+ <%} else {%>    
  CASE WHEN payer_type = 'primary_insurance' THEN 'Insurance'
       WHEN payer_type = 'secondary_insurance' THEN 'Insurance'
       WHEN payer_type = 'tertiary_insurance' THEN 'Insurance'
       WHEN payer_type = 'referring_provider' THEN 'Provider'
       WHEN payer_type = 'patient' THEN 'Patient'
-      WHEN payer_type = 'ordering_facility' THEN 'Ordering Facility'
- END AS responsinble_party,
+      WHEN payer_type = 'ordering_facility' THEN 'Ordering Facility'     
+    END AS responsible_party,
+    <% } %>
+    <% if(payer_type != '') { %>     
  CASE WHEN payer_type = 'primary_insurance' THEN pip.insurance_name
       WHEN payer_type = 'secondary_insurance' THEN pip.insurance_name
       WHEN payer_type = 'tertiary_insurance' THEN pip.insurance_name
@@ -33,7 +39,21 @@ WITH get_claim_details AS(
       WHEN payer_type = 'patient' THEN get_full_name(pp.last_name,pp.first_name)
       WHEN payer_type = 'ordering_facility' THEN ppg.group_name
  END AS payer_name,
- 
+ <% } %>
+ MAX(ppr.provider_type) AS "Provider Type",
+ CASE
+ WHEN MAX(pip.insurance_info->'ediCode') ='A' THEN 'Attorney'
+ WHEN MAX(pip.insurance_info->'ediCode') ='C' THEN 'Medicare'
+ WHEN MAX(pip.insurance_info->'ediCode') ='D' THEN 'Medicaid'
+ WHEN MAX(pip.insurance_info->'ediCode') ='F' THEN 'Commercial'
+ WHEN MAX(pip.insurance_info->'ediCode') ='G' THEN 'Blue Cross'
+ WHEN MAX(pip.insurance_info->'ediCode') ='R' THEN 'RailRoad MC'
+ WHEN MAX(pip.insurance_info->'ediCode') ='W' THEN 'Workers Compensation'
+ WHEN MAX(pip.insurance_info->'ediCode') ='X' THEN 'X Champus'
+ WHEN MAX(pip.insurance_info->'ediCode') ='Y' THEN 'Y Facility'
+ WHEN MAX(pip.insurance_info->'ediCode' )='M' THEN 'M DMERC'
+ELSE   ''
+END  AS  "EDI",
  COALESCE(count(gcd.balance) FILTER(where gcd.age <= 30 ),0) AS "0-30 Count",
  COALESCE(SUM(gcd.balance) FILTER(where gcd.age <= 30 ),0::money) AS "0-30 Sum",
  COALESCE(count(gcd.balance) FILTER(where gcd.age > 30 and gcd.age <=60  ),0) AS "31-60 Count",
@@ -86,16 +106,22 @@ WITH get_claim_details AS(
         COALESCE(COUNT(gcd.balance) FILTER(where gcd.age > 120 ),0) AS "120+ Count",
         COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 120 ),0::money) AS "120+ Sum"      ,
     <%}%>
- SUM(gcd.balance) AS total_balance,
- COUNT(gcd.balance) AS total_count
+ SUM(gcd.balance) AS "Total Balane",
+ COUNT(gcd.balance) AS "Total Count"
  FROM billing.claims bc
  INNER JOIN get_claim_details gcd ON gcd.claim_id = bc.id
  INNER JOIN public.patients pp ON pp.id = bc.patient_id
  INNER JOIN public.facilities pf ON pf.id = bc.facility_id
- LEFT JOIN public.patient_insurances ppi ON ppi.id = CASE WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
-                                                 WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
-                                                 WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
-                                            END
+
+ <% if(incPatDetail == 'true') { %> 
+    LEFT JOIN public.patient_insurances ppi ON ppi.id = primary_patient_insurance_id
+ <%} else {%>
+    LEFT JOIN public.patient_insurances ppi ON ppi.id = CASE WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
+    WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
+    WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
+END
+<% } %>
+ 
  LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
  LEFT JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id
  LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
@@ -108,7 +134,7 @@ WITH get_claim_details AS(
      <% if(billingProID) { %> AND <% print(billingProID); } %>
      <% if(excCreditBal == 'true'){ %> AND  gcd.balance::money > '0' <% } %>
  GROUP BY 
- ROLLUP (responsinble_party,payer_name)
+ ROLLUP (responsible_party,payer_name)
 `);
 
 const api = {

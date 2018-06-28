@@ -25,7 +25,7 @@ define([
             },
   
             initializeRouter: function () {
-                this.options.screen = facilityModules.reportScreens.claimActivity;
+                this.options.screen = facilityModules.reportScreens.creditBalanceEncounters;
                 this.options.currentView = this.creditBalanceEncounterScreen;
                 layout.initializeLayout(this);
   
