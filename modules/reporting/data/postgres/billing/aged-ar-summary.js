@@ -31,7 +31,6 @@ WITH get_claim_details AS(
       WHEN payer_type = 'ordering_facility' THEN 'Ordering Facility'     
     END AS responsible_party,
     <% } %>
-    <% if(payer_type != '') { %>     
  CASE WHEN payer_type = 'primary_insurance' THEN pip.insurance_name
       WHEN payer_type = 'secondary_insurance' THEN pip.insurance_name
       WHEN payer_type = 'tertiary_insurance' THEN pip.insurance_name
@@ -39,7 +38,6 @@ WITH get_claim_details AS(
       WHEN payer_type = 'patient' THEN get_full_name(pp.last_name,pp.first_name)
       WHEN payer_type = 'ordering_facility' THEN ppg.group_name
  END AS payer_name,
- <% } %>
  MAX(ppr.provider_type) AS "Provider Type",
  CASE
  WHEN MAX(pip.insurance_info->'ediCode') ='A' THEN 'Attorney'
