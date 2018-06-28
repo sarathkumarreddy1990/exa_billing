@@ -108,7 +108,7 @@ gulp.task('zip', ['replace'], () => {
     let version = getCurrentVersion();
 
     return gulp.src('./build/**')
-        .pipe(zip(`exa-billing-build-${version}.zip`))
+        .pipe(zip(`exa-billing-${currentBranch}-${version}.zip`))
         .pipe(gulp.dest('./dist'));
 });
 
@@ -123,15 +123,14 @@ gulp.task('bump-release', () => {
         .pipe(gulp.dest('./'));
 });
 
-gulp.task('git-init', () => {
+gulp.task('git-init', (done) => {
     git.init((err) => {
         if (err) throw err;
-    });
-});
 
-gulp.task('git-pull', ['bump', 'git-init'], () => {
-    git.pull('origin', 'develop', { args: '--rebase' }, (err) => {
-        if (err) throw err;
+        git.revParse({ args: '--abbrev-ref HEAD' }, function (err, branch) {
+            currentBranch = branch;
+            done();
+        });
     });
 });
 
@@ -147,8 +146,14 @@ gulp.task('git-commit', ['git-add'], () => {
         .pipe(git.commit(`Build v${version}`));
 });
 
-gulp.task('git-push', ['bump', 'git-commit'], () => {
-    git.push('origin', 'develop', (err) => {
+gulp.task('git-pull', ['git-commit'], () => {
+    git.pull('origin', currentBranch, { args: '--rebase' }, (err) => {
+        if (err) throw err;
+    });
+});
+
+gulp.task('git-push', () => {
+    git.push('origin', currentBranch, (err) => {
         if (err) throw err;
     });
 });
@@ -164,7 +169,7 @@ gulp.task('build', [
 ]);
 
 gulp.task('build-from-repo', (done) => {
-    runSequence('git-pull', 'build', 'git-push', done);
+    runSequence('git-pull', 'git-push', done);
 });
 
 
