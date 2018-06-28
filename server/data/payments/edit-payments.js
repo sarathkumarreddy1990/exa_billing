@@ -156,7 +156,7 @@ module.exports = {
         let paymentWhereQuery = ` WHERE NOT EXISTS (SELECT 1 FROM billing.payment_applications bpa 
         INNER JOIN billing.payments bp ON bp.id = bpa.payment_id
         WHERE  bpa.charge_id = bch.id
-        AND payment_id = ${params.customArgs.paymentID})
+        AND payment_id = ${params.customArgs.paymentID} AND bc.invoice_no = bp.invoice_no )
         AND (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) > 0::money `;
 
         paymentWhereQuery = params.customArgs.payerType == 'patient' ? paymentWhereQuery + ` AND bc.patient_id = ${params.customArgs.payerId} ` : paymentWhereQuery;
