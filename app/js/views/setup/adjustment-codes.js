@@ -29,7 +29,7 @@ define(['jquery',
             model: null,
             adjustmentCodesTable: null,
             pager: null,
-            entryType: { "": "All", "credit": "Credit", "debit": "Debit" },
+            entryType: { "": "All", "credit": "Credit", "debit": "Debit", "refund_debit": "Refund Debit", "recoupment_debit": "Recoupment Debit" },
             events: {
             },
 
@@ -261,6 +261,12 @@ define(['jquery',
                             break;
                         case 'debit':
                             colName = 'Debit';
+                            break;
+                        case 'refund_debit':
+                            colName = 'Refund Debit';
+                            break;
+                        case 'recoupment_debit':
+                            colName = 'Recoupment Debit';
                             break;
                         default:
                             break;

@@ -41,7 +41,8 @@ define(['jquery',
                 'click #btnStatusSearch': 'searchPayments',
                 'click #btnPaymentRefresh': 'refreshPayments',
                 "click #btnGenerateExcel": "exportExcel",
-                "click #btnGeneratePDF": "generatePDF"
+                "click #btnGeneratePDF": "generatePDF",
+                "change #ulPaymentStatus": 'searchPayments'
             },
 
             initialize: function (options) {
@@ -49,9 +50,9 @@ define(['jquery',
                 this.options = options;
                 var paymentStatus = [
                     { 'value': 'fully_applied', 'text': 'Applied' },
-                    { 'value': 'unapplied', 'text': 'UnApplied' },
-                    { 'value': 'partially_applied', 'text': 'PartialApplied' },
-                    { 'value': 'over_applied', 'text': 'OverApplied' }
+                    { 'value': 'unapplied', 'text': 'Unapplied' },
+                    { 'value': 'partially_applied', 'text': 'Partial Applied' },
+                    { 'value': 'over_applied', 'text': 'Over Applied' }
                 ];
                 this.payer_type = [
                     { 'value': "patient", 'text': "Patient" },
@@ -192,9 +193,9 @@ define(['jquery',
                             { name: 'current_status', hidden: true },
                             { name: 'payment_id',  searchFlag: 'int' },
                             { name: 'invoice_no', hidden: true },
-                            { name: 'display_id', width: 215, searchFlag: '%' },
-                            { name: 'payment_dt', width: 215, searchFlag: 'date_pure', formatter: self.paymentDateFormatter },
-                            { name: 'accounting_dt', width: 215, searchFlag: 'date_pure', formatter: self.paymentAccountingDateFormatter },
+                            { name: 'display_id', width: 150, searchFlag: '%' },
+                            { name: 'payment_dt', width: 250, searchFlag: 'date_pure', formatter: self.paymentDateFormatter },
+                            { name: 'accounting_dt', width: 250, searchFlag: 'date_pure', formatter: self.paymentAccountingDateFormatter },
                             { name: 'payer_type', width: 215, searchFlag: '%', stype: 'select', formatter: self.payerTypeFormatter, searchoptions: { value: payerTypeValue } },
                             { name: 'payer_name', width: 300, searchFlag: 'hstore' },
                             { name: 'amount', width: 215, searchFlag: '%' },
@@ -210,7 +211,7 @@ define(['jquery',
                         ],
                         customizeSort: true,
                         sortable: {
-                            exclude: ',#jqgh_tblpaymentsGrid_edit,#jqgh_tblpaymentsGrid_del'
+                            exclude: ',#jqgh_tblpaymentsGrid_edit'
                         },
                         pager: '#gridPager_payments',
                         sortname: "id",
@@ -223,7 +224,9 @@ define(['jquery',
                         ondblClickRow: function (rowID) {
                             self.editPayment(rowID);
                         },
-                        onaftergridbind: self.afterGridBind,
+                        onaftergridbind: function (model, gridObj) {
+                            self.bindDateRangeOnSearchBox(gridObj);
+                        },
                         disablesearch: false,
                         disablesort: false,
                         disablepaging: false,
@@ -289,13 +292,13 @@ define(['jquery',
 
             paymentDateFormatter: function (cellvalue, options, rowObject) {
                 var colValue;
-                colValue = (commonjs.checkNotEmpty(rowObject.payment_dt) ? moment(rowObject.payment_dt).format('L') : '');
+                colValue = (commonjs.checkNotEmpty(rowObject.payment_dt) ? commonjs.getFormattedUtcDate(rowObject.payment_dt) : '');
                 return colValue;
             },
 
             paymentAccountingDateFormatter: function (cellvalue, options, rowObject) {
                 var colValue;
-                colValue = (commonjs.checkNotEmpty(rowObject.accounting_dt) ? moment(rowObject.accounting_dt).format('L') : '');
+                colValue = (commonjs.checkNotEmpty(rowObject.accounting_dt) ? commonjs.getFormattedUtcDate(rowObject.accounting_dt) : '');
                 return colValue;
             },
 
@@ -400,6 +403,38 @@ define(['jquery',
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
+            },
+            
+            bindDateRangeOnSearchBox: function (gridObj) {
+                var self = this, tabtype = 'order';
+                var columnsToBind = ['payment_dt', 'accounting_dt']
+                var drpOptions = { locale: { format: "L" } };
+                var currentFilter = 1;
+                _.each(columnsToBind, function (col) {
+                    var rangeSetName = "past";
+                    var colSelector = '#gs_' + col;
+
+                    var colElement = $(colSelector);
+     
+                    var drp = commonjs.bindDateRangePicker(colElement, drpOptions, rangeSetName, function (start, end, format) {
+                        if (start && end) {
+                            currentFilter.startDate = start.format('L');
+                            currentFilter.endDate = end.format('L');
+                            $('input[name=daterangepicker_start]').removeAttr("disabled");
+                            $('input[name=daterangepicker_end]').removeAttr("disabled");
+                            $('.ranges ul li').each(function (i) {
+                                if ($(this).hasClass('active')) {
+                                    currentFilter.rangeIndex = i;
+                                }
+                            });
+                        }
+                    });
+                    colElement.on("apply.daterangepicker", function (ev, drp) {
+                        gridObj.refresh();
+                    });
+                    colElement.on("cancel.daterangepicker", function (ev, drp) {
+                    });
+                });
             }
 
         });

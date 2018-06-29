@@ -1164,7 +1164,7 @@
     {
         "id": "patientsByInsurance",
         "category": "billing",
-        "title": "Patients By Insurance",
+        "title": "Patients By Insurance Company",
         "description": "Report shows Patients By Insurance.",
         "flags": {
             "hideDetailTableCaption": true

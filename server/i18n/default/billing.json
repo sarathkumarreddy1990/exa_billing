@@ -120,7 +120,8 @@
             "electronic": "Electronic",
             "directingBilling": "Direct Billing(Invoice)",
             "invoiceNumber": "Invoice Number :",
-            "pendingPayments": "Pending Payments",
+            "pendingPayments": "Pending Payments(Auto)",
+            "pendingPaymentsPat": "Pending Payments(By Patient/Claim)",
             "appliedPayments": "Applied Payments",
             "paperClaim": "Paper Claim",
             "patientPayment": "Patient Payment",
@@ -366,7 +367,8 @@
             "insuranceExpDate" : "Expiry Date",
             "totalInsurancePayments":"Total Insurance Payment",
             "totalPatientPayments":"Total Patient Payment",
-            "currentResponsibility":"Current Responsibility Assigned"
+            "currentResponsibility":"Current Responsibility Assigned",
+            "validationResults": "Validation Results"
         }
     }
 }

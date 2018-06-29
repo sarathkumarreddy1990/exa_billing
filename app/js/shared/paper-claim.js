@@ -2,116 +2,144 @@ define([
     'jquery',
     '_get',
     'backbone',
-    'pdfmake',
-    'pdfmake-fonts'
 ], function (
     $,
     _get,
-    Backbone,
-    pdfmake,
-    pdfmakeFonts
+    Backbone
 ) {
         return function () {
 
+            this.pdfDetails = {
+                'paper_claim_original': {
+                    header: 'Paper Claim',
+                    api: '/exa_modules/billing/claim_workbench/claim_json'
+                },
+
+                'paper_claim_full': {
+                    header: 'Paper Claim',
+                    api: '/exa_modules/billing/claim_workbench/claim_json'
+                },
+
+                'direct_invoice': {
+                    header: 'Direct Billing',
+                    api: '/exa_modules/billing/claim_workbench/invoice_data'
+                },
+
+                'patient_invoice': {
+                    header: 'Patient Invoice',
+                    api: '/exa_modules/billing/claim_workbench/invoice_data'
+                },
+            };
+
             this.print = function (templateType, claimIDs) {
                 var self = this;
-                var win = window.open('', '_blank');
+                var win = null;
+
+                if (!this.pdfDetails[templateType]) {
+                    return commonjs.showError('Not yet implemented');
+                }
+
+                if (commonjs.openPdfNewWindow) {
+                    win = window.open('', '_blank');
+                }
+
+                commonjs.showLoading();
 
                 this.getTemplate(claimIDs, templateType, function (err, template) {
                     self.getClaimObject(claimIDs, templateType, function (err, claimData) {
-                        var docDefinition = self.mergeTemplate(template, claimData);
-                        pdfMake.createPdf(docDefinition).open({}, win);
-                        return;
 
-                        var docDefinition = { content: 'This is an sample PDF printed with pdfMake', style: 'header', mmmm: 'sdfdsfdsf' };
-                        pdfMake.createPdf(docDefinition).open({}, win);
+                        var docDefinition = self.mergeTemplate(templateType, template, claimData);
+                        //var docDefinition = { content: 'This is an sample PDF printed with pdfMake', style: 'header', mmmm: 'sdfdsfdsf' };
+
+                        var pdfWorker;
+
+                        try {
+                            pdfWorker = new Worker('/exa_modules/billing/static/js/workers/pdf.js');
+                        } catch (e) {
+                            console.error(e);
+                            return;
+                        }
+
+                        pdfWorker.onmessage = function (res) {
+                            console.log('Response received from worker');
+
+                            commonjs.hideLoading();
+                            //document.getElementById('ifrPdfPreview').src = outDoc;
+
+                            commonjs.showDialog({
+                                header: self.pdfDetails[templateType].header,
+                                width: '95%',
+                                height: '80%',
+                                url: res.data.pdfBlob
+                            });
+
+                            // const anchor = document.createElement('a');
+                            // document.body.appendChild(anchor);
+                            // anchor.href = window.URL.createObjectURL(res.data.pdfBlob);
+                            // anchor.download = 'myFileName.pdf';
+                            // anchor.click();
+                        };
+
+                        pdfWorker.postMessage(docDefinition);
+                        return;
+                      
+
+                        // commonjs.hideLoading();
+
+                        // try {
+                        //     if (win) {
+                        //         pdfMake.createPdf(docDefinition).open({}, win);
+                        //     } else {
+                        //         pdfMake.createPdf(docDefinition).getDataUrl(function (outDoc) {
+                        //             document.getElementById('ifrPdfPreview').src = outDoc;
+
+                        //             commonjs.showDialog({
+                        //                 header: self.pdfDetails[templateType].header,
+                        //                 width: '95%',
+                        //                 height: '80%',
+                        //                 url: outDoc
+                        //             });
+                        //         });
+                        //     }
+                        // } catch (err) {
+                        //     console.log(err);
+                        // }
                     });
                 });
             };
 
-            this.mergeTemplate = function (template, claimData) {
+            this.mergeTemplate = function (templateType, template, claimData) {
                 template = template.template_content;
-                claimData = claimData.data[0];
-
-                // template = { content: 'Corrected Claim', style: 'header', mergeField: 'data.date1' };
-                // claimData = {
-                //     data: {
-                //         date1: 'hello'
-                //     }
-                // };
 
                 var dd = null;
+
+                if (templateType === 'direct_invoice' || templateType === 'patient_invoice') {
+                    claimData = claimData[0];
+                }
 
                 try {
                     eval(template);
                 } catch (err) { console.log(err); }
 
                 if (!dd || typeof dd !== 'object') {
-                    return commonjs.showError('Invalid template');
+                    commonjs.hideLoading();
+                    return commonjs.showError('Invalid data/template');
                 }
 
-                template = this.mergeData(dd, claimData);
+                //template = mailMerge.mergeData(dd, claimData);
+                template = dd;
 
                 return template;
-            }
-
-            this.mergeData = function (template, data) {
-                for (var key in template) {
-                    if (key === 'mergeField') {
-                        template.text = this.getDescendantProp(data, template[key]);
-                        //delete template[key];
-                    }
-
-                    if (typeof template[key] === 'object' && Object.keys(template[key]).length > 0) {
-                        template[key] = this.mergeData(template[key], data);
-                    }
-                }
-
-                return template;
-            }
-
-            this.getDescendantProp = function (obj, key) {
-                try {
-                    let tokenString = key.replace(/(^{|}$|^\[|\]$)/g, '');
-
-                    // /// Checking for js script
-                    // if (tokenString[0] === constants.MERGE_FIELD_KEY) {
-                    //   let jsCode = tokenString.replace(/(^{|}$|^\[|\]$)/g, '');
-                    //   return this.executeJsCode(jsCode, obj);
-                    // }
-
-                    let data = get(obj, tokenString);
-                    return data || '';
-                } catch (err) { return '' }
-
-                return '';
-            }
-
-            this.executeJsCode = function (code, jsData) {
-                try {
-                    return Function('"use strict"; return ( function(jsData){' + code + '})')()(jsData);
-                } catch (err) { return '' }
             }
 
             this.getClaimObject = function (claimIDs, templateType, callback) {
 
-                var apis = {
-                    'paper_claim_original': '/exa_modules/billing/claim_workbench/claim_json',
-                    'paper_claim_full': '/exa_modules/billing/claim_workbench/claim_json',
-                    'direct_invoice': '/exa_modules/billing/claim_workbench/invoice_json',
-                    'patient_invoice': '/exa_modules/billing/claim_workbench/patient_invoice_json',
-                };
-
-                if (!apis[templateType]) {
-                    return callback(new Error('Invalid template type'));
-                }
-
                 $.ajax({
-                    url: apis[templateType],
+                    url: this.pdfDetails[templateType].api,
                     data: {
                         claimIds: claimIDs
                     }, success: function (data, response) {
-                        callback(null, data.length > 0 ? data[0] : {});
+                        callback(null, data);
                     }, error: function (err, response) {
                         commonjs.handleXhrError(err, response);
                         callback(err);

@@ -92,7 +92,7 @@ define(['jquery',
                     return false
                 }
             },
-            render: function () {
+            render: function (isFrom) {
                 var self = this;
                 this.rendered = true;
 
@@ -116,17 +116,23 @@ define(['jquery',
                 });
 
 
-                self.bindDetails();
                 // Hide non-edit tabs
                 if (!self.isEdit) {
                     $('.editClaimRelated').hide();
-                    //$('.woClaimRelated').hide();
                 }
-                    
+
+                if (isFrom == 'patient') {
+                    $('.woClaimRelated').hide();
+                } else {
+                    $('#divPatient').hide();
+                }
+
                 $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr for select2 search text can't editable
 
-                
-                 this.bindTabMenuEvents();
+                if (isFrom != 'patient') {
+                    self.bindDetails();
+                    self.bindTabMenuEvents();
+                }
             },
 
             checkInsuranceEligibility: function (e) {
@@ -270,28 +276,30 @@ define(['jquery',
 
             bindDetails: function () {
                 var self = this;
+
+                // set all Insurance auto_complete
+                self.bindBillingSummary();
+                self.bindServiceType();
+                self.bindInsuranceAutocomplete('ddlPriInsurance');
+                self.bindInsuranceAutocomplete('ddlSecInsurance');
+                self.bindInsuranceAutocomplete('ddlTerInsurance');
+
                 self.setProviderAutoComplete('PR'); // rendering provider auto complete
                 self.setProviderAutoComplete('RF'); // referring provider auto complete
                 self.setDiagCodesAutoComplete();
                 self.bindExistingPatientInsurance();
                 self.setOrderingFacilityAutoComplete();
-                // set all Insurance auto_complete
-                self.bindInsuranceAutocomplete('ddlPriInsurance');
-                self.bindInsuranceAutocomplete('ddlSecInsurance');
-                self.bindInsuranceAutocomplete('ddlTerInsurance');
-                self.bindBillingSummary();
-                self.bindServiceType();
             },
 
             initializeClaimEditForm: function () {
                 var self = this;
                 if (!this.rendered)
-                    this.render();
+                    this.render('claim');
                 self.bindclaimFormEvents();
             },
 
             /* Get claim edit details function*/
-            showEditClaimForm: function (claim_Id, IsUpdated) {
+            showEditClaimForm: function (claim_Id, isFrom, options) {
                 var self = this;
                 self.model.set({ id: claim_Id });
                 self.claim_Id = claim_Id;
@@ -299,6 +307,7 @@ define(['jquery',
                 self.claimICDLists = [];
                 self.removedCharges = [];
                 self.chargeModel = [];
+                self.options = options || {};
 
                 $.ajax({
                     type: 'GET',
@@ -321,6 +330,10 @@ define(['jquery',
                             self.terClaimInsID = claimDetails.tertiary_patient_insurance_id || null;
                             self.claim_row_version = claimDetails.claim_row_version || null;
                             self.initializeClaimEditForm();
+
+                            if (isFrom && isFrom == 'studies')
+                                $('.claimProcess').hide(); // hide Next/Prev btn if opened from studies worklist
+
                             /* Header Details */
                             $(parent.document).find('#spanModalHeader').html('Edit: <STRONG>' + claimDetails.patient_full_name + '</STRONG> (Acc#:' + claimDetails.patient_account_no + '), <i>' + claimDetails.patient_dob + '</i>  ');
 
@@ -339,6 +352,7 @@ define(['jquery',
                                     claim_id: obj.claim_id,
                                     study_id: obj.study_id,
                                     accession_no: obj.accession_no,
+                                    payment_exists: obj.payment_exists,
                                     is_deleted: false
                                 });
                             });
@@ -370,10 +384,14 @@ define(['jquery',
                             self.ICDID = self.icd_code = self.icd_description = '';
 
                             $('#btnSaveClaim').attr('disabled', false);
+                            
+                            $("#txtClaimDate").attr("disabled", "disabled");                             
 
                             setTimeout(function () {
                                 self.bindDefaultClaimDetails(claimDetails);
                                 $('.claimProcess').prop('disabled', false);
+                                if (self.options && !self.options.study_id)
+                                    $('#btPatientDocuemnt').prop('disabled', true);
                             }, 200);
                         }
                     },
@@ -625,10 +643,14 @@ define(['jquery',
                 self.isEdit = self.claim_Id ? true : false;
 
                 if (!this.rendered)
-                    this.render();
+                    this.render('claim');
 
                 $(parent.document).find('#spanModalHeader').html('Claim Creation : <STRONG>' + primaryStudyDetails.patient_name + '</STRONG> (Acc#:' + primaryStudyDetails.account_no + '), <i>' + self.cur_patient_dob + '</i>  ');
                 self.getLineItemsAndBind(selectedStudyIds);
+                if(options && options == 'patientSearch'){
+                    self.bindDetails();
+                    self.bindTabMenuEvents();
+                }
                 self.updateResponsibleList({
                     payer_type: 'PPP',
                     payer_name: self.cur_patient_name + '( Patient )',
@@ -636,6 +658,22 @@ define(['jquery',
                 });
 
                 self.bindclaimFormEvents();
+            },
+
+            showPatientForm: function () {
+                var self = this;
+
+                if (!this.rendered)
+                    this.render('patient');
+
+                // Patient search events
+                $('#anc_first, #anc_previous, #anc_next, #anc_last').off().click(function (e) {
+                    self.onpaging(e);
+                });
+
+                $('.search-field').off().keyup(function (e) {
+                    self.applySearch(e);
+                });
             },
 
             bindclaimFormEvents: function () {
@@ -677,8 +715,8 @@ define(['jquery',
                     self.validateClaim();
                 });
 
-                $("#btnPatientReport").off().click(function (e) {
-                    self.checkChromeExtension();
+                $("#btPatientDocuemnt").off().click(function (e) {
+                   commonjs.openDocumentsAndReports(self.options);
                 });
 
                 $(".claimProcess").off().click(function (e) {
@@ -694,20 +732,6 @@ define(['jquery',
                 //     self.urlNavigation(e);
                 // });
 
-                // "keyup #searchPatient .search-field": "applySearch",
-                // "dblclick .selectionpatient": "selectPatient",
-
-                $('#anc_first, #anc_previous, #anc_next, #anc_last').off().click(function (e) {
-                    self.onpaging(e);
-                });
-
-                $('.selectionpatient').off().dblclick(function (e) {
-                    self.selectPatient(e);
-                });
-
-                $('.search-field').off().keyup(function (e) {
-                    self.applySearch(e);
-                });
 
             },
             getLineItemsAndBind: function (selectedStudyIds) {
@@ -760,9 +784,15 @@ define(['jquery',
                                     
                                 });
                                 var _defaultDetails = modelDetails.claim_details && modelDetails.claim_details.length > 0 ? modelDetails.claim_details[0] : {};
-                                self.bindDefaultClaimDetails(_defaultDetails)
+                                setTimeout(function () {
+                                    self.bindDefaultClaimDetails(_defaultDetails);
+                                }, 200);
+                                
                                 self.bindProblemsContent(diagnosisCodes,diagnosisCodesOrder);
-                            }
+
+                                if(modelDetails && modelDetails.charges && modelDetails.charges.length)
+                                    $("#txtClaimDate").attr("disabled", "disabled"); 
+                            }                            
                         },
                         error: function (model, response) {
                             commonjs.handleXhrError(model, response);
@@ -827,11 +857,16 @@ define(['jquery',
                 // modifiers dropdown
                 for (var m = 1; m <= 4; m++) {
 
+                    var arr = jQuery.grep(app.modifiers, function (n, i) {
+                        return (n['M' + m] == true || n['M' + m] == 'true');
+                    });
+
                     // bind default pointer from line items
                     if (isDefault) {
                         var _pointer = data.icd_pointers && data.icd_pointers[m - 1] ? data.icd_pointers[m - 1] : '';
                         $('#ddlPointer' + m + '_' + index).val(_pointer);
                         //$('#ddlModifier' + m + '_' + index).val(data['m' + m])
+                        //self.bindModifiersData('ddlModifier' + m + '_' + index, arr);
                     }else{
                         $('#ddlPointer' + m + '_' + index).val(data['pointer' + m]);
                         // ToDo:: Once modifiers dropdown added have to bind
@@ -842,6 +877,7 @@ define(['jquery',
 
                 self.assignModifierEvent();
                 self.assignLineItemsEvents(index);
+                app.modifiers_in_order = true;
                 commonjs.enableModifiersOnbind('M'); // Modifier
                 commonjs.enableModifiersOnbind('P'); // Diagnostic Pointer
                 commonjs.validateControls();
@@ -986,9 +1022,51 @@ define(['jquery',
                 });
                 // Remove line item form charge table
                 $('.removecharge').off().click(function (e) {
+
                     var rowObj = $(e.target || e.srcElement).closest('tr');
                     var rowId = parseInt(rowObj.attr('data_row_id'))
                     var rowData = _.find(self.chargeModel, { 'data_row_id': rowId });
+
+                    if ($('#tBodyCharge tr').length <= 1) {
+                        commonjs.showWarning("Claim need minimum one charge required");
+                        return false;
+                    }
+                    if (rowData.id) {
+                        if (confirm('Are you sure to delete charge ?')) {
+                            if (rowData.payment_exists) {
+                                if (confirm('Payment exists for this charge, Confirm to delete')) {
+                                    self.removeChargeFromDB(rowData.id, function (response) {
+                                        if (response && response.status)
+                                            removeCharge(rowData, rowId, rowObj);
+                                        else
+                                            commonjs.showWarning('Error on deleting charge');
+                                    });
+                                }
+                            } else {
+                                self.removeChargeFromDB(rowData.id, function (response) {
+                                    if (response && response.status)
+                                        removeCharge(rowData, rowId, rowObj);
+                                    else
+                                        commonjs.showWarning('Error on deleting charge');
+                                });
+                            }
+                        }
+                    } else {
+                        removeCharge(rowData, rowId, rowObj);
+                    }
+                });
+                // Enable bill_fee 
+                $('#editBillFee_' + index).off().click(function (e) {
+                    $('#txtBillFee_' + index).attr({ disabled: false, edit: true }).focus();
+                    $('#txtAllowedFee_' + index).attr({ disabled: false, edit: true });
+                });
+                // changeFee details on keup
+                $(".units, .billFee, .allowedFee").off().blur(function (e) {
+                    ///this.value = this.value.replace(/[^0-9\.]/g, '');
+                    self.changeFeeData(e)
+                });
+
+                var removeCharge = function(rowData,  rowId, rowObj){
 
                     if (rowData.id || null) {
                         self.removedCharges.push({
@@ -1003,22 +1081,42 @@ define(['jquery',
                     rowObj.remove();
                     // trigger blur event for update Total bill fee, balance etc.
                     $(".allowedFee").blur();
-                });
-                // Enable bill_fee 
-                $('#editBillFee_' + index).off().click(function (e) {
-                    $('#txtBillFee_' + index).attr({ disabled: false, edit: true }).focus();
-                    $('#txtAllowedFee_' + index).attr({ disabled: false, edit: true });
-                });
-                // changeFee details on keup
-                $(".units, .billFee, .allowedFee").off().blur(function (e) {
-                    ///this.value = this.value.replace(/[^0-9\.]/g, '');
-                    self.changeFeeData(e)
-                });
+
+                };
 
             },
 
+            removeChargeFromDB: function(chargeId, callback){
+                var self = this;
+
+                $.ajax({
+                    type: 'PUT',
+                    url: '/exa_modules/billing/claim_workbench/claim_charge/delete',
+                    data: {
+                        target_id: chargeId,
+                        type: 'charge',
+                        screenName: 'claims'
+                    },
+                    success: function (model, response) {
+                        console.log(model);
+                        if(model && model.rowCount){
+                            var _status = model.rows && model.rows.length && model.rows[0].purge_claim_or_charge ? model.rows[0].purge_claim_or_charge : false
+                            callback({
+                                status: _status
+                            })    
+                        }else{
+                            callback(model)
+                        }
+                    },
+                    error: function (model, response) {
+                        
+                        commonjs.handleXhrError(model, response);
+                    }
+                })
+            },
+
             changeFeeData: function (e) {
-                var self = this, total_bill_fee = 0.0, total_allowed = 0.0;
+                var self = this, total_bill_fee = 0.0, total_allowed = 0.0, patient_paid = 0.0, others_paid = 0.0, refund = 0.0, adjustemnt_amout = 0.0;
                 if (!commonjs.checkNotEmpty($(e.target || e.srcElement).val()))
                     $(e.target || e.srcElement).hasClass('units') ? $(e.target || e.srcElement).val('1.000') : $(e.target || e.srcElement).val('0.00');
                 if (commonjs.checkNotEmpty($(e.target || e.srcElement).val()) && !$(e.target || e.srcElement).hasClass('units')) {
@@ -1044,7 +1142,10 @@ define(['jquery',
                 $('#spBalance').text(commonjs.roundFee(total_bill_fee));
                 $('#spTotalAllowedFeeValue').text(commonjs.roundFee(total_allowed));
                 $('#spAllowed').text(commonjs.roundFee(total_allowed));
-
+                $('#spPatientPaid').text(commonjs.roundFee(patient_paid));
+                $('#spOthersPaid').text(commonjs.roundFee(others_paid));
+                $('#spAdjustment').text(commonjs.roundFee(adjustemnt_amout));
+                $('#spRefund').text(commonjs.roundFee(refund));
             },
 
             updateResponsibleList: function (payer_details) {
@@ -1244,11 +1345,13 @@ define(['jquery',
                         self.ACSelect.refPhy.Desc = res.full_name;
                         self.ACSelect.refPhy.Code = res.provider_code;
                         self.ACSelect.refPhy.contact_id = res.provider_contact_id;
-                        self.updateResponsibleList({
-                            payer_type: 'RF',
-                            payer_id: res.id,
-                            payer_name: res.full_name + '(Referring Provider)'
-                        });
+                        if (res.id) {
+                            self.updateResponsibleList({
+                                payer_type: 'RF',
+                                payer_id: res.id,
+                                payer_name: res.full_name + '(Referring Provider)'
+                            });
+                        }
                     }
                     return res.full_name;
                 }
@@ -1611,7 +1714,7 @@ define(['jquery',
             },
 
             bindInsurance: function (element_id, res) {
-                var self = this, payer_typ, coverage_level;
+                var self = this, payer_type, coverage_level;
                 switch (element_id) {
                     case 'ddlPriInsurance':
                         self.priInsID = res.id;
@@ -1662,6 +1765,11 @@ define(['jquery',
                     payer_name: res.insurance_name + '( ' + coverage_level + ' )',
                     billing_method: res.insurance_info && res.insurance_info.billingMethod ? res.insurance_info.billingMethod : null
                 });
+                
+                //Assign primary insurance as responsible
+                if(payer_type == 'PIP_P'){
+                    $('#ddlResponsible').val('PIP_P');
+                }
             },
 
             updateInsAddress: function (level, res) {
@@ -1720,11 +1828,8 @@ define(['jquery',
                         $('label').css('color', 'black');
                         $('.multiselect-container li a').css('padding', '0');
 
-
-                        console.log(model);
                     },
                     error: function (model, response) {
-                        console.log(model);
                         commonjs.handleXhrError(model, response);
                     }
                 })
@@ -1893,9 +1998,14 @@ define(['jquery',
                     $('#txt' + flag + 'SubPriAddr').val(result.subscriber_address_line1);
                     $('#txt' + flag + 'SubSecAddr').val(result.subscriber_address_line2);
                     $('#txt' + flag + 'City').val(result.subscriber_city);
-                    $('#txt' + flag + 'State').val(result.subscriber_state);
+                    $('#ddl' + flag + 'State').val(result.subscriber_state);
                     $('#txt' + flag + 'ZipCode').val(result.subscriber_zipcode);
 
+                    setTimeout(function () {
+                        if (!self.isEdit)
+                            $('#ddlResponsible').val('PIP_P');
+                    }, 200);
+                    
                 }
             },
 
@@ -2236,6 +2346,7 @@ define(['jquery',
                 }
 
                 /* Charge section */
+
                 if (!$('#tBodyCharge tr').length) {
                     commonjs.showWarning("messages.warning.claims.chargeValidation", 'largewarning');
                     return false;
@@ -2538,11 +2649,6 @@ define(['jquery',
                 })
             },
 
-            checkChromeExtension: function () {
-                var self = this;
-                commonjs.showWarning('Under Construction'); 
-            },
-
             processClaim: function (e) {
                 var self = this;
                 var $tblGrid = $('#tblClaimGridAll_Claims');
@@ -2554,8 +2660,16 @@ define(['jquery',
 
                     if (nextRowData.attr('id') && nextRowData.length > 0) {
                         var rowId = nextRowData.attr('id');
-                        $(e.target).prop('disabled',true);
-                        self.showEditClaimForm(rowId);
+                        $(e.target).prop('disabled', true);
+                        var data = $($tblGrid, parent.document).getRowData(rowId);
+                        commonjs.getClaimStudy(rowId).then(function (result) {
+                            self.showEditClaimForm(rowId, null, {
+                                'study_id': result && result.study_id ? result.study_id : 0,
+                                'patient_name': data.patient_name,
+                                'patient_id': data.patient_id,
+                                'order_id': result && result.order_id ? result.order_id : 0
+                            });
+                        });
                     } else {
                         commonjs.showWarning('No more order found')
                     }
@@ -2754,10 +2868,7 @@ define(['jquery',
                 var $results = $('#divPatientSearchResults');
                 $results.html(content).show();
 
-                $('.inactiveSpanClick').dblclick(function () {
-                    return false;
-                });
-
+               
                 var currentSearchValue = '';
 
                 // build up 'error' text based on the user's search query
@@ -2785,6 +2896,16 @@ define(['jquery',
                     $('#divEmptySearch').hide();
                     $results.show();
                 }
+
+                // $('.selectionpatient').dblclick(function (e) {
+                //     self.selectPatient(e);
+                // });
+                $('.selectionpatient').off().click(function (e) {
+                    var $target = $(e.target || e.srcElement).closest('.studyList').length
+                    if (!$target && $(e.target || e.srcElement).attr('id') != 'btnClaimWStudy' && $(e.target || e.srcElement).attr('id') != 'btnClaimWOStudy') {
+                        self.selectPatient(e);
+                    }
+                });
             },
 
             setPaging: function () {
@@ -2863,13 +2984,153 @@ define(['jquery',
                 var tagName = commonjs.getElementFromEventTarget(e).tagName;
                 var self = this;
                 var patientId = (tagName == 'P') ? (e.target || e.srcElement).parentElement.id.split('_')[2] : (e.target || e.srcElement).id.split('_')[2];
+                var $studyDetails = $(e.target || e.srcElement).closest('.selectionpatient').find('.studyDetails');
                 var patient_name = $(e.target || e.srcElement).closest('.selectionpatient').data('name');
                 var account_no = $(e.target || e.srcElement).closest('.selectionpatient').data('value');
-                var dicom_patient_id = $(e.target || e.srcElement).closest('.selectionpatient').data('dicom_patient_id');
+                var patient_dob = $(e.target || e.srcElement).closest('.selectionpatient').data('patient_dob');
+                var facility_id = $(e.target || e.srcElement).closest('.selectionpatient').data('facility_id');
+                self.cur_patient_id = patientId || 0;
 
-                this.patientId = patientId;
-                this.invoice_no_to_search = '';
-                //this.showPatientForm(patientId);
+                if (!$studyDetails.is(':visible')) {
+
+                    $('.studyDetails').empty();
+                    $('.studyDetails').hide();
+                    
+                    $list = $('<ul class="studyList" style="width: 50%;margin:0px;"></ul>');
+                    jQuery.ajax({
+                        url: "/exa_modules/billing/claims/studiesby_patient_id",
+                        type: "GET",
+                        data: {
+                            id: patientId,
+                            company_id: app.companyID
+                        },
+                        success: function (data) {
+                            if (data && data.length) {
+                                _.each(data, function (study) {
+                                    study.study_description = study.study_description ? study.study_description : '--';
+                                    study.accession_no = study.accession_no ? study.accession_no : '--';
+                                    var study_date = study.study_dt ? commonjs.convertToFacilityTimeZone(app.facilityID, moment(study.study_dt)).format('L LT z') : '--'
+                                    $list.append('<li><input id="studyChk_' + study.id + '" type="checkbox" name="chkStudy" data-study_dt="' + study.study_dt + '" data-accession_no="' + study.accession_no + '" />'+
+                                    '<label style="font-weight: bold;overflow-wrap: break-word;"  for="studyChk_' + study.id + '" >' + study.study_description
+                                    + ' ( Accession# : ' + study.accession_no + ' , Study.Date: ' + study_date + ')</label></li>');
+                                });
+                                $studyDetails.append($list);
+                                $studyDetails.show();
+
+                                $studyDetails.append('<button style="height:33px;margin-right:5px;" type="button" class="btn top-buffer processClaim" id="btnClaimWStudy">With Study</button>');
+                                $studyDetails.append('<button style="height:33px;" type="button" class="btn top-buffer processClaim" id="btnClaimWOStudy">Create Without Study</button>');
+                                $('.processClaim').off().click(function (e) {
+
+                                    if ($(e.target).attr('id') == 'btnClaimWStudy') {
+                                        var selectedStudies = [];
+                                        var $checkedInputs = $studyDetails.find('input').filter('[name=chkStudy]:checked');
+                                        var selectedCount = $checkedInputs.length;
+
+                                        if (selectedCount == 0) {
+                                            commonjs.showWarning('Please select Study');
+                                        } else {
+
+                                            for (var r = 0; r < selectedCount; r++) {
+                                                var studyId = $checkedInputs[r] && $checkedInputs[r].id ? $checkedInputs[r].id.split('_')[1] : 0;
+                                                var study_dt = $checkedInputs[r] && $checkedInputs[r].dataset ? $checkedInputs[r].dataset.study_dt : null;
+                                                var accession_no = $checkedInputs[r] && $checkedInputs[r].dataset ? $checkedInputs[r].dataset.accession_no : null;
+
+                                                var study = {
+                                                    study_id: studyId,
+                                                    patient_id: patientId,
+                                                    facility_id: facility_id,
+                                                    study_date: study_dt,
+                                                    patient_name: patient_name,
+                                                    account_no: account_no,
+                                                    patient_dob: patient_dob,
+                                                    accession_no: accession_no,
+                                                };
+                                                selectedStudies.push(study);
+                                                
+                                            }
+                                            var studyIds = selectedStudies.map(value => value.study_id);
+                                            studyIds = studyIds.join();
+                                            window.localStorage.setItem('primary_study_details', JSON.stringify(selectedStudies[0]));
+                                            window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
+
+                                            $('#divPageLoading').show();
+                                            self.showClaimForm('patientSearch');
+
+                                            setTimeout(function () {
+                                                $('#divPageLoading').hide();
+                                                $('.woClaimRelated').show();
+                                                $('#divPatient').hide();
+                                            }, 200);
+
+                                        }
+
+                                    }
+                                    else {
+                                        self.claimWOStudy(patient_name, account_no, patient_dob);
+                                    }
+
+                                });
+                            } else {
+
+                                if (confirm("Selected patient don't have study. Are you sure to process without study? ")) {
+                                    self.claimWOStudy(patient_name, account_no, patient_dob);
+                                }
+
+                            }
+                           
+                        },
+                        error: function (err) {
+                            commonjs.handleXhrError(err);
+                        }
+                    });
+                }
+                
+            },
+            claimWOStudy:function(patient_name, account_no, patient_dob){
+                var self = this;
+
+                // Claim w/o charge code  -- start
+                $('#divPageLoading').show();
+
+                // bind claim details
+                self.bindDetails();
+
+                //binding claim form events
+                self.bindTabMenuEvents();
+                self.bindclaimFormEvents();
+
+                // Set Default details
+                self.updateResponsibleList({
+                    payer_type: 'PPP',
+                    payer_name: patient_name + '( Patient )',
+                    payer_id: self.cur_patient_id
+                });
+                
+                $('#ddlFacility').val(app.facilityID || '');
+
+                if (app.facilityID) {
+                    self.updateResponsibleList({
+                        payer_type: 'PF',
+                        payer_id: app.facilityID,
+                        payer_name: $('#ddlFacility option:selected').text().trim() + '( Facility )'
+                    });
+                }
+
+                $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
+                $('#ddlResponsible').val('PPP');
+
+                self.cur_study_date = commonjs.convertToFacilityTimeZone(app.facilityID, moment()).format('L LT z')
+                document.querySelector('#txtClaimDate').value = moment().format('YYYY-MM-DD');
+                
+                // Claim w/o charge code  -- end
+
+                setTimeout(function () {
+                    $('#divPageLoading').hide();
+                    $(parent.document).find('#spanModalHeader').html('Claim Creation : <STRONG>' + patient_name + '</STRONG> (Acc#:' + account_no + '), <i>' + patient_dob + '</i>  ');
+                    $('#divPatient').hide();
+                    $('.woClaimRelated').show();
+                }, 200);
+
             }
 
         });

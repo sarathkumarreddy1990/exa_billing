@@ -196,9 +196,12 @@ define(['jquery',
                 "click #btnClearAllStudy": "clearAllSelectedRows",
                 "click #btnSelectAllStudy": "selectAllRows",
                 "click #btnInsuranceClaim": "createClaims",
+                "click #btnPaperClaimFormat": "createClaims",
+                "click #btnPaperClaimFull": "createClaims",
+                "click #btnPaperClaimOriginal": "createClaims",
                 "click #btnValidateOrder": "validateClaim",
                 "click #btnClaimRefreshAll": "refreshAllClaims",
-                "click #btnValidateExport": "underConstruction",
+                "click #btnValidateExport": "exportExcel",
                 "click #btnClaimsRefresh": "refreshClaims",
             },
 
@@ -253,14 +256,14 @@ define(['jquery',
                     gadget: '',
                     customStudyStatus: []
                 }));
-
+                $("#btnPaperClaimFormat").text('Paper Claims('+(localStorage.getItem('default_paperclaim_format')||'ORIGINAL')+')')
 
                 if (queryString && !queryString.target && commonjs.getParameterByName(queryString).admin && commonjs.getParameterByName(queryString).admin == 1) {
                     self.isAdmin = true;
                 }
                 commonjs.showLoading('Loading filters..');
                 self.userSettings = commonjs.hstoreParse(app.userInfo.user_settings);
-                $("#btnStudiesRefreshAll, #btnStudiesRefresh, #diveHomeIndex, #divclaimsFooter").hide();
+                $("#btnStudiesRefreshAll, .createNewClaim, #btnStudiesRefresh, #diveHomeIndex, #divclaimsFooter").hide();
                 $('#divPageLoading').show();
 
                 isDefaultTab = false;
@@ -381,8 +384,16 @@ define(['jquery',
                 $('#chkStudyHeader_' + filterID).prop('checked', true);
                 commonjs.setFilter(filterID, filter);
             },
-            createClaims:function () {
+            createClaims:function (e) {
                 let self=this;
+                if(e.target){
+                    var  paperClaimFormat=$(e.target).attr('data-value');
+                    if(paperClaimFormat){
+                        localStorage.setItem('default_paperclaim_format',paperClaimFormat);
+                        $("#btnPaperClaimFormat").text('Paper Claims('+(localStorage.getItem('default_paperclaim_format')||'ORIGINAL')+')')
+                    }                  
+                }
+                
                 let filterID = commonjs.currentStudyFilter;
                 let filter = commonjs.loadedStudyFilters.get(filterID);
 
@@ -432,8 +443,22 @@ define(['jquery',
                 /// "paper_claim_full"
                 /// "paper_claim_original"
                 /// "patient_invoice"
-                if(existingBillingMethod === 'paper_claim') {
-                    paperClaim.print('paper_claim_original', claimIds);
+                if (existingBillingMethod === 'paper_claim') {
+                    var paperClaimFormat =
+                        localStorage.getItem('default_paperclaim_format') === 'ORIGINAL'
+                            ? 'paper_claim_original' : 'paper_claim_full';
+
+                    paperClaim.print(paperClaimFormat, claimIds);
+                    return;
+                }
+
+                if(existingBillingMethod === 'direct_billing') {
+                    paperClaim.print('direct_invoice', claimIds);
+                    return;
+                }
+
+                if(existingBillingMethod === 'patient_payment') {
+                    paperClaim.print('patient_invoice', claimIds);
                     return;
                 }
 
@@ -921,7 +946,7 @@ define(['jquery',
 
 
                         arrays.filterQueries.push({
-                            filterid: id.toString(),
+                            filterid: id,
                             rangeIndex: self.dateRangeFilterInitValue,
                             dateString: $divFilterRangeHTML,
                             startDate: dateRangePickerStart,
@@ -1014,6 +1039,11 @@ define(['jquery',
                                 'isClaimGrid': true
                             });
                             table.renderStudy();
+
+                            $('#btnValidateExport').on().click(function () {
+                                table.renderStudy(true);
+                                createStudiesTable();
+                            });
                         };
 
 
@@ -1560,7 +1590,7 @@ define(['jquery',
                             if (!data.invalidClaim_data.length)
                                 commonjs.showStatus(commonjs.geti18NString("messages.status.validatedSuccessfully"));
                             else
-                                commonjs.showDialog({ header: 'Validation Results', i18nHeader: 'menuTitles.order.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });  
+                                commonjs.showDialog({ header: 'Validation Results', i18nHeader: 'billing.claims.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });  
                         }
                     },
                     error: function (err, response) {
@@ -1568,6 +1598,25 @@ define(['jquery',
                         commonjs.handleXhrError(err, response);
                     }
                 })
+            },
+            exportExcel: function(filterID){
+                var self = this;
+                var table = new ClaimsGrid({
+                    'isAdmin': self.isAdmin,
+                    'gridelementid': '#tblClaimGrid' + filterID,
+                    'filterid': filterID,
+                    'setpriorstudies': '',
+                    'isPrior': false,
+                    'isDicomSearch': false,
+                    'providercontact_ids': app.providercontact_ids,
+                    'searchByAssociatedPatients': '',
+                    'isRisOrderSearch': false,
+                    'showEncOnly': false,
+                    'claims_id': 0,
+                    'container': self.el,
+                    '$container': self.$el,                  
+                    'isClaimGrid': true
+                });
             }
         });
     });

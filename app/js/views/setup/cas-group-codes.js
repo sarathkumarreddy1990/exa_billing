@@ -75,9 +75,8 @@ define(['jquery',
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
                                 if (confirm("Are you sure want to delete")) {
-                                    var gridData = $('#tblCasGroupCodesGrid').jqGrid('getRowData', rowID);
+                                    self.model.set({ "id": rowID });
                                     self.model.destroy({
-                                        data: $.param({ id: self.model.id }),
                                         success: function (model, response) {
                                             commonjs.showStatus("Deleted Successfully");
                                             self.casGroupCodesTable.refresh();

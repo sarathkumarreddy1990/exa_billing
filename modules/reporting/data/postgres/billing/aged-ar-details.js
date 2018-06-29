@@ -20,31 +20,45 @@ WITH get_claim_details AS(
     <% if(incPatDetail == 'true') { %> AND payer_type = 'primary_insurance' <%}%>
  )
  SELECT
- bc.id as claim_id,
- now() AS cut_off_date,
- bpr.name AS billing_pro_name,
- get_full_name(pp.last_name,pp.first_name) AS patient_name,
- bc.claim_dt AS service_date,
- pp.account_no as account_no,
+ <% if (facilityIds) { %> (pf.facility_name) <% } else  { %> 'All'::text <% } %> as "Facility",
+ bc.id as "Claim ID",
+ to_char(now(), 'MM/DD/YYYY') AS "Cut-off Date",
+ bpr.name AS "Billing Pro Name",
+ get_full_name(pp.last_name,pp.first_name) AS "Patient Name",
+ to_char(bc.claim_dt, 'MM/DD/YYYY') AS "Claim Date",
+ pp.account_no as "Account #",
  CASE WHEN payer_type = 'primary_insurance' THEN 'Insurance'
       WHEN payer_type = 'secondary_insurance' THEN 'Insurance'
       WHEN payer_type = 'tertiary_insurance' THEN 'Insurance'
       WHEN payer_type = 'referring_provider' THEN 'Provider'
       WHEN payer_type = 'patient' THEN 'Patient'
       WHEN payer_type = 'ordering_facility' THEN 'Ordering Facility'
- END AS responsinble_party,
+ END AS "Responsible Party",
  CASE WHEN payer_type = 'primary_insurance' THEN pip.insurance_name
       WHEN payer_type = 'secondary_insurance' THEN pip.insurance_name
       WHEN payer_type = 'tertiary_insurance' THEN pip.insurance_name
       WHEN payer_type = 'referring_provider' THEN  ppr.full_name
       WHEN payer_type = 'patient' THEN get_full_name(pp.last_name,pp.first_name)
       WHEN payer_type = 'ordering_facility' THEN ppg.group_name
- END AS payer_name,
- 
+ END AS "Payer Name",
+ CASE
+ WHEN (pip.insurance_info->'ediCode') ='A' THEN 'Attorney'
+ WHEN (pip.insurance_info->'ediCode') ='C' THEN 'Medicare'
+ WHEN (pip.insurance_info->'ediCode') ='D' THEN 'Medicaid'
+ WHEN (pip.insurance_info->'ediCode') ='F' THEN 'Commercial'
+ WHEN (pip.insurance_info->'ediCode') ='G' THEN 'Blue Cross'
+ WHEN (pip.insurance_info->'ediCode') ='R' THEN 'RailRoad MC'
+ WHEN (pip.insurance_info->'ediCode') ='W' THEN 'Workers Compensation'
+ WHEN (pip.insurance_info->'ediCode') ='X' THEN 'X Champus'
+ WHEN (pip.insurance_info->'ediCode') ='Y' THEN 'Y Facility'
+ WHEN (pip.insurance_info->'ediCode' )='M' THEN 'M DMERC'
+ELSE   ''
+END  AS "EDI",
+ (ppr.provider_type) AS "Provider Type",
  COALESCE(CASE WHEN gcd.age <= 30 THEN gcd.balance END,0::money) AS "0.-30 Sum",
 COALESCE(CASE WHEN gcd.age > 30 and gcd.age <=60  THEN gcd.balance END,0::money) AS "30-60 Sum",
 COALESCE(CASE WHEN gcd.age > 60 and gcd.age <=90  THEN gcd.balance END,0::money) AS "60-90 Sum",
-COALESCE(CASE WHEN gcd.age > 90 and gcd.age <=120 THEN gcd.balance END,0::money) AS "90-120 SUm",
+COALESCE(CASE WHEN gcd.age > 90 and gcd.age <=120 THEN gcd.balance END,0::money) AS "90-120 Sum",
 
   <% if(excelExtented == 'true') { %>    
 COALESCE(CASE WHEN gcd.age > 120 and gcd.age <=150  THEN gcd.balance END,0::money) AS "120-150 Sum",

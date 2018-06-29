@@ -158,11 +158,13 @@ module.exports = {
                                 ,adjustment money
                                 ,cpt_code text
                                 ,cas_details jsonb
+                                ,claim_status_code bigint
                              )
                             ),
                            selected_Items AS (
                                 SELECT 
                                     application_details.claim_number,
+                                    application_details.claim_status_code,
                                     json_build_object(
                                         'charge_id',application_details.charge_id,
                                         'payment',application_details.payment,
@@ -193,6 +195,7 @@ module.exports = {
                            insert_payment_adjustment AS (
                                 SELECT
                                     selected_Items.claim_number
+                                    ,selected_Items.claim_status_code
                                     ,billing.create_payment_applications(
                                         ${paymentDetails.id}
                                         ,( SELECT id FROM billing.adjustment_codes WHERE code ='ERA' ORDER BY id ASC LIMIT 1 )
@@ -205,7 +208,8 @@ module.exports = {
                             ),
                             inserted_claims AS ( 
                                 SELECT 
-                                    DISTINCT claim_number as claim_id 
+                                    DISTINCT claim_number as claim_id
+                                    ,claim_status_code
                                 FROM 
                                     insert_payment_adjustment 
                             ),
@@ -251,6 +255,48 @@ module.exports = {
                                     )
                                 INNER JOIN inserted_claims ic on ic.claim_id = claim_notes.claim_number
                                 RETURNING id AS claim_comment_id
+                                ),
+                                claim_details AS (
+                                    SELECT
+                                         bc.id as claim_id
+                                        ,bc.claim_status_id
+                                        ,inserted_claims.claim_status_code
+                                        ,(SELECT charges_bill_fee_total::numeric from billing.get_claim_totals(bc.id)) AS bill_fee
+                                        ,( SELECT adjustments_applied_total::numeric from billing.get_claim_totals(bc.id) ) AS adjustment
+                                        ,( SELECT payments_applied_total::numeric from billing.get_claim_totals(bc.id) ) AS payment
+                                        ,(SELECT (charges_bill_fee_total - (payments_applied_total + adjustments_applied_total))::numeric FROM billing.get_claim_totals(bc.id)) AS balance
+                                    FROM billing.claims bc
+                                        INNER JOIN inserted_claims ON inserted_claims.claim_id = bc.id
+                                        INNER JOIN billing.charges bch ON bch.claim_id = bc.id 
+                                        LEFT JOIN billing.payment_applications bpa ON bpa.charge_id  =  bch.id -- For getting applid and pending payments 
+                                        LEFT JOIN billing.payments bp ON bp.id = bpa.payment_id 
+                                    GROUP BY bc.id,bc.claim_status_id,inserted_claims.claim_status_code
+                                ),
+                                update_claim_status AS (
+
+                                    UPDATE billing.claims
+                                      SET claim_status_id = 
+                                      ( 
+                                        CASE WHEN claim_details.claim_status_code = 4 THEN ( SELECT COALESCE(id, claim_details.claim_status_id ) FROM billing.claim_status WHERE company_id = 1 AND code = 'DENIED' AND inactivated_dt IS NULL )
+                                           ELSE
+                                            CASE 
+                                                WHEN claim_details.bill_fee = claim_details.adjustment AND claim_details.payment = 0.00
+                                                    THEN ( SELECT COALESCE(id, claim_details.claim_status_id ) FROM billing.claim_status WHERE company_id = 1 AND code = 'DENIED' AND inactivated_dt IS NULL )
+                                                WHEN claim_details.balance = 0.00
+                                                    THEN ( SELECT COALESCE(id, claim_details.claim_status_id ) FROM billing.claim_status WHERE company_id = 1 AND code = 'PAIDFULL' AND inactivated_dt IS NULL )
+                                                WHEN claim_details.balance < 0.00
+                                                    THEN ( SELECT COALESCE(id, claim_details.claim_status_id ) FROM billing.claim_status WHERE company_id = 1 AND code = 'OVERPYMT' AND inactivated_dt IS NULL )
+                                                WHEN claim_details.balance > 0.00
+                                                    THEN ( SELECT COALESCE(id, claim_details.claim_status_id ) FROM billing.claim_status WHERE company_id = 1 AND code = 'PYMTPEN' AND inactivated_dt IS NULL )
+                                                ELSE
+                                                    claim_details.claim_status_id
+                                            END
+                                        END	
+                                       )
+                                    FROM 
+                                        claim_details 
+                                    WHERE claim_details.claim_id = billing.claims.id  
+                                    RETURNING billing.claims.id, billing.claims.claim_status_id 
                                 )
                             SELECT
 	                            ( SELECT json_agg(row_to_json(insert_payment_adjustment)) insert_payment_adjustment

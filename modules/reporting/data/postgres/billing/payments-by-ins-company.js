@@ -40,14 +40,13 @@ WITH paymentsByInsCompany as (
 )
     SELECT 
         payment_id AS "Payment Id",
-        insurance_name AS "Insurance Name",
-        COALESCE(facility_name, 'TOTAL') AS "Facility Name",
+        insurance_name AS "Insurance Name",      
         amount AS "Amount",
         payment_applied_amount AS "Applied",
         payment_balance AS "Balance",
         cheque_card_number AS "Cheque/Card #",
         payment_mode AS "Payment Mode",
-        payment_date AS "Payment Date"
+        to_char(payment_date, 'MM/DD/YYYY') AS "Payment Date"
     FROM
          paymentsByInsCompany
 `);

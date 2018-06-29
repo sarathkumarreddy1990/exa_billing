@@ -3,6 +3,15 @@ body {
     cursor: default;
 }
 
+* {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
 .settings-nav {
     padding-top: 45px;
     border-right: 4px solid #ececec;
@@ -61,13 +70,6 @@ input[type="text"], select {
 	background: @header_bg;
 }
 
-.tn-menu>li.active{
-    border-color: #0090ff;
-}
-.nav-tabs>li.active{
-    border-color: #0090ff;
-}
-
 .validateTags{
   height: 50px;
   width: 100px;
@@ -110,12 +112,14 @@ input[type="text"], select {
   text-align: right;
 }
 
-* {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-  }
-  
+.dropdown-item {
+    font-size: 0.9em;
+}
+
+.summmaryBorder {
+    border-bottom: 1px solid @SummaryBorder !important;
+}
+
+.summmaryBorder label {
+    margin: 4px;
+}

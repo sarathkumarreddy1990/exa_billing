@@ -1,15 +1,27 @@
 const gulp = require('gulp');
+const runSequence = require('run-sequence');
 const clean = require('gulp-clean');
 const less = require('gulp-less');
 //const del = require('del');
 const cleanCss = require('gulp-clean-css');
 const concat = require('gulp-concat');
-const concatCss = require('gulp-concat-css');
+//const concatCss = require('gulp-concat-css');
 const requirejs = require('requirejs');
+const replace = require('gulp-replace');
 const zip = require('gulp-zip');
+const bump = require('gulp-bump');
+const git = require('gulp-git');
+
+const fs = require('fs');
 const path = require('path');
 
+let currentBranch = 'develop';
 let requirejsConfig = require('./app/js/main').rjsConfig;
+
+let getCurrentVersion = function () {
+    const package = JSON.parse(fs.readFileSync('./package.json'));
+    return package.version;
+};
 
 
 gulp.task('clean', () => {
@@ -28,24 +40,24 @@ gulp.task('less', ['copy'], () => {
             paths: [path.join(__dirname, 'app/skins/default/index.less')]
         }))
         .pipe(gulp.dest('./build/app/skins/default'))
-        //.pipe(gulp.dest('./app/skins/default'))
+    //.pipe(gulp.dest('./app/skins/default'))
 });
 
-/// TODO: Auto prefix
-gulp.task('concat-css', ['less'], () => {
-    return gulp.src([
-        './app/node_modules/bootstrap/dist/css/bootstrap.min.css',
-        './app/node_modules/select2/dist/css/select2.min.css',
-        './app/node_modules/bootstrap-multiselect/dist/css/bootstrap-multiselect.css',
-        './app/node_modules/bootstrap-daterangepicker/daterangepicker.css',
-        './app/node_modules/font-awesome/css/font-awesome.css',
-        './app/libs/datetimepicker/less/bootstrap-datetimepicker-build.css',
-        './app/libs/jqgrid/css/ui.jqgrid.css'
-    ])
-        .pipe(concat('index.min.css'))
-        //.pipe(gulp.dest('./dist/css'))
-         .pipe(gulp.dest('./app/skins/default'))
-});
+// /// TODO: Auto prefix
+// gulp.task('concat-css', ['less'], () => {
+//     return gulp.src([
+//         './app/node_modules/bootstrap/dist/css/bootstrap.min.css',
+//         './app/node_modules/select2/dist/css/select2.min.css',
+//         './app/node_modules/bootstrap-multiselect/dist/css/bootstrap-multiselect.css',
+//         './app/node_modules/bootstrap-daterangepicker/daterangepicker.css',
+//         './app/node_modules/font-awesome/css/font-awesome.css',
+//         './app/libs/datetimepicker/less/bootstrap-datetimepicker-build.css',
+//         './app/libs/jqgrid/css/ui.jqgrid.css'
+//     ])
+//         .pipe(concat('index.min.css'))
+//         //.pipe(gulp.dest('./dist/css'))
+//         .pipe(gulp.dest('./app/skins/default'))
+// });
 
 gulp.task('requirejsBuild', ['less'], (done) => {
 
@@ -78,9 +90,25 @@ gulp.task('requirejsBuild', ['less'], (done) => {
     });
 });
 
-gulp.task('zip', ['requirejsBuild'], () => {
+gulp.task('bump', ['requirejsBuild'], () => {
+    return gulp.src('./package.json')
+        .pipe(bump({ type: 'patch' }))
+        .pipe(gulp.dest('./'));
+});
+
+gulp.task('replace', ['bump'], () => {
+    let version = getCurrentVersion();
+
+    return gulp.src('./build/server/**/*.pug')
+        .pipe(replace(/(\.js|\.css)(\s*'\s*)/g, `$1?v=${version}'`))
+        .pipe(gulp.dest('./build/server/'));
+});
+
+gulp.task('zip', ['replace'], () => {
+    let version = getCurrentVersion();
+
     return gulp.src('./build/**')
-        .pipe(zip('exa-billing-build.zip'))
+        .pipe(zip(`exa-billing-${currentBranch}-${version}.zip`))
         .pipe(gulp.dest('./dist'));
 });
 
@@ -89,18 +117,62 @@ gulp.task('clean-all', ['zip'], () => {
         .pipe(clean());
 });
 
-gulp.task('clean-all', ['zip'], () => {
-    return gulp.src('./build')
-        .pipe(clean());
+gulp.task('bump-release', () => {
+    return gulp.src('./package.json')
+        .pipe(bump({ type: 'minor' }))
+        .pipe(gulp.dest('./'));
+});
+
+gulp.task('git-init', (done) => {
+    git.init((err) => {
+        if (err) throw err;
+
+        git.revParse({ args: '--abbrev-ref HEAD' }, function (err, branch) {
+            currentBranch = branch;
+            done();
+        });
+    });
+});
+
+gulp.task('git-add', ['git-init'], () => {
+    return gulp.src('./package.json')
+        .pipe(git.add());
+});
+
+gulp.task('git-commit', ['git-add'], () => {
+    let version = getCurrentVersion();
+
+    return gulp.src('./package.json')
+        .pipe(git.commit(`Build v${version}`));
+});
+
+gulp.task('git-pull', ['git-commit'], (done) => {
+    git.pull('origin', currentBranch, { args: '--rebase' }, (err) => {
+        if (err) throw err;
+        done();
+    });
+});
+
+gulp.task('git-push', (done) => {
+    git.push('origin', currentBranch, (err) => {
+        if (err) throw err;
+        done();
+    });
 });
 
 gulp.task('build', [
     'clean',
     'copy',
     'requirejsBuild',
+    'bump',
+    'replace',
     'zip',
-    'clean-all'
+    'clean-all',
 ]);
+
+gulp.task('build-from-repo', (done) => {
+    runSequence('git-pull', 'build', 'git-commit', 'git-push', done);
+});
 
 
 gulp.task('default', ['requirejsBuild'], () => {

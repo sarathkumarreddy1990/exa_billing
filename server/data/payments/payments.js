@@ -1,4 +1,6 @@
 const { query, SQL } = require('./../index');
+const queryMakers = require('./../query-maker-map');
+const generator = queryMakers.get('date');     
 
 module.exports = {
 
@@ -6,6 +8,9 @@ module.exports = {
         let whereQuery = [];
         params.sortOrder = params.sortOrder || ' ASC';
         params.sortField = params.sortField == 'id' ? ' payments.id ' : params.sortField;
+
+        params.sortField = params.sortField == 'payment_dt' ? ' payments.payment_dt ' : params.sortField;
+
         let {
             payment_id,
             display_id,
@@ -48,11 +53,11 @@ module.exports = {
         }
 
         if (payment_dt) {
-            whereQuery.push(` payment_dt::date = '${payment_dt}'::date`);
+            whereQuery.push(generator('payment_dt', payment_dt));
         }
 
         if (accounting_dt) {
-            whereQuery.push(` accounting_dt::date ='${accounting_dt}'::date`);
+            whereQuery.push(generator('accounting_dt', accounting_dt));
         }
 
         if (payer_type) {
@@ -81,7 +86,6 @@ module.exports = {
 
         if (adjustment_amount) {
             whereQuery.push(`(select adjustments_applied_total from billing.get_payment_totals(payments.id))=${adjustment_amount}::money`);
-
         }
 
         if (user_full_name) {
@@ -122,8 +126,8 @@ module.exports = {
                         , provider_contact_id
                         , payment_reason_id
                         , amount MONEY
-                        , accounting_dt 
-                        , payment_dt 
+                        , accounting_dt::text
+                        , payment_dt::text
                         , alternate_payment_id AS display_id
                         , (  CASE payer_type 
                                 WHEN 'insurance' THEN insurance_providers.insurance_name
@@ -178,12 +182,12 @@ module.exports = {
                           payments.id
                         , payments.facility_id
                         , patient_id
-                        , providers.full_name AS provider_full_name
+                        , ref_provider.full_name AS provider_full_name
                         , insurance_name AS insurance_name
                         , provider_groups.group_name AS ordering_facility_name
                         , patients.full_name as patient_name
                         , insurance_provider_id
-                        , provider_group_id
+                        , payments.provider_group_id
                         , provider_contact_id
                         , payment_reason_id
                         , amount MONEY
@@ -213,7 +217,9 @@ module.exports = {
                     LEFT JOIN public.facilities ON facilities.id = payments.facility_id
                     LEFT JOIN public.insurance_providers ON insurance_providers.id = payments.insurance_provider_id
                     LEFT JOIN provider_groups ON provider_groups.id = payments.provider_group_id
-                    LEFT JOIN public.providers ON providers.id = payments.provider_contact_id
+                    -- LEFT JOIN public.providers ON providers.id = payments.provider_contact_id
+                    LEFT JOIN public.provider_contacts ON provider_contacts.id = payments.provider_contact_id
+                    LEFT JOIN public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
 
                     WHERE 
                         payments.id = ${id}`;

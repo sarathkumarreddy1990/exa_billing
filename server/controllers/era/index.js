@@ -110,6 +110,7 @@ module.exports = {
         return await Promise.all(results);
 
     },
+    
     checkExistInsurance: async function (params, eraResponseJson) {
 
         let payerDetails = {};
@@ -143,8 +144,8 @@ module.exports = {
         let paymentResult;
         let payerDetails = JSON.parse(params.payer_details);
 
-        let reassociation = eraResponseJson.length ? eraResponseJson[0].reassociationTraceNumber : {};
-        let financialInfo = eraResponseJson.length && eraResponseJson[0].financialInformation && eraResponseJson[0].financialInformation.length ? eraResponseJson[0].financialInformation[0] : {};
+        let reassociation = eraResponseJson.reassociationTraceNumber ? eraResponseJson.reassociationTraceNumber : {};
+        let financialInfo = eraResponseJson.financialInformation && eraResponseJson.financialInformation.length ? eraResponseJson.financialInformation[0] : {};
 
         let monetoryAmount = financialInfo.monetoryAmount ? parseFloat(financialInfo.monetoryAmount).toFixed(2) : 0.00;
         let notes = 'Amount shown in EOB:' + monetoryAmount;
@@ -173,17 +174,10 @@ module.exports = {
         payerDetails.moduleName = params.moduleName;
         payerDetails.logDescription = 'Payment created via ERA';
 
-
-        paymentResult = await data.checkExistsERAPayment(params);
-        paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
-
         try {
-
-            if (!paymentResult.id) {
-                paymentResult = await paymentController.createOrUpdatePayment(payerDetails);
-                paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
-            }
-
+            
+            paymentResult = await paymentController.createOrUpdatePayment(payerDetails);
+            paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
             paymentResult.file_id = params.file_id;
             paymentResult.created_by = payerDetails.created_by;
 
@@ -201,6 +195,7 @@ module.exports = {
 
     processPayments: async function (params, eraObject) {
         let self = this;
+        //let message = [];
 
         let paymentDetails = await self.createPaymentFromERA(params, eraObject);
 
@@ -208,6 +203,16 @@ module.exports = {
 
         let LineItemsAndClaimLists = await eraParser.getFormatedLineItemsAndClaims(claimLists, params);
 
+        // ToDo:: Have to return Error Message on Multi TRN payment
+        // if (LineItemsAndClaimLists.lineItems && !LineItemsAndClaimLists.lineItems.length) {
+        //     message.push({
+        //         status: 100,
+        //         message: 'Error on getting service segment in ERA file'
+        //     });
+
+        //     return message;
+        // } 
+       
         let processedClaims = await data.createPaymentApplication(LineItemsAndClaimLists, paymentDetails);
 
         return processedClaims;

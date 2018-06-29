@@ -59,7 +59,7 @@ var layout = {
         'Patient Statement': '#aPatientStatement',
         'Payer Mix': '#aPayerMix',       
         'Payment': '#aPaymentDetails',       
-        'Patients By Ins Company': '#aPatientsByInsCompany',
+        'Patients By Insurance Company': '#aPatientsByInsCompany',
         'Aged AR Summary':'#aAgedARSummary',
         'Aged AR Details':'#aAgedARDetails',
         'Procedure Count':'#aProcedureCount',
@@ -67,13 +67,14 @@ var layout = {
         'Referring Provider Summary':'#aRefProSummary',
         'Referring Provider Count':'#aRefProCount',
         'Procedure Analysis By Insurance': '#aProcedureAnlaysis',
-        'Payments By Ins Company': '#aPaymentsInsurance',
+        'Payments By Ins Company': '#aPaymentsByInsurance',
         'Transaction Summary': '#aTransactionSummary',
         'Audit Log': '#aAuditLog',
         'User Log': '#aUserLog',
         'EDI Templates': '#aEDITemplate',
         'Paper Claim Templates': '#aPaperClaimTemplate',
-        'Insurance VS LOP' : '#aInsuranceLOP'
+        'Insurance VS LOP' : '#aInsuranceLOP',
+        'Printer Templates' : '#aPrinterTemplate'
         /// To be added
     },
 

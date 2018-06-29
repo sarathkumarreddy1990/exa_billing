@@ -85,7 +85,8 @@ define([
                         {
                             name: 'created_dt',
                             width: 180,
-                            formatter: self.loggedDateFormatter
+                            formatter: self.loggedDateFormatter,
+                            search: false
                         },
                         {
                             name: 'screen_name',
@@ -121,8 +122,8 @@ define([
                     disablereload: true,
                     pager: '#gridPager_AuditLog',
                     customargs: {
-                        fromDate: self.dtpFrom && self.dtpFrom.date() ? self.dtpFrom.date().format() : "",
-                        toDate: self.dtpTo && self.dtpTo.date() ? self.dtpTo.date().format() : "",
+                        from_date: self.dtpFrom && self.dtpFrom.date() ? self.dtpFrom.date().format() : "",
+                        to_date: self.dtpTo && self.dtpTo.date() ? self.dtpTo.date().format() : "",
                         flag: self.excelFlag ? true : false
                     }
                 });
@@ -137,8 +138,8 @@ define([
                         {
                             value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
                                 self.auditLogTable.options.customargs = {
-                                    fromDate: self.dtpFrom.date().format(),
-                                    toDate: self.dtpTo.date().format()
+                                    from_date: self.dtpFrom.date().format(),
+                                    to_date: self.dtpTo.date().format()
                                 }
                                 self.pager.set({ "PageNo": 1 });
                                 self.auditLogTable.refreshAll();
@@ -173,12 +174,12 @@ define([
                         });
                         $("#showDetailsRow").hide();
                         $("#oldInfoRow").hide();
-                        if (response.detailed_info && response.detailed_info.oldValues) {
+                        if (response.changes && response.changes.old_values && Object.keys(response.changes.old_values).length) {
                             $("#showDetailsRow").show();
-                            for (element in response.detailed_info.oldValues) {
+                            for (element in response.changes.old_values) {
                                 var html = "<tr>" +
                                     "<td style='width: 25%;border:1px solid #dee2e6;'>" + element + "</td>" +
-                                    "<td style='width: 75%;border:1px solid #dee2e6;'>" + response.detailed_info.oldValues[element] + "</td>" +
+                                    "<td style='width: 75%;border:1px solid #dee2e6;'>" + response.changes.old_values[element] + "</td>" +
                                     "</tr>";
                                 $("#chngTblBdy").append(html);
                             }

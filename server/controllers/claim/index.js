@@ -40,7 +40,11 @@ module.exports = {
 
                 }
 
-                results.push(data.saveCharges(obj));
+                if (!obj.study_id) {
+                    results.push(data.saveChargesOnly(obj));
+                } else {
+                    results.push(data.saveCharges(obj));
+                }
             }
 
             return await Promise.all(results);
@@ -74,7 +78,7 @@ module.exports = {
 
                 if (!obj1.id) {
 
-                    charge_arr.push(data.saveCharges(obj1));
+                    charge_arr.push(data.saveChargesOnly(obj1));
 
                 }
 
@@ -130,5 +134,8 @@ module.exports = {
 
             return result;
         });
-    }
+    },
+
+    getStudiesByPatientId: async (params) => { return await data.getStudiesByPatientId(params); },
+
 };

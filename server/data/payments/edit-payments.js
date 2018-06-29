@@ -164,11 +164,11 @@ module.exports = {
         paymentWhereQuery = params.customArgs.payerType == 'ordering_provider' ? paymentWhereQuery + ` AND bc.referring_provider_contact_id = ${params.customArgs.payerId}  AND bc.payer_type = 'referring_provider'` : paymentWhereQuery;
 
         
-        // let invoiceQuery = await this.checkInvoiceExists(params.customArgs.paymentID);
+        let invoiceQuery = await this.checkInvoiceExists(params.customArgs.paymentID);
 
-        // if (invoiceQuery.rows && invoiceQuery.rows.length && invoiceQuery.rows[0].invoice_no) {
-        //     paymentWhereQuery += ` AND bc.invoice_no LIKE '${ invoiceQuery.rows[0].invoice_no }'`;
-        // }
+        if (invoiceQuery.rows && invoiceQuery.rows.length && invoiceQuery.rows[0].invoice_no) {
+            paymentWhereQuery += ` AND bc.invoice_no = '${ invoiceQuery.rows[0].invoice_no }'`;
+        }
 
         if (params.customArgs.payerType == 'insurance') {
             joinQuery = ` 
@@ -255,7 +255,8 @@ module.exports = {
             sortOrder,
             sortField,
             pageNo,
-            pageSize
+            pageSize,
+            payment
         } = params;
 
            
@@ -281,6 +282,10 @@ module.exports = {
 
         if (bill_fee) {
             whereQuery.push(` (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) = '${bill_fee}'::money`);
+        }
+        
+        if (payment) {
+            whereQuery.push(`  (SELECT payments_applied_total from billing.get_claim_totals(bc.id)) = '${payment}'::money`);
         }
 
         if (patient_paid) {    
@@ -411,7 +416,8 @@ module.exports = {
                                     id,
                                     code,
                                     description,
-                                    accounting_entry_type 
+                                    accounting_entry_type ,
+                                    accounting_entry_type AS type
                             FROM billing.adjustment_codes 
                             WHERE company_id = ${params.companyID}
                             ) 

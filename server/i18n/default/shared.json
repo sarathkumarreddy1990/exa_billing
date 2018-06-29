@@ -11,7 +11,7 @@
         },
         "buttons": {
             "useExisting": "Use existing",
-            "createNew": "Create new",
+            "createNewClaim": "New Claim",
             "convertDirectly": "Convert directly",
             "fax": "Fax",
             "faxSelected": "Fax selected",

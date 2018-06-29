@@ -36,7 +36,13 @@ module.exports = {
         audit_log : 'Audit Log',
         printer_templates: 'Printer Templates',
         payments: 'Payments',
-        applyPayments:'Applied Payments'
+        applyPayments:'Applied Payments',
+        claim_inquiry:'Claim Inquiry',
+        claim_workbench:'Claims',
+        studies: 'Studies',
+        claim_study: 'Edit Claim',
+        split_claim: 'Split Claim',
+        validate_claims: 'Validate Claims'
     },
 
     entityNames: {
@@ -60,10 +66,37 @@ module.exports = {
         insurance_x12_mapping: 'insurance_x12_mapping',
         printer_templates: 'printer_templates',
         payments: 'payments',
-        applyPayments:'payment_applications'
+        applyPayments:'payment_applications',
+        claim_inquiry:'claim_comments',
+        audit_log: 'Audit Log',
+        user_log: 'User Log',
+        claims:'Claims'
     },
 
     permissionsMap: {
-        adjustment_codes: 'APP'
+        adjustment_codes: 'ADJC',
+        billing_codes: 'BICO',
+        billing_classes: 'BICL',
+        claim_status: 'CLST',
+        billing_providers: 'BIPR',
+        provider_id_code_qualifiers: 'PRCQ',
+        billing_messages: 'BILM',
+        payment_reasons: 'PARE',
+        cas_group_codes: 'CASG',
+        cas_reason_codes: 'CASR',
+        status_color_codes: 'STCC',
+        validations: 'BIVA',
+        printer_templates: 'PCA',
+        x12: 'EDRT',
+        insurance_x12_mapping: 'INSM',
+        edi_clearinghouses: 'CLHO',
+        user_log: 'BULG',
+        audit_log: 'BALG',
+        claim_workbench: 'CLIM',
+        studies: 'STDS',
+        claim_study: 'ECLM',
+        claim_inquiry: 'CLMI',
+        split_claim: 'MASO',
+        validate_claims: 'CLVA'
     }
 };

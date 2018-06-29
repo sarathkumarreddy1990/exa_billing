@@ -245,7 +245,7 @@ define([
             },
 
 			 startPaperClaimTemplates: function () {
-                if (this.checkLicense('PaperClaimTemplates') && !this.paperClaimTemplatesRouter) {
+                if (this.checkLicense('PrinterTemplates') && !this.paperClaimTemplatesRouter) {
                     this.defaultArgs.routePrefix = 'setup/printer_templates/';
                     this.paperClaimTemplatesRouter = new PaperClaimTemplatesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {

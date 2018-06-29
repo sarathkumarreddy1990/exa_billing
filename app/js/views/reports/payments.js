@@ -74,7 +74,7 @@ define([
                 this.drpStudyDt.setStartDate(this.viewModel.dateFrom);
                 this.drpStudyDt.setEndDate(this.viewModel.dateTo);
                 // For Facility Filter with Multiple Select
-                $('#ddlFacilityFilter').multiselect({
+                $('#ddlFacilityFilter,  #ddlUsersOption').multiselect({
                     maxHeight: 200,
                     buttonWidth: '300px',
                     width: '300px',
@@ -84,7 +84,7 @@ define([
                 });
 
                 // For Payment Option select without Multiple filter
-                $('#ddlPaymentOption, #ddlUsersOption').multiselect({
+                $('#ddlPaymentOption').multiselect({
                     maxHeight: '200px',
                     buttonWidth: '220px',
                     width: '200px'

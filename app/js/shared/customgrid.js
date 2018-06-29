@@ -1220,6 +1220,14 @@ function customGrid ( datastore, gridID ) {
             return '';
         }
 
+        if (uiFieldID == "billing_method" && fieldValue == "paper_claim") {
+            $("#btnPaperClaim").show();
+            $("#btnInsuranceClaim").hide();
+        } else {
+            $("#btnPaperClaim").hide();
+            $("#btnInsuranceClaim").show();
+        }
+
         return fieldValue.replace(/'/g, "''").replace(/_/g, '\\_');
     };
 

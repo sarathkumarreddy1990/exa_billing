@@ -15,9 +15,9 @@ WITH chargeReport AS (
     FROM 
         billing.charges bch
     INNER JOIN billing.claims bc on bc.id = bch.claim_id 
+    <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
     INNER JOIN public.patients p on p.id = bc.patient_id 
     INNER JOIN facilities f on f.id = bc.facility_id
-    <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
     where 1=1 
     AND  <%= companyId %>
     AND <%= claimDate %>
@@ -41,27 +41,28 @@ const detailQueryTemplate = _.template(`
          (
             SELECT 
       get_full_name(pp.last_name, pp.first_name,pp.middle_name, pp.prefix_name, pp.suffix_name) 
-                                                      	AS "Patient Name"
+                                                      	    AS "Patient Name"
 	, pp.account_no 										AS "Account #"
 	, bc.id 											    AS "Claim #"
     , to_char(pp.birth_date,'MM/DD/YYYY')                   AS "DOB"
-    , billing.get_charge_icds(bch.id)                     AS "Diagnostic"
-	, (bch.bill_fee*bch.units)								AS "Charge"
-	, (bch.allowed_amount*bch.units)						AS "Contract"
+    , billing.get_charge_icds(bch.id)                       AS "Diagnostic"
+	, display_code                                          AS "CPT"
 	, pm1.code                                             	AS "M1"
 	, pm2.code                                              AS "M2"
 	, pm3.code                                              AS "M3"
-    , pm4.code                                              AS "M4"   
+    , pm4.code                                              AS "M4"  
+    , (bch.bill_fee*bch.units)								AS "Charge"
+	, (bch.allowed_amount*bch.units)						AS "Contract" 
 	
 FROM billing.charges bch 
 INNER JOIN billing.claims bc on bc.id = bch.claim_id
+<% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
 INNER JOIN public.patients pp on pp.id = bc.patient_id 
 INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
 LEFT JOIN public.modifiers pm1 on pm1.id = bch.modifier1_id
 LEFT JOIN public.modifiers pm2 on pm2.id = bch.modifier2_id
 LEFT JOIN public.modifiers pm3 on pm3.id = bch.modifier3_id
 LEFT JOIN public.modifiers pm4 on pm4.id = bch.modifier4_id 
-<% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
 where 1=1 
 AND  <%= companyId %>
 AND <%= claimDate %>

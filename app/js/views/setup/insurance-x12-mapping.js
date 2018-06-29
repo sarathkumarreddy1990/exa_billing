@@ -53,8 +53,8 @@ define(['jquery',
                     gridelementid: '#tblInsuranceX12MappingGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['','','','',''],
-                    i18nNames: ['', '', '', 'setup.insuranceX12Mapping.insuranceName', 'setup.insuranceX12Mapping.claimClearingHouse'],
+                    colNames: ['','','',''],
+                    i18nNames: ['', '', 'setup.insuranceX12Mapping.insuranceName', 'setup.insuranceX12Mapping.claimClearingHouse'],
                     colModel: [
                         {
                             name: 'id',
@@ -72,28 +72,6 @@ define(['jquery',
                             route: '#setup/insurance_x12_mapping/edit/',
                             formatter: function(e, model, data) {
                                 return "<span class='icon-ic-edit' title='click here to Edit'></span>"
-                            }
-                        },
-                        {
-                            name: 'del', width: 15, sortable: false, search: false,
-                            className: 'icon-ic-delete',
-                            customAction: function (rowID) {
-                                if (confirm("Are you sure want to delete")) {
-                                    var gridData = $('#tblinsuranceX12MappingGrid').jqGrid('getRowData', rowID);
-                                    self.model.set({ "id": rowID });
-                                    self.model.destroy({
-                                        success: function (model, response) {
-                                            commonjs.showStatus("Deleted Successfully");
-                                            self.insuranceX12MappingTable.refresh();
-                                        },
-                                        error: function (model, response) {
-                                            commonjs.handleXhrError(model, response);
-                                        }
-                                    });
-                                }
-                            },
-                            formatter: function(e, model, data) {
-                                return "<span class='icon-ic-delete' title='click here to Delete'></span>"
                             }
                         },
                         {

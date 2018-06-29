@@ -33,6 +33,11 @@ router.get('/claim_json', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/invoice_data', async function (req, res) {
+    const data = await claimWorkbenchController.getInvoiceData(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
 router.get('/printer_template', async function (req, res) {
     const data = await claimWorkbenchController.getPrinterTemplate(req.query);
     httpHandler.sendRows(req, res, data);
@@ -48,9 +53,24 @@ router.get('/validate_claims', async function (req, res) {
     httpHandler.send(req, res, data);
 });
 
-router.put('/claims/delete', async function (req, res) {
-    const data = await claimWorkbenchController.deleteClaim(req.body);
+router.put('/claim_charge/delete', async function (req, res) {
+    const data = await claimWorkbenchController.deleteClaimOrCharge(req.body);
     httpHandler.send(req, res, data);
+});
+
+router.get('/claim_study', async function (req, res) {
+    const data = await claimWorkbenchController.getClaimStudy(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
+router.get('/billing_payers', async function(req, res){
+    const data = await claimWorkbenchController.getBillingPayers(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
+router.put('/billing_payers', async function (req, res) {
+    const data = await claimWorkbenchController.updateBillingPayers(req.query);
+    httpHandler.sendRows(req, res, data);
 });
 
 module.exports = router;

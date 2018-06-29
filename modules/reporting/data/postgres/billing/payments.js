@@ -108,11 +108,10 @@ const detailQueryTemplate = _.template(`
                          p.payer_type = 'ordering_provider' then pr.last_name ||','|| pr.first_name
          	            END  AS "Payer Name",
          	        p.mode "Payment AS Mode",
-         	        p.card_number AS "Card #",
+         	        p.card_number AS "Check #",
          	        payment_totals.payments_applied_total AS "Applied Amount",
          	        p.amount "Payment Amount",
-                    (p.amount - payment_totals.payments_applied_total) AS "Balance",
-                    cs.code AS "Code",
+                    (p.amount - payment_totals.payments_applied_total) AS "Balance",                  
                     pd.applied_amount AS "Applied Amount",
                     pd.adjustment AS "Adjustment Amount"
                     <% if (userIds) { %>, user_name AS "User Name"   <% } %>
@@ -120,9 +119,9 @@ const detailQueryTemplate = _.template(`
                     payment_data pd
                 INNER join billing.payments p on p.id = pd.payment_id
                 INNER JOIN LATERAL billing.get_payment_totals(p.id) AS payment_totals ON TRUE
-                INNER join facilities f on f.id = p.facility_id
-                INNER join billing.claims c on c.id = pd.claim_id
-                INNER join billing.claim_status cs on cs.id = c.claim_status_id 
+                LEFT join facilities f on f.id = p.facility_id
+                LEFT join billing.claims c on c.id = pd.claim_id
+                LEFT join billing.claim_status cs on cs.id = c.claim_status_id 
                 LEFT join public.insurance_providers ip on ip.id = p.insurance_provider_id
                 LEFT join public.Provider_contacts pc on pc.id = provider_contact_id
                 LEFT join public.Providers pr on pr.id = pc.provider_id
@@ -283,7 +282,7 @@ const api = {
         //claim facilities
         if (!reportParams.allFacilities && reportParams.facilityIds) {
             params.push(reportParams.facilityIds);
-            filters.facilityIds = queryBuilder.whereIn('bc.facility_id', [params.length]);
+            filters.facilityIds = queryBuilder.whereIn('bp.facility_id', [params.length]);
         }
 
         //  scheduled_dt
