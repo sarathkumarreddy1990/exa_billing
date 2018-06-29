@@ -49,7 +49,7 @@ module.exports = {
         }
 
         if (display_description) {
-            whereQuery.push(` display_description  ILIKE '%${display_description}%' `);
+            whereQuery.push(` display_code  ILIKE '%${display_description}%' `);
         }
 
         if (billing_fee) {
@@ -71,7 +71,7 @@ module.exports = {
                     get_full_name(pp.last_name,pp.first_name) AS full_name,
                     bc.claim_dt,
                     pp.account_no,
-                    array_agg(pcc.display_description) AS display_description,
+                    array_agg(pcc.display_code) AS display_description,
                     (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) AS billing_fee,
                     (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) AS balance,
                     COUNT(1) OVER (range unbounded preceding) AS total_records
@@ -116,7 +116,7 @@ module.exports = {
                         get_full_name(pp.last_name,pp.first_name) AS full_name,
                         bc.claim_dt,
                         pp.account_no,
-                        array_agg(pcc.display_description) AS display_description,
+                        array_agg(pcc.display_code) AS display_description,
                         (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) AS billing_fee,
                         (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) AS balance,
                         COUNT(1) OVER (range unbounded preceding) AS total_records
@@ -188,7 +188,7 @@ module.exports = {
                     get_full_name(pp.last_name,pp.first_name) AS full_name,
                     bc.claim_dt,
                     pp.account_no,
-                    array_agg(pcc.display_description) AS display_description,
+                    array_agg(pcc.display_code) AS display_description,
                     (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) AS billing_fee,
                     (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) AS balance,
                     COUNT(1) OVER (range unbounded preceding) AS total_records

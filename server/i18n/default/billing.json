@@ -142,6 +142,7 @@
             "eob": "EOB",
             "payInFull": "Pay In Full",
             "backToPatients": "Back to Patients",
+            "backToSearch": "Back to Search",
             "claimChargeAmount": "Claim Charge Amount",
             "directBilling": "Direct Biling",
             "facility_name": "Facility",
