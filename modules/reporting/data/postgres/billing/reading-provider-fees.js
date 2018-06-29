@@ -13,8 +13,8 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
         bc.id as claim_id,
               ch.cpt_id
             , pa.amount
-            , pay.accounting_dt 
-            , pay.payment_dt
+            , to_char(pay.accounting_dt, 'MM/DD/YYYY') as accounting_dt
+            , to_char(pay.payment_dt, 'MM/DD/YYYY') as payment_dt
             , CASE pay.payer_type 
                 WHEN 'patient' THEN get_full_name(p.last_name, p.first_name, p.middle_name, p.prefix_name, p.suffix_name)
                 WHEN 'insurance' THEN ip.insurance_name
@@ -22,6 +22,7 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
                 WHEN 'ordering_facility' THEN pg.group_name END AS payer_name
             , pg_rp.group_name AS group_name
         , plc.reading_provider_percent_level
+        , to_char(bc.claim_dt, 'MM/DD/YYYY') as claim_dt
         FROM
             billing.claims bc
         INNER JOIN billing.charges ch ON  ch.claim_id = bc.id
@@ -53,6 +54,7 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
             END AS "Group_name"
         , COALESCE(cpt.display_code, 'Total') AS "CPT Code"
         , COALESCE(cpt.display_description,'---') AS "Description" 
+        , claim_dt AS "Claim Date"
         , rpf.payer_name AS "Payer Name"
         , SUM(rpf.amount ) AS "Amount"
         , rpf.accounting_dt AS "Accounting Date"
@@ -66,6 +68,7 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
     GROUPING SETS (
         (group_name),
         (group_name,
+            claim_dt,
          display_code,
          display_description,
          payer_name,

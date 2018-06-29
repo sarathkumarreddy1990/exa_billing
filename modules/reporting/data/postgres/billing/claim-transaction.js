@@ -32,12 +32,13 @@ WITH details AS(
         ELSE pip.insurance_code
         END AS Ins_Cur,
         pr.full_name AS "Ref. Doctor"
-        --, ac.description       AS "Insurance Payer Type"
+        --, ac.description       AS "Insurance Payer Type"    
     FROM billing.claims bc
     INNER JOIN billing.charges bch ON bch.claim_id = bc.id 
     INNER JOIN public.patients pp on pp.id = bc.patient_id  
     INNER JOIN billing.payment_applications bpa ON bpa.charge_id = bch.id
     INNER JOIN billing.payments bp ON bp.id = bpa.payment_id
+    <% if (cptCodeLists) { %>   inner join cpt_codes cc on cc.id = bc.cpt_id  <% } %>
     LEFT JOIN public.patient_insurances ppi ON ppi.id = CASE WHEN bc.payer_type = 'primary_insurance' THEN bc.primary_patient_insurance_id
                                                              WHEN bc.payer_type = 'secondary_insurance' THEN bc.secondary_patient_insurance_id
                                                              WHEN bc.payer_type = 'tertiary_insurance' THEN bc.tertiary_patient_insurance_id
@@ -59,6 +60,8 @@ WITH details AS(
     
         <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
         <% if(billingProID) { %> AND <% print(billingProID); } %>
+        <% if(cptCodeLists) { %> AND <% print(cptCodeLists); } %>
+    
         
     GROUP BY bc.id,pip.insurance_name,pip.insurance_code,pp.last_name,pp.first_name,pr.full_name
          )
@@ -87,6 +90,10 @@ const api = {
         if (initialReportData.report.params.insuranceIds) {
             initialReportData.report.params.insuranceIds = initialReportData.report.params.insuranceIds.map(Number);
         }
+
+        if (initialReportData.report.params.insuranceGroupList) {
+            initialReportData.report.params.insuranceGroupList = initialReportData.report.params.insuranceGroupList.map(Number);
+        }
         //convert array of Referring Provider array of string to integer
         if (initialReportData.report.params.referringProIds) {
             initialReportData.report.params.referringProIds = initialReportData.report.params.referringProIds.map(Number);
@@ -99,13 +106,13 @@ const api = {
         // convert adjustmentCodeIds array of string to integer
         if (initialReportData.report.params.adjustmentCodeIds) {
             initialReportData.report.params.adjustmentCodeIds = initialReportData.report.params.adjustmentCodeIds.map(Number);
-        }
+        }        
 
         return Promise.join(
 
             dataHelper.getAdjustmentCodeInfo(initialReportData.report.params.companyId, initialReportData.report.params.adjustmentCodeIds),
             dataHelper.getCptCodesInfo(initialReportData.report.params.companyId, initialReportData.report.params.cptCodeLists),
-            dataHelper.getInsuranceProvidersInfo(initialReportData.report.params.companyId, initialReportData.report.params.insuranceIds),
+            dataHelper.getInsuranceProvidersInfo(initialReportData.report.params.companyId, initialReportData.report.params.insuranceGroupList),
             dataHelper.getProviderGroupInfo(initialReportData.report.params.companyId, initialReportData.report.params.groupIds),
             dataHelper.getPatientInfo(initialReportData.report.params.companyId, initialReportData.report.params.patientIds),
             dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
@@ -191,7 +198,6 @@ const api = {
             filtersUsed.push({ name: 'FromBillCreated', label: 'Bill Created From', value: params.billCreatedDateFrom });
             filtersUsed.push({ name: 'ToBillCreated', label: 'Bill Created To', value: params.billCreatedDateTo });
         }
-
         return filtersUsed;
     },
 
@@ -297,8 +303,14 @@ const api = {
 
         if (reportParams.insuranceGroupList && reportParams.insuranceGroupList.length > 0) {
             params.push(reportParams.insuranceGroupList);
-            filters.insGroups = queryBuilder.whereIn(`pip.id`, [params.length]);
+            filters.insGroups = queryBuilder.whereIn(`pip.insurance_info->'providerType'`, [params.length]);
         }
+
+        if (reportParams.cptCodeLists && reportParams.cptCodeLists.length > 0) {
+            params.push(reportParams.cptCodeLists);
+            // filters.cptCodeLists = queryBuilder.whereIn(`cc.id`, [params.length]);
+        }
+
 
         return {
             queryParams: params,

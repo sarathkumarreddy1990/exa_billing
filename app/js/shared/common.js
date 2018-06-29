@@ -3014,66 +3014,6 @@ var commonjs = {
         }
     },
 
-    initPermissionHandler: function () {
-        let accessDeniedScreens = [];
-        billingScreenCodes = ['ADJC', 'BICO', 'BICL', 'CLST', 'BIPR', 'PRCQ', 'BILM', 'PARE', 'CASG', 'CASR', 'STCC', 'BIVA', 'PCA', 'EDRT', 'INSM', 'CLHO', 'BULG', 'BALG',
-                                'AGAR', 'AARD', 'CHRG', 'CLAY', 'CLIN', 'CLTR', 'CRBE', 'DSPS', 'DICN', 'IVSL', 'MOSU', 'MNRC', 'PATS', 'PYMX', 'PAYT', 'PAIC', 'PBIC', 'PABI', 'PRCN', 'RPFR', 'REPC', 'REPS', 'TSUM']
-        mappingObject  = {
-            'ADJC': 'aAdjustmentCodes',
-            'BICO': 'aBillingCodes',
-            'BICL': 'aBillingClasses',
-            'CLST': 'aClaimStatus',
-            'BIPR': 'aBillingProviders',
-            'PRCQ': 'aProviderIdCodeQualifiers',
-            'BILM': 'aBillingMessages',
-            'PARE': 'aPaymentReasons',
-            'CASG': 'aCasGroupCodes',
-            'CASR': 'aCasReasonCodes',
-            'STCC': 'aStatusColorCodes',
-            'BIVA': 'aBillingValidations',
-            'PCA': 'aPrinterTemplate',
-            'EDRT': 'aEDITemplate',
-            'INSM': 'aInsuranceX12Mapping',
-            'CLHO': 'aEDIClearingHouses',
-            'BULG': 'aUserLog',
-            'BALG': 'aAuditLog',
-            'AGAR': 'aAgedARSummary',
-            'AARD': 'aAgedARDetails',
-            'CHRG': 'aCharges',
-            'CLAY': 'aClaimActivity',
-            'CLIN': 'aClaimInquiry',
-            'CLTR': 'aClaimTransaction',
-            'CRBE': 'aCreditBalanceEncounters',
-            'DSPS': 'aDateSVC', //this report is display none
-            'DICN': 'aDiagnosisCount',
-            'IVSL': 'aInsuranceLOP',
-            'MOSU': 'aModalitySummary',
-            'MNRC': 'aMonthlyRecap',
-            'PATS': 'aPatientStatement',
-            'PYMX': 'aPayerMix',
-            'PAYT': 'aPaymentDetails',
-            'PAIC': 'aPatientsByInsCompany',
-            'PBIC': 'aPaymentsInsurance',
-            'PABI': 'aProcedureAnlaysis',
-            'PRCN': 'aProcedureCount',
-            'RPFR': 'aReadingProviderFees',
-            'REPC': 'aRefProCount',
-            'REPS': 'aRefProSummary',
-            'TSUM': 'aTransactionSummary'
-        };
-        accessDeniedScreens  = _.difference(billingScreenCodes, app.screens)
-
-        // _.each(accessDeniedScreens, function (code){
-        //     let screenId = '';
-        //     screenId = mappingObject[code];
-        //     $('#'+screenId).addClass('disabled');
-        //     $('#'+screenId).attr('href', '#');
-        //     $('.'+screenId).addClass('disabled');
-        //     $('.'+screenId).attr('href', '#');
-        // })
-
-    },
-
     validateControls: function () {
         $(".floatbox").on("keypress keyup blur", function (event) {
             //$(this).val($(this).val().replace(/[^0-9\.]/g, ''));
@@ -5975,7 +5915,7 @@ var facilityModules = {
         chargedetails: 'Claim Activity',
         facilitysummary: 'Facility Summary',
         insurancebalanceaging: 'Insurance Balance Aging',
-        patientsByInsurance: 'Patients By Insurance',
+        patientsByInsurance: 'Patients By Insurance Company',
         'CMSQualityReport': 'CMS Quality Reporting',
         'profitAnalysis': 'Profit Analysis',
         'summary': 'Summary',
@@ -5989,7 +5929,7 @@ var facilityModules = {
         procedureCount: 'Procedure Count',
         diagnosisCount: 'Diagnosis Count',
         refprovider: 'Referring Provider Summary',
-        inscompany: 'Payments By Insurance Company',
+        paymentsByinscompany: 'Payments By Ins Company',
         patientsInscompany: 'Patients By Insurance Company',
         monthEndPaymentSummary: 'Month End Payment Summary',
         monthEndPaymentDetails: 'Month End Payment Details',

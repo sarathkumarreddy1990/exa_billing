@@ -29,13 +29,13 @@ const summaryQueryTemplate = _.template(`
                 FROM 
                     billing.payments bp
                 LEFT JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
-                INNER JOIN billing.charges bch on bch.id = bpa.charge_id
-                INNER JOIN billing.claims bc on bc.id = bch.claim_id
-                INNER JOIN facilities f on f.id = bc.facility_id
-                <% if (billingProID) { %>  INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id <% } %>
+                LEFT JOIN facilities f on f.id = bp.facility_id
+                <% if (billingProID) { %>  
+                    INNER JOIN billing.charges bch on bch.id = bpa.charge_id
+                    INNER JOIN billing.claims bc on bc.id = bch.claim_id
+                    INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id <% } %>
                 <% if (userIds) { %>  INNER join public.users on users.id = bp.created_by    <% } %>
                 WHERE 1=1 
-                    AND  <%= companyId %>
                     AND <%= claimDate %>
                 <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
                 <% if(billingProID) { %> AND <% print(billingProID); } %>
@@ -72,11 +72,9 @@ const detailQueryTemplate = _.template(`
             LEFT JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
             LEFT JOIN billing.charges bch on bch.id = bpa.charge_id
             LEFT Join billing.claims  bc on bc.id = bch.claim_id
-            INNER JOIN facilities f on f.id = bc.facility_id
             <% if (billingProID) { %>  INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id <% } %>
             <% if (userIds) { %>  INNER join public.users  users on users.id = bp.created_by    <% } %>
             WHERE 1=1 
-            AND  <%= companyId %>
             AND <%= claimDate %>
             <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
             <% if(billingProID) { %> AND <% print(billingProID); } %>
@@ -108,11 +106,10 @@ const detailQueryTemplate = _.template(`
                          p.payer_type = 'ordering_provider' then pr.last_name ||','|| pr.first_name
          	            END  AS "Payer Name",
          	        p.mode "Payment AS Mode",
-         	        p.card_number AS "Card #",
+         	        p.card_number AS "Check #",
          	        payment_totals.payments_applied_total AS "Applied Amount",
          	        p.amount "Payment Amount",
-                    (p.amount - payment_totals.payments_applied_total) AS "Balance",
-                    cs.code AS "Code",
+                    (p.amount - payment_totals.payments_applied_total) AS "Balance",                  
                     pd.applied_amount AS "Applied Amount",
                     pd.adjustment AS "Adjustment Amount"
                     <% if (userIds) { %>, user_name AS "User Name"   <% } %>
@@ -208,21 +205,17 @@ const api = {
     getSummaryQueryContext: (reportParams) => {
         const params = [];
         const filters = {
-            companyId: null,
             claimDate: null,
             facilityIds: null,
             billingProID: null,
             userIds: null
         };
 
-        // company id
-        params.push(reportParams.companyId);
-        filters.companyId = queryBuilder.where('bc.company_id', '=', [params.length]);
 
         //claim facilities
         if (!reportParams.allFacilities && reportParams.facilityIds) {
             params.push(reportParams.facilityIds);
-            filters.facilityIds = queryBuilder.whereIn('bc.facility_id', [params.length]);
+            filters.facilityIds = queryBuilder.whereIn('bp.facility_id', [params.length]);
         }
 
         //  scheduled_dt
@@ -238,7 +231,7 @@ const api = {
         // billingProvider single or multiple
         if (reportParams.billingProvider) {
             params.push(reportParams.billingProvider);
-            filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
+            filters.billingProID = queryBuilder.whereIn('bc.billing_provider_id', [params.length]);
         }
 
         // User id
@@ -269,21 +262,17 @@ const api = {
     getDetailQueryContext: (reportParams) => {
         const params = [];
         const filters = {
-            companyId: null,
             claimDate: null,
             facilityIds: null,
             billingProID: null,
             userIds: null
         };
 
-        // company id
-        params.push(reportParams.companyId);
-        filters.companyId = queryBuilder.where('bc.company_id', '=', [params.length]);
 
         //claim facilities
         if (!reportParams.allFacilities && reportParams.facilityIds) {
             params.push(reportParams.facilityIds);
-            filters.facilityIds = queryBuilder.whereIn('bc.facility_id', [params.length]);
+            filters.facilityIds = queryBuilder.whereIn('bp.facility_id', [params.length]);
         }
 
         //  scheduled_dt
@@ -299,7 +288,7 @@ const api = {
         // billingProvider single or multiple
         if (reportParams.billingProvider) {
             params.push(reportParams.billingProvider);
-            filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
+            filters.billingProID = queryBuilder.whereIn('bc.billing_provider_id', [params.length]);
         }
 
         // User id

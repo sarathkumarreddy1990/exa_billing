@@ -28,7 +28,7 @@ FROM
     <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
 WHERE 1=1
 AND <%= companyId %>
-AND <%= studyDate %>
+AND <%= claimDate %>
 <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
 <% if(billingProID) { %> AND <% print(billingProID); } %>
 AND  <%= companyId %>
@@ -144,7 +144,7 @@ const api = {
         const params = [];
         const filters = {
             companyId: null,
-            studyDate: null,
+            claimDate: null,
             facilityIds: null,
             billingProID: null
 
@@ -163,11 +163,11 @@ const api = {
         //  scheduled_dt
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);
-            filters.studyDate = queryBuilder.whereDate('s.study_dt', '=', [params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDate('bc.claim_dt', '=', [params.length], 'f.time_zone');
         } else {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
-            filters.studyDate = queryBuilder.whereDateBetween('s.study_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
         }
 
         // billingProvider single or multiple
