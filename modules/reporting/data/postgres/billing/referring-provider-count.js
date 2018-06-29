@@ -17,6 +17,7 @@ WITH referring_provider_count as
         billing.claims bc 
     INNER JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
     INNER JOIN public.providers pp ON pp.id = ppc.provider_id
+    LEFT JOIN billing.charges bch ON bch.claim_id = bc.id
     <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
     WHERE 1 =1
     AND <%= companyId %>

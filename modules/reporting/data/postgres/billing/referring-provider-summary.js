@@ -16,7 +16,6 @@ WITH referringProviderSummary as (
         SUM(bch.allowed_amount * units) AS AllowedFee
     FROM 
         billing.claims bc    
-    <% if (facilityIds) { %> INNER JOIN facilities f ON f.id = bc.facility_id } %>   
     INNER JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
     INNER JOIN public.providers pp ON pp.id = ppc.provider_id
     LEFT JOIN billing.charges bch ON bch.claim_id = bc.id

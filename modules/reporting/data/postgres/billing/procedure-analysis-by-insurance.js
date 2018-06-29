@@ -70,13 +70,9 @@ with claim_details as (
         INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
         INNER JOIN billing.charges_studies bcs ON bcs.charge_id = bch.id
         INNER JOIN public.studies pss on pss.id = bcs.study_id
-        LEFT JOIN public.modalities pm on pm.id = pss.modality_id
-        LEFT  JOIN public.patient_insurances AS ppi ON ppi.id = CASE WHEN bc.payer_type = 'primary_insurance' THEN bc.primary_patient_insurance_id
-                                         WHEN bc.payer_type = 'secondary_insurance' THEN bc.secondary_patient_insurance_id
-                                         WHEN bc.payer_type = 'tertiary_insurance' THEN bc.tertiary_patient_insurance_id
-                                    END
+        INNER  JOIN public.patient_insurances AS ppi ON ppi.id =  bc.primary_patient_insurance_id
         LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
-
+        LEFT JOIN public.modalities pm on pm.id = pss.modality_id
         <% if ( refProviderFlagValue === 'true' ) { %> 
             LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
             LEFT JOIN public.providers as ppr ON ppr.id = ppc.provider_id
