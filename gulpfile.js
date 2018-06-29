@@ -5,7 +5,7 @@ const less = require('gulp-less');
 //const del = require('del');
 const cleanCss = require('gulp-clean-css');
 const concat = require('gulp-concat');
-const concatCss = require('gulp-concat-css');
+//const concatCss = require('gulp-concat-css');
 const requirejs = require('requirejs');
 const replace = require('gulp-replace');
 const zip = require('gulp-zip');
@@ -43,21 +43,21 @@ gulp.task('less', ['copy'], () => {
     //.pipe(gulp.dest('./app/skins/default'))
 });
 
-/// TODO: Auto prefix
-gulp.task('concat-css', ['less'], () => {
-    return gulp.src([
-        './app/node_modules/bootstrap/dist/css/bootstrap.min.css',
-        './app/node_modules/select2/dist/css/select2.min.css',
-        './app/node_modules/bootstrap-multiselect/dist/css/bootstrap-multiselect.css',
-        './app/node_modules/bootstrap-daterangepicker/daterangepicker.css',
-        './app/node_modules/font-awesome/css/font-awesome.css',
-        './app/libs/datetimepicker/less/bootstrap-datetimepicker-build.css',
-        './app/libs/jqgrid/css/ui.jqgrid.css'
-    ])
-        .pipe(concat('index.min.css'))
-        //.pipe(gulp.dest('./dist/css'))
-        .pipe(gulp.dest('./app/skins/default'))
-});
+// /// TODO: Auto prefix
+// gulp.task('concat-css', ['less'], () => {
+//     return gulp.src([
+//         './app/node_modules/bootstrap/dist/css/bootstrap.min.css',
+//         './app/node_modules/select2/dist/css/select2.min.css',
+//         './app/node_modules/bootstrap-multiselect/dist/css/bootstrap-multiselect.css',
+//         './app/node_modules/bootstrap-daterangepicker/daterangepicker.css',
+//         './app/node_modules/font-awesome/css/font-awesome.css',
+//         './app/libs/datetimepicker/less/bootstrap-datetimepicker-build.css',
+//         './app/libs/jqgrid/css/ui.jqgrid.css'
+//     ])
+//         .pipe(concat('index.min.css'))
+//         //.pipe(gulp.dest('./dist/css'))
+//         .pipe(gulp.dest('./app/skins/default'))
+// });
 
 gulp.task('requirejsBuild', ['less'], (done) => {
 

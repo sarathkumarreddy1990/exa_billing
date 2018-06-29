@@ -1248,12 +1248,19 @@ define(['jquery',
 
                             $('.this_pay, .this_adjustment').unbind().blur(function (e) {
                                 self.updatePaymentAdjustment();
+                                self.updateRefundRecoupment();
                             });
 
                             $('.checkDebit').unbind().click(function (e) {
+                                self.updateRefundRecoupment();
                                 self.updatePaymentAdjustment();
                             });
-                            
+
+                            $('#ddlAdjustmentCode_fast').unbind().change(function () {
+                                self.updateRefundRecoupment();
+                                self.updatePaymentAdjustment();
+                            });
+
                             var cas_arr_obj = [];
                             var cas_arr_obj = payment.cas_arr_obj ? JSON.parse(payment.cas_arr_obj) : [];
                             self.casSave[index] = cas_arr_obj;
@@ -1271,11 +1278,19 @@ define(['jquery',
 
                         $('#ddlAdjustmentCode_fast').append($('<option/>', { value: '', text: 'Select' }));
                         $('#ddlResponsible').append($('<option/>', { value: '', text: 'Select' }));
-                        $('.checkDebit').prop('checked', false);
 
                         $.each(adjustmentCodes, function (index, adjustmentCode) {
-                            $('#ddlAdjustmentCode_fast').append($('<option/>', { value: adjustmentCode.id, text: adjustmentCode.description, 'data_code_type': adjustmentCode.type }));
-                        });
+                            var $Option = $('<option/>', { value: adjustmentCode.id, text: adjustmentCode.description, 'data_code_type': adjustmentCode.type });
+                            if(adjustmentCode.type === 'refund_debit')
+                            {
+                                $Option.css({background:'gray'});
+                            }
+                            if(adjustmentCode.type === 'recoupment_debit')
+                            {
+                                $Option.css({background:'lightgray'});
+                            }
+                            $('#ddlAdjustmentCode_fast').append($Option); 
+                        }); 
 
                         $.each(payerTypes, function (index, payerType) {
                             if (payerType.patient_id)
@@ -1322,6 +1337,17 @@ define(['jquery',
                         self.reloadPaymentFields(claimId);
 
                         $('#txtResponsibleNotes').val(payerTypes[0].billing_notes);
+
+                        if ( $('#ddlAdjustmentCode_fast').find(':selected').attr('data_code_type')  ===  'refund_debit') {
+
+                            $('.checkDebit').prop('checked', true);
+                            self.updateRefundRecoupment();
+                        }
+                        else
+                        {
+                            $('.checkDebit').prop('checked', false);
+                        }  
+
                     },
                     error: function (err, response) {
                         commonjs.handleXhrError(err, response);
@@ -1337,33 +1363,43 @@ define(['jquery',
                 // this.updatePaymentAdjustment();
             },
 
+            updateRefundRecoupment: function () {
+                var lineItems = $("#tBodyApplyPendingPayment tr");
+                var isDebit = $('.checkDebit')[0].checked;
+                var adjustment_codetype = $('#ddlAdjustmentCode_fast').find(':selected').attr('data_code_type');
+
+                if (isDebit && adjustment_codetype) {
+                    $('#btnPayfullAppliedPendingPayments').attr('disabled', true);
+                    var thisAdjustment;
+
+                    $.each(lineItems, function () {
+                        thisAdjustment = $(this).find('td:nth-child(8)>input');
+                        if (adjustment_codetype === 'refund_debit') {
+                            $(this).find('td:nth-child(5)>input').val('0.00');
+                            $(this).find('td:nth-child(6)>input').val('0.00');
+                            $(this).find('td:nth-child(5)>input').attr('disabled', true);
+                            thisAdjustment.val(parseFloat(-Math.abs(thisAdjustment.val())).toFixed(2));
+                        }
+                        else {
+                            thisAdjustment.val(parseFloat(Math.abs(thisAdjustment.val())).toFixed(2));
+                            $(this).find('td:nth-child(5)>input').attr('disabled', false);
+                        }
+                    });
+
+                }
+                else {
+                    lineItems.find('td:nth-child(5)>input').attr('disabled', false);
+                    $('#btnPayfullAppliedPendingPayments').attr('disabled', false);
+                    if (isDebit || (adjustment_codetype === 'refund_debit')) {
+                    }
+                }
+            },
+
             updatePaymentAdjustment: function () {
                 var lineItems = $("#tBodyApplyPendingPayment tr");
                 var payment = 0.0, adjustment = 0.0, other_payment = 0.0, other_adj = 0.0;
-                var isDebit = $('.checkDebit')[0].checked;
-                var adjustment_codetype = $('#ddlAdjustmentCode_fast').find(':selected').attr('data_code_type');
-                
+
                 $.each(lineItems, function (index) {
-                    var thisPay = $(this).find('td:nth-child(5)>input');
-                    var thisAdj = $(this).find('td:nth-child(8)>input');
-
-                    if (isDebit) {
-                        if (adjustment_codetype == 'debit' && thisPay.val() != 0) {
-                            thisPay.val(0.00);
-                            commonjs.showWarning('This payment is debit adjustment(refund)');
-                        }
-                        else
-                            thisPay.val(parseFloat(-Math.abs(thisPay.val())).toFixed(2));
-                        
-                        $('#btnPayfullAppliedPendingPayments').attr('disabled', true);
-                        thisAdj.val(parseFloat(-Math.abs(thisAdj.val())).toFixed(2));
-                    }
-                    else {
-                        $('#btnPayfullAppliedPendingPayments').attr('disabled', false);
-                        thisPay.val(parseFloat(Math.abs(thisPay.val())).toFixed(2).trim());
-                        thisAdj.val(parseFloat(Math.abs(thisAdj.val())).toFixed(2).trim());
-                    }
-
                     var otherPayment = parseFloat($(this).find('td:nth-child(4)').text().trim())
                     var otherAdj = parseFloat($(this).find('td:nth-child(7)').text().trim())
                     var payment_amt = $(this).find('td:nth-child(5)>input').val() ? parseFloat($(this).find('td:nth-child(5)>input').val().trim()) : 0.00;
@@ -1501,6 +1537,10 @@ define(['jquery',
             },
 
             validatePayerDetails: function () {
+
+                var isDebit = $('.checkDebit')[0].checked;
+                var adjustment_codetype = $('#ddlAdjustmentCode_fast').find(':selected').attr('data_code_type');
+
                 if ($('#ddlResponsible').val() === '') {
                     commonjs.showWarning('Please select responsible');
                     $('#ddlResponsible').select2('open')
@@ -1509,6 +1549,12 @@ define(['jquery',
                 else if ($('#ddlAdjustmentCode_fast').val() === '0') {
                     commonjs.showWarning('Please select adjustemnt code');
                     // $('#ddlAdjustmentCode_fast').select2('open')
+                    return false;
+                } else if (isDebit && adjustment_codetype != 'refund_debit') {
+                    commonjs.showWarning('Please select Refund adjustment code ');
+                    return false;
+                } else if (!isDebit && adjustment_codetype == 'refund_debit') {
+                    commonjs.showWarning('Please select DR checkbox ');
                     return false;
                 }
                 else return true;
@@ -1539,7 +1585,6 @@ define(['jquery',
                     var deduction = $('#txtDeduction').val();
                     var coInsurance = $('#txtCoInsurance').val();
                     var coPay = $('#txtCoPay').val();
-                    var isRefund = $('.checkDebit').prop('checked');
 
                     $.ajax({
                         url: '/exa_modules/billing/payments/applyPayments',
@@ -1556,8 +1601,7 @@ define(['jquery',
                             billingNotes: billingNotes,
                             payerType: payerType,
                             adjestmentId: adjustmentType,
-                            paymentStatus: paymentStatus,
-                            isRefund: isRefund
+                            paymentStatus: paymentStatus
                         },
                         success: function (model, response) {
                             commonjs.showStatus('Payment has been applied successfully');
