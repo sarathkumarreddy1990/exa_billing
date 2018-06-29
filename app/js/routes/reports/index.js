@@ -159,7 +159,7 @@ define([
             },
 
             startPaymentsByInsuranceCompanyReporting: function (subroute) {
-                if (this.checkLicense('Payments By Insurance Company') && !this.paymentsByInsuranceComapanyRouter) {
+                if (this.checkLicense('Payments By Ins Company') && !this.paymentsByInsuranceComapanyRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.paymentsByInsuranceComapanyRouter = new PaymentByInsCompanyRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
