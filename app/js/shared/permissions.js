@@ -63,7 +63,7 @@ define([
                     'CLVA': 'btnValidateOrder'
                 };
                 accessDeniedScreens = _.difference(billingScreenCodes, app.screens)
-console.log('accessDeniedScreens ----->>', accessDeniedScreens)
+
                 _.each(accessDeniedScreens, function (code) {
                     let screenId = '';
                     screenId = mappingObject[code];
@@ -71,7 +71,7 @@ console.log('accessDeniedScreens ----->>', accessDeniedScreens)
                     $('#' + screenId).attr('href', '#');
                     $('.' + screenId).addClass('disabled');
                     $('.' + screenId).attr('href', '#');
-                    console.log('screenId   =====>>', screenId);
+
                 })
 
             };
