@@ -546,7 +546,7 @@ define('grid', [
                     customAction: function (rowID, e, that) { 
                         var gridData = $('#'+e.currentTarget.id).jqGrid('getRowData', rowID);
                             self.claimView = new claimsView();
-                            self.claimView.showEditClaimForm(gridData.claim_id, 'studies', {
+                            self.claimView.showEditClaimForm(gridData.claim_id, !options.isClaimGrid ? 'studies' : null, {
                                 'study_id': rowID,
                                 'patient_name': gridData.patient_name,
                                 'patient_id': gridData.patient_id,
@@ -890,8 +890,9 @@ define('grid', [
                     if (disableRightClick()) {
                         var _selectEle = $(event.currentTarget).find('#' + rowID).find('input:checkbox');
                         _selectEle.attr('checked', true);
+                        var gridData = $('#' + event.currentTarget.id).jqGrid('getRowData', rowID);
 
-                        if (!options.isClaimGrid) {
+                        if (!options.isClaimGrid && !gridData.claim_id) {
                             validateClaimSelection(rowID, true, _selectEle, studyStore);
                         }
                         openCreateClaim(rowID, event, options.isClaimGrid, studyStore);
