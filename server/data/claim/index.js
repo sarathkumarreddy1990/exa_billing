@@ -128,6 +128,7 @@ module.exports = {
                             , ip.insurance_code
                             , pi.coverage_level
                             , pi.subscriber_relationship_id   
+                            , pi.valid_from_date
                             , pi.valid_to_date
                             , pi.subscriber_employment_status_id                     
                             , pi.subscriber_dob
@@ -180,6 +181,7 @@ module.exports = {
                             , ip.insurance_info->'partner_id' AS ins_partner_id
                             , pi.coverage_level
                             , pi.subscriber_relationship_id   
+                            , pi.valid_from_date
                             , pi.valid_to_date
                             , pi.subscriber_employment_status_id                     
                             , pi.subscriber_dob
@@ -250,7 +252,8 @@ module.exports = {
                             , ip.insurance_info->'Address1' AS ins_pri_address
                             , ip.insurance_code
                             , pi.coverage_level
-                            , pi.subscriber_relationship_id   
+                            , pi.subscriber_relationship_id 
+                            , pi.valid_from_date  
                             , pi.valid_to_date
                             , pi.subscriber_employment_status_id                     
                             , pi.subscriber_dob
@@ -385,8 +388,8 @@ module.exports = {
                                                         , subscriber_state
                                                         , assign_benefits_to_patient
                                                         , subscriber_dob
-                                                        , now()
-                                                        , now() + interval '1 month'
+                                                        , valid_from_date
+                                                        , valid_to_date
                                                         , medicare_insurance_type_code
                                                     FROM json_to_recordset(${JSON.stringify(insurances)}) AS insurances 
                                                     (
@@ -592,7 +595,7 @@ module.exports = {
                                     , ${params.pointer3}
                                     , ${params.pointer4}
                                     , ${params.authorization_no}
-                                ) RETURNING billing.charges.id `;
+                                ) `;
 
         return await query(sql);
     },

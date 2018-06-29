@@ -824,7 +824,7 @@ define('grid', [
                                 study_id = result.study_id;
                                 order_id = result.order_id;
                             }
-                            self.claimView.showEditClaimForm(gridData.claim_id, null, {
+                            self.claimView.showEditClaimForm(gridData.claim_id, !options.isClaimGrid ? 'studies' : null , {
                                 'study_id': study_id,
                                 'patient_name': gridData.patient_name,
                                 'patient_id': gridData.patient_id,
