@@ -63,7 +63,6 @@ const api = {
     //pool: pool, // direct pool export should not be used, unless absolutely necessarry!!!
 
     queryForReportData: (queryText, queryParams, rowsAsArray = true) => {
-        console.log(queryText, queryParams);
         return api.query(queryText, queryParams, rowsAsArray)   //true /* always return rows as array */
             .then((pgResult) => {
                 return api.mapToReportData(pgResult);
