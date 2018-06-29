@@ -58,7 +58,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: 'Updated Claim '+ params.process+ ' for claims ('+ params.claimIds +')'
+            logDescription: 'Updated Claim ' + params.process + ' for claims (' + params.claimIds + ')'
         });
     },
 
@@ -99,7 +99,7 @@ module.exports = {
         return await query(sql);
     },
 
-    getBillingPayers : async function(params) {
+    getBillingPayers: async function (params) {
         const sql = SQL`
                         SELECT 
                             c.patient_id
@@ -133,7 +133,6 @@ module.exports = {
                         WHERE 
                             c.id = ${params.id}`;
 
-         return await query(sql);
-           
+        return await query(sql);
     },
 };
