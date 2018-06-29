@@ -163,11 +163,11 @@ const api = {
         //  scheduled_dt
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);
-            filters.studyDate = queryBuilder.whereDate('s.study_dt', '=', [params.length], 'f.time_zone');
+            filters.studyDate = queryBuilder.whereDate('bc.claim_dt', '=', [params.length], 'f.time_zone');
         } else {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
-            filters.studyDate = queryBuilder.whereDateBetween('s.study_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.studyDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
         }
 
         // billingProvider single or multiple
