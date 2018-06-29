@@ -946,7 +946,7 @@ define(['jquery',
 
 
                         arrays.filterQueries.push({
-                            filterid: id.toString(),
+                            filterid: id,
                             rangeIndex: self.dateRangeFilterInitValue,
                             dateString: $divFilterRangeHTML,
                             startDate: dateRangePickerStart,
