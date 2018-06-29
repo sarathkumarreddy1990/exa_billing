@@ -24,13 +24,12 @@ with patientByInsCompanyDetailQuery as (
     INNER JOIN billing.claims bc ON bc.patient_id = p.id
     INNER JOIN insurance_providers AS ip ON ip.id = pi.insurance_provider_id
     INNER JOIN facilities f on f.id = bc.facility_id
-    <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
     WHERE  1 = 1
          AND <%= companyId %>
          AND <%= claimDate %>
          <% if (facilityIds) { %>AND <% print(facilityIds); } %>    
-         <% if(insuranceProviderIds) { %>AND <% print(insuranceProviderIds);} %>    
-         <% if(billingProID) { %> AND <% print(billingProID); } %>
+         <% if(insuranceProviderIds) { %>AND <% print(insuranceProviderIds);} %>
+    GROUP BY ip.insurance_code,pi.coverage_level,"Patient","DOB","Gender",policy_number,ip.insurance_name,group_number
     ORDER BY 
         "Patient","Level"
 )
@@ -151,7 +150,6 @@ const api = {
             companyId: null,
             claimDate: null,
             facilityIds: null,
-            billingProID: null,
             insuranceProviderIds: null
 
         };
@@ -174,12 +172,6 @@ const api = {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
             filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
-        }
-
-        // billingProvider single or multiple
-        if (reportParams.billingProvider) {
-            params.push(reportParams.billingProvider);
-            filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
         }
 
         //InsuranceProvider filter
