@@ -25,7 +25,7 @@ define([
             },
 
             initializeRouter: function () {
-                this.options.screen = facilityModules.reportScreens.inscompany;
+                this.options.screen = facilityModules.reportScreens.paymentsByinscompany;
                 this.options.currentView = this.paymentByInsCompanyScreen;
                 layout.initializeLayout(this);
 

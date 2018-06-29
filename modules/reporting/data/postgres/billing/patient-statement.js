@@ -84,7 +84,7 @@ WITH claim_data as(
         p.patient_info->'c1City' AS city,
         p.patient_info->'c1State' AS state,
         p.patient_info->'c1Zip' AS zip,
-        commented_dt as enc_date,
+        to_char(commented_dt, 'MM/DD/YYYY') as enc_date,
         comments as description,
         pc.code,
         pc.id as enc_id,
