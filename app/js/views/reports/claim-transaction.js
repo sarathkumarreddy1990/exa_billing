@@ -37,6 +37,7 @@ define([
                 insuranceOption: null,
                 referringDoctoreOption: null,
                 insuranceIds: null,
+                insuranceGroupIds: null,
                 userIds: null,
                 userNames: null,
                 referringProIds: null,
@@ -122,6 +123,7 @@ define([
                 UI.bindInsuranceAutocomplete('Select Insurance', 'btnAddInsurance', 'ulListInsurance');
                 UI.bindInsuranceProviderAutocomplete('Select Insurance Provider', 'btnAddInsuranceProvider', 'ulListInsuranceProvider');
                 UI.listUsersAutoComplete('Select User', 'btnAddUsers', 'ulListUsers');
+                UI.bindCPTCodeInformations('txtCPTCode', 'btnCPTCode', 'ulListCPTCodeDetails');
 
                 // pre-select default facility
                 this.selectDefaultFacility();
@@ -211,10 +213,13 @@ define([
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = openInNewTab && rFormat === 'html';
 
-                this.viewModel.insuranceIds = $('ul#ulListInsurance li a').map(function () {
+                this.viewModel.insuranceIds = $('ul#ulListInsurance li').map(function () {
                     return this.id;
                 }).get();
-                this.viewModel.userIds = $('ul#ulListUsers li a').map(function () {
+                this.viewModel.insuranceGroupList = $('ul#ulListInsuranceProvider li').map(function (){
+                    return this.id;
+                }).get();
+                this.viewModel.userIds = $('ul#ulListUsers li').map(function () {
                     return this.id;
                 }).get();
                 this.viewModel.insuranceOption = $('#ddlInsuranceOption').val();
@@ -222,7 +227,7 @@ define([
 
                 this.viewModel.referringDoctor = $('#ddlReferringPhysicianOption').val();
 
-                this.viewModel.cptCodeLists = $('ul#ulListCPTCodes li a').map(function () {
+                this.viewModel.cptCodeLists = $('ul#ulListCPTCodeDetails li').map(function () {
                     return this.id;
                 }).get();
 
@@ -306,6 +311,9 @@ define([
                     insuranceIds: this.viewModel.insuranceIds,
                     insuranceOption: this.viewModel.insuranceOption ? this.viewModel.insuranceOption : '',
 
+                    insuranceGroupList: this.viewModel.insuranceGroupList,
+                    insGroupOption: this.viewModel.insGroupOption ? this.viewModel.insGroupOption : '',
+
                     allInsuranceGroup: this.viewModel.allInsGrpSelection ? this.viewModel.allInsGrpSelection : '',
                     insuranceGroupList: this.selectedInsGrpList ? this.selectedInsGrpList : '',
 
@@ -340,8 +348,9 @@ define([
                     $("#ddlInsuranceGroupBox").show();
                     $("#ddlInsuranceGroupBoxList").show();
                     $('#ulListInsurance').empty();
+                    $('#ulListInsuranceProvider').empty();
                     this.viewModel.insuranceIds = [];
-                    $('#ulListInsurance').data('insuranceIds', []);
+                    $('#ulListInsurance').data('insuranceGroupList', []);
                 }
                 else {
                     $("#ddlOptionBox").hide();
@@ -349,8 +358,11 @@ define([
                     $("#ddlInsuranceGroupBox").hide();
                     $("#ddlInsuranceGroupBoxList").hide();
                     $('#ulListInsurance').empty();
+                    $('#ulListInsuranceProvider').empty();
                     this.viewModel.insuranceIds = [];
+                    this.viewModel.insuranceGroupList = [];
                     $('#ulListInsurance').data('insuranceIds', []);
+                    $('#ulListInsuranceProvider').data('insuranceGroupList', []);
                     $("#chkAllInsGroup").attr('checked', false);
                     $('input[class=insGrpChk]').prop('checked', false);
                     this.selectedInsGrpList = []; // empty the selected insurance group list

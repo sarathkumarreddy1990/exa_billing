@@ -134,5 +134,16 @@ module.exports = {
                             c.id = ${params.id}`;
 
         return await query(sql);
+           
     },
+
+    updateBillingPayers: async function(params) {
+        const sql = SQL`
+                        UPDATE 
+                        billing.claims
+                        SET payer_type = ${params.payer_type}
+                        WHERE id = ${params.id}`;
+
+        return await query(sql);
+    }
 };

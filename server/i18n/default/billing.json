@@ -367,7 +367,8 @@
             "insuranceExpDate" : "Expiry Date",
             "totalInsurancePayments":"Total Insurance Payment",
             "totalPatientPayments":"Total Patient Payment",
-            "currentResponsibility":"Current Responsibility Assigned"
+            "currentResponsibility":"Current Responsibility Assigned",
+            "validationResults": "Validation Results"
         }
     }
 }

@@ -108,11 +108,10 @@ const detailQueryTemplate = _.template(`
                          p.payer_type = 'ordering_provider' then pr.last_name ||','|| pr.first_name
          	            END  AS "Payer Name",
          	        p.mode "Payment AS Mode",
-         	        p.card_number AS "Card #",
+         	        p.card_number AS "Check #",
          	        payment_totals.payments_applied_total AS "Applied Amount",
          	        p.amount "Payment Amount",
-                    (p.amount - payment_totals.payments_applied_total) AS "Balance",
-                    cs.code AS "Code",
+                    (p.amount - payment_totals.payments_applied_total) AS "Balance",                  
                     pd.applied_amount AS "Applied Amount",
                     pd.adjustment AS "Adjustment Amount"
                     <% if (userIds) { %>, user_name AS "User Name"   <% } %>
@@ -283,7 +282,7 @@ const api = {
         //claim facilities
         if (!reportParams.allFacilities && reportParams.facilityIds) {
             params.push(reportParams.facilityIds);
-            filters.facilityIds = queryBuilder.whereIn('bc.facility_id', [params.length]);
+            filters.facilityIds = queryBuilder.whereIn('bp.facility_id', [params.length]);
         }
 
         //  scheduled_dt

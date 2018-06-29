@@ -101,14 +101,15 @@ const colModel = [
     },
     {
         name: 'payer_name',
-        searchFlag: `(  CASE payer_type 
+        searchFlag:'%',
+        searchColumns: [`(  CASE payer_type 
                 WHEN 'primary_insurance' THEN insurance_providers.insurance_name
                 WHEN 'secondary_insurance' THEN insurance_providers.insurance_name
                 WHEN 'teritary_insurance' THEN insurance_providers.insurance_name
 	            WHEN 'ordering_facility' THEN provider_groups.group_name
 	            WHEN 'referring_provider' THEN ref_provider.full_name
 	            WHEN 'rendering_provider' THEN render_provider.full_name
-	            WHEN 'patient' THEN patients.full_name        END) ` },
+	            WHEN 'patient' THEN patients.full_name        END) `] },
     {
         name: 'clearing_house',
         searchColumns: [`insurance_providers.insurance_info->'claimCHDescription'`],

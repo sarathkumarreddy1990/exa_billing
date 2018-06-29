@@ -41,17 +41,18 @@ const detailQueryTemplate = _.template(`
          (
             SELECT 
       get_full_name(pp.last_name, pp.first_name,pp.middle_name, pp.prefix_name, pp.suffix_name) 
-                                                      	AS "Patient Name"
+                                                      	    AS "Patient Name"
 	, pp.account_no 										AS "Account #"
 	, bc.id 											    AS "Claim #"
     , to_char(pp.birth_date,'MM/DD/YYYY')                   AS "DOB"
-    , billing.get_charge_icds(bch.id)                     AS "Diagnostic"
-	, (bch.bill_fee*bch.units)								AS "Charge"
-	, (bch.allowed_amount*bch.units)						AS "Contract"
+    , billing.get_charge_icds(bch.id)                       AS "Diagnostic"
+	, display_code                                          AS "CPT"
 	, pm1.code                                             	AS "M1"
 	, pm2.code                                              AS "M2"
 	, pm3.code                                              AS "M3"
-    , pm4.code                                              AS "M4"   
+    , pm4.code                                              AS "M4"  
+    , (bch.bill_fee*bch.units)								AS "Charge"
+	, (bch.allowed_amount*bch.units)						AS "Contract" 
 	
 FROM billing.charges bch 
 INNER JOIN billing.claims bc on bc.id = bch.claim_id
