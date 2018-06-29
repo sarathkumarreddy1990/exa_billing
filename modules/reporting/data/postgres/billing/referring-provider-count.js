@@ -24,7 +24,6 @@ WITH referring_provider_count as
     <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
     <% if(billingProID) { %> AND <% print(billingProID); } %>
     GROUP BY 
-        pp.provider_code,
         pp.full_name
 )
 SELECT 
@@ -160,7 +159,7 @@ const api = {
         // billingProvider single or multiple
         if (reportParams.billingProvider) {
             params.push(reportParams.billingProvider);
-            filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
+            filters.billingProID = queryBuilder.whereIn('bp.billing_provider_id', [params.length]);
         }
 
         return {

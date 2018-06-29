@@ -13,7 +13,7 @@ with claim_details as (
         CASE WHEN bpa.amount_type = 'payment' THEN bpa.amount END payment_amount,
         CASE WHEN bpa.amount_type = 'adjustment' THEN bpa.amount END adjustment,
         CASE WHEN bp.payer_type = 'patient' THEN 'P'
-             WHEN bp.payer_type = 'insurance' THEN 'P'
+             WHEN bp.payer_type = 'insurance' THEN 'I'
              ELSE 'O' END pymt_tag,
            bpa.charge_id
      FROM billing.payments bp 
