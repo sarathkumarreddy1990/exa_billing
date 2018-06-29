@@ -834,7 +834,7 @@ define(['jquery',
 
 
                         arrays.filterQueries.push({
-                            filterid: id.toString(),
+                            filterid: id,
                             dicomwhere: options.dicomwhere,
                             rangeIndex: self.dateRangeFilterInitValue,
                             dateString: $divFilterRangeHTML,

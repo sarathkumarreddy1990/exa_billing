@@ -38,7 +38,11 @@ module.exports = {
         payments: 'Payments',
         applyPayments:'Applied Payments',
         claim_inquiry:'Claim Inquiry',
-        claims:'Claims'
+        claim_workbench:'Claims',
+        studies: 'Studies',
+        claim_study: 'Edit Claim',
+        split_claim: 'Split Claim',
+        validate_claims: 'Validate Claims'
     },
 
     entityNames: {
@@ -87,6 +91,12 @@ module.exports = {
         insurance_x12_mapping: 'INSM',
         edi_clearinghouses: 'CLHO',
         user_log: 'BULG',
-        audit_log: 'BALG'
+        audit_log: 'BALG',
+        claim_workbench: 'CLIM',
+        studies: 'STDS',
+        claim_study: 'ECLM',
+        claim_inquiry: 'CLMI',
+        split_claim: 'MASO',
+        validate_claims: 'CLVA'
     }
 };

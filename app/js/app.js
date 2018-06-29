@@ -1,7 +1,8 @@
 define([
     'backbone',
+    'shared/permissions',
     'routes/app-router'
-], function (Backbone, AppRouter) {
+], function (Backbone, Permissions, AppRouter) {
 
     return {
         initialize: function () {
@@ -12,7 +13,11 @@ define([
 
             AppRouter.initialize();
             commonjs.initSessionHandler();
-            commonjs.initPermissionHandler();
+            
+            if (app.userInfo.user_type != 'SU') {
+                (new Permissions()).init();
+            }
+
         }
     }
 });
