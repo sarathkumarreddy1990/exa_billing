@@ -75,10 +75,13 @@ module.exports = {
 
             for (const obj1 of objects.charges) {
 
-
                 if (!obj1.id) {
 
-                    charge_arr.push(data.saveChargesOnly(obj1));
+                    if (!obj1.study_id) {
+                        charge_arr.push(data.saveChargesOnly(obj1));
+                    } else {
+                        charge_arr.push(data.saveCharges(obj1));
+                    }
 
                 }
 
