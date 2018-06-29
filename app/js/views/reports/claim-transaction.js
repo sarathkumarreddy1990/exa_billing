@@ -34,6 +34,7 @@ define([
                 payDateTo: null,
                 billCreatedDateFrom: null,
                 billCreatedDateTo: null,
+                chkServiceDateBill: null,
                 insuranceOption: null,
                 referringDoctoreOption: null,
                 insuranceIds: null,
@@ -299,14 +300,14 @@ define([
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
                     billingProFlag: this.viewModel.allBillingProvider == 'true' ? true : false,
 
-                    fromDate: chkServiceDateBill && chkServiceDateBill.checked ? this.viewModel.dateFrom.format('YYYY-MM-DD') : '',
-                    toDate: chkServiceDateBill && chkServiceDateBill.checked ? this.viewModel.dateTo.format('YYYY-MM-DD') : '',
+                    'fromDate': ($('#chkServiceDateBill').prop('checked')) == true ? this.viewModel.dateFrom.format('MM/DD/YYYY') : '',
+                    'toDate':($('#chkServiceDateBill').prop('checked')) == true ? this.viewModel.dateTo.format('MM/DD/YYYY') : '',
 
-                    cmtFromDate: chkServiceDateBill && chkServiceDateBill.checked ? this.viewModel.cmtFromDate.format('YYYY-MM-DD') : '',
-                    cmtToDate: chkServiceDateBill && chkServiceDateBill.checked ? this.viewModel.cmtToDate.format('YYYY-MM-DD') : '',
+                    'cmtFromDate':  ($('#chkServicePayDateCPT').prop('checked')) == true  ? this.viewModel.cmtFromDate.format('MM/DD/YYYY') : '',
+                    'cmtToDate':  ($('#chkServicePayDateCPT').prop('checked')) == true  ? this.viewModel.cmtToDate.format('MM/DD/YYYY') : '',
 
-                    billCreatedDateFrom: billCreatedDate && billCreatedDate.checked ? this.viewModel.billCreatedDateFrom.format('YYYY-MM-DD') : '',
-                    billCreatedDateTo: billCreatedDate && billCreatedDate.checked ? this.viewModel.billCreatedDateTo.format('YYYY-MM-DD') : '',
+                    'billCreatedDateFrom':($('#billCreatedDate').prop('checked')) == true  ? this.viewModel.billCreatedDateFrom.format('MM/DD/YYYY') : '',
+                    'billCreatedDateTo': ($('#billCreatedDate').prop('checked')) == true ? this.viewModel.billCreatedDateTo.format('MM/DD/YYYY') : '',
 
                     insuranceIds: this.viewModel.insuranceIds,
                     insuranceOption: this.viewModel.insuranceOption ? this.viewModel.insuranceOption : '',
@@ -442,7 +443,7 @@ define([
                 $('#facilityDropDown').hide();
 
                 // clear facility filters
-                //   $('#ddlFacilityFilter').multiselect("deselectAll", false).multiselect("refresh");
+                $('#ddlFacilityFilter').multiselect("deselectAll", false).multiselect("refresh");
                 this.viewModel.allFacilities = false;
             },
             // Facility Changes -- worked
@@ -474,8 +475,8 @@ define([
                 selected.each(function () {
                     facilities.push($(this).val());
                 });
-                //  this.selectedFacilityList = facilities
-                //    this.viewModel.allFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlFacilityFilter option").length;
+                 this.selectedFacilityList = facilities
+                   this.viewModel.allFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlFacilityFilter option").length;
             },
             // multi select billing provider - worked
             getBillingProvider: function (e) {

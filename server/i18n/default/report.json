@@ -18,6 +18,16 @@
         "accountingDate" :"Accounting Date",
         "insurance" : "Insurance",
         "procedureBy" : "Procedure By",        
-        "cptCodes" : "CPT Codes"        
+        "cptCodes" : "CPT Codes" ,
+        "userRoles" : "Select User Role" ,
+        "userRole" : "User Role" ,
+        "payertype": "Payer Type",
+        "paymentMode": "Payment Mode",
+        "summary": "Summary",
+        "statementstate": "Statement State",
+        "statementmode": "Statement Mode",
+        "minamount": "Min Amount",
+        "patients": "Patients"
+               
     }
 }

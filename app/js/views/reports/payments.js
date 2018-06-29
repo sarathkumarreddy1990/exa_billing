@@ -28,7 +28,9 @@ define([
                 allBillingProvider: false,
                 allUsers: false,
                 userIds: null,
-                userNames: null
+                userNames: null,
+                userRoleIds: null,
+                UserRoleName: null
             },
             selectedBillingProList: [],
             selectedFacilityList: [],
@@ -37,6 +39,7 @@ define([
             events: {
 
                 'change #ddlUsersOption': 'onOptionChangeSelectUser',
+                'change #ddlUsersRoleOption': 'onOptionChangeSelectUserRole',
                 'click #btnViewReport': 'onReportViewClick',
                 'click #btnViewReportNewTab': 'onReportViewClick',
                 'click #btnPdfReport': 'onReportViewClick',
@@ -74,7 +77,7 @@ define([
                 this.drpStudyDt.setStartDate(this.viewModel.dateFrom);
                 this.drpStudyDt.setEndDate(this.viewModel.dateTo);
                 // For Facility Filter with Multiple Select
-                $('#ddlFacilityFilter,  #ddlUsersOption').multiselect({
+                $('#ddlFacilityFilter,  #ddlUsersOption, #ddlUsersRoleOption').multiselect({
                     maxHeight: 200,
                     buttonWidth: '300px',
                     width: '300px',
@@ -84,7 +87,7 @@ define([
                 });
 
                 // For Payment Option select without Multiple filter
-                $('#ddlPaymentOption').multiselect({
+                $('#ddlPaymentOption, #ddlSummaryOption').multiselect({
                     maxHeight: '200px',
                     buttonWidth: '220px',
                     width: '200px'
@@ -92,6 +95,7 @@ define([
                 // Binding Billing Provider MultiSelect
                 UI.bindBillingProvider();
                 UI.listUsersAutoComplete('Select Users', 'btnAddUsers', 'ulListUsers');
+                UI.listUsersRoleAutoComplete('Select Users Role', 'btnAddUsersRole', 'ulListUsersRole');
 
             },
 
@@ -123,6 +127,23 @@ define([
                     this.viewModel.userIds = [];
                     $('#ulListUsers').data('this.viewModel.userIds', []);
                     $('#ulListUsers').html('');
+                }
+            },
+
+            onOptionChangeSelectUserRole: function () {
+                var self = this;
+                if ($('#ddlUsersRoleOption').val() == 'S') {
+                    $("#ddlUsersRoleBox").show();
+                    $("#divUsersRole").show();
+                    $('#txtUsersRole').text("Select User");
+                }
+                else {
+                    $("#ddlUsersRoleBox").hide();
+                    $("#divUsersRole").hide();
+                    this.viewModel.userRoleNames = [];
+                    this.viewModel.userRoleIds = [];
+                    $('#ulListUsersRole').data('this.viewModel.userRoleIds', []);
+                    $('#ulListUsersRole').html('');
                 }
             },
 
@@ -158,6 +179,12 @@ define([
 
                 if ($('#ddlUsersOption').val() == 'S' && $('#ulListUsers li').length == 0) {
                     $('#txtUsers a span').val('Select User');
+                    commonjs.showWarning('Please select at atleast one user');
+                    return;
+                }
+
+                if ($('#ddlUsersRoleOption').val() == 'S' && $('#ulListUsersRole li').length == 0) {
+                    $('#txtUsersRole a span').val('Select User Role');
                     commonjs.showWarning('Please select at atleast one user');
                     return;
                 }
@@ -238,14 +265,21 @@ define([
                 this.viewModel.allBillingProvider = this.selectedBillingProList && this.selectedBillingProList.length === $("#ddlBillingProvider option").length;
             },
             getReportParams: function () {
-                var usersArray = [], userNameArray = [];
+                var usersArray = [], userNameArray = [], usersRoleArray = [], userRoleNameArray = [];
                 $('#ulListUsers li a').each(function () {
                     usersArray.push(~~$(this).attr('data-id'));
                     userNameArray.push($(this).closest('li').find('span').text());
                 });
+
+                $('#ulListUsersRole li a').each(function () {
+                    usersRoleArray.push(~~$(this).attr('data-id'));
+                    userRoleNameArray.push($(this).closest('li').find('span').text());
+                });
                 return urlParams = {
                     'userIds': $('#ddlUsersOption').val() == 'S' ? usersArray : '',
                     'userName': $('#ddlUsersOption').val() == 'S' ? userNameArray : '',
+                    'userRoleIds': $('#ddlUsersRoleOption').val() == 'S' ? usersRoleArray : '',
+                    'userRoleName': $('#ddlUsersRoleOption').val() == 'S' ? userRoleNameArray : '',
                     'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
                     'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
                     'fromDate': this.viewModel.dateFrom.format('YYYY-MM-DD'),
@@ -253,6 +287,7 @@ define([
                     'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
                     'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
+                    'summaryType': $('#ddlSummaryOption').val(),
                 };
             }
         });

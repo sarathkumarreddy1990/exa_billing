@@ -14,7 +14,7 @@ WITH agg AS(
     bc.id AS claim_id,
     pp.account_no AS account_number,
     bcs.description AS status,
-    bc.claim_dt AS encounter_date,
+    to_char(bc.claim_dt, 'MM/DD/YYYY') AS encounter_date,
     (SELECT round(claim_balance_total::numeric) FROM billing.get_claim_totals(bc.id))  AS total,
     (SELECT abs(claim_balance_total::numeric) FROM billing.get_claim_totals(bc.id)) AS unformated_total
     -- Unapplied amount details not there billing 1.5

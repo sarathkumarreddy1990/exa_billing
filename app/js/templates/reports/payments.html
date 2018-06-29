@@ -1,9 +1,10 @@
-<form class="form-horizonta form-list" novalidate="" _lpchecked="1">
+<form novalidate="" _lpchecked="1">
 
     <!-- row: form elements -->
-    <div class="col-xs-12 col-md-12 col-lg-12">
+    <div class="row">
+
         <!-- col: form elements -->
-        <div class="col-xs-4">
+        <div class="col-3">
             <div class="form-group form-inline">
                 <div class="col-form-content">
                     <label class="control-label field-required" for="txtDateRangeFromTo" i18n="report.accountingDate" />
@@ -18,10 +19,10 @@
         </div>
 
         <!-- /col: form elements -->
-        <div class="col-xs-4">
+        <div class="col-3">
             <div class="form-group form-inline">
+                <label class="control-label" i18n="report.facilities" />
                 <div class="col-form-label" class="multiselect">
-                    <label class="control-label" i18n="report.facilities" />
                     <select id="ddlFacilityFilter" multiple="multiple">
                         <% _.each(facilities.toJSON(), function(facility) { %>
                             <option value='<%= facility.id %>'>
@@ -32,38 +33,39 @@
                 </div>
             </div>
         </div>
-        <div class="col-xs-4">
+        <div class="col-3">
             <div class="form-group form-inline">
+                <label class="control-label" i18n="report.billingProviders" />
                 <div class="col-form-label" class="multiselect">
-                    <label class="control-label" i18n="report.billingProviders" />
                     <select id="ddlBillingProvider" multiple="multiple" />
                 </div>
             </div>
         </div>
+
+        <div class="col-3">
+            <div class="form-group form-inline">
+                <div class="col-form-label" style="max-width: 110px">
+                    <label class="control-label" i18n="report.summary"></label>
+                </div>
+                <div class="form-content">
+                    <select id="ddlSummaryOption" class="form-control form-control-lg">
+                        <option value="Payer Type" i18n="report.payertype"> Payer Type</option>
+                        <option value="Payment Mode" i18n="report.paymentMode"> Payment Mode</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
         <!-- col: form elements -->
 
     </div>
     <!--users -->
-    <div class="col-xs-12 col-md-12 col-lg-12" style="height: 135px;">
-        <div class="col-xs-4 col-md-4 col-lg-4">
-            <div class="form-group form-inline" style="display:none;">
-                <div class="col-form-label" style="max-width: 110px">
-                    <label class="control-label">Select Payment</label>
-                </div>
+    <div class="row" style="height: 135px;">
+        <div class="col-3">
+            <div class="form-group form-inline">
                 <div class="form-content">
+                    <label class="inline field-chk" i18n="report.selectUsers"></label>
                     <div class="input-group">
-                        <select id="ddlPaymentOption" class="form-control form-control-lg">
-                            <option value="All">All Payments</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-xs-4">
-            <div class="form-group form-inline">                
-                <div class="form-content">
-                        <label class="inline field-chk" i18n="report.selectUsers"></label>
-                    <div class="input-group">                         
                         <select id="ddlUsersOption" class="form-control form-control-lg">
                             <option value="All">ALL</option>
                             <option value="S">Selected</option>
@@ -83,7 +85,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-xs-4">
+        <div class="col-3">
             <div id="divUsers" style="display: none;">
                 <div class="col-form-label" style="max-width: 110px;">
                     <label class="inline field-chk">Users Selected</label>
@@ -94,6 +96,45 @@
                         </ul>
                     </div>
                 </div>
+            </div>
+        </div>
+        <div class="col-3">
+            <div class="form-group form-inline">
+                <div class="form-content">
+                    <label class="inline field-chk" i18n="report.userRoles"></label>
+                    <div class="input-group">
+                        <select id="ddlUsersRoleOption" class="form-control form-control-lg">
+                            <option value="All">ALL</option>
+                            <option value="S">Selected</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="ddlUsersRoleBox" class="form-group form-inline" style="display:none;width :700px;">
+                <div>
+                    <label class="control-label" i18n="report.reportFilter.userRole"></label>
+                </div>
+                <div style="width: 250px; border:1px solid;margin-top:10px">
+                    <select id="txtUsersRole"> </select>
+                    <a class="btn btn-primary" id="btnAddUsersRole" title="Add Users Role">
+                        <i class="icon-ic-plus"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-3">
+            <div id="divUsersRole" style="display: none;">
+                <div class="col-form-label" style="max-width: 110px;">
+                    <label class="inline field-chk">User Role Selected</label>
+                </div>
+                <div class="form-content">
+                    <div>
+                        <ul id="ulListUsersRole" class="ulSelectionList tagList" style="overflow: auto;width: 330px;height:90px; border: 1px solid;">
+                        </ul>
+                    </div>
+                </div>
+
             </div>
         </div>
         <!-- /col: form elements -->

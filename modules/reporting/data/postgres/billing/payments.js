@@ -11,6 +11,7 @@ const summaryQueryTemplate = _.template(`
                 SELECT     
                     bp.payer_type as payer_type,
                     bp.id as payment_id,
+                    bp.mode as payment_mode,
                     SUM(CASE 
                             WHEN bpa.amount_type ='payment' THEN
                                  bpa.amount
@@ -35,27 +36,54 @@ const summaryQueryTemplate = _.template(`
                     INNER JOIN billing.claims bc on bc.id = bch.claim_id
                     INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id <% } %>
                 <% if (userIds) { %>  INNER join public.users on users.id = bp.created_by    <% } %>
+                <% if (userRoleIds) { %>    
+                    <% if (userIds) { %>  
+                         INNER JOIN  public.user_groups ON users.user_group_id = public.user_groups.id AND public.user_groups.is_active 
+                         INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active                        
+                       <% } else { %>
+                         INNER join public.users  on users.id = bp.created_by 
+                         INNER JOIN  public.user_groups ON users.user_group_id = public.user_groups.id AND public.user_groups.is_active 
+                         INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active                        
+                      <% } %>
+                   <%  } %>
                 WHERE 1=1 
-                    AND <%= claimDate %>
+                AND <%= claimDate %>
                 <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
                 <% if(billingProID) { %> AND <% print(billingProID); } %>
                 <% if (userIds) { %>AND <% print(userIds); } %>
+                <% if (userRoleIds) { %>AND <% print(userRoleIds); } %>
                 GROUP BY
                      bp.payer_type, bp.id
           )
-          SELECT 
-                CASE  
+          SELECT                   
+                <% if (summaryType == "Payment Mode")  { %>
+
+                    CASE  
+                    WHEN payment_mode IS NULL THEN 'Total' 
+                    ELSE 
+                    payment_mode 
+                    END             AS "Payment Mode",                       
+           
+                <% } else { %>
+                    CASE  
                     WHEN payer_type IS NULL THEN 'Payer Type Total' 
                     ELSE 
                         payer_type 
                     END             AS "Payer Type", 
+                <% } %>        
                     SUM(payment_applied)    AS "Total Payment applied",
                     SUM(adjustment) AS "Total Adjustment",
                     SUM(total_payment) AS "Total Payment Amount"
             FROM 
                 paymentsSummaryQuery
-            GROUP BY
-                    ROLLUP (payer_type) ORDER BY payer_type 
+          
+                <% if (summaryType == "Payment Mode")  { %>
+                    GROUP BY
+                    ROLLUP (payment_mode) ORDER BY payment_mode 
+                    <% } else { %>
+                        GROUP BY
+                        ROLLUP (payer_type) ORDER BY payer_type 
+                        <% } %> 
         `);
 // Data set #2, detailed query
 const detailQueryTemplate = _.template(`
@@ -74,11 +102,22 @@ const detailQueryTemplate = _.template(`
             LEFT Join billing.claims  bc on bc.id = bch.claim_id
             <% if (billingProID) { %>  INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id <% } %>
             <% if (userIds) { %>  INNER join public.users  users on users.id = bp.created_by    <% } %>
+            <% if (userRoleIds) { %>    
+                <% if (userIds) { %>  
+                     INNER JOIN  public.user_groups ON users.user_group_id = public.user_groups.id AND public.user_groups.is_active 
+                     INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active                        
+                   <% } else { %>
+                     INNER join public.users users on users.id = bp.created_by 
+                     INNER JOIN  public.user_groups ON users.user_group_id = public.user_groups.id AND public.user_groups.is_active 
+                     INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active                        
+                  <% } %>
+               <%  } %>
             WHERE 1=1 
             AND <%= claimDate %>
             <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
             <% if(billingProID) { %> AND <% print(billingProID); } %>
             <% if (userIds) { %>AND <% print(userIds); } %>
+            <% if (userRoleIds) { %>AND <% print(userRoleIds); } %>
             GROUP BY bp.id,bc.id )
                 SELECT
                     to_char(p.accounting_dt, 'MM/DD/YYYY')   AS "Accounting Date",
@@ -137,6 +176,10 @@ const api = {
             initialReportData.report.params.userIds = initialReportData.report.params.userIds.map(Number);
         }
 
+        if (initialReportData.report.params.userRoleIds && initialReportData.report.params.userRoleIds.length > 0) {
+            initialReportData.report.params.userRoleIds = initialReportData.report.params.userRoleIds.map(Number);
+        }
+
         return Promise.join(
             api.createSummaryDataSet(initialReportData.report.params),
             api.createDetailDataSet(initialReportData.report.params),
@@ -190,6 +233,14 @@ const api = {
             filtersUsed.push({ name: 'users', label: 'Users', value: 'All' });
         }
 
+        // user tol filter
+        if (params.userRoleIds && params.userRoleIds.length > 0) {
+            filtersUsed.push({ name: 'User Roles', label: 'User Roles', value: params.userRoleName });
+        }
+        else {
+            filtersUsed.push({ name: 'User Roles', label: 'User Roles', value: 'All' });
+        }
+
 
         filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
         filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
@@ -208,7 +259,8 @@ const api = {
             claimDate: null,
             facilityIds: null,
             billingProID: null,
-            userIds: null
+            userIds: null,
+            userRoleIds: null
         };
 
 
@@ -242,7 +294,14 @@ const api = {
             }
         }
 
-
+        // User Role id
+        if (reportParams.userRoleIds && reportParams.userRoleIds.length > 0) {
+            if (reportParams.userRoleIds) {
+                params.push(reportParams.userRoleIds);
+                filters.userRoleIds = queryBuilder.whereIn('bp.created_by', [params.length]);
+            }
+        }
+        filters.summaryType = reportParams.summaryType;
         return {
             queryParams: params,
             templateData: filters
@@ -265,7 +324,9 @@ const api = {
             claimDate: null,
             facilityIds: null,
             billingProID: null,
-            userIds: null
+            userIds: null,
+            userRoleIds: null,
+            summaryType: null
         };
 
 
@@ -296,6 +357,13 @@ const api = {
             if (reportParams.userIds) {
                 params.push(reportParams.userIds);
                 filters.userIds = queryBuilder.whereIn('bp.created_by', [params.length]);
+            }
+        }
+        // User Role id
+        if (reportParams.userRoleIds && reportParams.userRoleIds.length > 0) {
+            if (reportParams.userRoleIds) {
+                params.push(reportParams.userRoleIds);
+                filters.userRoleIds = queryBuilder.whereIn('bp.created_by', [params.length]);
             }
         }
         return {

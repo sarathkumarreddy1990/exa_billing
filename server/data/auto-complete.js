@@ -158,7 +158,7 @@ module.exports = {
     },
 
     getPatients: async function (params) {
-        
+
         let patient_q = ` AND full_name ILIKE '%${params.q}%' OR account_no ILIKE '%${params.q}%' `;
 
         const sql_patient = SQL`
@@ -179,11 +179,11 @@ module.exports = {
                 WHERE  
                     NOT patients.has_deleted 
                     AND patients.company_id =  ${params.company_id} `;
-        
+
         if (params.q != '') {
             sql_patient.append(patient_q);
         }
-        
+
         sql_patient.append(SQL` AND is_active          
                 ORDER BY patients.id ASC 
                 ) 
@@ -192,7 +192,7 @@ module.exports = {
             .append(params.sortOrder)
             .append(SQL` LIMIT ${params.pageSize}`)
             .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
-        
+
         return await query(sql_patient);
     },
 
@@ -257,9 +257,31 @@ module.exports = {
             .append(SQL` `)
             .append(params.sortOrder)
             .append(SQL` LIMIT ${params.pageSize}`)
-            .append(SQL` OFFSET ${((params.page * params.pageSize) - params.pageSize)}`);       
-                        
+            .append(SQL` OFFSET ${((params.page * params.pageSize) - params.pageSize)}`);
+
         return await query(user_sql);
+    },
+
+    getUserRoles: async function (params) {
+        const user_role_sql = SQL`SELECT
+                                user_roles.id AS id, 
+                                role_name AS role_name, 
+                                role_description AS role_decriptions,        
+                                COUNT(1) OVER (range unbounded preceding) AS total_records
+                            FROM
+                                    public.user_roles
+                            WHERE
+                                    user_roles.has_deleted=FALSE AND
+                                    user_roles.is_active AND
+                                    user_roles.company_id= ${params.company_id} `;
+
+                                    user_role_sql.append(SQL`ORDER BY  ${params.sortField}`)
+            .append(SQL` `)
+            .append(params.sortOrder)
+            .append(SQL` LIMIT ${params.pageSize}`)
+            .append(SQL` OFFSET ${((params.page * params.pageSize) - params.pageSize)}`);
+
+        return await query(user_role_sql);
     }
 
 };
