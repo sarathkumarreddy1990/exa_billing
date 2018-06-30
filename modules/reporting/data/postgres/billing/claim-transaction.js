@@ -61,6 +61,7 @@ WITH details AS(
         <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
         <% if(billingProID) { %> AND <% print(billingProID); } %>
         <% if(cptCodeLists) { %> AND <% print(cptCodeLists); } %>
+        <% if(referringProIds) { %>AND <% print(referringProIds);} %>
     
         
     GROUP BY bc.id,pip.insurance_name,pip.insurance_code,pp.last_name,pp.first_name,pr.full_name
@@ -208,6 +209,15 @@ const api = {
             filtersUsed.push({ name: 'FromBillCreated', label: 'Bill Created From', value: params.billCreatedDateFrom });
             filtersUsed.push({ name: 'ToBillCreated', label: 'Bill Created To', value: params.billCreatedDateTo });
         }
+
+        //Referring Physician Info
+        
+        if (params.referringProIds) {
+            const referringPhysicianInfo = _(lookups.referringPhyInfo).map(f => f.name).value();
+            filtersUsed.push({ name: 'referringPhysicianInfo', label: 'Referring Provider', value: referringPhysicianInfo });
+        }
+        else
+            filtersUsed.push({ name: 'referringPhysicianInfo', label: 'Referring Provider', value: 'All' });
         return filtersUsed;
     },
 
@@ -272,6 +282,11 @@ const api = {
                 params.push(reportParams.toDate);
                 filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
             }
+        }
+
+        if (reportParams.referringProIds && reportParams.referringProIds.length > 0) {
+            params.push(reportParams.referringProIds);
+            filters.referringProIds = queryBuilder.whereIn(`pr.id`, [params.length]);
         }
 
         // Date filter  (CPT Date)

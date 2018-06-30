@@ -15,13 +15,12 @@ WITH get_claim_details AS(
        (SELECT coalesce(claim_balance_total,0::money) FROM billing.get_claim_totals(bc.id)) AS balance
     FROM billing.claims bc
     INNER JOIN billing.charges bch ON bch.claim_id = bc.id
-    AND (bc.claim_dt < <%= claimDate %>)   
-    <% if(incPatDetail == 'true') { %> AND payer_type = 'primary_insurance' <%}%>
+    AND (bc.claim_dt < <%= claimDate %>)      
  )
  SELECT
  <% if (facilityIds) { %> MAX(pf.facility_name) <% } else  { %> 'All'::text <% } %> as "Facility",
  <% if(incPatDetail == 'true') { %>     
-            CASE WHEN payer_type = 'primary_insurance' THEN 'Primary Insurance'  END AS responsible_party,     
+            CASE WHEN payer_type = 'primary_insurance' THEN 'Primary Insurance' ELSE '-- No payer --'  END AS responsible_party,     
  <%} else {%>    
  CASE WHEN payer_type = 'primary_insurance' THEN 'Insurance'
       WHEN payer_type = 'secondary_insurance' THEN 'Insurance'
@@ -133,6 +132,12 @@ END
      <% if(excCreditBal == 'true'){ %> AND  gcd.balance::money > '0' <% } %>
  GROUP BY 
  ROLLUP (responsible_party,payer_name)
+
+ <% if(incPatDetail == 'true') { %>     
+    ORDER BY responsible_party DESC
+   <% } %>
+       
+ 
 `);
 
 const api = {
