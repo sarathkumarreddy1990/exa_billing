@@ -171,29 +171,39 @@ module.exports = {
 				FROM ( 
                         SELECT id,
                         edi_template_name,
-						communication_info->'AuthInfoQualifier' as "authInfoQualifier",
-						communication_info->'AuthInfo' as "authInfo",
-						communication_info->'SecurityInfoQualifier' as "securityInfoQualifier",
- 						communication_info->'SecurityInfo' as "securityInfo",
- 						communication_info->'InterchangeSenderIDQualifier' as "interchangeSenderIDQualifier",
+						communication_info->'SecurityInformationQualifier' as "authInfoQualifier",
+						communication_info->'AuthorizationInformation' as "authInfo",
+						communication_info->'SecurityInformationQualifier' as "securityInfoQualifier",
+ 						communication_info->'SecurityInformation' as "securityInfo",
+ 						communication_info->'InterchangeSenderIdQualifier' as "interchangeSenderIDQualifier",
 						communication_info->'InterchangeSenderID' as "interchangeSenderID",
-						communication_info->'InterchangeReceiverIDQualifier' as "interchangeReceiverIDQualifier", 
-						communication_info->'InterchangeReceiverID' as "interchangeReceiverID",
-						communication_info->'InterchangeCtrlStdIdentifier' as "interchangeCtrlStdIdentifier",
-						communication_info->'InterchangeCtrlVersionNo' as "interchangeCtrlVersionNo",
-						communication_info->'InterchangeCtrlNo' as "interchangeCtrlNo",
-						communication_info->'AqRequested' as "acqRequested",
+						communication_info->'InterchangeReceiverIdQualifier' as "interchangeReceiverIDQualifier", 
+						communication_info->'InterchangeReceiverId' as "interchangeReceiverID",
+						communication_info->'InterchangeControlStandardsIdentifier' as "interchangeCtrlStdIdentifier",
+						communication_info->'ImplementationConventionRef' as "interchangeCtrlVersionNo",
+						communication_info->'InterchangeControlVersionNumber' as "interchangeCtrlNo",
+						communication_info->'AcknowledgementRequested' as "acqRequested",
 						communication_info->'UsageIndicator' as "usageIndicator",
 						communication_info->'FunctionalIDCode' as "functionalIDCode",
 						communication_info->'ApplicationSenderCode' as "applicationSenderCode",
 						communication_info->'ApplicationReceiverCode' as "applicationReceiverCode",
+						communication_info->'SecurityInformation' as "securityInformation",
+						communication_info->'SegmentTerminator' as "segmentTerminator",
+						communication_info->'ElementDelimiter' as "elementDelimiter",
+						communication_info->'SegmentDelimiter' as "segmentDelimiter",
+						communication_info->'BackupRootFolder' as "backupRootFolder",
+						communication_info->'UsageIndicator' as "usageIndicator",
 						communication_info->'FgDate' as "fgDate",
 						communication_info->'FgTime' as "fgTime",
 						communication_info->'GroupControlNo' as "groupControlNo",
 						communication_info->'ResponsibleAgencyCode' as "responsibleAgencyCode",
 						communication_info->'VerReleaseIDCode' as "verReleaseIDCode",
 						communication_info->'TsIDCode' as "tsIDCode",
-						communication_info->'TsControlNo' as "tsControlNo"						
+						communication_info->'TsControlNo' as "tsControlNo",
+						edi_clearinghouses.name as clearinghouses_name,
+						edi_clearinghouses.code as clearinghouses_code,
+						edi_clearinghouses.receiver_name as clearinghouses_receiver_name,	
+						edi_clearinghouses.receiver_id as clearinghouses_receiver_id				
                                     FROM   billing.edi_clearinghouses
                                     WHERE  billing.edi_clearinghouses.id::text=insurance_info->'claimClearingHouse'::text)
 
@@ -355,7 +365,9 @@ module.exports = {
 							FROM   (
 									SELECT claims.id as "claimNumber",
 										frequency as "claimFrequencyCode",
-										(select charges_bill_fee_total from BILLING.get_claim_totals(claims.id))::numeric::text as "claimTotalCharge",
+										(select charges_bill_fee_total from BILLING.get_claim_payments(claims.id))::numeric::text as "claimTotalCharge",
+										(select payment_insurance_total from BILLING.get_claim_payments(claims.id))::numeric::text as "claimPaymentInsurance",
+										(select payment_patient_total from BILLING.get_claim_payments(claims.id))::numeric::text as "claimPaymentPatient",
 										(SELECT places_of_service.code FROM  places_of_service WHERE  places_of_service.id=claims.place_of_service_id) as "POS",
 										to_char(date(timezone(facilities.time_zone,claim_dt)), 'YYYYMMDD') as "claimDate",							date(timezone(facilities.time_zone,claim_dt))::text as "claimDt",
 										is_employed as  "relatedCauseCode1",
@@ -531,16 +543,28 @@ module.exports = {
 					charges.units as "unit"
 					,(SELECT Json_agg(Row_to_json(lineAdjustment)) "lineAdjustment"
 									FROM 
-					(SELECT 
-					cas_group_codes.code as "adjustmentGroupCode",
-					cas_reason_codes.code as "reasonCode",
-					cas_payment_application_details.amount::numeric::text as "monetaryAmount"
-					FROM  billing.cas_payment_application_details
-					INNER JOIN   billing.cas_group_codes ON cas_group_codes.id=cas_group_code_id
-					INNER JOIN   billing.cas_reason_codes ON cas_reason_codes.id=cas_reason_code_id
-					INNER JOIN 	billing.payment_applications	 ON payment_applications.id=cas_payment_application_details.payment_application_id			
-					INNER JOIN billing.payments ON  billing.payments.id=payment_applications.payment_id and payer_type='insurance'
-						AND 	payment_applications.charge_id = charges.id AND payment_applications.payment_application_id is not null ) 
+					(	SELECT 
+						cas_group_codes.code as "adjustmentGroupCode" ,
+						(SELECT JSON_agg(row_to_JSON(CAS)) as casList FROM 
+						(SELECT 
+											cas_reason_codes.code as "reasonCode",
+											cas_payment_application_details.amount::numeric::text
+											FROM  billing.cas_payment_application_details
+											INNER JOIN   billing.cas_group_codes gc  ON  gc.id=cas_group_code_id
+											INNER JOIN   billing.cas_reason_codes ON cas_reason_codes.id=cas_reason_code_id
+											INNER JOIN 	billing.payment_applications	 ON payment_applications.id=cas_payment_application_details.payment_application_id			
+											INNER JOIN billing.payments ON  billing.payments.id=payment_applications.payment_id and payer_type='insurance' AND 
+											payment_applications.charge_id = charges.id 		AND payment_applications.payment_application_id is NOT  null
+											WHERE 
+												   cas_group_codes.code= gc.code	 ) as CAS )
+						
+						
+											FROM  billing.cas_payment_application_details
+											INNER JOIN   billing.cas_group_codes ON cas_group_codes.id=cas_group_code_id
+											INNER JOIN 	billing.payment_applications	 ON payment_applications.id=cas_payment_application_details.payment_application_id			
+												INNER JOIN billing.payments ON  billing.payments.id=payment_applications.payment_id and payer_type='insurance' AND 
+							payment_applications.charge_id = charges.id 		AND payment_applications.payment_application_id is NOT  null
+							group by cas_group_codes.code ) 
 					as lineAdjustment)
 
 					FROM  billing.payment_applications pa
