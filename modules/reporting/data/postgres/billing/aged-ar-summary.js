@@ -20,7 +20,7 @@ WITH get_claim_details AS(
  SELECT
  <% if (facilityIds) { %> MAX(pf.facility_name) <% } else  { %> 'All'::text <% } %> as "Facility",
  <% if(incPatDetail == 'true') { %>     
-            CASE WHEN payer_type = 'primary_insurance' THEN 'Primary Insurance' ELSE '-- No payer --'  END AS responsible_party,     
+            CASE WHEN primary_patient_insurance_id is not null THEN 'Primary Insurance' ELSE '-- No payer --'  END AS responsible_party,     
  <%} else {%>    
  CASE WHEN payer_type = 'primary_insurance' THEN 'Insurance'
       WHEN payer_type = 'secondary_insurance' THEN 'Insurance'
@@ -37,7 +37,7 @@ WITH get_claim_details AS(
       WHEN payer_type = 'patient' THEN get_full_name(pp.last_name,pp.first_name)
       WHEN payer_type = 'ordering_facility' THEN ppg.group_name
  END AS payer_name,
- MAX(ppr.provider_type) AS "Provider Type",
+ '   ' AS "Provider Type", -- Need to design provider_type table in clean up 
  CASE
  WHEN MAX(pip.insurance_info->'ediCode') ='A' THEN 'Attorney'
  WHEN MAX(pip.insurance_info->'ediCode') ='C' THEN 'Medicare'
