@@ -347,8 +347,12 @@ module.exports = {
             , auditDetails } = params;
 
 
-        const sql = SQL`SELECT billing.create_claim_charge ((${JSON.stringify(claims)})::json,(${JSON.stringify(insurances)})::json,
-            (${JSON.stringify(claim_icds)})::json,(${JSON.stringify(auditDetails)})::json,(${JSON.stringify(charges)})::json) as result `;
+        const sql = SQL`SELECT billing.create_claim_charge (
+                    (${JSON.stringify(claims)})::json,
+                    (${JSON.stringify(insurances)})::json,
+                    (${JSON.stringify(claim_icds)})::json,
+                    (${JSON.stringify(auditDetails)})::json,
+                    (${JSON.stringify(charges)})::json) as result `;
 
         return await query(sql);
     },

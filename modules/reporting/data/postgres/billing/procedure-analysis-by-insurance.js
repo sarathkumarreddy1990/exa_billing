@@ -13,11 +13,14 @@ with claim_details as (
         CASE WHEN bpa.amount_type = 'payment' THEN bpa.amount END payment_amount,
         CASE WHEN bpa.amount_type = 'adjustment' THEN bpa.amount END adjustment,
         CASE WHEN bp.payer_type = 'patient' THEN 'P'
-             WHEN bp.payer_type = 'insurance' THEN 'I'
+             WHEN (bp.payer_type = 'insurance' and (bp.insurance_provider_id = ppi.insurance_provider_id))  THEN 'I'
              ELSE 'O' END pymt_tag,
            bpa.charge_id
      FROM billing.payments bp 
      INNER JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
+     INNER JOIN billing.charges bch on bch.id = bpa.charge_id
+     INNER JOIN billing.claims bc on bc.id = bch.claim_id
+     INNER JOIN public.patient_insurances ppi ON ppi.id =  bc.primary_patient_insurance_id
     ORDER BY payment_id ),
     payment_summary AS  (  SELECT
             COALESCE (SUM(payment_amount) FILTER ( WHERE pymt_tag = 'P'), 0::money) AS pmt_p,
@@ -66,7 +69,7 @@ with claim_details as (
         INNER JOIN public.facilities AS f ON f.id = bc.facility_id
         INNER JOIN billing.charges bch ON bch.claim_id = bc.id 
         INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
-        INNER JOIN payment_summary ps ON ps.charge_id = bch.id
+        LEFT JOIN payment_summary ps ON ps.charge_id = bch.id
         INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
         INNER JOIN billing.charges_studies bcs ON bcs.charge_id = bch.id
         INNER JOIN public.studies pss on pss.id = bcs.study_id
