@@ -14,7 +14,7 @@ WITH payerMixDetails AS (
         pip.insurance_code AS insurance_code,
         pip.insurance_name AS insurance_name,
         pf.facility_name AS facility_name,
-        bc.claim_dt AS claim_date,
+        to_char(bc.claim_dt, 'MM/DD/YYYY') AS claim_date,
         SUM(bch.bill_fee) AS bill_fee,
         COUNT(bc.id) AS claim_count
     FROM 

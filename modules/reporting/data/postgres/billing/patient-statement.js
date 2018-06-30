@@ -103,7 +103,17 @@ WITH claim_data as(
         case when type = 'charge' then amount end as charge,
         case when type = 'payment' then amount end as payment,
         case when type = 'adjustment' then amount end as adjustment,
+        <% if (payToProvider == 'false') {%>
         bp.name as billing_provider_name,
+        bp.pay_to_address_line1 as billing_proaddress1,
+        bp.pay_to_address_line1 as billing_proaddress2,
+        bp.pay_to_city as billing_procity,
+        bp.pay_to_state as billing_prostate,
+        bp.pay_to_zip_code as billing_prozip,
+        bp.pay_to_zip_code_plus as billing_zip_plus,
+        bp.pay_to_phone_number as billing_phoneno,
+        <% } else { %>
+            bp.name as billing_provider_name,
         bp.address_line1 as billing_proaddress1,
         bp.address_line2 as billing_proaddress2,
         bp.city as billing_procity,
@@ -111,6 +121,7 @@ WITH claim_data as(
         bp.zip_code as billing_prozip,
         bp.zip_code_plus as billing_zip_plus,
         bp.phone_number as billing_phoneno,
+            <% } %>
         type as payment_type,
         CASE type WHEN 'charge' THEN 1 ELSE 2 END AS sort_order
     FROM public.patients p 
@@ -120,6 +131,7 @@ WITH claim_data as(
          INNER JOIN facilities f on f.id = bc.facility_id
          WHERE 1= 1
            <% if (billingProviderIds) { %>AND <% print(billingProviderIds); } %>
+           <% if (facilityIds) { %>AND <% print(facilityIds); } %>
          <% if (patientIds) { %>AND <% print(patientIds); } %>             
          AND <%= whereDate %>             
 
@@ -228,7 +240,7 @@ WITH claim_data as(
               , billing_prozip
               , billing_zip_plus
               , billing_phoneno
-              , to_char('2018-04-12'::date, 'MM/DD/YYYY')
+              ,  to_char(<%= statementDate %>::date, 'MM/DD/YYYY')
               , null
               , null
               , null
@@ -305,7 +317,7 @@ WITH claim_data as(
               , null
               , null
               , null
-              , to_char('2018-04-12'::date, 'MM/DD/YYYY')
+              ,  to_char(<%= statementDate %>::date, 'MM/DD/YYYY')
               , full_name
               , account_no
               , address1
@@ -453,7 +465,7 @@ WITH claim_data as(
               , billing_prozip
               , billing_zip_plus
               , billing_phoneno
-              , to_char('2018-04-12'::date, 'MM/DD/YYYY')
+              , to_char(<%= statementDate %>::date, 'MM/DD/YYYY')
               , null
               , null
               , null
@@ -585,6 +597,7 @@ const api = {
             initialReportData.report.params.minAmount = parseFloat(initialReportData.report.params.minAmount);
         }
 
+        
         if (initialReportData.report.params.payToProvider && initialReportData.report.params.payToProvider !== undefined) {
           initialReportData.report.params.payToProvider = initialReportData.report.params.payToProvider === 'true';
         } else {
@@ -625,12 +638,13 @@ const api = {
 
        
         // Facility Filter
-        if (params.allFacilities && params.facilityIds)
+        if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
         else {
-            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id,10)) > -1).map(f => f.name).value();
+            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
         }
+
         // Billing provider Filter
         if (params.allBillingProvider == 'true')
             filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
@@ -640,9 +654,9 @@ const api = {
         }
 
         // Min Amount 
-        filtersUsed.push({ name: 'minAmount', label: 'Minumum Amount', value: params.minAmount});
+        filtersUsed.push({ name: 'minAmount', label: 'Minumum Amount', value: params.minAmount });
 
-        filtersUsed.push({ name: 'sDate', label: 'Statement Date', value: params.sDate});
+        filtersUsed.push({ name: 'sDate', label: 'Statement Date', value: params.sDate });
 
         const patientNames = params.patientOption === 'All' ? 'All' : _(lookups.patients).map(f => f.name).value();
         filtersUsed.push({ name: 'patientNames', label: 'Patients', value: patientNames });
@@ -675,7 +689,9 @@ const api = {
         const filters = {
             companyId: null,
             patientIds: null,
-            billingProviderIds: null
+            billingProviderIds: null,
+            facilityIds: null,
+            statementDate: null
            
         };
 
@@ -689,6 +705,11 @@ const api = {
             filters.patientIds = queryBuilder.whereIn(`p.id`, [params.length]);
           }
 
+          //claim facilities
+        if (!reportParams.allFacilities && reportParams.facilityIds) {
+            params.push(reportParams.facilityIds);
+            filters.facilityIds = queryBuilder.whereIn('bc.facility_id', [params.length]);
+        }
 
            // billing providers
         if (reportParams.billingProviderIds && reportParams.billingProviderIds.length > 0) {
@@ -701,10 +722,10 @@ const api = {
 
         params.push(reportParams.sDate);
         filters.sDate = `$${params.length}::date`;
+        filters.statementDate = `$${params.length}::date`;
+        
         filters.whereDate = queryBuilder.whereDateInTz(`bc.claim_dt`, `<=`, [params.length], `f.time_zone`);   
-
-
-   
+        filters.payToProvider = reportParams.payToProvider ;
 
         return {
             queryParams: params,

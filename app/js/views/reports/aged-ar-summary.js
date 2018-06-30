@@ -25,7 +25,7 @@ define([
                 billingProviders: null,
                 allBillingProvider: false,
                 excelExtended: false,
-                fromDate:null
+                fromDate: null
             },
             selectedBillingProList: [],
             selectedFacilityList: [],
@@ -62,7 +62,7 @@ define([
                 var modelCollection = Backbone.Collection.extend({
                     model: Backbone.Model.extend({})
                 });
-                this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings(app.facilityID));   
+                this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings(app.facilityID));
                 this.$el.html(this.mainTemplate(this.viewModel));
                 // bind DRP and initialize it
                 // this.bindDateRangePicker();
@@ -71,7 +71,7 @@ define([
 
                 this.viewModel.fromDate = commonjs.bindDateTimePicker("divFromDate", { format: "L" });
                 this.viewModel.fromDate.date(commonjs.getFacilityCurrentDateTime(app.facilityID));
-              
+
                 UI.bindBillingProvider();
                 $('#ddlFacilityFilter').multiselect({
                     maxHeight: 200,
@@ -105,13 +105,13 @@ define([
                 var self = this;
                 var drpEl = $('#txtDateRangeFromTo');
                 var drpOptions = { autoUpdateInput: false, locale: { format: 'L' } };
-                this.drpStudyDt = commonjs.bindDateRangePicker(drpEl, drpOptions, 'past', function (start,  format) {
+                this.drpStudyDt = commonjs.bindDateRangePicker(drpEl, drpOptions, 'past', function (start, format) {
                     self.viewModel.dateFrom = start;
-                  //  self.viewModel.dateTo = end;
+                    //  self.viewModel.dateTo = end;
                 });
                 drpEl.on('cancel.daterangepicker', function (ev, drp) {
                     self.viewModel.dateFrom = null;
-                 //   self.viewModel.dateTo = null;
+                    //   self.viewModel.dateTo = null;
                 });
             },
 
@@ -156,8 +156,8 @@ define([
                 const urlParams = {
                     'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
                     'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
-                   // 'fromDate': this.viewModel.dateFrom.format('YYYY-MM-DD'),
-                    'fromDate': this.viewModel.fromDate.date().format('YYYY-MM-DD') ,
+                    // 'fromDate': this.viewModel.dateFrom.format('YYYY-MM-DD'),
+                    'fromDate': this.viewModel.fromDate.date().format('YYYY-MM-DD'),
                     'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
                     billingProFlag: this.viewModel.allBillingProvider == 'true' ? true : false,
