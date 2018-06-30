@@ -275,7 +275,7 @@ module.exports = {
                                     user_roles.is_active AND
                                     user_roles.company_id= ${params.company_id} `;
 
-                                    user_role_sql.append(SQL`ORDER BY  ${params.sortField}`)
+        user_role_sql.append(SQL`ORDER BY  ${params.sortField}`)
             .append(SQL` `)
             .append(params.sortOrder)
             .append(SQL` LIMIT ${params.pageSize}`)
