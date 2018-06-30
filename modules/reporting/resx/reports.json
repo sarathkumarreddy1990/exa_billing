@@ -1388,12 +1388,12 @@
         "jsreport": {
             "html": {
                 "template": {
-                    "name": "billing-payment-invoice-html"
+                    "name": "payment-invoice-html"
                 }
             },
             "pdf": {
                 "template": {
-                    "name": "billing-payment-invoice-pdf"
+                    "name": "payment-invoice-pdf"
                 }
             }
         }

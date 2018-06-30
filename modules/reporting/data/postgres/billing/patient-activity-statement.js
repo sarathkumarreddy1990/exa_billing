@@ -109,7 +109,7 @@ WITH claim_data as(
         pi.coverage_level  as billing_proaddress1,
         pi.group_number as billing_proaddress2,
         pi.policy_number as billing_procity,
-        bp.state as billing_prostate,
+        to_char(pi.valid_to_date, 'MM/DD/YYYY') as billing_prostate,
         bp.zip_code as billing_prozip,
         bp.zip_code_plus as billing_zip_plus,
         bp.phone_number as billing_phoneno,

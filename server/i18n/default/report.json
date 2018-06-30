@@ -27,7 +27,10 @@
         "statementstate": "Statement State",
         "statementmode": "Statement Mode",
         "minamount": "Min Amount",
-        "patients": "Patients"
+        "patients": "Patients" ,
+        "referingphysician": "Referring Physician",
+        "totalByMonth": " By Month / Day"
+    
                
     }
 }

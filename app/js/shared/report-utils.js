@@ -602,9 +602,9 @@ define([
                         delay: 250,
                         data: function (params) {
                             return {
-                                page: params.page || 1,
+                                page: params.page || 3,
                                 q: params.term || '',
-                                provider_type: 'PR',
+                                provider_type: 'RF',
                                 pageSize: 10,
                                 sortField: "p.last_name",
                                 sortOrder: "asc",

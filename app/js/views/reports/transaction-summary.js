@@ -24,7 +24,8 @@ define([
                 reportFormat: null,
                 reportDate: null,
                 billingProvider: null,
-                allBillingProvider: false
+                allBillingProvider: false,
+                totalByMonthOrDay: false
             },
             selectedFacilityListDetail: [],
             defaultyFacilityId: null,
@@ -34,7 +35,8 @@ define([
                 'click #btnPdfReport': 'onReportViewClick',
                 'click #btnExcelReport': 'onReportViewClick',
                 'click #btnCsvReport': 'onReportViewClick',
-                'click #btnXmlReport': 'onReportViewClick'
+                'click #btnXmlReport': 'onReportViewClick',
+                'change #ddlTransactionSummary' : 'onPaymentByMonthorDay'
             },
 
             initialize: function (options) {
@@ -63,7 +65,7 @@ define([
                  this.bindDateRangePicker();
                  this.drpStudyDt.setStartDate(this.viewModel.dateFrom);
                  this.drpStudyDt.setEndDate(this.viewModel.dateTo); 
-                $('#ddlFacilityFilter').multiselect({
+                $('#ddlFacilityFilter, #ddlTransactionSummary').multiselect({
                     maxHeight: 200,
                     buttonWidth: '300px',
                     width: '300px',
@@ -119,6 +121,15 @@ define([
 
                 return true;
             },  
+
+            onPaymentByMonthorDay: function(){
+                if ($('#ddlTransactionSummary').val() == 'S') {
+                    this.viewModel.totalByMonthOrDay = true;
+                }
+                else{
+                    this.viewModel.totalByMonthOrDay = false;
+                }
+            },
            
             // multi select facilities - worked
             getSelectedFacility: function (e) {
@@ -151,7 +162,8 @@ define([
                     'toDate': this.viewModel.dateTo.format('YYYY-MM-DD'),
                     'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
-                    'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false
+                    'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
+                    'totalByMonthOrDay' : this.viewModel.totalByMonthOrDay ? this.viewModel.totalByMonthOrDay : false
                 };
             }
         });

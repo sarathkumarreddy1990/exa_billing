@@ -22,7 +22,8 @@ define([
                 reportTitle: null,
                 reportFormat: null,
                 facilities: null,
-                allFacilities: null
+                allFacilities: null,
+                fromDate : null
             },
             selectedFacilityList: [],
             events: {
@@ -140,7 +141,11 @@ define([
                 if (!(this.viewModel.fromDate && this.viewModel.fromDate.date())) {
                     commonjs.showWarning('Please select date!');
                     return false;
-                }
+                }   
+                if (this.viewModel.fromDate.date().diff(commonjs.getFacilityCurrentDateTime(app.facilityID)) > 0) {
+                    commonjs.showWarning('Please do not select future date ');
+                    return false;
+                }            
 
                 if (isNaN(this.viewModel.minAmount) || this.viewModel.minAmount === '') {
                     //  commonjs.showWarning('Please enter minimum amount!');
@@ -160,9 +165,9 @@ define([
                     patientOption: this.viewModel.patientOption,
                     patientIds: this.viewModel.patientIds,
                     billingProviderIds: this.viewModel.billingProvider,
-                    minAmount: this.viewModel.minAmount,
-                    sDate: moment($('#txtDateRangeFrom').val()).format('L'),
-                    payToProvider: $('#chkPayToProvider').prop('checked')
+                    minAmount: this.viewModel.minAmount,                   
+                    payToProvider: $('#chkPayToProvider').prop('checked'),
+                    sDate : this.viewModel.fromDate.date().format('YYYY-MM-DD')
                 };
             },
 
