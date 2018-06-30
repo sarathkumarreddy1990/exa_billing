@@ -18,8 +18,7 @@ WITH referringProviderSummary as (
         billing.claims bc    
     INNER JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
     INNER JOIN public.providers pp ON pp.id = ppc.provider_id
-    INNER JOIN billing.charges bch ON bch.claim_id = bc.id
-    INNER JOIN facilities f ON f.id = bc.facility_id
+    LEFT JOIN billing.charges bch ON bch.claim_id = bc.id
     <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
     WHERE 1=1 
         AND <%= companyId %>
@@ -163,7 +162,7 @@ const api = {
         // billingProvider single or multiple
         if (reportParams.billingProvider) {
             params.push(reportParams.billingProvider);
-            filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
+            filters.billingProID = queryBuilder.whereIn('bc.billing_provider_id', [params.length]);
         }
 
         return {

@@ -27,6 +27,7 @@ WITH paymentsByInsCompany as (
         LEFT JOIN public.facilities f ON f.id = bp.facility_id
         <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
     WHERE 1=1
+    AND bp.payer_type = 'insurance'
     AND <%= companyId %>
     AND <%= paymentDate %>
     <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
