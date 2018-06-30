@@ -1,6 +1,7 @@
 const gulp = require('gulp');
 const runSequence = require('run-sequence');
 const clean = require('gulp-clean');
+const install = require('gulp-install');
 const less = require('gulp-less');
 //const del = require('del');
 const cleanCss = require('gulp-clean-css');
@@ -30,11 +31,28 @@ gulp.task('clean', () => {
 });
 
 gulp.task('copy', ['clean'], () => {
-    return gulp.src('./**')
+    return gulp.src([
+        './**',
+        '!./test/**',
+        '!./node_modules/**',
+        '!./app/node_modules/**'
+    ])
         .pipe(gulp.dest('./build'));
 });
 
-gulp.task('less', ['copy'], () => {
+gulp.task('install', ['copy'], () => {
+    return gulp.src(['./build/package.json', './build/app/package.json'])
+        .pipe(install({
+            //npm: '--production'
+            production: true,
+            commands: {
+                'package.json': 'yarn'
+            },
+            yarn: ['--prod', '--silent']
+        }));
+});
+
+gulp.task('less', ['install'], () => {
     return gulp.src('./app/skins/default/*.less')
         .pipe(less({
             paths: [path.join(__dirname, 'app/skins/default/index.less')]

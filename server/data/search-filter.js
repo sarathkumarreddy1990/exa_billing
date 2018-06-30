@@ -471,6 +471,9 @@ const api = {
         case 'tat_level':               return 'tat.level';
         case 'patient_room':            return  `orders.order_info->'patientRoom'`; //***For EXA-7148 -- Add Room Number colum to Facility Portal***//
         case 'visit_no':                return `orders.order_info->'visit_no'`;
+        case 'billed_status':           return `(SELECT  CASE WHEN (SELECT claim_id FROM billing.charges_studies inner JOIN billing.charges ON charges.id= 
+                                                charges_studies.charge_id  WHERE study_id = studies.id LIMIT 1) >0 THEN 'billed'
+                                                ELSE 'unbilled' END)`;
         }
 
         return args;
@@ -705,7 +708,9 @@ const api = {
             'studies.has_unread_dicoms', // TODO: What is this !!
             'studies.dictation_started', // TODO: this is "was live" flag, shouldnt we just use study status and not this !!
             'studies.modality_id as modality_id', // TODO: Why do we need this ?? we should just need modality code
-
+            `(SELECT  CASE WHEN (SELECT claim_id FROM billing.charges_studies inner JOIN billing.charges ON charges.id= 
+                charges_studies.charge_id  WHERE study_id = studies.id LIMIT 1) >0 THEN 'billed'
+            ELSE 'unbilled' END) as billed_status `,
             'studies.facility_id as facility_id',
             'studies.order_id', // TODO: Why do we need this !!
             'has_priors(studies.id,studies.patient_id)', // TODO: how about we use patients.study_count !! for this potentially (if its updated)

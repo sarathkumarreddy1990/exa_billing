@@ -217,7 +217,7 @@ const api = {
 	            WHEN 'rendering_provider' THEN render_provider.full_name
 	            WHEN 'patient' THEN patients.full_name        END) 
                     `;
-        case 'clearing_house': return `insurance_providers.insurance_info->'claimCHDescription'`;
+        case 'clearing_house': return 'edi_clearinghouses.name';
         case 'claim_balance': return '(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM BILLING.get_claim_totals(claims.id))';
         case 'billing_code': return 'billing_codes.description';
         case 'billing_class': return 'billing_classes.description';
@@ -278,7 +278,7 @@ const api = {
             r += ' LEFT JOIN billing.claim_followups  ON claim_followups.claim_id=claims.id';
         }
 
-        if (tables.patient_insurances || tables.insurance_providers) {
+        if (tables.patient_insurances || tables.insurance_providers || tables.edi_clearinghouses) {
             r += `
                 LEFT JOIN patient_insurances ON patient_insurances.id = 
                 (  CASE payer_type 
@@ -288,7 +288,12 @@ const api = {
                 END)`;
 
             r += ' LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id ';
+            r += `LEFT JOIN   billing.edi_clearinghouses ON  billing.edi_clearinghouses.id::text=insurance_info->'claimClearingHouse'::text`;
+             
         }
+        
+
+        
        
         if (tables.provider_groups) { r += '  LEFT JOIN provider_groups ON claims.ordering_facility_id = provider_groups.id '; }
 
@@ -324,8 +329,7 @@ const api = {
             'patient_insurances.group_number',
             'claims.payer_type',
             'claims.billing_method',
-            `insurance_providers.insurance_info->'claimCHDescription' 
-            as clearing_house`,
+            `edi_clearinghouses.name as clearing_house`,
             `insurance_providers.insurance_info->'edi_template' 
             as edi_template`,           
             `(  CASE payer_type 

@@ -504,12 +504,12 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 (options.isClaimGrid ? '<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />' : ''),
-                '', '', '', '', '','','','','','','','',''
+                '', '', '', '', '','','','','','','','','',(!options.isClaimGrid?'Billed status':'')
 
             ]);
 
             i18nName = i18nName.concat([
-                '', '', '', '', '', '','','','','','','','',''
+                '', '', '', '', '', '','','','','','','','','',''
             ]);
 
             colModel = colModel.concat([
@@ -676,6 +676,20 @@ define('grid', [
                     resizable: false,
                     search: false,
                     hidden: true,
+                    isIconCol: true
+                },
+                {
+                    name: 'billed_status',
+                    width: 150,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: options.isClaimGrid,
+                    "cellattr": function ( id, cellvalue, rowObject ) {
+                        var statusDetail = commonjs.getClaimColorCodeForStatus(rowObject.claim_id > 0 ? 'billed' : 'unbilled', 'study');
+                        var statusObj = statusDetail[ 0 ];
+                        return 'style="background:' + (statusObj && statusObj.color_code || 'transparent') + ';"';
+                    },
                     isIconCol: true
                 }
             ]);
