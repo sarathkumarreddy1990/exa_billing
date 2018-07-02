@@ -32,10 +32,10 @@ module.exports = {
             "error",
             "always"
         ],
-        // "eol-last": [
-        //     "error",
-        //     "always"
-        // ],
+        "eol-last": [
+            "error",
+            "always"
+        ],
         "lines-between-class-members": [
             "error",
             "always"
