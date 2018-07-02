@@ -169,6 +169,34 @@ module.exports = {
                                     template_type
                                     FROM   billing.printer_templates
                                     WHERE  company_id=${companyID} ) AS printer_templates)
+                , cte_billing_providers AS(
+                                    SELECT Json_agg(Row_to_json(billing_providers)) billing_providers
+                                    FROM  (
+                                    SELECT
+                                    id
+                                    ,name AS full_name
+                                    FROM billing.providers
+                                    WHERE company_id = ${companyID} AND inactivated_dt IS NULL ) AS billing_providers)
+                , cte_places_of_service AS(
+                                    SELECT Json_agg(Row_to_json(places_of_service)) places_of_service
+                                    FROM  (
+                                    SELECT
+                                    id
+                                    , code
+                                    , description 
+                                    FROM public.places_of_service
+                                    WHERE company_id = ${companyID} AND inactivated_dt IS NULL ) AS places_of_service)
+                , cte_adjustment_code_list AS(
+                                    SELECT Json_agg(Row_to_json(adjustment_code_list)) adjustment_code_list
+                                    FROM  (
+                                    SELECT
+                                    id
+                                    , code 
+                                    , description
+                                    , accounting_entry_type  
+                                    FROM billing.adjustment_codes 
+                                    WHERE company_id = ${companyID} AND inactivated_dt IS NULL ) AS adjustment_code_list)
+               
                SELECT *
                FROM   cte_company,
                       cte_facilities,
@@ -186,7 +214,10 @@ module.exports = {
                       cte_relationship_status,
                       cte_states,
                       cte_status_color_codes,
-                      cte_printer_templates
+                      cte_printer_templates,
+                      cte_billing_providers,
+                      cte_places_of_service,
+                      cte_adjustment_code_list
                `;
 
         return await query(sql);

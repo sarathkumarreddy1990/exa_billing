@@ -83,6 +83,7 @@ define(['jquery',
                 this.claimStatusList = new modelCollection(app.claim_status);
                 this.billingCodesList = new modelCollection(app.billing_codes);
                 this.billingClassList = new modelCollection(app.billing_classes);
+                this.billingProviderList = new modelCollection(app.billing_providers);
                 this.InsurancePokitdokTemplateForm = new _.template(insurancePokitdokForm);
                 this.patientsPager = new modelPatientPager();
                 this.patientListcoll = new patientCollection();
@@ -114,7 +115,10 @@ define(['jquery',
                         states: self.states.toJSON(),
                         claimStatusList: self.claimStatusList.toJSON(),
                         billingCodesList: self.billingCodesList.toJSON(),
-                        billingClassList: self.billingClassList.toJSON()
+                        billingClassList: self.billingClassList.toJSON(),
+                        billingProviderList: self.billingProviderList.toJSON(),
+                        posList: app.places_of_service || [],
+                        relationshipList: app.relationship_status || []
                     })
                 });
 
@@ -281,7 +285,6 @@ define(['jquery',
                 var self = this;
 
                 // set all Insurance auto_complete
-                self.bindBillingSummary();
                 self.bindServiceType();
                 self.bindInsuranceAutocomplete('ddlPriInsurance');
                 self.bindInsuranceAutocomplete('ddlSecInsurance');
@@ -290,8 +293,9 @@ define(['jquery',
                 self.setProviderAutoComplete('PR'); // rendering provider auto complete
                 self.setProviderAutoComplete('RF'); // referring provider auto complete
                 self.setDiagCodesAutoComplete();
-                self.bindExistingPatientInsurance();
                 self.setOrderingFacilityAutoComplete();
+                if(!self.isEdit)
+                    self.bindExistingPatientInsurance();
             },
 
             initializeClaimEditForm: function () {
@@ -385,6 +389,33 @@ define(['jquery',
 
                             // clear icd details after bind
                             self.ICDID = self.icd_code = self.icd_description = '';
+
+                            /* Edit claim bind Existing Insurance List -Start*/
+                            var existingPrimaryInsurance = [];
+                            var existingSecondaryInsurance = [];
+                            var existingTriInsurance = [];
+                            var existing_insurance = claimDetails.existing_insurance || [];
+                            
+                            self.npiNo = claimDetails.npi_no || '';
+                            self.federalTaxId = claimDetails.federal_tax_id || '';
+                            self.enableInsuranceEligibility = claimDetails.enable_insurance_eligibility || '';
+                            
+                            $.each(existing_insurance, function (index, value) {
+                                switch (value.coverage_level) {
+                                    case 'primary':
+                                        existingPrimaryInsurance.push(value);
+                                        break;
+                                    case 'secondary':
+                                        existingSecondaryInsurance.push(value);
+                                        break;
+                                    case 'tertiary':
+                                        existingTriInsurance.push(value);
+                                }
+                            });
+                            self.bindExistingInsurance(existingPrimaryInsurance, 'ddlExistPriIns')
+                            self.bindExistingInsurance(existingSecondaryInsurance, 'ddlExistSecIns')
+                            self.bindExistingInsurance(existingTriInsurance, 'ddlExistTerIns')
+                            /* Edit claim bind Existing Insurance List - End */
 
                             $('#btnSaveClaim').attr('disabled', false);
                             $("#txtClaimDate").attr("disabled", "disabled");                             
@@ -1838,78 +1869,8 @@ define(['jquery',
                 })
             },
 
-            bindBillingSummary: function () {
-                var self = this;
-                $.ajax({
-                    type: 'GET',
-                    url: '/exa_modules/billing/claims/get_masterdetails',
-                    data: {
-                        patient_id: self.cur_patient_id,
-                        company_id: 1
-                    },
-                    success: function (model, response) {
-                        if (model && model.length) {
-                            /* Billing providers drop down*/
-                            var billingProviders = model[0].billingProvidersList;
-                            var ddlBillingProvider = $('#ddlBillingProvider');
-                            ddlBillingProvider.empty();
-                            ddlBillingProvider.append($('<option/>', { value: "", text: "Select" }));
-                            if (billingProviders && billingProviders.length > 0) {
-                                for (var b = 0; b < billingProviders.length; b++) {
-                                    ddlBillingProvider.append($('<option/>', {
-                                        value: billingProviders[b].id,
-                                        text: billingProviders[b].full_name
-                                    }));
-                                }
-                            }
 
-                            /* palce of service dropdown */
-                            var ddlPosType = $('#ddlPOSType');
-                            var posList = model[0].posList ? model[0].posList : [];
-                            ddlPosType.empty();
-                            ddlPosType.append($('<option/>', { value: "", text: "Select" }));
-                            if (posList.length > 0) {
-                                for (var e = 0; e < posList.length; e++) {
-                                    ddlPosType.append($('<option/>', { value: posList[e].id, text: posList[e].code }).attr('data-code', posList[e].code));
-                                }
-                            }
-
-                            /* relationship dropdown */
-                            var ddlPriRelationShip = $('#ddlPriRelationShip');
-                            var ddlSecRelationShip = $('#ddlSecRelationShip');
-                            var ddlTerRelationShip = $('#ddlTerRelationShip');
-                            var relationships = model[0].relationships || [];
-                            $('#ddlPriRelationShip, #ddlSecRelationShip, #ddlTerRelationShip').empty();
-                            $('#ddlPriRelationShip, #ddlSecRelationShip, #ddlTerRelationShip').append($('<option/>', {
-                                value: "",
-                                text: "Select"
-                            }));
-                            if (relationships.length > 0) {
-                                for (var f = 0; f < relationships.length; f++) {
-                                    ddlPriRelationShip.append($('<option/>', {
-                                        value: relationships[f].id,
-                                        text: relationships[f].description
-                                    }));
-                                    ddlSecRelationShip.append($('<option/>', {
-                                        value: relationships[f].id,
-                                        text: relationships[f].description
-                                    }));
-                                    ddlTerRelationShip.append($('<option/>', {
-                                        value: relationships[f].id,
-                                        text: relationships[f].description
-                                    }));
-                                }
-                            }
-
-                        }
-                    },
-                    error: function (model, response) {
-                        commonjs.handleXhrError(model, response);
-                    }
-                })
-            },
-
-            assignExistInsurance: function (e) {
+           assignExistInsurance: function (e) {
                 var self = this;
                 var id = e.target.id;
                 var patientInsID = $('#' + id + ' option:selected').val();

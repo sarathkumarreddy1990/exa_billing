@@ -283,60 +283,6 @@ module.exports = {
         return await query(sql);
     },
 
-    getMasterDetails: async function (params) {
-
-        const sql = SQL`SELECT * FROM
-                                 (SELECT
-                                    json_agg(row_to_json(bpQuery)) "billingProvidersList" 
-                                  FROM (SELECT
-                                              id
-                                            , name AS full_name
-                                        FROM billing.providers
-                                        WHERE 
-                                            company_id = ${params.company_id}
-                                        AND inactivated_dt IS NULL
-                                        ) AS bpQuery
-                                 ) billingProvidersList,
-                                 (SELECT 
-                                    json_agg(row_to_json(posList)) "posList" 
-                                  FROM (SELECT 
-                                              id
-                                            , code
-                                            , description 
-                                       FROM public.places_of_service 
-                                       WHERE
-                                            company_id = ${params.company_id}
-                                       AND  inactivated_dt IS NULL 
-                                      ) AS posList
-                                 ) posList,
-                                 (SELECT
-                                    json_agg(row_to_json(relations)) relationships
-                                  FROM (SELECT 
-                                              id
-                                            , description 
-                                        FROM public.relationship_status 
-                                        WHERE 
-                                            company_id = ${params.company_id}
-                                        AND inactivated_dt IS NULL
-                                       ) AS relations
-                                 ) relationships,
-                                 (SELECT 
-                                    json_agg(row_to_json(adjustment_code_list)) "adjustment_code_details"
-                                  FROM (SELECT
-                                              id
-                                            , code 
-                                            , description
-                                            , accounting_entry_type 
-                                        FROM
-                                            billing.adjustment_codes 
-                                        WHERE
-                                            inactivated_dt IS NULL 
-                                       ) AS adjustment_code_list
-                                 ) adjustment_code_details `;
-
-        return await query(sql);
-    },
-
     save: async function (params) {
 
         let {
@@ -450,6 +396,10 @@ module.exports = {
     },
 
     getClaimData: async (params) => {
+
+        const {
+            id
+        } = params;
 
         const get_claim_sql = SQL`
                 SELECT 
@@ -590,6 +540,9 @@ module.exports = {
                     , cti.valid_from_date AS t_valid_from_date
                     , cti.valid_to_date AS t_valid_to_date
                     , cti.medicare_insurance_type_code AS t_medicare_insurance_type_code
+                    , f.facility_info -> 'npino' as npi_no
+                    , f.facility_info -> 'federal_tax_id' as federal_tax_id
+                    , f.facility_info -> 'enable_insurance_eligibility' as enable_insurance_eligibility
                     , (
                         SELECT array_agg(row_to_json(pointer)) AS claim_charges 
                         FROM (
@@ -636,8 +589,23 @@ module.exports = {
                             INNER JOIN public.icd_codes icd ON ci.icd_id = icd.id 
                             WHERE claim_id = c.id
                       ) icd_query) AS claim_icd_data
-                       FROM
-                           billing.claims c
+                    , (
+                        SELECT json_agg(row_to_json(existing_insurance)) AS existing_insurance 
+                        FROM (
+                            SELECT
+                              pi.id
+                            , ip.id AS insurance_provider_id
+                            , ip.insurance_name
+                            , ip.insurance_code
+                            , pi.coverage_level
+                        FROM public.patient_insurances pi
+                        INNER JOIN public.insurance_providers ip ON ip.id = pi.insurance_provider_id                                                          
+                        WHERE
+                            pi.patient_id = c.patient_id
+                        ORDER BY pi.coverage_level,pi.id ASC
+                      ) existing_insurance) AS existing_insurance
+                    FROM
+                        billing.claims c
                         INNER JOIN public.patients p ON p.id = c.patient_id
                         LEFT JOIN public.patient_insurances cpi ON cpi.id = c.primary_patient_insurance_id
                         LEFT JOIN public.patient_insurances csi ON csi.id = c.secondary_patient_insurance_id
@@ -650,9 +618,9 @@ module.exports = {
                         LEFT JOIN public.provider_contacts rend_pc ON rend_pc.id = c.rendering_provider_contact_id
                         LEFT JOIN public.providers rend_pr ON rend_pc.provider_id = rend_pr.id
                         LEFT JOIN public.provider_groups pg ON pg.id = c.ordering_facility_id
-                    
-                       WHERE 
-                        c.id = ${params.id}`;
+                        LEFT JOIN public.facilities f ON p.facility_id = f.id
+                    WHERE 
+                        c.id = ${id}`;
 
         return await query(get_claim_sql);
     },

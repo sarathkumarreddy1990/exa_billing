@@ -106,7 +106,7 @@ module.exports = {
 
             return await query(sql);
         }
-        else if (params.customArgs.invoice_no_to_search) {
+        else if (params.customArgs.claimIdToSearch || params.customArgs.invoiceNoToSearch) {
             const sql = SQL`
                     SELECT 
                         bc.id AS claim_id,
@@ -126,7 +126,13 @@ module.exports = {
                     INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id 
             `;
 
-            sql.append(SQL` WHERE bc.id = ${params.customArgs.invoice_no_to_search} `);
+            if (params.customArgs.claimIdToSearch) {
+                sql.append(SQL` WHERE bc.id = ${params.customArgs.claimIdToSearch} `);
+            }
+            
+            if (params.customArgs.invoiceNoToSearch) {
+                sql.append(SQL` WHERE bc.invoice_no = ${params.customArgs.invoiceNoToSearch} `);
+            }
             
             if (whereQuery.length) {
                 sql.append(SQL` AND `);
@@ -164,11 +170,11 @@ module.exports = {
         paymentWhereQuery = params.customArgs.payerType == 'ordering_provider' ? paymentWhereQuery + ` AND bc.referring_provider_contact_id = ${params.customArgs.payerId}  AND bc.payer_type = 'referring_provider'` : paymentWhereQuery;
 
         
-        let invoiceQuery = await this.checkInvoiceExists(params.customArgs.paymentID);
+        // let invoiceQuery = await this.checkInvoiceExists(params.customArgs.paymentID);
 
-        if (invoiceQuery.rows && invoiceQuery.rows.length && invoiceQuery.rows[0].invoice_no) {
-            paymentWhereQuery += ` AND bc.invoice_no = '${ invoiceQuery.rows[0].invoice_no }'`;
-        }
+        // if (invoiceQuery.rows && invoiceQuery.rows.length && invoiceQuery.rows[0].invoice_no) {
+        //     paymentWhereQuery += ` AND bc.invoice_no = '${ invoiceQuery.rows[0].invoice_no }'`;
+        // }
 
         if (params.customArgs.payerType == 'insurance') {
             joinQuery = ` 

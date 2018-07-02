@@ -21,8 +21,6 @@ module.exports = {
         return await data.getPatientInsurancesById(params);
     },
 
-    getMasterDetails: async (params) => { return await data.getMasterDetails(params); },
-
     save: async (params) => {
         let auditDetails = {
             company_id: params.companyId,

@@ -26,10 +26,6 @@ router.get('/service_facilities', async function (req, res) {
     httpHandler.send(req, res, service_types);
 });
 
-router.get('/get_masterdetails', async function (req, res) {
-    const data = await claimsController.getMasterDetails(req.query);
-    httpHandler.sendRows(req, res, data);
-});
 
 router.get('/get_service_facility', async function (req, res) {
     let file_path = path.join(__dirname, '../resx/site-info.json');
