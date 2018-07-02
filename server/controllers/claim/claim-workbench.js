@@ -81,6 +81,7 @@ module.exports = {
             };
 
             ediResponse = await ediConnect.generateEdi(result.rows[0].header.edi_template_name, ediRequestJson);
+            
         }
 
         return ediResponse;

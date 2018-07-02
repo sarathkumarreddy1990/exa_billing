@@ -301,7 +301,11 @@ const colModel = [
         name: 'ins_provider_type',
         searchColumns: ['insurance_providers.provider_types'],
         searchFlag: 'arrayString'
-    }
+    },
+    {
+        name: 'billed_status',
+        searchFlag: '='
+    },
 ];
 
 const api = {
@@ -471,7 +475,7 @@ const api = {
         case 'tat_level':               return 'tat.level';
         case 'patient_room':            return  `orders.order_info->'patientRoom'`; //***For EXA-7148 -- Add Room Number colum to Facility Portal***//
         case 'visit_no':                return `orders.order_info->'visit_no'`;
-        case 'billed_status':           return `(SELECT  CASE WHEN (SELECT claim_id FROM billing.charges_studies inner JOIN billing.charges ON charges.id= 
+        case 'billed_status':           return `(SELECT  CASE WHEN (SELECT 1 FROM billing.charges_studies inner JOIN billing.charges ON charges.id= 
                                                 charges_studies.charge_id  WHERE study_id = studies.id LIMIT 1) >0 THEN 'billed'
                                                 ELSE 'unbilled' END)`;
         }

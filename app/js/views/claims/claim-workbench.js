@@ -499,6 +499,9 @@ define(['jquery',
                                 html: self.ediResultTemplate()
                             });
                             $('#tblEDIResp').append(str);
+                            $('#modal_div_container .downloadEDI').on('click', function () {
+                                commonjs.downloadString(data.ediText,  'edi.txt', "text/plain");
+                            });
                         }
                     },
                     error: function (err) {

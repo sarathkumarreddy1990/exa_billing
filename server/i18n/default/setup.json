@@ -217,6 +217,7 @@
             "paperClaimOriginalForm" : "Paper Claim(Original)",
             "directInvoice": "Direct Invoice",
             "patientInvoice": "Patient Invoice",
+            "billedStatus": "Billed Status",
             "headings":{
               "Settings":"Settings",
               "columnSort":"Column Order",
