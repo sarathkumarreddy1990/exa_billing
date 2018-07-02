@@ -69,7 +69,20 @@ module.exports = {
     },
 
     get: async function (args) {
-        let grid_flag = args.customArgs.filter_type;
+        args.sortOrder = args.sortOrder || ' ASC';
+        let whereQuery = [];
+        let {   filter_name,   filter_order,  filter_type,  sortOrder,    sortField,  pageNo,   pageSize   } = args;
+
+        if(filter_name){
+            whereQuery.push(` filter_name ILIKE '%${filter_name}%'`);
+        }
+
+        if(filter_order){
+            whereQuery.push(` filter_order :: TEXT ILIKE '%${filter_order}%'`);
+        }
+
+        whereQuery.push(` filter_type = '${filter_type}' AND deleted_dt IS NULL`);
+
         let get_all = SQL` SELECT
         id
         ,filter_order
@@ -80,8 +93,17 @@ module.exports = {
         ,is_global_filter
         ,display_in_ddl
         ,inactivated_dt IS NULL AS is_active
-    FROM  billing.grid_filters 
-    WHERE filter_type = ${grid_flag} `;
+        ,COUNT(1) OVER (range unbounded preceding) AS total_records
+        FROM  billing.grid_filters`;
+
+        get_all.append(SQL` WHERE `).append(whereQuery.join(' AND '));
+
+        get_all.append(SQL` ORDER BY `)
+            .append(sortField)
+            .append(' ')
+            .append(sortOrder)
+            .append(SQL` LIMIT ${pageSize} `)
+            .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
 
         return await query(get_all);
     },
