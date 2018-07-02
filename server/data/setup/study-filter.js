@@ -79,7 +79,7 @@ module.exports = {
         ,display_as_tab
         ,is_global_filter
         ,display_in_ddl
-        ,CASE WHEN inactivated_dt IS NULL THEN TRUE ELSE FALSE END AS is_active
+        ,inactivated_dt IS NULL AS is_active
     FROM  billing.grid_filters 
     WHERE filter_type = ${grid_flag} `;
 
@@ -98,7 +98,7 @@ module.exports = {
                 ,display_as_tab
                 ,is_global_filter
                 ,display_in_ddl
-                ,CASE WHEN inactivated_dt IS NULL THEN TRUE ELSE FALSE END AS is_active
+                ,inactivated_dt IS NULL AS is_active
             FROM billing.grid_filters WHERE id =${params.id} `;
 
         return await query(get_data);
