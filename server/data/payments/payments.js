@@ -527,12 +527,14 @@ module.exports = {
                                   , reason_code_id
                                   , payment_application_id
                                   , amount
+                                  , parent_application_id
                                 FROM json_to_recordset(${JSON.stringify(params.save_cas_details)}) AS details(
                                     cas_id BIGINT
                                   , group_code_id BIGINT
                                   , reason_code_id BIGINT
                                   , payment_application_id BIGINT
-                                  , amount MONEY)
+                                  , amount MONEY
+                                  , parent_application_id BIGINT)
                                 ),
                         update_applications AS(
                             UPDATE billing.payment_applications 
@@ -568,7 +570,7 @@ module.exports = {
                                 , parent_application_id
                             FROM update_application_details
                             WHERE  payment_application_id is null and amount != 0::money
-                            RETURNING id
+                            RETURNING *
                         ),
                         update_claim_details AS(
                             UPDATE billing.claims
@@ -626,12 +628,14 @@ module.exports = {
                                   , amount 
                                 )
                                 SELECT 
-                                    payment_application_id
-                                  , group_code_id
-                                  , reason_code_id
-                                  , amount
-                                FROM cas_application_details
-                                WHERE cas_id is null
+                                    CASE WHEN cas.payment_application_id IS NULL THEN 
+                                        (SELECT id FROM insert_applications bpa where bpa.payment_application_id = cas.parent_application_id) 
+                                    ELSE  cas.payment_application_id END
+                                  , cas.group_code_id
+                                  , cas.reason_code_id
+                                  , cas.amount
+                                FROM cas_application_details cas
+                                WHERE cas.cas_id is null
                                 RETURNING *, '{}'::jsonb old_values
                             ),
                             update_applications_audit_cte as(

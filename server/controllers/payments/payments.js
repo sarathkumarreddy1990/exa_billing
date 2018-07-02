@@ -121,6 +121,7 @@ module.exports = {
                 _.each(value.cas_details, function (details) {
                     save_cas_details.push({
                         payment_application_id: value.adjustmentApplicationId != '' ? value.adjustmentApplicationId : null,
+                        parent_application_id: value.adjustmentApplicationId == '' ? value.paymentApplicationId : null,
                         group_code_id : details.group_code_id,
                         reason_code_id : details.reason_code_id,
                         amount : details.amount,
