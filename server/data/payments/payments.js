@@ -500,10 +500,14 @@ module.exports = {
                                 payment_application_id
                               , amount
                               , adjestment_id
+                              , charge_id
+                              , parent_application_id
                             FROM json_to_recordset(${JSON.stringify(params.updateAppliedPayments)}) AS details(
                                payment_application_id BIGINT
                              , amount MONEY
-                             , adjestment_id BIGINT)),
+                             , adjestment_id BIGINT
+                             , charge_id BIGINT
+                            , parent_application_id BIGINT)),
                         claim_comment_details AS(
                                 SELECT 
                                       claim_id
@@ -544,6 +548,28 @@ module.exports = {
                                     FROM   billing.payment_applications 
                                     WHERE  id = uad.payment_application_id) old_row 
                             ) old_value),
+                        insert_applications AS(
+                            INSERT INTO billing.payment_applications( 
+                                payment_id,
+                                charge_id,
+                                amount_type,
+                                amount,
+                                adjustment_code_id,
+                                created_by,
+                                payment_application_id
+                            ) 
+                            SELECT 
+                                  ${params.paymentId}
+                                , charge_id
+                                , 'adjustment'
+                                , amount
+                                , adjestment_id
+                                , ${params.userId}
+                                , parent_application_id
+                            FROM update_application_details
+                            WHERE  payment_application_id is null and amount != 0::money
+                            RETURNING id
+                        ),
                         update_claim_details AS(
                             UPDATE billing.claims
                             SET

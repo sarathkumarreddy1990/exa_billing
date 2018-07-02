@@ -104,21 +104,23 @@ module.exports = {
                     payment_id: paymentId,
                     charge_id: value.charge_id,
                     amount: value.payment == null ? 0.00 : value.payment,
-                    adjestment_id: null
+                    adjestment_id: null,
+                    parent_application_id: null
                 });
 
                 updateAppliedPayments.push({
-                    payment_application_id: value.adjustmentApplicationId,
+                    payment_application_id: value.adjustmentApplicationId != '' ? value.adjustmentApplicationId : null,
                     payment_id: paymentId,
                     charge_id: value.charge_id,
                     amount: value.adjustment == null ? 0.00 : value.adjustment,
-                    adjestment_id: adjestmentId ? adjestmentId : null
+                    adjestment_id: adjestmentId ? adjestmentId : null,
+                    parent_application_id:value.paymentApplicationId 
                 });
 
 
                 _.each(value.cas_details, function (details) {
                     save_cas_details.push({
-                        payment_application_id: value.adjustmentApplicationId,
+                        payment_application_id: value.adjustmentApplicationId != '' ? value.adjustmentApplicationId : null,
                         group_code_id : details.group_code_id,
                         reason_code_id : details.reason_code_id,
                         amount : details.amount,
