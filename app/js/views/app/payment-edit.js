@@ -899,9 +899,9 @@ define(['jquery',
                         payerType: payerType
                     },
 
-                    beforeRequest: function () {
-                        self.setCustomArgs(paymentID, payerId, payerType, patientId, claim_id_to_search);
-                    },
+                    // beforeRequest: function () {
+                    //     self.setCustomArgs(paymentID, payerId, payerType, patientId, claim_id_to_search);
+                    // },
                 });
 
                 setTimeout(function () {
@@ -910,7 +910,7 @@ define(['jquery',
                 }, 500);
             },
  
-            showPendingPaymentsGrid: function (paymentID, payerType, payerId, patientId, claim_id_to_search, invoice_no_to_search) {
+            showPendingPaymentsGrid: function (paymentID, payerType, payerId, patientId, claimIdToSearch, invoiceNoToSearch) {
                 var self = this;
                 if (!self.pendingGridLoaderd) {
                     this.pendPaymentTable = new customGrid();
@@ -991,12 +991,12 @@ define(['jquery',
                             payerId: payerId,
                             payerType: payerType,
                             patientId: patientId,
-                            claim_id_to_search: claim_id_to_search,
-                            invoice_no_to_search: invoice_no_to_search
+                            claimIdToSearch: claimIdToSearch,
+                            invoiceNoToSearch: invoiceNoToSearch
                         },
 
                         beforeRequest: function () {
-                            self.setCustomArgs(paymentID, payerId, payerType, patientId, claim_id_to_search, invoice_no_to_search);
+                            self.setCustomArgs(paymentID, payerId, payerType, patientId, claimIdToSearch, invoiceNoToSearch);
                         },
                     });
 
@@ -1015,8 +1015,8 @@ define(['jquery',
                         payerId: self.payer_id,
                         payerType: self.payer_type,
                         patientId: patientId,
-                        claim_id_to_search: claim_id_to_search,
-                        invoice_no_to_search: invoice_no_to_search
+                        claimIdToSearch: claimIdToSearch,
+                        invoiceNoToSearch: invoiceNoToSearch
                     }
                     self.pendPaymentTable.refreshAll();
                 }
@@ -1026,7 +1026,7 @@ define(['jquery',
                 $('#diVPatient').hide();
             },
 
-            setCustomArgs: function (paymentID, payerId, payerType, patientId, claim_id_to_search, invoice_no_to_search) {
+            setCustomArgs: function (paymentID, payerId, payerType, patientId, claimIdToSearch, invoiceNoToSearch) {
                 var self = this;
                 self.pendPaymentTable.options.customargs = {
                     gridFlag: 'pendingPayments',
@@ -1034,37 +1034,22 @@ define(['jquery',
                     payerId: payerId,
                     payerType: payerType,
                     patientId: patientId,
-                    claim_id_to_search: claim_id_to_search,
-                    invoice_no_to_search: invoice_no_to_search
+                    claimIdToSearch: claimIdToSearch,
+                    invoiceNoToSearch: invoiceNoToSearch
                 }
             },
 
             afterGridBind: function (dataset, e, pager) {
                 var self = this;
-                // if (e.options.customargs.patientId || e.options.customargs.invoice_no_to_search) {
-                //     $('#btnBackToPatient').show();
-                //     $('#diVPatient').hide();
-                //     $('#divPendingRecords').show();
-                // }
-                // else {
                 if (!self.gridFirstLoaded) {
                     self.gridFirstLoaded = true;
                     if (dataset && dataset.length) {
                         $('#liPendingPayments a').click();
-                        // $('#btnBackToPatient').hide();
-                        // $('#divPendingRecords').show();
-                        // $('#diVPatient').hide();
                     }
                     else {
                         $('#liPendingPaymentsPat a').click();
                     }
                 }    
-                // else if (!self.gridFirstLoaded) {
-                    // $('#liPendingPaymentsPat a').click();                    
-                    // $('#divPendingRecords').hide();
-                    // $('#diVPatient').show();
-                // }
-                // }
             },
 
             showAppliedByPaymentsGrid: function (paymentID, payerType, payerId) {
@@ -1951,23 +1936,13 @@ define(['jquery',
                 var dicom_patient_id = $(e.target || e.srcElement).closest('.selectionpatient').data('dicom_patient_id');
 
                 this.patientId = patientId;
-                this.claim_id_to_search = '';
+                this.claimIdToSearch = '';
+                this.invoiceNoToSearch = '';
                 this.showPatientForm(patientId, patient_name, account_no);
             },
 
             showPatientForm: function (patientId, patient_name, account_no) {
                 var self = this;
-                // self.pendPaymentTable.options.customargs = {
-                //     gridFlag: 'pendingPayments',
-                //     paymentID: self.payment_id,
-                //     payerId: self.payer_id,
-                //     payerType: self.payer_type,
-                //     patientId: patientId,
-                //     invoice_no_to_search: ''
-                // }
-                // self.pendPaymentTable.refreshAll
-                // $('#spnPatInfo').text('Pending payments for the patient ' + patient_name + ' with the Account #: ' + account_no);
-
                 $('#commonMsg').text('Pending payments for the patient : ')
                 $('#spnPatInfo').text(patient_name + ' (' + account_no + ') ');
                 this.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, patientId);
@@ -1977,8 +1952,8 @@ define(['jquery',
                 var self = this;
                 let target = $(e.target || e.srcElement);
                 self.patientId = 0;
-                self.claim_id_to_search = $('#claimId').val();
-                self.invoice_no_to_search = $('#invoiceNo').val();
+                self.claimIdToSearch = $('#claimId').val();
+                self.invoiceNoToSearch = $('#invoiceNo').val();
 
                 if ($(e.target).is('#anc_search_claim')) {
                     if ($('#claimId').val() == '') {
@@ -1986,8 +1961,8 @@ define(['jquery',
                     }
                     else {
                         $('#commonMsg').text('Pending payments for claim id : ')
-                        $('#spnPatInfo').text(self.claim_id_to_search);
-                        self.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, 0, self.claim_id_to_search, '');
+                        $('#spnPatInfo').text(self.claimIdToSearch);
+                        self.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, 0, self.claimIdToSearch, '');
                     }
                 }
                 else if ($(e.target).is('#anc_search')) {
@@ -1996,8 +1971,8 @@ define(['jquery',
                     }
                     else {
                         $('#commonMsg').text('Pending payments for inovice # : ')
-                        $('#spnPatInfo').text(self.invoice_no_to_search);
-                        self.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, 0, '', self.invoice_no_to_search);
+                        $('#spnPatInfo').text(self.invoiceNoToSearch);
+                        self.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, 0, '', self.invoiceNoToSearch);
                     }
                 }
             },

@@ -106,7 +106,7 @@ module.exports = {
 
             return await query(sql);
         }
-        else if (params.customArgs.claim_id_to_search || params.customArgs.invoice_no_to_search) {
+        else if (params.customArgs.claimIdToSearch || params.customArgs.invoiceNoToSearch) {
             const sql = SQL`
                     SELECT 
                         bc.id AS claim_id,
@@ -126,12 +126,12 @@ module.exports = {
                     INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id 
             `;
 
-            if (params.customArgs.claim_id_to_search) {
-                sql.append(SQL` WHERE bc.id = ${params.customArgs.claim_id_to_search} `);
+            if (params.customArgs.claimIdToSearch) {
+                sql.append(SQL` WHERE bc.id = ${params.customArgs.claimIdToSearch} `);
             }
             
-            if (params.customArgs.invoice_no_to_search) {
-                sql.append(SQL` WHERE bc.invoice_no = ${params.customArgs.invoice_no_to_search} `);
+            if (params.customArgs.invoiceNoToSearch) {
+                sql.append(SQL` WHERE bc.invoice_no = ${params.customArgs.invoiceNoToSearch} `);
             }
             
             if (whereQuery.length) {
