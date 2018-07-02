@@ -444,7 +444,8 @@ define([
                     disablereload: true,
                     customargs:{
                         filter_type: self.opener
-                    }
+                    },
+                    pager: '#gridPager_studyFilter'
                 });
                 setTimeout(function () {
                     $("#tblStudyFilterGrid").setGridWidth($('#divStudyFilterGrid').width(), true);
@@ -604,7 +605,7 @@ define([
                                     $('#ddlLast').val(dateJson.duration);
 
                                     dateJson.fromDate ? $('#txtDateFrom').val(dateJson.fromDate) : $('#txtDateFrom').val('');
-                                    dateJson.toDate ? $('#txtDateTo').val(dateJson.fromDate) : $('#txtDateTo').val('');
+                                    dateJson.toDate ? $('#txtDateTo').val(dateJson.toDate) : $('#txtDateTo').val('');
                                     dateJson.fromDateTime ? $('#txtFromTimeDate').val(dateJson.fromDateTime) : $('#txtFromTimeDate').val('');
                                     dateJson.toDateTime ? $('#txtToTimeDate').val(dateJson.toDateTime) : $('#txtToTimeDate').val('');
                                     dateJson.fromTime ? $('#txtFromTimeLast').val(dateJson.fromTime) : $('#txtFromTimeLast').val('');
@@ -859,6 +860,15 @@ define([
                 }
                 if(!filterOrder){
                     commonjs.showWarning('Please Enter FilterOrder');
+                    return;
+                }
+                if (filterOrder < 0) {
+                    commonjs.showWarning('Please Enter FilterOrder In Positive');
+                    return;
+                }
+
+                if(!isDisplayAsTab && !isDisplayInDropDown){
+                    commonjs.showWarning('Please Select Display as a Tab or Display in DropDown');
                     return;
                 }
 
