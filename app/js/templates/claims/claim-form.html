@@ -246,6 +246,12 @@
                     <label for="ddlBillingProvider" class="col-sm-3 col-form-label field-required" i18n="billing.claims.billingProvider"></label>
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlBillingProvider" style="height:32px;">
+                            <option value=''>Select</option>
+                            <% _.each(billingProviderList, function(provider) { %>
+                                <option value='<%= provider.id %>'>
+                                    <%= provider.full_name %>
+                                </option>
+                                <% }); %>
                         </select>
                     </div>
                 </div>
@@ -275,6 +281,11 @@
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlPOSType" style="height:32px;">
                             <option value=''>Select</option>
+                            <% _.each(posList, function(pos) { %>
+                                <option value='<%= pos.id %>' data-code='<%= pos.code %>'>
+                                    <%= pos.description %>
+                                </option>
+                                <% }); %>
                         </select>
                     </div>
                 </div>
@@ -367,6 +378,11 @@
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlPriRelationShip">
                             <option value=''>Select</option>
+                            <% _.each(relationshipList, function(relationShip) { %>
+                                <option value='<%= relationShip.id %>'>
+                                    <%= relationShip.description %>
+                                </option>
+                            <% }); %>
                         </select>
                     </div>
                 </div>
@@ -543,6 +559,11 @@
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlSecRelationShip">
                             <option value=''>Select</option>
+                            <% _.each(relationshipList, function(relationShip) { %>
+                                <option value='<%= relationShip.id %>'>
+                                    <%= relationShip.description %>
+                                </option>
+                            <% }); %>
                         </select>
                     </div>
                 </div>
@@ -702,6 +723,11 @@
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlTerRelationShip">
                             <option value=''>Select</option>
+                            <% _.each(relationshipList, function(relationShip) { %>
+                                <option value='<%= relationShip.id %>'>
+                                    <%= relationShip.description %>
+                                </option>
+                            <% }); %>
                         </select>
                     </div>
                 </div>
