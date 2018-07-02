@@ -283,60 +283,6 @@ module.exports = {
         return await query(sql);
     },
 
-    getMasterDetails: async function (params) {
-
-        const sql = SQL`SELECT * FROM
-                                 (SELECT
-                                    json_agg(row_to_json(bpQuery)) "billingProvidersList" 
-                                  FROM (SELECT
-                                              id
-                                            , name AS full_name
-                                        FROM billing.providers
-                                        WHERE 
-                                            company_id = ${params.company_id}
-                                        AND inactivated_dt IS NULL
-                                        ) AS bpQuery
-                                 ) billingProvidersList,
-                                 (SELECT 
-                                    json_agg(row_to_json(posList)) "posList" 
-                                  FROM (SELECT 
-                                              id
-                                            , code
-                                            , description 
-                                       FROM public.places_of_service 
-                                       WHERE
-                                            company_id = ${params.company_id}
-                                       AND  inactivated_dt IS NULL 
-                                      ) AS posList
-                                 ) posList,
-                                 (SELECT
-                                    json_agg(row_to_json(relations)) relationships
-                                  FROM (SELECT 
-                                              id
-                                            , description 
-                                        FROM public.relationship_status 
-                                        WHERE 
-                                            company_id = ${params.company_id}
-                                        AND inactivated_dt IS NULL
-                                       ) AS relations
-                                 ) relationships,
-                                 (SELECT 
-                                    json_agg(row_to_json(adjustment_code_list)) "adjustment_code_details"
-                                  FROM (SELECT
-                                              id
-                                            , code 
-                                            , description
-                                            , accounting_entry_type 
-                                        FROM
-                                            billing.adjustment_codes 
-                                        WHERE
-                                            inactivated_dt IS NULL 
-                                       ) AS adjustment_code_list
-                                 ) adjustment_code_details `;
-
-        return await query(sql);
-    },
-
     save: async function (params) {
 
         let {
