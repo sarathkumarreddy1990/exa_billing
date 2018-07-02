@@ -293,8 +293,9 @@ define(['jquery',
                 self.setProviderAutoComplete('PR'); // rendering provider auto complete
                 self.setProviderAutoComplete('RF'); // referring provider auto complete
                 self.setDiagCodesAutoComplete();
-                self.bindExistingPatientInsurance();
                 self.setOrderingFacilityAutoComplete();
+                if(!self.isEdit)
+                    self.bindExistingPatientInsurance();
             },
 
             initializeClaimEditForm: function () {
@@ -388,6 +389,33 @@ define(['jquery',
 
                             // clear icd details after bind
                             self.ICDID = self.icd_code = self.icd_description = '';
+
+                            /* Edit claim bind Existing Insurance List -Start*/
+                            var existingPrimaryInsurance = [];
+                            var existingSecondaryInsurance = [];
+                            var existingTriInsurance = [];
+                            var existing_insurance = claimDetails.existing_insurance || [];
+                            
+                            self.npiNo = claimDetails.npi_no || '';
+                            self.federalTaxId = claimDetails.federal_tax_id || '';
+                            self.enableInsuranceEligibility = claimDetails.enable_insurance_eligibility || '';
+                            
+                            $.each(existing_insurance, function (index, value) {
+                                switch (value.coverage_level) {
+                                    case 'primary':
+                                        existingPrimaryInsurance.push(value);
+                                        break;
+                                    case 'secondary':
+                                        existingSecondaryInsurance.push(value);
+                                        break;
+                                    case 'tertiary':
+                                        existingTriInsurance.push(value);
+                                }
+                            });
+                            self.bindExistingInsurance(existingPrimaryInsurance, 'ddlExistPriIns')
+                            self.bindExistingInsurance(existingSecondaryInsurance, 'ddlExistSecIns')
+                            self.bindExistingInsurance(existingTriInsurance, 'ddlExistTerIns')
+                            /* Edit claim bind Existing Insurance List - End */
 
                             $('#btnSaveClaim').attr('disabled', false);
                             $("#txtClaimDate").attr("disabled", "disabled");                             
