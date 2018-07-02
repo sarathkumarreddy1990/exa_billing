@@ -11,7 +11,7 @@ module.exports = {
                     FROM   billing.grid_filters 
                     WHERE  filter_type = 'studies' 
                             AND user_id = $1 
-                            AND is_active 
+                            AND inactivated_dt is null 
                     ORDER  BY filter_order
                         `;
 
