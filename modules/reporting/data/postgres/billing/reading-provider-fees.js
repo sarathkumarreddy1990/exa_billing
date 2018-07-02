@@ -10,35 +10,36 @@ const _ = require('lodash')
 const readingProviderFeesDataSetQueryTemplate = _.template(`
     WITH reading_provider_fees AS( 
         SELECT 
-        bc.id as claim_id,
-              ch.cpt_id
-            , pa.amount
-            , to_char(pay.accounting_dt, 'MM/DD/YYYY') as accounting_dt
-            , to_char(pay.payment_dt, 'MM/DD/YYYY') as payment_dt
-            , CASE pay.payer_type 
-                WHEN 'patient' THEN get_full_name(p.last_name, p.first_name, p.middle_name, p.prefix_name, p.suffix_name)
-                WHEN 'insurance' THEN ip.insurance_name
-                WHEN 'ordering_provider' THEN pr.full_name
-                WHEN 'ordering_facility' THEN pg.group_name END AS payer_name
-            , pg_rp.group_name AS group_name
-        , plc.reading_provider_percent_level
-        , to_char(bc.claim_dt, 'MM/DD/YYYY') as claim_dt
-        FROM
-            billing.claims bc
-        INNER JOIN billing.charges ch ON  ch.claim_id = bc.id
-        INNER JOIN public.patients p ON p.id = bc.patient_id
-        INNER JOIN billing.payment_applications pa ON pa.charge_id = ch.id AND amount_type = 'payment'
-        INNER JOIN billing.payments pay ON pay.id = pa.payment_id
-        LEFT JOIN public.insurance_providers ip ON ip.id = pay.insurance_provider_id
-        LEFT JOIN public.provider_contacts pc ON pc.id = pay.provider_contact_id
-        LEFT JOIN public.providers pr ON pr.id = pc.provider_id
-        LEFT JOIN public.provider_groups pg ON pg.id = pay.provider_group_id
-        LEFT JOIN public.provider_contacts pc_rp ON pc_rp.id = bc.rendering_provider_contact_id
-        LEFT JOIN public.provider_groups pg_rp ON pg_rp.id = pc_rp.provider_group_id
-        LEFT JOIN public.cpt_code_provider_level_codes cpt_plc ON cpt_plc.cpt_code_id = ch.cpt_id
-        LEFT JOIN public.provider_level_codes plc ON plc.id = cpt_plc.provider_level_code_id
+            bc.id as claim_id
+            , pcc.display_description
+            , pcc.display_code
+            , bpa.amount
+            , to_char(bp.accounting_dt, 'MM/DD/YYYY') as accounting_dt
+            , to_char(bp.payment_dt, 'MM/DD/YYYY') as payment_dt
+            , CASE bp.payer_type 
+                WHEN 'patient' THEN get_full_name(pp.last_name, pp.first_name, pp.middle_name,pp.prefix_name, pp.suffix_name)
+                WHEN 'insurance' THEN pip.insurance_name
+                WHEN 'ordering_provider' THEN ppr.full_name
+                WHEN 'ordering_facility' THEN ppg.group_name END AS payer_name
+            , cppg.group_name AS group_name
+            , COALESCE(pplc.reading_provider_percent_level,0) AS reading_provider_percent_level
+            , to_char(bc.claim_dt, 'MM/DD/YYYY') as claim_dt
+        FROM billing.claims bc
+        INNER JOIN billing.charges bch ON  bch.claim_id = bc.id
+        INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
+        INNER JOIN billing.payment_applications bpa ON bpa.charge_id = bch.id AND bpa.amount_type = 'payment'
+        INNER JOIN billing.payments bp ON bp.id = bpa.payment_id
+        LEFT JOIN public.patients pp ON pp.id = bp.patient_id
+        LEFT JOIN public.insurance_providers pip ON pip.id = bp.insurance_provider_id
+        LEFT JOIN public.provider_contacts ppc ON ppc.id = bp.provider_contact_id
+        LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
+        LEFT JOIN public.provider_groups ppg ON ppg.id = bp.provider_group_id
+        LEFT JOIN public.provider_contacts cppc ON cppc.id = bc.referring_provider_contact_id
+        LEFT JOIN public.provider_groups cppg ON cppg.id = cppc.provider_group_id
+        LEFT JOIN public.cpt_code_provider_level_codes pccplc ON pccplc.cpt_code_id = pcc.id
+        LEFT JOIN public.provider_level_codes pplc ON pplc.id = pccplc.provider_level_code_id
         INNER JOIN facilities f on f.id = bc.facility_id
-        <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
+        <% if (billingProID) { %> INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id <% } %>
         WHERE 1=1 
         AND  <%= companyId %>
         AND <%= claimDate %>
@@ -46,29 +47,29 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
         <% if(billingProID) { %> AND <% print(billingProID); } %>
     )
     SELECT
-    MAX(claim_id) AS "Claim ID",
-         CASE
-            WHEN display_code !=' ' THEN
+        claim_id AS "Claim ID",
+        CASE
+            WHEN rpf.display_code !='' THEN
                 COALESCE(rpf.group_name, '- No Group Assigned -' )
             ELSE '' 
             END AS "Group_name"
-        , COALESCE(cpt.display_code, 'Total') AS "CPT Code"
-        , COALESCE(cpt.display_description,'---') AS "Description" 
+        , COALESCE(rpf.display_code, 'Total') AS "CPT Code"
+        , COALESCE(rpf.display_description,'---') AS "Description" 
         , claim_dt AS "Claim Date"
         , rpf.payer_name AS "Payer Name"
         , SUM(rpf.amount ) AS "Amount"
         , rpf.accounting_dt AS "Accounting Date"
         , rpf.payment_dt AS "Payment Date"
-        , rpf.reading_provider_percent_level AS "Reading Fee %"
-        , SUM(((rpf.amount::numeric * rpf.reading_provider_percent_level)/100)) AS "Reading Fee"
+        , round(rpf.reading_provider_percent_level,2) AS "Reading Fee %"
+        , round(SUM((rpf.amount::numeric/100) * rpf.reading_provider_percent_level),2) AS "Reading Fee"
     FROM     
         reading_provider_fees rpf
-    INNER JOIN public.cpt_codes cpt ON cpt.id = rpf.cpt_id
     GROUP BY
     GROUPING SETS (
         (group_name),
         (group_name,
-            claim_dt,
+         claim_id,
+         claim_dt,
          display_code,
          display_description,
          payer_name,
@@ -187,17 +188,17 @@ const api = {
         // //  Claim Date
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);
-            filters.claimDate = queryBuilder.whereDate('pay.accounting_dt', '=', [params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDate('bp.accounting_dt', '=', [params.length], 'f.time_zone');
         } else {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
-            filters.claimDate = queryBuilder.whereDateBetween('pay.accounting_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateBetween('bp.accounting_dt', [params.length - 1, params.length], 'f.time_zone');
         }
 
         // billingProvider single or multiple
         if (reportParams.billingProvider) {
             params.push(reportParams.billingProvider);
-            filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
+            filters.billingProID = queryBuilder.whereIn('bpr.id', [params.length]);
         }
 
         return {

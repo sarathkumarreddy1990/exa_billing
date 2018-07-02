@@ -31,14 +31,14 @@ WITH details AS(
          WHEN (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) != 0::money AND bc.payer_type = 'tertiary_insurance' THEN  pip.insurance_code
         ELSE pip.insurance_code
         END AS Ins_Cur,
-        pr.full_name AS "Ref. Doctor"
+        pr.full_name AS "Ref. Doctor"        
         --, ac.description       AS "Insurance Payer Type"    
     FROM billing.claims bc
     INNER JOIN billing.charges bch ON bch.claim_id = bc.id 
     INNER JOIN public.patients pp on pp.id = bc.patient_id  
     INNER JOIN billing.payment_applications bpa ON bpa.charge_id = bch.id
     INNER JOIN billing.payments bp ON bp.id = bpa.payment_id
-    <% if (cptCodeLists) { %>   inner join cpt_codes cc on cc.id = bc.cpt_id  <% } %>
+    <% if (cptCodeLists) { %>   inner join cpt_codes cc on cc.id = bch.cpt_id  <% } %>
     LEFT JOIN public.patient_insurances ppi ON ppi.id = CASE WHEN bc.payer_type = 'primary_insurance' THEN bc.primary_patient_insurance_id
                                                              WHEN bc.payer_type = 'secondary_insurance' THEN bc.secondary_patient_insurance_id
                                                              WHEN bc.payer_type = 'tertiary_insurance' THEN bc.tertiary_patient_insurance_id
@@ -61,9 +61,20 @@ WITH details AS(
         <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
         <% if(billingProID) { %> AND <% print(billingProID); } %>
         <% if(cptCodeLists) { %> AND <% print(cptCodeLists); } %>
+        <% if(referringProIds) { %>AND <% print(referringProIds);} %>
     
         
     GROUP BY bc.id,pip.insurance_name,pip.insurance_code,pp.last_name,pp.first_name,pr.full_name
+
+    <% if (orderBy == "claimId") { %>  
+           ORDER BY  bc.id
+        <% } else if(orderBy == "serviceDate")  { %>
+               ORDER BY bc.claim_dt
+            <%} else if(orderBy == "commentDate"){ %>
+                ORDER BY bc.submitted_dt                
+                <%} else { %>
+                    ORDER BY pip.insurance_name
+                    <% } %>
          )
         SELECT * FROM details
         UNION ALL
@@ -106,7 +117,7 @@ const api = {
         // convert adjustmentCodeIds array of string to integer
         if (initialReportData.report.params.adjustmentCodeIds) {
             initialReportData.report.params.adjustmentCodeIds = initialReportData.report.params.adjustmentCodeIds.map(Number);
-        }        
+        }
 
         return Promise.join(
 
@@ -198,6 +209,15 @@ const api = {
             filtersUsed.push({ name: 'FromBillCreated', label: 'Bill Created From', value: params.billCreatedDateFrom });
             filtersUsed.push({ name: 'ToBillCreated', label: 'Bill Created To', value: params.billCreatedDateTo });
         }
+
+        //Referring Physician Info
+        
+        if (params.referringProIds) {
+            const referringPhysicianInfo = _(lookups.referringPhyInfo).map(f => f.name).value();
+            filtersUsed.push({ name: 'referringPhysicianInfo', label: 'Referring Provider', value: referringPhysicianInfo });
+        }
+        else
+            filtersUsed.push({ name: 'referringPhysicianInfo', label: 'Referring Provider', value: 'All' });
         return filtersUsed;
     },
 
@@ -238,7 +258,8 @@ const api = {
             insGroups: null,
             cptPaymentDate: null,
             cptCodeLists: null,
-            CPTDate_count: null
+            CPTDate_count: null,
+            orderBy: null
         };
 
         // company id
@@ -261,6 +282,11 @@ const api = {
                 params.push(reportParams.toDate);
                 filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
             }
+        }
+
+        if (reportParams.referringProIds && reportParams.referringProIds.length > 0) {
+            params.push(reportParams.referringProIds);
+            filters.referringProIds = queryBuilder.whereIn(`pr.id`, [params.length]);
         }
 
         // Date filter  (CPT Date)
@@ -299,7 +325,7 @@ const api = {
             params.push(reportParams.insuranceIds);
             filters.insuranceIds = queryBuilder.whereIn(`ppi.id`, [params.length]);
         }
-       
+
 
         if (reportParams.insuranceGroupList && reportParams.insuranceGroupList.length > 0) {
             params.push(reportParams.insuranceGroupList);
@@ -308,9 +334,9 @@ const api = {
 
         if (reportParams.cptCodeLists && reportParams.cptCodeLists.length > 0) {
             params.push(reportParams.cptCodeLists);
-            // filters.cptCodeLists = queryBuilder.whereIn(`cc.id`, [params.length]);
+            filters.cptCodeLists = queryBuilder.whereIn(`cc.id`, [params.length]);
         }
-
+        filters.orderBy = reportParams.orderBy || 0;
 
         return {
             queryParams: params,

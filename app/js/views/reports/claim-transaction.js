@@ -34,12 +34,15 @@ define([
                 payDateTo: null,
                 billCreatedDateFrom: null,
                 billCreatedDateTo: null,
+                chkServiceDateBill: null,
                 insuranceOption: null,
                 referringDoctoreOption: null,
                 insuranceIds: null,
                 insuranceGroupIds: null,
                 userIds: null,
                 userNames: null,
+                refPhyId: null,
+                refProName: null,
                 referringProIds: null,
                 allFacilities: false,
                 allBillingProvider: false,
@@ -78,7 +81,8 @@ define([
                 "click #chkAllFacility": "selectAllFacility",
                 "click #showCheckboxesClaim": "showCheckboxesClaim",
                 "click #showInsGroupCheckboxes": "showInsuranceGroupList",
-                'change #ddlUsersOption': 'onOptionChangeSelectUser'
+                'change #ddlUsersOption': 'onOptionChangeSelectUser',
+                'change #ddlReferringPhysicianOption': 'onOptionChangeSelectRefPhysician'
             },
 
             usermessage: {
@@ -124,6 +128,7 @@ define([
                 UI.bindInsuranceProviderAutocomplete('Select Insurance Provider', 'btnAddInsuranceProvider', 'ulListInsuranceProvider');
                 UI.listUsersAutoComplete('Select User', 'btnAddUsers', 'ulListUsers');
                 UI.bindCPTCodeInformations('txtCPTCode', 'btnCPTCode', 'ulListCPTCodeDetails');
+                UI.bindReferringProviderAutoComplete('txtReferringPhysician', 'btnAddReferringPhysician', 'ulListReferringPhysicians');
 
                 // pre-select default facility
                 this.selectDefaultFacility();
@@ -148,7 +153,7 @@ define([
                 $('#chkServiceDateBill').attr('checked', true); // For service Date
 
                 // facilityFilter multi select boxes
-                $('#ddlFacilityFilter, #ddlClaimSelectBoxes, #ddlInsuranceOption, #ddlUsersOption , #ddlOrderBySelection').multiselect({
+                $('#ddlFacilityFilter, #ddlClaimSelectBoxes, #ddlInsuranceOption, #ddlUsersOption , #ddlOrderBySelection, #ddlReferringPhysicianOption').multiselect({
                     maxHeight: 200,
                     buttonWidth: '250px',
                     enableFiltering: true,
@@ -220,6 +225,9 @@ define([
                     return this.id;
                 }).get();
                 this.viewModel.userIds = $('ul#ulListUsers li').map(function () {
+                    return this.id;
+                }).get();
+                this.viewModel.refPhyId = $('ul#ulListReferringPhysicians li').map(function () {
                     return this.id;
                 }).get();
                 this.viewModel.insuranceOption = $('#ddlInsuranceOption').val();
@@ -299,14 +307,15 @@ define([
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
                     billingProFlag: this.viewModel.allBillingProvider == 'true' ? true : false,
 
-                    fromDate: chkServiceDateBill && chkServiceDateBill.checked ? this.viewModel.dateFrom.format('YYYY-MM-DD') : '',
-                    toDate: chkServiceDateBill && chkServiceDateBill.checked ? this.viewModel.dateTo.format('YYYY-MM-DD') : '',
+                    'fromDate': ($('#chkServiceDateBill').prop('checked')) == true ? this.viewModel.dateFrom.format('MM/DD/YYYY') : '',
+                    'toDate':($('#chkServiceDateBill').prop('checked')) == true ? this.viewModel.dateTo.format('MM/DD/YYYY') : '',
 
-                    cmtFromDate: chkServiceDateBill && chkServiceDateBill.checked ? this.viewModel.cmtFromDate.format('YYYY-MM-DD') : '',
-                    cmtToDate: chkServiceDateBill && chkServiceDateBill.checked ? this.viewModel.cmtToDate.format('YYYY-MM-DD') : '',
+                    'cmtFromDate':  ($('#chkServicePayDateCPT').prop('checked')) == true  ? this.viewModel.cmtFromDate.format('MM/DD/YYYY') : '',
+                    'cmtToDate':  ($('#chkServicePayDateCPT').prop('checked')) == true  ? this.viewModel.cmtToDate.format('MM/DD/YYYY') : '',
+                    'cptDateOption': $('#chkServicePayDateCPT').is(':checked') ? $("input[name='accountingAndActualPayment']:checked").val() : '',
 
-                    billCreatedDateFrom: billCreatedDate && billCreatedDate.checked ? this.viewModel.billCreatedDateFrom.format('YYYY-MM-DD') : '',
-                    billCreatedDateTo: billCreatedDate && billCreatedDate.checked ? this.viewModel.billCreatedDateTo.format('YYYY-MM-DD') : '',
+                    'billCreatedDateFrom':($('#billCreatedDate').prop('checked')) == true  ? this.viewModel.billCreatedDateFrom.format('MM/DD/YYYY') : '',
+                    'billCreatedDateTo': ($('#billCreatedDate').prop('checked')) == true ? this.viewModel.billCreatedDateTo.format('MM/DD/YYYY') : '',
 
                     insuranceIds: this.viewModel.insuranceIds,
                     insuranceOption: this.viewModel.insuranceOption ? this.viewModel.insuranceOption : '',
@@ -318,6 +327,7 @@ define([
                     insuranceGroupList: this.selectedInsGrpList ? this.selectedInsGrpList : '',
 
                     userIds: this.viewModel.userIds ? this.viewModel.userIds : '',
+                    referringProIds: this.viewModel.refPhyId ? this.viewModel.refPhyId : '',
 
                     claimLists: this.selectedClaimList ? this.selectedClaimList : '',
                     allClaimSelection: this.viewModel.allClaimSelection ? this.viewModel.allClaimSelection : '',
@@ -368,7 +378,7 @@ define([
                     this.selectedInsGrpList = []; // empty the selected insurance group list
                 }
             },
-            // Referring Physician Value changed
+            
             onOptionChangeSelectUser: function () {
                 if ($('#ddlUsersOption').val() == 'S') {
                     $("#ddlUsersBox").show();
@@ -381,6 +391,21 @@ define([
                     this.viewModel.userNames = [];
                     this.viewModel.userIds = [];
                     $('#ulListUsers').data('userIds', [])
+                }
+            },
+
+            onOptionChangeSelectRefPhysician: function () {
+                if ($('#ddlReferringPhysicianOption').val() == 'S') {
+                    $("#ddlReferringPhysicianBox").show();
+                    $("#divReferringPhysician").show();
+                }
+                else {
+                    $("#ddlReferringPhysicianBox").hide();
+                    $("#divReferringPhysician").hide();
+                    $('#ulListReferringPhysicians').empty();
+                    this.viewModel.refProName = [];
+                    this.viewModel.refPhyId = [];
+                    $('#ulListReferringPhysicians').data('refPhyId', [])
                 }
             },
 
@@ -442,7 +467,7 @@ define([
                 $('#facilityDropDown').hide();
 
                 // clear facility filters
-                //   $('#ddlFacilityFilter').multiselect("deselectAll", false).multiselect("refresh");
+                $('#ddlFacilityFilter').multiselect("deselectAll", false).multiselect("refresh");
                 this.viewModel.allFacilities = false;
             },
             // Facility Changes -- worked
@@ -474,8 +499,8 @@ define([
                 selected.each(function () {
                     facilities.push($(this).val());
                 });
-                //  this.selectedFacilityList = facilities
-                //    this.viewModel.allFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlFacilityFilter option").length;
+                 this.selectedFacilityList = facilities
+                   this.viewModel.allFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlFacilityFilter option").length;
             },
             // multi select billing provider - worked
             getBillingProvider: function (e) {
@@ -550,11 +575,13 @@ define([
             // Pay Date CPT information
             onPayDateCPT: function () {
                 // Show OR Hide accounting date and payment date
-                if ($('#chkServicePayDateCPT').attr('checked')) {
+                if ($('#chkServicePayDateCPT').prop('checked')) {
                     $('#accountingAndActualPaymentInfo').show();
+                    $('#divAccountingDate').show();
                     $('#accountingDate').prop('checked', true);
                 }
                 else {
+                    $('#divAccountingDate').hide();
                     $('#accountingAndActualPaymentInfo').hide();
                     $('#accountingDate').prop('checked', false);
                 }

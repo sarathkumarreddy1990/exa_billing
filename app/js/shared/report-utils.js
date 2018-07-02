@@ -51,7 +51,7 @@ define([
             showReport: function (id, category, format, params, openInNewTab) {
                 var queryStr = $.param(params);
 
-               var iframeUrl = UI.generateReportUrl(id, category, format, params);
+                var iframeUrl = UI.generateReportUrl(id, category, format, params);
                 if (openInNewTab) {
                     window.open(iframeUrl, '_blank');
                 }
@@ -422,6 +422,79 @@ define([
 
 
             },
+            listUsersRoleAutoComplete: function (userRoleMessage, btnAdd, ulList) {
+                var self = this;
+                $("#txtUsersRole").select2({
+                    ajax: {
+                        url: "/exa_modules/billing/autoCompleteRouter/getUserRoles",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                page: params.page || 1,
+                                q: params.term || '',
+                                pageSize: 10,
+                                sortField: "role_name",
+                                sortOrder: "ASC",
+                                company_id: 1
+                            };
+                        },
+                        processResults: function (data, params) {
+                            params.page = params.page || 1;
+                            return {
+                                results: data,
+                                pagination: {
+                                    more: (params.page * 30) < data[0].total_records
+                                }
+                            };
+                        },
+                        cache: true
+                    },
+                    placeholder: 'Select users Role',
+                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 0,
+                    templateResult: formatRepo,
+                    templateSelection: formatRepoSelection
+                });
+                function formatRepo(repo) {
+                    if (repo.loading) {
+                        return repo.role_name;
+                    }
+                    var markup = "<table><tr>";
+                    markup += "<td  data-id='" + repo.id + " ' title='" + repo.role_name + "(" + repo.role_name + ")'> <div>" + repo.id + "(" + repo.role_name + ")" + "</div>";
+                    markup += "</td></tr></table>";
+                    return markup;
+
+                }
+                function formatRepoSelection(res) {
+                    if (res && res.id) {
+                        return res.role_name;
+                    }
+                }
+
+                $('#btnAddUsersRole').unbind('click').click(function () {
+                    if ($('#select2-txtUsersRole-container > a.select2-default').length > 0) {
+                        commonjs.showWarning('Please select one Users Role to add');
+                        return false;
+                    }
+                    if ($('#ulListUsersRole li a[data-id="' + $('#txtUsersRole').select2('data')[0].id + '"]').length) {
+                        commonjs.showWarning("User Role is already selected");
+                        return false;
+                    }
+
+                    var data_id = $('#txtUsersRole').select2('data')[0].id;
+                    var bind_text = $('#txtUsersRole').select2('data')[0].role_name;
+                    $('#ulListUsersRole').append('<li id="' + data_id + '"><span style="background:#3c91f0; color:white; border:1px solid black">' + bind_text + '</span><a class="remove" data-id="' + $('#txtUsersRole').select2('data')[0].id + '"><span class="icon-ic-close" style="margin-left:8px;"></span></a></li>')
+                    $('#txtUsersRole a span').html('Select User Role');
+                });
+
+                $('#ulListUsersRole').delegate('a.remove', 'click', function () {
+                    $(this).closest('li').remove();
+                });
+
+
+
+            },
 
             // Common Click Events
             setEvents: function (fieldId, fieldName, ulList) {
@@ -522,16 +595,16 @@ define([
             },
 
             bindReferringProviderAutoComplete: function (txtprovider, btnProvider, ulListProvider) {
-                $("#" +txtprovider).select2({
+                $("#" + txtprovider).select2({
                     ajax: {
                         url: "/exa_modules/billing/autoCompleteRouter/providers",
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
                             return {
-                                page: params.page || 1,
+                                page: params.page || 3,
                                 q: params.term || '',
-                                provider_type: 'PR',
+                                provider_type: 'RF',
                                 pageSize: 10,
                                 sortField: "p.last_name",
                                 sortOrder: "asc",
@@ -573,7 +646,7 @@ define([
 
 
                 // txtprovider, btnProvider, ulListProvider
-                $('#' +btnProvider).unbind('click').click(function () {
+                $('#' + btnProvider).unbind('click').click(function () {
                     if ($('#s2id_' + txtprovider + ' > a.select2-default').length > 0) {
                         commonjs.showWarning('Please select one Provider to add');
                         return false;
@@ -636,7 +709,7 @@ define([
                     else
                         markup += "<td title='" + repo.display_code + repo.display_description + "'><div>" + repo.display_code + repo.display_description + "</div>";
                     markup1 += "</td></tr></table>"
-                    return markup1;               
+                    return markup1;
                 }
                 function formatRepoSelection(res) {
                     if (res && res.id) {

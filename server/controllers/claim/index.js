@@ -21,34 +21,16 @@ module.exports = {
         return await data.getPatientInsurancesById(params);
     },
 
-    getMasterDetails: async (params) => { return await data.getMasterDetails(params); },
-
     save: async (params) => {
-
-        charges(params);
-
-        async function charges(objects) {
-
-            const results = [];
-            const claimResult = await data.save(params);
-
-            for (const obj of objects.charges) {
-
-                if (claimResult.rows && claimResult.rows.length && claimResult.rows[0]) {
-
-                    obj.claim_id = claimResult.rows[0].id;
-
-                }
-
-                if (!obj.study_id) {
-                    results.push(data.saveChargesOnly(obj));
-                } else {
-                    results.push(data.saveCharges(obj));
-                }
-            }
-
-            return await Promise.all(results);
-        }
+        let auditDetails = {
+            company_id: params.companyId,
+            screen_name: params.screenName,
+            module_name: params.moduleName,
+            client_ip: params.clientIp,
+            user_id: params.userId
+        };
+        params.auditDetails = auditDetails;
+        return await data.save(params);
     },
 
     update: async (params) => {

@@ -16,7 +16,7 @@
                 </div>
                 <div class="col-form-content" id="facilityDiv" style="display:none">
                     <input type="radio" id="facilityChk" name="facilityBillingPro" value="facilityChk">
-                    <label for="facilityChk" class="inline field-chk facilityAndBillingProChk" i18n="report.facilities">  </label>
+                    <label for="facilityChk" class="inline field-chk facilityAndBillingProChk" i18n="report.facilities"> </label>
                 </div>
             </div>
             <div class="form-group form-inline">
@@ -24,7 +24,7 @@
                     <input type="radio" id="workedByAll" name="workedByRadio" value="workedByAll" style="padding-right:1px;">
                     <label for="workedByAll" class="inline field-chk" style="padding-right:1px;" i18n="report.workedByAll"></label>
                 </div>
-                <div class="col-form-content" id="billingProviderDiv" style="display:none">
+                <div class="col-form-content" id="billingProviderDiv" style="display:none; margin-left: 259px;">
                     <input type="radio" id="billingProChk" name="facilityBillingPro" value="billingProChk">
                     <label for="billingProChk" class="inline field-chk facilityAndBillingProChk" i18n="report.billingProviders"> </label>
                 </div>
@@ -68,7 +68,7 @@
                 <label class="inline field-chk" style="min-width : 10px;" i18n="report.reportFilterBy"> Report Filter (Order By)</label>
                 <select id="ddlOrderBySelection" class="form-control" style="height: 100%; width: 135px">
                     <option value="claimId">Claim #</option>
-                    <option value="serviceDate">Service Date</option>
+                    <option value="serviceDate" i18n="report.claimDate"></option>
                     <option value="commentDate">Commented Date</option>
                     <option value="insName">Insurance Name</option>
                 </select>
@@ -78,15 +78,14 @@
     <div class="row">
         <!-- Date filter colomn-->
         <!-- 1st column -->
-        <div class="col-4">
+        <div class="col-3">
             <!--  Service Date -->
             <div class="form-group form-inline">
-                <div class="col-form-label">
+                <div class="col-form-content">
                     <input id="chkServiceDateBill" type="checkbox" value="chkServiceDateBill" name="serviceDate">
-                    <label for="chkServiceDateBill" class="field-chk"> Service Date(Bill) </label>
-                </div>
-                <div class="col-form-content" style="text-align: right;">
+                    <label for="chkServiceDateBill" class="field-chk" i18n="report.claimDate"> </label>
                     <div class="input-group">
+
                         <span class="input-group-addon add-on">
                             <i class="fa fa-calendar"> </i>
                         </span>
@@ -97,13 +96,11 @@
         </div>
 
         <!--  Pay Date( payment/accounting) -->
-        <div class="col-4">
+        <div class="col-3">
             <div class="form-group form-inline">
-                <div class="col-form-label">
+                <div class="col-form-content">
                     <input id="chkServicePayDateCPT" type="checkbox" value="Service Pay Date" name="servicePayDate">
-                    <label for="chkServicePayDateCPT" class="field-chk"> Pay Date(CPT)</label>
-                </div>
-                <div class="col-form-content" style="text-align: right;">
+                    <label for="chkServicePayDateCPT" class="field-chk" i18n="report.payDate"></label>
                     <div class="input-group">
                         <span class="input-group-addon add-on">
                             <i class="fa fa-calendar"> </i>
@@ -113,14 +110,53 @@
                 </div>
             </div>
         </div>
-        <!--   Bill Created Date(claim submitted dt) -->
+        <div class="col-3">
+            <div class="form-group form-inline">
+                <div class="col-form-label" style="max-width: 110px">
+                    <label class="inline field-chk ">Select Ref.Phy</label>
+                </div>
+                <div class="form-content">
+                    <div class="input-group">
+                        <select id="ddlReferringPhysicianOption" class="form-control form-control-lg">
+                            <option value="All">ALL</option>
+                            <option value="S">Selected</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="ddlReferringPhysicianBox" class="form-group form-inline" style="display:none;width :700px;">
+                <div>
+                    <label class="control-label" i18n="report.referingphysician"></label>
+                </div>
+                <div style="width: 250px; border:1px solid;margin-top:10px">
+                    <select id="txtReferringPhysician"> </select>
+                    <a class="btn btn-primary" id="btnAddReferringPhysician" title="Add Ref. Phy.">
+                        <i class="icon-ic-plus"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-3">
+            <div id="divReferringPhysician" style="display: none;">
+                <div class="col-form-label" style="max-width: 110px;">
+                    <label class="inline field-chk">Ref. Phy. Selected</label>
+                </div>
+                <div class="form-content">
+                    <div>
+                        <ul id="ulListReferringPhysicians" class="ulSelectionList tagList" style="overflow: auto;width: 330px;height:90px; border: 1px solid;">
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
         <div class="col-4">
             <div class="form-group form-inline">
-                <div class="col-form-label">
+                <div class="col-form-content">
                     <input id="billCreatedDate" type="checkbox" value="billCreatedDate" name="billCreatedDate">
                     <label for="billCreatedDate" class="field-chk"> Bill Created Date </label>
-                </div>
-                <div class="col-form-content" style="text-align: right;">
                     <div class="input-group">
                         <span class="input-group-addon add-on">
                             <i class="fa fa-calendar"> </i>
@@ -130,7 +166,22 @@
                 </div>
             </div>
         </div>
-    </div>
+        <div class="col-2" style="display: none" id="divAccountingDate">
+            <div class="form-group form-inline">
+                <div class="col-form-label" id='accountingAndActualPaymentInfo'>
+                    <div class="col-form-label">
+                        <input type="radio" class="cptDateOption" id="accountingDate" name="accountingAndActualPayment" value="accounting_dt" style="padding-right:1px;">
+                        <label for="accountingDate" class="inline field-chk"> Accounting Date</label>
+                    </div>
+                </div>
+                <div class="col-form-label" id='accountingAndActualPaymentInfo'>
+                    <div class="col-form-label">
+                        <input type="radio" class="cptDateOption" id="paymentDate" name="accountingAndActualPayment" value="payment_dt">
+                        <label for="paymentDate" class="inline field-chk" style="padding-right:1px;"> Payment Date</label>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     <!-- 2nd column Insurance filter Options-->
     <div class="row">
@@ -170,7 +221,6 @@
         </div>
         <div class="col-3">
             <div id="ddlOptionBoxList" class="form-group form-inline" style="display:none;width :700px;">
-
                 <div class="form-content">
                     <div id="divListInsurance">
                         <ul id="ulListInsurance" class="ulSelectionList tagList" style="overflow: auto;width: 330px;height:90px; border: 1px solid;margin: 30px;">
@@ -188,8 +238,8 @@
                 </div>
             </div>
         </div>
-                
-                <div class="col-3">  
+
+        <div class="col-3">
             <!--Todo : From setup Have to find dynamically -->
             <div class="form-group form-inline">
                 <div class="col-form-label" style="max-width: 110px">

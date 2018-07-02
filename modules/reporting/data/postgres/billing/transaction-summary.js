@@ -19,20 +19,20 @@ WITH transaction_summary_by_month as (
     INNER JOIN billing.claims bcl on bcl.id = bc.claim_id
     INNER JOIN facilities f on f.id = bcl.facility_id
     <% if (billingProID) { %> INNER JOIN billing.providers bbp ON bbp.id = bcl.billing_provider_id <% } %>
-    WHERE 1 = 1
-    AND <%= companyId %>
+    WHERE 1 = 1    
     AND <%= accounting_dt %>
     <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
     <% if(billingProID) { %> AND <% print(billingProID); } %>
     GROUP BY  (date_trunc('month', bp.accounting_dt))
     ),
     charge_summary AS(select
-        Date_trunc('month', charge_dt) AS txn_month,
+        Date_trunc('month', bc.claim_dt) AS txn_month,
         sum(bill_fee*units) as charge
-    FROM billing.charges 
+    FROM billing.charges bch
+    INNER JOIN billing.claims bc on bc.id = bch.claim_id 
     WHERE 1=1
     AND<%=claimDate%>
-    GROUP BY (date_trunc('month', charge_dt) ))
+    GROUP BY (date_trunc('month', bc.claim_dt) ))
     SELECT
         COALESCE(to_char(ts.txn_month, 'MON-yy'), to_char(cs.txn_month, 'MON-yy') ) AS "Date",
         coalesce(cs.charge,0::money)  AS "Charge",
@@ -46,6 +46,50 @@ WITH transaction_summary_by_month as (
          COALESCE(to_char(ts.txn_month, 'MON-yy'), to_char(cs.txn_month, 'MON-yy') ) , cs.charge
     ORDER BY
           to_date(COALESCE(to_char(ts.txn_month, 'MON-yy'), to_char(cs.txn_month, 'MON-yy') ),'MON-yy')
+    
+`);
+
+// Template by Month wise
+
+const transactionSummaryByDateDataSetQueryTemplate = _.template(`
+WITH transaction_summary_by_day as (
+    SELECT
+        Date_trunc('day', bp.accounting_dt) AS txn_month,
+        sum(CASE when amount_type = 'payment' then bpa.amount else 0::money end ) as payment_amount,
+        sum(CASE when amount_type = 'adjustment' then bpa.amount else 0::money end ) as adjustment_amount
+    FROM billing.payments bp
+    INNER JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
+    INNER JOIN billing.charges bc on bc.id = bpa.charge_id
+    INNER JOIN billing.claims bcl on bcl.id = bc.claim_id
+    INNER JOIN facilities f on f.id = bcl.facility_id
+    <% if (billingProID) { %> INNER JOIN billing.providers bbp ON bbp.id = bcl.billing_provider_id <% } %>
+    WHERE 1 = 1    
+    AND <%= accounting_dt %>
+    <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+    <% if(billingProID) { %> AND <% print(billingProID); } %>
+    GROUP BY  (date_trunc('day', bp.accounting_dt))
+    ),
+    charge_summary AS(select
+        Date_trunc('day', bc.claim_dt) AS txn_month,
+        sum(bill_fee*units) as charge
+        FROM billing.charges bch
+        INNER JOIN billing.claims bc on bc.id = bch.claim_id 
+    WHERE 1=1
+    AND<%=claimDate%>
+    GROUP BY (date_trunc('day', bc.claim_dt) ))
+    SELECT
+        COALESCE(to_char(ts.txn_month, 'MM/DD/YYYY'), to_char(cs.txn_month, 'MM/DD/YYYY') ) AS "Date",
+        coalesce(cs.charge,0::money)  AS "Charge",
+        SUM(coalesce(ts.payment_amount,0::money)) AS "Payments",
+        SUM(coalesce(adjustment_amount,0::money)) AS "Adjustments",
+        cs.charge - SUM ( coalesce(ts.payment_amount,0::money) +  coalesce(ts.adjustment_amount,0::money)) AS "Net Activity"
+    
+    FROM transaction_summary_by_day ts
+    FULL  JOIN charge_summary cs ON ts.txn_month = cs.txn_month
+    GROUP BY
+         COALESCE(to_char(ts.txn_month, 'MM/DD/YYYY'), to_char(cs.txn_month, 'MM/DD/YYYY') ) , cs.charge
+    ORDER BY
+          to_date(COALESCE(to_char(ts.txn_month, 'MM/DD/YYYY'), to_char(cs.txn_month, 'MM/DD/YYYY') ),'MM/DD/YYYY')
     
 `);
 
@@ -129,7 +173,7 @@ const api = {
         const queryContext = api.gettransactionSummaryDataSetQueryContext(reportParams);
         console.log('context__', queryContext)
         // 2 - geenrate query to execute
-        const query = transactionSummaryDataSetQueryTemplate(queryContext.templateData);
+        const query = reportParams.totalByMonthOrDay == 'false' ? transactionSummaryDataSetQueryTemplate(queryContext.templateData) : transactionSummaryByDateDataSetQueryTemplate(queryContext.templateData);
         // 3a - get the report data and return a promise
         return db.queryForReportData(query, queryContext.queryParams);
     },
@@ -139,7 +183,6 @@ const api = {
     gettransactionSummaryDataSetQueryContext: (reportParams) => {
         const params = [];
         const filters = {
-            companyId: null,
             claimDate: null,
             facilityIds: null,
             billingProID: null,
@@ -147,9 +190,7 @@ const api = {
 
         };
 
-        // company id
-        params.push(reportParams.companyId);
-        filters.companyId = queryBuilder.where('bp.company_id', '=', [params.length]);
+
 
         //claim facilities
         if (!reportParams.allFacilities && reportParams.facilityIds) {
@@ -170,11 +211,11 @@ const api = {
         //  Claim Date
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);
-            filters.claimDate = queryBuilder.whereDate('charge_dt', '=', [params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDate('bc.claim_dt', '=', [params.length], 'f.time_zone');
         } else {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
-            filters.claimDate = queryBuilder.whereDateBetween('charge_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
         }
 
         // billingProvider single or multiple

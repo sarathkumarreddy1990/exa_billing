@@ -25,5 +25,8 @@ module.exports = {
     },
     getUsers: function (params) {
         return data.getUsers(params);
+    },
+    getUserRoles: function (params) {
+        return data.getUserRoles(params);
     }
 };

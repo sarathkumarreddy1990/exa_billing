@@ -44,4 +44,9 @@ router.get('/getUsers', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/getUserRoles', async function (req, res) {
+    const data = await autoCompleteController.getUserRoles(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;

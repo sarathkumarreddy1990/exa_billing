@@ -283,228 +283,23 @@ module.exports = {
         return await query(sql);
     },
 
-    getMasterDetails: async function (params) {
-
-        const sql = SQL`SELECT * FROM
-                                 (SELECT
-                                    json_agg(row_to_json(bpQuery)) "billingProvidersList" 
-                                  FROM (SELECT
-                                              id
-                                            , name AS full_name
-                                        FROM billing.providers
-                                        WHERE 
-                                            company_id = ${params.company_id}
-                                        AND inactivated_dt IS NULL
-                                        ) AS bpQuery
-                                 ) billingProvidersList,
-                                 (SELECT 
-                                    json_agg(row_to_json(posList)) "posList" 
-                                  FROM (SELECT 
-                                              id
-                                            , code
-                                            , description 
-                                       FROM public.places_of_service 
-                                       WHERE
-                                            company_id = ${params.company_id}
-                                       AND  inactivated_dt IS NULL 
-                                      ) AS posList
-                                 ) posList,
-                                 (SELECT
-                                    json_agg(row_to_json(relations)) relationships
-                                  FROM (SELECT 
-                                              id
-                                            , description 
-                                        FROM public.relationship_status 
-                                        WHERE 
-                                            company_id = ${params.company_id}
-                                        AND inactivated_dt IS NULL
-                                       ) AS relations
-                                 ) relationships,
-                                 (SELECT 
-                                    json_agg(row_to_json(adjustment_code_list)) "adjustment_code_details"
-                                  FROM (SELECT
-                                              id
-                                            , code 
-                                            , description
-                                            , accounting_entry_type 
-                                        FROM
-                                            billing.adjustment_codes 
-                                        WHERE
-                                            inactivated_dt IS NULL 
-                                       ) AS adjustment_code_list
-                                 ) adjustment_code_details `;
-
-        return await query(sql);
-    },
-
     save: async function (params) {
 
         let {
             claims
             , insurances
-            , claim_icds } = params;
+            , claim_icds
+            , charges
+            , auditDetails } = params;
 
-        const sql = SQL`WITH save_patient_insurances AS  (
-                                                INSERT INTO public.patient_insurances 
-                                                    ( patient_id
-                                                    , insurance_provider_id
-                                                    , subscriber_zipcode
-                                                    , subscriber_relationship_id
-                                                    , coverage_level
-                                                    , policy_number
-                                                    , group_number
-                                                    , subscriber_employment_status_id
-                                                    , subscriber_firstname
-                                                    , subscriber_lastname
-                                                    , subscriber_middlename
-                                                    , subscriber_name_suffix
-                                                    , subscriber_gender
-                                                    , subscriber_address_line1
-                                                    , subscriber_address_line2
-                                                    , subscriber_city
-                                                    , subscriber_state
-                                                    , assign_benefits_to_patient
-                                                    , subscriber_dob
-                                                    , valid_from_date
-                                                    , valid_to_date
-                                                    , medicare_insurance_type_code) 
-                                                    SELECT
-                                                        patient_id
-                                                        , insurance_provider_id
-                                                        , subscriber_zipcode
-                                                        , subscriber_relationship_id
-                                                        , coverage_level
-                                                        , policy_number
-                                                        , group_number
-                                                        , subscriber_employment_status_id
-                                                        , subscriber_firstname
-                                                        , subscriber_lastname
-                                                        , subscriber_middlename
-                                                        , subscriber_name_suffix
-                                                        , subscriber_gender
-                                                        , subscriber_address_line1
-                                                        , subscriber_address_line2
-                                                        , subscriber_city
-                                                        , subscriber_state
-                                                        , assign_benefits_to_patient
-                                                        , subscriber_dob
-                                                        , valid_from_date
-                                                        , valid_to_date
-                                                        , medicare_insurance_type_code
-                                                    FROM json_to_recordset(${JSON.stringify(insurances)}) AS insurances 
-                                                    (
-                                                        patient_id bigint
-                                                        , insurance_provider_id bigint 
-                                                        , subscriber_zipcode bigint
-                                                        , subscriber_relationship_id bigint
-                                                        , coverage_level text 
-                                                        , policy_number text 
-                                                        , group_number text
-                                                        , subscriber_employment_status_id bigint 
-                                                        , subscriber_firstname text 
-                                                        , subscriber_lastname text 
-                                                        , subscriber_middlename text
-                                                        , subscriber_name_suffix text
-                                                        , subscriber_gender text 
-                                                        , subscriber_address_line1 text
-                                                        , subscriber_address_line2 text
-                                                        , subscriber_city text
-                                                        , subscriber_state text
-                                                        , assign_benefits_to_patient boolean  
-                                                        , subscriber_dob date  
-                                                        , valid_from_date date
-                                                        , valid_to_date date
-                                                        , medicare_insurance_type_code bigint
-                                                    ) RETURNING id, coverage_level),
-                                                    save_claim AS (
-                                                        INSERT INTO  billing.claims 
-                                                        (   company_id
-                                                          , facility_id
-                                                          , patient_id
-                                                          , billing_provider_id
-                                                          , place_of_service_id
-                                                          , billing_code_id
-                                                          , billing_class_id
-                                                          , created_by
-                                                          , billing_method
-                                                          , billing_notes
-                                                          , claim_dt
-                                                          , current_illness_date
-                                                          , same_illness_first_date
-                                                          , unable_to_work_from_date
-                                                          , unable_to_work_to_date
-                                                          , hospitalization_from_date
-                                                          , hospitalization_to_date
-                                                          , claim_notes
-                                                          , original_reference
-                                                          , authorization_no
-                                                          , frequency
-                                                          , is_auto_accident
-                                                          , is_other_accident
-                                                          , is_employed
-                                                          , service_by_outside_lab
-                                                          , payer_type
-                                                          , claim_status_id
-                                                          , rendering_provider_contact_id
-                                                          , primary_patient_insurance_id
-                                                          , secondary_patient_insurance_id
-                                                          , tertiary_patient_insurance_id
-                                                          , ordering_facility_id
-                                                          , referring_provider_contact_id
-                                                        )
-                                                        values
-                                                        (
-                                                            ${claims.company_id}
-                                                            , ${claims.facility_id}
-                                                            , ${claims.patient_id}
-                                                            , ${claims.billing_provider_id}
-                                                            , ${claims.place_of_service_id}
-                                                            , ${claims.billing_code_id}
-                                                            , ${claims.billing_class_id}
-                                                            , ${claims.created_by}
-                                                            , ${claims.billing_method}
-                                                            , ${claims.billing_notes}
-                                                            , ${claims.claim_dt}
-                                                            , ${claims.current_illness_date}
-                                                            , ${claims.same_illness_first_date}
-                                                            , ${claims.unable_to_work_from_date}
-                                                            , ${claims.unable_to_work_to_date}
-                                                            , ${claims.hospitalization_from_date}
-                                                            , ${claims.hospitalization_to_date}
-                                                            , ${claims.claim_notes}
-                                                            , ${claims.original_reference}
-                                                            , ${claims.authorization_no}
-                                                            , ${claims.frequency}
-                                                            , ${claims.is_auto_accident}
-                                                            , ${claims.is_other_accident}
-                                                            , ${claims.is_employed}
-                                                            , ${claims.service_by_outside_lab}
-                                                            , ${claims.payer_type}
-                                                            , ${claims.claim_status_id}
-                                                            , ${claims.rendering_provider_contact_id}::bigint                     
-                                                            , (SELECT id FROM save_patient_insurances WHERE coverage_level = 'primary')
-                                                            , (SELECT id FROM save_patient_insurances WHERE coverage_level = 'secondary')
-                                                            , (SELECT id FROM save_patient_insurances WHERE coverage_level = 'tertiary')
-                                                            , ${claims.ordering_facility_id}::bigint
-                                                            , ${claims.referring_provider_contact_id}::bigint
-                                                        ) RETURNING id
-                                                    ),
-                                                    save_claim_icds AS (
-                                                        INSERT INTO billing.claim_icds 
-                                                        (
-                                                            claim_id 
-                                                            , icd_id
-                                                        )
-                                                         SELECT
-                                                            (SELECT id FROM save_claim)
-                                                            , icd_id 
-                                                         FROM
-                                                            json_to_recordset(${JSON.stringify(claim_icds)}) AS icds 
-                                                            (
-                                                                icd_id bigint 
-                                                            )
-                                                )
-                                                SELECT * FROM save_claim `;
+
+        const sql = SQL`SELECT billing.create_claim_charge (
+                    (${JSON.stringify(claims)})::json,
+                    (${JSON.stringify(insurances)})::json,
+                    (${JSON.stringify(claim_icds)})::json,
+                    (${JSON.stringify(auditDetails)})::json,
+                    (${JSON.stringify(charges)})::json) as result `;
+
         return await query(sql);
     },
 
@@ -601,6 +396,10 @@ module.exports = {
     },
 
     getClaimData: async (params) => {
+
+        const {
+            id
+        } = params;
 
         const get_claim_sql = SQL`
                 SELECT 
@@ -741,6 +540,9 @@ module.exports = {
                     , cti.valid_from_date AS t_valid_from_date
                     , cti.valid_to_date AS t_valid_to_date
                     , cti.medicare_insurance_type_code AS t_medicare_insurance_type_code
+                    , f.facility_info -> 'npino' as npi_no
+                    , f.facility_info -> 'federal_tax_id' as federal_tax_id
+                    , f.facility_info -> 'enable_insurance_eligibility' as enable_insurance_eligibility
                     , (
                         SELECT array_agg(row_to_json(pointer)) AS claim_charges 
                         FROM (
@@ -787,8 +589,23 @@ module.exports = {
                             INNER JOIN public.icd_codes icd ON ci.icd_id = icd.id 
                             WHERE claim_id = c.id
                       ) icd_query) AS claim_icd_data
-                       FROM
-                           billing.claims c
+                    , (
+                        SELECT json_agg(row_to_json(existing_insurance)) AS existing_insurance 
+                        FROM (
+                            SELECT
+                              pi.id
+                            , ip.id AS insurance_provider_id
+                            , ip.insurance_name
+                            , ip.insurance_code
+                            , pi.coverage_level
+                        FROM public.patient_insurances pi
+                        INNER JOIN public.insurance_providers ip ON ip.id = pi.insurance_provider_id                                                          
+                        WHERE
+                            pi.patient_id = c.patient_id
+                        ORDER BY pi.coverage_level,pi.id ASC
+                      ) existing_insurance) AS existing_insurance
+                    FROM
+                        billing.claims c
                         INNER JOIN public.patients p ON p.id = c.patient_id
                         LEFT JOIN public.patient_insurances cpi ON cpi.id = c.primary_patient_insurance_id
                         LEFT JOIN public.patient_insurances csi ON csi.id = c.secondary_patient_insurance_id
@@ -801,9 +618,9 @@ module.exports = {
                         LEFT JOIN public.provider_contacts rend_pc ON rend_pc.id = c.rendering_provider_contact_id
                         LEFT JOIN public.providers rend_pr ON rend_pc.provider_id = rend_pr.id
                         LEFT JOIN public.provider_groups pg ON pg.id = c.ordering_facility_id
-                    
-                       WHERE 
-                        c.id = ${params.id}`;
+                        LEFT JOIN public.facilities f ON p.facility_id = f.id
+                    WHERE 
+                        c.id = ${id}`;
 
         return await query(get_claim_sql);
     },

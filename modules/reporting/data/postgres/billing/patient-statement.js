@@ -22,7 +22,8 @@ WITH claim_data as(
     select cc.claim_id as id,'claim' as type ,note as comments ,created_dt::date as commented_dt,null as amount,u.username as commented_by,null as code from  billing.claim_comments cc
     INNER JOIN claim_data cd on cd.claim_id = cc.claim_id
     inner join users u  on u.id = cc.created_by
-    where cc.type in ('co_pay','co_insurance','deductible') 
+    where cc.type in ('manual', 'co_pay','co_insurance','deductible') 
+    AND (CASE WHEN cc.type = 'manual' THEN cc.is_internal END)
     UNION ALL
     select  c.claim_id as id,'charge' as type,cc.short_description as comments,c.charge_dt::date as commented_dt,(c.bill_fee*c.units) as amount,u.username as commented_by,cc.display_code as code from billing.charges c
     INNER JOIN claim_data cd on cd.claim_id = c.claim_id
@@ -61,8 +62,6 @@ WITH claim_data as(
     LEFT JOIN public.provider_groups  pg on pg.id = bp.provider_group_id
     LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
     LEFT JOIN public.providers p on p.id = pc.provider_id
-    WHERE 1=1 
-    AND  <%= companyId %>
     ),
     main_detail_cte as (
     SELECT 
@@ -103,7 +102,17 @@ WITH claim_data as(
         case when type = 'charge' then amount end as charge,
         case when type = 'payment' then amount end as payment,
         case when type = 'adjustment' then amount end as adjustment,
+        <% if (payToProvider == 'false') {%>
         bp.name as billing_provider_name,
+        bp.pay_to_address_line1 as billing_proaddress1,
+        bp.pay_to_address_line1 as billing_proaddress2,
+        bp.pay_to_city as billing_procity,
+        bp.pay_to_state as billing_prostate,
+        bp.pay_to_zip_code as billing_prozip,
+        bp.pay_to_zip_code_plus as billing_zip_plus,
+        bp.pay_to_phone_number as billing_phoneno,
+        <% } else { %>
+            bp.name as billing_provider_name,
         bp.address_line1 as billing_proaddress1,
         bp.address_line2 as billing_proaddress2,
         bp.city as billing_procity,
@@ -111,6 +120,7 @@ WITH claim_data as(
         bp.zip_code as billing_prozip,
         bp.zip_code_plus as billing_zip_plus,
         bp.phone_number as billing_phoneno,
+            <% } %>
         type as payment_type,
         CASE type WHEN 'charge' THEN 1 ELSE 2 END AS sort_order
     FROM public.patients p 
@@ -120,13 +130,14 @@ WITH claim_data as(
          INNER JOIN facilities f on f.id = bc.facility_id
          WHERE 1= 1
            <% if (billingProviderIds) { %>AND <% print(billingProviderIds); } %>
+           <% if (facilityIds) { %>AND <% print(facilityIds); } %>
          <% if (patientIds) { %>AND <% print(patientIds); } %>             
          AND <%= whereDate %>             
 
     order by first_name),
     detail_cte AS(
     select * From main_detail_cte
-    where (payment_type != 'adjustment' or (payment_type = 'adjustment' AND amount != 0::money))
+    where (CASE WHEN payment_type = 'adjustment' THEN amount != 0::money ELSE 1 = 1 END)
     AND sum_amount >=  <%= minAmount  %>::money
     ),
     sum_encounter_cte AS (
@@ -228,7 +239,7 @@ WITH claim_data as(
               , billing_prozip
               , billing_zip_plus
               , billing_phoneno
-              , to_char('2018-04-12'::date, 'MM/DD/YYYY')
+              ,  to_char(<%= statementDate %>::date, 'MM/DD/YYYY')
               , null
               , null
               , null
@@ -305,7 +316,7 @@ WITH claim_data as(
               , null
               , null
               , null
-              , to_char('2018-04-12'::date, 'MM/DD/YYYY')
+              ,  to_char(<%= statementDate %>::date, 'MM/DD/YYYY')
               , full_name
               , account_no
               , address1
@@ -453,7 +464,7 @@ WITH claim_data as(
               , billing_prozip
               , billing_zip_plus
               , billing_phoneno
-              , to_char('2018-04-12'::date, 'MM/DD/YYYY')
+              , to_char(<%= statementDate %>::date, 'MM/DD/YYYY')
               , null
               , null
               , null
@@ -585,6 +596,7 @@ const api = {
             initialReportData.report.params.minAmount = parseFloat(initialReportData.report.params.minAmount);
         }
 
+        
         if (initialReportData.report.params.payToProvider && initialReportData.report.params.payToProvider !== undefined) {
           initialReportData.report.params.payToProvider = initialReportData.report.params.payToProvider === 'true';
         } else {
@@ -625,12 +637,13 @@ const api = {
 
        
         // Facility Filter
-        if (params.allFacilities && params.facilityIds)
+        if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
         else {
-            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id,10)) > -1).map(f => f.name).value();
+            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
         }
+
         // Billing provider Filter
         if (params.allBillingProvider == 'true')
             filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
@@ -640,18 +653,15 @@ const api = {
         }
 
         // Min Amount 
-        filtersUsed.push({ name: 'minAmount', label: 'Minumum Amount', value: params.minAmount});
+        filtersUsed.push({ name: 'minAmount', label: 'Minumum Amount', value: params.minAmount });
 
-        filtersUsed.push({ name: 'sDate', label: 'Statement Date', value: params.sDate});
+        filtersUsed.push({ name: 'sDate', label: 'Statement Date', value: params.sDate });
 
         const patientNames = params.patientOption === 'All' ? 'All' : _(lookups.patients).map(f => f.name).value();
         filtersUsed.push({ name: 'patientNames', label: 'Patients', value: patientNames });
 
         filtersUsed.push({ name: 'payToProvider', label: 'Use address of Pay-To Provider', value: params.payToProvider ? 'Yes' : 'No' })
 
-
-        filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
-        filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
         return filtersUsed;
     },
 
@@ -673,15 +683,12 @@ const api = {
     getpatientStatementDataSetQueryContext: (reportParams) => {
         const params = [];
         const filters = {
-            companyId: null,
             patientIds: null,
-            billingProviderIds: null
+            billingProviderIds: null,
+            facilityIds: null,
+            statementDate: null
            
         };
-
-        // company id
-        params.push(reportParams.companyId);
-        filters.companyId = queryBuilder.where('bc.id', '=', [params.length]);
 
           // patients
           if (reportParams.patientOption === 'S' && reportParams.patientIds) {
@@ -689,6 +696,11 @@ const api = {
             filters.patientIds = queryBuilder.whereIn(`p.id`, [params.length]);
           }
 
+          //claim facilities
+        if (!reportParams.allFacilities && reportParams.facilityIds) {
+            params.push(reportParams.facilityIds);
+            filters.facilityIds = queryBuilder.whereIn('bc.facility_id', [params.length]);
+        }
 
            // billing providers
         if (reportParams.billingProviderIds && reportParams.billingProviderIds.length > 0) {
@@ -701,10 +713,10 @@ const api = {
 
         params.push(reportParams.sDate);
         filters.sDate = `$${params.length}::date`;
+        filters.statementDate = `$${params.length}::date`;
+        
         filters.whereDate = queryBuilder.whereDateInTz(`bc.claim_dt`, `<=`, [params.length], `f.time_zone`);   
-
-
-   
+        filters.payToProvider = reportParams.payToProvider ;
 
         return {
             queryParams: params,
