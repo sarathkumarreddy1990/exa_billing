@@ -211,7 +211,7 @@ var commonjs = {
 
         });
     },
-
+        
     getDates: function ( data ) {
         /*
          if > 13 characters then it's a range
