@@ -1121,6 +1121,19 @@
           "sortable": true
         },
         "field_code": "visit_no"
+      },
+      {
+        "field_code": "billed_status",
+        "field_name": "Billed Status",
+        "i18n_name": "setup.userSettings.billedstatus",
+        "field_info": {
+          "custom_name": "Billed Status",
+          "custom_id": 65,
+          "name": "billed_status",
+          "searchFlag": "%",
+          "width": 200
+        },
+        "id": 65
       }
     ]
   }
