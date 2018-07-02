@@ -8,11 +8,10 @@ define([
         return function () {
 
             this.init = function () {
-                console.log('INSIDE INIT PERMISSIONS -----------> ')
                 var accessDeniedScreens = [];
                 billingScreenCodes = ['ADJC', 'BICO', 'BICL', 'CLST', 'BIPR', 'PRCQ', 'BILM', 'PARE', 'CASG', 'CASR', 'STCC', 'BIVA', 'PCA', 'EDRT', 'INSM', 'CLHO', 'BULG', 'BALG',
                     'AGAR', 'AARD', 'CHRG', 'CLAY', 'CLIN', 'CLTR', 'CRBE', 'DSPS', 'DICN', 'IVSL', 'MOSU', 'MNRC', 'PATS', 'PYMX', 'PAYT', 'PAIC', 'PBIC', 'PABI', 'PRCN', 'RPFR', 'REPC', 'REPS', 'TSUM',
-                    'CLIM', 'STDS', 'ECLM', 'CLMI', 'MASO', 'CLVA']
+                    'CLIM', 'STDS', 'ECLM', 'CLMI', 'MASO', 'CLVA', 'ERAI']
                 mappingObject = {
                     'ADJC': 'aAdjustmentCodes',
                     'BICO': 'aBillingCodes',
@@ -48,7 +47,7 @@ define([
                     'PYMX': 'aPayerMix',
                     'PAYT': 'aPaymentDetails',
                     'PAIC': 'aPatientsByInsCompany',
-                    'PBIC': 'aPaymentsInsurance',
+                    'PBIC': 'aPaymentsByInsurance',
                     'PABI': 'aProcedureAnlaysis',
                     'PRCN': 'aProcedureCount',
                     'RPFR': 'aReadingProviderFees',
@@ -60,7 +59,8 @@ define([
                     'STDS': 'aStudies',
                     'CLIM': 'aClaims',
                    // 'CLIM': 'anc_create_claim',
-                    'CLVA': 'btnValidateOrder'
+                    'CLVA': 'btnValidateOrder',
+                    'ERAI': 'aEob'
                 };
                 accessDeniedScreens = _.difference(billingScreenCodes, app.screens)
 

@@ -29,9 +29,15 @@
             </div>
             <div class="tab-pane" id="divPendingPaymentsPat" style="margin-top: 10px;">
                 <div id="divPendingRecords" style="display: none;">
-                    <div align="right" style="margin-bottom:5px;">
-                        <input type="button" value="Refresh" id="btnPaymentPendingRefresh" i18n="shared.buttons.refresh" class="btn pendRefresh">
-                        <input type="button" value="Refresh" id="btnBackToPatient" i18n="billing.payments.backToSearch" class="btn" style="display: none;">
+                    <div align="right"><div class="alert alert-info" role="alert">
+                        <span id='commonMsg' style="float: left;font-size: large;"> </span>
+                        <span id="spnPatInfo" style="font-weight: bold;float: left;margin-left: 5px;font-size: large;"></span>
+                        <input type="button" value="Refresh" id="btnPaymentPendingRefresh" i18n="shared.buttons.refresh" class="btn pendRefresh"
+                            autocomplete="off">
+                            <input type="button" value="Back to Search" id="btnBackToPatient" i18n="billing.payments.backToSearch" class="btn" autocomplete="off">
+                        </div>
+                        <!-- <inputtype="button" value="Refresh" id="btnPaymentPendingRefresh" i18n="shared.buttons.refresh" class="btn pendRefresh">
+                                        <input type="button" value="Refresh" id="btnBackToPatient" i18n="billing.payments.backToSearch" class="btn" style="display: none;"> -->
                     </div>
                     <div class='Grid' id='divGrid_pendPayments'>
                         <table id="tblpendPaymentsGrid"></table>
@@ -74,9 +80,13 @@
                                             <input type="text" id="lname" class="form-control search-field" i18np="billing.payments.lastName" placeholder="Last Name">
                                             <input type="text" id="fname" class="form-control search-field" i18np="billing.payments.firstName" placeholder="First Name">
                                             <input type="text" id="mrn" class="form-control search-field" i18np="billing.payments.mrn" placeholder="MRN">
-                                            <a id="anc_search" class="btn btn-primary" href="javascript: void(0)" style="margin-left: 10px; float: right;">
+                                            <a id="anc_search" class="btn btn-primary" href="javascript: void(0)" style="float: right;">
                                                 <i class="icon-ic-search"></i>
                                             </a>
+                                            <input type="text" id="invoiceNo" class="form-control" style="float: right;" placeholder="Invoice #">
+                                            <a id="anc_search_claim" class="btn btn-primary" href="javascript: void(0)" style="margin-right: 10px; float: right;">
+                                                    <i class="icon-ic-search"></i>
+                                                </a>
                                             <input type="text" id="claimId" class="form-control" style="float: right;" placeholder="Claim Id">
                                         </div>
                                     </div>
