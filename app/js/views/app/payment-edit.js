@@ -44,6 +44,7 @@ define(['jquery',
             model: null,
             pendPager: null,
             pendPaymtPager: null,
+            pendPaymtInvoicePager: null,
             appliedPager: null,
             paymentTable: null,
             rendered: false,
@@ -79,7 +80,7 @@ define(['jquery',
                 "click #anc_last": "onpaging",
                 "dblclick .selectionpatient": "selectPatient",
                 "click #btnBackToPatient": "backToPatient",
-                "click #anc_search": "showPatientOrders",
+                "click #anc_search, #anc_search_claim": "showPatientOrders",
                 'click #btnPaymentPendingRefresh': 'refreshPayments',
                 'click #btnAppliedPayRefresh': 'refreshPayments',
                 "change #selectPaymentMode": "changePayerMode",
@@ -137,6 +138,7 @@ define(['jquery',
                 this.pager = new ModelPaymentsPager();
                 this.pendPager = new ModelPaymentsPager();
                 this.pendPaymtPager = new ModelPaymentsPager();
+                this.pendPaymtInvoicePager = new ModelPaymentsPager();
                 this.appliedPager = new ModelPaymentsPager();
                 this.patientPager = new ModelPaymentsPager();
                 this.pendingPayments = new pendingPayments();
@@ -588,6 +590,9 @@ define(['jquery',
                 $('#txtInvoice').val(response.invoice_no);
                 if (response.invoice_no) {
                     $('#chkIpInvoice').prop('checked', true);//.change();
+                    $('#invoiceNo').val(response.invoice_no);
+                    $('#anc_search').click();
+                    $('#liPendingPaymentsPat a').click();
                 }
                 // else {
                 //     $('#chkIpEob').prop('checked', true);//.change();
@@ -614,7 +619,7 @@ define(['jquery',
                 self.insurance_provider_id = response.insurance_provider_id;
 
                 // self.showPendingPaymentsGrid(paymentID, response.payer_type, self.payer_id);
-                self.showPendingPaymentsGridInvoice(paymentID, response.payer_type, self.payer_id);
+                // self.showPendingPaymentsGridInvoice(paymentID, response.payer_type, self.payer_id);
                 self.showAppliedByPaymentsGrid(paymentID, response.payer_type, self.payer_id);
                 if (!self.casCodesLoaded)
                     self.setCasGroupCodesAndReasonCodes();
@@ -790,12 +795,13 @@ define(['jquery',
                             success: function (model, response) {
                                 if (self.payment_id) {
                                     self.gridFirstLoaded = false;
+                                    self.pendingGridLoaderd = false;
                                     if (response && response.length) {
                                         commonjs.showStatus('Payment has been updated successfully');
                                         self.render(self.payment_id);
                                     }
                                     else {
-                                        commonjs.showWarning('This payment has updated by some other user. please refresh the page and try again.');
+                                        commonjs.showWarning('This payment has been already updated by some other user. please refresh the page and try again.');
                                     }
                                     commonjs.hideLoading();
                                 }
@@ -814,7 +820,7 @@ define(['jquery',
                 this.invoicePendPaymentTable = new customGrid();
                 this.invoicePendPaymentTable.render({
                     gridelementid: '#tblpendPaymentsGridOnly',
-                    custompager: this.pendPaymtPager,
+                    custompager: this.pendPaymtInvoicePager,
                     emptyMessage: 'No Record found',
                     colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', ''],
                     i18nNames: ['', '', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.payments.billFee', 'billing.payments.balance', 'setup.userSettings.cptCodes', 'setup.userSettings.accountNo', '', ''],
@@ -883,9 +889,9 @@ define(['jquery',
                     showcaption: false,
                     disableadd: true,
                     disablereload: true,
-                    onaftergridbind: function (model, gridObj) {
-                        self.afterGridBind(model, gridObj);
-                    },
+                    // onaftergridbind: function (model, gridObj) {
+                    //     self.afterGridBind(model, gridObj);
+                    // },
                     customargs: {
                         gridFlag: 'pendingPayments',
                         paymentID: paymentID,
@@ -894,7 +900,7 @@ define(['jquery',
                     },
 
                     beforeRequest: function () {
-                        self.setCustomArgs(paymentID, payerId, payerType, patientId, invoice_no_to_search);
+                        self.setCustomArgs(paymentID, payerId, payerType, patientId, claim_id_to_search);
                     },
                 });
 
@@ -904,7 +910,7 @@ define(['jquery',
                 }, 500);
             },
  
-            showPendingPaymentsGrid: function (paymentID, payerType, payerId, patientId, invoice_no_to_search) {
+            showPendingPaymentsGrid: function (paymentID, payerType, payerId, patientId, claim_id_to_search, invoice_no_to_search) {
                 var self = this;
                 if (!self.pendingGridLoaderd) {
                     this.pendPaymentTable = new customGrid();
@@ -985,11 +991,12 @@ define(['jquery',
                             payerId: payerId,
                             payerType: payerType,
                             patientId: patientId,
+                            claim_id_to_search: claim_id_to_search,
                             invoice_no_to_search: invoice_no_to_search
                         },
 
                         beforeRequest: function () {
-                            self.setCustomArgs(paymentID, payerId, payerType, patientId, invoice_no_to_search);
+                            self.setCustomArgs(paymentID, payerId, payerType, patientId, claim_id_to_search, invoice_no_to_search);
                         },
                     });
 
@@ -1008,6 +1015,7 @@ define(['jquery',
                         payerId: self.payer_id,
                         payerType: self.payer_type,
                         patientId: patientId,
+                        claim_id_to_search: claim_id_to_search,
                         invoice_no_to_search: invoice_no_to_search
                     }
                     self.pendPaymentTable.refreshAll();
@@ -1018,7 +1026,7 @@ define(['jquery',
                 $('#diVPatient').hide();
             },
 
-            setCustomArgs: function (paymentID, payerId, payerType, patientId, invoice_no_to_search) {
+            setCustomArgs: function (paymentID, payerId, payerType, patientId, claim_id_to_search, invoice_no_to_search) {
                 var self = this;
                 self.pendPaymentTable.options.customargs = {
                     gridFlag: 'pendingPayments',
@@ -1026,6 +1034,7 @@ define(['jquery',
                     payerId: payerId,
                     payerType: payerType,
                     patientId: patientId,
+                    claim_id_to_search: claim_id_to_search,
                     invoice_no_to_search: invoice_no_to_search
                 }
             },
@@ -1152,14 +1161,32 @@ define(['jquery',
 
             closeAppliedPendingPayments: function () {
                 var self = this;
-                if (self.appliedPaymentTable) {
-                    self.appliedPager.set({ "PageNo": 1 });
-                    self.appliedPaymentTable.refreshAll();
-                };
-                if (self.pendPaymentTable) {
-                    self.pendPaymtPager.set({ "PageNo": 1 });
-                    self.pendPaymentTable.refreshAll();
+                if ($('#divPendingPayments').is(':visible')) {
+                    if (self.invoicePendPaymentTable) {
+                        self.pendPaymtInvoicePager.set({ "PageNo": 1 });
+                        self.invoicePendPaymentTable.refreshAll();
+                    }
+                    if (self.appliedPaymentTable) {
+                        self.appliedPager.set({ "PageNo": 1 });
+                        self.appliedPaymentTable.refreshAll();
+                    };
                 }
+                else if ($('#divPendingPaymentsPat').is(':visible')) {
+                    if (self.pendPaymentTable) {
+                        self.pendPaymtPager.set({ "PageNo": 1 });
+                        self.pendPaymentTable.refreshAll();
+                    }
+                    if (self.appliedPaymentTable) {
+                        self.appliedPager.set({ "PageNo": 1 });
+                        self.appliedPaymentTable.refreshAll();
+                    };
+                }
+                else {
+                    if (self.appliedPaymentTable) {
+                        self.appliedPager.set({ "PageNo": 1 });
+                        self.appliedPaymentTable.refreshAll();
+                    };
+                }    
             },
 
             showApplyAndCas: function (claimId, paymentID, paymentStatus, chargeId, rowData) {
@@ -1924,11 +1951,11 @@ define(['jquery',
                 var dicom_patient_id = $(e.target || e.srcElement).closest('.selectionpatient').data('dicom_patient_id');
 
                 this.patientId = patientId;
-                this.invoice_no_to_search = '';
-                this.showPatientForm(patientId);
+                this.claim_id_to_search = '';
+                this.showPatientForm(patientId, patient_name, account_no);
             },
 
-            showPatientForm: function (patientId) {
+            showPatientForm: function (patientId, patient_name, account_no) {
                 var self = this;
                 // self.pendPaymentTable.options.customargs = {
                 //     gridFlag: 'pendingPayments',
@@ -1938,29 +1965,41 @@ define(['jquery',
                 //     patientId: patientId,
                 //     invoice_no_to_search: ''
                 // }
-                // self.pendPaymentTable.refreshAll();
-                this.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, patientId);  
+                // self.pendPaymentTable.refreshAll
+                // $('#spnPatInfo').text('Pending payments for the patient ' + patient_name + ' with the Account #: ' + account_no);
+
+                $('#commonMsg').text('Pending payments for the patient : ')
+                $('#spnPatInfo').text(patient_name + ' (' + account_no + ') ');
+                this.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, patientId);
             },
 
             showPatientOrders: function (e) {
                 var self = this;
                 let target = $(e.target || e.srcElement);
-                if ($('#claimId').val()) {
-                    self.patientId = 0;
-                    self.invoice_no_to_search = $('#claimId').val();
-                    self.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, 0, self.invoice_no_to_search);
-                    // self.pendPaymentTable.options.customargs = {
-                    //     gridFlag: 'pendingPayments',
-                    //     paymentID: self.payment_id,
-                    //     payerId: self.payer_id,
-                    //     payerType: self.payer_type,
-                    //     patientId: 0,
-                    //     invoice_no_to_search: self.invoice_no_to_search
-                    // }
-                    // self.pendPaymentTable.refreshAll();
+                self.patientId = 0;
+                self.claim_id_to_search = $('#claimId').val();
+                self.invoice_no_to_search = $('#invoiceNo').val();
+
+                if ($(e.target).is('#anc_search_claim')) {
+                    if ($('#claimId').val() == '') {
+                        commonjs.showWarning('Please enter claim id to search');
+                    }
+                    else {
+                        $('#commonMsg').text('Pending payments for claim id : ')
+                        $('#spnPatInfo').text(self.claim_id_to_search);
+                        self.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, 0, self.claim_id_to_search, '');
+                    }
                 }
-                else
-                    commonjs.showWarning('Please enter claim id');
+                else if ($(e.target).is('#anc_search')) {
+                    if ($('#invoiceNo').val() == '') {
+                        commonjs.showWarning('Please enter invoice # to search');
+                    }
+                    else {
+                        $('#commonMsg').text('Pending payments for inovice # : ')
+                        $('#spnPatInfo').text(self.invoice_no_to_search);
+                        self.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, 0, '', self.invoice_no_to_search);
+                    }
+                }
             },
 
             backToPatient: function (e) {
