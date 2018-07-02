@@ -170,36 +170,36 @@ define(['jquery',
                                     $('#txtReceiverID').val(data.receiver_id ? data.receiver_id : '');
                                     $('#txtEdiTemplateName').val(data.edi_template_name ? data.edi_template_name : '');
                                     $('#chkIsActive').prop('checked', data.inactivated_dt ? true : false);
-                                    $('#txtAuthInfo').val(info.AuthorizationInformation ? info.AuthorizationInformation : '');
-                                    $('#txtAuthInfoQualifier').val(info.AuthorizationInformationQualifier ? info.AuthorizationInformationQualifier : '');
-                                    $('#txtSecurityInfo').val(info.SecurityInformation ? info.SecurityInformation : '');
-                                    $('#txtSecurityAuthQualifier').val(info.SecurityInformationQualifier ? info.SecurityInformationQualifier : '');
-                                    $('#txtSenderID').val(info.InterchangeSenderId ? info.InterchangeSenderId : '');
-                                    $('#txtSenderIDQualifier').val(info.InterchangeSenderIdQualifier ? info.InterchangeSenderIdQualifier : '');
-                                    $('#txtIReceiverID').val(info.InterchangeReceiverId ? info.InterchangeReceiverId : '');
-                                    $('#txtIReceiverIDQualifier').val(info.InterchangeReceiverIdQualifier ? info.InterchangeReceiverIdQualifier : '');
-                                    $('#txtInterCtrlStandID').val(info.InterchangeControlStandardsIdentifier ? info.InterchangeControlStandardsIdentifier : '');
-                                    $('#txtInterCtrlVersionNo').val(info.InterchangeControlVersionNumber ? info.InterchangeControlVersionNumber : '');
-                                    $('#txtRepetitionSeperator').val(info.RepetitionSeparator ? info.RepetitionSeparator : '');
-                                    $('#txtElementDelimiter').val(info.ElementDelimiter ? info.ElementDelimiter : '');
-                                    $('#txtSubElementDelimiter').val(info.SegmentDelimiter ? info.SegmentDelimiter : '');
-                                    $('#txtSegmentTerminator').val(info.SegmentTerminator ? info.SegmentTerminator : '');
-                                    $('#chkAckReq').prop('checked', info.AcknowledgementRequested ? true : false);
-                                    $(`input[value=${info.UsageIndicator}]`).prop('checked', true);
-                                    $('#txtAppSenderCode').val(info.ApplicationSenderCode ? info.ApplicationSenderCode : '');
-                                    $('#txtResAgencyCode').val(info.ResponsibleAgencyCode ? info.ResponsibleAgencyCode : '');
-                                    $('#txtAppReceiverCode').val(info.ApplicationReceiverCode ? info.ApplicationReceiverCode : '');
-                                    $('#txtVerRelIndIDCode').val(info.VerRelIndIdCode ? info.VerRelIndIdCode : '');
-                                    $('#txtImplConventionReference').val(info.ImplementationConventionRef ? info.ImplementationConventionRef : '');
-                                    $('#txtRequestUrl').val(info.RequestURL ? info.RequestURL : '');
-                                    $('#txtBackupRootFolder').val(info.BackupRootFolder ? info.BackupRootFolder : '');
-                                    $('#chkEnableB2B').prop('checked', info.IsB2bEnabled ? true : false);
-                                    $('#ddlXmlTemplateSyntax').val(info.XmlSyntaxTag ? info.XmlSyntaxTag : "");
-                                    if (info.XmlSyntaxTag != '1' && info.XmlSyntaxTag != '') {
+                                    $('#txtAuthInfo').val(info.authorizationInformation ? info.authorizationInformation : '');
+                                    $('#txtAuthInfoQualifier').val(info.authorizationInformationQualifier ? info.authorizationInformationQualifier : '');
+                                    $('#txtSecurityInfo').val(info.securityInformation ? info.securityInformation : '');
+                                    $('#txtSecurityAuthQualifier').val(info.securityInformationQualifier ? info.securityInformationQualifier : '');
+                                    $('#txtSenderID').val(info.interchangeSenderId ? info.interchangeSenderId : '');
+                                    $('#txtSenderIDQualifier').val(info.interchangeSenderIdQualifier ? info.interchangeSenderIdQualifier : '');
+                                    $('#txtIReceiverID').val(info.interchangeReceiverId ? info.interchangeReceiverId : '');
+                                    $('#txtIReceiverIDQualifier').val(info.interchangeReceiverIdQualifier ? info.interchangeReceiverIdQualifier : '');
+                                    $('#txtInterCtrlStandID').val(info.interchangeControlStandardsIdentifier ? info.interchangeControlStandardsIdentifier : '');
+                                    $('#txtInterCtrlVersionNo').val(info.interchangeControlVersionNumber ? info.interchangeControlVersionNumber : '');
+                                    $('#txtRepetitionSeperator').val(info.repetitionSeparator ? info.repetitionSeparator : '');
+                                    $('#txtElementDelimiter').val(info.elementDelimiter ? info.elementDelimiter : '');
+                                    $('#txtSubElementDelimiter').val(info.segmentDelimiter ? info.segmentDelimiter : '');
+                                    $('#txtSegmentTerminator').val(info.segmentTerminator ? info.segmentTerminator : '');
+                                    $('#chkAckReq').prop('checked', info.acknowledgementRequested ? true : false);
+                                    $(`input[value=${info.usageIndicator}]`).prop('checked', true);
+                                    $('#txtAppSenderCode').val(info.applicationSenderCode ? info.applicationSenderCode : '');
+                                    $('#txtResAgencyCode').val(info.responsibleAgencyCode ? info.responsibleAgencyCode : '');
+                                    $('#txtAppReceiverCode').val(info.applicationReceiverCode ? info.applicationReceiverCode : '');
+                                    $('#txtVerRelIndIDCode').val(info.verRelIndIdCode ? info.verRelIndIdCode : '');
+                                    $('#txtImplConventionReference').val(info.implementationConventionRef ? info.implementationConventionRef : '');
+                                    $('#txtRequestUrl').val(info.requestURL ? info.requestURL : '');
+                                    $('#txtBackupRootFolder').val(info.backupRootFolder ? info.backupRootFolder : '');
+                                    $('#chkEnableB2B').prop('checked', info.isB2bEnabled ? true : false);
+                                    $('#ddlXmlTemplateSyntax').val(info.xmlSyntaxTag ? info.xmlSyntaxTag : "");
+                                    if (info.xmlSyntaxTag != '1' && info.xmlSyntaxTag != '') {
                                         $('.xmlTemplateSyntaxAuth').show();
-                                        $('#txtProviderOfficeNo').val(info.ProviderOfficeNumber ? info.ProviderOfficeNumber : '');
-                                        $('#txtUserName').val(info.UserID ? info.UserID : '');
-                                        $('#txtPassword').val(info.Password ? info.Password : '');
+                                        $('#txtProviderOfficeNo').val(info.providerOfficeNumber ? info.providerOfficeNumber : '');
+                                        $('#txtUserName').val(info.userID ? info.userID : '');
+                                        $('#txtPassword').val(info.password ? info.password : '');
                                     }
                                 }
                             }     
@@ -298,34 +298,34 @@ define(['jquery',
 
             save: function () {
                 var communication_info = {
-                    AuthorizationInformation: $('#txtAuthInfo').val(),
-                    AuthorizationInformationQualifier: $('#txtAuthInfoQualifier').val(),
-                    SecurityInformation: $('#txtSecurityInfo').val(),
-                    SecurityInformationQualifier: $('#txtSecurityAuthQualifier').val(),
-                    InterchangeSenderId: $('#txtSenderID').val(),
-                    InterchangeSenderIdQualifier: $('#txtSenderIDQualifier').val(),
-                    InterchangeReceiverId: $('#txtIReceiverID').val(),
-                    InterchangeReceiverIdQualifier: $('#txtIReceiverIDQualifier').val(),
-                    InterchangeControlStandardsIdentifier: $('#txtInterCtrlStandID').val(),
-                    InterchangeControlVersionNumber: $('#txtInterCtrlVersionNo').val(),
-                    RepetitionSeparator: $('#txtRepetitionSeperator').val(),
-                    ElementDelimiter: $('#txtElementDelimiter').val(),
-                    SegmentDelimiter: $('#txtSubElementDelimiter').val(),
-                    SegmentTerminator: $('#txtSegmentTerminator').val(),
-                    AcknowledgementRequested: $('#chkAckReq').prop('checked'),
-                    UsageIndicator: $('input[name="radUsage"]:checked').val(),
-                    ApplicationSenderCode: $('#txtAppSenderCode').val(),
-                    ResponsibleAgencyCode: $('#txtResAgencyCode').val(),
-                    ApplicationReceiverCode: $('#txtAppReceiverCode').val(),
-                    VerRelIndIdCode: $('#txtVerRelIndIDCode').val(),
-                    ImplementationConventionRef: $('#txtImplConventionReference').val(),
-                    RequestURL: $('#txtRequestUrl').val(),
-                    BackupRootFolder: $('#txtBackupRootFolder').val(),
-                    IsB2bEnabled: $('#chkEnableB2B').prop('checked'),
-                    XmlSyntaxTag: $('#ddlXmlTemplateSyntax').val(),
-                    UserID: $('#txtUserName').val(),
-                    Password: $('#txtPassword').val(),
-                    ProviderOfficeNumber: $('#txtProviderOfficeNo').val()
+                    authorizationInformation: $('#txtAuthInfo').val(),
+                    authorizationInformationQualifier: $('#txtAuthInfoQualifier').val(),
+                    securityInformation: $('#txtSecurityInfo').val(),
+                    securityInformationQualifier: $('#txtSecurityAuthQualifier').val(),
+                    interchangeSenderId: $('#txtSenderID').val(),
+                    interchangeSenderIdQualifier: $('#txtSenderIDQualifier').val(),
+                    interchangeReceiverId: $('#txtIReceiverID').val(),
+                    interchangeReceiverIdQualifier: $('#txtIReceiverIDQualifier').val(),
+                    interchangeControlStandardsIdentifier: $('#txtInterCtrlStandID').val(),
+                    interchangeControlVersionNumber: $('#txtInterCtrlVersionNo').val(),
+                    repetitionSeparator: $('#txtRepetitionSeperator').val(),
+                    elementDelimiter: $('#txtElementDelimiter').val(),
+                    segmentDelimiter: $('#txtSubElementDelimiter').val(),
+                    segmentTerminator: $('#txtSegmentTerminator').val(),
+                    acknowledgementRequested: $('#chkAckReq').prop('checked'),
+                    usageIndicator: $('input[name="radUsage"]:checked').val(),
+                    applicationSenderCode: $('#txtAppSenderCode').val(),
+                    responsibleAgencyCode: $('#txtResAgencyCode').val(),
+                    applicationReceiverCode: $('#txtAppReceiverCode').val(),
+                    verRelIndIdCode: $('#txtVerRelIndIDCode').val(),
+                    implementationConventionRef: $('#txtImplConventionReference').val(),
+                    requestURL: $('#txtRequestUrl').val(),
+                    backupRootFolder: $('#txtBackupRootFolder').val(),
+                    isB2bEnabled: $('#chkEnableB2B').prop('checked'),
+                    xmlSyntaxTag: $('#ddlXmlTemplateSyntax').val(),
+                    userID: $('#txtUserName').val(),
+                    password: $('#txtPassword').val(),
+                    providerOfficeNumber: $('#txtProviderOfficeNo').val()
                 }
                 this.model.set({
                     "name": $('#txtName').val(),
