@@ -235,6 +235,7 @@ define(['jquery',
                 $('#selectPaymentMode').val(0);
                 $('#PaymentForm input[type=text]').val('');
                 $('.payerFields').hide();
+                $('#txtInvoice').hide();
                 $('#txtNotes').val('');
                 this.changePayerMode('');
                 $('#select2-txtautoPayerPIP-container').html('Select Insurance');
@@ -587,7 +588,7 @@ define(['jquery',
                 if (response.billing_method && response.billing_method == "DB")
                     $('#chkDirectingBillingCon').show();
 
-                $('#txtInvoice').val(response.invoice_no);
+                $('#txtInvoice').val(response.invoice_no).show();
                 if (response.invoice_no) {
                     $('#chkIpInvoice').prop('checked', true);//.change();
                     $('#invoiceNo').val(response.invoice_no);
