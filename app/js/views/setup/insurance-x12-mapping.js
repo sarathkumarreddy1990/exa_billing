@@ -26,7 +26,6 @@ define(['jquery',
             insuranceX12MappingGridTemplate: _.template(InsuranceX12MappingGrid),
             insuranceX12MappingFormTemplate: _.template(InsuranceX12MappingForm),
             insuranceX12MappingList : [],
-            ediTemplates: [],
             ediClearingHouses : [],
             model: null,
             insuranceX12MappingTable :null,
@@ -132,9 +131,7 @@ define(['jquery',
 
             renderForm: function(id) {
                 var self = this;
-                if (this.ediTemplates && !this.ediTemplates.length)
-                    this.getEDITemplateList();
-                $('#divInsuranceX12MappingForm').html(this.insuranceX12MappingFormTemplate({'ediClearingHouseList' : self.ediClearingHouses,'ediTemplatesList' : self.ediTemplates}));
+                $('#divInsuranceX12MappingForm').html(this.insuranceX12MappingFormTemplate({'ediClearingHouseList' : self.ediClearingHouses}));
                 if(id > 0) {
                     this.model.set({id: id});
                     this.model.fetch({
@@ -144,7 +141,6 @@ define(['jquery',
                                 if (data) {
                                     $('#lblInsuranceName ').html(data.insurance_name ? data.insurance_name : '');
                                     $('#ddlClaimClearingHouse').val(data.claimclearinghouse ? data.claimclearinghouse : '');
-                                    $('#ddlClaimTemplateRad').val(data.claimrequesttemplate ? data.claimrequesttemplate : '');
                                 }
                             }
                         }
@@ -183,24 +179,6 @@ define(['jquery',
                 });
             },
 
-            getEDITemplateList : function() {
-                var self = this;
-                $.ajax({
-                    url: `/exa_modules/billing/setup/x12/edi`,
-                    type: 'GET',
-                    success: function (data, response) {
-                        if (data && data.length > 0) {
-                            self.ediTemplates = data;
-                        } else if(data && data.error){
-                            commonjs.showWarning("Unable to Connect EDI Server");
-                        }
-                    },
-                    error: function (err) {
-                        commonjs.showWarning(err);
-                    }
-                });
-            },
-
             saveInsuranceX12Mapping: function() {
                 var self = this;
                 commonjs.validateForm({
@@ -226,10 +204,7 @@ define(['jquery',
 
             save: function () {
                 this.model.set({
-                    "name": $('#lblInsuranceName').html(),
                     "claimClearingHouse": $('#ddlClaimClearingHouse').val(),
-                    "claimRequestTemplate" : $('#ddlClaimTemplateRad').val(),
-                    "claimReqTempProv" : $('#ddlClaimTemplateProv').val()
                 });
                 this.model.save({
                 }, {

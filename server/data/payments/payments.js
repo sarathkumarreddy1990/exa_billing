@@ -186,6 +186,7 @@ module.exports = {
                         , insurance_name AS insurance_name
                         , provider_groups.group_name AS ordering_facility_name
                         , patients.full_name as patient_name
+                        , patients.account_no
                         , insurance_provider_id
                         , payments.provider_group_id
                         , provider_contact_id
@@ -500,10 +501,14 @@ module.exports = {
                                 payment_application_id
                               , amount
                               , adjestment_id
+                              , charge_id
+                              , parent_application_id
                             FROM json_to_recordset(${JSON.stringify(params.updateAppliedPayments)}) AS details(
                                payment_application_id BIGINT
                              , amount MONEY
-                             , adjestment_id BIGINT)),
+                             , adjestment_id BIGINT
+                             , charge_id BIGINT
+                            , parent_application_id BIGINT)),
                         claim_comment_details AS(
                                 SELECT 
                                       claim_id
@@ -523,12 +528,14 @@ module.exports = {
                                   , reason_code_id
                                   , payment_application_id
                                   , amount
+                                  , parent_application_id
                                 FROM json_to_recordset(${JSON.stringify(params.save_cas_details)}) AS details(
                                     cas_id BIGINT
                                   , group_code_id BIGINT
                                   , reason_code_id BIGINT
                                   , payment_application_id BIGINT
-                                  , amount MONEY)
+                                  , amount MONEY
+                                  , parent_application_id BIGINT)
                                 ),
                         update_applications AS(
                             UPDATE billing.payment_applications 
@@ -544,6 +551,28 @@ module.exports = {
                                     FROM   billing.payment_applications 
                                     WHERE  id = uad.payment_application_id) old_row 
                             ) old_value),
+                        insert_applications AS(
+                            INSERT INTO billing.payment_applications( 
+                                payment_id,
+                                charge_id,
+                                amount_type,
+                                amount,
+                                adjustment_code_id,
+                                created_by,
+                                payment_application_id
+                            ) 
+                            SELECT 
+                                  ${params.paymentId}
+                                , charge_id
+                                , 'adjustment'
+                                , amount
+                                , adjestment_id
+                                , ${params.userId}
+                                , parent_application_id
+                            FROM update_application_details
+                            WHERE  payment_application_id is null and amount != 0::money
+                            RETURNING *
+                        ),
                         update_claim_details AS(
                             UPDATE billing.claims
                             SET
@@ -600,12 +629,14 @@ module.exports = {
                                   , amount 
                                 )
                                 SELECT 
-                                    payment_application_id
-                                  , group_code_id
-                                  , reason_code_id
-                                  , amount
-                                FROM cas_application_details
-                                WHERE cas_id is null
+                                    CASE WHEN cas.payment_application_id IS NULL THEN 
+                                        (SELECT id FROM insert_applications bpa where bpa.payment_application_id = cas.parent_application_id) 
+                                    ELSE  cas.payment_application_id END
+                                  , cas.group_code_id
+                                  , cas.reason_code_id
+                                  , cas.amount
+                                FROM cas_application_details cas
+                                WHERE cas.cas_id is null
                                 RETURNING *, '{}'::jsonb old_values
                             ),
                             update_applications_audit_cte as(

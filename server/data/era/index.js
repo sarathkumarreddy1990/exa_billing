@@ -324,7 +324,7 @@ module.exports = {
         return await query(sql);
     },
 
-    checkERAFileIsProcessed: async function (file_md5, company_id) {
+    isProcessed: async function (file_md5, company_id) {
         const sql = `
         
             WITH upload_info AS

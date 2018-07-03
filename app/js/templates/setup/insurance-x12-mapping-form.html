@@ -18,32 +18,6 @@
                         </select>
                 </div>
             </div>
-            <div class="form-group row" style="display:none;">
-                <label for="ddlClaimTemplateRad" class="col-sm-2 col-form-label field-required" i18n="setup.insuranceX12Mapping.claimTemplateRad"></label>
-                <div class="col-sm-5">
-                        <select id="ddlClaimTemplateRad" class="form-control"  style="height:32px;" name="claimTemplateRad">
-                                <option value="" i18n="shared.buttons.select"></option>
-                                <% _.each(ediTemplatesList, function(value) { %>
-                                    <option value='<%= value %>'>
-                                        <%=value%>
-                                    </option>
-                                    <% }); %>
-                            </select>
-                </div>
-            </div>
-            <div class="form-group row" style="display:none;">
-                <label for="ddlClaimTemplateProv" class="col-sm-2 col-form-label field-required" i18n="setup.insuranceX12Mapping.claimTemplateProv"></label>
-                <div class="col-sm-5">
-                    <select id="ddlClaimTemplateProv" class="form-control"  style="height:32px;" name="claimTemplateProv">
-                            <option value="" i18n="shared.buttons.select"></option>
-                            <% _.each(ediTemplatesList, function(value) { %>
-                                <option value='<%= value %>'>
-                                    <%=value%>
-                                </option>
-                                <% }); %>
-                        </select>
-                </div>
-            </div>
         </form>
     </div>
 </div>
