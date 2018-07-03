@@ -1007,6 +1007,7 @@ define('grid', [
                 rowattr: rowattr
             });
             if (flag == true) {
+                commonjs.showLoading();         
                 var colHeader = studyFields.colName;
                 $.ajax({
                     'url': '/exa_modules/billing/claim_workbench',
@@ -1015,7 +1016,7 @@ define('grid', [
                         filterData: [],
                         filterCol: [],
                         customArgs: {
-                            filter_id: 'All_Claims',
+                            filter_id: filterID,
                             flag: 'exportExcel'
                         }
                     },
@@ -1029,30 +1030,28 @@ define('grid', [
                         if (ShowLabel) {
                             var row = "";
                             _.each(colHeader, function (result, index) {
-                                result == "Claim Date" ? row += 'CLAIM DATE' + ',' : ' ',
-                                    result == "Patient Name" ? row += 'PATIENT NAME' + ',' : ' ',
-                                    result == "Clearing House" ? row += 'CLEARING HOUSE' + ',' : ' ',
-                                    result == "Billing Method" ? row += 'BILLING METHOD' + ',' : ''
-                                result == "Billing Provider" ? row += 'BILLING PROVIDER' + ',' : ' ',
-                                    result == "Billing Fee" ? row += 'BILL FEE' + ',' : ' ',
-                                    result == "Account No" ? row += 'Account #' + ',' : ' ',
-                                    result == "Policy Number" ? row += 'Policy #' + ',' : ' ',
-                                    result == "Claim Status" ? row += 'Claim Status' + ',' : ' ',
-                                    result == "Date Of Birth" ? row += 'DOB' + ',' : ' ',
-                                    result == "Invoice" ? row += 'Invoice' + ',' : ' ',
-                                    result == "Follow-up Date" ? row += 'Follow-up Date' + ',' : ' ',
-                                    result == "Place OF Service" ? row += 'Place OF Service' + ',' : ' ',
-                                    result == "Referring Providers" ? row += 'Referring Providers' + ',' : ' ',
-                                    result == "Balance" ? row += 'Balance' + ',' : ' ',
-                                    result == "Rendering Providers" ? row += 'Rendering Providers' + ',' : ' ',
-                                    result == "SSN" ? row += 'SSN' + ',' : ' ',
-                                    result == "Group Number" ? row += 'Group Number' + ',' : ' ',
-                                    result == "Payer Type" ? row += 'Payer Type' + ',' : ' ',
-                                    result == "Billing Class" ? row += 'Billing Class' + ',' : ' ',
-                                    result == "Billing Code" ? row += 'Billing Code' + ',' : ' ',
-                                    result == "Notes" ? row += 'Notes' + ',' : ' ',
-                                    result == "Payer Name" ? row += 'Responsible Party' + ',' : ' ',
-                                    result == "Date of Injury" ? row += 'Date of Injury' + ',' : ' '
+                                row += result == "Claim Date" ? 'Claim Date' + ',' : '';
+                                row += result == "Patient Name" ? '"' + 'Patient Name' + '",' : '';
+                                row += result == "Clearing House" ? 'Clearing House' + ',' : '';
+                                row += result == "Billing Method" ? 'Billing Method' + ',' : '';
+                                row += result == "Billing Provider" ? 'Billing Provider' + ',' : '';
+                                row += result == "Billing Fee" ? 'Billing Fee' + ',' : '';
+                                row += result == "Account No" ? 'Account No' + ',' : '';
+                                row += result == "Policy Number" ? 'Policy Number' + ',' : '';
+                                row += result == "Claim Status" ? 'Claim Status' + ',' : '';
+                                row += result == "Date Of Birth" ? 'Date Of Birth' + ',' : '';
+                                row += result == "Invoice" ? 'Invoice' + ',' : '';
+                                row += result == "Follow-up Date" ? 'Follow-up Date' + ',' : '';
+                                row += result == "Place OF Service" ? 'Place OF Service' + ',' : '';
+                                row += result == "Balance" ? 'Balance' + ',' : '';
+                                row += result == "Rendering Providers" ? 'Rendering Providers' + ',' : '';
+                                row += result == "SSN" ? '"' + 'SSN' + '",' : '';
+                                row += result == "Group Number" ? 'Group Number' + ',' : '';
+                                row += result == "Payer Type" ? 'Payer Type' + ',' : '';
+                                row += result == "Billing Class" ? 'Billing Class' + ',' : '';
+                                row += result == "Billing Code" ? 'Billing Code' + ',' : '';
+                             
+                              
                             });
                         }
                         row = row.slice(0, -1);
@@ -1062,30 +1061,28 @@ define('grid', [
                             var row = "";
                             var paymentResult = paymentExcelData[i];
                             _.each(colHeader, function (result, index) {
-                                result == "Claim Date" ? row += paymentResult.claim_dt + ',' : ' ',
-                                    result == "Patient Name" ? row += paymentResult.patient_name + ',' : ' ',
-                                    result == "Clearing House" ? row += paymentResult.billiclearing_houseng_fee + ',' : ' ',
-                                    result == "Billing Method" ? row += paymentResult.billing_method + ',' : ' '
-                                result == "Billing Provider" ? row += paymentResult.billing_provider + ',' : ' ',
-                                    result == "Billing Fee" ? row += paymentResult.billing_fee + ',' : ' ',
-                                    result == "Account No" ? row += paymentResult.account_no + ',' : ' ',
-                                    result == "Policy Number" ? row += paymentResult.policy_number + ',' : ' ',
-                                    result == "Claim Status" ? row += paymentResult.claim_status + ',' : ' ',
-                                    result == "Date Of Birth" ? row += paymentResult.birth_date + ',' : ' ',
-                                    result == "Invoice" ? row += paymentResult.invoice_no + ',' : ' ',
-                                    result == "Follow-up Date" ? row += paymentResult.followup_date + ',' : ' ',
-                                    result == "Place OF Service" ? row += paymentResult.place_of_service + ',' : ' ',
-                                    result == "Referring Providers" ? row += paymentResult.referring_providers + ',' : ' ',
-                                    result == "Balance" ? row += paymentResult.claim_balance + ',' : ' ',
-                                    result == "Rendering Providers" ? row += paymentResult.rendering_provider + ',' : ' ',
-                                    result == "SSN" ? row += paymentResult.patient_ssn + ',' : ' ',
-                                    result == "Group Number" ? row += paymentResult.group_number + ',' : ' ',
-                                    result == "Payer Type" ? row += paymentResult.payer_type + ',' : ' ',
-                                    result == "Billing Class" ? row += paymentResult.billing_class + ',' : ' ',
-                                    result == "Billing Code" ? row += paymentResult.billing_code + ',' : ' ',
-                                    result == "Notes" ? row += paymentResult.claim_notes + ',' : ' ',
-                                    result == "Payer Name" ? row += paymentResult.payer_name + ',' : ' ',
-                                    result == "Date of Injury" ? row += paymentResult.doj + ',' : ' '
+                                row += result == "Claim Date" ? paymentResult.claim_dt + ',' : '',
+                                    row += result == "Patient Name" ? '"' + paymentResult.patient_name + '",' : '',
+                                    row += result == "Clearing House" ? '"' + paymentResult.clearing_house + '",' : '',
+                                    row += result == "Billing Method" ? '"' + paymentResult.billing_method + '",' : '',
+                                    row += result == "Billing Provider" ? '"' + paymentResult.billing_provider + '",' : '',
+                                    row += result == "Billing Fee" ? '"' + paymentResult.billing_fee + '",' : '',
+                                    row += result == "Account No" ? '"' + paymentResult.account_no + '",' : '',
+                                    row += result == "Policy Number" ? '"' + paymentResult.policy_number + '",' : '',
+                                    row += result == "Claim Status" ? '"' + paymentResult.claim_status + '",' : '',
+                                    row += result == "Date Of Birth" ? '"' + paymentResult.birth_date + '",' : '',
+                                    row += result == "Invoice" ? '"' + paymentResult.invoice_no + '",' : '',
+                                    row += result == "Follow-up Date" ? paymentResult.followup_date + ',' : '',
+                                    row += result == "Place OF Service" ? '"' + paymentResult.place_of_service + '",' : '',
+                                    row += result == "Balance" ? '"' + paymentResult.claim_balance + '",' : '',
+                                    row += result == "Rendering Providers" ? '"' + paymentResult.rendering_provider + '",' : '',
+                                    row += result == "SSN" ? '"' + paymentResult.patient_ssn + '",' : '',
+                                    row += result == "Group Number" ? '"' + paymentResult.group_number + '",' : '',
+                                    row += result == "Payer Type" ? '"' + paymentResult.payer_type + '",' : '',
+                                    row += result == "Billing Class" ? '"' + paymentResult.billing_class + '",' : '',
+                                    row += result == "Billing Code" ? '"' + paymentResult.billing_code + '",' : ''
+                               
+                                  
                             });
 
                             CSV += row + '\r\n';
@@ -1105,11 +1102,13 @@ define('grid', [
                         document.body.appendChild(link);
                         link.click();
                         document.body.removeChild(link);
+                        $('#btnValidateExport').prop('disabled', false); 
                     },
                     error: function (err) {
                         commonjs.handleXhrError(err);
                     }
                 });
+                return true;
             }
         };
         self.setDropDownSubMenuPosition = function (e, divObj) {
