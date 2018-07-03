@@ -88,7 +88,7 @@ define(['jquery',
                 'click #btnPaymentDelete': 'deletePayment',
                 'click #btnPaymentPrint': 'paymentPrintPDF',
                 'click #btnPrintReceipt': 'paymentPrintReceiptPDF',
-                'click #btnPaymentPendingRefreshOnly' : 'refreshInvociePendingPayment'
+                'click #btnPaymentPendingRefreshOnly': 'refreshInvociePendingPayment'
             },
 
             initialize: function (options) {
@@ -1337,13 +1337,17 @@ define(['jquery',
                         $('#applyPaymentContent').find('#btnSaveAppliedPendingPayments').unbind().on('click', function (e) {
                             self.saveAllPayments(e, claimId, paymentId, paymentStatus, chargeId);
                         });
+                        
+                        // $('#divPaymentCAS').find('.col2').unbind().on('change', function (e) {
+                        //     self.disableSelectedReasonCode(e);
+                        // });
 
                         $('#btnClearAppliedPendingPayments').unbind().on('click', function (e) {
                             self.clearPayments(e, paymentId, claimId);
                         });
 
                         $('#btnPayfullAppliedPendingPayments').unbind().on('click', function (e) {
-                            self.underConstruction();
+                            self.saveAllPayments(e, claimId, paymentId, paymentStatus, chargeId);
                         });
 
                         self.reloadPaymentFields(claimId);
@@ -1372,7 +1376,6 @@ define(['jquery',
                 $('.checkDebit').prop('checked', false);
                 $('.this_pay').val(pay_val);
                 $('.this_adjustment').val(pay_val);
-                // this.updatePaymentAdjustment();
             },
 
             updateRefundRecoupment: function () {
@@ -1573,6 +1576,8 @@ define(['jquery',
             },
 
             saveAllPayments: function (e, claimId, paymentId, paymentStatus, chargeId) {
+                var targetObj = $(e.target);
+                var objIsPayInFull = targetObj.is('#btnPayfullAppliedPendingPayments');
                 var self = this;
                 if (this.validatePayerDetails()) {
                     var lineItems = $("#tBodyApplyPendingPayment tr"), dataLineItems = [], orderPayment = 0.00, orderAdjustment = 0.00;
@@ -1585,7 +1590,7 @@ define(['jquery',
                         _line_item["charge_id"] = $(this).attr('data_charge_id_id');
                         _line_item["paymentApplicationId"] = $(this).attr('data_payment_application_id');
                         _line_item["adjustmentApplicationId"] = $(this).attr('data_payment_adjustment_id');
-                        _line_item["payment"] = $(this).find('td:nth-child(5)>input').val() ? parseFloat($(this).find('td:nth-child(5)>input').val()) : 0.00;
+                        _line_item["payment"] = objIsPayInFull ? parseFloat($(this).find('td:nth-child(9)').text().trim()) : $(this).find('td:nth-child(5)>input').val() ? parseFloat($(this).find('td:nth-child(5)>input').val()) : 0.00;
                         _line_item["adjustment"] = $(this).find('td:nth-child(8)>input').val() ? parseFloat($(this).find('td:nth-child(8)>input').val()) : 0.00;
                         _line_item["cas_details"] = cas;
                         line_items.push(_line_item);
@@ -2081,6 +2086,17 @@ define(['jquery',
                     flag: 'payment-print-pdf'
                 }
                 self.paymentEditPDF.onReportViewClick(e, paymentEditPDFArgs);
+            },
+
+            disableSelectedReasonCode: function (e) {
+                var idParent = $(e.target).attr("id");
+                $('.col2 option').removeAttr("disabled");
+                var reasonSelected = $(e.target).val();
+                $('.col2 option[value="' + reasonSelected + '"]').prop("disabled", true);
+            },
+
+            setPayInFull: function () {
+
             }
 
         });

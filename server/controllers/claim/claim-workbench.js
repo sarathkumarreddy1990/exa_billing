@@ -6,10 +6,6 @@ const ediConnect = require('../../../modules/edi');
 const _ = require('lodash');
 //const PdfPrinter = require('pdfmake');
 
-const config = require('../../config');
-const ediServerUrl = config.get('ediServerUrl');
-ediConnect.init(ediServerUrl);
-
 module.exports = {
 
     getData: function (params) {
@@ -81,6 +77,7 @@ module.exports = {
             };
 
             ediResponse = await ediConnect.generateEdi(result.rows[0].header.edi_template_name, ediRequestJson);
+
         }
 
         return ediResponse;

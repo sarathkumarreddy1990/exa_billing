@@ -56,7 +56,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var billingCodeValue = commonjs.makeValue(app.billing_codes, ":All;", "id", "description");
         var billingClassesValue = commonjs.makeValue(app.billing_classes, ":All;", "id", "description");
         var claimStatusValue = commonjs.makeValue(app.claim_status, ":All;", "id", "description");
-
+        var billedStatus = ':All;billed:Billed;unbilled:Unbilled';
         var studyFlagArray = app.studyflag;
         var isNoneExist = false;
 
@@ -454,7 +454,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "name": "billing_provider",
                         "width": 200
                     }
-                }               
+                }
 
 
             });   
@@ -1610,7 +1610,29 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "sortable": true
                 },
                 "field_code": "visit_no"
-            }
+            },
+            "Billed Status": {
+                "id": 65,
+                "field_code": "billed_status",
+                "field_name": "Billed Statsu",
+                "i18n_name": "shared.fields.billedStatus",
+                "field_info": {
+                    "name": "billed_status",
+                    "width": 200,
+                    "cellattr": function ( id, cellvalue, rowObject ) {
+                        var statusDetail = commonjs.getClaimColorCodeForStatus(rowObject.claim_id > 0 ? 'billed' : 'unbilled', 'study');
+                        var statusObj = statusDetail[ 0 ];
+                        return 'style="background:' + (statusObj && statusObj.color_code || 'transparent') + ';"';
+                    },                    
+                    "searchFlag": "%",
+                    "stype": "select",
+                    "searchoptions": {
+                        "value": billedStatus,
+                        "tempvalue": billedStatus
+                    }
+                }
+            }               
+             
         });      
     
     }
