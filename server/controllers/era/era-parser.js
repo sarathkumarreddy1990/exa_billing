@@ -58,7 +58,7 @@ module.exports = {
                         *  Condition : Check valid CAS group and reason codes
                         *  DESC : CAS group and reason codes not matched means shouldn't apply adjustment (Ex: adjustment = 0)
                         */
-                        let validCAS = _.filter(val.serviceAdjustment, function (obj) {
+                        let validCAS = _.filter(serviceAdjustment, function (obj) {
 
                             for (let j = 1; j <= 7; j++) {
 
@@ -85,7 +85,7 @@ module.exports = {
                         *  Condition : Check Is Valid CAS or Not
                         *  DESC : Is any one of CAS is not Valid, Then assigne adjustment amount = 0
                         */
-                        if (val.serviceAdjustment && (validCAS.length != val.serviceAdjustment.length)) {
+                        if (val.serviceAdjustment && (validCAS.length != serviceAdjustment.length)) {
                             adjustmentAmount = 0;
                         }
 
@@ -130,7 +130,12 @@ module.exports = {
                             claim_number: value.claimNumber,
                             claim_status_code: value.claimStatusCode || 0,
                             cas_details: cas_obj,
-                            charge_id: val.serviceIdentification && val.serviceIdentification.assingedNumber && !isNaN(val.serviceIdentification.assingedNumber) ? val.serviceIdentification.assingedNumber : 0
+                            charge_id: val.serviceIdentification && val.serviceIdentification.assingedNumber && !isNaN(val.serviceIdentification.assingedNumber) ? val.serviceIdentification.assingedNumber : 0,
+                            patient_fname : value.patientName.firstName || '',
+                            patient_lname : value.patientName.lastName || '',
+                            patient_mname : value.patientName.middleName || '',
+                            patient_prefix : value.patientName.prefix || '',
+                            patient_suffix : value.patientName.suffix || ''
                         });
                     });
 
