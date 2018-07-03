@@ -157,6 +157,11 @@ module.exports = {
                                 ,payment money
                                 ,adjustment money
                                 ,cpt_code text
+                                ,patient_fname text
+                                ,patient_lname text
+                                ,patient_mname text
+                                ,patient_prefix text
+                                ,patient_suffix text
                                 ,cas_details jsonb
                                 ,claim_status_code bigint
                              )
@@ -166,13 +171,14 @@ module.exports = {
                                     application_details.claim_number,
                                     application_details.claim_status_code,
                                     json_build_object(
-                                        'charge_id',application_details.charge_id,
+                                        'charge_id',charges.id,
                                         'payment',application_details.payment,
                                         'adjustment',application_details.adjustment,
                                         'cas_details',application_details.cas_details)
                                 FROM 
                                     application_details  
                                 INNER JOIN billing.claims c on c.id = application_details.claim_number
+                                INNER JOIN public.patients p on p.id = c.patient_id
                                 INNER JOIN LATERAL (
                                     SELECT 
                                        ch.id
@@ -191,6 +197,17 @@ module.exports = {
                                     )
                                     ORDER BY id ASC LIMIT 1
                                 ) AS charges ON true
+                                WHERE 
+			                    	(   CASE 
+                                        WHEN    ( application_details.patient_fname != '' ) 
+			                    		    AND ( application_details.patient_lname != '' ) 
+			                    		    AND ( CASE WHEN application_details.patient_mname  != ''  THEN p.middle_name = application_details.patient_mname  else '1' END) 
+			                    		    AND ( CASE WHEN application_details.patient_prefix != ''  THEN p.prefix_name = application_details.patient_prefix else '1' END) 
+			                    		    AND ( CASE WHEN application_details.patient_suffix != ''  THEN p.suffix_name = application_details.patient_suffix else '1' END) 
+                                        THEN ( p.first_name = application_details.patient_fname AND p.last_name = application_details.patient_lname )
+    			                    	    ELSE '0'
+                                        END 
+                                    )
                            ), 
                            insert_payment_adjustment AS (
                                 SELECT

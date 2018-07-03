@@ -1052,9 +1052,13 @@ define(['jquery',
                             });
                             table.renderStudy();
 
-                            $('#btnValidateExport').on().click(function () {
-                                table.renderStudy(true);
-                                createStudiesTable();
+                            $('#btnValidateExport').on().click(function (e) {    
+                                commonjs.showWarning('Waiting for download ....')
+                                var $loading = $(document.getElementById('divPageLoading'));
+                                $loading.show();
+                                commonjs.showLoading();                                          
+                                table.renderStudy(true);  
+                                $('#btnValidateExport').prop('disabled', true);                                        
                             });
                         };
 
@@ -1620,25 +1624,6 @@ define(['jquery',
                         commonjs.handleXhrError(err, response);
                     }
                 })
-            },
-            exportExcel: function(filterID){
-                var self = this;
-                var table = new ClaimsGrid({
-                    'isAdmin': self.isAdmin,
-                    'gridelementid': '#tblClaimGrid' + filterID,
-                    'filterid': filterID,
-                    'setpriorstudies': '',
-                    'isPrior': false,
-                    'isDicomSearch': false,
-                    'providercontact_ids': app.providercontact_ids,
-                    'searchByAssociatedPatients': '',
-                    'isRisOrderSearch': false,
-                    'showEncOnly': false,
-                    'claims_id': 0,
-                    'container': self.el,
-                    '$container': self.$el,                  
-                    'isClaimGrid': true
-                });
             }
         });
     });

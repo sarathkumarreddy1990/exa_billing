@@ -98,7 +98,7 @@ define([
                         delay: 250,
                         data: function (params) {
                             return {
-                                page: params.page || 20,
+                                page: params.page || 1,
                                 q: params.term || '',
                                 pageSize: 10,
                                 sortField: "insurance_code",
@@ -170,13 +170,13 @@ define([
                         delay: 250,
                         data: function (params) {
                             return {
-                                page: params.page || 20,
+                                page: params.page || 1,
                                 q: params.term || '',
                                 pageSize: 10,
                                 sortField: "group_name",
                                 sortOrder: "ASC",
-                                groupType: 'OF',
-                                company_id: 1
+                                groupType: 'PG',
+                                company_id: 1                            
                             };
                         },
                         processResults: function (data, params) {
@@ -343,7 +343,7 @@ define([
                         delay: 250,
                         data: function (params) {
                             return {
-                                page: params.page || 9,
+                                page: params.page || 1,
                                 q: params.term || '',
                                 pageSize: 10,
                                 sortField: "user_name",
@@ -518,10 +518,11 @@ define([
                         delay: 250,
                         data: function (params) {
                             return {
-                                page: params.page || 20,
+
+                                page: params.page || 1,
                                 q: params.term || '',
                                 pageSize: 10,
-                                sortField: "",
+                                sortField: "full_name",
                                 sortOrder: "ASC",
                                 company_id: 1
                             };
@@ -587,7 +588,7 @@ define([
                         delay: 250,
                         data: function (params) {
                             return {
-                                page: params.page || 3,
+                                page: params.page || 1,
                                 q: params.term || '',
                                 provider_type: 'RF',
                                 pageSize: 10,
@@ -686,7 +687,7 @@ define([
                 });
                 function formatRepo(repo) {
                     if (repo.loading) {
-                        return repo.text;
+                        return repo.display_description;
                     }
                     var markup1 = "<table><tr class='inActiveRow'>";
                     if (repo.display_code != '')
@@ -698,7 +699,7 @@ define([
                 }
                 function formatRepoSelection(res) {
                     if (res && res.id) {
-                        res.display_description
+                        return res.display_description
                     }
                 }
                 //txtCPTCodeInformation, btnCPTCode, ulListCPTCode

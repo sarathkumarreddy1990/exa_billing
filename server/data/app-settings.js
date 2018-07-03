@@ -52,7 +52,8 @@ module.exports = {
                                             suffix,
                                             facilities as user_facilities,
                                             user_type,
-                                            default_facility_id
+                                            default_facility_id,
+                                            hstore_to_json(user_settings) AS user_settings
                                    FROM   users
                                    WHERE  company_id=${companyID}
                                    AND    NOT has_deleted

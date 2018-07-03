@@ -203,5 +203,9 @@ module.exports = {
     updateBillingPayers: async function (params) {
         // Todo: cpt bill fee calculation and update charges
         return await data.updateBillingPayers(params);
+    },
+
+    updateFollowUp: async function (params) {
+        return await data.updateFollowUp(params);
     }
 };
