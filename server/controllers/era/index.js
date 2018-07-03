@@ -11,6 +11,7 @@ const crypto = require('crypto');
 
 const { promisify } = require('util');
 const readFile = promisify(fs.readFile);
+const writeFile = promisify(fs.writeFile);
 
 module.exports = {
 
@@ -85,19 +86,14 @@ module.exports = {
         let filePath = path.join(dirPath, dataResponse.rows[0].id);
         logger.info(`Writing file in Disk -  ${filePath}`);
 
-        await fs.writeFile(filePath, bufferString, 'binary', function (err) {
-            if (err) {
-                logger.error('Writing file in Disk', err);
-                throw err;
-            }
+        await writeFile(filePath, bufferString, 'binary');
 
-            logger.info(`File uploaded successfully. ${filePath}`);
+        logger.info(`File uploaded successfully. ${filePath}`);
 
-            return {
-                fileNameUploaded: dataResponse.rows[0].id,
-                status: 'OK',
-            };
-        });
+        return {
+            fileNameUploaded: dataResponse.rows[0].id,
+            status: 'OK',
+        };
     },
 
     processERAFile: async function (params) {
