@@ -594,24 +594,24 @@ module.exports = {
         await this.filterPatients(filter);
 
         switch (filter.sortField) {
-        case 'ssn':
-            filter.sortField = 'patient_info->\'" + filter.sortField + "\'';
-            break;
-        case 'address':
-            filter.sortField = 'patient_info->\'c1AddressLine1\'';
-            break;
-        case 'phone':
-            filter.sortField = 'patient_info->\'c1HomePhone\'';
-            break;
-        case 'zip':
-            filter.sortField = 'patient_info->\'c1Zip\'';
-            break;
-        case 'commPref':
-            filter.sortField = 'patient_info->\'commPref\'';
-            break;
-        case 'age':
-            filter.sortField = 'age(patients.birth_date)';
-            break;
+            case 'ssn':
+                filter.sortField = 'patient_info->\'" + filter.sortField + "\'';
+                break;
+            case 'address':
+                filter.sortField = 'patient_info->\'c1AddressLine1\'';
+                break;
+            case 'phone':
+                filter.sortField = 'patient_info->\'c1HomePhone\'';
+                break;
+            case 'zip':
+                filter.sortField = 'patient_info->\'c1Zip\'';
+                break;
+            case 'commPref':
+                filter.sortField = 'patient_info->\'commPref\'';
+                break;
+            case 'age':
+                filter.sortField = 'age(patients.birth_date)';
+                break;
         }
 
         let sql = '';
@@ -714,15 +714,15 @@ module.exports = {
         fieldvalue = fieldvalue.replace(/'/g, '');
 
         switch (searchType) {
-        case 'start':
-            likeQuery = (ishstore) ? fieldname + ' ILIKE ' + fieldvalue + '%' : fieldname + ' ILIKE \'' + fieldvalue + '%\' ';
-            break;
-        case 'end':
-            likeQuery = (ishstore) ? '\'' + fieldname + '\'' + ' ILIKE \'%' + fieldvalue + '\'' : fieldname + ' ILIKE \'%' + fieldvalue + '\'';
-            break;
-        default:
-            likeQuery = (ishstore) ? '\'' + fieldname + '\'' + ' ILIKE \'%' + fieldvalue + '%\'' : fieldname + ' ILIKE \'%' + fieldvalue + '%\'';
-            break;
+            case 'start':
+                likeQuery = (ishstore) ? fieldname + ' ILIKE ' + fieldvalue + '%' : fieldname + ' ILIKE \'' + fieldvalue + '%\' ';
+                break;
+            case 'end':
+                likeQuery = (ishstore) ? '\'' + fieldname + '\'' + ' ILIKE \'%' + fieldvalue + '\'' : fieldname + ' ILIKE \'%' + fieldvalue + '\'';
+                break;
+            default:
+                likeQuery = (ishstore) ? '\'' + fieldname + '\'' + ' ILIKE \'%' + fieldvalue + '%\'' : fieldname + ' ILIKE \'%' + fieldvalue + '%\'';
+                break;
         }
 
         return likeQuery;
