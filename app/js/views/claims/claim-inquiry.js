@@ -364,6 +364,8 @@ define([
                     $('#tdAge90').html(age_summary.age_91_120 || '$0.00');
                     $('#tdAge120').html(age_summary.age_121 || '$0.00');
                     $('#tdAgeTotal').html(age_summary.total_balance || '$0.00');
+                    $('#tdAgeOtherPaid').html(age_summary.payment_insurance_total || '$0.00');
+                    $('#tdAgePatientPaid').html(age_summary.payment_patient_total || '$0.00');
                 }
             },
 
