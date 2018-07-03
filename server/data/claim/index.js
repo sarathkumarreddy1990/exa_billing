@@ -916,7 +916,7 @@ module.exports = {
             billing.charges
         SET
               cpt_id    = chd.cpt_id
-            , bill_fee  = CASE WHEN billing.is_need_bill_fee_recaulculation(${claims.claim_id},${claims.payer_type},SELECT payer_type FROM existing_payer_type) = TRUE THEN
+            , bill_fee  = CASE WHEN billing.is_need_bill_fee_recaulculation(${claims.claim_id},${claims.payer_type},(SELECT payer_type FROM existing_payer_type)) = TRUE THEN
                              billing.get_computed_bill_fee(${claims.claim_id},chd.cpt_id,coalesce(chd.modifier1_id,0),coalesce(chd.modifier2_id,0),coalesce(chd.modifier3_id,0),coalesce(chd.modifier4_id,0))
                           ELSE
                             chd.bill_fee 
