@@ -205,7 +205,7 @@ module.exports = {
 						edi_clearinghouses.receiver_name as clearinghouses_receiver_name,	
 						edi_clearinghouses.receiver_id as clearinghouses_receiver_id				
                                     FROM   billing.edi_clearinghouses
-                                    WHERE  billing.edi_clearinghouses.id::text=insurance_info->'claimClearingHouse'::text)
+                                    WHERE  billing.edi_clearinghouses.id=insurance_provider_clearinghouses.clearing_house_id)
 
 					as header),
 					(SELECT Json_agg(Row_to_json(data1)) "data"
@@ -319,7 +319,7 @@ module.exports = {
 										,(
 											SELECT Json_agg(Row_to_json(patient)) "patient"
 																	FROM   (
-																				SELECT id,
+																				SELECT patients.id,
 																				last_name as "lastName",
 															first_name as "firstName",
 															middle_name as "middleName",
@@ -358,10 +358,7 @@ module.exports = {
 																	WHEN 'SISTER' THEN 20
 																END) 
 															FROM  relationship_status WHERE  subscriber_relationship_id =relationship_status.id ) as  relationship
-										
-										
-																			FROM   patients
-																			WHERE  patients.id=claims.patient_id)AS patient)
+										)AS patient)
 							,( SELECT Json_agg(Row_to_json(claim)) "claim"
 							FROM   (
 									SELECT claims.id as "claimNumber",
@@ -375,9 +372,12 @@ module.exports = {
 										is_other_accident as  "relatedCauseCode2",
 										is_auto_accident as  "relatedCauseCode3",
 										current_illness_date::date as "illnessDate",
+										account_no as "accountNumber",
 										to_char(same_illness_first_date, 'YYYYMMDD')  as "illnessDateFormat",
 										authorization_no as "authorizationNo",
 										original_reference as "originalReference",
+										patient_info->'c1State' as "state",
+										facility_info->'facility_mammoLicenseId' as "mammoCertificationNO",
 										claim_notes as "claimNotes",
 										same_illness_first_date::text as "sameIllnessFirstDate",
 										to_char(same_illness_first_date, 'YYYYMMDD')  as "sameIllnessFirstDateFormat",
@@ -423,7 +423,8 @@ module.exports = {
 											group_info->'Zip' as "zip",
 											group_info->'ZipPlus' as "zipPlus",
 											group_info->'Phone' as "phone",
-											group_info->'Email' as "email"
+											group_info->'Email' as "email",
+											group_info->'stateLicenseNo' as "stateLicenseNo"
 											FROM provider_groups 
 											WHERE  claims.ordering_facility_id = provider_groups.id) 
 										as servicefacility)
@@ -525,6 +526,8 @@ module.exports = {
 					allowed_amount::numeric::text as "allowedAmount",
 					charges.id as "iterationIndex",
 					display_description as "studyDescription",
+					additional_info->'ndc_code' as NDCCode,
+					additional_info->'ndc_measure' as NDCMeasure,
 					bill_fee::numeric::text as "billFee",
 					(bill_fee*charges.units)::numeric::text  as "totalBillFee",
 					charges.units as "unit",
@@ -597,6 +600,7 @@ module.exports = {
 
 					FROM billing.claims  
 					INNER JOIN facilities ON facilities.id=claims.facility_id
+					INNER JOIN patients ON patients.id=claims.patient_id
 					INNER JOIN    patient_insurances  ON  patient_insurances.id = 
 											(  CASE payer_type 
 											WHEN 'primary_insurance' THEN primary_patient_insurance_id
@@ -604,6 +608,7 @@ module.exports = {
 											WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
 											END)
 									INNER JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id   
+									LEFT JOIN billing.insurance_provider_clearinghouses ON insurance_provider_clearinghouses.insurance_id = insurance_providers.id
 									LEFT JOIN relationship_status ON  subscriber_relationship_id =relationship_status.id
 
 							WHERE claims.id= ANY(${claimIds})

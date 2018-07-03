@@ -675,7 +675,7 @@ define(['jquery',
                             $claimsTabsLinks.css('border-top', '');
                             $claimsTabsItems.css('margin-bottom', '');
                             if (dataContainerValue) {
-                                self.toggleTabContents(2);
+                                self.toggleTabContents(dataContainerValue);
                                 var claimsTabID = '[href="#divClaimGridContainer' + dataContainerValue + '"]';
                                 var $claimsTabTarget = $claimsTabsLinks.filter(claimsTabID);
                                 var borderWidth = '3px !important';
@@ -704,7 +704,7 @@ define(['jquery',
                                 dataContainerValue !== 'PS' &&
                                     dataContainerValue !== 'OD'
                                 ) {
-                                self.toggleTabContents(2);
+                                self.toggleTabContents(dataContainerValue);
                             }
 
                             var $uiJQHTableKids = $('.ui-jqgrid-htable').children().children();
@@ -1065,7 +1065,7 @@ define(['jquery',
                         app.listStudies = filter.datastore.map(function (claims) {
                             return claims.id;
                         });
-                        self.toggleTabContents(2);
+                        self.toggleTabContents(filterID);
                         self.setFooter(filter);
 
                         // Auto Refresh the preloaded grid immediately
@@ -1520,9 +1520,18 @@ define(['jquery',
                 });
             },
 
-            toggleTabContents: function (index) {
+            toggleTabContents: function (filterID) {
                 var _self = this;
                 commonjs.processPostRender({screen: 'Claim Workbench'});
+                if(filterID=="Follow_up_queue"){
+                    $("#btnInsuranceClaim").hide();
+                    $("#btnValidateOrder").hide();
+                    $("#btnValidateExport").hide();
+                }else{
+                    $("#btnInsuranceClaim").show();
+                    $("#btnValidateOrder").show();
+                    $("#btnValidateExport").show();
+                }
                 $('#divPageLoading').hide();
                 $('#diveHomeIndex').show();
                 $('#divStudyFooter').show();
@@ -1538,6 +1547,7 @@ define(['jquery',
                 if (app.refproviderID > 0) {
                     $('.hide_btncontent').attr("disabled", true);
                 }
+
             },
             clearAllSelectedRows: function () {
                 var filterID = commonjs.currentStudyFilter;

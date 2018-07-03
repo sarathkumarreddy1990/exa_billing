@@ -311,40 +311,25 @@ define([
 
 
             bindBillingProvider: function () {
-                $.ajax({
-                    type: 'GET',
-                    url: '/exa_modules/billing/claims/get_masterdetails',
-                    data: {
-                        company_id: 1
-                    },
-                    success: function (model, response) {
-                        if (model && model.length) {
-                            /* Billing providers drop down*/
-                            var billingProviders = model[0].billingProvidersList;
-                            var ddlBillingProvider = $('#ddlBillingProvider');
-                            ddlBillingProvider.empty();
-                            if (billingProviders && billingProviders.length > 0) {
-                                for (var b = 0; b < billingProviders.length; b++) {
-                                    ddlBillingProvider.append($('<option/>', {
-                                        value: billingProviders[b].id,
-                                        text: billingProviders[b].full_name
-                                    }));
-                                }
-                            }
-                        }
-                        // For Multi Select drop down 
-                        $('#ddlBillingProvider').multiselect({
-                            maxHeight: 200,
-                            buttonWidth: '250px',
-                            enableFiltering: true,
-                            includeSelectAllOption: true,
-                            enableCaseInsensitiveFiltering: true
-                        });
-                    },
-                    error: function (model, response) {
-                        commonjs.handleXhrError(model.response);
+                var billingProviderList = app.billing_providers,
+                    ddlBillingProvider = $('#ddlBillingProvider');
+                ddlBillingProvider.empty();
+                if (billingProviderList && billingProviderList.length > 0) {
+                    for (var b = 0; b < billingProviderList.length; b++) {
+                        ddlBillingProvider.append($('<option/>', {
+                            value: billingProviderList[b].id,
+                            text: billingProviderList[b].full_name
+                        }));
                     }
-                })
+                }
+                // For Multi Select drop down 
+                $('#ddlBillingProvider').multiselect({
+                    maxHeight: 200,
+                    buttonWidth: '250px',
+                    enableFiltering: true,
+                    includeSelectAllOption: true,
+                    enableCaseInsensitiveFiltering: true
+                });
             },
 
             // Users Auto Complete
