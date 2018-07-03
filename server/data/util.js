@@ -6,111 +6,111 @@ const util = {
     getArrayOperator: function (condition, value, column, Filter) {
         if (Filter === 'refPhy' || Filter === 'insProv') {
             switch (condition) {
-            case 'Is':
-                return `( '${value}' = ANY (${column}) )`;
-            case 'IsNot':
-                return `( '${value}' != ALL (${column}) )`;
-            case 'Contains':
-                return ` array_to_string(${column},',') ~* '${value}' `;
+                case 'Is':
+                    return `( '${value}' = ANY (${column}) )`;
+                case 'IsNot':
+                    return `( '${value}' != ALL (${column}) )`;
+                case 'Contains':
+                    return ` array_to_string(${column},',') ~* '${value}' `;
             }
         }
         else {
             switch (condition) {
-            case 'Is':
-                return `( '${value}' =  ANY (${column}) )`;
-            case 'IsNot':
-                return `( '${value}' != ALL (${column}) )`;
+                case 'Is':
+                    return `( '${value}' =  ANY (${column}) )`;
+                case 'IsNot':
+                    return `( '${value}' != ALL (${column}) )`;
             }
         }
     },
 
     getArrayArrayOperator: function (condition, value, column) {
         switch (condition) {
-        case 'Is':
-            return `( ${column} && ${value} )`;
-        case 'IsNot':
-            return `NOT ( ${column} && ${value} )`;
-        case 'Contains':
-        case 'IsContains':
-            return ` array_to_string(${column},',') ~* ANY(${value}) `;
-        case 'IsNotContains':
-            return ` array_to_string(${column},',') !~* ALL(${value}) `;
+            case 'Is':
+                return `( ${column} && ${value} )`;
+            case 'IsNot':
+                return `NOT ( ${column} && ${value} )`;
+            case 'Contains':
+            case 'IsContains':
+                return ` array_to_string(${column},',') ~* ANY(${value}) `;
+            case 'IsNotContains':
+                return ` array_to_string(${column},',') !~* ALL(${value}) `;
         }
     },
     getConditionalOperatorOnly: function (condition) {
         switch (condition) {
-        case 'Is':
-            return '=';
-        case 'IsNot':
-            return '!=';
-        case 'Contains':
-        case 'IsContains':
-            return '~*';
-        case 'IsNotContains':
-            return '!~*';
+            case 'Is':
+                return '=';
+            case 'IsNot':
+                return '!=';
+            case 'Contains':
+            case 'IsContains':
+                return '~*';
+            case 'IsNotContains':
+                return '!~*';
         }
     },
     getConditionalArrayOperatorOnly: function (condition) {
         switch (condition) {
-        case 'Is':
-        case 'Contains':
-        case 'IsContains':
-            return 'ANY';
-        case 'IsNot':
-        case 'IsNotContains':
-            return 'ALL';
+            case 'Is':
+            case 'Contains':
+            case 'IsContains':
+                return 'ANY';
+            case 'IsNot':
+            case 'IsNotContains':
+                return 'ALL';
         }
     },
     getConditionalOperator: function (condition, value, isKey, Filter) {
 
         if (Filter == 'patients' || Filter == 'patientID' || Filter == 'readPhy' || Filter == 'study_desc' || Filter === 'attorney') {
             switch (condition) {
-            case 'Is':
-                return ' ILIKE ' + (isKey ? value : '\'' + value + '\'');
-            case 'IsNot':
-                return ' NOT ILIKE ' + (isKey ? value : '\'' + value + '\'');
-            case 'Contains':
-            case 'IsContains':
-                return ' ILIKE \'%' + value + '%\'';
-            case 'IsNotContains':
-                return ' NOT ILIKE ' + (isKey ? value : '\'%' + value + '%\'');
+                case 'Is':
+                    return ' ILIKE ' + (isKey ? value : '\'' + value + '\'');
+                case 'IsNot':
+                    return ' NOT ILIKE ' + (isKey ? value : '\'' + value + '\'');
+                case 'Contains':
+                case 'IsContains':
+                    return ' ILIKE \'%' + value + '%\'';
+                case 'IsNotContains':
+                    return ' NOT ILIKE ' + (isKey ? value : '\'%' + value + '%\'');
             }
         }
         else if (Filter == 'modalities') {
             switch (condition) {
-            case 'Is':
-            case 'Contains':
-            case 'IsContains':
-                return ` ILIKE '%${value}%'`;
-            case 'IsNot':
-                return ` NOT ILIKE '%${value}%'`;
-            case 'IsNotContains':
-                return isKey
-                    ? ` NOT ILIKE ${value}`
-                    : ` NOT ILIKE '%${value}%'`;
+                case 'Is':
+                case 'Contains':
+                case 'IsContains':
+                    return ` ILIKE '%${value}%'`;
+                case 'IsNot':
+                    return ` NOT ILIKE '%${value}%'`;
+                case 'IsNotContains':
+                    return isKey
+                        ? ` NOT ILIKE ${value}`
+                        : ` NOT ILIKE '%${value}%'`;
             }
         }
         else {
             switch (condition) {
-            case 'Is':
-                return isKey ? ` = ${value}` : ` = '${value}'`;
-            case 'IsNot':
-                return isKey ? ` != ${value}` : ` != '${value}'`;
-            case 'Contains':
-                return ` ILIKE '%${value}%'`;
+                case 'Is':
+                    return isKey ? ` = ${value}` : ` = '${value}'`;
+                case 'IsNot':
+                    return isKey ? ` != ${value}` : ` != '${value}'`;
+                case 'Contains':
+                    return ` ILIKE '%${value}%'`;
             }
         }
 
     },
     getConditionalRelationOperator: function (condition) {
         switch (condition) {
-        case 'Is':
-        case 'IsContains':
-        case 'Contains':
-            return ' OR ';
-        case 'IsNot':
-        case 'IsNotContains':
-            return ' AND ';
+            case 'Is':
+            case 'IsContains':
+            case 'Contains':
+                return ' OR ';
+            case 'IsNot':
+            case 'IsNotContains':
+                return ' AND ';
         }
     },
     getRelationOperator: function (query) {
@@ -123,51 +123,51 @@ const util = {
         duration = parseInt(duration);
 
         switch (condition.toLowerCase()) {
-        case 'last':
-            switch (type) {
-            case 'Hour(s)':
-                fromDate = moment(fromDate).subtract(duration, 'hour');
-                break;
-            case 'Day(s)':
-                fromDate = moment(fromDate).subtract(duration, 'day');
-                toDate = moment(toDate).add(1, 'day');
-                break;
-            case 'Week(s)':
-                fromDate = moment(fromDate).subtract(7 * duration, 'day');
-                toDate = moment(toDate).add(1, 'day');
-                break;
-            case 'Month(s)':
-                fromDate = moment(fromDate).subtract(30 * duration, 'day');
-                toDate = moment(toDate).add(1, 'day');
-                break;
-            case 'Year(s)':
-                fromDate = moment(fromDate).subtract(365 * duration, 'day');
-                toDate = moment(toDate).add(1, 'day');
-                break;
-            }
+            case 'last':
+                switch (type) {
+                    case 'Hour(s)':
+                        fromDate = moment(fromDate).subtract(duration, 'hour');
+                        break;
+                    case 'Day(s)':
+                        fromDate = moment(fromDate).subtract(duration, 'day');
+                        toDate = moment(toDate).add(1, 'day');
+                        break;
+                    case 'Week(s)':
+                        fromDate = moment(fromDate).subtract(7 * duration, 'day');
+                        toDate = moment(toDate).add(1, 'day');
+                        break;
+                    case 'Month(s)':
+                        fromDate = moment(fromDate).subtract(30 * duration, 'day');
+                        toDate = moment(toDate).add(1, 'day');
+                        break;
+                    case 'Year(s)':
+                        fromDate = moment(fromDate).subtract(365 * duration, 'day');
+                        toDate = moment(toDate).add(1, 'day');
+                        break;
+                }
 
-            break;
+                break;
 
-        case 'next':
-            switch (type) {
-            case 'Hour(s)':
-                toDate = moment(toDate).add(duration, 'hour');
-                break;
-            case 'Day(s)':
-                toDate = moment(toDate).add(duration + 1, 'day');
-                break;
-            case 'Week(s)':
-                toDate = moment(toDate).add(7 * duration + 1, 'day');
-                break;
-            case 'Month(s)':
-                toDate = moment(toDate).add(30 * duration + 1, 'day');
-                break;
-            case 'Year(s)':
-                toDate = moment(toDate).add(365 * duration + 1, 'day');
-                break;
-            }
+            case 'next':
+                switch (type) {
+                    case 'Hour(s)':
+                        toDate = moment(toDate).add(duration, 'hour');
+                        break;
+                    case 'Day(s)':
+                        toDate = moment(toDate).add(duration + 1, 'day');
+                        break;
+                    case 'Week(s)':
+                        toDate = moment(toDate).add(7 * duration + 1, 'day');
+                        break;
+                    case 'Month(s)':
+                        toDate = moment(toDate).add(30 * duration + 1, 'day');
+                        break;
+                    case 'Year(s)':
+                        toDate = moment(toDate).add(365 * duration + 1, 'day');
+                        break;
+                }
 
-            break;
+                break;
         }
 
         if (type != 'Hour(s)') {
@@ -895,39 +895,39 @@ const util = {
             fromDate = moment();
 
         switch (option) {
-        case 'Yesterday':
-            toDate = fromDate = moment().subtract(1, 'days');
-            break;
-        case 'Today':
-            toDate = fromDate = moment();
-            break;
-        case 'Tomorrow':
-            toDate = fromDate = moment().add(1, 'days');
-            break;
-        case 'Last 7 Days':
-            fromDate = moment().subtract(6, 'days');
-            break;
-        case 'Last 30 Days':
-            fromDate = moment().subtract(29, 'days');
-            break;
-        case 'Next 7 Days':
-            toDate = moment().add(6, 'days');
-            break;
-        case 'Next 30 Days':
-            toDate = moment().add(29, 'days');
-            break;
-        case 'This Month':
-            fromDate = moment().startOf('month');
-            toDate = moment().endOf('month');
-            break;
-        case 'Last Month':
-            fromDate = moment().subtract('month', 1).startOf('month');
-            toDate = moment().subtract('month', 1).endOf('month');
-            break;
-        case 'This Year':
-            fromDate = moment().startOf('year');
-            toDate = moment().endOf('year');
-            break;
+            case 'Yesterday':
+                toDate = fromDate = moment().subtract(1, 'days');
+                break;
+            case 'Today':
+                toDate = fromDate = moment();
+                break;
+            case 'Tomorrow':
+                toDate = fromDate = moment().add(1, 'days');
+                break;
+            case 'Last 7 Days':
+                fromDate = moment().subtract(6, 'days');
+                break;
+            case 'Last 30 Days':
+                fromDate = moment().subtract(29, 'days');
+                break;
+            case 'Next 7 Days':
+                toDate = moment().add(6, 'days');
+                break;
+            case 'Next 30 Days':
+                toDate = moment().add(29, 'days');
+                break;
+            case 'This Month':
+                fromDate = moment().startOf('month');
+                toDate = moment().endOf('month');
+                break;
+            case 'Last Month':
+                fromDate = moment().subtract('month', 1).startOf('month');
+                toDate = moment().subtract('month', 1).endOf('month');
+                break;
+            case 'This Year':
+                fromDate = moment().startOf('year');
+                toDate = moment().endOf('year');
+                break;
         }
 
         dateRange = fromDate.format('YYYY-MM-DD') + '~' + toDate.format('YYYY-MM-DD');
@@ -948,22 +948,22 @@ const util = {
         // Just compare date+time+tz string directly. For example:
         //      (studies.study_received_dt BETWEEN '2017-03-08T00:00:00-05:00' AND '2017-03-08T23:59:59-05:00')   -- preformatted, today
         
-        if (filterObj.date&&filterObj.date.dateType) {
+        if (filterObj.date && filterObj.date.dateType) {
             //scheduleDtColumn = "timezone(facilities.time_zone, " + orders.ordersData.getSortFields(filterObj.date.dateType) + ")";
             switch (filterObj.date.dateType) {
-            case 'scheduled_dt':
-            case 'schedule_date':
-                scheduleDtColumn = 'studies.schedule_dt';
-                break;
-            case 'study_dt':
-                scheduleDtColumn = 'studies.study_dt';
-                break;
-            case 'study_received_dt':
-                scheduleDtColumn = 'studies.study_received_dt';
-                break;
-            case 'claim_dt':
-                scheduleDtColumn = 'claims.claim_dt';
-                break;
+                case 'scheduled_dt':
+                case 'schedule_date':
+                    scheduleDtColumn = 'studies.schedule_dt';
+                    break;
+                case 'study_dt':
+                    scheduleDtColumn = 'studies.study_dt';
+                    break;
+                case 'study_received_dt':
+                    scheduleDtColumn = 'studies.study_received_dt';
+                    break;
+                case 'claim_dt':
+                    scheduleDtColumn = 'claims.claim_dt';
+                    break;
             }
         }
         else {
@@ -972,30 +972,30 @@ const util = {
         }
 
         switch (filterObj.date.condition) {
-        // Preformatted Date Ranges
-        case 'Preformatted':
-            preformatted = util.getPreformattedDateRange(filterObj.date.preformatted);
-            fromDate = preformatted.split('~')[0];
-            toDate = preformatted.split('~')[1];
-            fromTime = moment().startOf('day').format('HH:mm:ss');
-            toTime = moment().endOf('day').format('HH:mm:ss');
-            break;
-        // Looking back a defined length of time
-        case 'Last':
-        case 'Next':
-            duration = util.getFromToDuration(filterObj.date.durationValue, filterObj.date.duration, filterObj.date.condition);
-            fromDate = duration.split('~')[0];
-            toDate = duration.split('~')[1];
-            fromTime = filterObj.date.fromTime ? filterObj.date.fromTime : moment().startOf('day').format('HH:mm:ss');
-            toTime = filterObj.date.toTime ? filterObj.date.toTime : moment().endOf('day').format('HH:mm:ss');
-            break;
-        // To and From Exact Dates
-        case 'Date':
-            fromDate = filterObj.date.fromDate ? moment(filterObj.date.fromDate).format('YYYY-MM-DD') : '';
-            toDate = filterObj.date.toDate ? moment(filterObj.date.toDate).format('YYYY-MM-DD') : '';
-            fromTime = filterObj.date.fromDateTime ? filterObj.date.fromDateTime : moment().startOf('day').format('HH:mm:ss');
-            toTime = filterObj.date.toDateTime ? filterObj.date.toDateTime : moment().endOf('day').format('HH:mm:ss');
-            break;
+            // Preformatted Date Ranges
+            case 'Preformatted':
+                preformatted = util.getPreformattedDateRange(filterObj.date.preformatted);
+                fromDate = preformatted.split('~')[0];
+                toDate = preformatted.split('~')[1];
+                fromTime = moment().startOf('day').format('HH:mm:ss');
+                toTime = moment().endOf('day').format('HH:mm:ss');
+                break;
+            // Looking back a defined length of time
+            case 'Last':
+            case 'Next':
+                duration = util.getFromToDuration(filterObj.date.durationValue, filterObj.date.duration, filterObj.date.condition);
+                fromDate = duration.split('~')[0];
+                toDate = duration.split('~')[1];
+                fromTime = filterObj.date.fromTime ? filterObj.date.fromTime : moment().startOf('day').format('HH:mm:ss');
+                toTime = filterObj.date.toTime ? filterObj.date.toTime : moment().endOf('day').format('HH:mm:ss');
+                break;
+            // To and From Exact Dates
+            case 'Date':
+                fromDate = filterObj.date.fromDate ? moment(filterObj.date.fromDate).format('YYYY-MM-DD') : '';
+                toDate = filterObj.date.toDate ? moment(filterObj.date.toDate).format('YYYY-MM-DD') : '';
+                fromTime = filterObj.date.fromDateTime ? filterObj.date.fromDateTime : moment().startOf('day').format('HH:mm:ss');
+                toTime = filterObj.date.toDateTime ? filterObj.date.toDateTime : moment().endOf('day').format('HH:mm:ss');
+                break;
         }
 
         if (fromDate && toDate) {
