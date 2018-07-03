@@ -24,6 +24,7 @@ html
             input#inSubmit(type="submit", style="visibility:hidden;height:0px")
             span#fileNameUploaded(style="visibility:hidden") #{fileNameUploaded}
             span#fileIsDuplicate(style="visibility:hidden") #{duplicate_file}
+            span#fileStatus(style="visibility:hidden") #{status}
     script.
         parent.commonjs.hideLoading();
         parent.document.getElementById('btnReloadERA').click();

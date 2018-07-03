@@ -1,17 +1,103 @@
 const data = require('../../data/era/index');
-const fs = require('fs');
-const path = require('path');
-const { promisify } = require('util');
-const readFile = promisify(fs.readFile);
 const ediConnect = require('../../../modules/edi');
 const paymentController = require('../payments/payments');
 const eraParser = require('./era-parser');
 const logger = require('../../../logger');
 
+const mkdirp = require('mkdirp');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+
+const { promisify } = require('util');
+const readFile = promisify(fs.readFile);
+
 module.exports = {
 
     getEraFiles: function (params) {
         return data.getEraFiles(params);
+    },
+
+    uploadFile: async function (params) {
+        if (!params.file) {
+            return {
+                status: 'INVALID_FILE',
+            };
+        }
+
+        const buffer = params.file.buffer;
+        const fileSize = params.file.size;
+
+        let tempString = buffer.toString();
+        let bufferString = tempString.replace(/(?:\r\n|\r|\n)/g, '');
+
+        let fileMd5 = crypto.createHash('MD5').update(bufferString, 'utf8').digest('hex');
+
+        const dataRes = await data.isProcessed(fileMd5, 1);
+
+        const fileStorePath = dataRes.rows[0].file_store_info[0].root_directory;
+        const fileStoreId = dataRes.rows[0].file_store_info[0].file_store_id;
+        const fileExist = dataRes.rows[0].file_exists[0];
+
+        const currentTime = new Date();
+
+        const localPath = `${currentTime.getFullYear()}\\${currentTime.getMonth()}\\${currentTime.getDate()}`;
+        const dirPath = `${fileStorePath}\\${localPath}`;
+
+        logger.info(`ERA File store: ${fileStorePath}`);
+
+        if (fileStorePath) {
+            if (!fs.exists(dirPath)) {
+                mkdirp(dirPath);
+            } else {
+                throw new Error('Directory not found');
+            }
+        } else {
+            throw new Error('Directory not found in file store');
+        }
+
+        if (fileExist != false) {
+            logger.info(`ERA Duplicate file: ${fileMd5}`);
+
+            return {
+                status: 'DUPLICATE_FILE',
+                duplicate_file: true,
+            };
+        }
+
+        logger.info('Writing file in DB');
+        const dataResponse = await data.saveERAFile({
+            file_store_id: fileStoreId,
+            company_id: params.audit.companyId,
+            status: 'pending',
+            file_type: '835',
+            file_path: localPath,
+            file_size: fileSize,
+            file_md5: fileMd5,
+        });
+
+        if (typeof dataResponse === 'object' && dataResponse.constructor.name === 'Error') {
+            return {
+                status: 'ERROR',
+            };
+        }
+
+        let filePath = path.join(dirPath, dataResponse.rows[0].id);
+        logger.info(`Writing file in Disk -  ${filePath}`);
+
+        await fs.writeFile(filePath, bufferString, 'binary', function (err) {
+            if (err) {
+                logger.error('Writing file in Disk', err);
+                throw err;
+            }
+
+            logger.info(`File uploaded successfully. ${filePath}`);
+
+            return {
+                fileNameUploaded: dataResponse.rows[0].id,
+                status: 'OK',
+            };
+        });
     },
 
     processERAFile: async function (params) {
@@ -40,7 +126,7 @@ module.exports = {
                 });
 
                 return message;
-               
+
             }
 
             eraPath = path.join(eraPath, params.file_id);
@@ -50,8 +136,8 @@ module.exports = {
             ediConnect.init('http://192.168.1.102:5581/edi/api');
 
             let templateName = await ediConnect.getDefaultEraTemplate();
-            
-            if(!templateName){
+
+            if (!templateName) {
                 message.push({
                     status: 100,
                     message: 'ERA template not found to process file'
@@ -59,7 +145,7 @@ module.exports = {
 
                 return message;
             }
-            
+
             const eraResponseJson = await ediConnect.parseEra(templateName, eraRequestText);
 
             if (params.status != 'applypayments') {
@@ -74,7 +160,7 @@ module.exports = {
             return processDetailsArray;
 
         } catch (err) {
-            
+
             if (err.message && err.message == 'Invalid template name') {
                 logger.error(err);
 
@@ -110,7 +196,7 @@ module.exports = {
         return await Promise.all(results);
 
     },
-    
+
     checkExistInsurance: async function (params, eraResponseJson) {
 
         let payerDetails = {};
@@ -175,7 +261,7 @@ module.exports = {
         payerDetails.logDescription = 'Payment created via ERA';
 
         try {
-            
+
             paymentResult = await paymentController.createOrUpdatePayment(payerDetails);
             paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
             paymentResult.file_id = params.file_id;
@@ -212,14 +298,14 @@ module.exports = {
 
         //     return message;
         // } 
-       
+
         let processedClaims = await data.createPaymentApplication(LineItemsAndClaimLists, paymentDetails);
 
         return processedClaims;
     },
 
-    checkERAFileIsProcessed: async function (fileMd5, company_id) {
-        return data.checkERAFileIsProcessed(fileMd5, company_id);
+    isProcessed: async function (fileMd5, company_id) {
+        return data.isProcessed(fileMd5, company_id);
     },
 
     saveERAFile: async function (params) {
