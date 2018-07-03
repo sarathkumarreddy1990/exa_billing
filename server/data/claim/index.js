@@ -698,7 +698,7 @@ module.exports = {
                 billing.claims
             WHERE 
                 id = ${claims.claim_id}
-        )
+        ),
         save_insurance AS (
                 INSERT INTO patient_insurances (
                     patient_id
@@ -920,7 +920,7 @@ module.exports = {
                              billing.get_computed_bill_fee(${claims.claim_id},chd.cpt_id,coalesce(chd.modifier1_id,0),coalesce(chd.modifier2_id,0),coalesce(chd.modifier3_id,0),coalesce(chd.modifier4_id,0))
                           ELSE
                             chd.bill_fee 
-                         END 
+                          END 
             , allowed_amount = chd.allowed_amount
             , units  = chd.units
             , pointer1  = chd.pointer1
