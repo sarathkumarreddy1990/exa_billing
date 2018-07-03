@@ -3,11 +3,7 @@ define(['backbone'], function (Backbone) {
         urlRoot: "/exa_modules/billing/setup/insurance_x12_mapping",
         defaults: {
             companyId: "",
-            name: "",
-            claimClearingHouse: "",
-            claimRequestTemplate: "",
-            claimReqTempProv: "",
-            isActive: ""
+            claimClearingHouse: ""
         },
         initialize: function (models) {
         }
