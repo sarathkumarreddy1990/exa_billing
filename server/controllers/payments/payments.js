@@ -103,17 +103,17 @@ module.exports = {
                     payment_application_id: value.paymentApplicationId,
                     payment_id: paymentId,
                     charge_id: value.charge_id,
-                    amount: value.payment == null ? 0.00 : value.payment,
+                    amount: value.payment || 0.00,
                     adjestment_id: null,
                     parent_application_id: null
                 });
 
                 updateAppliedPayments.push({
-                    payment_application_id: value.adjustmentApplicationId != '' ? value.adjustmentApplicationId : null,
+                    payment_application_id: value.adjustmentApplicationId || null,
                     payment_id: paymentId,
                     charge_id: value.charge_id,
-                    amount: value.adjustment == null ? 0.00 : value.adjustment,
-                    adjestment_id: adjestmentId ? adjestmentId : null,
+                    amount: value.adjustment || 0.00,
+                    adjestment_id: adjestmentId || null,
                     parent_application_id:value.paymentApplicationId 
                 });
 
@@ -125,7 +125,7 @@ module.exports = {
                         group_code_id : details.group_code_id,
                         reason_code_id : details.reason_code_id,
                         amount : details.amount,
-                        cas_id : details.cas_id ? details.cas_id : null
+                        cas_id : details.cas_id || null
                     });
                 });
 

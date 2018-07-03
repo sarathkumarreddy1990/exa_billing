@@ -569,7 +569,7 @@ module.exports = {
                                 , ${params.userId}
                                 , parent_application_id
                             FROM update_application_details
-                            WHERE  payment_application_id is null and amount != 0::money
+                            WHERE  payment_application_id is null and (amount != 0::money OR ${JSON.stringify(params.save_cas_details)} != '[]')
                             RETURNING *
                         ),
                         update_claim_details AS(
