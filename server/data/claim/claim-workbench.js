@@ -139,10 +139,9 @@ module.exports = {
 
     updateBillingPayers: async function(params) {
         const sql = SQL`
-                        UPDATE 
-                        billing.claims
-                        SET payer_type = ${params.payer_type}
-                        WHERE id = ${params.id}`;
+                        SELECT
+                        billing.change_payer_type(${params.id},${params.payer_type})
+                        `;
 
         return await query(sql);
     }

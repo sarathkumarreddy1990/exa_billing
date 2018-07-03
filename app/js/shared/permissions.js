@@ -9,9 +9,10 @@ define([
 
             this.init = function () {
                 var accessDeniedScreens = [];
-                billingScreenCodes = ['ADJC', 'BICO', 'BICL', 'CLST', 'BIPR', 'PRCQ', 'BILM', 'PARE', 'CASG', 'CASR', 'STCC', 'BIVA', 'PCA', 'EDRT', 'INSM', 'CLHO', 'BULG', 'BALG',
+                var billingScreenCodes = ['ADJC', 'BICO', 'BICL', 'CLST', 'BIPR', 'PRCQ', 'BILM', 'PARE', 'CASG', 'CASR', 'STCC', 'BIVA', 'PCA', 'EDRT', 'INSM', 'CLHO', 'BULG', 'BALG',
                     'AGAR', 'AARD', 'CHRG', 'CLAY', 'CLIN', 'CLTR', 'CRBE', 'DSPS', 'DICN', 'IVSL', 'MOSU', 'MNRC', 'PATS', 'PYMX', 'PAYT', 'PAIC', 'PBIC', 'PABI', 'PRCN', 'RPFR', 'REPC', 'REPS', 'TSUM',
-                    'CLIM', 'STDS', 'ECLM', 'CLMI', 'MASO', 'CLVA', 'ERAI']
+                    'CLIM', 'STDS', 'ECLM', 'CLMI', 'MASO', 'CLVA', 'ERAI', 'PAYM']
+
                 mappingObject = {
                     'ADJC': 'aAdjustmentCodes',
                     'BICO': 'aBillingCodes',
@@ -60,7 +61,8 @@ define([
                     'CLIM': 'aClaims',
                    // 'CLIM': 'anc_create_claim',
                     'CLVA': 'btnValidateOrder',
-                    'ERAI': 'aEob'
+                    'ERAI': 'aEob',
+                    'PAYM': 'aPayments'
                 };
                 accessDeniedScreens = _.difference(billingScreenCodes, app.screens)
 
@@ -71,9 +73,7 @@ define([
                     $('#' + screenId).attr('href', '#');
                     $('.' + screenId).addClass('disabled');
                     $('.' + screenId).attr('href', '#');
-
-                })
-
+                });
             };
         }
     });

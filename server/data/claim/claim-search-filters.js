@@ -112,7 +112,7 @@ const colModel = [
 	            WHEN 'patient' THEN patients.full_name        END) `] },
     {
         name: 'clearing_house',
-        searchColumns: [`insurance_providers.insurance_info->'claimCHDescription'`],
+        searchColumns: [`edi_clearinghouses.name`],
         searchFlag: '%'
     },
     {
@@ -185,30 +185,30 @@ const api = {
     getSortFields: function (args) {
         //console.log('getSortFields: ', args, screenName);
         switch (args) {
-        case 'study_dt':
-        case 'study_received_dt': return 'claims.claim_dt';
-        case 'claim_status': return 'claim_status.description';
-        case 'id': return 'claims.id';
-        case 'patient_name': return 'patients.full_name';
-        case 'birth_date': return 'patients.birth_date::text';
-        case 'account_no': return 'patients.account_no';
-        case 'patient_ssn': return `patients.patient_info->'ssn'`;
-        case 'billing_provider': return 'billing_providers.name';
-        case 'place_of_service': return 'places_of_service.description';
-        case 'referring_providers': return 'ref_provider.full_name';
-        case 'rendering_provider': return 'render_provider.full_name';
-        case 'billing_fee': return '(select charges_bill_fee_total from BILLING.get_claim_totals(claims.id))';
-        case 'invoice_no': return 'claims.invoice_no';
-        case 'billing_method': return 'claims.billing_method';
-        case 'followup_date': return 'claim_followups.followup_date::text';
-        case 'current_illness_date': return 'claims.current_illness_date::text';
-        case 'claim_no': return 'claims.id';
-        case 'policy_number': return 'patient_insurances.policy_number';
-        case 'group_number': return 'patient_insurances.group_number';
-        case 'payer_type':
-        case 'ref_phy': return 'claims.payer_type';
-        case 'payer_name':
-            return `(  CASE payer_type 
+            case 'study_dt':
+            case 'study_received_dt': return 'claims.claim_dt';
+            case 'claim_status': return 'claim_status.description';
+            case 'id': return 'claims.id';
+            case 'patient_name': return 'patients.full_name';
+            case 'birth_date': return 'patients.birth_date::text';
+            case 'account_no': return 'patients.account_no';
+            case 'patient_ssn': return `patients.patient_info->'ssn'`;
+            case 'billing_provider': return 'billing_providers.name';
+            case 'place_of_service': return 'places_of_service.description';
+            case 'referring_providers': return 'ref_provider.full_name';
+            case 'rendering_provider': return 'render_provider.full_name';
+            case 'billing_fee': return '(select charges_bill_fee_total from BILLING.get_claim_totals(claims.id))';
+            case 'invoice_no': return 'claims.invoice_no';
+            case 'billing_method': return 'claims.billing_method';
+            case 'followup_date': return 'claim_followups.followup_date::text';
+            case 'current_illness_date': return 'claims.current_illness_date::text';
+            case 'claim_no': return 'claims.id';
+            case 'policy_number': return 'patient_insurances.policy_number';
+            case 'group_number': return 'patient_insurances.group_number';
+            case 'payer_type':
+            case 'ref_phy': return 'claims.payer_type';
+            case 'payer_name':
+                return `(  CASE payer_type 
                 WHEN 'primary_insurance' THEN insurance_providers.insurance_name
                 WHEN 'secondary_insurance' THEN insurance_providers.insurance_name
                 WHEN 'teritary_insurance' THEN insurance_providers.insurance_name
@@ -217,12 +217,12 @@ const api = {
 	            WHEN 'rendering_provider' THEN render_provider.full_name
 	            WHEN 'patient' THEN patients.full_name        END) 
                     `;
-        case 'clearing_house': return 'edi_clearinghouses.name';
-        case 'claim_balance': return '(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM BILLING.get_claim_totals(claims.id))';
-        case 'billing_code': return 'billing_codes.description';
-        case 'billing_class': return 'billing_classes.description';
-        case 'gender': return 'patients.gender';
-        case 'claim_notes': return 'claims.claim_notes';
+            case 'clearing_house': return 'edi_clearinghouses.name';
+            case 'claim_balance': return '(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM BILLING.get_claim_totals(claims.id))';
+            case 'billing_code': return 'billing_codes.description';
+            case 'billing_class': return 'billing_classes.description';
+            case 'gender': return 'patients.gender';
+            case 'claim_notes': return 'claims.claim_notes';
         }
 
         return args;
@@ -288,7 +288,8 @@ const api = {
                 END)`;
 
             r += ' LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id ';
-            r += `LEFT JOIN   billing.edi_clearinghouses ON  billing.edi_clearinghouses.id::text=insurance_info->'claimClearingHouse'::text`;
+            r += ' LEFT JOIN billing.insurance_provider_clearinghouses ON insurance_provider_clearinghouses.insurance_id = insurance_providers.id ';
+            r += ' LEFT JOIN   billing.edi_clearinghouses ON  billing.edi_clearinghouses.id=insurance_provider_clearinghouses.clearing_house_id';
              
         }
         

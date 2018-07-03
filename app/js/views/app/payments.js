@@ -71,7 +71,7 @@ define(['jquery',
                 });
 
                 this.paymentStatusList = new modelCollection(paymentStatus);
-                var facilities = (app.userInfo.user_type == "SU") ? app.facilities : app.userfacilities;
+                var facilities =  app.facilities ;
                 var adjustment_codes = jQuery.grep([], function (obj, i) {
                     return (obj.type == "ADJCDE" || obj.type == "REFADJ");
                 });
