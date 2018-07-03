@@ -93,6 +93,7 @@ define([
                     success: function (model, response) {
                         if (response) {
                             location.href = "#setup/validations/all";
+                            commonjs.showStatus("Saved Succesfully")
                         }
                     },
                     error: function (model, response) {
