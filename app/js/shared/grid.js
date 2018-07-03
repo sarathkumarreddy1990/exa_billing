@@ -115,8 +115,8 @@ define('grid', [
 
             let study_id = 0;
             let order_id = 0;
-            let isbilled_status =false;
-            let isUnbilled_status =false;
+            let isbilled_status = false;
+            let isUnbilled_status = false;
 
             for (var r = 0; r < selectedCount; r++) {
                 var rowId = $checkedInputs[r].parentNode.parentNode.id;
@@ -134,10 +134,10 @@ define('grid', [
                     billed_status:_storeEle.billed_status,
                     claim_id:_storeEle.claim_id
                 };
-                if(_storeEle.billed_status=='billed'){
+                if (_storeEle.billed_status == 'billed') {
                     isbilled_status = true;
                 }
-                if(_storeEle.billed_status=='unbilled'){
+                if (_storeEle.billed_status == 'unbilled') {
                     isUnbilled_status = true;
                 }
                 selectedStudies.push(study);
