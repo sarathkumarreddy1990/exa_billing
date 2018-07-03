@@ -423,7 +423,8 @@ module.exports = {
 											group_info->'Zip' as "zip",
 											group_info->'ZipPlus' as "zipPlus",
 											group_info->'Phone' as "phone",
-											group_info->'Email' as "email"
+											group_info->'Email' as "email",
+											group_info->'stateLicenseNo' as "stateLicenseNo"
 											FROM provider_groups 
 											WHERE  claims.ordering_facility_id = provider_groups.id) 
 										as servicefacility)
@@ -525,6 +526,8 @@ module.exports = {
 					allowed_amount::numeric::text as "allowedAmount",
 					charges.id as "iterationIndex",
 					display_description as "studyDescription",
+					additional_info->'ndc_code' as NDCCode,
+					additional_info->'ndc_measure' as NDCMeasure,
 					bill_fee::numeric::text as "billFee",
 					(bill_fee*charges.units)::numeric::text  as "totalBillFee",
 					charges.units as "unit",
