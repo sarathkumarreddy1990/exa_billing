@@ -8,6 +8,7 @@ define([
         var EDITemplatesView = Backbone.View.extend({
             ediTemplates: _.template(EDITemplates),
             templateFlag: 'edi',
+            templateLists: [],
             highlighClass: {
                 'background': '#bbddff', 'border-radius': '6px'
             },
@@ -62,6 +63,7 @@ define([
                             if (data && data.length > 0) {
                                 $('#dropdownMenuButton').addClass('dropdown-toggle').prop('disabled',false);
                                 $('#btnCreateNewTemplate,#btnDeleteTemplate,#dropdownMenuButton').show();
+                                self.templateLists = data;
                                 for (var i = 0; i < data.length; i++) {
                                     $('#divTemlateList').append(
                                         $('<a/>').attr('href', 'javascript:void(0)').addClass('dropdown-item').text(data[i]).css({
@@ -75,8 +77,12 @@ define([
                                         'height': $('#editor').height(),
                                         'overflow-x': 'hidden'
                                     });
-                                    self.getEDITemplate(data[0]);
                                 }
+                                var ediTemplate = self.getTemplateFromLocalStroage('EDITEMPLATE');
+                                if(!self.templateExists(ediTemplate,self.templateLists)) {
+                                    ediTemplate = null;
+                                }
+                                self.getEDITemplate(ediTemplate ? ediTemplate :self.templateLists[0]);
                             } else {
                                 if(data && data.error) {
                                     commonjs.showWarning("Unable To Connect EDI Server");
@@ -105,6 +111,25 @@ define([
                 });
             },
 
+            templateExists: function (templateName, templateList) {
+                var isExists = false;
+                var matchedTemplate = templateList.filter(function (template) {
+                    return template.toLowerCase() == templateName.toLowerCase();
+                });
+                if (matchedTemplate && matchedTemplate[0].toLowerCase() == templateName.toLowerCase()) {
+                    isExists = true;
+                }
+                return isExists;
+            },
+
+            setTemplateInLocalStorage: function (flag, template) {
+                localStorage.setItem(flag, template);
+            },
+
+            getTemplateFromLocalStroage: function (flag) {
+                return localStorage.getItem(flag);
+            },
+
             getEDITemplate: function (templateName) {
                 var self = this;
                 if (templateName) {
@@ -114,6 +139,9 @@ define([
                         success: function (data, response) {
                             if (data) {
                                 ace.edit('editor').setValue(JSON.stringify(data, null, '\t'));
+                                if(self.templateFlag == 'edi') {
+                                    self.setTemplateInLocalStorage('EDITEMPLATE', templateName);
+                                }
                                 $('#dropdownMenuButton').html(templateName);
                             }
                         },
@@ -155,6 +183,10 @@ define([
                 var templateName = $('#txtTemplateName').val();
                 if (templateName) {
                     if ($(e.target).html() == 'SAVE TEMPLATE') {
+                        if (self.templateExists(templateName, self.templateLists)) {
+                            $('#txtTemplateName').focus();
+                            return commonjs.showWarning("Template name already exists");
+                        }
                         self.saveTrigger(templateName);
                     } else {
                         self.deleteTrigger(templateName);
