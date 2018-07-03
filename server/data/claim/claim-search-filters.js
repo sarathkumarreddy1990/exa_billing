@@ -112,7 +112,7 @@ const colModel = [
 	            WHEN 'patient' THEN patients.full_name        END) `] },
     {
         name: 'clearing_house',
-        searchColumns: [`insurance_providers.insurance_info->'claimCHDescription'`],
+        searchColumns: [`edi_clearinghouses.name`],
         searchFlag: '%'
     },
     {
@@ -288,7 +288,8 @@ const api = {
                 END)`;
 
             r += ' LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id ';
-            r += `LEFT JOIN   billing.edi_clearinghouses ON  billing.edi_clearinghouses.id::text=insurance_info->'claimClearingHouse'::text`;
+            r += ' LEFT JOIN billing.insurance_provider_clearinghouses ON insurance_provider_clearinghouses.insurance_id = insurance_providers.id ';
+            r += ' LEFT JOIN   billing.edi_clearinghouses ON  billing.edi_clearinghouses.id=insurance_provider_clearinghouses.clearing_house_id';
              
         }
         
