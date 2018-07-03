@@ -419,7 +419,7 @@ CREATE TABLE IF NOT EXISTS billing.adjustment_codes
     CONSTRAINT adjustment_codes_pk PRIMARY KEY(id),
     CONSTRAINT adjustment_codes_company_id_fk FOREIGN KEY (company_id) REFERENCES public.companies (id),
     CONSTRAINT adjustment_codes_company_code_uc UNIQUE(company_id,code),
-    CONSTRAINT adjustment_codes_accounting_entry_type_cc CHECK(accounting_entry_type in('credit','debit'))
+    CONSTRAINT adjustment_codes_accounting_entry_type_cc CHECK(accounting_entry_type in('credit','debit','refund_debit','recoupment_debit'))
 );
 
 COMMENT ON TABLE billing.adjustment_codes IS 'Adjustment codes for Billing';
@@ -1088,7 +1088,7 @@ CREATE TABLE IF NOT EXISTS billing.audit_log
   CONSTRAINT audit_log_created_by_fk FOREIGN KEY (created_by) REFERENCES public.users(id),
   CONSTRAINT audit_log_module_name_cc CHECK(module_name in ('setup','claims','payments','era','edi'))
  ); 
-CREATE INDEX audit_log_entity_name_entity_key_idx ON billing.audit_log (entity_name,entity_key);
+CREATE INDEX IF NOT EXISTS audit_log_entity_name_entity_key_idx ON billing.audit_log (entity_name,entity_key);
 
 COMMENT ON TABLE billing.audit_log IS 'To log all application level changes in each table from setup,claims and payments module of billing 1.5 application';
 
@@ -1096,7 +1096,7 @@ COMMENT ON COLUMN billing.audit_log.entity_name IS 'It is the affected table nam
 COMMENT ON COLUMN billing.audit_log.entity_key IS 'It is the primary key of the affected row';
 COMMENT ON COLUMN billing.audit_log.entity_key IS 'To store old and new values of the affected row ';
 -- --------------------------------------------------------------------------------------------------------------------
-CREATE TABLE billing.insurance_provider_clearinghouses
+CREATE TABLE IF NOT EXISTS billing.insurance_provider_clearinghouses
 (
   insurance_id bigint NOT NULL,
   clearing_house_id bigint NOT NULL,

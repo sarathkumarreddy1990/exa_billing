@@ -93,7 +93,7 @@ module.exports = {
             let claimCommentDetails = {};
             let updateAppliedPayments = [];
             let coPaycoInsDeductdetails = [];
-            let { paymentId, line_items, user_id, coPay, coInsurance, deductible, claimId, adjestmentId } = params;
+            let { paymentId, line_items, user_id, coPay, coInsurance, deductible, claimId, adjustmentId } = params;
             line_items = JSON.parse(line_items);
             const save_cas_details = [];
 
@@ -104,7 +104,7 @@ module.exports = {
                     payment_id: paymentId,
                     charge_id: value.charge_id,
                     amount: value.payment || 0.00,
-                    adjestment_id: null,
+                    adjustment_id: null,
                     parent_application_id: null
                 });
 
@@ -113,7 +113,7 @@ module.exports = {
                     payment_id: paymentId,
                     charge_id: value.charge_id,
                     amount: value.adjustment || 0.00,
-                    adjestment_id: adjestmentId || null,
+                    adjustment_id: adjustmentId || null,
                     parent_application_id:value.paymentApplicationId 
                 });
 

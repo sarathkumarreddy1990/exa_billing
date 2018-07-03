@@ -394,10 +394,10 @@ module.exports = {
         let { user_id,
             paymentId,
             line_items,
-            adjestmentId,
+            adjustmentId,
             auditDetails,
             logDescription } = params;
-        adjestmentId = adjestmentId ? adjestmentId : null;
+        adjustmentId = adjustmentId ? adjustmentId : null;
         logDescription = `Claim updated Id : ${params.claimId}`;
         
         const sql = SQL`WITH claim_comment_details AS(
@@ -413,7 +413,7 @@ module.exports = {
                                         , created_by BIGINT)
                                     ),
                              insert_application AS(
-                                SELECT billing.create_payment_applications(${paymentId},${adjestmentId},${user_id},(${line_items})::jsonb,(${JSON.stringify(auditDetails)})::json) AS details
+                                SELECT billing.create_payment_applications(${paymentId},${adjustmentId},${user_id},(${line_items})::jsonb,(${JSON.stringify(auditDetails)})::json) AS details
                              ),
                              update_claims AS(
                                     UPDATE billing.claims
@@ -499,13 +499,13 @@ module.exports = {
                             SELECT 
                                 payment_application_id
                               , amount
-                              , adjestment_id
+                              , adjustment_id
                               , charge_id
                               , parent_application_id
                             FROM json_to_recordset(${JSON.stringify(params.updateAppliedPayments)}) AS details(
                                payment_application_id BIGINT
                              , amount MONEY
-                             , adjestment_id BIGINT
+                             , adjustment_id BIGINT
                              , charge_id BIGINT
                             , parent_application_id BIGINT)),
                         claim_comment_details AS(
@@ -540,7 +540,7 @@ module.exports = {
                             UPDATE billing.payment_applications 
                                 SET
                                     amount = uad.amount
-                                  , adjustment_code_id = uad.adjestment_id
+                                  , adjustment_code_id = uad.adjustment_id
                             FROM update_application_details uad
                             WHERE id = uad.payment_application_id
                             RETURNING *,
@@ -565,7 +565,7 @@ module.exports = {
                                 , charge_id
                                 , 'adjustment'
                                 , amount
-                                , adjestment_id
+                                , adjustment_id
                                 , ${params.userId}
                                 , parent_application_id
                             FROM update_application_details
