@@ -235,6 +235,9 @@ module.exports = {
     },
 
     getUsers: async function (params) {
+
+        let users_q = ` AND (username ILIKE '%${params.q}%' ) `;
+
         const user_sql = SQL`SELECT
                             users.id AS id, 
                             username AS user_name, 
@@ -253,8 +256,11 @@ module.exports = {
                              users.is_active AND
                              users.company_id= ${params.company_id} `;
 
+        if (params.q != '') {
+            user_sql.append(users_q);
+        }
+
         user_sql.append(SQL`ORDER BY  ${params.sortField}`)
-            .append(SQL` `)
             .append(params.sortOrder)
             .append(SQL` LIMIT ${params.pageSize}`)
             .append(SQL` OFFSET ${((params.page * params.pageSize) - params.pageSize)}`);
@@ -263,6 +269,9 @@ module.exports = {
     },
 
     getUserRoles: async function (params) {
+
+        let users_role_q = ` AND (role_name ILIKE '%${params.q}%' ) `;
+
         const user_role_sql = SQL`SELECT
                                 user_roles.id AS id, 
                                 role_name AS role_name, 
@@ -274,6 +283,10 @@ module.exports = {
                                     user_roles.has_deleted=FALSE AND
                                     user_roles.is_active AND
                                     user_roles.company_id= ${params.company_id} `;
+
+        if (params.q != '') {
+            user_role_sql.append(users_role_q);
+        }                            
 
         user_role_sql.append(SQL`ORDER BY  ${params.sortField}`)
             .append(SQL` `)

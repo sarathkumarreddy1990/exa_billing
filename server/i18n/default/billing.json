@@ -121,7 +121,7 @@
             "directingBilling": "Direct Billing(Invoice)",
             "invoiceNumber": "Invoice Number :",
             "pendingPayments": "Pending Payments(Auto)",
-            "pendingPaymentsPat": "Pending Payments(By Patient/Claim)",
+            "pendingPaymentsPat": "Pending Payments(By Patient / Claim / Invoice #)",
             "appliedPayments": "Applied Payments",
             "paperClaim": "Paper Claim",
             "patientPayment": "Patient Payment",
@@ -185,7 +185,9 @@
             "generatepdf": "Generate PDF",
             "paymentTotal": "Payment Total",
             "appliedTotal": "Applied Total",
-            "adjustmentTotal": "Adjustment Total"
+            "adjustmentTotal": "Adjustment Total",
+            "allActivity" : "All Activity",
+            "activityByDate": "Activity By Date"
         },
         "refund": {
             "scheduleDate": "Schedule Date",

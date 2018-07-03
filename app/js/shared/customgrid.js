@@ -1219,8 +1219,10 @@ function customGrid ( datastore, gridID ) {
         if (typeof fieldValue == 'undefined' || fieldValue == "" || fieldValue == "Select") {
             return '';
         }
-
-        if (uiFieldID == "billing_method" && fieldValue == "paper_claim") {
+        if (this.options.filterid == 'Follow_up_queue') {
+            $("#btnPaperClaim").hide();
+            $("#btnInsuranceClaim").hide();
+        } else if (uiFieldID == "billing_method" && fieldValue == "paper_claim") {
             $("#btnPaperClaim").show();
             $("#btnInsuranceClaim").hide();
         } else {
