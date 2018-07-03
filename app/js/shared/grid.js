@@ -12,8 +12,9 @@ define('grid', [
     'views/setup/study-filter',
     'text!templates/setup/study-filter-grid.html',
     'views/claims/claim-inquiry',
-    'views/claims/split-claim'
-], function (jQuery, _, initChangeGrid, utils, Pager, StudyFields, Studies, claimWorkbench, claimsView, UserSettingsView, StudyFilterView, studyFilterGrid, claimInquiryView, splitClaimView) {
+    'views/claims/split-claim',
+    'views/claims/followup'
+], function (jQuery, _, initChangeGrid, utils, Pager, StudyFields, Studies, claimWorkbench, claimsView, UserSettingsView, StudyFilterView, studyFilterGrid, claimInquiryView, splitClaimView, followUpView) {
     var $ = jQuery;
     var isTrue = utils.isTrue;
     var isFalse = utils.isFalse;
@@ -458,23 +459,41 @@ define('grid', [
                     $('#anc_view_documents').addClass('disabled')
                     $('#anc_view_reports').addClass('disabled')
                 }
-            } else {   
-                if (!isbilled_status) {
-                    var liCreateClaim = commonjs.getRightClickMenu('anc_create_claim', 'setup.rightClickMenu.createClaim', false, 'Create Claim', false);
+
+                if(this.homeOpentab != 'Follow_up_queue'){
+                    var liFollowUp = commonjs.getRightClickMenu('anc_add_followup', 'setup.rightClickMenu.addFollowUP', false, 'Follow Up', false);
+                    $divObj.append(liFollowUp);
+                    $('#anc_add_followup').click(function () {
+                        self.followUpView = new followUpView();
+                        self.followUpView.render(studyIds);
+                    });
+                }
+
+                if (this.homeOpentab == 'Follow_up_queue') {
+                    var liResetFollowUp = commonjs.getRightClickMenu('anc_reset_followup', 'setup.rightClickMenu.resetFollowUp', false, 'Reset Follow Up', false);
+                    $divObj.append(liResetFollowUp);
+                    $('#anc_reset_followup').click(function () {
+                        self.followUpView = new followUpView();
+                        self.followUpView.resetFollowUp(studyIds);
+                    });
+                }
+
+            } else {
+                if(!isbilled_status)  {
+                    var liCreateClaim = commonjs.getRightClickMenu('anc_create_claim','setup.rightClickMenu.createClaim',false,'Create Claim',false);
                     $divObj.append(liCreateClaim);
                     $('#anc_create_claim').off().click(function () {
-
-                        window.localStorage.setItem('selected_studies', null);
-                        window.localStorage.setItem('primary_study_details', JSON.stringify(selectedStudies[0]));
-                        window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
-
-                        self.claimView = new claimsView();
-                        self.claimView.showClaimForm(studyIds);
-
-                    });
-                }             
+    
+                            window.localStorage.setItem('selected_studies', null);
+                            window.localStorage.setItem('primary_study_details', JSON.stringify(selectedStudies[0]));
+                            window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
+    
+                            self.claimView = new claimsView();
+                            self.claimView.showClaimForm(studyIds);
+    
+                        });
+                    }                      
                 
-
                 if (isbilled_status) {
                     var liEditClaim = commonjs.getRightClickMenu('anc_edit_claim', 'setup.rightClickMenu.editClaim', false, 'Edit Claim', false);
                     $divObj.append(liEditClaim);

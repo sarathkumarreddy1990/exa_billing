@@ -236,7 +236,9 @@
             "patientDocuments":"Patient Documents",
             "approvedReports":"Approved Reports",
             "viewDocuments": "View Documents",
-            "viewReports":"View Reports"
+            "viewReports":"View Reports",
+            "addFollowUP":"Add FollowUp",
+            "resetFollowUp": "Reset FollowUp"
         },
         "validation":{
             "billingGrp": "Billing Provider",
