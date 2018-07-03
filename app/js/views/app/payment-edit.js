@@ -824,7 +824,7 @@ define(['jquery',
                             name: 'edit', width: 20, sortable: false, search: false,
                             className: 'icon-ic-edit',
                             formatter: function (a, b, c) {
-                                return "<span class='icon-ic-edit' title='click Here to Edit'></span>";
+                                return "<span class='icon-ic-edit' title='Edit'></span>";
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblpendPaymentsGridOnly').jqGrid('getRowData', rowID);
@@ -836,7 +836,7 @@ define(['jquery',
                             name: 'claim_inquiry', width: 20, sortable: false, search: false,
                             className: 'icon-ic-raw-transctipt',
                             formatter: function () {
-                                return "<span class='icon-ic-raw-transctipt' title='click Here to view Claim inquiry'></span>"
+                                return "<span class='icon-ic-raw-transctipt' title='Claim Inquiry'></span>"
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblpendPaymentsGridOnly').jqGrid('getRowData', rowID);
@@ -913,19 +913,19 @@ define(['jquery',
                                 name: 'edit', width: 20, sortable: false, search: false,
                                 className: 'icon-ic-edit',
                                 formatter: function (a, b, c) {
-                                    return "<span class='icon-ic-edit' title='click Here to Edit'></span>";
+                                    return "<span class='icon-ic-edit' title='Edit'></span>";
                                 },
                                 customAction: function (rowID, e) {
                                     var gridData = $('#tblpendPaymentsGrid').jqGrid('getRowData', rowID);
                                     self.order_payment_id = 0;
-                                    self.showApplyAndCas(rowID, paymentID, 'pending', gridData.charge_id, gridData);
+                                    self.showApplyAndCas(rowID, paymentID || self.payment_id, 'pending', gridData.charge_id, gridData);
                                 }
                             },
                             {
                                 name: 'claim_inquiry', width: 20, sortable: false, search: false,
                                 className: 'icon-ic-raw-transctipt',
                                 formatter: function () {
-                                    return "<span class='icon-ic-raw-transctipt' title='click Here to view Claim inquiry'></span>"
+                                    return "<span class='icon-ic-raw-transctipt' title='Claim Inquiry'></span>"
                                 },
                                 customAction: function (rowID, e) {
                                     var gridData = $('#tblpendPaymentsGrid').jqGrid('getRowData', rowID);
@@ -965,7 +965,7 @@ define(['jquery',
                         ondblClickRow: function (rowID) {
                             self.order_payment_id = 0;
                             var gridData = $('#tblpendPaymentsGrid').jqGrid('getRowData', rowID);
-                            self.showApplyAndCas(rowID, paymentID, 'pending', gridData.charge_id, gridData);
+                            self.showApplyAndCas(rowID, paymentID || self.payment_id, 'pending', gridData.charge_id, gridData);
                         },
                         disablesearch: false,
                         disablesort: false,
@@ -1054,7 +1054,7 @@ define(['jquery',
                             name: 'edit', width: 20, sortable: false, search: false,
                             className: 'icon-ic-edit',
                             formatter: function (a, b, c) {
-                                return "<span class='icon-ic-edit' title='click Here to Edit'></span>";
+                                return "<span class='icon-ic-edit' title='Edit'></span>";
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblAppliedPaymentsGrid').jqGrid('getRowData', rowID);
@@ -1065,7 +1065,7 @@ define(['jquery',
                             name: 'claim_inquiry', width: 20, sortable: false, search: false,
                             className: 'icon-ic-raw-transctipt',
                             formatter: function () {
-                                return "<span class='icon-ic-raw-transctipt' title='click Here to view Claim inquiry'></span>"
+                                return "<span class='icon-ic-raw-transctipt' title='Claim Inquiry'></span>"
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblAppliedPaymentsGrid').jqGrid('getRowData', rowID);

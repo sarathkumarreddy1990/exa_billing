@@ -283,7 +283,7 @@ module.exports = {
         }
 
         if (display_description) {
-            whereQuery.push(` display_description  ILIKE '%${display_description}%' `);
+            whereQuery.push(`(SELECT claim_cpt_description from billing.get_claim_totals(bc.id))::text  ILIKE '%${display_description}%' `);
         }
 
         if (bill_fee) {
@@ -291,15 +291,15 @@ module.exports = {
         }
         
         if (payment) {
-            whereQuery.push(`  (SELECT payments_applied_total from billing.get_claim_totals(bc.id)) = '${payment}'::money`);
+            havingQuery.push(`  COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'payment'),0::money) = '${payment}'::money`);
         }
 
         if (patient_paid) {    
-            havingQuery.push(` COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient' and bpa.amount_type = 'payment'),0::money) = '${patient_paid}'::money`);
+            whereQuery.push(` (SELECT patient_paid FROM billing.get_claim_patient_other_payment(bc.id)) = '${patient_paid}'::money`);
         }
 
         if (others_paid) {  
-            havingQuery.push(` COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient' and bpa.amount_type = 'payment'),0::money) = '${others_paid}'::money`);  
+            whereQuery.push(` (SELECT others_paid FROM billing.get_claim_patient_other_payment(bc.id)) = '${others_paid}'::money`);  
         }
 
         if (adjustment) {    
