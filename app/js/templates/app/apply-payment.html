@@ -23,21 +23,21 @@
         </span>
     </td>
     <td style="white-space: nowrap !important">
-        <input id="txtThisPay" value="<%= payment.payment_amount %>" type="text" class="input-xs this_pay floatboxtwodec">
+        <input value="<%= payment.payment_amount %>" type="text" class="input-xs this_pay floatboxtwodec">
     </td>
     <td style="white-space: nowrap !important">
-        <input id="txtAllowed" type="text" class="input-xs this_allowed floatbox" disabled="disabled" value="<%= payment.allowed_amount %>">
+        <input type="text" class="input-xs this_allowed floatbox" disabled="disabled" value="<%= payment.allowed_amount %>">
     </td>
     <td style="white-space: nowrap !important">
-        <span id="spUnappliedAdjustment">
+        <span>
             <%= payment.other_adjustment %>
         </span>
     </td>
     <td style="white-space: nowrap !important">
-        <input id="txtThisAdjustment" type="text" class="input-xs this_adjustment floatboxtwodec" value="<%= payment.adjustment %>">
+        <input type="text" class="input-xs this_adjustment floatboxtwodec" value="<%= payment.adjustment %>">
     </td>
     <td style="white-space: nowrap !important">
-        <span id="spReconcileBalance">
+        <span>
             <%= payment.balance %>
         </span>
     </td>

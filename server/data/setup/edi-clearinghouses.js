@@ -43,6 +43,10 @@ module.exports = {
                             , communication_info
                             , COUNT(1) OVER (range unbounded preceding) as total_records
                         FROM   billing.edi_clearinghouses`;
+                        
+        if (isFrom == 'InsuranceEDIMapping'){
+            sql.append(SQL` WHERE inactivated_dt IS NULL`);
+        }
 
         if (whereQuery.length) {
             sql.append(SQL` WHERE `)

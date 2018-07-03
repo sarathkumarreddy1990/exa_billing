@@ -78,7 +78,7 @@ define([
                         },
                         { name: 'file_name', width: 400, searchFlag: 'hstore', searchoptions: { defaultValue: commonjs.filterData['file_name'] } },
                         {
-                            name: 'size', width: 100, searchFlag: 'hstore', searchoptions: { defaultValue: commonjs.filterData['size'] }, formatter: function (cellvalue, options, rowObject) {
+                            name: 'size', width: 100, search: false, searchoptions: { defaultValue: commonjs.filterData['size'] }, formatter: function (cellvalue, options, rowObject) {
                                 return self.fileSizeTypeFormatter(cellvalue, options, rowObject);
                             }
                         },

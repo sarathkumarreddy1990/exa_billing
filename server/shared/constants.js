@@ -38,9 +38,9 @@ module.exports = {
         'payments': 'Payments',
         'applyPayments':'Applied Payments',
         'claim_inquiry':'Claim Inquiry',
-        'claim_workbench':'Claims',
+        'claims':'Claims',
         'studies': 'Studies',
-        'claim_study': 'Edit Claim',
+        'Payments': 'Edit Claim',
         'split_claim': 'Split Claim',
         'validate_claims': 'Validate Claims',
         'aged-ar-summary': 'Aged AR Summary',
@@ -54,7 +54,7 @@ module.exports = {
         'monthly-recap': 'Monthly Recap Report',
         'patient-statement': 'Patient Statment Report',
         'payer-mix': 'Payer Mix Report',
-        // 'payments': 'Payments Report' Need to change the name,
+        // 'payment': 'Payments Report' Need to change the name,
         'claim-inquiry': 'Claim Inquiry Report',
         'insurance-vs-lop': 'Insurance vs LOP Report',
         'patients-by-insurance-company': 'Patients by Insurance Company',
@@ -116,7 +116,7 @@ module.exports = {
         'audit_log': 'BALG',
         'claim_workbench': 'CLIM',
         'studies': 'STDS',
-        'claim_study': 'ECLM',
+        'payments': 'ECLM',
         'claim_inquiry': 'CLMI',
         'split_claim': 'MASO',
         'validate_claims': 'CLVA',
@@ -131,7 +131,7 @@ module.exports = {
         'monthly-recap': 'MNRC',
         'patient-statement': 'PATS',
         'payer-mix': 'PYMX',
-        //'payments':'PAYT',
+        //'payment':'PAYT',
         'claim-inquiry': 'CLIN',
         'insurance-vs-lop': 'IVSL',
         'patients-by-insurance-company': 'PAIC',
@@ -141,6 +141,8 @@ module.exports = {
         'reading-provider-fees': 'RPFR',
         'referring-provider-count': 'REPC',
         'referring-provider-summary': 'REPS',
-        'transaction-summary': 'TSUM'
+        'transaction-summary': 'TSUM',
+        'list': 'PAYM',
+        'total_amount': 'PAYM'
     }
 };

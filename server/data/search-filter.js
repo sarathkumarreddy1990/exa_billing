@@ -301,7 +301,11 @@ const colModel = [
         name: 'ins_provider_type',
         searchColumns: ['insurance_providers.provider_types'],
         searchFlag: 'arrayString'
-    }
+    },
+    {
+        name: 'billed_status',
+        searchFlag: '='
+    },
 ];
 
 const api = {
@@ -358,120 +362,120 @@ const api = {
     getSortFields: function (args, screenName) {
         //console.log('getSortFields: ', args, screenName);
         switch (args) {
-        case 'study_id':                return 'studies.id';
-        case 'insurance_providers':     return  'orders.insurance_providers';
-        case 'image_delivery':          return  'imagedelivery.image_delivery';
-        case 'eligibility_verified':    return `(COALESCE(eligibility.verified, false) OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)`;
-        case 'station':                 return  "study_info->'station'";
-        case 'has_deleted':             return  'studies.has_deleted';
-        case 'send_status':             return  "studies.study_info->'send_status'";
-        case 'billing_code':            return  "orders.order_info->'billing_code'";
-        case 'billing_class':           return  "orders.order_info->'billing_class'";
-        case 'fax_status':              return  "studies.study_info->'fax_status'";
-        case 'no_of_instances':         return  'studies.no_of_instances';
-        case 'department':              return  "studies.study_info->'department'";
-        case 'created_date':            return  'orders.ordered_dt';
-        case 'dicom_status': // this might not be needed any more
-        case 'status_code':             return  'studies.study_status';
-        case 'patient_name':            return  'patients.last_name';
-        case 'last_name':               return  'patients.last_name';
-        case 'first_name':              return  'patients.first_name';
-        case 'full_name':               return  'patients.full_name';
-        case 'birth_date':              return  'patients.birth_date::text';
-        case 'refphy_name':
-        case 'ref_phy':
-            if (screenName == 'Encounter') {
-                return  'providers.full_name';
-            }
+            case 'study_id': return 'studies.id';
+            case 'insurance_providers': return 'orders.insurance_providers';
+            case 'image_delivery': return 'imagedelivery.image_delivery';
+            case 'eligibility_verified': return `(COALESCE(eligibility.verified, false) OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)`;
+            case 'station': return "study_info->'station'";
+            case 'has_deleted': return 'studies.has_deleted';
+            case 'send_status': return "studies.study_info->'send_status'";
+            case 'billing_code': return "orders.order_info->'billing_code'";
+            case 'billing_class': return "orders.order_info->'billing_class'";
+            case 'fax_status': return "studies.study_info->'fax_status'";
+            case 'no_of_instances': return 'studies.no_of_instances';
+            case 'department': return "studies.study_info->'department'";
+            case 'created_date': return 'orders.ordered_dt';
+            case 'dicom_status': // this might not be needed any more
+            case 'status_code': return 'studies.study_status';
+            case 'patient_name': return 'patients.last_name';
+            case 'last_name': return 'patients.last_name';
+            case 'first_name': return 'patients.first_name';
+            case 'full_name': return 'patients.full_name';
+            case 'birth_date': return 'patients.birth_date::text';
+            case 'refphy_name':
+            case 'ref_phy':
+                if (screenName == 'Encounter') {
+                    return 'providers.full_name';
+                }
 
-            if (screenName == 'Orders') {
-                return  'orders.referring_providers[1]';
-            }
+                if (screenName == 'Orders') {
+                    return 'orders.referring_providers[1]';
+                }
 
-            return 'providers_ref.full_name';
-        case 'attorney_name':
-            return `(SELECT
+                return 'providers_ref.full_name';
+            case 'attorney_name':
+                return `(SELECT
                         get_full_name(last_name, first_name, middle_initial, NULL, suffix)
                     FROM
                         providers
                     WHERE
                         studies.attorney_provider_id = providers.id)
                     `;
-        case 'study_description':
-        case 'display_description':
-            if (screenName == 'Encounter') {
-                return  'cpt_codes.display_description';
-            }
+            case 'study_description':
+            case 'display_description':
+                if (screenName == 'Encounter') {
+                    return 'cpt_codes.display_description';
+                }
 
-            return 'studies.study_description';
-        case 'readphy_name':            return  `study_info->'readDescription'`;
-        case 'study_received_dt':       return  'studies.study_received_dt';
-        case 'approved_dt':             return  'studies.approved_dt';
-        case 'study_status_description':
-            if (screenName == 'Encounter') {
-                return  'orders.order_status_desc';
-            }
+                return 'studies.study_description';
+            case 'readphy_name': return `study_info->'readDescription'`;
+            case 'study_received_dt': return 'studies.study_received_dt';
+            case 'approved_dt': return 'studies.approved_dt';
+            case 'study_status_description':
+                if (screenName == 'Encounter') {
+                    return 'orders.order_status_desc';
+                }
 
-            return  'study_status.status_desc';
-        case 'study_flag':              return  'study_flags.description';
-        case 'priority':                return  'studies.priority';
-        case 'modalities':
-            if (screenName == 'Orders') {
-                return  'modalities.modality_code';
-            }
+                return 'study_status.status_desc';
+            case 'study_flag': return 'study_flags.description';
+            case 'priority': return 'studies.priority';
+            case 'modalities':
+                if (screenName == 'Orders') {
+                    return 'modalities.modality_code';
+                }
 
-            return  'studies.modalities';
-        case 'body_part':               return  'studies.body_part';
-        case 'status_last_changed_dt':  return  'studies.status_last_changed_dt';
-        case 'scheduled_dt':
-        case 'schedule_date':           return  'studies.schedule_dt';
-        case 'study_dt':                return 'studies.study_dt';
-        case 'study_status':
-            if (screenName == 'Encounter') {
-                return 'orders.order_status_desc';
-            }
+                return 'studies.modalities';
+            case 'body_part': return 'studies.body_part';
+            case 'status_last_changed_dt': return 'studies.status_last_changed_dt';
+            case 'scheduled_dt':
+            case 'schedule_date': return 'studies.schedule_dt';
+            case 'study_dt': return 'studies.study_dt';
+            case 'study_status':
+                if (screenName == 'Encounter') {
+                    return 'orders.order_status_desc';
+                }
 
-            return  'studies.study_status';
-        case 'patient_age':
-            if (screenName == 'Encounter') {
-                return  `order_info->'patient_age'`;
-            }
+                return 'studies.study_status';
+            case 'patient_age':
+                if (screenName == 'Encounter') {
+                    return `order_info->'patient_age'`;
+                }
 
-            return 'extract(days from (studies.study_dt - patients.birth_date))';
-        case 'gender': return 'patients.gender';
-        case 'mu_last_updated_by':      return `orders.order_info->'lastMuUpdatedBy'`;
-        case 'accession_no':
-            if (screenName == 'Encounter') {
-                return  'orders.id';
-            }
+                return 'extract(days from (studies.study_dt - patients.birth_date))';
+            case 'gender': return 'patients.gender';
+            case 'mu_last_updated_by': return `orders.order_info->'lastMuUpdatedBy'`;
+            case 'accession_no':
+                if (screenName == 'Encounter') {
+                    return 'orders.id';
+                }
 
-            return 'studies.accession_no';
-        case 'requesting_date':         return  `to_timestamp(orders.order_info->'requestingDate', 'MM/DD/YYYY')`;
-        case 'days_count':              return  `studies.study_info->'preOrderDays'`;
-        case 'days_left':               return  `studies.study_info->'preOrderDays'`;
-        case 'ordering_facility':       return  `orders.order_info->'ordering_facility'`;
-        case 'technologist_name':       return  'providers.full_name';
-        case 'payer_name':              return  `orders.order_info->'payer_name'`;
-        case 'claim_status':            return  `orders.order_info->'claim_status'`;
-        case 'check_indate':            return  `text_to_isots(studies.study_info->'Check-InDt')`;             // optimization! use sutom immutable function (instead of timestamptz) and corresponding index to improve query time
-        case 'approving_provider_ref':  return  'approving_provider_ref.full_name';
-        case 'approving_provider':      return 'approving_provider_ref.full_name';
-        case 'claim_no':                return  'orders.id';
-        case 'ordered_by':              return  'orders.ordered_by';
-        case 'vehicle_name':            return  'vehicles.vehicle_name';
-        case 'order_type':              return  'orders.order_type';
-        case 'cpt_codes':               return  'studies.cpt_codes';
-        case 'mu_last_updated':         return  'orders.mu_last_updated';
-        case 'report_queue_status':     return 'report_queue_status_query';
-        case 'account_no':              return 'patients.account_no';
-        case 'modality_room_id':        return 'orders.modality_room_id';
-        case 'institution':             return 'studies.institution';
-        case 'as_authorization':        return 'auth.as_authorization';
-        case 'facility_name':           return 'facilities.facility_name';
-        case 'tat_level':               return 'tat.level';
-        case 'patient_room':            return  `orders.order_info->'patientRoom'`; //***For EXA-7148 -- Add Room Number colum to Facility Portal***//
-        case 'visit_no':                return `orders.order_info->'visit_no'`;
-        case 'billed_status':           return `(SELECT  CASE WHEN (SELECT claim_id FROM billing.charges_studies inner JOIN billing.charges ON charges.id= 
+                return 'studies.accession_no';
+            case 'requesting_date': return `to_timestamp(orders.order_info->'requestingDate', 'MM/DD/YYYY')`;
+            case 'days_count': return `studies.study_info->'preOrderDays'`;
+            case 'days_left': return `studies.study_info->'preOrderDays'`;
+            case 'ordering_facility': return `orders.order_info->'ordering_facility'`;
+            case 'technologist_name': return 'providers.full_name';
+            case 'payer_name': return `orders.order_info->'payer_name'`;
+            case 'claim_status': return `orders.order_info->'claim_status'`;
+            case 'check_indate': return `text_to_isots(studies.study_info->'Check-InDt')`;             // optimization! use sutom immutable function (instead of timestamptz) and corresponding index to improve query time
+            case 'approving_provider_ref': return 'approving_provider_ref.full_name';
+            case 'approving_provider': return 'approving_provider_ref.full_name';
+            case 'claim_no': return 'orders.id';
+            case 'ordered_by': return 'orders.ordered_by';
+            case 'vehicle_name': return 'vehicles.vehicle_name';
+            case 'order_type': return 'orders.order_type';
+            case 'cpt_codes': return 'studies.cpt_codes';
+            case 'mu_last_updated': return 'orders.mu_last_updated';
+            case 'report_queue_status': return 'report_queue_status_query';
+            case 'account_no': return 'patients.account_no';
+            case 'modality_room_id': return 'orders.modality_room_id';
+            case 'institution': return 'studies.institution';
+            case 'as_authorization': return 'auth.as_authorization';
+            case 'facility_name': return 'facilities.facility_name';
+            case 'tat_level': return 'tat.level';
+            case 'patient_room': return `orders.order_info->'patientRoom'`; //***For EXA-7148 -- Add Room Number colum to Facility Portal***//
+            case 'visit_no': return `orders.order_info->'visit_no'`;
+            case 'billed_status': return `(SELECT  CASE WHEN (SELECT 1 FROM billing.charges_studies inner JOIN billing.charges ON charges.id= 
                                                 charges_studies.charge_id  WHERE study_id = studies.id LIMIT 1) >0 THEN 'billed'
                                                 ELSE 'unbilled' END)`;
         }
@@ -1019,12 +1023,12 @@ const api = {
 
                 if (includeDeleted_study !== includeDeleted_perms) {
                     switch (includeDeleted_study) {
-                    case false:
-                        whereClause.default = AND(whereClause.default, ' NOT studies.has_deleted ');
-                        break;
-                    case true:
-                        whereClause.default = AND(whereClause.default, ' studies.has_deleted ');
-                        break;
+                        case false:
+                            whereClause.default = AND(whereClause.default, ' NOT studies.has_deleted ');
+                            break;
+                        case true:
+                            whereClause.default = AND(whereClause.default, ' studies.has_deleted ');
+                            break;
                     }
                 }
 
@@ -1048,12 +1052,12 @@ const api = {
                 }
 
                 switch (includeDeleted_perms) {
-                case false:
-                    whereClause.permission_filter = AND(whereClause.permission_filter, ' NOT studies.has_deleted ');
-                    break;
-                case true:
-                    whereClause.permission_filter = AND(whereClause.permission_filter, ' studies.has_deleted ');
-                    break;
+                    case false:
+                        whereClause.permission_filter = AND(whereClause.permission_filter, ' NOT studies.has_deleted ');
+                        break;
+                    case true:
+                        whereClause.permission_filter = AND(whereClause.permission_filter, ' studies.has_deleted ');
+                        break;
                 }
 
                 permission_query.append(whereClause.permission_filter);

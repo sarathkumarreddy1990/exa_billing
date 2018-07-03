@@ -3,6 +3,7 @@ const path = require('path');
 const createError = require('http-errors');
 const cookieParser = require('cookie-parser');
 const responseTime = require('response-time');
+
 const logger = require('../../logger');
 
 module.exports = function (app, express) {
