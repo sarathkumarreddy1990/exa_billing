@@ -283,7 +283,7 @@ module.exports = {
         }
 
         if (display_description) {
-            whereQuery.push(` display_description  ILIKE '%${display_description}%' `);
+            whereQuery.push(`(SELECT claim_cpt_description from billing.get_claim_totals(bc.id))::text  ILIKE '%${display_description}%' `);
         }
 
         if (bill_fee) {
@@ -291,15 +291,15 @@ module.exports = {
         }
         
         if (payment) {
-            whereQuery.push(`  (SELECT payments_applied_total from billing.get_claim_totals(bc.id)) = '${payment}'::money`);
+            havingQuery.push(`  COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'payment'),0::money) = '${payment}'::money`);
         }
 
         if (patient_paid) {    
-            havingQuery.push(` COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient' and bpa.amount_type = 'payment'),0::money) = '${patient_paid}'::money`);
+            whereQuery.push(` (SELECT patient_paid FROM billing.get_claim_patient_other_payment(bc.id)) = '${patient_paid}'::money`);
         }
 
         if (others_paid) {  
-            havingQuery.push(` COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient' and bpa.amount_type = 'payment'),0::money) = '${others_paid}'::money`);  
+            whereQuery.push(` (SELECT others_paid FROM billing.get_claim_patient_other_payment(bc.id)) = '${others_paid}'::money`);  
         }
 
         if (adjustment) {    
@@ -311,27 +311,25 @@ module.exports = {
         }
 
         const sql = SQL `SELECT 
-            bc.id, 
+            ROW_NUMBER () OVER (ORDER BY bc.id) as id,
             bc.id AS claim_id, 
-            bch.id AS charge_id,
             bc.invoice_no,
             get_full_name(pp.last_name,pp.first_name) AS full_name,
             bc.claim_dt,
+            max(payment_application_id) as payment_application_id,
             (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) as bill_fee,
-            COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient' and bpa.amount_type = 'payment'),0::money) as patient_paid,
-            COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient' and bpa.amount_type = 'payment'),0::money) as others_paid,
+            (SELECT patient_paid FROM billing.get_claim_patient_other_payment(bc.id)) as patient_paid,
+            (SELECT others_paid FROM billing.get_claim_patient_other_payment(bc.id)) as others_paid,
             (SELECT adjustments_applied_total from billing.get_claim_totals(bc.id)) as adjustment,
-            (SELECT payments_applied_total from billing.get_claim_totals(bc.id)) as payment,
+            COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'payment'),0::money) as payment,
+            (SELECT claim_cpt_description from billing.get_claim_totals(bc.id)) as display_description,
             (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from billing.get_claim_totals(bc.id)) as balance,
-            array_agg(pcc.display_description) as display_description,
             COUNT(1) OVER (range unbounded preceding) AS total_records
         FROM billing.payments bp
         INNER JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
         INNER JOIN billing.charges bch on bch.id = bpa.charge_id
         INNER JOIN billing.claims bc on bc.id = bch.claim_id
         INNER JOIN public.patients pp on pp.id = bc.patient_id
-        INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
-
         `;
 
         whereQuery.push(` bp.id = ${params.customArgs.paymentID} `);
@@ -341,7 +339,7 @@ module.exports = {
                 .append(whereQuery.join(' AND '));
         }
 
-        sql.append(SQL`GROUP BY bc.id, bc.invoice_no, get_full_name(pp.last_name,pp.first_name), bc.claim_dt, bch.id `);
+        sql.append(SQL`GROUP BY bc.id, bc.invoice_no, get_full_name(pp.last_name,pp.first_name), bc.claim_dt, bpa.applied_dt `);
 
         if (havingQuery.length) {
             sql.append(SQL` HAVING `)
@@ -364,7 +362,7 @@ module.exports = {
         let groupByQuery = '';
 
         if (params.paymentStatus && params.paymentStatus == 'applied') {
-            joinQuery = `INNER JOIN billing.get_payment_applications(${params.paymentId}) ppa ON ppa.charge_id = bch.id `;
+            joinQuery = `INNER JOIN billing.get_payment_applications(${params.paymentId},${params.paymentApplicationId}) ppa ON ppa.charge_id = bch.id `;
             selectQuery = ' , ppa.id AS payment_application_id,ppa.adjustment_code_id AS adjustment_code_id,ppa.payment_amount::numeric AS payment_amount,ppa.adjustment_amount::numeric AS adjustment_amount , ppa.payment_application_adjustment_id as adjustment_id';
             groupByQuery = ', ppa.payment_id , ppa.id,ppa.adjustment_code_id, ppa.payment_amount,ppa.adjustment_amount , ppa.payment_application_adjustment_id ';
         }
