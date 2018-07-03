@@ -492,8 +492,7 @@ define('grid', [
                             self.claimView.showClaimForm(studyIds);
     
                         });
-                    } 
-                }                       
+                    }                      
                 
                 if (isbilled_status) {
                     var liEditClaim = commonjs.getRightClickMenu('anc_edit_claim', 'setup.rightClickMenu.editClaim', false, 'Edit Claim', false);
