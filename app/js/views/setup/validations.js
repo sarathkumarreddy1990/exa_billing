@@ -34,13 +34,16 @@ define([
                 ]});
                 this.model.fetch({
                     success: function (model, response) {
-                        var eJson = self.getJson(response[0].edi_validation);
-                        var iJson = self.getJson(response[0].invoice_validation);
-                        var pJson = self.getJson(response[0].patient_validation);
-                        self.getHtml(eJson, $('#divElectricValidation'), 'ele');
-                        self.getHtml(iJson, $('#divInvoiceValidation'), 'inv');
-                        self.getHtml(pJson, $('#divPatientValidation'), 'pat');
-                        self.id = response[0].id;
+                        if(!response[0] || (!response[0].edi_validation && !response[0].invoice_validation && !response[0].patient_validation )){
+                            $.getJSON( "billing/static/resx/validation_fields.json", function( data ) {
+                                response = data;
+                                self.bindValidationFields(response[0]);
+                            });
+                        }
+                        else{
+                            self.bindValidationFields(response[0]);
+                            self.id = response[0].id;
+                        }
                         $("#validateElectronic").addClass("activeValTag").siblings().removeClass("activeValTag");
                         $('#divElectricValidation').show();
                         $('#divInvoiceValidation').hide();
@@ -212,6 +215,15 @@ define([
                 } else if (id.indexOf("payer") > -1) {
                     return "payerGrp";
                 }
+            },
+
+            bindValidationFields: function(response){
+                var eJson = this.getJson(response.edi_validation);
+                var iJson = this.getJson(response.invoice_validation);
+                var pJson = this.getJson(response.patient_validation);
+                this.getHtml(eJson, $('#divElectricValidation'), 'ele');
+                this.getHtml(iJson, $('#divInvoiceValidation'), 'inv');
+                this.getHtml(pJson, $('#divPatientValidation'), 'pat');
             }
 
         });
