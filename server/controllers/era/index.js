@@ -133,8 +133,6 @@ module.exports = {
 
             let eraRequestText = await readFile(eraPath, 'utf8');
 
-            ediConnect.init('http://192.168.1.102:5581/edi/api');
-
             let templateName = await ediConnect.getDefaultEraTemplate();
 
             if (!templateName) {

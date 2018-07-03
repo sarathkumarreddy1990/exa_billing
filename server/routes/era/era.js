@@ -23,6 +23,7 @@ const upload = multer({
 
 router.post('/upload', upload.single('displayImage'), async function (req, res) {
     try {
+        logger.info('Initiating ERA upload..');
         let response = await eraController.uploadFile(req);
 
         return res.render('../server/views/era-file-upload.pug', {
