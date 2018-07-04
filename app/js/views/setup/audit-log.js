@@ -177,11 +177,14 @@ define([
                         if (response.changes && response.changes.old_values && Object.keys(response.changes.old_values).length) {
                             $("#showDetailsRow").show();
                             for (element in response.changes.old_values) {
-                                var html = "<tr>" +
-                                    "<td style='width: 25%;border:1px solid #dee2e6;'>" + element + "</td>" +
-                                    "<td style='width: 75%;border:1px solid #dee2e6;'>" + response.changes.old_values[element] + "</td>" +
-                                    "</tr>";
-                                $("#chngTblBdy").append(html);
+                                if (element.toLowerCase() != 'id' && element.toLowerCase() != 'template_content') {
+                                    var html = "<tr>" +
+                                        "<td style='width: 20%;border:1px solid #dee2e6;'>" + element + "</td>" +
+                                        "<td style='width: 40%;border:1px solid #dee2e6;'>" + response.changes.old_values[element] + "</td>" +
+                                        "<td style='width: 40%;border:1px solid #dee2e6;'>" + response.changes.new_values[element] + "</td>" +
+                                        "</tr>";
+                                    $("#chngTblBdy").append(html);
+                                }
                             }
                         }
                         $("#userName").html(response.username);

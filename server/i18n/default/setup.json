@@ -17,7 +17,8 @@
             "version": "Version",
             "changes": "Changes",
             "columns": "Columns",
-            "queriedValues": "Queried Values"
+            "oldValues": "Old Values",
+            "newValues": "New Values"
         },
         "adjustmentcodes": {
             "credit": "Credit",
