@@ -138,15 +138,18 @@
                     <table id='tblCIClaimComments' class="vs"></table>
             </div>
         </div>
-        <div id="divCIpaymentDetails" style="display:none; position:fixed; top:35%; left:10%; z-index:10000; border-style:groove; background-color: white">
+        <!-- style="display:none; position:fixed; top:35%; left:10%; z-index:10000; border-style:groove; background-color: white" -->
+        <div id="divCIpaymentDetails" class="divBackgroundPayment form-horizontal commonBorder" style="display: none; position: absolute; border-radius:10px;z-index:10000; width: 97.5%; padding:20px;background-color: white;  
+        text-align: center;top: 2%;border: 3px solid #dee2e6;">
                 <table id="tblCIPayDetails"  class="table">
                    <thead id="tHeadCIPayment">
                        <tr>
+                           <th>Payment ID</th>
                            <th>CPT Code</th>
                            <th>Charged</th>
+                           <th>Allowed</th>
                            <th>Paid</th>
                            <th>Adjustment</th>
-                           <th>Allowed</th>
                            <th>Cas1</th>
                            <th>Amount</th>
                            <th>Cas2</th>
@@ -165,7 +168,7 @@
                    </thead>
                    <tbody id="tBodyCIPayment"></tbody>
                </table>
-               <input type="button" id="btnCIPayCancel" class="btn btnCommentSave  btn-primary" value="Save" i18n="shared.buttons.cancel">
+               <input type="button" id="btnCIPayCancel" class="btn btnCommentSave  btn-primary" value="Save" i18n="shared.buttons.cancel" style="float:right">
         </div>
         <!--style="display:none; position:fixed; width:30%; left:35%; z-index:10000; border-style:groove; background-color: white"-->
         <div id="divCIFormComment" class="divBackgroundPayment form-horizontal commonBorder" style="left:35%; display: none; position: absolute; border-radius:10px;z-index:10000; width: 30%; height:23%; padding:20px;background-color: white;  
