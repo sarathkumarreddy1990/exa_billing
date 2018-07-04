@@ -462,7 +462,7 @@ define('grid', [
                 }
 
                 if(this.homeOpentab != 'Follow_up_queue'){
-                    var liFollowUp = commonjs.getRightClickMenu('anc_add_followup', 'setup.rightClickMenu.addFollowUP', false, 'Follow Up', false);
+                    var liFollowUp = commonjs.getRightClickMenu('anc_add_followup', 'setup.rightClickMenu.addFollowUP', false, 'Follow-up', false);
                     $divObj.append(liFollowUp);
                     $('#anc_add_followup').click(function () {
                         self.followUpView = new followUpView();
@@ -471,7 +471,7 @@ define('grid', [
                 }
 
                 if (this.homeOpentab == 'Follow_up_queue') {
-                    var liResetFollowUp = commonjs.getRightClickMenu('anc_reset_followup', 'setup.rightClickMenu.resetFollowUp', false, 'Reset Follow Up', false);
+                    var liResetFollowUp = commonjs.getRightClickMenu('anc_reset_followup', 'setup.rightClickMenu.resetFollowUp', false, 'Reset Follow-up', false);
                     $divObj.append(liResetFollowUp);
                     $('#anc_reset_followup').click(function () {
                         self.followUpView = new followUpView();
