@@ -1,16 +1,19 @@
 <%  _.each(rows, function(row){ %>
     <tr  data_row_id="<%= row.charge_id %>">
             <td>
+                    <span id="spCIcharge_<%= row.charge_id %>"><%= row.payment_id %></span>
+            </td>
+            <td>
                 <span id="spCIcharge_<%= row.charge_id %>"><%= row.cpt_code %></span>
             </td>
             <td>
                 <span id="spCIcharge_<%= row.charge_id %>"><%= row.bill_fee %></span>
             </td>
             <td>
-                <span id="spCIcharge_<%= row.charge_id %>"><%= row.payment %></span>
+                <span id="spCIallowed_<%= row.charge_id %>"><%= row.allowed_amount %></span>
             </td>
             <td>
-                <span id="spCIallowed_<%= row.charge_id %>"><%= row.allowed_amount %></span>
+                <span id="spCIcharge_<%= row.charge_id %>"><%= row.payment %></span>
             </td>
             <td>
                 <span id="spCIadj_<%= row.charge_id %>"><%= row.adjustment %></span>
