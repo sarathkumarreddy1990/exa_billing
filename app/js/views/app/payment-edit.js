@@ -838,14 +838,7 @@ define(['jquery',
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblpendPaymentsGridOnly').jqGrid('getRowData', rowID);
-                                commonjs.showDialog({
-                                    'header': 'Claim Inquiry',
-                                    'width': '90%',
-                                    'height': '85%',
-                                    'needShrink': true
-                                });
-                                self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
-                                self.claimInquiryView.render(gridData.claim_id, '', true); 
+                                self.showClaimInquiry(gridData.claim_id, '', true);
                             }
                         },
                         { name: 'id', index: 'id', key: true, searchFlag: 'int', hidden: true },
@@ -927,14 +920,7 @@ define(['jquery',
                                 },
                                 customAction: function (rowID, e) {
                                     var gridData = $('#tblpendPaymentsGrid').jqGrid('getRowData', rowID);
-                                    commonjs.showDialog({
-                                        'header': 'Claim Inquiry',
-                                        'width': '90%',
-                                        'height': '85%',
-                                        'needShrink': true
-                                    });
-                                    self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
-                                    self.claimInquiryView.render(gridData.claim_id, '', true);
+                                    self.showClaimInquiry(gridData.claim_id, '', true);
                                 }
                             },
                             { name: 'id', index: 'id', key: true, searchFlag: 'int', hidden: true },
@@ -1067,14 +1053,7 @@ define(['jquery',
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblAppliedPaymentsGrid').jqGrid('getRowData', rowID);
-                                commonjs.showDialog({
-                                    'header': 'Claim Inquiry',
-                                    'width': '95%',
-                                    'height': '85%',
-                                    'needShrink': true
-                                });
-                                self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
-                                self.claimInquiryView.render(gridData.claim_id, '', true); 
+                                self.showClaimInquiry(gridData.claim_id, '', true);
                             }
                         },
                         { name: 'claim_id', index: 'id', key: true, searchFlag: 'int', hidden: true },
@@ -2092,6 +2071,11 @@ define(['jquery',
                 else {
                     commonjs.showWarning('No pending payments found to apply');
                 }
+            },
+
+            showClaimInquiry: function(id, patient_id, from) {
+                self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
+                self.claimInquiryView.render(id, patient_id, from); 
             }
 
         });

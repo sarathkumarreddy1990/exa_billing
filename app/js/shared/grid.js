@@ -377,14 +377,8 @@ define('grid', [
                 if(studyArray.length == 1)
                     $divObj.append(liClaimInquiry);
                 $('#anc_claim_inquiry').click(function () {
-                     commonjs.showDialog({
-                    'header': 'Claim Inquiry',
-                    'width': '90%',
-                    'height': '75%',
-                    'needShrink': true
-                });
-                self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
-                self.claimInquiryView.render(studyIds,selectedStudies[0].patient_id, false);
+                    self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
+                    self.claimInquiryView.render(studyIds,selectedStudies[0].patient_id, false);
                 });
 
 

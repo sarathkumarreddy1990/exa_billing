@@ -54,10 +54,17 @@ define([
 
             render: function (cid, patientId, from) {
                 this.rendered = true;
-                this.$el.html(this.inquiryTemplate());
+                commonjs.showDialog({
+                    header: 'Claim Inquiry',
+                    width: '90%',
+                    height: '85%',
+                    html: this.inquiryTemplate()
+                });
+
                 this.bindEvents();
                 // commonjs.bindDateTimePicker("divFollowUpDate", { format: 'L' }); //to bind date picker to followup date  . Now not working that's y commented               
                 this.claimInquiryDetails(cid, false, from);
+                $('#modal_div_container').removeAttr('style');
             },
 
             bindEvents: function () {
