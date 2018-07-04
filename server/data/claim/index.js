@@ -120,7 +120,6 @@ module.exports = {
                               pi.id
                             , ip.id AS insurance_provider_id
                             , ip.insurance_name
-                            , ip.insurance_info->'billingMethod' AS billing_method
                             , ip.insurance_info->'City' AS ins_city
                             , ip.insurance_info->'State' AS ins_state
                             , ip.insurance_info->'ZipCode' AS ins_zip_code
@@ -150,9 +149,11 @@ module.exports = {
                             , pi.subscriber_state
                             , pi.subscriber_zipcode
                             , pi.assign_benefits_to_patient
+                            , ipd.billing_method
                         FROM 
                             public.patient_insurances pi
-                        INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id  
+                        INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id 
+                        LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
                         LEFT JOIN LATERAL ( 
                             SELECT 
                                 coverage_level,
@@ -173,7 +174,6 @@ module.exports = {
                             , ip.id AS insurance_provider_id
                             , ip.insurance_name
                             , ip.insurance_code
-                            , ip.insurance_info->'billingMethod' AS billing_method
                             , ip.insurance_info->'City' AS ins_city
                             , ip.insurance_info->'State' AS ins_state
                             , ip.insurance_info->'ZipCode' AS ins_zip_code
@@ -206,8 +206,10 @@ module.exports = {
                             , f.facility_info -> 'npino' as npi_no
                             , f.facility_info -> 'federal_tax_id' as federal_tax_id
                             , f.facility_info -> 'enable_insurance_eligibility' as enable_insurance_eligibility
+                            , ipd.billing_method
                         FROM public.patient_insurances pi
-                        INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id                                                          
+                        INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id    
+                        LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id                                                      
                         LEFT JOIN public.patients p ON p.id= pi.patient_id
                         LEFT JOIN public.facilities f ON p.facility_id = f.id
                         WHERE 
@@ -245,7 +247,6 @@ module.exports = {
                               pi.id
                             , ip.id AS insurance_provider_id
                             , ip.insurance_name
-                            , ip.insurance_info->'billingMethod' AS billing_method
                             , ip.insurance_info->'City' AS ins_city
                             , ip.insurance_info->'State' AS ins_state
                             , ip.insurance_info->'ZipCode' AS ins_zip_code
@@ -275,8 +276,10 @@ module.exports = {
                             , pi.subscriber_state
                             , pi.subscriber_zipcode
                             , pi.assign_benefits_to_patient
+                            , ipd.billing_method
                            FROM public.patient_insurances pi
-                           INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id                             
+                           INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id 
+                           LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id                           
                            WHERE 
                                 pi.id = ${id}  `;
 

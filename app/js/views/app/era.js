@@ -215,7 +215,7 @@ define([
                             else if (model && model.name == 'error') {
                                 var msg = model.table + ' ' + model.detail
                                 commonjs.showWarning(msg);
-                                commonjs.showWarning('Already Payment Processed');
+                                //commonjs.showWarning('Already Payment Processed');
                             }
                         }
                        
