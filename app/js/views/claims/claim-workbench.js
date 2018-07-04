@@ -413,7 +413,7 @@ define(['jquery',
 
                     var clearingHouse = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'clearing_house');
                     if (existingClearingHouse == '') existingClearingHouse = clearingHouse;
-                    if (existingClearingHouse != clearingHouse) {
+                    if (existingClearingHouse != clearingHouse && billingMethod=='electronic_billing') {
                         commonjs.showWarning('Please select claims with same type of clearing house Claims ');
                         return false;
                     } else {
