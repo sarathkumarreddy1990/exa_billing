@@ -11,7 +11,9 @@ module.exports = {
             sortOrder,
             sortField,
             pageNo,
-            pageSize} = params;
+            pageSize,
+            billing_method
+        } = params;
 
         let whereQuery = [];
 
@@ -23,15 +25,20 @@ module.exports = {
             whereQuery.push(` ch.name ILIKE '%${claimclearinghouse}%'`);
         }
 
+        if (billing_method) {
+            whereQuery.push(` bip.billing_method ILIKE '%${billing_method}%'`);
+        }
+
         const sql = SQL`SELECT 
                               ip.id
                             , ip.insurance_name 
                             , ch.id AS claimclearinghouse
+                            , billing_method
                             , COUNT(1) OVER (range unbounded preceding) AS total_records
                         FROM 
                             public.insurance_providers ip
-                        LEFT JOIN billing.insurance_provider_clearinghouses ipch ON ipch.insurance_id  = ip.id
-                        LEFT JOIN billing.edi_clearinghouses ch ON ch.id = ipch.clearing_house_id `;
+                        LEFT JOIN billing.insurance_provider_details bip ON bip.insurance_provider_id  = ip.id
+                        LEFT JOIN billing.edi_clearinghouses ch ON ch.id = bip.clearing_house_id `;
 
         if (whereQuery.length) {
             sql.append(SQL` WHERE `)
@@ -57,10 +64,11 @@ module.exports = {
                               ip.id
                             , ip.insurance_name 
                             , ch.id AS claimclearinghouse
+                            , billing_method
                         FROM 
                             public.insurance_providers ip
-                        LEFT JOIN billing.insurance_provider_clearinghouses ipch ON ipch.insurance_id  = ip.id
-                        LEFT JOIN billing.edi_clearinghouses ch ON ch.id = ipch.clearing_house_id
+                        LEFT JOIN billing.insurance_provider_details bip ON bip.insurance_provider_id  = ip.id
+                        LEFT JOIN billing.edi_clearinghouses ch ON ch.id = bip.clearing_house_id
                         WHERE 
                             ip.id = ${id} `;
 
@@ -76,44 +84,48 @@ module.exports = {
             screenName,
             moduleName,
             clientIp,
-            userId
+            userId,
+            billingMethod
         } = params;
 
         const sql = SQL` WITH insert_house AS (
-                            INSERT INTO billing.insurance_provider_clearinghouses(
-                                  insurance_id
+                            INSERT INTO billing.insurance_provider_details(
+                                  insurance_provider_id
                                 , clearing_house_id
+                                , billing_method
                             )
                             SELECT
                                   ${id}
                                 , ${claimClearingHouse}
-                            WHERE NOT EXISTS (SELECT 1 FROM billing.insurance_provider_clearinghouses WHERE insurance_id = ${id})
+                                , ${billingMethod}
+                            WHERE NOT EXISTS (SELECT 1 FROM billing.insurance_provider_details WHERE insurance_provider_id = ${id})
                             RETURNING *, '{}'::jsonb old_values
                         )
                         , update_house AS (
                                 UPDATE
-                                    billing.insurance_provider_clearinghouses
+                                    billing.insurance_provider_details
                                 SET
-                                    clearing_house_id = ${claimClearingHouse}
+                                      clearing_house_id = ${claimClearingHouse}
+                                    , billing_method = ${billingMethod}
                                 WHERE
-                                    insurance_id = ${id} 
+                                    insurance_provider_id = ${id} 
                                     AND NOT EXISTS (SELECT 1 FROM insert_house)
                                 RETURNING *,
                                 (
                                     SELECT row_to_json(old_row) 
                                     FROM   (SELECT * 
-                                            FROM   billing.insurance_provider_clearinghouses 
-                                            WHERE  insurance_id = ${id}) old_row 
+                                            FROM   billing.insurance_provider_details 
+                                            WHERE  insurance_provider_id = ${id}) old_row 
                                 ) old_values
                             ),
                             insert_audit_cte AS(
                                 SELECT billing.create_audit(
                                     ${companyId},
                                     ${screenName},
-                                    insurance_id,
+                                    insurance_provider_id,
                                     ${screenName},
                                     ${moduleName},
-                                    'Clearing House of Ins Prov created ' || insurance_id ,
+                                    'Clearing House of Ins Prov created ' || insurance_provider_id ,
                                     ${clientIp || '127.0.0.1'},
                                     json_build_object(
                                         'old_values', (SELECT COALESCE(old_values, '{}') FROM insert_house),
@@ -127,10 +139,10 @@ module.exports = {
                                 SELECT billing.create_audit(
                                     ${companyId},
                                     ${screenName},
-                                    insurance_id,
+                                    insurance_provider_id,
                                     ${screenName},
                                     ${moduleName},
-                                    'Clearing House of Ins Prov updated ' || insurance_id ,
+                                    'Clearing House of Ins Prov updated ' || insurance_provider_id ,
                                     ${clientIp || '127.0.0.1'},
                                     json_build_object(
                                         'old_values', (SELECT COALESCE(old_values, '{}') FROM update_house),

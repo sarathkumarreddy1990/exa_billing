@@ -22,7 +22,7 @@ define(['jquery',
                 header: 'Add FollowUp',
                 i18nHeader: 'setup.rightClickMenu.addFollowUP',
                 width: '30%',
-                height: '35%',
+                height: '20%',
                 html: this.followUpTemplate()
             });
             commonjs.bindDateTimePicker("divFollowUpDateBilling", { format: 'L' });
