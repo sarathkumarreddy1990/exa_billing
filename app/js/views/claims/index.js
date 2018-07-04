@@ -696,7 +696,7 @@ define(['jquery',
                 self.cur_patient_name = primaryStudyDetails.patient_name;
                 self.cur_patient_acc_no = primaryStudyDetails.account_no;
                 self.cur_patient_dob = primaryStudyDetails.patient_dob ? moment.utc(primaryStudyDetails.patient_dob).format('L') : null;
-                self.cur_study_date = (commonjs.checkNotEmpty(primaryStudyDetails.study_date) ? commonjs.convertToFacilityTimeZone(primaryStudyDetails.facility_id, primaryStudyDetails.study_date).format('L LT z') : '');
+                self.cur_study_date = (primaryStudyDetails.study_date !='null' && commonjs.checkNotEmpty(primaryStudyDetails.study_date) ? commonjs.convertToFacilityTimeZone(primaryStudyDetails.facility_id, primaryStudyDetails.study_date).format('L LT z') : '');
                 self.pri_accession_no = primaryStudyDetails.accession_no || null;
                 self.cur_study_id = primaryStudyDetails.study_id || null;
                 self.isEdit = self.claim_Id ? true : false;
@@ -924,7 +924,7 @@ define(['jquery',
                 for (var m = 1; m <= 4; m++) {
 
                     var arr = jQuery.grep(app.modifiers, function (n, i) {
-                        return (n['M' + m] == true || n['M' + m] == 'true');
+                        return (n['modifier' + m] == true || n['modifier' + m] == 'true');
                     });
 
                     // bind default pointer from line items
@@ -1823,7 +1823,7 @@ define(['jquery',
                     payer_type: payer_type,
                     payer_id: res.id,
                     payer_name: res.insurance_name + '( ' + coverage_level + ' )',
-                    billing_method: res.insurance_info && res.insurance_info.billingMethod ? res.insurance_info.billingMethod : null
+                    billing_method: res.billing_method || null
                 });
                 
                 //Assign primary insurance as responsible
@@ -2008,7 +2008,7 @@ define(['jquery',
                 var currentPayer_type = $('#ddlResponsible').val().split('_')[0];
                 var facility_id = $('#ddlFacility option:selected').val() != '' ? parseInt($('#ddlFacility option:selected').val()) : null;
                 if (currentPayer_type == "PIP") {
-                    billingMethod = currentResponsible.billing_method == 'PC' ? 'paper_claim' : 'electronic_billing'
+                    billingMethod = currentResponsible.billing_method || 'direct_billing';
                 }
                 else if (currentPayer_type == "PPP")
                     billingMethod = 'patient_payment';

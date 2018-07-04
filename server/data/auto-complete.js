@@ -139,9 +139,11 @@ module.exports = {
                                 , insurance_code
                                 , insurance_name
                                 , hstore_to_json(insurance_info) AS insurance_info
+                                , ipd.billing_method
                                 , COUNT(1) OVER (range unbounded preceding) as total_records
                             FROM 
                                 insurance_providers
+                            LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = insurance_providers.id                                
                             WHERE 
                                 NOT has_deleted AND company_id = ${params.company_id} AND is_active `;
 

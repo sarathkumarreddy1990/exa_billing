@@ -37,7 +37,7 @@ define([
             },
 
             initializeRouter: function () {
-                this.options.screen = "Insurance EDI Mapping";
+                this.options.screen = "Insurance Mapping";
                 this.options.currentView = this.insuranceX12MappingScreen;
                 layout.initializeLayout(this);
 

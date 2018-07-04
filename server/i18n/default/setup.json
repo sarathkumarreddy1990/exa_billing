@@ -17,7 +17,8 @@
             "version": "Version",
             "changes": "Changes",
             "columns": "Columns",
-            "queriedValues": "Queried Values"
+            "oldValues": "Old Values",
+            "newValues": "New Values"
         },
         "adjustmentcodes": {
             "credit": "Credit",
@@ -448,7 +449,11 @@
             "insuranceName": "Insurance Name",
             "claimClearingHouse": "Claim Clearing House",
             "claimTemplateRad": "Claim Template (Rad)",
-            "claimTemplateProv": "Claim Template (Prov)"
+            "claimTemplateProv": "Claim Template (Prov)",
+            "directBilling": "Direct Billing",
+            "electronic": "Electronic Billing",
+            "patientPayment": "Patient Payment",
+            "paperClaim": "Paper Claim"
         },
         "billingMessages": {
             "collections": "Collections"

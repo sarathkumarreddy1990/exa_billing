@@ -235,8 +235,37 @@ module.exports = {
                                     ,claim_status_code
                                 FROM 
                                     insert_payment_adjustment 
-                            ),
-                            insert_edi_file_claims AS (
+                            )
+                            ,matched_claim_payment AS (
+                                SELECT
+                                    COALESCE(sum(c.bill_fee * c.units),'0')::numeric AS claim_bill_fee_total
+                                    ,'Amount received for matching orders : ' || COALESCE(sum(c.bill_fee * c.units),'0')::numeric AS notes
+                                FROM
+                                    billing.charges AS c
+                                    INNER JOIN inserted_claims ON inserted_claims.claim_id = c.claim_id
+                                    INNER JOIN public.cpt_codes AS pc ON pc.id = c.cpt_id
+                            )
+                            ,update_payment AS (
+                               UPDATE billing.payments
+                                SET 
+                                    amount = ( SELECT claim_bill_fee_total FROM matched_claim_payment ),
+                                    notes =  notes || E'\n' || ( SELECT notes FROM matched_claim_payment ) || E'\n' || ${paymentDetails.uploaded_file_name} || '.ERA'
+                                WHERE id = ${paymentDetails.id}
+                            )
+                           ,update_edi_file AS (
+                                UPDATE billing.edi_files
+                                SET
+                                status = (
+                                    CASE 
+                                        WHEN EXISTS ( SELECT 1 FROM inserted_claims ) THEN 'success'
+                                        WHEN NOT EXISTS ( SELECT 1 FROM inserted_claims ) THEN 'failure'
+                                        ELSE
+                                            'in_progress'
+                                    END
+                                )
+                                WHERE id = ${paymentDetails.file_id}
+                            )
+                            ,insert_edi_file_claims AS (
                                 INSERT INTO billing.edi_file_claims
                                 (
                                     claim_id
@@ -300,17 +329,18 @@ module.exports = {
                                     UPDATE billing.claims
                                       SET claim_status_id = 
                                       ( 
-                                        CASE WHEN claim_details.claim_status_code = 4 THEN ( SELECT COALESCE(id, claim_details.claim_status_id ) FROM billing.claim_status WHERE company_id = 1 AND code = 'DENIED' AND inactivated_dt IS NULL )
+                                        CASE WHEN claim_details.claim_status_code = 4 OR claim_details.claim_status_code = 23 OR claim_details.claim_status_code = 25
+                                        THEN ( SELECT COALESCE(id, claim_details.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'DENIED' AND inactivated_dt IS NULL )
                                            ELSE
                                             CASE 
                                                 WHEN claim_details.bill_fee = claim_details.adjustment AND claim_details.payment = 0.00
-                                                    THEN ( SELECT COALESCE(id, claim_details.claim_status_id ) FROM billing.claim_status WHERE company_id = 1 AND code = 'DENIED' AND inactivated_dt IS NULL )
+                                                    THEN ( SELECT COALESCE(id, claim_details.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'DENIED' AND inactivated_dt IS NULL )
                                                 WHEN claim_details.balance = 0.00
-                                                    THEN ( SELECT COALESCE(id, claim_details.claim_status_id ) FROM billing.claim_status WHERE company_id = 1 AND code = 'PAIDFULL' AND inactivated_dt IS NULL )
+                                                    THEN ( SELECT COALESCE(id, claim_details.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'PAIDFULL' AND inactivated_dt IS NULL )
                                                 WHEN claim_details.balance < 0.00
-                                                    THEN ( SELECT COALESCE(id, claim_details.claim_status_id ) FROM billing.claim_status WHERE company_id = 1 AND code = 'OVERPYMT' AND inactivated_dt IS NULL )
+                                                    THEN ( SELECT COALESCE(id, claim_details.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'OVERPYMT' AND inactivated_dt IS NULL )
                                                 WHEN claim_details.balance > 0.00
-                                                    THEN ( SELECT COALESCE(id, claim_details.claim_status_id ) FROM billing.claim_status WHERE company_id = 1 AND code = 'PYMTPEN' AND inactivated_dt IS NULL )
+                                                    THEN ( SELECT COALESCE(id, claim_details.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'PYMTPEN' AND inactivated_dt IS NULL )
                                                 ELSE
                                                     claim_details.claim_status_id
                                             END
@@ -472,6 +502,7 @@ module.exports = {
 				    ,ef.file_type
 				    ,ef.file_path 
 				    ,fs.root_directory
+				    ,ef.uploaded_file_name
                 FROM 
                     billing.edi_files ef
                 INNER JOIN file_stores fs on fs.id = ef.file_store_id
