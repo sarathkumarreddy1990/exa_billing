@@ -157,7 +157,7 @@ define([
                 var _cpt_ids = [];
                 if ($('#divSelectedCPTList section cpt').length > 0) {
                     $.each($('#divSelectedCPTList section cpt'), function () {
-                        let charge_id = $(this).attr('data-charge_id');
+                        var charge_id = $(this).attr('data-charge_id');
                         _cpt_ids.push(charge_id);
                     });
 

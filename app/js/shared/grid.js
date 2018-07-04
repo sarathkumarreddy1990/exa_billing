@@ -69,10 +69,11 @@ define('grid', [
             };
             if (enabled) {
                 if (selectedStudyArray.length) {
-                    isStudyIdMatch = _.filter(selectedStudyArray, d => d.study_id == row_id);
-                    isPatientMatch = _.filter(selectedStudyArray, d => d.patient_id == _storeEle.patient_id);
-                    isStudyDateMatch = _.filter(selectedStudyArray, d => (commonjs.convertToFacilityTimeZone(_storeEle.facility_id, d.study_date).format('MM/DD/YYYY'))  == commonjs.convertToFacilityTimeZone(_storeEle.facility_id, _storeEle.study_dt).format('MM/DD/YYYY'));
-                    isFacilityMatch = _.filter(selectedStudyArray, d => d.facility_id == _storeEle.facility_id);
+                    isStudyIdMatch = _.filter(selectedStudyArray, function(d) { return d.study_id == row_id;});
+                    isPatientMatch = _.filter(selectedStudyArray, function(d) { return d.patient_id == _storeEle.patient_id;});
+                    isStudyDateMatch = _.filter(selectedStudyArray, function(d) { 
+                        return (commonjs.convertToFacilityTimeZone(_storeEle.facility_id, d.study_date).format('MM/DD/YYYY'))  == commonjs.convertToFacilityTimeZone(_storeEle.facility_id, _storeEle.study_dt).format('MM/DD/YYYY');});
+                    isFacilityMatch = _.filter(selectedStudyArray, function(d) { return d.facility_id == _storeEle.facility_id;});
                     if (!isPatientMatch.length) {
                         commonjs.showWarning('messages.warning.claims.samePatientValidate');
                         $(_element).attr('checked', false);
@@ -95,7 +96,7 @@ define('grid', [
                     selectedStudyArray.push(study);
             }
             else
-                selectedStudyArray = _.reject(selectedStudyArray, d => d.study_id == row_id);
+                selectedStudyArray = _.reject(selectedStudyArray, function(d) { return d.study_id == row_id;});
         };
 
         var openCreateClaim = function (rowID, event, isClaimGrid, store) {

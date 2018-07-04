@@ -114,7 +114,7 @@ define(['jquery',
                             width: 400,
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject) {
-                                    return `${rowObject.address}, ${rowObject.address_line2}`;
+                                    return rowObject.address + ', ' + rowObject.address_line2;
                                 }
                             },
                             searchFlag: '%'
@@ -556,7 +556,7 @@ define(['jquery',
                 $('#tblProviderIDCodesGrid').jqGrid('setGridHeight', 200);
                 $('#divCodesGrid').css({'width':width});
                 $('#tblProviderIDCodesGrid').jqGrid('clearGridData');
-                var url = `/exa_modules/billing/setup/provider_id_codes?provider_id=${billing_provider_id}`;
+                var url = '/exa_modules/billing/setup/provider_id_codes?provider_id=' + billing_provider_id;
                 $.ajax({
                     url: url,
                     type: 'GET',

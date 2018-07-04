@@ -166,7 +166,7 @@ define(['jquery',
             getEDIClearingHousesList: function () {
                 var self = this;
                 $.ajax({
-                    url: `/exa_modules/billing/setup/edi_clearinghouses?isFrom=InsuranceEDIMapping`,
+                    url: '/exa_modules/billing/setup/edi_clearinghouses?isFrom=InsuranceEDIMapping',
                     type: 'GET',
                     success: function (response) {
                         if (response && response.length > 0) {

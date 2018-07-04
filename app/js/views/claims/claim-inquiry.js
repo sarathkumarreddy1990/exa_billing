@@ -355,9 +355,9 @@ define([
             },
 
             afterGridBind: function (model, gridObj) {
-                let self = this;
+                var self = this;
                 if (model && model.length > 0) {
-                    let age_summary = model[0].get('age_summary');
+                    var age_summary = model[0].get('age_summary');
                     $('#tdCurrent').html(age_summary.age_0_30 || '$0.00');
                     $('#tdAge30').html(age_summary.age_31_60 || '$0.00');
                     $('#tdAge60').html(age_summary.age_61_90 || '$0.00');

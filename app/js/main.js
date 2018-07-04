@@ -176,7 +176,7 @@ if (require && require.config) {
         maskjs,
         beautify,
         _get,
-        mailMerge,
+        mailMerge
         ) {
             window.browserLocale = typeof browserLocale == 'undefined' ? 'en-US' : browserLocale;
             window.Immutable = Immutable;
@@ -194,6 +194,6 @@ if (require && require.config) {
 
 if (typeof module != 'undefined' && module.exports) {
     module.exports = {
-        rjsConfig
+        rjsConfig: rjsConfig
     };
 }

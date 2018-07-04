@@ -335,7 +335,7 @@ define(['jquery',
                 self.paymentPDF.onReportViewClick(e, paymentPDFArgs);
             },
 
-            prepareValueForCSV(val) {
+            prepareValueForCSV: function(val) {
                 val = '' + val;
                 val = val.replace(/"/g, '""');
                 return '"' + val + '"';
