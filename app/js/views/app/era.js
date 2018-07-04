@@ -79,7 +79,14 @@ define([
                                 return "style='text-align: center;text-decoration: underline;'";
                             },
                             customAction: function (rowID, e) {
-                                self.showPayments(rowID);
+                                var gridData = $('#tblEOBFileList').jqGrid('getRowData', rowID);
+                                if ('success' == gridData.current_status){
+                                    self.showPayments(rowID, gridData.uploaded_file_name);
+                                }
+                                else {
+                                    commonjs.showWarning('File not in Success status');
+                                }
+                                
                             }
                         },
                         { name: 'id', index: 'id', searchFlag: 'int', searchFlag: '%' },
@@ -129,7 +136,12 @@ define([
                     },
                     ondblClickRow: function (rowID) {
                         var gridData = $('#tblEOBFileList').jqGrid('getRowData', rowID);
-                        self.processFile(rowID, gridData, null);
+                        if (['failure', 'success'].indexOf(gridData.current_status) == -1) {
+                            self.processFile(rowID, gridData, null);
+                        }
+                        else {
+                            commonjs.showWarning('File already processed');
+                        }
                     }
                 });
             },
@@ -167,7 +179,7 @@ define([
                     created_by: app.userID,
                     company_id: app.companyID
                 });
-
+                $('#btnProcessPayment').prop('disabled', true);
                 $.ajax({
                     url: '/exa_modules/billing/era/process-file',
                     type: "POST",
@@ -197,17 +209,8 @@ define([
                                 self.showProgressDialog(file_id, model, 'initialize');
                             }
                             else if (model && model.rows && model.rows.length) {
-                                var processedClaims = model.rows[0].insert_edi_file_claims ? model.rows[0].insert_edi_file_claims : [];
-                                _.each(processedClaims, function (dataResult, index) {
-                                    var status = dataResult.applied ? 'DONE' : 'FAILED';
-                                    $('#eraProcessTable').append('<tr><td>' + dataResult.edi_file_id + '</td><td>' + dataResult.claim_number + '</td><td>' + status + '</td></tr>');
-                                });
-                                if (processedClaims.length == 0) {
-                                    $('#eraProcessTable').append('<tr><td>Payment failed for all claims</td></tr>');
-                                }
-                                $('#divEraProcess').show();
-                                $('#btnProcessPayment').prop('disabled', true);
-
+                                commonjs.hideDialog();
+                                self.reloadERAFilesLocal();
                             } else if (model && model.type && model.type == 'none') {
                                 model.file_store_id = gridData.file_store_id;
                                 self.showProgressDialog(file_id, model, 'initialize');
@@ -217,6 +220,7 @@ define([
                                 commonjs.showWarning(msg);
                                 //commonjs.showWarning('Already Payment Processed');
                             }
+                        $('#btnProcessPayment').prop('disabled', false);
                         }
                        
                     },
@@ -342,8 +346,79 @@ define([
                 }
             },
 
-            showPayments: function (fileId) {
-                
+            showPayments: function (fileId, fileName) {
+                $("#divEraResult").show();
+
+                if (fileId) {
+
+                    $.ajax({
+                        url: '/exa_modules/billing/era/getProcessedDetailsByFileId',
+                        type: "GET",
+                        dataType: 'json',
+                        data: {
+                            file_id: fileId,
+                            company_id: app.companyID
+                        },
+                        success: function (model, response) {
+
+                            if (model && model.rows.length) {
+
+                                var $eraTable = $('#eraResultTable');
+                                fileName =  fileName.substr(0, fileName.lastIndexOf('.'));
+                                $('#eraResultTitle').html('Result : '+ fileName);
+                                $eraTable.empty();
+                                var $trHead = '<tr> <th>Payment Id</th> <th>Claim Id</th> <th>Charge Id</th> <th>CPT Code</th> <th>Modifiers</th></tr>';
+                                var $tr = '';
+                                $.each(model.rows, function (index, obj) {
+
+                                    obj.payment_id = obj.payment_id ? obj.payment_id : '';
+                                    obj.claim_id = obj.claim_id ? obj.claim_id : '';
+                                    obj.charge_id = obj.charge_id ? obj.charge_id : '';
+                                    obj.display_code = obj.display_code ? obj.display_code : '';
+                                    obj.modifiers = obj.modifiers ? obj.modifiers : '';
+
+                                    $tr += '<tr><td>' + obj.payment_id + '</td>'
+                                        + '<td>' + obj.claim_id + '</td>'
+                                        + '<td>' + obj.charge_id + '</td>'
+                                        + '<td>' + obj.display_code + '</td>'
+                                        + '<td>' + obj.modifiers + '</td></tr>';
+                                });
+                                $trHead += $tr;
+                                $eraTable.append($trHead);
+
+                                function formatTable(selector) {
+                                    selector.each(function () {
+                                        var values = $(this).find("tr>td:first-of-type")
+                                        var run = 1
+                                        for (var i = values.length - 1; i > -1; i--) {
+                                            if (values.eq(i).text() === values.eq(i - 1).text()) {
+                                                values.eq(i).remove()
+                                                run++
+                                            } else {
+                                                values.eq(i).attr("rowspan", run)
+                                                run = 1
+                                            }
+                                        }
+                                    })
+                                }
+
+                                formatTable($("#eraResultTable"));
+                            }else{
+
+                            }
+                        },
+                        error: function (err, response) {
+                            commonjs.handleXhrError(err, response);
+                        }
+                    });
+                } else {
+                    commonjs.showWarning('Error on getting file id');
+                }
+
+
+                $('.btnCloseEraResultDiv').off().click(function (e) {
+                    $("#divEraResult").hide();
+                });
             }
         });
         return eraView;

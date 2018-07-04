@@ -5,7 +5,6 @@ module.exports = {
     
     getFormatedLineItemsAndClaims: async function (claimLists, params) {
 
-        let ediFileClaims = [];
         let claimComments = [];
         let lineItems = [];
 
@@ -122,6 +121,12 @@ module.exports = {
 
                         });
 
+                        let serviceIdentification = _.filter(val.serviceIdentification, { referenceIdentQual: '6R' });
+                        let charge_id = 0;
+
+                        if (serviceIdentification && serviceIdentification.length) {
+                            charge_id = serviceIdentification[0].assingedNumber && !isNaN(serviceIdentification[0].assingedNumber) ? serviceIdentification[0].assingedNumber : 0;
+                        }
 
                         lineItems.push({
                             payment: val.paidamount,
@@ -130,21 +135,13 @@ module.exports = {
                             claim_number: value.claimNumber,
                             claim_status_code: value.claimStatusCode || 0,
                             cas_details: cas_obj,
-                            charge_id: val.serviceIdentification && val.serviceIdentification.assingedNumber && !isNaN(val.serviceIdentification.assingedNumber) ? val.serviceIdentification.assingedNumber : 0,
+                            charge_id: charge_id,
                             patient_fname : value.patientName.firstName || '',
                             patient_lname : value.patientName.lastName || '',
                             patient_mname : value.patientName.middleName || '',
                             patient_prefix : value.patientName.prefix || '',
                             patient_suffix : value.patientName.suffix || ''
                         });
-                    });
-
-                    ediFileClaims.push({
-                        claim_number: value.claimNumber,
-                        edi_file_id: params.file_id,
-                        co_pay: co_pay,
-                        co_insurance: co_insurance,
-                        deductible: deductible
                     });
 
                     if (co_pay != '') {
@@ -189,7 +186,6 @@ module.exports = {
 
         return {
             lineItems: lineItems,
-            ediFileClaims: ediFileClaims,
             claimComments: claimComments,
             audit_details: auditDetails
         };
