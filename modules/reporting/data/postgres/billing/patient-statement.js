@@ -102,7 +102,7 @@ WITH claim_data as(
         case when type = 'charge' then amount end as charge,
         case when type = 'payment' then amount end as payment,
         case when type = 'adjustment' then amount end as adjustment,
-        <% if (payToProvider == 'false') {%>
+        <% if (payToProvider == false) {%>
         bp.name as billing_provider_name,
         bp.pay_to_address_line1 as billing_proaddress1,
         bp.pay_to_address_line1 as billing_proaddress2,
