@@ -120,7 +120,6 @@ module.exports = {
                               pi.id
                             , ip.id AS insurance_provider_id
                             , ip.insurance_name
-                            , ip.insurance_info->'billingMethod' AS billing_method
                             , ip.insurance_info->'City' AS ins_city
                             , ip.insurance_info->'State' AS ins_state
                             , ip.insurance_info->'ZipCode' AS ins_zip_code
@@ -150,9 +149,11 @@ module.exports = {
                             , pi.subscriber_state
                             , pi.subscriber_zipcode
                             , pi.assign_benefits_to_patient
+                            , ipd.billing_method
                         FROM 
                             public.patient_insurances pi
-                        INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id  
+                        INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id 
+                        LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
                         LEFT JOIN LATERAL ( 
                             SELECT 
                                 coverage_level,
@@ -173,7 +174,6 @@ module.exports = {
                             , ip.id AS insurance_provider_id
                             , ip.insurance_name
                             , ip.insurance_code
-                            , ip.insurance_info->'billingMethod' AS billing_method
                             , ip.insurance_info->'City' AS ins_city
                             , ip.insurance_info->'State' AS ins_state
                             , ip.insurance_info->'ZipCode' AS ins_zip_code
@@ -206,8 +206,10 @@ module.exports = {
                             , f.facility_info -> 'npino' as npi_no
                             , f.facility_info -> 'federal_tax_id' as federal_tax_id
                             , f.facility_info -> 'enable_insurance_eligibility' as enable_insurance_eligibility
+                            , ipd.billing_method
                         FROM public.patient_insurances pi
-                        INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id                                                          
+                        INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id    
+                        LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id                                                      
                         LEFT JOIN public.patients p ON p.id= pi.patient_id
                         LEFT JOIN public.facilities f ON p.facility_id = f.id
                         WHERE 
@@ -245,7 +247,6 @@ module.exports = {
                               pi.id
                             , ip.id AS insurance_provider_id
                             , ip.insurance_name
-                            , ip.insurance_info->'billingMethod' AS billing_method
                             , ip.insurance_info->'City' AS ins_city
                             , ip.insurance_info->'State' AS ins_state
                             , ip.insurance_info->'ZipCode' AS ins_zip_code
@@ -275,8 +276,10 @@ module.exports = {
                             , pi.subscriber_state
                             , pi.subscriber_zipcode
                             , pi.assign_benefits_to_patient
+                            , ipd.billing_method
                            FROM public.patient_insurances pi
-                           INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id                             
+                           INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id 
+                           LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id                           
                            WHERE 
                                 pi.id = ${id}  `;
 
@@ -462,7 +465,7 @@ module.exports = {
                     , ipp.insurance_info->'State' AS p_state
                     , ipp.insurance_info->'ZipCode' AS p_zip
                     , ipp.insurance_name AS p_insurance_name
-                    , COALESCE(ipp.insurance_info->'billingMethod','') AS p_billing_method
+                    , (SELECT billing_method as p_billing_method FROM billing.insurance_provider_details WHERE insurance_provider_id = ipp.id)
                     , cpi.insurance_provider_id AS p_insurance_provider_id
                     , cpi.subscriber_zipcode AS p_subscriber_zipcode
                     , cpi.subscriber_relationship_id AS p_subscriber_relationship_id
@@ -490,7 +493,7 @@ module.exports = {
                     , ips.insurance_info->'State' AS s_state
                     , ips.insurance_info->'ZipCode' AS s_zip
                     , ips.insurance_name AS s_insurance_name
-                    , COALESCE(ips.insurance_info->'billingMethod','') AS s_billing_method
+                    , (SELECT billing_method as s_billing_method FROM billing.insurance_provider_details WHERE insurance_provider_id = ips.id)
                     , csi.insurance_provider_id AS s_insurance_provider_id
                     , csi.subscriber_zipcode AS s_subscriber_zipcode
                     , csi.subscriber_relationship_id AS s_subscriber_relationship_id
@@ -518,7 +521,7 @@ module.exports = {
                     , ipt.insurance_info->'State' AS t_state
                     , ipt.insurance_info->'ZipCode' AS t_zip
                     , ipt.insurance_name AS t_insurance_name
-                    , COALESCE(ipt.insurance_info->'billingMethod','') AS t_billing_method
+                    , (SELECT billing_method as t_billing_method FROM billing.insurance_provider_details WHERE insurance_provider_id = ipt.id)
                     , cti.insurance_provider_id AS t_insurance_provider_id
                     , cti.subscriber_zipcode AS t_subscriber_zipcode
                     , cti.subscriber_relationship_id AS t_subscriber_relationship_id

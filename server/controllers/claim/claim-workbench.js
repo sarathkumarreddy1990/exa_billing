@@ -43,6 +43,7 @@ module.exports = {
     getEDIClaim: async (params) => {    
         const result = await ediData.getClaimData(params);
         let ediResponse ={};
+        let claimDetails=[];
 
         if (result.rows && result.rows.length) { 
 
@@ -54,7 +55,17 @@ module.exports = {
                 return new Error('EDI Template not yet mapped with Clearinghouse :(');
             }
             
-            let data = _.map( result.rows, function (obj) {
+            let ediData = _.map( result.rows, function (obj) {
+
+                claimDetails.push(
+                    {
+                        coverage_level: obj.coverage_level,
+                        claim_id: obj.claim_id,
+                        insuranceName: obj.insurance_name,
+                        note: 'Electronic claim to ' + obj.insurance_name + ' (' + obj.coverage_level +' )'
+                    }
+                );
+
                 if((obj.subscriper_relationship).toUpperCase()!='SELF'){
                     obj.data[0].subscriber[0].patient[0].claim = obj.data[0].subscriber[0].claim;
                     delete obj.data[0].subscriber[0].claim;
@@ -73,11 +84,16 @@ module.exports = {
                     'tsCreationDate': '20180204',
                     'tsCreationTime': '0604'
                 },
-                data:data
+                data:ediData
             };
 
             ediResponse = await ediConnect.generateEdi(result.rows[0].header.edi_template_name, ediRequestJson);
-
+            params.claim_status = 'PYMTPEN';
+            params.type = 'auto';
+            params.success_claimID = params.claimIds;  
+            params.isClaim=true;
+            params.claimDetails=JSON.stringify(claimDetails);
+            await data.changeClaimStatus(params);
         }
 
         return ediResponse;

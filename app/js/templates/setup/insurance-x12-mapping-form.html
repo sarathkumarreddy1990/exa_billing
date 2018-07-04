@@ -6,6 +6,18 @@
                 <label id="lblInsuranceName" class="col-sm-5 col-form-label font-weight-bold"></label>
             </div>
             <div class="form-group row">
+                <label for="ddlClaimBillingMethod" class="col-sm-2 col-form-label field-required" i18n="billing.fileInsurance.billingmethod"></label>
+                <div class="col-sm-5">
+                    <select id="ddlClaimBillingMethod" class="form-control"  style="height:32px;" name="claimClearingHouse">
+                        <option value="" i18n="shared.buttons.select"></option>
+                        <option value="direct_billing" i18n="setup.insuranceX12Mapping.directBilling">Direct Billing</option>
+                        <option value="electronic_billing" i18n="setup.insuranceX12Mapping.electronic"></option>
+                        <option value="paper_claim" i18n="setup.insuranceX12Mapping.paperClaim"></option>
+                        <option value="patient_payment" i18n="setup.insuranceX12Mapping.patientPayment"></option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group row" id="clearingHouse" style="display:none">
                 <label for="ddlClaimClearingHouse" class="col-sm-2 col-form-label field-required" i18n="setup.insuranceX12Mapping.claimClearingHouse"></label>
                 <div class="col-sm-5">
                     <select id="ddlClaimClearingHouse" class="form-control"  style="height:32px;" name="claimClearingHouse">

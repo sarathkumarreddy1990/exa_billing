@@ -178,7 +178,7 @@ define('grid', [
                                 url: '/exa_modules/billing/claim_workbench/claims/update',
                                 type: 'PUT',
                                 data: {
-                                    claimIds: studyIds,
+                                    claimIds: [studyIds],
                                     claim_status_id:claimStatus.id,
                                     process:"Claim Status"
                                 },
@@ -207,7 +207,7 @@ define('grid', [
                                 url: '/exa_modules/billing/claim_workbench/claims/update',
                                 type: 'PUT',
                                 data: {
-                                    claimIds: studyIds,
+                                    claimIds:  [studyIds],
                                     billing_code_id:billing_code.id,
                                     process:"Billing Code"
                                 },
@@ -236,7 +236,7 @@ define('grid', [
                                     url: '/exa_modules/billing/claim_workbench/claims/update',
                                     type: 'PUT',
                                     data: {
-                                        claimIds: studyIds,
+                                        claimIds:  [studyIds],
                                         billing_class_id:billing_class.id,
                                         process:"Billing Class"
                                     },
@@ -472,7 +472,7 @@ define('grid', [
                 }
 
                 if(this.homeOpentab != 'Follow_up_queue'){
-                    var liFollowUp = commonjs.getRightClickMenu('anc_add_followup', 'setup.rightClickMenu.addFollowUP', false, 'Follow Up', false);
+                    var liFollowUp = commonjs.getRightClickMenu('anc_add_followup', 'setup.rightClickMenu.addFollowUP', false, 'Follow-up', false);
                     $divObj.append(liFollowUp);
                     $('#anc_add_followup').click(function () {
                         self.followUpView = new followUpView();
@@ -481,7 +481,7 @@ define('grid', [
                 }
 
                 if (this.homeOpentab == 'Follow_up_queue') {
-                    var liResetFollowUp = commonjs.getRightClickMenu('anc_reset_followup', 'setup.rightClickMenu.resetFollowUp', false, 'Reset Follow Up', false);
+                    var liResetFollowUp = commonjs.getRightClickMenu('anc_reset_followup', 'setup.rightClickMenu.resetFollowUp', false, 'Reset Follow-up', false);
                     $divObj.append(liResetFollowUp);
                     $('#anc_reset_followup').click(function () {
                         self.followUpView = new followUpView();

@@ -17,7 +17,8 @@
             "version": "Version",
             "changes": "Changes",
             "columns": "Columns",
-            "queriedValues": "Queried Values"
+            "oldValues": "Old Values",
+            "newValues": "New Values"
         },
         "adjustmentcodes": {
             "credit": "Credit",
@@ -237,8 +238,8 @@
             "approvedReports":"Approved Reports",
             "viewDocuments": "View Documents",
             "viewReports":"View Reports",
-            "addFollowUP":"Add FollowUp",
-            "resetFollowUp": "Reset FollowUp"
+            "addFollowUP":"Add Follow-up",
+            "resetFollowUp": "Reset Follow-up"
         },
         "validation":{
             "billingGrp": "Billing Provider",
@@ -448,7 +449,11 @@
             "insuranceName": "Insurance Name",
             "claimClearingHouse": "Claim Clearing House",
             "claimTemplateRad": "Claim Template (Rad)",
-            "claimTemplateProv": "Claim Template (Prov)"
+            "claimTemplateProv": "Claim Template (Prov)",
+            "directBilling": "Direct Billing",
+            "electronic": "Electronic Billing",
+            "patientPayment": "Patient Payment",
+            "paperClaim": "Paper Claim"
         },
         "billingMessages": {
             "collections": "Collections"

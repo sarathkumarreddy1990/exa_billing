@@ -21,18 +21,19 @@ define(['jquery',
             commonjs.showDialog({
                 header: 'Add FollowUp',
                 i18nHeader: 'setup.rightClickMenu.addFollowUP',
-                width: '40%',
-                height: '40%',
+                width: '30%',
+                height: '20%',
                 html: this.followUpTemplate()
             });
             commonjs.bindDateTimePicker("divFollowUpDateBilling", { format: 'L' });
+            $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr for select2 search text can't editable
             this.bindEvents(claimIDs);
         },
 
         bindEvents: function (claimIDs) {
             var self = this;
             
-            $('#saveFollowup').blur(function () {
+            $('#saveFollowup').off().click(function () {
                 self.saveFollowup(claimIDs);
             });
 
@@ -47,7 +48,7 @@ define(['jquery',
 
         saveFollowup: function (claimIDs) {
             var followUpDate = $('#txtFollowUpDate').val();
-            var followUPUserID = $('#txtUsers').val();
+            var followUPUserID = $('#txtFollowupUsers').val();
             var currentDate = moment().format('L');
             if (moment(followUpDate).format('MM/DD/YYYY') < currentDate) {
                 commonjs.showWarning('Cannot Select Past date');
@@ -72,6 +73,8 @@ define(['jquery',
                 },
                 success: function (data, response) {
                     commonjs.showStatus('Record Saved Successfully');
+                    commonjs.hideDialog();
+                    $('#btnClaimsRefresh').trigger('click');
                 },
                 error: function (err) {
                     commonjs.handleXhrError(err);
@@ -83,14 +86,14 @@ define(['jquery',
         setUserAutoComplete: function () {
             var self = this;
 
-            $("#txtUsers").select2({
+            $("#txtFollowupUsers").select2({
                 ajax: {
                     url: "/exa_modules/billing/autoCompleteRouter/getUsers",
                     dataType: 'json',
                     delay: 250,
                     data: function (params) {
                         return {
-                            page: params.page || 9,
+                            page: params.page || 1,
                             q: params.term || '',
                             pageSize: 10,
                             sortField: "user_name",
@@ -121,7 +124,7 @@ define(['jquery',
                     return repo.user_name;
                 }
                 var markup = "<table><tr>";
-                markup += "<td  data-id='" + repo.id + " ' title='" + repo.user_name + "(" + repo.user_name + ")'> <div>" + repo.id + "(" + repo.user_name + ")" + "</div>";
+                markup += "<td  data-id='" + repo.id + " ' title='" + repo.user_name + "(" + repo.user_name + ")'> <div>" +  repo.last_name +" "+  repo.first_name + "("+ repo.id + ")" + "</div>";
                 markup += "</td></tr></table>";
                 return markup;
 
@@ -135,7 +138,6 @@ define(['jquery',
         },
 
         resetFollowUp: function(claimIDs) {
-            console.log('CAME INSIDE RESET !!!!!!!!!!!')
             claimIDs = claimIDs.split(',');
 
             $.ajax({
@@ -148,7 +150,8 @@ define(['jquery',
                     'followUpDetails': ''
                 },
                 success: function (data, response) {
-                    commonjs.showStatus('Followup Resetted Successfully');
+                    commonjs.showStatus('Followup Reset Successfully');
+                    $('#btnClaimsRefresh').trigger('click');
                 },
                 error: function (err) {
                     commonjs.handleXhrError(err);

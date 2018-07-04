@@ -1625,6 +1625,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     },                    
                     "searchFlag": "%",
                     "stype": "select",
+                    "sortable": false,
                     "searchoptions": {
                         "value": billedStatus,
                         "tempvalue": billedStatus

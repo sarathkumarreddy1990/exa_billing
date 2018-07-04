@@ -81,6 +81,63 @@ module.exports = {
         return await query(sql);
     },
 
+    changeClaimStatus: async (params) => {   
+
+        let insertClaimComments=
+         SQL` , claim_details AS (
+            SELECT 
+                  "claim_id",
+                 "note"  
+            FROM json_to_recordset(${params.claimDetails}) AS claimDetails 
+            (
+                "claim_id" bigint,
+                "note" text
+            )
+        ),
+        insert_claim_comments as ( 
+                INSERT INTO billing.claim_comments 
+                ( 
+                    claim_id , 
+                    type , 
+                    note , 
+                    created_by, 
+                    created_dt 
+                )
+                SELECT
+                claim_id,
+                ${params.type},
+                note,
+               ${params.userId},   
+                now()
+          FROM 
+          claim_details )
+                `;
+              
+
+        let sql = SQL`WITH getStatus AS 
+						(
+							SELECT 
+								id
+							FROM 
+								billing.claim_status
+							WHERE code  = ${params.claim_status}
+                        )`;
+
+        if (params.isClaim) {
+            sql.append(insertClaimComments);
+        }        
+
+        let updateData =SQL`UPDATE 
+							billing.claims bc
+						SET claim_status_id = (SELECT id FROM getStatus)
+						WHERE bc.id = ANY(${params.success_claimID})
+                        RETURNING bc.id`;
+
+        sql.append(updateData);                
+       
+        return await query(sql);
+    },
+	
     getClaimStudy: async (params) => {
 
         let {

@@ -28,6 +28,7 @@ module.exports = {
 
         const buffer = params.file.buffer;
         const fileSize = params.file.size;
+        const fileName = params.file.originalname;
 
         let tempString = buffer.toString();
         let bufferString = tempString.replace(/(?:\r\n|\r|\n)/g, '');
@@ -75,6 +76,7 @@ module.exports = {
             file_path: localPath,
             file_size: fileSize,
             file_md5: fileMd5,
+            fileName: fileName
         });
 
         if (typeof dataResponse === 'object' && dataResponse.constructor.name === 'Error') {
@@ -108,6 +110,7 @@ module.exports = {
 
         rootDir = eraFileDir.rows && eraFileDir.rows.length && eraFileDir.rows[0].root_directory ? eraFileDir.rows[0].root_directory : '';
         eraPath = eraFileDir.rows && eraFileDir.rows.length && eraFileDir.rows[0].file_path ? eraFileDir.rows[0].file_path : '';
+        params.uploaded_file_name = eraFileDir.rows && eraFileDir.rows.length && eraFileDir.rows[0].uploaded_file_name ? eraFileDir.rows[0].uploaded_file_name : '';
 
         eraPath = path.join(rootDir, eraPath);
 
@@ -230,7 +233,7 @@ module.exports = {
         let monetoryAmount = financialInfo.monetoryAmount ? parseFloat(financialInfo.monetoryAmount).toFixed(2) : 0.00;
         let notes = 'Amount shown in EOB:' + monetoryAmount;
 
-        notes += '\n \n' + params.file_id + '.ERA';
+        // notes += '\n \n' + params.file_id + '.ERA';
         payerDetails.paymentId = null;
         payerDetails.company_id = payerDetails.company_id;
         payerDetails.user_id = payerDetails.created_by;
@@ -240,7 +243,7 @@ module.exports = {
         payerDetails.provider_group_id = null;
         payerDetails.provider_contact_id = null;
         payerDetails.payment_reason_id = 2;
-        payerDetails.amount = monetoryAmount;
+        payerDetails.amount = 0;
         payerDetails.accounting_date = 'now()';
         payerDetails.invoice_no = '';
         payerDetails.display_id = null;  // alternate_payment_id
@@ -260,6 +263,8 @@ module.exports = {
             paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
             paymentResult.file_id = params.file_id;
             paymentResult.created_by = payerDetails.created_by;
+            paymentResult.company_id = payerDetails.company_id;
+            paymentResult.uploaded_file_name = params.uploaded_file_name;
 
             await data.createEdiPayment(paymentResult);
 

@@ -65,18 +65,25 @@ define([
                     gridelementid: '#tblEOBFileList',
                     custompager: this.pager,
                     emptyMessage: 'No Record found',
-                    colNames: ['', '', '', 'File Name', 'Size', 'File Updated Date/Time', 'Status'],
-                    i18nNames: ['', '', 'home.pendingStudies.fileName', 'home.viewerCommonOptions.size', 'home.pendingStudies.fileUpdatedDateTime', 'shared.fields.status'],
+                    colNames: ['', '', '', 'Id', 'File Name', 'Size', 'File Updated Date/Time', 'Status'],
+                    i18nNames: ['', '', '', 'home.pendingStudies.fileName', 'home.viewerCommonOptions.size', 'home.pendingStudies.fileUpdatedDateTime', 'shared.fields.status'],
                     colModel: [
                         { name: 'id', index: 'id', key: true, hidden: true, searchFlag: '%', search: false },
                         { name: 'file_store_id', hidden: true, searchFlag: '%', search: false },
                         {
-                            name: 'edit', width: 20, sortable: false, search: false,
+                            name: 'edit', width: 40, sortable: false, search: false,
                             formatter: function (cellvalue, options, rowObject) {
-                                return '<input type="radio" class="studyChk" name="chkStudy" id="' + rowObject.id + '" />'
+                                return "<a href='javascript: void(0)' id =" + rowObject.id + ">View</a>";
+                            },
+                            cellattr: function () {
+                                return "style='text-align: center;text-decoration: underline;'";
+                            },
+                            customAction: function (rowID, e) {
+                                self.showPayments(rowID);
                             }
                         },
-                        { name: 'file_name', width: 400, searchFlag: 'hstore', searchoptions: { defaultValue: commonjs.filterData['file_name'] } },
+                        { name: 'id', index: 'id', searchFlag: 'int', searchFlag: '%' },
+                        { name: 'uploaded_file_name', width: 400, searchFlag: 'hstore', searchoptions: { defaultValue: commonjs.filterData['uploaded_file_name'] } },
                         {
                             name: 'size', width: 100, search: false, searchoptions: { defaultValue: commonjs.filterData['size'] }, formatter: function (cellvalue, options, rowObject) {
                                 return self.fileSizeTypeFormatter(cellvalue, options, rowObject);
@@ -208,7 +215,7 @@ define([
                             else if (model && model.name == 'error') {
                                 var msg = model.table + ' ' + model.detail
                                 commonjs.showWarning(msg);
-                                commonjs.showWarning('Already Payment Processed');
+                                //commonjs.showWarning('Already Payment Processed');
                             }
                         }
                        
@@ -250,6 +257,10 @@ define([
                     }else{
                         self.processFile(file_id, payerDetails, 'applypayments');
                     }
+                });
+
+                $('.modal-dialog .btn-secondary, .modal-dialog  .close').off().click(function (e) {
+                    self.reloadERAFilesLocal();
                 });
 
             },
@@ -329,6 +340,10 @@ define([
                     $('.ui-jqgrid-htable:visible').find('input, select').val('');
                     this.eobFilesTable.refreshAll();
                 }
+            },
+
+            showPayments: function (fileId) {
+                
             }
         });
         return eraView;
