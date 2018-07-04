@@ -457,6 +457,7 @@ CREATE TABLE IF NOT EXISTS billing.claim_status
     description TEXT NOT NULL,
     is_system_status BOOLEAN NOT NULL DEFAULT FALSE,
     inactivated_dt TIMESTAMPTZ DEFAULT NULL,
+    display_order bigint NOT NULL,
     CONSTRAINT claim_status_pk PRIMARY KEY(id),
     CONSTRAINT claim_status_company_id_fk FOREIGN KEY (company_id) REFERENCES public.companies (id), 
     CONSTRAINT claim_status_company_code_uc UNIQUE(company_id,code)
@@ -1029,8 +1030,9 @@ CREATE TABLE IF NOT EXISTS billing.grid_filters
     display_in_ddl BOOLEAN DEFAULT FALSE,
     inactivated_dt TIMESTAMPTZ,
     CONSTRAINT grid_filters_id_pk PRIMARY KEY (id),
-    CONSTRAINT grid_filters_user_id_fk FOREIGN KEY (user_id) REFERENCES public.users(id)
-    CONSTRAINT grid_filters_filter_type_cc CHECK(filter_type IN ('studies','claims'))
+    CONSTRAINT grid_filters_user_id_fk FOREIGN KEY (user_id) REFERENCES public.users(id),
+    CONSTRAINT grid_filters_filter_type_cc CHECK(filter_type IN ('studies','claims')),
+    CONSTRAINT grid_filters_filter_name_uc UNIQUE(filter_name)
 );
 COMMENT ON TABLE billing.grid_filters IS 'To maintain Display filter tabs in billing home page (Billed/Unbilled studies) & claim work bench';
 -- --------------------------------------------------------------------------------------------------------------------
@@ -1096,14 +1098,17 @@ COMMENT ON COLUMN billing.audit_log.entity_name IS 'It is the affected table nam
 COMMENT ON COLUMN billing.audit_log.entity_key IS 'It is the primary key of the affected row';
 COMMENT ON COLUMN billing.audit_log.entity_key IS 'To store old and new values of the affected row ';
 -- --------------------------------------------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS billing.insurance_provider_clearinghouses
+CREATE TABLE IF NOT EXISTS billing.insurance_provider_details
 (
   insurance_id bigint NOT NULL,
   clearing_house_id bigint NOT NULL,
-  CONSTRAINT insurance_provider_clearinghouses_insurance_id_pk PRIMARY KEY (insurance_id),
-  CONSTRAINT insurance_provider_clearinghouses_clearing_house_id_fk FOREIGN KEY (clearing_house_id) REFERENCES billing.edi_clearinghouses (id),
-  CONSTRAINT insurance_provider_clearinghouses_insurance_id_fk FOREIGN KEY (insurance_id) REFERENCES insurance_providers (id),
-  CONSTRAINT insurance_provider_clearinghouses_ins_id_clear_house_id_uc UNIQUE (insurance_id, clearing_house_id)
+  billing_method text,
+  CONSTRAINT insurance_provider_details_insurance_id_pk PRIMARY KEY (insurance_id),
+  CONSTRAINT insurance_provider_details_clearing_house_id_fk FOREIGN KEY (clearing_house_id) REFERENCES billing.edi_clearinghouses (id),
+  CONSTRAINT insurance_provider_details_insurance_id_fk FOREIGN KEY (insurance_id) REFERENCES insurance_providers (id),
+  CONSTRAINT insurance_provider_details_ins_id_clear_house_id_uc UNIQUE (insurance_id, clearing_house_id)
+  CONSTRAINT insurance_provider_details_ins_id_billing_method_uc UNIQUE (insurance_provider_id, billing_method)
+  CONSTRAINT insurance_provider_details_billing_method_cc CHECK (billing_method IN ('patient_payment', 'direct_billing', 'electronic_billing', 'paper_claim'))
 );
 -- --------------------------------------------------------------------------------------------------------------------
 -- Creating functions
@@ -2830,9 +2835,7 @@ BEGIN
 
 END
 $BODY$
-  LANGUAGE plpgsql VOLATILE
-  COST 100
-  ROWS 1000;
+  LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
 -- MAKE SURE THIS COMMENT STAYS AT THE BOTTOM - ADD YOUR CHANGES ABOVE !!!!
 -- RULES:

@@ -17,9 +17,8 @@ WITH get_claim_details AS(
     INNER JOIN billing.charges bch ON bch.claim_id = bc.id
     WHERE 1=1 
     AND (bc.claim_dt < <%= claimDate %>)
-    <% if(incPatDetail == 'true') { %> AND payer_type = 'primary_insurance' <%}%>
- )
- SELECT
+ ),
+ aging_details  AS( SELECT
  <% if (facilityIds) { %> (pf.facility_name) <% } else  { %> 'All'::text <% } %> as "Facility",
  bc.id as "Claim ID",
  to_char(now(), 'MM/DD/YYYY') AS "Cut-off Date",
@@ -27,20 +26,37 @@ WITH get_claim_details AS(
  get_full_name(pp.last_name,pp.first_name) AS "Patient Name",
  to_char(bc.claim_dt, 'MM/DD/YYYY') AS "Claim Date",
  pp.account_no as "Account #",
- CASE WHEN payer_type = 'primary_insurance' THEN 'Insurance'
-      WHEN payer_type = 'secondary_insurance' THEN 'Insurance'
-      WHEN payer_type = 'tertiary_insurance' THEN 'Insurance'
-      WHEN payer_type = 'referring_provider' THEN 'Provider'
-      WHEN payer_type = 'patient' THEN 'Patient'
-      WHEN payer_type = 'ordering_facility' THEN 'Ordering Facility'
- END AS "Responsible Party",
- CASE WHEN payer_type = 'primary_insurance' THEN pip.insurance_name
-      WHEN payer_type = 'secondary_insurance' THEN pip.insurance_name
-      WHEN payer_type = 'tertiary_insurance' THEN pip.insurance_name
-      WHEN payer_type = 'referring_provider' THEN  ppr.full_name
-      WHEN payer_type = 'patient' THEN get_full_name(pp.last_name,pp.first_name)
-      WHEN payer_type = 'ordering_facility' THEN ppg.group_name
- END AS "Payer Name",
+ <% if(incPatDetail == 'true') { %>     
+    CASE WHEN primary_patient_insurance_id is not null THEN 'Primary Insurance' ELSE '-- No payer --'  END AS "Responsible Party",     
+<%} else {%>    
+CASE WHEN payer_type = 'primary_insurance' THEN 'Insurance'
+WHEN payer_type = 'secondary_insurance' THEN 'Insurance'
+WHEN payer_type = 'tertiary_insurance' THEN 'Insurance'
+WHEN payer_type = 'referring_provider' THEN 'Provider'
+WHEN payer_type = 'patient' THEN 'Patient'
+WHEN payer_type = 'ordering_facility' THEN 'Ordering Facility'     
+END AS "Responsible Party",
+<% } %>
+<% if(incPatDetail == 'true') { %>     
+CASE WHEN primary_patient_insurance_id is not null THEN pip.insurance_name 
+ELSE  
+    CASE 
+        WHEN payer_type = 'secondary_insurance' THEN pip.insurance_name
+        WHEN payer_type = 'tertiary_insurance' THEN pip.insurance_name
+        WHEN payer_type = 'referring_provider' THEN  ppr.full_name
+        WHEN payer_type = 'patient' THEN get_full_name(pp.last_name,pp.first_name)
+        WHEN payer_type = 'ordering_facility' THEN ppg.group_name
+    END
+END AS "Payer Name",     
+<%} else {%>   
+CASE WHEN payer_type = 'primary_insurance' THEN pip.insurance_name
+WHEN payer_type = 'secondary_insurance' THEN pip.insurance_name
+WHEN payer_type = 'tertiary_insurance' THEN pip.insurance_name
+WHEN payer_type = 'referring_provider' THEN  ppr.full_name
+WHEN payer_type = 'patient' THEN get_full_name(pp.last_name,pp.first_name)
+WHEN payer_type = 'ordering_facility' THEN ppg.group_name
+END AS "Payer Name",
+<% } %>
  CASE
  WHEN (pip.insurance_info->'ediCode') ='A' THEN 'Attorney'
  WHEN (pip.insurance_info->'ediCode') ='C' THEN 'Medicare'
@@ -54,8 +70,8 @@ WITH get_claim_details AS(
  WHEN (pip.insurance_info->'ediCode' )='M' THEN 'M DMERC'
 ELSE   ''
 END  AS "EDI",
- (ppr.provider_type) AS "Provider Type",
- COALESCE(CASE WHEN gcd.age <= 30 THEN gcd.balance END,0::money) AS "0.-30 Sum",
+pippt.code AS "Provider Type",
+ COALESCE(CASE WHEN gcd.age <= 30 THEN gcd.balance END,0::money) AS "0-30 Sum",
 COALESCE(CASE WHEN gcd.age > 30 and gcd.age <=60  THEN gcd.balance END,0::money) AS "30-60 Sum",
 COALESCE(CASE WHEN gcd.age > 60 and gcd.age <=90  THEN gcd.balance END,0::money) AS "60-90 Sum",
 COALESCE(CASE WHEN gcd.age > 90 and gcd.age <=120 THEN gcd.balance END,0::money) AS "90-120 Sum",
@@ -73,13 +89,14 @@ COALESCE(CASE WHEN gcd.age > 360 and gcd.age <=450 THEN gcd.balance END,0::money
 COALESCE(CASE WHEN gcd.age > 450 and gcd.age <=540 THEN gcd.balance END,0::money) AS"450-540 Sum (Q3)",
 COALESCE(CASE WHEN gcd.age > 540 and gcd.age <=630 THEN gcd.balance END,0::money) AS "540-630 Sum (Q3)",
 COALESCE(CASE WHEN gcd.age > 630 and gcd.age <=730 THEN gcd.balance END,0::money) AS "630-730 Sum (Q1)",
-COALESCE(CASE WHEN gcd.age > 730 THEN gcd.balance END,0::money) AS "730+ Sum"
+COALESCE(CASE WHEN gcd.age > 730 THEN gcd.balance END,0::money) AS "730+ Sum",
  
  
      <% } else { %> 
-        COALESCE(CASE WHEN gcd.age > 120 THEN gcd.balance END,0::money) AS "120+ Sum"
+        COALESCE(CASE WHEN gcd.age > 120 THEN gcd.balance END,0::money) AS "120+ Sum",
 
      <%}%>  
+     gcd.balance AS "Total"
  FROM billing.claims bc
  INNER JOIN get_claim_details gcd ON gcd.claim_id = bc.id
  INNER JOIN public.patients pp ON pp.id = bc.patient_id
@@ -90,6 +107,7 @@ COALESCE(CASE WHEN gcd.age > 730 THEN gcd.balance END,0::money) AS "730+ Sum"
                                                  WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
                                             END
  LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
+ LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
  LEFT JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id
  LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
  LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
@@ -99,6 +117,63 @@ COALESCE(CASE WHEN gcd.age > 730 THEN gcd.balance END,0::money) AS "730+ Sum"
       <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
       <% if(billingProID) { %> AND <% print(billingProID); } %>
       <% if(excCreditBal == 'true'){ %> AND  gcd.balance::money > '0' <% } %>
+GROUP BY "Payer Name","Facility","Claim ID","Cut-off Date","Billing Pro Name","Patient Name","Claim Date","Account #","Responsible Party","EDI","Provider Type", gcd.age,gcd.balance
+),
+aged_ar_sum AS ( SELECT 
+       null::text as "Facility", 
+       null::bigint as "Claim ID", 
+       null::text as "Cut-off Date", 
+       null::text as "Billing Pro Name", 
+       null::text as "Patient Name", 
+       null::text as "Claim Date", 
+       null::varchar(64) as "Account #", 
+       null::text as "Responsible Party",
+       "Payer Name",
+       null::text as "EDI",
+       ('--- Total ---')::TEXT as "Provider Type", 
+       sum(cast("0-30 Sum" AS NUMERIC))::MONEY as "0-30 Sum", 
+       sum(cast("30-60 Sum" AS NUMERIC))::MONEY as "30-60 Sum",
+       sum("60-90 Sum") as "60-90 Sum",sum("90-120 Sum") as "90-120 Sum", 
+       sum(cast("120+ Sum" AS NUMERIC))::MONEY as "120+ Sum",
+       sum("Total") AS "Total" 
+   FROM 
+       aging_details 
+   GROUP BY 
+       "Payer Name"
+),
+aged_ar_total AS ( SELECT 
+    null::text as "Facility", 
+    null::bigint as "Claim ID", 
+    null::text as "Cut-off Date", 
+    null::text as "Billing Pro Name", 
+    null::text as "Patient Name", 
+    null::text as "Claim Date", 
+    null::varchar(64) as "Account #", 
+    null::text as "Responsible Party",
+    null::text AS "Payer Name",
+    null::text as "EDI",
+    ('--- Total ---')::text as "Provider Type", 
+    sum(cast("0-30 Sum" AS NUMERIC))::MONEY as "0-30 Sum", 
+    sum(cast("30-60 Sum" AS NUMERIC))::MONEY as "30-60 Sum",
+    sum("60-90 Sum") as "60-90 Sum",sum("90-120 Sum") as "90-120 Sum", 
+    sum(cast("120+ Sum" AS NUMERIC))::MONEY as "120+ Sum" ,
+    sum("Total") AS "Total"
+FROM 
+aging_details ),
+aging_result as ( SELECT 
+                    * 
+                  FROM aging_details 
+                  UNION ALL  
+                  SELECT 
+                    * 
+                  FROM aged_ar_sum 
+                  UNION ALL  
+                  SELECT 
+                  * 
+                  FROM aged_ar_total 
+) 
+SELECT * FROM aging_result 
+ORDER BY "Payer Name","Responsible Party"
 `);
 
 const api = {
