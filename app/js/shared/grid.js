@@ -377,18 +377,12 @@ define('grid', [
                 if(studyArray.length == 1)
                     $divObj.append(liClaimInquiry);
                 $('#anc_claim_inquiry').click(function () {
-                     commonjs.showDialog({
-                    'header': 'Claim Inquiry',
-                    'width': '90%',
-                    'height': '75%',
-                    'needShrink': true
-                });
-                self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
-                self.claimInquiryView.render(studyIds,selectedStudies[0].patient_id, false);
+                    self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
+                    self.claimInquiryView.render(studyIds,selectedStudies[0].patient_id, false);
                 });
 
 
-                var liPatientClaimInquiry = commonjs.getRightClickMenu('anc_patient_claim_inquiry','setup.rightClickMenu.patientClaimInquiry',false,'Patient Claim Inquiry',false);
+                var liPatientClaimInquiry = commonjs.getRightClickMenu('anc_patient_claim_inquiry','setup.rightClickMenu.patientClaim',false,'Patient Claim',false);
                 if(studyArray.length == 1)
                     $divObj.append(liPatientClaimInquiry);
                 $('#anc_patient_claim_inquiry').click(function () {
@@ -448,12 +442,22 @@ define('grid', [
                             return false;
                         }
 
+                        var queryStrVal = [
+                            'study_id=' + study_id,
+                            'host_name=' + location.origin,
+                            'user_id=' + app.userID,
+                            'company_id=' + app.companyID,
+                            'client_ip=' + location.hostname,
+                            'session=' + btoa(app.sessionID),
+                            'screen_name=approved_report'
+                        ];
+
                         commonjs.showDialog({
                             header: 'Approved Reports',
                             i18nHeader: 'setup.rightClickMenu.approvedReports',
                             width: '95%',
                             height: '75%',
-                            url: '/vieworder#order/transcription/0/' + study_id + '/' + selectedStudies[0].patient_id + '/model/' + selectedStudies[0].patient_name
+                            url: '/Txtranscription/transcription/TranscriptionHandler.ashx?q=' + btoa(queryStrVal)
                         });
                     });
 
@@ -894,23 +898,24 @@ define('grid', [
                             });
                         });
                     } else {
+                        if (['ABRT', 'CAN', 'NOS'].indexOf(gridData.study_status) <-1 && !gridData.has_deleted) {
+                            var study = {
+                                study_id: rowID,
+                                patient_id: gridData.patient_id,
+                                facility_id: gridData.facility_id,
+                                study_date: gridData.study_dt,
+                                patient_name: gridData.patient_name,
+                                account_no: gridData.account_no,
+                                patient_dob: gridData.birth_date,
+                                accession_no: gridData.accession_no,
+                            };
 
-                        var study = {
-                            study_id: rowID,
-                            patient_id: gridData.patient_id,
-                            facility_id: gridData.facility_id,
-                            study_date: gridData.study_dt,
-                            patient_name: gridData.patient_name,
-                            account_no: gridData.account_no,
-                            patient_dob: gridData.birth_date,
-                            accession_no: gridData.accession_no,
-                        };
-
-                        window.localStorage.setItem('selected_studies', null);
-                        window.localStorage.setItem('primary_study_details', JSON.stringify(study));
-                        window.localStorage.setItem('selected_studies', JSON.stringify(rowID));
-                        self.claimView = new claimsView();
-                        self.claimView.showClaimForm();
+                            window.localStorage.setItem('selected_studies', null);
+                            window.localStorage.setItem('primary_study_details', JSON.stringify(study));
+                            window.localStorage.setItem('selected_studies', JSON.stringify(rowID));
+                            self.claimView = new claimsView();
+                            self.claimView.showClaimForm();
+                        }
                     }
                 },
                 disablesearch: false,

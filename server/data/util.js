@@ -269,11 +269,12 @@ const util = {
                     }
                 }  
 
-                if (filterObj.ClaimInformation.balance&&filterObj.ClaimInformation.balance.list) {
-                    let obj = filterObj.ClaimInformation.balance.list;
+                if (filterObj.ClaimInformation.balance&&filterObj.ClaimInformation.balance.value) {
+                    let obj = filterObj.ClaimInformation.balance;
                     let BalanceQuery = '';
 
-                    BalanceQuery += '  (select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from BILLING.get_claim_totals(claims.id))::numeric' +  obj +'::numeric';
+
+                    BalanceQuery += '  (select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from BILLING.get_claim_totals(claims.id))::numeric' + obj.value +'::numeric';
 
                     query += util.getRelationOperator(query) + BalanceQuery ;
 

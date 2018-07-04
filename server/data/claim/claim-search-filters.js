@@ -379,6 +379,10 @@ const api = {
             ` OFFSET ${((args.pageNo - 1) * args.pageSize) || 0} `
             ;
 
+        if(args.customArgs.filter_id=='Follow_up_queue'){
+            args.filterQuery += ` AND claim_followups.assigned_to = ${args.userId} `;
+        }
+        
         let innerQuery = api.getWLQuery(`
                             row_number() over(${sort}) as number
                             , claims.id AS claim_id
@@ -387,7 +391,10 @@ const api = {
         innerQuery += limit + offset;
 
         // optimization! convert INNER to LEFT OUTER joins and add relevant WHERE clauses
-        args.filterQuery += ` AND claims.company_id = ${args.comapny_id} `;
+        //args.filterQuery += ` AND claims.company_id = ${args.comapny_id} `;
+
+        
+
         // TODO: switch these function calls into JOINS (perhaps)
         let columns = api.getWLQueryColumns();
         let sql = `

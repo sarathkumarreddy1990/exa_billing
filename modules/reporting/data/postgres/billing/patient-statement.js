@@ -715,7 +715,7 @@ const api = {
         filters.sDate = `$${params.length}::date`;
         filters.statementDate = `$${params.length}::date`;
         
-        filters.whereDate = queryBuilder.whereDateInTz(`bc.claim_dt`, `<=`, [params.length], `f.time_zone`);   
+        filters.whereDate = queryBuilder.whereDateInTz(` CASE  WHEN type = 'charge' THEN  bc.claim_dt ELSE pc.commented_dt END `, `<=`, [params.length], `f.time_zone`);   
         filters.payToProvider = reportParams.payToProvider ;
 
         return {
