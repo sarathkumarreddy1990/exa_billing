@@ -1104,7 +1104,7 @@ var commonjs = {
             err = response.responseJSON.err;
         }
 
-        switch (err.status || response.status ) {
+        switch (err.status || response.status) {
             case 0:
                 commonjs.showError('messages.errors.notconnected');
                 break;
@@ -1129,14 +1129,13 @@ var commonjs = {
             case 'HANDLED_EXCEPTION':
                 commonjs.showError(errorMessage || 'Error :(');
                 break;
+            case 'INVALID_SESSION':
+                $('#divPageLoading').hide();
+                commonjs.showDialog({ header: 'Invalid Session', width: '50%', height: '50%', html: response.responseText }, true);
+                break;
             default:
                 commonjs.showError('messages.errors.someerror');
                 break;
-        }
-
-        if(response && response.responseText && response.responseText.indexOf('INVALID_SESSION') > -1) {
-            $('#divPageLoading').hide();
-            commonjs.showDialog({ header: 'Error', i18nHeader: 'messages.errors.serversideerror', width: '50%', height: '50%', html: response.responseText }, true);
         }
     },
 

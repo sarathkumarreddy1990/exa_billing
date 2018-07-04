@@ -484,10 +484,10 @@ define(['jquery',
                             $.each(data.ediText.split('~'), function (index, val) {
                                 if (val != '') {
                                     if (index == 0 || index == 1) {
-                                        str += "<tr><td style='width: 20px; padding-bottom: 0px;'>" + (0) + "</td><td style='padding-bottom: 0px; border-right: none;'>" + val + "</td></tr>";
+                                        str += "<tr><td style='width: 20px; padding: 5px;'>" + (0) + "</td><td style='padding: 5px; border-right: none;'>" + val + "</td></tr>";
                                     }
                                     else {
-                                        str += "<tr><td style='width: 20px; padding-bottom: 0px;'>" + (index - 1) + "</td><td style='padding-bottom: 0px; border-right: none;'>" + val + "</td></tr>";
+                                        str += "<tr><td style='width: 20px; padding: 5px;'>" + (index - 1) + "</td><td style='padding: 5px; border-right: none;'>" + val + "</td></tr>";
                                     }
                                 }
                             })

@@ -88,9 +88,7 @@ define(['jquery',
                 'click #btnPaymentPrint': 'paymentPrintPDF',
                 'click #btnPrintReceipt': 'paymentPrintReceiptPDF',
                 'click #btnPaymentPendingRefreshOnly': 'refreshInvociePendingPayment',
-                'click #btnPaymentApplyAll': function () {
-                    alert('Under process')
-                }
+                'click #btnPaymentApplyAll': 'applyAllPending'
             },
 
             initialize: function (options) {
@@ -2085,6 +2083,15 @@ define(['jquery',
                 $('.col2 option').removeAttr("disabled");
                 var reasonSelected = $(e.target).val();
                 $('.col2 option[value="' + reasonSelected + '"]').prop("disabled", true);
+            },
+
+            applyAllPending: function () {
+                if (this.pendingPayments && this.pendingPayments.length) {
+
+                }
+                else {
+                    commonjs.showWarning('No pending payments found to apply');
+                }
             }
 
         });

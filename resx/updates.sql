@@ -855,6 +855,7 @@ CREATE TABLE IF NOT EXISTS billing.edi_files
     file_path TEXT NOT NULL,
     file_size BIGINT NOT NULL,
     file_md5 TEXT NOT NULL,
+    uploaded_file_name TEXT NOT NULL,
     CONSTRAINT edi_files_pk PRIMARY KEY (id),
     CONSTRAINT edi_files_company_id_fk FOREIGN KEY (company_id) REFERENCES public.companies (id),
     CONSTRAINT edi_files_file_store_id_fk FOREIGN KEY (file_store_id) REFERENCES public.file_stores (id),
@@ -1015,16 +1016,12 @@ CREATE TABLE IF NOT EXISTS billing.edi_file_payments
 );
 COMMENT ON TABLE billing.edi_file_payments IS 'Payments created from an ERA file';
 -- --------------------------------------------------------------------------------------------------------------------
-IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'SCREEN_TYPE') THEN
-	CREATE TYPE SCREEN_TYPE AS ENUM ('studies','claims');
-END IF;
--- --------------------------------------------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS billing.grid_filters
 (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
     user_id BIGINT NOT NULL,
     filter_order INTEGER NOT NULL,
-    filter_type SCREEN_TYPE NOT NULL,
+    filter_type TEXT NOT NULL,
     filter_name TEXT NOT NULL,
     filter_info json NOT NULL,
     display_as_tab BOOLEAN DEFAULT FALSE,
@@ -1033,6 +1030,7 @@ CREATE TABLE IF NOT EXISTS billing.grid_filters
     inactivated_dt TIMESTAMPTZ,
     CONSTRAINT grid_filters_id_pk PRIMARY KEY (id),
     CONSTRAINT grid_filters_user_id_fk FOREIGN KEY (user_id) REFERENCES public.users(id)
+    CONSTRAINT grid_filters_filter_type_cc CHECK(filter_type IN ('studies','claims'))
 );
 COMMENT ON TABLE billing.grid_filters IS 'To maintain Display filter tabs in billing home page (Billed/Unbilled studies) & claim work bench';
 -- --------------------------------------------------------------------------------------------------------------------
@@ -1042,7 +1040,7 @@ CREATE TABLE IF NOT EXISTS billing.user_settings
     company_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
     default_tab TEXT NOT NULL,
-    grid_name SCREEN_TYPE NOT NULL,
+    grid_name TEXT NOT NULL,
     default_column TEXT,
     default_column_order_by TEXT,
     field_order INTEGER[] NOT NULL,
@@ -1051,10 +1049,12 @@ CREATE TABLE IF NOT EXISTS billing.user_settings
     paper_claim_original_template_id bigint,
     direct_invoice_template_id bigint,
     patient_invoice_template_id bigint,
+    grid_field_settings json,
     CONSTRAINT billing_user_settings_id_pk PRIMARY KEY (id),
     CONSTRAINT billing_user_settings_user_id_fk FOREIGN KEY (user_id) REFERENCES public.users(id),
     CONSTRAINT billing_user_settings_company_id_fk FOREIGN KEY (company_id) REFERENCES public.companies(id),
-    CONSTRAINT billing_user_settings_grid_name_cc CHECK(default_date_range in ('last_7_days', 'last_30_days', 'last_month','next_30_days','this_month','this_year'))
+    CONSTRAINT billing_user_settings_default_date_range_cc CHECK(default_date_range IN ('last_7_days', 'last_30_days', 'last_month','next_30_days','this_month','this_year')),
+    CONSTRAINT billing_user_settings_grid_name_cc CHECK(grid_name IN ('studies','claims'))
 );
 -- --------------------------------------------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS billing.status_color_codes
@@ -1114,6 +1114,7 @@ CREATE OR REPLACE FUNCTION billing.get_claim_totals(bigint)
         , charges_count                 bigint
         , charges_bill_fee_total        money
         , charges_allowed_amount_total  money
+        , claim_cpt_description character varying[]
         , payments_count                bigint
         , payments_total                money
         , payments_applied_count        bigint
@@ -1132,6 +1133,7 @@ $BODY$
             , count(c.id)                     AS charges_count
             , sum(c.bill_fee * c.units)       AS charges_bill_fee_total
             , sum(c.allowed_amount * c.units) AS charges_allowed_amount_total
+            , array_agg(pc.display_description) AS claim_cpt_description
         FROM
             billing.charges AS c
             LEFT OUTER JOIN billing.charges_studies AS cs ON c.id = cs.charge_id  -- charges may or may not belong to studies os LEFT and don't count NULLs
@@ -2205,7 +2207,7 @@ $BODY$
                     public.fee_schedules fs
                 WHERE
                     1 = 1
-                    AND fs.category = 'default'
+                    AND fs.category = 'self_pay'
                     AND fs.inactivated_dt IS NULL
                     LIMIT 1;
 		
@@ -2298,7 +2300,7 @@ $BODY$
                     ELSE
                         l_base_fee = l_base_fee - l_dynamic_fee_override;
                     END IF;
-                ELSE
+                ELSIF l_dynamic_fee_modifier_type = 'per' THEN
                     -- Modifier type = 'per'
                     IF l_dynamic_fee_modifier = 'add' THEN
                         l_base_fee = l_base_fee + (l_base_fee::numeric * l_dynamic_fee_override::numeric / 100)::money;
@@ -2329,13 +2331,13 @@ BEGIN
 		pa.payment_id,
 		pa.charge_id,
 		pa_adjustment.adjustment_code_id,
-		pa.amount as payment_amount,
-		pa_adjustment.amount as adjustment_amount,
+		coalesce(pa.amount,0::money) as payment_amount,
+		coalesce(pa_adjustment.amount,0::money) as adjustment_amount,
 		pa.created_by as payment_created_by,
 		pa_adjustment.created_by as adjustment_created_by,
 		pa.applied_dt as payment_applied_dt,
 		pa_adjustment.applied_dt as adjustment_applied_dt,
-		pa_adjustment.id as payment_application_adjustment_id 
+		pa_adjustment.id as payment_application_adjustment_id
 	FROM	billing.payment_applications pa
 	LEFT JOIN LATERAL (
 		SELECT 	* 
@@ -2370,12 +2372,14 @@ BEGIN
 		WHERE 
 	            id = l_claim_status_id;
 	        
-	        IF l_claim_status = 'Pending Validation' THEN
-		   l_bill_fee_recalculation = 1;
-		ELSIF ((p_payer_type = 'primary_insurance' OR p_payer_type = 'secondary_insurance' OR p_payer_type = 'tertiary_insurance') AND (p_existing_payer_type = 'referring_provider' OR p_existing_payer_type = 'ordering_facility')) THEN
-	           l_bill_fee_recalculation = 1;
-		ELSIF ((p_payer_type = 'referring_provider' OR p_payer_type = 'ordering_facility') AND (p_payer_type = 'primary_insurance' OR p_existing_payer_type = 'secondary_insurance' OR p_existing_payer_type = 'tertiary_insurance')) THEN
-		   l_bill_fee_recalculation = 1;
+	     IF l_claim_status = 'Pending Validation' THEN
+			IF ((p_payer_type = 'primary_insurance' OR p_payer_type = 'secondary_insurance' OR p_payer_type = 'tertiary_insurance') AND (p_existing_payer_type = 'referring_provider' OR p_existing_payer_type = 'ordering_facility')) THEN
+				l_bill_fee_recalculation = TRUE;
+			ELSIF ((p_payer_type = 'referring_provider' OR p_payer_type = 'ordering_facility') AND (p_existing_payer_type = 'primary_insurance' OR p_existing_payer_type = 'secondary_insurance' OR p_existing_payer_type = 'tertiary_insurance')) THEN
+				l_bill_fee_recalculation = TRUE;
+                        ELSIF ((p_payer_type = 'primary_insurance' OR p_payer_type = 'secondary_insurance' OR p_payer_type = 'tertiary_insurance' OR p_payer_type = 'referring_provider' OR p_payer_type = 'ordering_facility')  AND (p_existing_payer_type = 'patient')) THEN
+				l_bill_fee_recalculation = TRUE;
+			END IF;
 		END IF;
 		
 	RETURN l_bill_fee_recalculation;
@@ -2790,6 +2794,45 @@ BEGIN
 END;
 $BODY$
   LANGUAGE plpgsql;
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION billing.get_payment_applications(
+    IN i_payment_id bigint,
+    IN i_application_id bigint)
+  RETURNS TABLE(id bigint, payment_id bigint, charge_id bigint, adjustment_code_id bigint, payment_amount money, adjustment_amount money, payment_created_by bigint, adjustment_created_by bigint, payment_applied_dt timestamp with time zone, adjustment_applied_dt timestamp with time zone, payment_application_adjustment_id bigint) AS
+$BODY$
+BEGIN
+	RETURN QUERY
+	SELECT 	pa.id,
+		pa.payment_id,
+		pa.charge_id,
+		pa_adjustment.adjustment_code_id,
+		coalesce(pa.amount,0::money) as payment_amount,
+		coalesce(pa_adjustment.amount,0::money) as adjustment_amount,
+		pa.created_by as payment_created_by,
+		pa_adjustment.created_by as adjustment_created_by,
+		pa.applied_dt as payment_applied_dt,
+		pa_adjustment.applied_dt as adjustment_applied_dt,
+		pa_adjustment.id as payment_application_adjustment_id 
+	FROM	billing.payment_applications pa
+	LEFT JOIN LATERAL (
+		SELECT 	* 
+		FROM	billing.payment_applications  
+		WHERE	payment_application_id = pa.id
+	) pa_adjustment ON true
+	LEFT JOIN LATERAL (
+		SELECT 	applied_dt 
+		FROM	billing.payment_applications bpa
+		WHERE	bpa.id = i_application_id
+	) pa_batch ON true
+	WHERE	pa.payment_id = i_payment_id 
+		AND pa.applied_dt = pa_batch.applied_dt
+		AND pa.amount_type = 'payment';
+
+END
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100
+  ROWS 1000;
 -- --------------------------------------------------------------------------------------------------------------------
 -- MAKE SURE THIS COMMENT STAYS AT THE BOTTOM - ADD YOUR CHANGES ABOVE !!!!
 -- RULES:
