@@ -164,6 +164,8 @@ define([
 
                             self.getFollowupDate();
                             $('.claimProcess').prop('disabled', false);
+                            $('#gview_tblCIClaimComments .ui-search-toolbar').hide();
+                            $('#divClaimInquiry').height(from ? $(window).height() - 220 : $(window).height() - 260);
                         }
                     },
                     error: function (err) {
@@ -486,7 +488,7 @@ define([
                     shrinkToFit: true,
                     customargs: {
                         claim_id: self.claim_id
-                    }
+                    }                   
                 })
                 $('#gview_tblCIClaimComments').find('.ui-jqgrid-bdiv').css('max-height', '180px')
                 commonjs.initializeScreen({ header: { screen: 'Claim Comments', ext: 'Claim Comments' } });
