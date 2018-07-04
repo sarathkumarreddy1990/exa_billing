@@ -128,7 +128,7 @@ define([
                                 $('#lblCIBillFee').text(claim_data.bill_fee && claim_data.bill_fee != 'undefined' ? claim_data.bill_fee : '$0.00');
                                 $('#lblCIBalance').text(claim_data.claim_balance && claim_data.claim_balance != 'undefined' ? claim_data.claim_balance : '$0.00');
                                 $('#lblCIAllowed').text(claim_data.allowed_fee && claim_data.allowed_fee != 'undefined' ? claim_data.allowed_fee : '$0.00');
-                                $('#txtCIBillingComment').text(claim_data.billing_notes);
+                                $('#txtCIBillingComment').val(claim_data.billing_notes);
                                 var claim_date = commonjs.checkNotEmpty(claim_data.claim_dt) ? moment(claim_data.claim_dt).format('L') : '';
                                 $('#lblCIClaimDate').text(claim_date);
                             }
@@ -164,6 +164,8 @@ define([
 
                             self.getFollowupDate();
                             $('.claimProcess').prop('disabled', false);
+                            $('#gview_tblCIClaimComments .ui-search-toolbar').hide();
+                            $('#divClaimInquiry').height(from ? $(window).height() - 220 : $(window).height() - 260);
                         }
                     },
                     error: function (err) {
@@ -204,7 +206,7 @@ define([
                     width: $('#claimDetails').width() - 50,
                     shrinkToFit: true
                 });
-                $('#gview_tblCIInsurance').find('.ui-jqgrid-bdiv').css('max-height', '180px')
+                $('#gview_tblCIInsurance').find('.ui-jqgrid-bdiv').css('max-height', '100px')
             },
 
             showDiagnosisGrid: function (data) {
@@ -486,7 +488,7 @@ define([
                     shrinkToFit: true,
                     customargs: {
                         claim_id: self.claim_id
-                    }
+                    }                   
                 })
                 $('#gview_tblCIClaimComments').find('.ui-jqgrid-bdiv').css('max-height', '180px')
                 commonjs.initializeScreen({ header: { screen: 'Claim Comments', ext: 'Claim Comments' } });
@@ -590,6 +592,7 @@ define([
                         },
                         success: function (data, response) {
                             commonjs.showStatus('Record Saved Successfully');
+                            self.closeSaveComment();
                             self.showClaimCommentsGrid();
 
                         },
@@ -610,6 +613,7 @@ define([
                         },
                         success: function (data, response) {
                             commonjs.showStatus('Record Saved Successfully');
+                            self.closeSaveComment();
                             self.showClaimCommentsGrid();
                         },
                         error: function (err) {

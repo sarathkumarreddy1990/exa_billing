@@ -1,14 +1,33 @@
 const express = require('express');
+const { checkSession } = require('../../controllers/auth');
+const { sendError } = require('../../shared/http');
 
 const app = express();
 
-app.use(function (req, res, next) {
+const sendInvalidSession = function (req, res) {
+    sendError(req, res, {
+        code: 'INVALID_SESSION',
+        description: 'INVALID SESSION'
+    });
+};
 
-    if(req.isAuthenticated()) {
+app.use(async function (req, res, next) {
+
+    if (!req.isAuthenticated()) {
+        return sendInvalidSession(req, res);
+    }
+
+    if (!req.session.id) {
+        return sendInvalidSession(req, res);
+    }
+
+    const isValidSession = await checkSession(req.session.id);
+
+    if (isValidSession) {
         return next();
     }
 
-    throw new Error('INVALID_SESSION');
+    return sendInvalidSession(req, res);
 });
 
 module.exports = app;
