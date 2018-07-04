@@ -99,7 +99,7 @@ module.exports = {
                 , ip.insurance_code
                 , ip.insurance_name
                 , (COALESCE(TRIM(pi.subscriber_lastname),'') ||' '|| COALESCE(TRIM(pi.subscriber_firstname),'')) AS name 
-                , to_char( pi.subscriber_dob , 'MM/DD/YYYY') 
+                , to_char( pi.subscriber_dob , 'MM/DD/YYYY') AS subscriber_dob
                 , pi.policy_number 
                 , pi.group_number
             FROM public.patient_insurances pi
