@@ -448,7 +448,11 @@
             "insuranceName": "Insurance Name",
             "claimClearingHouse": "Claim Clearing House",
             "claimTemplateRad": "Claim Template (Rad)",
-            "claimTemplateProv": "Claim Template (Prov)"
+            "claimTemplateProv": "Claim Template (Prov)",
+            "directBilling": "Direct Billing",
+            "electronic": "Electronic Billing",
+            "patientPayment": "Patient Payment",
+            "paperClaim": "Paper Claim"
         },
         "billingMessages": {
             "collections": "Collections"

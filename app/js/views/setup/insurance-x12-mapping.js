@@ -30,13 +30,21 @@ define(['jquery',
             model: null,
             insuranceX12MappingTable :null,
             pager: null,
-            events: { },
+            events: {
+                'change #ddlClaimBillingMethod': 'showHouse'
+             },
             initialize: function (options) {
                 var self = this;
                 this.options = options;
                 this.model = new InsuranceX12MappingModel();
                 this.insuranceX12MappingList = new InsuranceX12MappingCollections();
                 this.pager = new Pager();
+                this.billing_method = [
+                    { 'value': 'direct_billing', 'text': 'Direct Billing' },
+                    { 'value': 'electronic_billing', 'text': 'Electronic Billing' },
+                    { 'value': 'patient_payment', 'text': 'Patient Payment' },
+                    { 'value': 'paper_claim', 'text': 'Paper Claim' }
+                ];
             },
 
             render: function() {
@@ -47,13 +55,20 @@ define(['jquery',
                 if (this.ediClearingHouses && !this.ediClearingHouses.length)
                     this.getEDIClearingHousesList();
 
+                var billingMethodValue = commonjs.buildGridSelectFilter({
+                    arrayOfObjects: this.billing_method,
+                    searchKey: 'value',
+                    textDescription: 'text',
+                    sort: true
+                })
+
                 this.insuranceX12MappingTable = new customGrid();
                 this.insuranceX12MappingTable.render({
                     gridelementid: '#tblInsuranceX12MappingGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['','','',''],
-                    i18nNames: ['', '', 'setup.insuranceX12Mapping.insuranceName', 'setup.insuranceX12Mapping.claimClearingHouse'],
+                    colNames: ['','','','',''],
+                    i18nNames: ['', '', 'setup.insuranceX12Mapping.insuranceName', 'billing.fileInsurance.billingmethod', 'setup.insuranceX12Mapping.claimClearingHouse'],
                     colModel: [
                         {
                             name: 'id',
@@ -75,6 +90,12 @@ define(['jquery',
                         },
                         {
                             name: 'insurance_name',
+                        },
+                        {
+                            name: 'billing_method',
+                            "stype": "select", 
+                            searchoptions: { value: billingMethodValue }, 
+                            formatter: self.billingMethodFormatter
                         },
                         {
                             name: 'claimclearinghouse',
@@ -138,9 +159,15 @@ define(['jquery',
                         success: function (model, response) {
                             if (response && response.length > 0) {
                                 var data = response[0];
+                                
                                 if (data) {
                                     $('#lblInsuranceName ').html(data.insurance_name ? data.insurance_name : '');
                                     $('#ddlClaimClearingHouse').val(data.claimclearinghouse ? data.claimclearinghouse : '');
+                                    $('#ddlClaimBillingMethod').val(data.billing_method ? data.billing_method : '');
+
+                                    if(data.billing_method == 'electronic_billing'){
+                                        $('#clearingHouse').show();
+                                    }
                                 }
                             }
                         }
@@ -204,7 +231,8 @@ define(['jquery',
 
             save: function () {
                 this.model.set({
-                    "claimClearingHouse": $('#ddlClaimClearingHouse').val(),
+                    "claimClearingHouse": $('#ddlClaimClearingHouse').val() ? $('#ddlClaimClearingHouse').val() : null,
+                    "billingMethod": $('#ddlClaimBillingMethod').val()
                 });
                 this.model.save({
                 }, {
@@ -218,6 +246,35 @@ define(['jquery',
                         commonjs.handleXhrError(model, response);
                     }
                 });
+            },
+
+            billingMethodFormatter: function (cellvalue, options, rowObject) {
+                var colvalue = ''
+                switch (rowObject.billing_method) {
+                    case 'direct_billing':
+                        colvalue = 'Direct Billing'
+                        break
+                    case 'electronic_billing':
+                        colvalue = 'Electronic Billing'
+                        break
+                    case 'patient_payment':
+                        colvalue = 'Patient Payment'
+                        break
+                    case 'paper_claim':
+                        colvalue = 'Paper Claim'
+                }
+                return colvalue
+            },
+
+            showHouse: function(e) {
+                var method = $('#ddlClaimBillingMethod').val();
+                if(method == 'electronic_billing'){
+                    $('#clearingHouse').show();
+                }
+                else{
+                    $('#clearingHouse').hide();
+                }
+                    
             }
         });
         return insuranceX12MappingView;
