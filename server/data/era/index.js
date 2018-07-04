@@ -230,6 +230,22 @@ module.exports = {
                                 FROM 
                                     insert_payment_adjustment 
                             ),
+                            ,matched_claim_payment AS (
+                                SELECT
+                                    sum(c.bill_fee * c.units)::numeric AS claim_bill_fee_total
+                                    ,'Amount received for matching orders : ' || COALESCE(sum(c.bill_fee * c.units),'0')::numeric AS notes ||
+                                FROM
+                                    billing.charges AS c
+                                    INNER JOIN inserted_claims ON inserted_claims.claim_id = c.claim_id
+                                    INNER JOIN public.cpt_codes AS pc ON pc.id = c.cpt_id
+                            )
+                            ,update_payment AS (
+                               UPDATE billing.payments
+                                SET 
+                                    amount = ( SELECT claim_bill_fee_total FROM matched_claim_payment ),
+                                    notes =  notes || E'\n' || ( SELECT notes FROM matched_claim_payment ) || E'\n' || ${paymentDetails.id} || '.ERA'
+                                WHERE id = ${paymentDetails.id}
+                            )
                             insert_edi_file_claims AS (
                                 INSERT INTO billing.edi_file_claims
                                 (

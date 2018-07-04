@@ -230,7 +230,7 @@ module.exports = {
         let monetoryAmount = financialInfo.monetoryAmount ? parseFloat(financialInfo.monetoryAmount).toFixed(2) : 0.00;
         let notes = 'Amount shown in EOB:' + monetoryAmount;
 
-        notes += '\n \n' + params.file_id + '.ERA';
+        // notes += '\n \n' + params.file_id + '.ERA';
         payerDetails.paymentId = null;
         payerDetails.company_id = payerDetails.company_id;
         payerDetails.user_id = payerDetails.created_by;
