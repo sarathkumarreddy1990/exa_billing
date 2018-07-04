@@ -178,7 +178,7 @@ define('grid', [
                                 url: '/exa_modules/billing/claim_workbench/claims/update',
                                 type: 'PUT',
                                 data: {
-                                    claimIds: studyIds,
+                                    claimIds: [studyIds],
                                     claim_status_id:claimStatus.id,
                                     process:"Claim Status"
                                 },
@@ -207,7 +207,7 @@ define('grid', [
                                 url: '/exa_modules/billing/claim_workbench/claims/update',
                                 type: 'PUT',
                                 data: {
-                                    claimIds: studyIds,
+                                    claimIds:  [studyIds],
                                     billing_code_id:billing_code.id,
                                     process:"Billing Code"
                                 },
@@ -236,7 +236,7 @@ define('grid', [
                                     url: '/exa_modules/billing/claim_workbench/claims/update',
                                     type: 'PUT',
                                     data: {
-                                        claimIds: studyIds,
+                                        claimIds:  [studyIds],
                                         billing_class_id:billing_class.id,
                                         process:"Billing Class"
                                     },

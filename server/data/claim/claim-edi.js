@@ -165,7 +165,10 @@ module.exports = {
         let sql = SQL`
         
             SELECT  
-            relationship_status.description as subscriper_relationShip,
+			relationship_status.description as subscriper_relationShip,
+			claims.id as claim_id,
+			insurance_name,
+			coverage_level,
             (SELECT (Row_to_json(header)) "header"
 
 				FROM ( 
