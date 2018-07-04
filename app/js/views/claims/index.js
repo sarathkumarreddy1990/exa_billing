@@ -1823,7 +1823,7 @@ define(['jquery',
                     payer_type: payer_type,
                     payer_id: res.id,
                     payer_name: res.insurance_name + '( ' + coverage_level + ' )',
-                    billing_method: res.insurance_info && res.insurance_info.billingMethod ? res.insurance_info.billingMethod : null
+                    billing_method: res.billing_method || null
                 });
                 
                 //Assign primary insurance as responsible
@@ -2008,7 +2008,7 @@ define(['jquery',
                 var currentPayer_type = $('#ddlResponsible').val().split('_')[0];
                 var facility_id = $('#ddlFacility option:selected').val() != '' ? parseInt($('#ddlFacility option:selected').val()) : null;
                 if (currentPayer_type == "PIP") {
-                    billingMethod = currentResponsible.billing_method == 'PC' ? 'paper_claim' : 'electronic_billing'
+                    billingMethod = currentResponsible.billing_method || 'direct_billing';
                 }
                 else if (currentPayer_type == "PPP")
                     billingMethod = 'patient_payment';

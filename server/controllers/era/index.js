@@ -110,6 +110,7 @@ module.exports = {
 
         rootDir = eraFileDir.rows && eraFileDir.rows.length && eraFileDir.rows[0].root_directory ? eraFileDir.rows[0].root_directory : '';
         eraPath = eraFileDir.rows && eraFileDir.rows.length && eraFileDir.rows[0].file_path ? eraFileDir.rows[0].file_path : '';
+        params.uploaded_file_name = eraFileDir.rows && eraFileDir.rows.length && eraFileDir.rows[0].uploaded_file_name ? eraFileDir.rows[0].uploaded_file_name : '';
 
         eraPath = path.join(rootDir, eraPath);
 
@@ -242,7 +243,7 @@ module.exports = {
         payerDetails.provider_group_id = null;
         payerDetails.provider_contact_id = null;
         payerDetails.payment_reason_id = 2;
-        payerDetails.amount = monetoryAmount;
+        payerDetails.amount = 0;
         payerDetails.accounting_date = 'now()';
         payerDetails.invoice_no = '';
         payerDetails.display_id = null;  // alternate_payment_id
@@ -262,6 +263,8 @@ module.exports = {
             paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
             paymentResult.file_id = params.file_id;
             paymentResult.created_by = payerDetails.created_by;
+            paymentResult.company_id = payerDetails.company_id;
+            paymentResult.uploaded_file_name = params.uploaded_file_name;
 
             await data.createEdiPayment(paymentResult);
 
