@@ -533,7 +533,7 @@ module.exports = {
                                 pa.payment_id = efp.payment_id 
 
                             ) AS charges ON true
-                    	WHERE efp.edi_file_id = ${file_id} `;
+                    	WHERE efp.edi_file_id = ${file_id}  ORDER BY efp.payment_id `;
 
         return await query(sql);
 
