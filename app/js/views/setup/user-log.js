@@ -55,7 +55,7 @@ define([
                             search: false,
                             className: 'icon-ic-reports',
                             formatter: function (e, model, data) {
-                                return `<span class='icon-ic-reports' title='click here to view this log'></span>`;
+                                return "<span class='icon-ic-reports' title='click here to view this log'></span>";
                             },
                             cellattr: function () {
                                 return 'style=text-align:center;cursor:pointer;'

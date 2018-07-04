@@ -137,29 +137,29 @@ define([ 'jquery', 'underscore' ], function ( jQuery, _ ) {
         });
     };
 
-    var updateResizeColumn = function ( studyFields ) {
-        var gridOptions = studyFields.map(function ( col ) {
-            return {
-                'name': col.field_name,
-                'width': col.field_info.width || 0
-            };
-        });
-        jQuery.ajax({
-            "url": "/userSetting",
-            "type": "PUT",
-            "data": {
-                "flag": "updateResizeCol",
-                "grid_options": JSON.stringify(gridOptions)
-            },
-            "success": function ( data ) {
-                if ( data ) {
-                    app.usersettings.grid_options = gridOptions;
-                }
-            },
-            "error": function ( err ) {
-                commonjs.handleXhrError(err);
-            }
-        });
+     var updateResizeColumn = function ( studyFields ) {
+    //     var gridOptions = studyFields.map(function ( col ) {
+    //         return {
+    //             'name': col.field_name,
+    //             'width': col.field_info.width || 0
+    //         };
+    //     });
+    //     jQuery.ajax({
+    //         "url": "/userSetting",
+    //         "type": "PUT",
+    //         "data": {
+    //             "flag": "updateResizeCol",
+    //             "grid_options": JSON.stringify(gridOptions)
+    //         },
+    //         "success": function ( data ) {
+    //             if ( data ) {
+    //                 app.usersettings.grid_options = gridOptions;
+    //             }
+    //         },
+    //         "error": function ( err ) {
+    //             commonjs.handleXhrError(err);
+    //         }
+    //     });
     };
 
     var getDatasetName = function ( datasetname ) {

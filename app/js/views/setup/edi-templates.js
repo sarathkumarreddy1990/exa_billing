@@ -55,7 +55,7 @@ define([
             getAllEDITemplates: function () {
                 var self = this;
                 $.ajax({
-                    url: `/exa_modules/billing/setup/x12/${this.templateFlag}`,
+                    url: '/exa_modules/billing/setup/x12/' + this.templateFlag,
                     type: 'GET',
                     success: function (data, response) {
                         $('#divTemlateList').empty();
@@ -134,7 +134,7 @@ define([
                 var self = this;
                 if (templateName) {
                     $.ajax({
-                        url: `/exa_modules/billing/setup/x12/${this.templateFlag}/${templateName}`,
+                        url: '/exa_modules/billing/setup/x12/' + this.templateFlag + '/' + templateName,
                         type: 'GET',
                         success: function (data, response) {
                             if (data) {
@@ -200,7 +200,7 @@ define([
             saveTrigger: function (templateName) {
                 var self = this;
                 $.ajax({
-                    url: `/exa_modules/billing/setup/x12/${this.templateFlag}/${templateName}`,
+                    url: '/exa_modules/billing/setup/x12/' + this.templateFlag + '/' + templateName,
                     type: 'POST',
                     success: function (data, response) {
                         commonjs.showStatus("Successfully Saved");
@@ -216,7 +216,7 @@ define([
             deleteTrigger: function (templateName) {
                 var self = this;
                 $.ajax({
-                    url: `/exa_modules/billing/setup/x12/${this.templateFlag}/${templateName}`,
+                    url: '/exa_modules/billing/setup/x12/' + this.templateFlag + '/' + templateName,
                     type: 'DELETE',
                     success: function (data, response) {
                         commonjs.showStatus("Deleted Successfully");
@@ -244,7 +244,7 @@ define([
                 var editor = ace.edit('editor');
                 if (templateName) {
                     $.ajax({
-                        url: `/exa_modules/billing/setup/x12/${this.templateFlag}/${templateName}`,
+                        url: '/exa_modules/billing/setup/x12/' + this.templateFlag + '/' + templateName,
                         type: 'PUT',
                         data:JSON.stringify({
                             templateBody: JSON.parse(editor.getValue())

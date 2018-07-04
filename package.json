@@ -1,6 +1,6 @@
 {
     "name": "exa-billing",
-    "version": "1.4.5",
+    "version": "1.4.7",
     "description": "EXA Billing Module",
     "main": "server/app.js",
     "scripts": {
@@ -43,6 +43,7 @@
         "pg": "^7.4.3",
         "pokitdok-nodejs": "0.0.11",
         "pug": "2.0.0-beta11",
+        "pump": "^3.0.0",
         "request": "^2.87.0",
         "request-promise-native": "^1.0.5",
         "response-time": "^2.3.2",
@@ -64,6 +65,7 @@
         "gulp-less": "^3.5.0",
         "gulp-replace": "^1.0.0",
         "gulp-requirejs": "^1.1.1",
+        "gulp-uglify": "^3.0.0",
         "gulp-uglifycss": "^1.1.0",
         "gulp-zip": "^4.1.0",
         "mocha": "^5.2.0",

@@ -58,7 +58,7 @@ define([
                             search: false,
                             className: 'icon-ic-reports',
                             formatter: function (e, model, data) {
-                                return `<span class='icon-ic-reports' title='click here to view this log'></span>`;
+                                return "<span class='icon-ic-reports' title='click here to view this log'></span>";
                             },
                             cellattr: function () {
                                 return 'style=text-align:center;cursor:pointer;'
@@ -75,7 +75,7 @@ define([
                             },
 
                             formatter: function (e, model, data) {
-                                return `<span class='icon-ic-secureData' title='secure data'></span>`;
+                                return "<span class='icon-ic-secureData' title='secure data'></span>";
                             },
 
                             cellattr: function () {
@@ -209,7 +209,7 @@ define([
                 this.dtpTo.date(endTo);
             },
 
-            exportExcel() {
+            exportExcel: function() {
                 var self = this;
                 self.excelFlag = true;
                 var self = this;

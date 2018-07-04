@@ -266,7 +266,7 @@ define(['jquery',
             getClaimStatus : function() {
                  var self = this;
                  $.ajax({
-                     url: `/exa_modules/billing/setup/claim_status?isFrom=claimStatus`,
+                     url: "/exa_modules/billing/setup/claim_status?isFrom=claimStatus",
                      type: 'GET',
                      success: function (response) {
                          if (response && response.length > 0) {

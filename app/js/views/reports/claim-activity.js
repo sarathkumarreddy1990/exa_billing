@@ -121,12 +121,12 @@ define([
                 if (btnClicked && btnClicked.prop('tagName') === 'I') {
                     btnClicked = btnClicked.parent(); // in case FA icon 'inside'' button was clicked...
                 }
-                const rFormat = btnClicked ? btnClicked.attr('data-rformat') : null;
-                const openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnViewReportNewTab' : false;
+                var rFormat = btnClicked ? btnClicked.attr('data-rformat') : null;
+                var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnViewReportNewTab' : false;
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = (openInNewTab && rFormat === 'html') ? true : false;
                 if (this.hasValidViewModel()) {
-                    const urlParams = this.getReportParams();
+                    var urlParams = this.getReportParams();
                     UI.showReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
                 }
             },
@@ -146,7 +146,7 @@ define([
             },
 
             getReportParams: function () {
-                const urlParams = {
+                var urlParams = {
                     'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
                     'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
                     'fromDate': this.viewModel.dateFrom.format('YYYY-MM-DD'),

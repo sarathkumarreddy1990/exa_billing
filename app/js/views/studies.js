@@ -1560,7 +1560,7 @@ define(['jquery',
 
             cancelStatusFilterSearch: function () {
                 var self = this;
-                let study_status = $('#tblGrid' + commonjs.currentStudyFilter).closest("div.ui-jqgrid-view")
+                var study_status = $('#tblGrid' + commonjs.currentStudyFilter).closest("div.ui-jqgrid-view")
                     .children("div.ui-jqgrid-hdiv").find('#gs_study_status');
                 study_status.val('');
                 $('#divStatusSearch').find('input[type=checkbox]:checked').prop('checked',false)

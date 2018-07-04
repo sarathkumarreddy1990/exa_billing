@@ -1,0 +1,28 @@
+<form class="form-horizontal form-list">
+    <div class="form-group form-inline">
+        <div class="col-form-label">
+            <label class="control-label" i18n="billing.fileInsurance.followUpDate">Follow-up Date</label>
+        </div>
+         <div> 
+            <div id="divFollowUpDateBilling" class="input-group">
+                <input type="text" id="txtFollowUpDate" class="form-control maskDateLocale" name="followUpDate">
+                <span class="input-group-addon add-on"> <i class="icon-ic-schedule"></i> </span>
+            </div>
+        </div>
+    </div>
+    <div class="form-group form-inline" id="followUpUsersList" style="display:none">
+        <div class="col-form-label">
+            <label class="control-label" i18n="billing.fileInsurance.followupUser">Follow-up User</label>
+        </div>
+         <div style="width:30%"> 
+            <div id="divFollowUpUser" class="input-group">
+                <select class=" form-control select-box" id="txtUsers"> </select>
+            </div>
+        </div>
+    </div>
+    <div class="form-group form-inline">
+        <div class="col-form-content">
+            <input type="button" id="saveFollowup" class="btn btn-default btn-primary savePayment" i18n="shared.buttons.save">
+        </div>
+    </div>
+</form>

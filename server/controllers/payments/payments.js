@@ -93,7 +93,7 @@ module.exports = {
             let claimCommentDetails = {};
             let updateAppliedPayments = [];
             let coPaycoInsDeductdetails = [];
-            let { paymentId, line_items, user_id, coPay, coInsurance, deductible, claimId, adjestmentId } = params;
+            let { paymentId, line_items, user_id, coPay, coInsurance, deductible, claimId, adjustmentId } = params;
             line_items = JSON.parse(line_items);
             const save_cas_details = [];
 
@@ -103,17 +103,17 @@ module.exports = {
                     payment_application_id: value.paymentApplicationId,
                     payment_id: paymentId,
                     charge_id: value.charge_id,
-                    amount: value.payment == null ? 0.00 : value.payment,
-                    adjestment_id: null,
+                    amount: value.payment || 0.00,
+                    adjustment_id: null,
                     parent_application_id: null
                 });
 
                 updateAppliedPayments.push({
-                    payment_application_id: value.adjustmentApplicationId != '' ? value.adjustmentApplicationId : null,
+                    payment_application_id: value.adjustmentApplicationId || null,
                     payment_id: paymentId,
                     charge_id: value.charge_id,
-                    amount: value.adjustment == null ? 0.00 : value.adjustment,
-                    adjestment_id: adjestmentId ? adjestmentId : null,
+                    amount: value.adjustment || 0.00,
+                    adjustment_id: adjustmentId || null,
                     parent_application_id:value.paymentApplicationId 
                 });
 
@@ -125,7 +125,7 @@ module.exports = {
                         group_code_id : details.group_code_id,
                         reason_code_id : details.reason_code_id,
                         amount : details.amount,
-                        cas_id : details.cas_id ? details.cas_id : null
+                        cas_id : details.cas_id || null
                     });
                 });
 

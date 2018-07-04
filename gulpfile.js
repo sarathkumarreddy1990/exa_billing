@@ -1,8 +1,10 @@
 const gulp = require('gulp');
 const runSequence = require('run-sequence');
+const pump = require('pump');
 const clean = require('gulp-clean');
 const install = require('gulp-install');
 const less = require('gulp-less');
+const uglify = require('gulp-uglify');
 //const del = require('del');
 const cleanCss = require('gulp-clean-css');
 const concat = require('gulp-concat');
@@ -108,7 +110,23 @@ gulp.task('requirejsBuild', ['less'], (done) => {
     });
 });
 
-gulp.task('bump', ['requirejsBuild'], () => {
+gulp.task('compress', ['requirejsBuild'], (done) => {
+    pump([
+        gulp.src('./build/app/js/main.js'),
+        uglify(),
+        gulp.dest('./build/app/js')
+    ], done);
+});
+
+gulp.task('compress2', (done) => {
+    pump([
+        gulp.src(['./app/js/**/**.js', '!./app/js/workers/*.js']),
+        uglify(),
+        gulp.dest('./build2/app/js')
+    ], done);
+});
+
+gulp.task('bump', ['compress'], () => {
     return gulp.src('./package.json')
         .pipe(bump({ type: 'patch' }))
         .pipe(gulp.dest('./'));

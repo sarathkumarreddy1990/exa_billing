@@ -185,7 +185,7 @@ define(['jquery',
                                     $('#txtSubElementDelimiter').val(info.segmentDelimiter ? info.segmentDelimiter : '');
                                     $('#txtSegmentTerminator').val(info.segmentTerminator ? info.segmentTerminator : '');
                                     $('#chkAckReq').prop('checked', info.acknowledgementRequested ? true : false);
-                                    $(`input[value=${info.usageIndicator}]`).prop('checked', true);
+                                    $('input[value=' + info.usageIndicator + ']').prop('checked', true);
                                     $('#txtAppSenderCode').val(info.applicationSenderCode ? info.applicationSenderCode : '');
                                     $('#txtResAgencyCode').val(info.responsibleAgencyCode ? info.responsibleAgencyCode : '');
                                     $('#txtAppReceiverCode').val(info.applicationReceiverCode ? info.applicationReceiverCode : '');

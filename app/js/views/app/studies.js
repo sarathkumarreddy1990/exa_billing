@@ -11,7 +11,7 @@ define([
         Backbone,
         JQGrid,
         JGridLocale,
-        StudiesGrid,
+        StudiesGrid
     ) {
         var StudiesView = Backbone.View.extend({
             el: null,

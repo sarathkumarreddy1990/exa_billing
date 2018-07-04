@@ -139,10 +139,70 @@ module.exports = {
 
     updateBillingPayers: async function(params) {
         const sql = SQL`
-                        UPDATE 
-                        billing.claims
-                        SET payer_type = ${params.payer_type}
-                        WHERE id = ${params.id}`;
+                        SELECT
+                        billing.change_payer_type(${params.id},${params.payer_type})
+                        `;
+
+        return await query(sql);
+    },
+
+    updateFollowUp: async (params) => {
+        let {
+            claimIDs,
+            assignedTo,
+            followupDate,
+            followUpDetails
+        } = params;
+        let sql;
+        claimIDs = claimIDs.split(',');
+
+        if (followupDate == '') {
+            sql = SQL`
+                    DELETE FROM 
+                        billing.claim_followups
+                    WHERE 
+                        claim_id = ANY(${claimIDs}) RETURNING id `;
+        }
+        else {
+            sql = SQL`WITH update_followup AS(
+                UPDATE 
+                    billing.claim_followups 
+                SET 
+                      followup_date = ${followupDate}
+                    , assigned_to= ${assignedTo} 
+                WHERE 
+                    claim_id = ANY(${claimIDs})
+                RETURNING *
+            ), 
+            followup_details AS (
+                SELECT 
+                      "claimID" AS claim_id
+                    , "assignedTo" AS assigned_to
+                    , "followupDate" AS followup_date
+                FROM json_to_recordset(${followUpDetails}) AS followup 
+                (
+                    "claimID" bigint,
+                    "assignedTo" integer,
+                    "followupDate" date
+                )
+            ),
+            insert_followup AS(
+                INSERT INTO billing.claim_followups(
+                      claim_id
+                    , followup_date
+                    , assigned_to
+                )
+                SELECT
+                      claim_id
+                    , followup_date  
+                    , assigned_to
+                FROM 
+                    followup_details
+                WHERE NOT EXISTS ( SELECT claim_id FROM billing.claim_followups  WHERE billing.claim_followups.claim_id = followup_details.claim_id )
+                RETURNING *
+            ) 
+            SELECT * FROM update_followup UNION SELECT * FROM insert_followup `;
+        }
 
         return await query(sql);
     }
