@@ -763,6 +763,11 @@ function customGrid ( datastore, gridID ) {
             .find('select, input');
 
         $.each(elements, function (index, element) {
+            if (element && element.id == 'gs_billing_method' && $(element).val() == '') {
+                $("#btnPaperClaim").hide();
+                if (self.options.filterid != "Follow_up_queue")
+                    $("#btnInsuranceClaim").show();
+            }
             if (commonjs.checkNotEmpty($(element).val())) {
 
                 try {
