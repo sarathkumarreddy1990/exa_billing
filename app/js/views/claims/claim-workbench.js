@@ -697,16 +697,6 @@ define(['jquery',
 
                             self.setTabContents(dataContainerValue, false, isDicomSearch, isRisOrderSearch, showEncOnly);
 
-                            if (showEncOnly) {
-                                self.toggleTabContents(5);
-                            }
-                            else if (
-                                dataContainerValue !== 'PS' &&
-                                    dataContainerValue !== 'OD'
-                                ) {
-                                self.toggleTabContents(dataContainerValue);
-                            }
-
                             var $uiJQHTableKids = $('.ui-jqgrid-htable').children().children();
                             $ulTabItems.filter('[data-container="' + dataContainerValue + '"]').addClass("active"); // Add Tab Collection active highlight
                             $claimsTabsItems.removeClass("active");
@@ -1530,6 +1520,7 @@ define(['jquery',
                 if(filterID=="Follow_up_queue"){
                     $("#btnInsuranceClaim").hide();
                     $("#btnValidateOrder").hide();
+                    $("#btnPaperClaim").hide();
                     $("#btnValidateExport").hide();
                 }else{
                     $("#btnInsuranceClaim").show();
