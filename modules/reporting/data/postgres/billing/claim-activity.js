@@ -65,6 +65,11 @@ from
     LEFT JOIN public.modifiers pm2 on pm2.id = bch.modifier2_id
     LEFT JOIN public.modifiers pm3 on pm3.id = bch.modifier3_id
     LEFT JOIN public.modifiers pm4 on pm4.id = bch.modifier4_id
+    GROUP BY cd.claim_id,cd.patient_name,cd.claim_date,claim_date,cd.account_no,
+    referring_physician,reading_physician,ordering_facility,facility_code,payment_id,
+    payment_date,accounting_date,pcpt.display_code,pcpt.display_description,amount,
+    created_on,created_by,pm1.code,pm2.code,pm3.code,
+    pm4.code,get_full_name(u.last_name,u.first_name,u.middle_initial,null,u.suffix) 
 ),
 
 payment_details as(
