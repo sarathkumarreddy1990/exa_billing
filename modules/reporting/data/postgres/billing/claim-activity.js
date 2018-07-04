@@ -46,8 +46,8 @@ SELECT
     cd.reading_physician as reading_physician,
     cd.ordering_facility as ordering_facility,
     cd.facility_code as facility_code,
-    'charge' as type,
-    pa.payment_id as payment_id,
+    ('charge')::text as type,
+    null::bigint as payment_id,
     null::date as payment_date,
     cd.claim_date as accounting_date,
     pcpt.display_code as code,
@@ -78,12 +78,11 @@ SELECT
     cd.reading_physician as reading_physician,
     cd.ordering_facility as ordering_facility,
     cd.facility_code as facility_code,
-    'payment' as type,
+    ('payment')::text as type,
     bp.id as payment_id,
     bp.payment_dt::date as payment_date,
     bp.accounting_dt::date as accounting_date,
-    --null as code,
-    'text'::text AS code,
+    null::text as code,
     CASE WHEN bp.payer_type = 'patient' THEN
            pp.full_name
      WHEN bp.payer_type = 'insurance' THEN
@@ -92,7 +91,7 @@ SELECT
            pg.group_name
      WHEN bp.payer_type = 'ordering_provider' THEN
            p.full_name
-    END as description, -- payer_type 
+    END as description, --Payment description is payer
     array['']::text[] as modifiers,
     pa.amount as amount,
     bp.payment_dt::date as created_on,
@@ -109,26 +108,48 @@ FROM claim_details cd
      LEFT JOIN public.providers p on p.id = pc.provider_id
 )
 SELECT
-    claim_id AS "CLAIM ID" ,
-    patient_name  AS "PATIENT NAME",
-    account_no AS "ACCOUNT NO",
-    to_char(claim_date,'MM/DD/YYYY') AS "CLAIM DATE",
-    referring_physician AS "REF.PHY.",
-    referring_physician AS "READPHY.",
-    ordering_facility AS "ORD. FAC.",
-    facility_code AS "FACILITY CODE",
-    type AS "TYPE",
-    payment_id AS "PAYMENT ID",
-    to_char(payment_date, 'MM/DD/YYYY') AS "PAYMENT DATE",
-    to_char(accounting_date, 'MM/DD/YYYY') AS "ACC. DATE",
-    code AS "CODE",
-    description AS "DESCRIPTION" ,
-    modifiers AS "MODIFIERS",
-    amount AS "AMOUNT",
-    to_char(created_on, 'MM/DD/YYYY' ) AS "CREATED ON",
-    created_by AS "CREATED BY"
+    claim_id,
+    patient_name,
+    account_no,
+    claim_date,
+    referring_physician,
+    reading_physician,
+    ordering_facility,
+    facility_code,
+    TYPE,
+    payment_id,
+    payment_date,
+    accounting_date,
+    code,
+    description,
+    modifiers,
+    amount,
+    created_on,
+    created_by
 FROM
-     charge_details 
+    charge_details
+UNION ALL
+SELECT
+    claim_id,
+    patient_name,
+    account_no,
+    claim_date,
+    referring_physician,
+    reading_physician,
+    ordering_facility,
+    facility_code,
+    TYPE,
+    payment_id,
+    payment_date,
+    accounting_date,
+    code,
+    description,
+    modifiers,
+    amount,
+    created_on,
+    created_by
+FROM
+    payment_details
 ORDER BY
      claim_id,
      account_no,
