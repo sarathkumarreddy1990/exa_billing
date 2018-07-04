@@ -4603,26 +4603,24 @@ var commonjs = {
     },
 
     openDocumentsAndReports: function (options) {
-        let {
-            study_id,
-            order_id,
-            patient_id
-        } = options;
+        var study_id = options.study_id,
+            order_id = options.order_id,
+            patient_id = options.patient_id;
 
-        let url = `#patient/patientReport/all/${btoa(patient_id)}/${btoa(order_id)}/${btoa(study_id)}`;
+        var url = '#patient/patientReport/all/' + btoa(patient_id) + '/' + btoa(order_id) + '/' + btoa(study_id);
         this.openWindow(url);
     },
 
     openWindow: function(url) {
-        let self = this;
+        var self = this;
         self.detectChromeExtension(function(hasEx){
             if (hasEx) {
                 self.placeWindows(url);
             } else {
-                let left = window.screen.availLeft;
-                let top = window.screen.availTop;
-                let width = window.screen.availWidth;
-                let height = window.screen.availHeight;
+                var left = window.screen.availLeft;
+                var top = window.screen.availTop;
+                var width = window.screen.availWidth;
+                var height = window.screen.availHeight;
                 if (window.parent.reportWindow && !window.parent.reportWindow.closed) {
                     window.parent.reportWindow.location.href = url + '?m_i=' + (0) + '&l=2';
                     return;
@@ -4635,11 +4633,11 @@ var commonjs = {
     },
 
     detectChromeExtension: function (callback) {
-        let self = this;
-        let extensionId = "mlkplhocljobcbmokjlehlminmnfaddn";
-        let accessibleResource = "favicon_16.ico";
+        var self = this;
+        var extensionId = "mlkplhocljobcbmokjlehlminmnfaddn";
+        var accessibleResource = "favicon_16.ico";
         if (typeof (chrome) !== 'undefined') {
-            let xmlHttp = new XMLHttpRequest(),
+            var xmlHttp = new XMLHttpRequest(),
                 testUrl = 'chrome-extension://' + extensionId + '/' + accessibleResource;
             xmlHttp.open('HEAD', testUrl, true);
             xmlHttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
@@ -4673,15 +4671,15 @@ var commonjs = {
         self.displayL = [];
         window.parent.postMessage({ type: "FROM_PAGE", action: "0" }, "*");
 
-        const msgHandler = function(event) {
-            let indexL = -1;
-            let indexR = -1;
-            let xpoint = window.screen.
+        var msgHandler = function(event) {
+            var indexL = -1;
+            var indexR = -1;
+            var xpoint = window.screen.
                 availLeft;
-            let ypoint = window.screen.availTop;
-            let width = window.screen.availWidth;
-            let height = window.screen.availHeight;
-            for (let d = 0; d < event.data.length; d++) {
+            var ypoint = window.screen.availTop;
+            var width = window.screen.availWidth;
+            var height = window.screen.availHeight;
+            for (var d = 0; d < event.data.length; d++) {
                 if (event.data[d].left + event.data[d].width == xpoint)
                     indexL = d;
                 if (xpoint + width == event.data[d].left)
@@ -4693,7 +4691,7 @@ var commonjs = {
                     height: event.data[d].height
                 });
             }
-            let curIndex = -1;
+            var curIndex = -1;
             if (indexR > -1)
                 curIndex = indexR;
             else if (indexL > -1)

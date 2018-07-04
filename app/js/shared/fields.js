@@ -88,8 +88,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var deletedValue = ":All;true:Only;false:None";
         var verifiedValue = ":All;true:Yes;false:No";
         var billingMethodValue =  ":All;electronic_billing:Electronic Billing;paper_claim:Paper Claim;patient_payment:Patient Payment;direct_billing:Direct Billing";
-        var payerTypeValue =  `:All;primary_insurance:Primary Insurance;secondary_insurance:Secondary Insurance;
-                                teritary_insurance:Teritary Insurance;Patient:Patient`;
+        var payerTypeValue =  ':All;primary_insurance:Primary Insurance;secondary_insurance:Secondary Insurance;teritary_insurance:Teritary Insurance;Patient:Patient';
 
         $.each(app.stat_level, function ( index, stat ) {
             if ( !stat.deleted ) {

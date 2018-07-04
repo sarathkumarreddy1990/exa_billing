@@ -1,5 +1,5 @@
 var debug = {
-    log: function (...args) {
-        console.log(...args);
+    log: function () {
+        console.log(arguments);
     }
 }

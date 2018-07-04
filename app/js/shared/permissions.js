@@ -67,7 +67,7 @@ define([
                 accessDeniedScreens = _.difference(billingScreenCodes, app.screens)
 
                 _.each(accessDeniedScreens, function (code) {
-                    let screenId = '';
+                    var screenId = '';
                     screenId = mappingObject[code];
                     $('#' + screenId).addClass('disabled');
                     $('#' + screenId).attr('href', '#');

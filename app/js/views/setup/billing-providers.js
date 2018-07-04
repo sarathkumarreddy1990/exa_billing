@@ -390,8 +390,8 @@ define(['jquery',
                 if (!$('#ddlState').val()) {
                     return commonjs.showWarning("Please Select the state");
                 }
-                let isFtpEnabled = $('#chkEnableFTP').prop('checked');
-                let communication_info = {
+                var isFtpEnabled = $('#chkEnableFTP').prop('checked');
+                var communication_info = {
                     "enable_ftp": isFtpEnabled,
                     "Ftp_host": isFtpEnabled ? $('#txtHostName').val(): "",
                     "Ftp_port": isFtpEnabled ? $('#txtPort').val(): "",

@@ -183,12 +183,12 @@ define(['jquery',
                 }
 
                
-                if (!$(`#ddlServiceType${ins} :selected`).length) {
+                if (!$('#ddlServiceType'+ins+' :selected').length) {
                     commonjs.showWarning('messages.warning.shared.selectservicetype');
                     return;
                 }
 
-                if (!$(`#txtBenefitOnDate${ins}`).val()) {
+                if (!$('#txtBenefitOnDate' + ins).val()) {
                     commonjs.showWarning('messages.warning.patient.selectbenefitondate');
                     return;
                 }
@@ -209,7 +209,7 @@ define(['jquery',
                 } 
 
 
-                $.each($(`#ddlServiceType${ins} :selected`), function (index, value) {
+                $.each($('#ddlServiceType'+ins+' :selected'), function (index, value) {
                     serviceTypeCodes.push($(value).val())
                     var serviceType = $(value).attr('title').toLowerCase();
                     serviceTypes.push(serviceType.replace(/[^A-Z0-9]+/ig, "_"));
@@ -252,7 +252,7 @@ define(['jquery',
                     eligibilityData.InsuranceCompanyName = $('#select2-ddlTerInsurance-container').html();
                 }     
 
-                $(`#btnCheckEligibility${ins}`).prop('disabled',true);
+                $('#btnCheckEligibility' + ins).prop('disabled',true);
                 $('#imgLoading').show();
                 
 
@@ -263,7 +263,7 @@ define(['jquery',
                     data: eligibilityData,
                     success: function (response) {
                         data = response.data;
-                        $(`#btnCheckEligibility${ins}`).prop('disabled',false);
+                        $('#btnCheckEligibility' + ins).prop('disabled',false);
                         if (data && data.errors) {
                             commonjs.showWarning(data.errors.query);
                             return;
@@ -547,7 +547,7 @@ define(['jquery',
                 /* Common Details Edit & Claim creation */
                 if (self.isEdit) {
                     self.bindEditClaimInsuranceDetails(claim_data);
-                    var responsibleIndex = _.find(self.responsible_list, (item) => item.payer_type_name == claim_data.payer_type);
+                    var responsibleIndex = _.find(self.responsible_list, function(item) { return item.payer_type_name == claim_data.payer_type;});
                     $('#ddlResponsible').val(responsibleIndex.payer_type);
                     $('#ddlClaimStatus').val(claim_data.claim_status_id || '');
                     $('#ddlFrequencyCode').val(claim_data.frequency || '')
@@ -1137,7 +1137,7 @@ define(['jquery',
                             is_deleted: true
                         });
                     }
-                    self.chargeModel = _.reject(self.chargeModel, (d) => d.data_row_id === rowId);
+                    self.chargeModel = _.reject(self.chargeModel, function(d) { return d.data_row_id === rowId;});
                     rowObj.remove();
                     // trigger blur event for update Total bill fee, balance etc.
                     $(".allowedFee").blur();
@@ -1210,7 +1210,7 @@ define(['jquery',
 
             updateResponsibleList: function (payer_details) {
                 var self = this, index, responsibleEle, selected_opt;
-                index = _.findIndex(self.responsible_list, (item) => item.payer_type == payer_details.payer_type);
+                index = _.findIndex(self.responsible_list, function(item) { return item.payer_type == payer_details.payer_type;});
                 if (index > -1) {
                     self.responsible_list[index].payer_id = payer_details.payer_id;
                     self.responsible_list[index].payer_name = payer_details.payer_name;
@@ -2004,7 +2004,7 @@ define(['jquery',
                 var self = this;
                 var claim_model = {}, billingMethod;
                 claim_model.insurances = [];
-                var currentResponsible = _.find(self.responsible_list, d => d.payer_type == $('#ddlResponsible').val());
+                var currentResponsible = _.find(self.responsible_list, function(d) { return d.payer_type == $('#ddlResponsible').val(); });
                 var currentPayer_type = $('#ddlResponsible').val().split('_')[0];
                 var facility_id = $('#ddlFacility option:selected').val() != '' ? parseInt($('#ddlFacility option:selected').val()) : null;
                 if (currentPayer_type == "PIP") {
@@ -2607,8 +2607,8 @@ define(['jquery',
             },
 
             validateClaim: function(){
-                let self=this;
-                let claimIds =[];
+                var self=this;
+                var claimIds =[];
                 
                 claimIds.push(self.claim_Id);
 
@@ -3041,7 +3041,7 @@ define(['jquery',
                                                 selectedStudies.push(study);
                                                 
                                             }
-                                            var studyIds = selectedStudies.map(value => value.study_id);
+                                            var studyIds = selectedStudies.map(function(value) { return value.study_id; });
                                             studyIds = studyIds.join();
                                             window.localStorage.setItem('primary_study_details', JSON.stringify(selectedStudies[0]));
                                             window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));

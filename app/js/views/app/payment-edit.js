@@ -1951,7 +1951,7 @@ define(['jquery',
 
             showPatientOrders: function (e) {
                 var self = this;
-                let target = $(e.target || e.srcElement);
+                var target = $(e.target || e.srcElement);
                 self.patientId = 0;
                 self.claimIdToSearch = $('#claimId').val();
                 self.invoiceNoToSearch = $('#invoiceNo').val();

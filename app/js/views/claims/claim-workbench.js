@@ -385,7 +385,7 @@ define(['jquery',
                 commonjs.setFilter(filterID, filter);
             },
             createClaims:function (e) {
-                let self=this;
+                var self=this;
                 if(e.target){
                     var  paperClaimFormat=$(e.target).attr('data-value');
                     if(paperClaimFormat){
@@ -394,13 +394,13 @@ define(['jquery',
                     }                  
                 }
                 
-                let filterID = commonjs.currentStudyFilter;
-                let filter = commonjs.loadedStudyFilters.get(filterID);
+                var filterID = commonjs.currentStudyFilter;
+                var filter = commonjs.loadedStudyFilters.get(filterID);
 
-                let claimIds =[],existingBillingMethod='',existingClearingHouse='',existingEdiTemplate='';       
+                var claimIds =[],existingBillingMethod='',existingClearingHouse='',existingEdiTemplate='';       
 
-                for (let i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
-                    let rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;
+                for (var i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
+                    var rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;
 
                     var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'billing_method');
                     if (existingBillingMethod == '') existingBillingMethod = billingMethod
@@ -480,7 +480,7 @@ define(['jquery',
                         }
 
                         if (data && data.ediText && data.ediText.length) {
-                            let str='';
+                            var str='';
                             $.each(data.ediText.split('~'), function (index, val) {
                                 if (val != '') {
                                     if (index == 0 || index == 1) {
@@ -1587,13 +1587,13 @@ define(['jquery',
             },
 
             validateClaim: function(){
-                let self=this;
-                let filterID = commonjs.currentStudyFilter;
-                let filter = commonjs.loadedStudyFilters.get(filterID);
+                var self=this;
+                var filterID = commonjs.currentStudyFilter;
+                var filter = commonjs.loadedStudyFilters.get(filterID);
 
-                let claimIds =[],existingBillingMethod=''; 
-                for (let i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
-                    let rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;                   
+                var claimIds =[],existingBillingMethod=''; 
+                for (var i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
+                    var rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;                   
                     claimIds.push(rowId);
                 }
 

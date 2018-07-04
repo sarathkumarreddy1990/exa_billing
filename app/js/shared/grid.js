@@ -101,23 +101,23 @@ define('grid', [
         var openCreateClaim = function (rowID, event, isClaimGrid, store) {
             var target = event.currentTarget;
             var $target = $(target);
-            let studyArray = [];
-            let selectedStudies = [];
-            let divObj = 'studyRightMenu';
-            let $divObj = $(document.getElementById(divObj));
+            var studyArray = [];
+            var selectedStudies = [];
+            var divObj = 'studyRightMenu';
+            var $divObj = $(document.getElementById(divObj));
             $divObj.empty();
-            let gridData = getData(rowID, store, gridID);
+            var gridData = getData(rowID, store, gridID);
             if (gridData === null) {
                 return false;
             }
-            let $checkedInputs = $tblGrid.find('input').filter('[name=chkStudy]:checked');
-            let selectedCount = $checkedInputs.length;
-            let _storeEle;
+            var $checkedInputs = $tblGrid.find('input').filter('[name=chkStudy]:checked');
+            var selectedCount = $checkedInputs.length;
+            var _storeEle;
 
-            let study_id = 0;
-            let order_id = 0;
-            let isbilled_status = false;
-            let isUnbilled_status = false;
+            var study_id = 0;
+            var order_id = 0;
+            var isbilled_status = false;
+            var isUnbilled_status = false;
 
             for (var r = 0; r < selectedCount; r++) {
                 var rowId = $checkedInputs[r].parentNode.parentNode.id;
@@ -972,7 +972,7 @@ define('grid', [
                     //     $("#btnInsuranceClaim").show();  
                     // }
 
-                    let i=(e.target || e.srcElement).parentNode.cellIndex;
+                    var i=(e.target || e.srcElement).parentNode.cellIndex;
 
                     if ( i > 0 ) {
                         options.colModel[i].customAction(rowID, e, self);

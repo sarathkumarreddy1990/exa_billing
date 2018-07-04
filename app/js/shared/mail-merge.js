@@ -18,15 +18,15 @@ var mailMerge = {
 
     getDescendantProp: function (obj, key) {
         try {
-            let tokenString = key.replace(/(^{|}$|^\[|\]$)/g, '');
+            var tokenString = key.replace(/(^{|}$|^\[|\]$)/g, '');
 
             // /// Checking for js script
             // if (tokenString[0] === constants.MERGE_FIELD_KEY) {
-            //   let jsCode = tokenString.replace(/(^{|}$|^\[|\]$)/g, '');
+            //   var jsCode = tokenString.replace(/(^{|}$|^\[|\]$)/g, '');
             //   return this.executeJsCode(jsCode, obj);
             // }
 
-            let data = get(obj, tokenString);
+            var data = get(obj, tokenString);
             return data || '';
         } catch (err) { return '' }
 

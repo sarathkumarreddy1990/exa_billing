@@ -255,7 +255,7 @@ define(['jquery',
                         self.adjustmentTimer = setTimeout(self.calculateAdjustmentTotal, 25);
                         clearTimeout(self.appliedTimer);
                         self.appliedTimer = setTimeout(self.calculateAppliedTotal, 25);
-                        let dataSet={
+                        var dataSet={
                             paymentStatus: $("#ulPaymentStatus").val(),
                             filterData:JSON.stringify(self.pager.get("FilterData")),
                             filterCol:JSON.stringify(self.pager.get("FilterCol")),
