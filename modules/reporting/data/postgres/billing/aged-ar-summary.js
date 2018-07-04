@@ -15,7 +15,8 @@ WITH get_claim_details AS(
        (SELECT coalesce(claim_balance_total,0::money) FROM billing.get_claim_totals(bc.id)) AS balance
     FROM billing.claims bc
     INNER JOIN billing.charges bch ON bch.claim_id = bc.id
-    AND (bc.claim_dt < <%= claimDate %>)      
+    AND (bc.claim_dt < <%= claimDate %>)  
+    GROUP BY bc.id    
  )
  SELECT
  <% if (facilityIds) { %> MAX(pf.facility_name) <% } else  { %> 'All'::text <% } %> as "Facility",
@@ -28,16 +29,29 @@ WITH get_claim_details AS(
       WHEN payer_type = 'referring_provider' THEN 'Provider'
       WHEN payer_type = 'patient' THEN 'Patient'
       WHEN payer_type = 'ordering_facility' THEN 'Ordering Facility'     
-    END AS responsible_party,
+END AS responsible_party,
     <% } %>
+<% if(incPatDetail == 'true') { %>     
+        CASE WHEN primary_patient_insurance_id is not null THEN pip.insurance_name 
+        ELSE  
+            CASE 
+                WHEN payer_type = 'secondary_insurance' THEN pip.insurance_name
+                WHEN payer_type = 'tertiary_insurance' THEN pip.insurance_name
+                WHEN payer_type = 'referring_provider' THEN  ppr.full_name
+                WHEN payer_type = 'patient' THEN get_full_name(pp.last_name,pp.first_name)
+                WHEN payer_type = 'ordering_facility' THEN ppg.group_name
+            END
+  END AS payer_name,     
+<%} else {%>   
  CASE WHEN payer_type = 'primary_insurance' THEN pip.insurance_name
       WHEN payer_type = 'secondary_insurance' THEN pip.insurance_name
       WHEN payer_type = 'tertiary_insurance' THEN pip.insurance_name
       WHEN payer_type = 'referring_provider' THEN  ppr.full_name
       WHEN payer_type = 'patient' THEN get_full_name(pp.last_name,pp.first_name)
       WHEN payer_type = 'ordering_facility' THEN ppg.group_name
- END AS payer_name,
- '   ' AS "Provider Type", -- Need to design provider_type table in clean up 
+END AS payer_name,
+ <% } %>
+  pippt.code AS "Provider Type",
  CASE
  WHEN MAX(pip.insurance_info->'ediCode') ='A' THEN 'Attorney'
  WHEN MAX(pip.insurance_info->'ediCode') ='C' THEN 'Medicare'
@@ -120,6 +134,7 @@ END
 <% } %>
  
  LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
+ LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
  LEFT JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id
  LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
  LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
@@ -130,8 +145,7 @@ END
      <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
      <% if(billingProID) { %> AND <% print(billingProID); } %>
      <% if(excCreditBal == 'true'){ %> AND  gcd.balance::money > '0' <% } %>
- GROUP BY 
- ROLLUP (responsible_party,payer_name)
+ GROUP BY responsible_party,payer_name,pippt.code
 
  <% if(incPatDetail == 'true') { %>     
     ORDER BY responsible_party DESC
