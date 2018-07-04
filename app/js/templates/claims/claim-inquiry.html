@@ -24,15 +24,21 @@
                 </div>
             </div>
         </div>
-
+        <div id='divClaimInquiry' style="overflow: auto;">
         <div class="row">
             <div class="col-md-6">
                 <div class="row">
-                    <div class="col-md-3"><label style="font-weight: bold" i18n="billing.fileInsurance.claimInquiryDetails"></label></div>
-                    <div class="col-md-2"><label style="font-weight: bold" i18n="billing.fileInsurance.claimStatus"></label></div>
-                    <div class="col-md-3"><label id="lblCIStatus"></label></div>
-                    <div class="col-md-2"><label style="font-weight: bold" i18n="billing.claims.claimDate"></label></div>
-                    <div class="col-md-2"><label id="lblCIClaimDate"></label></div>
+                    <div class="col-md-3">
+                        <label style="font-weight: bold" i18n="billing.fileInsurance.claimInquiryDetails"></label>
+                    </div>
+                    <div class="col-md-5">
+                        <label i18n="billing.fileInsurance.claimStatus"></label> :
+                        <label id="lblCIStatus" style="font-weight: bold;"></label>
+                    </div>
+                    <div class="col-md-4">
+                        <label i18n="billing.claims.claimDate"></label> :
+                        <label id="lblCIClaimDate" style="font-weight: bold;"></label>
+                    </div>
                 </div>
                 <div class="row">
                     <div class="col-md-12"><legend class="viztekLegend" style="font-weight: bold;font-size: 15px"></legend></div>
@@ -88,12 +94,12 @@
             </div>
             <div class="col-md-6">
                 <div class="row">
-                    <div class="col-md-3"><label style="font-weight: bold" i18n="billing.fileInsurance.icd"></label></div>
+                    <div class="col-md-5"><label style="font-weight: bold" i18n="billing.fileInsurance.icd"></label></div>
                     <div class="col-md-3">
-                        <input type="button" id="btnCISaveIsInternal" class=" btn btn-primary" style="float:right" value="Save" i18n="shared.buttons.save">
+                        <input type="button" id="btnCISaveIsInternal" class=" btn btn-primary" style="float:right; line-height: 1;" value="Save" i18n="shared.buttons.save">
                     </div>
                     <div class="col-md-3">
-                        <button type="button" class="btn btn-primary" id="btnCIPrintInvoice" data-rformat="pdf"> Print Invoice <i class="fa fa-external-link"></i></button>
+                        <button type="button" class="btn btn-primary" id="btnCIPrintInvoice" style="line-height: 1;" data-rformat="pdf"> Print Invoice <i class="fa fa-external-link"></i></button>
                     </div>
                 </div>
                 <div class="row">
@@ -174,4 +180,5 @@
                     </div>
                 </div>
         </div>
+    </div>
     </form>

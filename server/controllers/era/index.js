@@ -28,6 +28,7 @@ module.exports = {
 
         const buffer = params.file.buffer;
         const fileSize = params.file.size;
+        const fileName = params.file.originalname;
 
         let tempString = buffer.toString();
         let bufferString = tempString.replace(/(?:\r\n|\r|\n)/g, '');
@@ -75,6 +76,7 @@ module.exports = {
             file_path: localPath,
             file_size: fileSize,
             file_md5: fileMd5,
+            fileName: fileName
         });
 
         if (typeof dataResponse === 'object' && dataResponse.constructor.name === 'Error') {

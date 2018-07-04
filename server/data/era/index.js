@@ -6,20 +6,25 @@ module.exports = {
         
         let whereQuery = [];
         params.sortOrder = params.sortOrder || ' ASC';
-        params.sortField = params.sortField == 'id' ? ' payments.id ' : params.sortField;
+        params.sortField = params.sortField == 'id' ? ' edi_files.id ' : params.sortField;
         let { 
-            file_name,
+            id,
             size,
             updated_date_time,
             current_status,
             sortOrder,
             sortField,
             pageNo,
-            pageSize
+            pageSize,
+            uploaded_file_name
         } = params;
 
-        if (file_name) {
-            whereQuery.push(` id = ${file_name}`);
+        if (id) {
+            whereQuery.push(` id = ${id} `);
+        }
+        
+        if (uploaded_file_name) {
+            whereQuery.push(` uploaded_file_name ILIKE '%${uploaded_file_name}%' `);
         }
 
         if (size) {
@@ -30,8 +35,8 @@ module.exports = {
             whereQuery.push(` created_dt::date = '${updated_date_time}'::date`);
         }
         
-        if (current_status) {
-            whereQuery.push(` status = '${current_status}'`);
+        if (current_status) {   
+            whereQuery.push(` status = replace('${current_status}', '\\', '')`);
         }
 
         const sql = SQL`        
@@ -45,6 +50,7 @@ module.exports = {
                 file_path,
                 file_size AS size,
                 file_md5,
+                uploaded_file_name,
                 COUNT(1) OVER (range unbounded preceding) AS total_records
             FROM
                 billing.edi_files
@@ -392,7 +398,8 @@ module.exports = {
                      file_type,
                      file_path,
                      file_size,
-                     file_md5)
+                     file_md5,
+                     uploaded_file_name)
                      (
                         SELECT
                            ${params.company_id}
@@ -401,8 +408,9 @@ module.exports = {
                          ,'${params.status}'
                          ,'${params.file_type}'
                          ,'${params.file_path}'
-                         ,${params.file_size}
+                         , ${params.file_size}
                          ,'${params.file_md5}'
+                         ,'${params.fileName}'
                         )
                         RETURNING id
         `;

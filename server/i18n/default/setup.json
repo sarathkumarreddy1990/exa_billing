@@ -237,8 +237,8 @@
             "approvedReports":"Approved Reports",
             "viewDocuments": "View Documents",
             "viewReports":"View Reports",
-            "addFollowUP":"Add FollowUp",
-            "resetFollowUp": "Reset FollowUp"
+            "addFollowUP":"Add Follow-up",
+            "resetFollowUp": "Reset Follow-up"
         },
         "validation":{
             "billingGrp": "Billing Provider",
