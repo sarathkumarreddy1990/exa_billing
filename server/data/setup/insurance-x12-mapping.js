@@ -37,7 +37,7 @@ module.exports = {
                             , COUNT(1) OVER (range unbounded preceding) AS total_records
                         FROM 
                             public.insurance_providers ip
-                        LEFT JOIN billing.insurance_providers bip ON bip.insurance_provider_id  = ip.id
+                        LEFT JOIN billing.insurance_provider_details bip ON bip.insurance_provider_id  = ip.id
                         LEFT JOIN billing.edi_clearinghouses ch ON ch.id = bip.clearing_house_id `;
 
         if (whereQuery.length) {
@@ -67,7 +67,7 @@ module.exports = {
                             , billing_method
                         FROM 
                             public.insurance_providers ip
-                        LEFT JOIN billing.insurance_providers bip ON bip.insurance_provider_id  = ip.id
+                        LEFT JOIN billing.insurance_provider_details bip ON bip.insurance_provider_id  = ip.id
                         LEFT JOIN billing.edi_clearinghouses ch ON ch.id = bip.clearing_house_id
                         WHERE 
                             ip.id = ${id} `;
@@ -89,7 +89,7 @@ module.exports = {
         } = params;
 
         const sql = SQL` WITH insert_house AS (
-                            INSERT INTO billing.insurance_providers(
+                            INSERT INTO billing.insurance_provider_details(
                                   insurance_provider_id
                                 , clearing_house_id
                                 , billing_method
@@ -98,12 +98,12 @@ module.exports = {
                                   ${id}
                                 , ${claimClearingHouse}
                                 , ${billingMethod}
-                            WHERE NOT EXISTS (SELECT 1 FROM billing.insurance_providers WHERE insurance_provider_id = ${id})
+                            WHERE NOT EXISTS (SELECT 1 FROM billing.insurance_provider_details WHERE insurance_provider_id = ${id})
                             RETURNING *, '{}'::jsonb old_values
                         )
                         , update_house AS (
                                 UPDATE
-                                    billing.insurance_providers
+                                    billing.insurance_provider_details
                                 SET
                                       clearing_house_id = ${claimClearingHouse}
                                     , billing_method = ${billingMethod}
@@ -114,7 +114,7 @@ module.exports = {
                                 (
                                     SELECT row_to_json(old_row) 
                                     FROM   (SELECT * 
-                                            FROM   billing.insurance_providers 
+                                            FROM   billing.insurance_provider_details 
                                             WHERE  insurance_provider_id = ${id}) old_row 
                                 ) old_values
                             ),
