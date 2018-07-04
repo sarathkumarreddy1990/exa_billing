@@ -2207,7 +2207,7 @@ $BODY$
                     public.fee_schedules fs
                 WHERE
                     1 = 1
-                    AND fs.category = 'default'
+                    AND fs.category = 'self_pay'
                     AND fs.inactivated_dt IS NULL
                     LIMIT 1;
 		
@@ -2300,7 +2300,7 @@ $BODY$
                     ELSE
                         l_base_fee = l_base_fee - l_dynamic_fee_override;
                     END IF;
-                ELSE
+                ELSIF l_dynamic_fee_modifier_type = 'per' THEN
                     -- Modifier type = 'per'
                     IF l_dynamic_fee_modifier = 'add' THEN
                         l_base_fee = l_base_fee + (l_base_fee::numeric * l_dynamic_fee_override::numeric / 100)::money;
@@ -2372,12 +2372,14 @@ BEGIN
 		WHERE 
 	            id = l_claim_status_id;
 	        
-	        IF l_claim_status = 'Pending Validation' THEN
-		   l_bill_fee_recalculation = 1;
-		ELSIF ((p_payer_type = 'primary_insurance' OR p_payer_type = 'secondary_insurance' OR p_payer_type = 'tertiary_insurance') AND (p_existing_payer_type = 'referring_provider' OR p_existing_payer_type = 'ordering_facility')) THEN
-	           l_bill_fee_recalculation = 1;
-		ELSIF ((p_payer_type = 'referring_provider' OR p_payer_type = 'ordering_facility') AND (p_payer_type = 'primary_insurance' OR p_existing_payer_type = 'secondary_insurance' OR p_existing_payer_type = 'tertiary_insurance')) THEN
-		   l_bill_fee_recalculation = 1;
+	     IF l_claim_status = 'Pending Validation' THEN
+			IF ((p_payer_type = 'primary_insurance' OR p_payer_type = 'secondary_insurance' OR p_payer_type = 'tertiary_insurance') AND (p_existing_payer_type = 'referring_provider' OR p_existing_payer_type = 'ordering_facility')) THEN
+				l_bill_fee_recalculation = TRUE;
+			ELSIF ((p_payer_type = 'referring_provider' OR p_payer_type = 'ordering_facility') AND (p_existing_payer_type = 'primary_insurance' OR p_existing_payer_type = 'secondary_insurance' OR p_existing_payer_type = 'tertiary_insurance')) THEN
+				l_bill_fee_recalculation = TRUE;
+                        ELSIF ((p_payer_type = 'primary_insurance' OR p_payer_type = 'secondary_insurance' OR p_payer_type = 'tertiary_insurance' OR p_payer_type = 'referring_provider' OR p_payer_type = 'ordering_facility')  AND (p_existing_payer_type = 'patient')) THEN
+				l_bill_fee_recalculation = TRUE;
+			END IF;
 		END IF;
 		
 	RETURN l_bill_fee_recalculation;
