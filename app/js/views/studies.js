@@ -252,7 +252,7 @@ define(['jquery',
                     customStudyStatus: []
                 }));
 
-                $("#btnInsuranceClaim, #btnValidateOrder, #btnClaimsRefresh, #btnClaimRefreshAll, #diveHomeIndex, #divStudyFooter").hide();
+                $("#btnInsuranceClaim, #btnValidateOrder, #btnValidateExport, #btnClaimsRefresh, #btnClaimRefreshAll, #diveHomeIndex, #divStudyFooter").hide();
                 
                 if (queryString && !queryString.target && commonjs.getParameterByName(queryString).admin && commonjs.getParameterByName(queryString).admin == 1) {
                     self.isAdmin = true;
