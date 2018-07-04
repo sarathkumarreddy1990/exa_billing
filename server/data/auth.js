@@ -7,7 +7,7 @@ module.exports = {
                 SELECT    user_log.id, 
                         Now()                                                                       AS currenttime,
                         Extract(minute FROM Now() - user_log.last_access_dt)                        AS expired_timeout,
-                        cast(COALESCE(users.user_settings->\'sessionInterval\', \'30\') AS integer) AS session_timeout 
+                        cast(COALESCE(users.user_settings->'sessionInterval', '30') AS integer) AS session_timeout 
                 FROM      user_log 
                 LEFT JOIN users 
                 ON        users.id = user_log.user_id 
