@@ -1,4 +1,4 @@
 'use strict';
 
 module.exports = ( fieldID, fieldValue ) =>
-    ` CAST(${fieldID} AS VARCHAR) = '%${fieldValue}%'`;
+    ` (${fieldID}) = '${fieldValue}'::money`;
