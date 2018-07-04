@@ -61,7 +61,6 @@ from
     INNER JOIN billing.charges bch on bch.claim_id = cd.claim_id
     INNER JOIN public.cpt_codes pcpt on pcpt.id = bch.cpt_id
     INNER JOIN public.users u on u.id = bch.created_by
-    LEFT JOIN billing.payment_applications pa on pa.charge_id= bch.id
     LEFT JOIN public.modifiers pm1 on pm1.id = bch.modifier1_id
     LEFT JOIN public.modifiers pm2 on pm2.id = bch.modifier2_id
     LEFT JOIN public.modifiers pm3 on pm3.id = bch.modifier3_id
