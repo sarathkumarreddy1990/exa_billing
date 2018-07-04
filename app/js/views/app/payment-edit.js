@@ -172,6 +172,7 @@ define(['jquery',
                 }
                 $(this.el).html(this.paymentsEditTemplate({ expiryYear: expiryYear, expiryMonth: expiryMonth, paidlocation: this.paidlocation.toJSON(), facilityAdd: this.paidlocation.toJSON(), paymentReasons: this.paymentReasons.toJSON(), id: self.payemntId }));
                 this.rendered = true;
+                this.pendingGridLoaderd = false;
                 self.showBillingForm(paymentId);
                 self.showPaymentsGrid(paymentId);
                 commonjs.processPostRender();

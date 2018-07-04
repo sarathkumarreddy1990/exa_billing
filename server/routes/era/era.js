@@ -43,4 +43,9 @@ router.post('/process-file', async function (req, res) {
     httpHandler.send(req, res, data);
 });
 
+router.get('/getProcessedDetailsByFileId', async function (req, res) {
+    const data = await eraController.getProcessedEraFileDetails(req.query);
+    httpHandler.send(req, res, data);
+});
+
 module.exports = router;

@@ -288,17 +288,9 @@ module.exports = {
 
         let LineItemsAndClaimLists = await eraParser.getFormatedLineItemsAndClaims(claimLists, params);
 
-        // ToDo:: Have to return Error Message on Multi TRN payment
-        // if (LineItemsAndClaimLists.lineItems && !LineItemsAndClaimLists.lineItems.length) {
-        //     message.push({
-        //         status: 100,
-        //         message: 'Error on getting service segment in ERA file'
-        //     });
-
-        //     return message;
-        // } 
-
         let processedClaims = await data.createPaymentApplication(LineItemsAndClaimLists, paymentDetails);
+
+        await data.updateERAFileStatus(paymentDetails);
 
         return processedClaims;
     },
@@ -313,6 +305,11 @@ module.exports = {
 
     getFileStorePath: async function (params) {
         return data.getFileStorePath(params);
-    }
+    },
 
+    getProcessedEraFileDetails: async function(params){
+
+        return data.getProcessedFileData(params);
+        
+    }
 };
