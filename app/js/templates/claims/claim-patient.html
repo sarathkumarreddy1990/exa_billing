@@ -3,11 +3,34 @@
         display: none;
     }
 </style>
-<div id="divPatientClaimsGrid">   
+<div id="divPatientClaimsGrid" style="text-align: right">
+    <div class="row">
+        <div class="col-3">
+            <div class="form-group form-inline">
+                            <label i18n="report.billingProviders" />
+                            <select id="ddlBillingProvider" multiple="multiple" />                                                       
+                        </div>
+        </div>
+        <div class="col-3">
+            <input type="radio" id="radActivityAllStatus" name="patientActivity" checked>All Activity </input>
+            <input id='radioActivityStatus' type="radio" name="patientActivity"> Activity By Date</input>
+        </div>
+        <div class="col-4" id="divFromDate">
+            <div class="form-group form-inline" id="activityDetails"  style="display : none;">
+                <label for="txtDate" i18n="billing.claims.fromDate"></label>
+                <input type="date" class="form-control maskDateLocale" id="txtDate">
+
+                <label for="txtOtherDate" i18n="billing.claims.toDate"></label>
+                <input type="date" class="form-control maskDateLocale" id="txtOtherDate">
+            </div>
+        </div>
+        <div class="col-2">
         <input type="button" id="btnPatientActivity" class="btn btn-default patientActivity" i18n="billing.payments.print">
+        </div>
+    </div>
     <div>
         <table id="tblPatientClaimsGrid"></table>
         <div id="gridPager_PatientClaim"></div>
     </div>
+    <div id="divAgeSummary"></div>
 </div>
-<div id="divAgeSummary"></div>

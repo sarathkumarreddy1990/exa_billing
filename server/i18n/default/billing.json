@@ -371,7 +371,10 @@
             "totalInsurancePayments":"Total Insurance Payment",
             "totalPatientPayments":"Total Patient Payment",
             "currentResponsibility":"Current Responsibility Assigned",
-            "validationResults": "Validation Results"
+            "validationResults": "Validation Results",
+            "fromDate": "From Date",
+            "toDate": "To Date"
+            
         }
     }
 }

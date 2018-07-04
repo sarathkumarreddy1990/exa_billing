@@ -6,14 +6,12 @@
 <form class="form-horizonta form-list" novalidate="" _lpchecked="1">
 
     <!-- row: form elements -->
-    <div class="col-xs-12 col-md-12 col-lg-12">
+    <div class="row">
         <!-- col: form elements -->
-        <div class="col-xs-4">
+        <div class="col-4">
             <div class="form-group form-inline">
-                <div class="col-form-label">
-                    <label class="control-label field-required" for="txtDateRange" i18n="report.statementstate" />
-                </div>
                 <div class="col-form-content">
+                    <label class="control-label field-required" for="txtDateRange" i18n="report.statementstate" />
                     <div id="divFromDate" class="input-group">
                         <span class="input-group-addon add-on">
                             <i class="fa fa-calendar"></i>
@@ -22,37 +20,22 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="col-4">
             <div class="form-group form-inline">
-                <div class="col-form-label">
-                    <label class="control-label">Billing Provider
-                    </label>
-                </div>
                 <div class="col-form-content">
-                    <div class="form-group form-inline">
-
+                    <div class="form-group form-inline">                        
                         <div class="col-form-label" class="multiselect">
+                                <label class="control-label">Billing Provider
+                                    </label>
                             <select id="ddlBillingProvider" multiple="multiple" />
                         </div>
-                    </div>
-                    <div class="input-group" style="display: none;">
-                        <input type="checkbox" id="chkPayToProvider" checked>
-                        <label for="chkPayToProvider" id="lblPayToProvider" class="field-chk" i18n="report.reportFilter.payToProvider" />
-                    </div>
-                </div>
-            </div>
-            <div class="form-group form-inline">
-                <div class="col-form-label">
-                    <label class="control-label" i18n="report.minamount"></label>
-                </div>
-                <div class="col-form-content">
-                    <div class="input-group">
-                        <input type="number" id="minAmount" class="form-control" required="required" name="minAmount" min="0" value="0">
-                    </div>
+                    </div>                   
                 </div>
             </div>
         </div>
-        <!-- /col: form elements -->
-        <div class="col-xs-4">
+
+        <div class="col-4">
             <div class="form-group form-inline">
                 <div class="col-form-label" class="multiselect">
                     <label class="control-label" i18n="report.facilities">
@@ -66,50 +49,62 @@
                     </select>
                 </div>
             </div>
-
-            <div class="form-group form-inline">
-                <div class="input-group">
-                    <input type="checkbox" id="chkPayToProvider" checked>
-                    <label for="chkPayToProvider" id="lblPayToProvider" class="field-chk" i18n="report.reportFilter.payToProvider" />
+        </div>
+        </div>
+        <div class="row">
+            <div class="col-4">
+                <div class="form-group form-inline">                  
+                    <div class="col-form-content">
+                        <div class="input-group">
+                                <label class="control-label" i18n="report.minamount"></label>
+                            <input type="number" id="minAmount" class="form-control" required="required" name="minAmount" min="0" value="0">
+                        </div>
+                        <div class="input-group" style="margin-top: 10px;">
+                                <input type="checkbox" id="chkPayToProvider" checked>
+                                <label for="chkPayToProvider" id="lblPayToProvider" class="field-chk" i18n="report.reportFilter.payToProvider" />                               
+                            </div>
+                    </div>
+                </div>
+                <div class="form-group form-inline">
+                   
                 </div>
             </div>
 
-        </div>
-        <!-- col: form elements -->
-        <div class="col-xs-4">
-            <div class="form-group form-inline">
-                <div class="col-form-label">
-                    <label class="control-label" i18n="report.statementmode"></label>
-                </div>
-                <div class="col-form-content">
-                    <div class="input-group">
-                        <select id="ddlOption">
-                            <option value="All">All</option>
-                            <option value="S">Selected</option>
-                        </select>
+            <div class="col-4">
+                <div class="col-xs-4">
+                    <div class="form-group form-inline">                      
+                        <div class="col-form-content">
+                                <label class="control-label" i18n="report.statementmode"></label>
+                            <div class="input-group">
+                                <select id="ddlOption">
+                                    <option value="All">All</option>
+                                    <option value="S">Selected</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div id="ddlOptionBox" class="form-group form-inline" style="display: none;">
-                <div>
-                    <label class="control-label" i18n="report.patients"></label>
-                </div>
-                <div style="width: 200px;">
-                    <select id="txtPatient" name="listPatient" style="width: 250px; border:1px solid;margin-top:10px"> </select>
-                    <a class="btn btn-primary" id="btnAddPatient" title="Add Patient">
-                        <i class="icon-ic-plus"></i>
-                    </a>
-                </div>
-                <div class="form-content">
-                    <div id="divPatient">
-                        <ul id="ulListPatients" class="ulSelectionList tagList" style="overflow: auto;width: 330px;height:90px; border: 1px solid;">
-                        </ul>
+            <div class="col-4">
+                <div id="ddlOptionBox" class="form-group form-inline" style="display: none;">
+                    <div>
+                        <label class="control-label" i18n="report.patients"></label>
+                    </div>
+                    <div style="width: 200px;">
+                        <select id="txtPatient" name="listPatient" style="width: 250px; border:1px solid;margin-top:10px"> </select>
+                        <a class="btn btn-primary" id="btnAddPatient" title="Add Patient">
+                            <i class="icon-ic-plus"></i>
+                        </a>
+                    </div>
+                    <div class="form-content">
+                        <div id="divPatient">
+                            <ul id="ulListPatients" class="ulSelectionList tagList" style="overflow: auto;width: 330px;height:90px; border: 1px solid;">
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <!-- /col: form elements -->
-    </div>
     <!-- /row: form elements -->
 
     <!-- row: form buttons -->
