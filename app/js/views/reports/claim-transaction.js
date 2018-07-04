@@ -337,7 +337,8 @@ define([
 
                     cptCodeLists: this.viewModel.cptCodeLists ? this.viewModel.cptCodeLists : '',
 
-                    orderBy: $('#ddlOrderBySelection').val() ? $('#ddlOrderBySelection').val() : ''
+                    orderBy: $('#ddlOrderBySelection').val() ? $('#ddlOrderBySelection').val() : '',
+                    insurancePayerTypeOption :  $('#ddlClaimSelectBoxes').val() || ''
 
                 };
             },
