@@ -316,7 +316,7 @@ module.exports = {
             bc.invoice_no,
             get_full_name(pp.last_name,pp.first_name) AS full_name,
             bc.claim_dt,
-            max(payment_application_id) as payment_application_id,
+            max(bpa.id) as payment_application_id,
             (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) as bill_fee,
             (SELECT patient_paid FROM billing.get_claim_patient_other_payment(bc.id)) as patient_paid,
             (SELECT others_paid FROM billing.get_claim_patient_other_payment(bc.id)) as others_paid,
@@ -363,8 +363,8 @@ module.exports = {
 
         if (params.paymentStatus && params.paymentStatus == 'applied') {
             joinQuery = `INNER JOIN billing.get_payment_applications(${params.paymentId},${params.paymentApplicationId}) ppa ON ppa.charge_id = bch.id `;
-            selectQuery = ' , ppa.id AS payment_application_id,ppa.adjustment_code_id AS adjustment_code_id,ppa.payment_amount::numeric AS payment_amount,ppa.adjustment_amount::numeric AS adjustment_amount , ppa.payment_application_adjustment_id as adjustment_id';
-            groupByQuery = ', ppa.payment_id , ppa.id,ppa.adjustment_code_id, ppa.payment_amount,ppa.adjustment_amount , ppa.payment_application_adjustment_id ';
+            selectQuery = ' , ppa.id AS payment_application_id,ppa.adjustment_code_id AS adjustment_code_id,ppa.payment_amount::numeric AS payment_amount,ppa.adjustment_amount::numeric AS adjustment_amount , ppa.payment_application_adjustment_id as adjustment_id, ppa.payment_applied_dt AS payment_applied_dt';
+            groupByQuery = ', ppa.payment_id , ppa.id,ppa.adjustment_code_id, ppa.payment_amount,ppa.adjustment_amount , ppa.payment_application_adjustment_id,ppa.payment_applied_dt ';
         }
 
         return await query(`  

@@ -105,7 +105,8 @@ module.exports = {
                     charge_id: value.charge_id,
                     amount: value.payment || 0.00,
                     adjustment_id: null,
-                    parent_application_id: null
+                    parent_application_id: null,
+                    parent_applied_dt: null
                 });
 
                 updateAppliedPayments.push({
@@ -114,7 +115,8 @@ module.exports = {
                     charge_id: value.charge_id,
                     amount: value.adjustment || 0.00,
                     adjustment_id: adjustmentId || null,
-                    parent_application_id:value.paymentApplicationId 
+                    parent_application_id:value.paymentApplicationId, 
+                    parent_applied_dt:value.paymentAppliedDt 
                 });
 
 
