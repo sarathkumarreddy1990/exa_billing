@@ -252,28 +252,28 @@ define([
                     colModel: [
                         { name: '', index: 'claim_id', key: true, hidden: true, search: false },
                         {
-                            name: 'claim_id', search: false, width: '70px'
+                            name: 'claim_id', search: false, width: 100
                         },
                         {
-                            name: 'claim_dt', search: false, formatter: self.dateFormatter, width: '130px'
+                            name: 'claim_dt', search: false, formatter: self.dateFormatter, width: 200
                         },
                         {
-                            name: 'billing_fee', search: false, width: '70px'
+                            name: 'billing_fee', search: false, width: 100
                         },
                         {
-                            name: 'total_insurance_payment', search: false, width: '100px'
+                            name: 'total_insurance_payment', search: false, width: 100
                         },
                         {
-                            name: 'total_patient_payment', search: false, width: '100px'
+                            name: 'total_patient_payment', search: false, width: 100
                         },
                         {
-                            name: 'claim_balance', search: false, width: '70px'
+                            name: 'claim_balance', search: false, width: 100
                         },
                         {
-                            name: 'claim_status', search: false, width: '100px'
+                            name: 'claim_status', search: false, width: 100
                         },
                         {
-                            name: 'payer_name', search: false, width: '100px'
+                            name: 'payer_name', search: false, width: 200
                         }
 
 
@@ -301,8 +301,8 @@ define([
 
 
                 setTimeout(function () {
-                    $("#tblPatientClaimsGrid").setGridWidth($(".modal-body").width());
-                    $("#tblPatientClaimsGrid").setGridHeight(($(".modal-body").height() / 2) * 2);
+                    $("#tblPatientClaimsGrid").setGridWidth($(".modal-body").width()-15);
+                    $("#tblPatientClaimsGrid").setGridHeight($(window).height()-600);
                 }, 200);
                 $('#divAgeSummary').html(self.agingSummaryTemplate());
             },
@@ -320,16 +320,16 @@ define([
                     colModel: [
                         { name: 'id', index: 'id', key: true, hidden: true },
                         {
-                            name: 'created_dt', search: true, formatter: self.dateFormatter, width: '100px'
+                            name: 'created_dt', search: true, formatter: self.dateFormatter, width: 200
                         },
                         {
-                            name: 'screen_name', search: true, width: '70px'
+                            name: 'screen_name', search: true, width: 200
                         },
                         {
-                            name: 'username', search: true, width: '70px'
+                            name: 'username', search: true, width: 200
                         },
                         {
-                            name: 'description', search: true, width: '130px'
+                            name: 'description', search: true, width: 400
                         }
 
                     ],
@@ -355,8 +355,8 @@ define([
 
 
                 setTimeout(function () {
-                    $("#tblPatientClaimsLogGrid").setGridWidth($(".modal-body").width());
-                    $("#tblPatientClaimsLogGrid").setGridHeight(($(".modal-body").height() - 200));
+                    $("#tblPatientClaimsLogGrid").setGridWidth($(".modal-body").width()-15);
+                    $("#tblPatientClaimsLogGrid").setGridHeight(($(window).height() - 300));
                 }, 200);
 
                 commonjs.initializeScreen({ header: { screen: 'Claim Log', ext: 'Claim log' } });
@@ -372,14 +372,25 @@ define([
                 var self = this;
                 if (model && model.length > 0) {
                     var age_summary = model[0].get('age_summary');
-                    $('#tdCurrent').html(age_summary.age_0_30 || '$0.00');
-                    $('#tdAge30').html(age_summary.age_31_60 || '$0.00');
-                    $('#tdAge60').html(age_summary.age_61_90 || '$0.00');
-                    $('#tdAge90').html(age_summary.age_91_120 || '$0.00');
-                    $('#tdAge120').html(age_summary.age_121 || '$0.00');
-                    $('#tdAgeTotal').html(age_summary.total_balance || '$0.00');
-                    $('#tdAgeOtherPaid').html(age_summary.payment_insurance_total || '$0.00');
-                    $('#tdAgePatientPaid').html(age_summary.payment_patient_total || '$0.00');
+                    $('#tdInsCurrent').html(age_summary.insurance_age_0_30 || '$0.00');
+                    $('#tdInsAge30').html(age_summary.insurance_age_31_60 || '$0.00');
+                    $('#tdInsAge60').html(age_summary.insurance_age_61_90 || '$0.00');
+                    $('#tdInsAge90').html(age_summary.insurance_age_91_120 || '$0.00');
+                    $('#tdInsAge120').html(age_summary.insurance_age_121 || '$0.00');
+                    $('#tdInsAgeTotal').html(age_summary.insurance_total || '$0.00');
+                    $('#tdPtCurrent').html(age_summary.patient_age_0_30 || '$0.00');
+                    $('#tdPtAge30').html(age_summary.patient_age_31_60 || '$0.00');
+                    $('#tdPtAge60').html(age_summary.patient_age_61_90 || '$0.00');
+                    $('#tdPtAge90').html(age_summary.patient_age_91_120 || '$0.00');
+                    $('#tdPtAge120').html(age_summary.patient_age_121 || '$0.00');
+                    $('#tdPtAgeTotal').html(age_summary.patient_total || '$0.00');
+                    $('#tdCurrent').html(age_summary.total_age_30 || '$0.00');
+                    $('#tdAge30').html(age_summary.total_age_31_60 || '$0.00');
+                    $('#tdAge60').html(age_summary.total_age_61_90 || '$0.00');
+                    $('#tdAge90').html(age_summary.total_age_91_120 || '$0.00');
+                    $('#tdAge120').html(age_summary.total_age_121 || '$0.00');
+                    $('#tdAgeTotal').html(age_summary.total_balance || '$0.00'); 
+                    $('#spUnapplied').html(age_summary.total_unapplied || '$0.00');
                 }
             },
 
@@ -638,12 +649,14 @@ define([
             saveIsInternalComment: function () {
                 var comments = [];
                 var self = this;
-                var selectedFollowUpDate = $('#txtCIFollowUpDate').val() ? moment($('#txtCIFollowUpDate').val()).format('L') : '';
-                var currentDate = moment().format('L');
-                if (moment(selectedFollowUpDate).format('MM/DD/YYYY') < currentDate) {
-                    commonjs.showWarning('Cannot Select Past date');
-                    return;
-                }
+                var selectedFollowUpDate = $('#txtCIFollowUpDate').val() ? new Date($('#txtCIFollowUpDate').val()).toDateString() : '';
+                var currentDate = new Date().toDateString();
+                if (selectedFollowUpDate) {
+                    if (selectedFollowUpDate < currentDate) {
+                        commonjs.showWarning('Cannot Select Past date');
+                        return;
+                    }
+                }              
 
                 $('#tblCIClaimComments  td input:checkbox').each(function () {
                     var content = {};
