@@ -1,7 +1,7 @@
 <tr data_charge_id_id="<%= payment.id %>" data_payment_id="<%= payment.payment_id %>"
      data_payment_adjustment_id="<%= payment.payment_adjustment_id %>"
      data_payment_application_id="<%= payment.payment_application_id %>"
-    data_claim_id="<%= payment.claimId %>">
+    data_claim_id="<%= payment.claimId %>" data_payment_applied_dt="<%= payment.payment_applied_dt %>">
     <td style="white-space: nowrap !important">
         <span>
             <%= payment.cpt_code %>
@@ -23,7 +23,7 @@
         </span>
     </td>
     <td style="white-space: nowrap !important">
-        <input value="<%= payment.payment_amount %>" type="text" class="input-xs this_pay floatboxtwodec">
+        <input value="<%= payment.payment_amount %>" type="text" class="input-xs this_pay floatbox" placeholder="0.00">
     </td>
     <td style="white-space: nowrap !important">
         <input type="text" class="input-xs this_allowed floatbox" disabled="disabled" value="<%= payment.allowed_amount %>">
@@ -34,7 +34,7 @@
         </span>
     </td>
     <td style="white-space: nowrap !important">
-        <input type="text" class="input-xs this_adjustment floatboxtwodec" value="<%= payment.adjustment %>">
+        <input type="text" class="input-xs this_adjustment floatbox" value="<%= payment.adjustment %>" placeholder="0.00">
     </td>
     <td style="white-space: nowrap !important">
         <span>
