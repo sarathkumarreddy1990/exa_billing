@@ -348,10 +348,11 @@ module.exports = {
                             save_charge_study AS (
                                     INSERT INTO billing.charges_studies
                                         ( charge_id
-                                        , study_id)
-                                    values
-                                    ( (SELECT id FROM save_charges )
-                                    , ${params.study_id})
+                                        , study_id )
+                                    SELECT
+                                    (SELECT id FROM save_charges )
+                                    , ${params.study_id}
+                                    WHERE ${params.study_id} IS NOT NULL
                             ) select * from save_charges `;
 
         return await query(sql);
