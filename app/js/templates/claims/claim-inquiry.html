@@ -124,7 +124,7 @@
                     <table id='tblCIInsurance'></table>
             </div>
         </div>
-        <div class="row">
+        <div class="row" style="margin-top: 10px;">
             <div class="col-md-10"><label style="font-weight: bold" i18n="billing.fileInsurance.comment"></label></div>
             <div class="col-md-2">
                 <input type="button" id="btnCIAddComment" class=" btn btn-danger" value="Save" i18n="shared.buttons.add" style="float:right;margin-right: 5px;line-height: 1">
@@ -138,15 +138,18 @@
                     <table id='tblCIClaimComments' class="vs"></table>
             </div>
         </div>
-        <div id="divCIpaymentDetails" style="display:none; position:fixed; top:35%; left:10%; z-index:10000; border-style:groove; background-color: white">
+        <!-- style="display:none; position:fixed; top:35%; left:10%; z-index:10000; border-style:groove; background-color: white" -->
+        <div id="divCIpaymentDetails" class="divBackgroundPayment form-horizontal commonBorder" style="display: none; position: absolute; border-radius:10px;z-index:10000; width: 97.5%; padding:20px;background-color: white;  
+        text-align: center;top: 2%;border: 3px solid #dee2e6;">
                 <table id="tblCIPayDetails"  class="table">
                    <thead id="tHeadCIPayment">
                        <tr>
+                           <th>Payment ID</th>
                            <th>CPT Code</th>
                            <th>Charged</th>
+                           <th>Allowed</th>
                            <th>Paid</th>
                            <th>Adjustment</th>
-                           <th>Allowed</th>
                            <th>Cas1</th>
                            <th>Amount</th>
                            <th>Cas2</th>
@@ -165,18 +168,20 @@
                    </thead>
                    <tbody id="tBodyCIPayment"></tbody>
                </table>
-               <input type="button" id="btnCIPayCancel" class="btn btnCommentSave  btn-primary" value="Save" i18n="shared.buttons.cancel">
+               <input type="button" id="btnCIPayCancel" class="btn btnCommentSave  btn-primary" value="Save" i18n="shared.buttons.cancel" style="float:right">
         </div>
-        <div class="form-horizontal form-inline" id="divCIFormComment" style="display:none; position:fixed; width:30%; left:35%; z-index:10000; border-style:groove; background-color: white">
+        <!--style="display:none; position:fixed; width:30%; left:35%; z-index:10000; border-style:groove; background-color: white"-->
+        <div id="divCIFormComment" class="divBackgroundPayment form-horizontal commonBorder" style="left:35%; display: none; position: absolute; border-radius:10px;z-index:10000; width: 30%; height:23%; padding:20px;background-color: white;  
+        text-align: center;top: 2%;border: 1px solid #dee2e6;">
                 <div class="col-xs-12" id="divCIclaimComment">
-                    <div class="col-xs-10"  style="margin-top:4%">
+                    <div class="col-xs-10">
                         <div class="form-group">
                             <textarea id="txtCIAddComment" class="form-control" style="margin-left: 20px; margin-right: 20px; width:95%" rows="3"></textarea>
                         </div>
                     </div>
-                    <div class="col-xs-2" style="margin-top:4%">
-                        <input type="button" id="btnCICommentSave" class="btn btnCommentSave  btn-primary" style="margin-left: 20px" value="Save" i18n="shared.buttons.save">
-                        <input type="button" id="btnCICommentCancel" class="btn btnCommentSave  btn-primary" value="Save" i18n="shared.buttons.cancel">
+                    <div class="col-xs-2">
+                        <input type="button" id="btnCICommentSave" class="btn btnCommentSave  btn-primary" style="margin-left: 20px;line-height:1" value="Save" i18n="shared.buttons.save">
+                        <input type="button" id="btnCICommentCancel" class="btn btnCommentSave  btn-primary" value="Save" i18n="shared.buttons.cancel" style="line-height:1">
                     </div>
                 </div>
         </div>

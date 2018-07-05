@@ -38,7 +38,7 @@ WITH transaction_summary_by_month as (
         coalesce(cs.charge,0::money)  AS "Charge",
         SUM(coalesce(ts.payment_amount,0::money)) AS "Payments",
         SUM(coalesce(adjustment_amount,0::money)) AS "Adjustments",
-        cs.charge - SUM ( coalesce(ts.payment_amount,0::money) +  coalesce(ts.adjustment_amount,0::money)) AS "Net Activity"
+        (coalesce(cs.charge, 0::money) - SUM ( coalesce(ts.payment_amount,0::money) +  coalesce(ts.adjustment_amount,0::money))) AS "Net Activity"
     
     FROM transaction_summary_by_month ts
     FULL  JOIN charge_summary cs ON ts.txn_month = cs.txn_month
@@ -82,7 +82,7 @@ WITH transaction_summary_by_day as (
         coalesce(cs.charge,0::money)  AS "Charge",
         SUM(coalesce(ts.payment_amount,0::money)) AS "Payments",
         SUM(coalesce(adjustment_amount,0::money)) AS "Adjustments",
-        cs.charge - SUM ( coalesce(ts.payment_amount,0::money) +  coalesce(ts.adjustment_amount,0::money)) AS "Net Activity"
+        (coalesce(cs.charge, 0::money) - SUM ( coalesce(ts.payment_amount,0::money) +  coalesce(ts.adjustment_amount,0::money))) AS "Net Activity"
     
     FROM transaction_summary_by_day ts
     FULL  JOIN charge_summary cs ON ts.txn_month = cs.txn_month

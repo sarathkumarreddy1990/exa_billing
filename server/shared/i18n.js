@@ -34,13 +34,14 @@ module.exports = {
                 return this.getI18nData('default');
             }
 
-            for (let i = 0; i < names.length; i++) {
-                let jsonFilePath = path.join(i18nPath, names[i]);
-                let data = await readFile(jsonFilePath);
+            for (const fileName of names) {
+                const jsonFilePath = path.join(i18nPath, fileName);
+                const data = await readFile(jsonFilePath);
 
                 jsonI18nData = Object.assign(jsonI18nData, JSON.parse(data));
             }
 
+            languages[dir] = jsonI18nData;
             return jsonI18nData;
         } catch (err) {
             throw err;

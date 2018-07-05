@@ -36,8 +36,8 @@ WITH details AS(
     FROM billing.claims bc
     INNER JOIN billing.charges bch ON bch.claim_id = bc.id 
     INNER JOIN public.patients pp on pp.id = bc.patient_id  
-    INNER JOIN billing.payment_applications bpa ON bpa.charge_id = bch.id
-    INNER JOIN billing.payments bp ON bp.id = bpa.payment_id
+    LEFT JOIN billing.payment_applications bpa ON bpa.charge_id = bch.id
+    LEFT JOIN billing.payments bp ON bp.id = bpa.payment_id
     <% if (cptCodeLists) { %>   inner join cpt_codes cc on cc.id = bch.cpt_id  <% } %>
     LEFT JOIN public.patient_insurances ppi ON ppi.id = CASE WHEN bc.payer_type = 'primary_insurance' THEN bc.primary_patient_insurance_id
                                                              WHEN bc.payer_type = 'secondary_insurance' THEN bc.secondary_patient_insurance_id
@@ -63,6 +63,15 @@ WITH details AS(
         <% if(cptCodeLists) { %> AND <% print(cptCodeLists); } %>
         <% if(referringProIds) { %>AND <% print(referringProIds);} %>
     
+        <%
+        if(insPaid) { %> AND ( bp.payer_type = 'patient')   <% }
+        else if(patPaid) { %> AND ( bp.payer_type = 'insurance') <% }
+        else if(unPaid)  { %> AND ( bp.id is null ) <% }
+        else if(insPaid && patPaid )  { %> AND ( bp.payer_type = 'patient' ) OR ( bp.payer_type = 'insurance' ) <% }
+        else if(patPaid &&  unPaid)  { %> AND ( bp.payer_type = 'patient' OR bp.id is null ) <% }
+        else if(unPaid && insPaid)  { %> AND ( bp.payer_type = 'insurance' OR bp.id is null) <% }
+        else if(unPaid && insPaid && patPaid)  { %> AND ( bp.payer_type = 'patient' OR bp.payer_type = 'insurance' OR bp.id is null ) <% }
+        %>  
         
     GROUP BY bc.id,pip.insurance_name,pip.insurance_code,pp.last_name,pp.first_name,pr.full_name
 
@@ -337,6 +346,13 @@ const api = {
             filters.cptCodeLists = queryBuilder.whereIn(`cc.id`, [params.length]);
         }
         filters.orderBy = reportParams.orderBy || 0;
+
+          // claim Selection
+          if (reportParams.insurancePayerTypeOption && reportParams.insurancePayerTypeOption.length > 0) {
+            filters.insPaid = _.includes(reportParams.insurancePayerTypeOption, 'InsPaid');
+            filters.patPaid = _.includes(reportParams.insurancePayerTypeOption, 'PatPaid');
+            filters.unPaid = _.includes(reportParams.insurancePayerTypeOption, 'UnPaid');
+          }
 
         return {
             queryParams: params,

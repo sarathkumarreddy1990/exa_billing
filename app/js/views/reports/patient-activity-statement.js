@@ -90,6 +90,10 @@ define([
                     var reportName = "patient-activity-statement";
                     var urlParams = {
                         patientIID: claimInfo.patientId,
+                        fromDate: claimInfo.fromDate,
+                        reportBy: claimInfo.reportBy,
+                        toDate: claimInfo.toDate,
+                        billingProId: claimInfo.billingProId,
                         sDate: '2018-06-23'
                     }
                 }

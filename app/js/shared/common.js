@@ -2262,14 +2262,7 @@ var commonjs = {
             case 'Claims':
                 commonjs.resizeHomeScreen();
                 break;
-            case 'Setup':
-                commonjs.resizeSetupMenu();
-                break;
             case 'Order':
-                commonjs.setpatientFrameheight();
-                break;
-            case 'Patient':
-                commonjs.resizePatientMenu();
                 commonjs.setpatientFrameheight();
                 break;
             case 'Main Module':
@@ -2319,21 +2312,23 @@ var commonjs = {
     },
     resizeHomeScreen: function (retryCount) {
         var tabWidth = 100;
-        $("#studyTabs li").each(function (index) {
+        var $tabs = $('#claimsTabs li').length ? $('#claimsTabs') : $('#studyTabs');
+        var $tabsLi = $('#claimsTabs li').length ? $('#claimsTabs li') : $('#studyTabs li');
+
+        $tabsLi.each(function (index) {
             tabWidth += $(this).width();
         });
-        var divWidth = $('#body_content>.tabbable div:eq(1)').width();
+        var divWidth = $('#divTabActions').width();
         tabWidth = ($(window).width() - divWidth - 60) < tabWidth ? tabWidth : $(window).width() - divWidth - 60;
         var ul_width = 0;
-        $.each($('#studyTabs li'), function () {
+        $.each($tabsLi, function () {
             ul_width += $(this).outerWidth();
         });
-        if ($('#divTabsContainer').width() > ul_width) $('#studyTabs').css({ width: '100%' });
-        else $('#studyTabs').css({ width: (ul_width + 50) + 'px' });
+        if ($('#divTabsContainer').width() > ul_width) $tabs.css({ width: '100%' });
+        else $tabs.css({ width: (ul_width + 50) + 'px' });
 
-        var $divStudyTabsContainer = $('#divStudyTabsContainer');
-        var $divclaimsTabsContainer = $('#divclaimsTabsContainer');
-        var $subMenu = $divStudyTabsContainer.closest('nav.top-nav');
+        var $divTabsContainer = $('#divTabsContainer');
+        var $subMenu = $divTabsContainer.closest('nav.top-nav');
         // SMH - Fixed the size of the tab menu to fill more of the available space, and also to scroll properly.
         var divUseableSpace = $subMenu.width() - 140;  // 140 pixels space between controls
         var headerIconsWidth = $subMenu.find('ul.tn-menu-right').width();
@@ -2344,9 +2339,9 @@ var commonjs = {
                 setTimeout(function () { commonjs.resizeHomeScreen(retries) }, 500);
             }
         }
-        var divStudyTabsContainerWidth = divUseableSpace - headerIconsWidth;
-        $divStudyTabsContainer.css({ width: divStudyTabsContainerWidth });
-        $divclaimsTabsContainer.css({ width: divStudyTabsContainerWidth });
+
+        var divTabsContainerWidth = divUseableSpace - headerIconsWidth;
+        $divTabsContainer.css({ width: divTabsContainerWidth });
 
         //set gadget Width on window Resize
         var _ww = $(window).width() - 50,
@@ -2370,38 +2365,6 @@ var commonjs = {
         $('#column1 .masonry-wrap').css('width', ($(window).width() - 50 + 'px'));
        // $('#column1').masonry();
 
-    },
-
-    resizeSetupMenu: function () {
-        // // Modified by SMH to account for rendered height.  Some of the elements below were returning positive values for $.outerHeight despite being hidden (display:none)
-        // $('#content').height($(window).height() - ($('.title-panel').get(0).offsetHeight + $('.sub-top-nav').get(0).offsetHeight + $('#divPageHeaderButtons').get(0).offsetHeight));
-        // //$('#content').height($(window).height() - ($('.title-panel').outerHeight() + $('.sub-top-nav').outerHeight()+ $('#divPageHeaderButtons').outerHeight()));
-
-        // //Hide nav arrows if no overflow
-        // var subID = $('#tab_setup_menu > li > ul > li.active').prop('id');
-        // if (subID) {
-        //     if ($('#' + subID + 'SubMenu li:last-child').position().left > $('div.navbar-header').width()) {
-        //         $('#btnTabNavLeft').show();
-        //         $('#btnTabNavRight').show();
-        //     } else {
-        //         $('#btnTabNavLeft').hide();
-        //         $('#btnTabNavRight').hide();
-        //     }
-        // }
-    },
-
-    resizePatientMenu: function () {
-        //if($('.page-details-panel').is(":visible")){
-        //    $('#divPatientFrame').height($(window).outerHeight()-($('.topbar').outerHeight() + $('.header').outerHeight() + $('.page-details-panel').outerHeight() + $('.top-nav').outerHeight() +10 ));
-        //}else {
-        //    if ($('#spInformationHeader').length > 0) {
-        //        $('#divPatientFrame').height($(window).outerHeight() - ($('.topbar').outerHeight() + $('.header').outerHeight() + $('.page-details-panel').outerHeight() + $('.top-nav').outerHeight() + 10 ));
-        //    } else {
-        //        $('#divPatientFrame').height($(window).outerHeight() - ($('.topbar').outerHeight() + $('.header').outerHeight() + $('.page-details-panel').outerHeight() + $('.top-nav').outerHeight() - 24 ));
-        //    }
-        //}
-        //test
-        $('#divPatientFrame').height($(window).outerHeight() - $('header.header:visible').outerHeight() || 0);   //FJC
     },
 
     resizeCalendar: function () {

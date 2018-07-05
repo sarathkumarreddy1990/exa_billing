@@ -149,7 +149,6 @@ module.exports = {
 
         let {
             lineItems
-            , ediFileClaims
             , claimComments
             , audit_details
         } = params;
@@ -193,8 +192,6 @@ module.exports = {
                                    INNER JOIN cpt_codes on cpt_codes.id = ch.cpt_id 
                                    WHERE 
                                     ch.claim_id = c.id 
-                                    AND NOT cpt_codes.has_deleted 
-                                    AND cpt_codes.is_active 
                                     AND (
                                         CASE 
                                           WHEN ( application_details.charge_id != 0 ) THEN application_details.charge_id = ch.id
@@ -249,41 +246,10 @@ module.exports = {
                                UPDATE billing.payments
                                 SET 
                                     amount = ( SELECT claim_bill_fee_total FROM matched_claim_payment ),
-                                    notes =  notes || E'\n' || ( SELECT notes FROM matched_claim_payment ) || E'\n' || ${paymentDetails.uploaded_file_name} || '.ERA'
+                                    notes =  notes || E'\n' || ( SELECT notes FROM matched_claim_payment ) || E'\n' || ${paymentDetails.uploaded_file_name}
                                 WHERE id = ${paymentDetails.id}
                             )
-                           ,update_edi_file AS (
-                                UPDATE billing.edi_files
-                                SET
-                                status = (
-                                    CASE 
-                                        WHEN EXISTS ( SELECT 1 FROM inserted_claims ) THEN 'success'
-                                        WHEN NOT EXISTS ( SELECT 1 FROM inserted_claims ) THEN 'failure'
-                                        ELSE
-                                            'in_progress'
-                                    END
-                                )
-                                WHERE id = ${paymentDetails.file_id}
-                            )
-                            ,insert_edi_file_claims AS (
-                                INSERT INTO billing.edi_file_claims
-                                (
-                                    claim_id
-                                    ,edi_file_id
-                                )
-                                SELECT 
-                                    claim_number 
-                                    ,edi_file_id
-                                FROM 
-                                    json_to_recordset(${JSON.stringify(ediFileClaims)}) AS edi_claims
-                                    (
-                                        claim_number bigint
-                                        ,edi_file_id bigint
-                                    )
-                                INNER JOIN inserted_claims ic on ic.claim_id = edi_claims.claim_number
-                                RETURNING claim_id, edi_file_id
-                                ),
-                            insert_claim_comments AS (
+                            ,insert_claim_comments AS (
                                 INSERT INTO billing.claim_comments
                                 (
                                     claim_id
@@ -360,18 +326,7 @@ module.exports = {
                                                     insert_payment_adjustment
                                             
                                                 ) AS insert_payment_adjustment
-                                     ) AS insert_payment_adjustment,
-	                            ( SELECT json_agg(row_to_json(insert_edi_file_claims)) insert_edi_file_claims
-                                            FROM (
-                                                    SELECT
-                                                        claim_id as claim_number
-                                                        ,edi_file_id
-                                                        ,true AS applied
-                                                    FROM
-                                                    insert_edi_file_claims
-                                            
-                                                ) AS insert_edi_file_claims
-                                ) AS insert_edi_file_claims
+                                     ) AS insert_payment_adjustment
                             `;
         
         return await query(sql);
@@ -524,5 +479,61 @@ module.exports = {
 
         return await query(sql);
          
+    },
+
+    updateERAFileStatus: async function (params) {
+
+        const sql = SQL` UPDATE billing.edi_files
+                        SET
+                            status = (
+                                CASE 
+                                    WHEN EXISTS ( SELECT 1 FROM billing.edi_file_payments WHERE edi_file_id = ${params.file_id} ) THEN 'success'
+                                    WHEN NOT EXISTS ( SELECT 1 FROM billing.edi_file_payments WHERE edi_file_id = ${params.file_id} ) THEN 'failure'
+                                    ELSE
+                                        'in_progress'
+                                END
+                            )
+                        WHERE id = ${params.file_id} `;
+
+        return await query(sql);
+
+    },
+
+    getProcessedFileData: async function (params) {
+        let {
+            file_id
+        } = params;
+
+        const sql = SQL` SELECT 
+                    		efp.payment_id
+                    		,charges.claim_id
+                    		,charges.charge_id
+                    		,charges.display_code
+                    		,charges.modifiers
+                    	FROM billing.edi_file_payments efp
+                    	LEFT JOIN LATERAL (
+                            SELECT 
+                                DISTINCT ch.id as charge_id
+                                ,ch.claim_id
+                                ,cpt_codes.display_code
+                    		    , (
+                    			    SELECT array_agg(code) FROM public.modifiers where id in (
+                    				    SELECT unnest(array_remove(ARRAY[modifier1_id,modifier2_id,modifier3_id,modifier4_id], null))
+                    				    FROM billing.charges WHERE id = ch.id
+                    			    )
+                    		    ) as modifiers
+                                FROM 
+                                    billing.charges ch	
+                                INNER JOIN cpt_codes on cpt_codes.id = ch.cpt_id
+                                LEFT JOIN billing.payment_applications pa ON pa.charge_id = ch.id 
+                                LEFT JOIN public.modifiers m ON m.id = ch.id 
+                               WHERE 
+                                pa.payment_id = efp.payment_id 
+
+                            ) AS charges ON true
+                    	WHERE efp.edi_file_id = ${file_id}  ORDER BY efp.payment_id `;
+
+        return await query(sql);
+
     }
 };

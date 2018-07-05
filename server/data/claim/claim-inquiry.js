@@ -99,7 +99,7 @@ module.exports = {
                 , ip.insurance_code
                 , ip.insurance_name
                 , (COALESCE(TRIM(pi.subscriber_lastname),'') ||' '|| COALESCE(TRIM(pi.subscriber_firstname),'')) AS name 
-                , pi.subscriber_dob 
+                , to_char( pi.subscriber_dob , 'MM/DD/YYYY') AS subscriber_dob
                 , pi.policy_number 
                 , pi.group_number
             FROM public.patient_insurances pi
@@ -389,14 +389,15 @@ module.exports = {
         } = params;
 
         let sql = `SELECT
-                          ch.id AS charge_id
+                          pa.payment_id
+                        , ch.id AS charge_id
                         , ch.bill_fee
                         , ch.allowed_amount
                         , cas.cas_details
                         , pa.payment_amount AS payment
                         , pa.adjustment_amount AS adjustment
                         , cpt.display_code AS cpt_code
-                    FROM (SELECT charge_id, id, payment_amount, adjustment_amount, payment_applied_dt from billing.get_payment_applications(${payment_id}) ) AS pa
+                    FROM (SELECT charge_id, id, payment_amount, adjustment_amount, payment_applied_dt, payment_id, payment_application_adjustment_id from billing.get_payment_applications(${payment_id}) ) AS pa
                     INNER JOIN billing.charges ch on ch.id = pa.charge_id 
                     INNER JOIN public.cpt_codes cpt ON cpt.id = ch.cpt_id
                     LEFT JOIN LATERAL (
@@ -406,7 +407,7 @@ module.exports = {
                                     rc.code
                                 FROM billing.cas_payment_application_details cas 
                                 INNER JOIN billing.cas_reason_codes rc ON rc.id = cas.cas_reason_code_id
-                                WHERE  cas.payment_application_id = pa.id
+                                WHERE  cas.payment_application_id = pa.payment_application_adjustment_id
                                 
                                 ) as cas
                     ) cas on true 
@@ -421,7 +422,8 @@ module.exports = {
         } = params;
 
         let sql = `SELECT 	  
-                          ch.id AS charge_id
+                          pa.payment_id
+                        , ch.id AS charge_id
                         , ch.bill_fee
                         , ch.allowed_amount
                         , cas.cas_details
@@ -443,7 +445,7 @@ module.exports = {
                                     rc.code
                                 FROM billing.cas_payment_application_details cas 
                                 INNER JOIN billing.cas_reason_codes rc ON rc.id = cas.cas_reason_code_id
-                                WHERE  cas.payment_application_id = pa.id
+                                WHERE  cas.payment_application_id = pa.payment_application_adjustment_id
                                 ) as cas
                     ) cas on true 
                     WHERE	pa.charge_id = ${charge_id}

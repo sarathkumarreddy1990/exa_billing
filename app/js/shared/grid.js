@@ -377,14 +377,8 @@ define('grid', [
                 if(studyArray.length == 1)
                     $divObj.append(liClaimInquiry);
                 $('#anc_claim_inquiry').click(function () {
-                     commonjs.showDialog({
-                    'header': 'Claim Inquiry',
-                    'width': '90%',
-                    'height': '75%',
-                    'needShrink': true
-                });
-                self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
-                self.claimInquiryView.render(studyIds,selectedStudies[0].patient_id, false);
+                    self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
+                    self.claimInquiryView.render(studyIds,selectedStudies[0].patient_id, false);
                 });
 
 
@@ -448,12 +442,22 @@ define('grid', [
                             return false;
                         }
 
+                        var queryStrVal = [
+                            'study_id=' + study_id,
+                            'host_name=' + location.origin,
+                            'user_id=' + app.userID,
+                            'company_id=' + app.companyID,
+                            'client_ip=' + location.hostname,
+                            'session=' + btoa(app.sessionID),
+                            'screen_name=approved_report'
+                        ];
+
                         commonjs.showDialog({
                             header: 'Approved Reports',
                             i18nHeader: 'setup.rightClickMenu.approvedReports',
                             width: '95%',
                             height: '75%',
-                            url: '/vieworder#order/transcription/0/' + study_id + '/' + selectedStudies[0].patient_id + '/model/' + selectedStudies[0].patient_name
+                            url: '/Txtranscription/transcription/TranscriptionHandler.ashx?q=' + btoa(queryStrVal)
                         });
                     });
 
