@@ -12,27 +12,25 @@ WITH referring_provider_count as
 (
     SELECT
         pp.full_name AS provider_name,
-        COUNT(pp.id) AS orderCount
+        COUNT(bc.id) AS orderCount
     FROM 
         billing.claims bc 
     INNER JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
     INNER JOIN public.providers pp ON pp.id = ppc.provider_id
-    LEFT JOIN billing.charges bch ON bch.claim_id = bc.id
     <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
     WHERE 1 =1
     AND <%= companyId %>
     AND <%= claimDate %>
     <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
     <% if(billingProID) { %> AND <% print(billingProID); } %>
-    GROUP BY 
-        pp.full_name
+    GROUP BY pp.full_name
 )
 SELECT 
        COALESCE(provider_name,'Total')  AS "PROVIDER NAME",
        SUM(orderCount) "CLAIM COUNT"
 FROM
      referring_provider_count
-GROUP BY
+GROUP BY 
      ROLLUP (provider_name)
 ORDER BY
      provider_name ASC

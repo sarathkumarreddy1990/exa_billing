@@ -503,12 +503,14 @@ module.exports = {
                               , adjustment_id
                               , charge_id
                               , parent_application_id
+                              , parent_applied_dt
                             FROM json_to_recordset(${JSON.stringify(params.updateAppliedPayments)}) AS details(
                                payment_application_id BIGINT
                              , amount MONEY
                              , adjustment_id BIGINT
                              , charge_id BIGINT
-                            , parent_application_id BIGINT)),
+                            , parent_application_id BIGINT
+                            , parent_applied_dt TIMESTAMPTZ)),
                         claim_comment_details AS(
                                 SELECT 
                                       claim_id
@@ -559,7 +561,8 @@ module.exports = {
                                 amount,
                                 adjustment_code_id,
                                 created_by,
-                                payment_application_id
+                                payment_application_id,
+                                applied_dt
                             ) 
                             SELECT 
                                   ${params.paymentId}
@@ -569,6 +572,7 @@ module.exports = {
                                 , adjustment_id
                                 , ${params.userId}
                                 , parent_application_id
+                                , parent_applied_dt
                             FROM update_application_details
                             WHERE  payment_application_id is null and (amount != 0::money OR ${JSON.stringify(params.save_cas_details)} != '[]')
                             RETURNING *

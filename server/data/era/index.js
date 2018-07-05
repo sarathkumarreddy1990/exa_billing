@@ -192,8 +192,6 @@ module.exports = {
                                    INNER JOIN cpt_codes on cpt_codes.id = ch.cpt_id 
                                    WHERE 
                                     ch.claim_id = c.id 
-                                    AND NOT cpt_codes.has_deleted 
-                                    AND cpt_codes.is_active 
                                     AND (
                                         CASE 
                                           WHEN ( application_details.charge_id != 0 ) THEN application_details.charge_id = ch.id
