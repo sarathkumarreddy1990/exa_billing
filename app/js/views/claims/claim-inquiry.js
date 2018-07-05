@@ -638,12 +638,14 @@ define([
             saveIsInternalComment: function () {
                 var comments = [];
                 var self = this;
-                var selectedFollowUpDate = $('#txtCIFollowUpDate').val() ? moment($('#txtCIFollowUpDate').val()).format('L') : '';
-                var currentDate = moment().format('L');
-                if (moment(selectedFollowUpDate).format('MM/DD/YYYY') < currentDate) {
-                    commonjs.showWarning('Cannot Select Past date');
-                    return;
-                }
+                var selectedFollowUpDate = $('#txtCIFollowUpDate').val() ? new Date($('#txtCIFollowUpDate').val()).toDateString() : '';
+                var currentDate = new Date().toDateString();
+                if (selectedFollowUpDate) {
+                    if (selectedFollowUpDate < currentDate) {
+                        commonjs.showWarning('Cannot Select Past date');
+                        return;
+                    }
+                }              
 
                 $('#tblCIClaimComments  td input:checkbox').each(function () {
                     var content = {};
