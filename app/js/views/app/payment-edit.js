@@ -1217,6 +1217,7 @@ define(['jquery',
                             paymentDet.bill_fee = payment.bill_fee ? parseFloat(payment.bill_fee).toFixed(2) : '0.00'
                             paymentDet.allowed_fee = '0.00';
                             paymentDet.payment_application_id = payment.payment_application_id;
+                            paymentDet.payment_applied_dt = payment.payment_applied_dt;
                             paymentDet.payment_adjustment_id = payment.adjustment_id;
                             paymentDet.allowed_amount = payment.allowed_amount ? parseFloat(payment.allowed_amount).toFixed(2) : '0.00';
                             var balance = parseFloat(paymentDet.bill_fee) - (parseFloat(paymentDet.other_payment) + parseFloat(paymentDet.other_adjustment) + parseFloat(paymentDet.adjustment) + parseFloat(paymentDet.payment_amount)).toFixed(2);
@@ -1566,6 +1567,7 @@ define(['jquery',
                         _line_item["charge_id"] = $(this).attr('data_charge_id_id');
                         _line_item["paymentApplicationId"] = $(this).attr('data_payment_application_id');
                         _line_item["adjustmentApplicationId"] = $(this).attr('data_payment_adjustment_id');
+                        _line_item["paymentAppliedDt"] =  $(this).attr('data_payment_applied_dt');
                         _line_item["payment"] = objIsPayInFull ? parseFloat($(this).find('td:nth-child(9)').text().trim()) : $(this).find('td:nth-child(5)>input').val() ? parseFloat($(this).find('td:nth-child(5)>input').val()) : 0.00;
                         _line_item["adjustment"] = $(this).find('td:nth-child(8)>input').val() ? parseFloat($(this).find('td:nth-child(8)>input').val()) : 0.00;
                         _line_item["cas_details"] = cas;
