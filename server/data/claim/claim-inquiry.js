@@ -397,7 +397,7 @@ module.exports = {
                         , pa.payment_amount AS payment
                         , pa.adjustment_amount AS adjustment
                         , cpt.display_code AS cpt_code
-                    FROM (SELECT charge_id, id, payment_amount, adjustment_amount, payment_applied_dt, payment_id from billing.get_payment_applications(${payment_id}) ) AS pa
+                    FROM (SELECT charge_id, id, payment_amount, adjustment_amount, payment_applied_dt, payment_id, payment_application_adjustment_id from billing.get_payment_applications(${payment_id}) ) AS pa
                     INNER JOIN billing.charges ch on ch.id = pa.charge_id 
                     INNER JOIN public.cpt_codes cpt ON cpt.id = ch.cpt_id
                     LEFT JOIN LATERAL (
@@ -407,7 +407,7 @@ module.exports = {
                                     rc.code
                                 FROM billing.cas_payment_application_details cas 
                                 INNER JOIN billing.cas_reason_codes rc ON rc.id = cas.cas_reason_code_id
-                                WHERE  cas.payment_application_id = pa.id
+                                WHERE  cas.payment_application_id = pa.payment_application_adjustment_id
                                 
                                 ) as cas
                     ) cas on true 
@@ -445,7 +445,7 @@ module.exports = {
                                     rc.code
                                 FROM billing.cas_payment_application_details cas 
                                 INNER JOIN billing.cas_reason_codes rc ON rc.id = cas.cas_reason_code_id
-                                WHERE  cas.payment_application_id = pa.id
+                                WHERE  cas.payment_application_id = pa.payment_application_adjustment_id
                                 ) as cas
                     ) cas on true 
                     WHERE	pa.charge_id = ${charge_id}
@@ -482,7 +482,7 @@ module.exports = {
                         , (select charges_bill_fee_total from BILLING.get_claim_payments(claims.id)) as billing_fee
                         , (select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from BILLING.get_claim_payments(claims.id)) as claim_balance
                         , COUNT(1) OVER (range unbounded preceding) AS total_records
-                        ,(select Row_to_json(agg_arr) agg_arr FROM (SELECT * FROM billing.get_age_claim_payments (patients.id) )as agg_arr) as age_summary
+                        ,(select Row_to_json(agg_arr) agg_arr FROM (SELECT * FROM billing.get_age_patient_claim (patients.id) )as agg_arr) as age_summary
                     FROM billing.claims
                     INNER JOIN patients ON claims.patient_id = patients.id 
                     LEFT JOIN provider_contacts  ON provider_contacts.id=claims.referring_provider_contact_id 

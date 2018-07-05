@@ -215,46 +215,43 @@ define(['jquery',
                     serviceTypes.push(serviceType.replace(/[^A-Z0-9]+/ig, "_"));
                 });
 
-                eligibilityData.ServiceTypeCodes = serviceTypeCodes;
-                eligibilityData.serviceType = serviceTypes;
+                eligibilityData.serviceTypeCodes = serviceTypeCodes;
+                eligibilityData.serviceTypes = serviceTypes;
 
-                if (!ins) {  // Primary insurance
-                    eligibilityData.RelationshipCode = $('#ddlPriRelationShip').val() ? $('#ddlPriRelationShip').val() : eligibilityData.RelationshipCode;
-                    eligibilityData.patient_insurance_id = $('#ddlExistPriIns').val() ? $('#ddlExistPriIns').val() : null;
-                    eligibilityData.PolicyNo = $('#txtPriPolicyNo').val() ? $('#txtPriPolicyNo').val() : null;
-                    eligibilityData.BenefitOnDate = $('#txtBenefitOnDate').val() ? $('#txtBenefitOnDate').val() : null;
-                    eligibilityData.BirthDate = document.querySelector('#txtPriDOB').value;
-                    eligibilityData.LastName = $('#txtPriSubLastName').val() ? $('#txtPriSubLastName').val() : null;
-                    eligibilityData.FirstName = $('#txtPriSubFirstName').val() ? $('#txtPriSubFirstName').val() : null;
-                    eligibilityData.address = $('#txtPriSubPriAddr').val() ? $('#txtPriSubPriAddr').val() : null;
-                    eligibilityData.InsuranceCompanyName = $('#select2-ddlPriInsurance-container').html();
+                eligibilityData.billingProviderId = $('#ddlBillingProvider option:selected').val() != '' ? parseInt($('#ddlBillingProvider option:selected').val()) : null;
 
-                } else if (ins == 2) { // Secondary insurance
-                    eligibilityData.RelationshipCode = $('#ddlSecRelationShip').val() ? $('#ddlSecRelationShip').val() : eligibilityData.relationshipCode;
-                    eligibilityData.patient_insurance_id = $('#ddlExistSecIns').val() ? $('#ddlExistSecIns').val() : null;
-                    eligibilityData.PolicyNo = $('#txtSecPolicyNo').val() ? $('#txtSecPolicyNo').val() : null;
-                    eligibilityData.BenefitOnDate = $('#txtBenefitOnDate2').val() ? $('#txtBenefitOnDate2').val() : null;
-                    eligibilityData.BirthDate = document.querySelector('#txtSecDOB').value;
-                    eligibilityData.LastName = $('#txtSecSubLastName').val() ? $('#txtSecSubLastName').val() : null;
-                    eligibilityData.FirstName = $('#txtSecSubFirstName').val() ? $('#txtSecSubFirstName').val() : null;
-                    eligibilityData.address = $('#txtSecSubPriAddr').val() ? $('#txtSecSubPriAddr').val() : null;
-                    eligibilityData.InsuranceCompanyName = $('#select2-ddlSecInsurance-container').html();
+                if (!ins) {  // Primary insurance                    
+                    eligibilityData.insuranceProviderId = self.priInsID;
+                    eligibilityData.relationshipCode = $('#ddlPriRelationShip').val() ? $('#ddlPriRelationShip').val() : eligibilityData.RelationshipCode;
+                    eligibilityData.policyNo = $('#txtPriPolicyNo').val() ? $('#txtPriPolicyNo').val() : null;
+                    eligibilityData.benefitOnDate = $('#txtBenefitOnDate').val() ? $('#txtBenefitOnDate').val() : null;
+                    eligibilityData.birthDate = document.querySelector('#txtPriDOB').value;
+                    eligibilityData.lastName = $('#txtPriSubLastName').val() ? $('#txtPriSubLastName').val() : null;
+                    eligibilityData.firstName = $('#txtPriSubFirstName').val() ? $('#txtPriSubFirstName').val() : null;
+                } else if (ins == 2) { // Secondary insurance        
+                    eligibilityData.insuranceProviderId = self.secInsID;
+                    eligibilityData.relationshipCode = $('#ddlSecRelationShip').val() ? $('#ddlSecRelationShip').val() : eligibilityData.relationshipCode;
+                    eligibilityData.policyNo = $('#txtSecPolicyNo').val() ? $('#txtSecPolicyNo').val() : null;
+                    eligibilityData.benefitOnDate = $('#txtBenefitOnDate2').val() ? $('#txtBenefitOnDate2').val() : null;
+                    eligibilityData.birthDate = document.querySelector('#txtSecDOB').value;
+                    eligibilityData.lastName = $('#txtSecSubLastName').val() ? $('#txtSecSubLastName').val() : null;
+                    eligibilityData.firstName = $('#txtSecSubFirstName').val() ? $('#txtSecSubFirstName').val() : null;
                 }
-                else if (ins == 3) { // Teritary insurance
-                    eligibilityData.RelationshipCode = $('#ddlTerRelationShip').val() ? $('#ddlTerRelationShip').val() : eligibilityData.relationshipCode;
-                    eligibilityData.patient_insurance_id = $('#ddlExistTerIns').val() ? $('#ddlExistTerIns').val() : null;
-                    eligibilityData.PolicyNo = $('#txtTerPolicyNo').val() ? $('#txtTerPolicyNo').val() : null;
-                    eligibilityData.BenefitOnDate = $('#txtBenefitOnDate3').val() ? $('#txtBenefitOnDate3').val() : null;
-                    eligibilityData.BirthDate = document.querySelector('#txtTerDOB').value;
-                    eligibilityData.LastName = $('#txtTerSubLastName').val() ? $('#txtTerSubLastName').val() : null;
-                    eligibilityData.FirstName = $('#txtTerSubFirstName').val() ? $('#txtTerSubFirstName').val() : null;
-                    eligibilityData.address = $('#txtTerSubPriAddr').val() ? $('#txtTerSubPriAddr').val() : null;
-                    eligibilityData.InsuranceCompanyName = $('#select2-ddlTerInsurance-container').html();
+                else if (ins == 3) { // Teritary insurance        
+                    eligibilityData.insuranceProviderId = self.terInsID;
+                    eligibilityData.relationshipCode = $('#ddlTerRelationShip').val() ? $('#ddlTerRelationShip').val() : eligibilityData.relationshipCode;
+                    eligibilityData.policyNo = $('#txtTerPolicyNo').val() ? $('#txtTerPolicyNo').val() : null;
+                    eligibilityData.benefitOnDate = $('#txtBenefitOnDate3').val() ? $('#txtBenefitOnDate3').val() : null;
+                    eligibilityData.birthDate = document.querySelector('#txtTerDOB').value;
+                    eligibilityData.lastName = $('#txtTerSubLastName').val() ? $('#txtTerSubLastName').val() : null;
+                    eligibilityData.firstName = $('#txtTerSubFirstName').val() ? $('#txtTerSubFirstName').val() : null;
                 }     
 
                 $('#btnCheckEligibility' + ins).prop('disabled',true);
                 $('#imgLoading').show();
                 
+
+                commonjs.showLoading();
 
                 $.ajax({
                     url: '/exa_modules/billing/claims/eligibility',
@@ -262,16 +259,18 @@ define(['jquery',
                     dataType: "json",
                     data: eligibilityData,
                     success: function (response) {
+                        commonjs.hideLoading();
+
                         data = response.data;
                         $('#btnCheckEligibility' + ins).prop('disabled',false);
                         if (data && data.errors) {
-                            commonjs.showWarning(data.errors.query);
+                            commonjs.showWarning(data.errors.query ? data.errors.query : JSON.stringify(data.errors));
                             return;
-                        }
-                        else if(!data.errors && response.insPokitdok == true) {
+                        } else if(!data.errors && response.insPokitdok == true) {
                             $('#divPokidokResponse').append($(self.InsurancePokitdokTemplateForm({'InsuranceData': response.data, 'InsuranceDatavalue': response.meta})));
                             $('#divPokidokResponse').show();
                         }
+
                         $("#btnClosePokidokPopup").unbind().click(function (e) {
                             $('#divPokidokResponse').hide();
                         });

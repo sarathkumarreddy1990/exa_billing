@@ -1217,6 +1217,7 @@ define(['jquery',
                             paymentDet.bill_fee = payment.bill_fee ? parseFloat(payment.bill_fee).toFixed(2) : '0.00'
                             paymentDet.allowed_fee = '0.00';
                             paymentDet.payment_application_id = payment.payment_application_id;
+                            paymentDet.payment_applied_dt = payment.payment_applied_dt;
                             paymentDet.payment_adjustment_id = payment.adjustment_id;
                             paymentDet.allowed_amount = payment.allowed_amount ? parseFloat(payment.allowed_amount).toFixed(2) : '0.00';
                             var balance = parseFloat(paymentDet.bill_fee) - (parseFloat(paymentDet.other_payment) + parseFloat(paymentDet.other_adjustment) + parseFloat(paymentDet.adjustment) + parseFloat(paymentDet.payment_amount)).toFixed(2);
@@ -1261,13 +1262,11 @@ define(['jquery',
 
                         $.each(adjustmentCodes, function (index, adjustmentCode) {
                             var $Option = $('<option/>', { value: adjustmentCode.id, text: adjustmentCode.description, 'data_code_type': adjustmentCode.type });
-                            if(adjustmentCode.type === 'refund_debit')
-                            {
-                                $Option.css({background:'gray'});
+                            if (adjustmentCode.type === 'refund_debit') {
+                                $Option.css({ background: 'gray' }).attr('title', 'Refund Adjustment');
                             }
-                            if(adjustmentCode.type === 'recoupment_debit')
-                            {
-                                $Option.css({background:'lightgray'});
+                            else if (adjustmentCode.type === 'recoupment_debit') {
+                                $Option.css({ background: 'lightgray' }).attr('title', 'Recoupment Adjustment');
                             }
                             $('#ddlAdjustmentCode_fast').append($Option); 
                         }); 
@@ -1431,18 +1430,20 @@ define(['jquery',
             savePaymentsCAS: function (claimId, paymentId, paymentStatus, payment_application_id) {
                 var self = this;
                 var charge_id = $('#divPaymentCAS').attr('data-charge_id');
-                var cas = self.vaidateCasCodeAndReason(payment_application_id, paymentStatus);
+                self.casSegmentsSelected = self.casSegmentsSelected.filter(function (obj) {
+                    return obj.charge_id != charge_id
+                })
+                var cas = self.vaidateCasCodeAndReason(payment_application_id, paymentStatus, charge_id);
                 if (cas) {
-                    self.casSegmentsSelected = cas;
+                    self.casSegmentsSelected.push(cas);
                     self.closePaymentsCAS();
                 }
             },
 
-            vaidateCasCodeAndReason: function (payment_application_id, paymentStatus) {
+            vaidateCasCodeAndReason: function (payment_application_id, paymentStatus, charge_id) {
                 var self = this;
                 var hasReturned = false;
                 var casObj = [];
-                var emptyCasObj = {};
                 for (var k = 1; k <= 7; k++) {
                     var emptyCasObj = {};
                     var groupCode = $('#selectGroupCode' + k).val()
@@ -1476,8 +1477,7 @@ define(['jquery',
                         return false;
                     }
                 }
-
-                return casObj;
+                return {charge_id:charge_id,casObj:casObj};
             },
 
             getPayemntApplications: function (e) {
@@ -1493,13 +1493,13 @@ define(['jquery',
                             paymentApplicationId: paymentApplicationId
                         },
                         success: function (data, response) {
-                            var payemntCasApplns = data;
-                            $.each(payemntCasApplns, function (index, appln) {
-                                var rowVal = index + 1;
-                                $('#selectGroupCode' + rowVal).val(appln.cas_group_code_id).attr('cas_id', appln.id);
-                                $('#selectReason' + rowVal).val(appln.cas_reason_code_id);
-                                $('#txtAmount' + rowVal).val(appln.amount.substr(1));
-                            });
+                            var payemntCasApplns = data || self.casSegmentsSelected;
+                                $.each(payemntCasApplns, function (index, appln) {
+                                    var rowVal = index + 1;
+                                    $('#selectGroupCode' + rowVal).val(appln.cas_group_code_id).attr('cas_id', appln.id);
+                                    $('#selectReason' + rowVal).val(appln.cas_reason_code_id);
+                                    $('#txtAmount' + rowVal).val(appln.amount.indexOf('$') == 0 ? appln.amount.substr(1) : appln.amount);
+                                });
 
                             $('#divPaymentCAS').attr('data-charge_id', chargeId).show();
                             commonjs.validateControls();
@@ -1510,12 +1510,17 @@ define(['jquery',
                     });
                 }
                 else {
-                    $.each([], function (index, appln) {
-                        var rowVal = index + 1;
-                        $('#selectGroupCode' + rowVal).val('');
-                        $('#selectReason' + rowVal).val('');
-                        $('#txtAmount' + rowVal).val('');
-                    });
+                    var casSelected = self.casSegmentsSelected.filter(function (obj) {
+                        return obj.charge_id == chargeId
+                    })
+                    if (casSelected && casSelected.length) {
+                        $.each(casSelected[0].casObj, function (index, appln) {
+                            var rowVal = index + 1;
+                            $('#selectGroupCode' + rowVal).val(appln.group_code_id);
+                            $('#selectReason' + rowVal).val(appln.reason_code_id);
+                            $('#txtAmount' + rowVal).val(appln.amount);
+                        });
+                    }
                     $('#divPaymentCAS').attr('data-charge_id', chargeId).show();
                     commonjs.validateControls();
                 }
@@ -1563,12 +1568,19 @@ define(['jquery',
 
                     $.each(lineItems, function (index) {
                         var _line_item = {};
-                        _line_item["charge_id"] = $(this).attr('data_charge_id_id');
-                        _line_item["paymentApplicationId"] = $(this).attr('data_payment_application_id');
-                        _line_item["adjustmentApplicationId"] = $(this).attr('data_payment_adjustment_id');
-                        _line_item["payment"] = objIsPayInFull ? parseFloat($(this).find('td:nth-child(9)').text().trim()) : $(this).find('td:nth-child(5)>input').val() ? parseFloat($(this).find('td:nth-child(5)>input').val()) : 0.00;
-                        _line_item["adjustment"] = $(this).find('td:nth-child(8)>input').val() ? parseFloat($(this).find('td:nth-child(8)>input').val()) : 0.00;
-                        _line_item["cas_details"] = cas;
+                        var chargeRow = $(this);
+                        _line_item["charge_id"] = chargeRow.attr('data_charge_id_id');
+                        _line_item["paymentApplicationId"] = chargeRow.attr('data_payment_application_id');
+                        _line_item["adjustmentApplicationId"] = chargeRow.attr('data_payment_adjustment_id');
+                        _line_item["paymentAppliedDt"] =  chargeRow.attr('data_payment_applied_dt');
+                        _line_item["payment"] = objIsPayInFull ? parseFloat(chargeRow.find('td:nth-child(9)').text().trim()) : chargeRow.find('td:nth-child(5)>input').val() ? parseFloat(chargeRow.find('td:nth-child(5)>input').val()) : 0.00;
+                        _line_item["adjustment"] = chargeRow.find('td:nth-child(8)>input').val() ? parseFloat(chargeRow.find('td:nth-child(8)>input').val()) : 0.00;
+                        
+                        var _cas = cas.filter(function (obj) {
+                            return obj.charge_id == chargeRow.attr('data_charge_id_id')
+                        })
+
+                        _line_item["cas_details"] = _cas && _cas.length ? _cas[0].casObj : [];
                         line_items.push(_line_item);
                     });
 
@@ -1598,6 +1610,7 @@ define(['jquery',
                         },
                         success: function (model, response) {
                             commonjs.showStatus('Payment has been applied successfully');
+                            self.casSegmentsSelected = [];
                             self.closeAppliedPendingPayments(e);
                             commonjs.hideDialog();
                         },
