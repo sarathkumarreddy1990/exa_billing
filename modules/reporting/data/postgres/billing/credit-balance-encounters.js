@@ -16,13 +16,15 @@ WITH agg AS(
     bcs.description AS status,
     to_char(bc.claim_dt, 'MM/DD/YYYY') AS encounter_date,
     (SELECT round(claim_balance_total::numeric) FROM billing.get_claim_totals(bc.id))  AS total,
-    (SELECT abs(claim_balance_total::numeric) FROM billing.get_claim_totals(bc.id)) AS unformated_total
-    -- Unapplied amount details not there billing 1.5
-FROM billing.claims bc 
+    (SELECT abs(claim_balance_total::numeric) FROM billing.get_claim_totals(bc.id)) AS unformated_total,
+    '  ' AS patient_balance,
+    '  ' AS insurance_balance
+FROM billing.claims bc
      INNER JOIN public.patients pp ON pp.id = bc.patient_id
      INNER JOIN billing.claim_status bcs ON bcs.id = bc.claim_status_id
 	   WHERE 1 = 1
     AND <%=companyId%>
+    AND (SELECT claim_balance_total FROM billing.get_claim_totals(bc.id)) < 0::money
     AND <%= claimDate %>
     <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
     <% if(billingProID) { %> AND <% print(billingProID); } %>
@@ -31,7 +33,9 @@ GROUP BY
     pp.account_no ,
     Patient,
     Total,
-    bcs.description
+    bcs.description,
+    patient_balance,
+    insurance_balance
 )
 SELECT
     agg.patient  AS "Patient Name",

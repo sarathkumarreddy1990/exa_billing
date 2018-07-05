@@ -17,7 +17,8 @@ WITH get_claim_details AS(
     INNER JOIN billing.charges bch ON bch.claim_id = bc.id
     AND (bc.claim_dt < <%= claimDate %>)  
     GROUP BY bc.id    
- )
+ ),
+aged_ar_summary_details AS( 
  SELECT
  <% if (facilityIds) { %> MAX(pf.facility_name) <% } else  { %> 'All'::text <% } %> as "Facility",
  <% if(incPatDetail == 'true') { %>     
@@ -96,7 +97,7 @@ END  AS  "EDI",
     COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 300 and gcd.age <=330  ),0::money) AS "301-330 Sum", 
 
     COALESCE(count(gcd.balance) FILTER(where gcd.age > 330 and gcd.age <=360  ),0) AS "331-360 Count",
-    COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 330 and gcd.age <=360  ),0::money) AS "331-360 Count", 
+    COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 330 and gcd.age <=360  ),0::money) AS "331-360 Sum", 
 
     COALESCE(count(gcd.balance) FILTER(where gcd.age > 361 and gcd.age <=450  ),0) AS "361-450(Q4) Count",
     COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 361 and gcd.age <=450  ),0::money) AS "361-450(Q4) Sum", 
@@ -145,13 +146,124 @@ END
      <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
      <% if(billingProID) { %> AND <% print(billingProID); } %>
      <% if(excCreditBal == 'true'){ %> AND  gcd.balance::money > '0' <% } %>
- GROUP BY responsible_party,payer_name,pippt.code
+ GROUP BY payer_name,responsible_party,pippt.code
 
  <% if(incPatDetail == 'true') { %>     
     ORDER BY responsible_party DESC
    <% } %>
-       
- 
+ )
+ SELECT
+    "Facility",
+    responsible_party,
+    payer_name,
+    "Provider Type",
+    "EDI",
+    "0-30 Count",
+    "0-30 Sum",
+    "31-60 Count",
+    "31-60 Sum",
+    "61-90 Count",
+    "61-90 Sum",
+    "91-120 Count",
+    "91-120 Sum",
+    <% if(excelExtented == 'true') { %>    
+        "121-150 Count",
+        "121-150 Sum",  
+    
+        "151-180 Count",
+        "151-180 Sum", 
+    
+        "181-210 Count",
+        "181-210 Sum", 
+    
+        "211-240 Count",
+        "211-240 Sum", 
+    
+        "240-270 Count",
+        "240-270 Sum", 
+    
+        "271-300 Count",
+        "271-300 Sum", 
+    
+        "301-330 Count",
+        "301-330 Sum", 
+    
+        "331-360 Count",
+        "331-360 Sum", 
+    
+        "361-450(Q4) Count",
+        "361-450(Q4) Sum", 
+    
+        "451-540(Q3) Count",
+        "451-540(Q3) Sum", 
+    
+        "541-630(Q2) Count",
+        "541-630(Q2) Sum", 
+    
+        "631-730(Q1) Count",
+        "631-730(Q1) Sum", 
+    
+        "730+ Count",
+        "730+ Sum", 
+    
+        <% } else { %> 
+            "120+ Count",
+            "120+ Sum",
+        <%}%>
+    "Total Balane",
+    "Total Count"
+FROM
+ aged_ar_summary_details
+ UNION ALL
+ SELECT
+    null::text "Facility",
+    null::text responsible_party,
+    ('--- Total ---')::text payer_name,
+    null::text "Provider Type",
+    null::text "EDI",
+    sum("0-30 Count") AS "0-30 Count",
+    sum(cast("0-30 Sum" AS NUMERIC))::MONEY as "0-30 Sum",
+    sum("31-60 Count") AS "31-60 Count",
+    sum(cast("31-60 Sum" AS NUMERIC))::MONEY as "31-60 Sum",
+    sum("61-90 Count") AS "61-90 Count",
+    sum(cast("61-90 Sum" AS NUMERIC))::MONEY as "61-90 Sum",
+    sum("91-120 Count") AS "91-120 Count",
+    sum(cast("91-120 Sum" AS NUMERIC))::MONEY as "91-120 Sum",
+    <% if(excelExtented == 'true') { %>  
+        sum("121-150 Count") AS "121-150 Count",
+        sum(cast("121-150 Sum" AS NUMERIC))::MONEY as "121-150 Sum", 
+        sum("151-180 Count") AS "151-180 Count",
+        sum(cast("151-180 Sum" AS NUMERIC))::MONEY as "151-180 Sum",  
+        sum("181-210 Count") AS "181-210 Count",
+        sum(cast("181-210 Sum" AS NUMERIC))::MONEY as "181-210 Sum",  
+        sum("211-240 Count") AS "211-240 Count",
+        sum(cast("211-240 Sum" AS NUMERIC))::MONEY as "211-240 Sum",  
+        sum("240-270 Count") AS "240-270 Count",
+        sum(cast("240-270 Sum" AS NUMERIC))::MONEY as "240-270 Sum",  
+        sum("271-300 Count") AS "271-300 Count",
+        sum(cast("271-300 Sum" AS NUMERIC))::MONEY as "271-300 Sum",   
+        sum("301-330 Count") AS "301-330 Count",
+        sum(cast("301-330 Sum" AS NUMERIC))::MONEY as "301-330 Sum",  
+        sum("331-360 Count") AS "331-360 Count",
+        sum(cast("331-360 Sum" AS NUMERIC))::MONEY as "331-360 Sum",   
+        sum("361-450(Q4) Count") AS "361-450(Q4) Count",
+        sum(cast("361-450(Q4) Sum" AS NUMERIC))::MONEY as "361-450(Q4) Sum",    
+        sum("451-540(Q3) Count") AS "121-150  Count",
+        sum(cast("451-540(Q3) Sum" AS NUMERIC))::MONEY as "451-540(Q3) Sum",  
+        sum("541-630(Q2) Count") AS "541-630(Q2) Count",
+        sum(cast("541-630(Q2) Sum" AS NUMERIC))::MONEY as "541-630(Q2) Sum", 
+        sum("631-730(Q1) Count") AS "631-730(Q1) Count",
+        sum(cast("631-730(Q1) Sum" AS NUMERIC))::MONEY as "631-730(Q1) Sum",  
+        sum("730+ Count") AS "730+ Count",
+        sum(cast("730+ Sum" AS NUMERIC))::MONEY as "730+ Sum",     
+        <% } else { %> 
+            sum("120+ Count") AS "120+ Count",
+            sum(cast("120+ Sum" AS NUMERIC))::MONEY as "120+ Sum",
+        <%}%>
+    sum(cast("Total Balane" AS NUMERIC))::MONEY as "Total Balane",
+    sum("Total Count") AS "Total Count"
+FROM
+ aged_ar_summary_details
 `);
 
 const api = {
