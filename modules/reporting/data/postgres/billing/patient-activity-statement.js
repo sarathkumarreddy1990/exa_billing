@@ -12,12 +12,12 @@ const patientStatementDataSetQueryTemplate = _.template(`
 
 WITH claim_data as(
     SELECT 
-       id as claim_id 
+       bcc.id as claim_id 
     FROM billing.claims bcc
+    <% if (billingProviderIds) { %> INNER JOIN billing.providers bp ON bp.id = bcc.billing_provider_id <% } %>
     WHERE 1=1 
-    AND <%= claimIds %>
-   
-    and payer_type = 'patient'
+    AND <%= claimIds %>    
+    <% if(billingProviderIds) { %> AND <% print(billingProviderIds); } %>
     ),
      billing_comments as 
     (
@@ -152,12 +152,21 @@ WITH claim_data as(
     sum_statement_credit_cte AS (
           SELECT 
             pid
+            <% if (reportBy) { %> 
           , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '30 days' and  <%= sDate %>) as current_amount
           , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '60 days' and  <%= sDate %>- interval '31 days') as over30_amount
           , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '90 days' and  <%= sDate %>- interval '61 days') as over60_amount
           , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '120 days' and <%= sDate %> - interval '91 days') as over90_amount
           , sum(enc_total_amount) FILTER (WHERE bucket_date <= <%= sDate %> - interval '121 days') as over120_amount
           , sum(enc_total_amount) AS statement_total_amount
+          <% } else { %>
+            , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '30 days' and  <%= sDate %>) as current_amount
+            , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '60 days' and  <%= sDate %>- interval '31 days') as over30_amount
+            , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '90 days' and  <%= sDate %>- interval '61 days') as over60_amount
+            , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '120 days' and <%= sDate %> - interval '91 days') as over90_amount
+            , sum(enc_total_amount) FILTER (WHERE bucket_date <= <%= sDate %> - interval '121 days') as over120_amount
+            , sum(enc_total_amount) AS statement_total_amount
+            <% }  %>
           FROM sum_encounter_cte
           GROUP BY pid
     ),
@@ -640,14 +649,7 @@ const api = {
             const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id,10)) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
         }
-        // Billing provider Filter
-        if (params.allBillingProvider == 'true')
-            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
-        else {
-            const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
-            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
-        }
-
+      
         // Min Amount 
         filtersUsed.push({ name: 'minAmount', label: 'Minumum Amount', value: params.minAmount});
 
@@ -685,7 +687,9 @@ const api = {
             companyId: null,
             patientIds: null,
             billingProviderIds: null,
-            claimIds: null
+            claimIds: null,
+            reportBy: null
+         
            
         };
 
@@ -695,27 +699,22 @@ const api = {
 
         params.push(reportParams.patientIID);
         filters.claimIds = queryBuilder.where('bcc.patient_id', '=', [params.length]);
-
-        //   // patients
-        //   if (reportParams.patientOption === 'S' && reportParams.patientIds) {
-        //     params.push(reportParams.patientIds);
-        //     filters.patientIds = queryBuilder.whereIn(`p.id`, [params.length]);
-        //   }
-
-
-           // billing providers
-        if (reportParams.billingProviderIds && reportParams.billingProviderIds.length > 0) {
-            params.push(reportParams.billingProviderIds);
-            filters.billingProviderIds = queryBuilder.whereIn(`bp.id`, [params.length]);
-          }
-
+      
+       
            // Min Amount
         filters.minAmount = reportParams.minAmount || 0;
 
         params.push(reportParams.sDate);
         filters.sDate = `$${params.length}::date`;
         filters.whereDate = queryBuilder.whereDateInTz(`bc.claim_dt`, `<=`, [params.length], `f.time_zone`);   
+        reportBy = reportParams.reportBy ? true : false
 
+            // billingProvider single or multiple
+            if (reportParams.billingProviderIds && reportParams.billingProviderIds.length > 0) {
+                params.push(reportParams.billingProviderIds);
+                filters.billingProviderIds = queryBuilder.whereIn(`bp.id`, [params.length]);
+              }
+    
 
    
 

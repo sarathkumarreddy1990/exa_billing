@@ -728,10 +728,42 @@ define([
                 this.$el.html(this.claimPatientTemplate());
                 self.showPatientClaimsGrid(claimId, patientId);
                 $('#btnPatientActivity').on().click(function () {
+
+                    if ($('#txtDate').val() > $('#txtOtherDate').val()) {
+                        commonjs.showWarning('From date is greater than To Date');
+                        return
+                    }
+
                     if ($('#radActivityAllStatus').prop("checked")){
                         reportBy = true;
                     }
                     else{
+                        if ( $('#txtOtherDate').val() < moment().format('MM/DD/YYYY')) {
+                            commonjs.showWarning('To date is Future');
+                            return
+                        }
+                        
+                        if ( $('#txtDate').val() < moment().format('MM/DD/YYYY')) {
+                            commonjs.showWarning('From date is Future');
+                            return
+                        }
+                        if ($('#radioActivityStatus').prop("checked")) {
+                            if ($('#txtDate').val() == '') {
+                                commonjs.showWarning('Please select From Date');
+                                return
+                            }
+                            if ($('#txtOtherDate').val() == '') {
+                                commonjs.showWarning('Please select To Date');
+                                return
+                            }
+    
+                            if ( ( $('#txtOtherDate').val() == '') || $('#txtOtherDate').val() == '') {
+                                commonjs.showWarning('Please select date');
+                                return
+                            }
+    
+                        }
+                        
                         reportBy = false;
                         fromDate = $('#txtDate').val();
                         toDate = $('#txtOtherDate').val();
@@ -746,7 +778,8 @@ define([
                     selectedBillingProList = billing_pro;
                     allBillingProvider = selectedBillingProList && selectedBillingProList.length === $("#ddlBillingProvider option").length;
 
-                    self.generatePatientActivity(claimId, patientId, reportBy, fromDate, toDate, selectedBillingProList);
+                    reportBy  ? self.generatePatientActivity(claimId, patientId, reportBy,null,null, selectedBillingProList) : self.generatePatientActivity(claimId, patientId, reportBy, fromDate, toDate, selectedBillingProList)
+
                 });
             },
 

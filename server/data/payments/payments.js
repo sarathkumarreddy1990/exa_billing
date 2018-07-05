@@ -6,10 +6,13 @@ module.exports = {
 
     getPayments: async function (params) {
         let whereQuery = [];
-        params.sortOrder = params.sortOrder || ' ASC';
-        params.sortField = params.sortField == 'id' ? ' payments.id ' : params.sortField;
 
-        params.sortField = params.sortField == 'payment_dt' ? ' payments.payment_dt ' : params.sortField;
+        if(!params.paymentReportFlag) {
+            params.sortOrder = params.sortOrder || ' ASC';
+            params.sortField = params.sortField == 'id' ? ' payments.id ' : params.sortField;        
+
+            params.sortField = params.sortField == 'payment_dt' ? ' payments.payment_dt ' : params.sortField;
+        }
 
         let {
             payment_id,
@@ -162,7 +165,7 @@ module.exports = {
                 .append(whereQuery.join(' AND '));
         }
 
-        if (!isGetTotal) {
+        if (!isGetTotal && !params.paymentReportFlag) {
             sql.append(SQL` ORDER BY  `)
                 .append(sortField)
                 .append(' ')

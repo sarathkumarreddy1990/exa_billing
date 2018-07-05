@@ -91,19 +91,14 @@ define([
                     var urlParams = {
                         patientIID: claimInfo.patientId,
                         fromDate: claimInfo.fromDate,
-                        reportBy: claimInfo.reportBy,
+                        reportBy: claimInfo.reportByFlag,
                         toDate: claimInfo.toDate,
-                        billingProId: claimInfo.billingProId,
-                        sDate: '2018-06-23'
+                        billingProviderIds: claimInfo.billingProId,
+                        sDate: moment().format('MM/DD/YYYY')
                     }
                 }
                 UI.showReport(reportName, this.viewModel.reportCategory, 'pdf', urlParams, true);
             },
-
-
-
-
-
 
             getSelectedFacility: function (e) {
                 var selected = $("#ddlFacilityFilter option:selected");
