@@ -115,8 +115,26 @@ module.exports = {
         'user_log': 'BULG',
         'audit_log': 'BALG',
         'claim_workbench': 'CLIM',
+        'claims_total_records': 'CLIM',
+        'claim_filters': 'CLIM',
+        'follow_ups': 'CLIM',
+        'providers': 'CLIM', // AS OF NOW ---->  providers Auto Complete if claim have right then all drop will get rights
+        'icd_codes':'CLIM', //Auto Cpmplete
+        'provider_group': 'CLIM', //Auto Cpmplete
+        'insurances': 'CLIM', //Auto Cpmplete
+        'orderingFacility': 'CLIM', //Auto Cpmplete
+        'patients': 'CLIM',  //Auto Cpmplete
+        'getUsers': 'CLIM',  //Auto Cpmplete
+        'getUserRoles': 'CLIM', //Auto Cpmplete
+        'printer_template': 'CLIM', //when claim
+        'invoice_data':'CLIM', //when claim
+        'claim_json':'CLIM', //when claim
+        'get_patient_insurances': 'CLIM', //create claim
+        'get_line_items': 'CLIM', //create claim
         'studies': 'STDS',
-        'payments': 'ECLM',
+        'study_filters': 'SFIL',
+        'studies_total_records': 'STDS',
+        'payments': 'PAYM',
         'claim_inquiry': 'CLMI',
         'split_claim': 'MASO',
         'validate_claims': 'CLVA',
@@ -142,7 +160,19 @@ module.exports = {
         'referring-provider-count': 'REPC',
         'referring-provider-summary': 'REPS',
         'transaction-summary': 'TSUM',
-        'list': 'PAYM',
-        'total_amount': 'PAYM'
+        'list': 'PAYM', // screenNameInternal = list for EOB doubts having
+        'total_amount': 'PAYM',
+        'groupcodes_and_reasoncodes': 'PAYM',
+        'all': 'PAYM',
+        'patient_count': 'PAYM',
+        'patient_search': 'PAYM',
+        'payment-receipt-pdf':'PAYM',
+        'claims': 'ECLM',
+        'billing_payers': 'ECLM',
+        'service_facilities': 'ECLM',
+        'transcription': 'ECLM',
+        'vieworder': 'ECLM', // view doc Rmenu
+        'claim_charge': 'ECLM', //delete Claim Rmenu 
+        'upload': 'ERAI'
     }
 };
