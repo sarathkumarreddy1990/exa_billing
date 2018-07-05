@@ -26,10 +26,10 @@ module.exports = {
                                 , s.accession_no
                                 , sc.study_id            
                                 , sc.cpt_code
-                                , COALESCE(sc.study_cpt_info->'modifiers1', '') AS m1
-                                , COALESCE(sc.study_cpt_info->'modifiers2', '') AS m2
-                                , COALESCE(sc.study_cpt_info->'modifiers3', '') AS m3
-                                , COALESCE(sc.study_cpt_info->'modifiers4', '') AS m4
+                                , atp.modifier1_id AS m1
+                                , atp.modifier2_id AS m2
+                                , atp.modifier3_id AS m3
+                                , atp.modifier4_id AS m4
                                 , string_to_array(regexp_replace(study_cpt_info->'diagCodes_pointer', '[^0-9,]', '', 'g'),',')::int[] AS icd_pointers
                                 , COALESCE(sc.study_cpt_info->'bill_fee','1')::NUMERIC AS bill_fee
                                 , COALESCE(sc.study_cpt_info->'allowed_fee','0')::NUMERIC AS allowed_fee
@@ -46,6 +46,8 @@ module.exports = {
                             INNER JOIN public.studies s ON s.id = sc.study_id
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
                             INNER JOIN public.orders o on o.id = s.order_id
+                            INNER JOIN appointment_types at ON at.id = s.appointment_type_id
+                            INNER JOIN appointment_type_procedures atp ON atp.procedure_id = sc.cpt_code_id
                             WHERE
                                 study_id = ANY(${studyIds})
                             ORDER BY s.accession_no DESC
@@ -348,10 +350,11 @@ module.exports = {
                             save_charge_study AS (
                                     INSERT INTO billing.charges_studies
                                         ( charge_id
-                                        , study_id)
-                                    values
-                                    ( (SELECT id FROM save_charges )
-                                    , ${params.study_id})
+                                        , study_id )
+                                    SELECT
+                                    (SELECT id FROM save_charges )
+                                    , ${params.study_id}
+                                    WHERE ${params.study_id} IS NOT NULL
                             ) select * from save_charges `;
 
         return await query(sql);

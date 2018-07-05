@@ -1430,18 +1430,20 @@ define(['jquery',
             savePaymentsCAS: function (claimId, paymentId, paymentStatus, payment_application_id) {
                 var self = this;
                 var charge_id = $('#divPaymentCAS').attr('data-charge_id');
-                var cas = self.vaidateCasCodeAndReason(payment_application_id, paymentStatus);
+                self.casSegmentsSelected = self.casSegmentsSelected.filter(function (obj) {
+                    return obj.charge_id != charge_id
+                })
+                var cas = self.vaidateCasCodeAndReason(payment_application_id, paymentStatus, charge_id);
                 if (cas) {
-                    self.casSegmentsSelected = cas;
+                    self.casSegmentsSelected.push(cas);
                     self.closePaymentsCAS();
                 }
             },
 
-            vaidateCasCodeAndReason: function (payment_application_id, paymentStatus) {
+            vaidateCasCodeAndReason: function (payment_application_id, paymentStatus, charge_id) {
                 var self = this;
                 var hasReturned = false;
                 var casObj = [];
-                var emptyCasObj = {};
                 for (var k = 1; k <= 7; k++) {
                     var emptyCasObj = {};
                     var groupCode = $('#selectGroupCode' + k).val()
@@ -1475,8 +1477,7 @@ define(['jquery',
                         return false;
                     }
                 }
-
-                return casObj;
+                return {charge_id:charge_id,casObj:casObj};
             },
 
             getPayemntApplications: function (e) {
@@ -1509,12 +1510,17 @@ define(['jquery',
                     });
                 }
                 else {
-                    $.each(self.casSegmentsSelected, function (index, appln) {
-                        var rowVal = index + 1;
-                        $('#selectGroupCode' + rowVal).val(appln.group_code_id);
-                        $('#selectReason' + rowVal).val(appln.reason_code_id);
-                        $('#txtAmount' + rowVal).val(appln.amount);
-                    });
+                    var casSelected = self.casSegmentsSelected.filter(function (obj) {
+                        return obj.charge_id == chargeId
+                    })
+                    if (casSelected && casSelected.length) {
+                        $.each(casSelected[0].casObj, function (index, appln) {
+                            var rowVal = index + 1;
+                            $('#selectGroupCode' + rowVal).val(appln.group_code_id);
+                            $('#selectReason' + rowVal).val(appln.reason_code_id);
+                            $('#txtAmount' + rowVal).val(appln.amount);
+                        });
+                    }
                     $('#divPaymentCAS').attr('data-charge_id', chargeId).show();
                     commonjs.validateControls();
                 }
@@ -1562,13 +1568,19 @@ define(['jquery',
 
                     $.each(lineItems, function (index) {
                         var _line_item = {};
-                        _line_item["charge_id"] = $(this).attr('data_charge_id_id');
-                        _line_item["paymentApplicationId"] = $(this).attr('data_payment_application_id');
-                        _line_item["adjustmentApplicationId"] = $(this).attr('data_payment_adjustment_id');
-                        _line_item["paymentAppliedDt"] =  $(this).attr('data_payment_applied_dt');
-                        _line_item["payment"] = objIsPayInFull ? parseFloat($(this).find('td:nth-child(9)').text().trim()) : $(this).find('td:nth-child(5)>input').val() ? parseFloat($(this).find('td:nth-child(5)>input').val()) : 0.00;
-                        _line_item["adjustment"] = $(this).find('td:nth-child(8)>input').val() ? parseFloat($(this).find('td:nth-child(8)>input').val()) : 0.00;
-                        _line_item["cas_details"] = cas;
+                        var chargeRow = $(this);
+                        _line_item["charge_id"] = chargeRow.attr('data_charge_id_id');
+                        _line_item["paymentApplicationId"] = chargeRow.attr('data_payment_application_id');
+                        _line_item["adjustmentApplicationId"] = chargeRow.attr('data_payment_adjustment_id');
+                        _line_item["paymentAppliedDt"] =  chargeRow.attr('data_payment_applied_dt');
+                        _line_item["payment"] = objIsPayInFull ? parseFloat(chargeRow.find('td:nth-child(9)').text().trim()) : chargeRow.find('td:nth-child(5)>input').val() ? parseFloat(chargeRow.find('td:nth-child(5)>input').val()) : 0.00;
+                        _line_item["adjustment"] = chargeRow.find('td:nth-child(8)>input').val() ? parseFloat(chargeRow.find('td:nth-child(8)>input').val()) : 0.00;
+                        
+                        var _cas = cas.filter(function (obj) {
+                            return obj.charge_id == chargeRow.attr('data_charge_id_id')
+                        })
+
+                        _line_item["cas_details"] = _cas && _cas.length ? _cas[0].casObj : [];
                         line_items.push(_line_item);
                     });
 

@@ -78,7 +78,8 @@
             "chargeList": "Charge List",
             "selectedChargeList": "Selected Charge List",
             "previous": "Previous",
-            "next": "Next"
+            "next": "Next",
+            "self":"Self"
         },
         "payments": {
             "postingDate": "Posting Date",
@@ -313,7 +314,7 @@
             "insurance" : "Insurance",
             "primaryInsurance" : "Primary Insurance",
             "secondaryInsurance" : "Secondary Insruance",
-            "existingInsurances" : "Exiting Insurances",
+            "existingInsurances" : "Existing Insurances",
             "acceptAssignment" : "Accept Assignment",
             "carrier" : "Carrier",
             "address" : "Address",
