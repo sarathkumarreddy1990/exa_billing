@@ -373,7 +373,10 @@
             "currentResponsibility":"Current Responsibility Assigned",
             "validationResults": "Validation Results",
             "fromDate": "From Date",
-            "toDate": "To Date"
+            "toDate": "To Date",
+            "patientResponsible":"Patient Responsible",
+            "insuranceResponsible":"Insuarnce Responsible",
+            "total":"Total"
             
         }
     }

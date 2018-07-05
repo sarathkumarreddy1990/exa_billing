@@ -302,7 +302,7 @@ define([
 
                 setTimeout(function () {
                     $("#tblPatientClaimsGrid").setGridWidth($(".modal-body").width()-15);
-                    $("#tblPatientClaimsGrid").setGridHeight($(window).height()-550);
+                    $("#tblPatientClaimsGrid").setGridHeight($(window).height()-600);
                 }, 200);
                 $('#divAgeSummary').html(self.agingSummaryTemplate());
             },
@@ -389,7 +389,8 @@ define([
                     $('#tdAge60').html(age_summary.total_age_61_90 || '$0.00');
                     $('#tdAge90').html(age_summary.total_age_91_120 || '$0.00');
                     $('#tdAge120').html(age_summary.total_age_121 || '$0.00');
-                    $('#tdAgeTotal').html(age_summary.total_balance || '$0.00');
+                    $('#tdAgeTotal').html(age_summary.total_balance || '$0.00'); 
+                    $('#spUnapplied').html(age_summary.total_unapplied || '$0.00');
                 }
             },
 

@@ -387,7 +387,7 @@ define('grid', [
                     $divObj.append(liPatientClaimInquiry);
                 $('#anc_patient_claim_inquiry').click(function () {
                      commonjs.showDialog({
-                    'header': 'Patient Claim Inquiry',
+                    'header': 'Patient Claim',
                     'width': '85%',
                     'height': '75%',
                     'needShrink': true
@@ -898,7 +898,7 @@ define('grid', [
                             });
                         });
                     } else {
-                        if (['ABRT', 'CAN', 'NOS'].indexOf(gridData.study_status) <-1 && !gridData.has_deleted) {
+                        if (['ABRT', 'CAN', 'NOS'].indexOf(gridData.study_status) <0 && !gridData.has_deleted) {
                             var study = {
                                 study_id: rowID,
                                 patient_id: gridData.patient_id,
