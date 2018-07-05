@@ -1627,7 +1627,7 @@ BEGIN
 			, (i_claim_details ->> 'billing_code_id')::BIGINT
 			, (i_claim_details ->> 'billing_class_id')::BIGINT
 			, (i_claim_details ->> 'created_by')::BIGINT
-			, i_claim_details ->> '.billing_method'
+			, i_claim_details ->> 'billing_method'
 			, i_claim_details ->> 'billing_notes'
 			, (i_claim_details ->> 'claim_dt')::TIMESTAMPTZ
 			, (i_claim_details ->> 'current_illness_date')::DATE

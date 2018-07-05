@@ -617,8 +617,7 @@ module.exports = {
 							WHERE claims.id= ANY(${claimIds})
 							`;
 
-
-        return await query(sql, params);
+        return await query(sql);
     },
 
 };
