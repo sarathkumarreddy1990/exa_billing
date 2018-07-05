@@ -208,7 +208,7 @@ module.exports = {
 						edi_clearinghouses.receiver_name as clearinghouses_receiver_name,	
 						edi_clearinghouses.receiver_id as clearinghouses_receiver_id				
                                     FROM   billing.edi_clearinghouses
-                                    WHERE  billing.edi_clearinghouses.id=insurance_provider_clearinghouses.clearing_house_id)
+                                    WHERE  billing.edi_clearinghouses.id=insurance_provider_details.clearing_house_id)
 
 					as header),
 					(SELECT Json_agg(Row_to_json(data1)) "data"
@@ -611,7 +611,7 @@ module.exports = {
 											WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
 											END)
 									INNER JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id   
-									LEFT JOIN billing.insurance_provider_clearinghouses ON insurance_provider_clearinghouses.insurance_id = insurance_providers.id
+									LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
 									LEFT JOIN relationship_status ON  subscriber_relationship_id =relationship_status.id
 
 							WHERE claims.id= ANY(${claimIds})

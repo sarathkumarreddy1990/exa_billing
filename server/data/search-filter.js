@@ -270,13 +270,7 @@ const colModel = [
         name: 'image_delivery',
         searchColumns: ['provider_contacts.contact_info'],
         searchFlag: 'hstore_bool_multi'
-    },
-    {
-        name: 'eligibility_verified',
-        searchColumns: [`(eligibility.verified OR 
-            COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)`], 
-        searchFlag: 'bool_null'
-    },
+    },    
     {
         name: 'tat_level',
         searchColumns: ['tat.level'],
@@ -364,8 +358,7 @@ const api = {
         switch (args) {
             case 'study_id': return 'studies.id';
             case 'insurance_providers': return 'orders.insurance_providers';
-            case 'image_delivery': return 'imagedelivery.image_delivery';
-            case 'eligibility_verified': return `(COALESCE(eligibility.verified, false) OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)`;
+            case 'image_delivery': return 'imagedelivery.image_delivery';            
             case 'station': return "study_info->'station'";
             case 'has_deleted': return 'studies.has_deleted';
             case 'send_status': return "studies.study_info->'send_status'";
@@ -530,7 +523,7 @@ const api = {
     },
     getWLQueryJoin: function (columns) {
         let tables = columns instanceof Object && columns || api.getTables(columns);
-        let imp_orders = tables.vehicles || tables.users || tables.providers || tables.adj1 || tables.adj2 || tables.adj3 || tables.eligibility || tables.auth;
+        let imp_orders = tables.vehicles || tables.users || tables.providers || tables.adj1 || tables.adj2 || tables.adj3  || tables.auth;
         let imp_provider_contacts = tables.imagedelivery || tables.providers_ref;
         let imp_facilities = tables.tat;
         let r = '';
@@ -557,26 +550,7 @@ const api = {
                 ) AS auth ON true
                 `;
         }
-
-        if (tables.eligibility){
-            r += `
-                LEFT JOIN LATERAL (
-                    SELECT
-                        COALESCE(
-                            eligibility_response->'data'->'coverage'->>'active',
-                            'false'
-                        )::boolean       AS verified,
-                        eligibility_dt   AS dt
-                    FROM
-                        eligibility_log
-                    WHERE
-                        eligibility_log.patient_id = studies.patient_id
-                    ORDER BY
-                        eligibility_log.id DESC
-                    LIMIT 1
-                ) eligibility ON TRUE `;
-        } 
-
+       
         if (tables.insurance_providers){
             r += `
                   LEFT JOIN LATERAL(
@@ -801,12 +775,7 @@ const api = {
                 AS image_delivery`,
             `auth.as_authorization 
                 AS as_authorization`,
-            'report_delivery.report_queue_status',
-            // Eligibility Log
-            `(COALESCE(eligibility.verified, false) OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)       
-                AS eligibility_verified`,
-            `eligibility.dt             
-                AS eligibility_dt`,
+            'report_delivery.report_queue_status', 
             `are_notes_empty(studies.notes, patients.notes, orders.order_notes) 
                 AS empty_notes_flag`,
             // Lock

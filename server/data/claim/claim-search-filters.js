@@ -288,8 +288,8 @@ const api = {
                 END)`;
 
             r += ' LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id ';
-            r += ' LEFT JOIN billing.insurance_provider_clearinghouses ON insurance_provider_clearinghouses.insurance_id = insurance_providers.id ';
-            r += ' LEFT JOIN   billing.edi_clearinghouses ON  billing.edi_clearinghouses.id=insurance_provider_clearinghouses.clearing_house_id';
+            r += ' LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id ';
+            r += ' LEFT JOIN   billing.edi_clearinghouses ON  billing.edi_clearinghouses.id=insurance_provider_details.clearing_house_id';
              
         }
         
@@ -382,7 +382,7 @@ const api = {
         if(args.customArgs.filter_id=='Follow_up_queue'){
             args.filterQuery += ` AND claim_followups.assigned_to = ${args.userId} `;
         }
-        
+
         let innerQuery = api.getWLQuery(`
                             row_number() over(${sort}) as number
                             , claims.id AS claim_id
