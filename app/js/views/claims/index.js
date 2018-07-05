@@ -382,7 +382,10 @@ define(['jquery',
                                     $('#select2-txtCptDescription_' + index + '-container').html(data.display_description).prop('title', data.display_description).attr({ 'data_code': data.cpt_code, 'data_description': data.display_description, 'data_id': data.cpt_id });
                                     $('#txtCptCode_' + index).removeClass('cptIsExists');
                                 }
-
+                                $('#ddlModifier1_' + index).val(data.modifier1_id ? data.modifier1_id : "");
+                                $('#ddlModifier2_' + index).val(data.modifier2_id ? data.modifier2_id : "");
+                                $('#ddlModifier3_' + index).val(data.modifier3_id ? data.modifier3_id : "");
+                                $('#ddlModifier4_' + index).val(data.modifier1_id ? data.modifier4_id : "");
                             });
 
                            
