@@ -77,19 +77,19 @@ COALESCE(CASE WHEN gcd.age > 60 and gcd.age <=90  THEN gcd.balance END,0::money)
 COALESCE(CASE WHEN gcd.age > 90 and gcd.age <=120 THEN gcd.balance END,0::money) AS "90-120 Sum",
 
   <% if(excelExtented == 'true') { %>    
-COALESCE(CASE WHEN gcd.age > 120 and gcd.age <=150  THEN gcd.balance END,0::money) AS "120-150 Sum",
-COALESCE(CASE WHEN gcd.age > 150 and gcd.age <=180  THEN gcd.balance END,0::money) AS "150-180 Sum",
-COALESCE(CASE WHEN gcd.age > 180 and gcd.age <=210 THEN gcd.balance END,0::money) AS "180-210 Sum",
-COALESCE(CASE WHEN gcd.age > 210 and gcd.age <=240 THEN gcd.balance END,0::money) AS "210-240 Sum",
-COALESCE(CASE WHEN gcd.age > 240 and gcd.age <=270 THEN gcd.balance END,0::money) AS "240-270 Sum",
-COALESCE(CASE WHEN gcd.age > 270 and gcd.age <=300 THEN gcd.balance END,0::money) AS "270-300 Sum",
-COALESCE(CASE WHEN gcd.age > 300 and gcd.age <=330 THEN gcd.balance END,0::money) AS "300-330 Sum",
-COALESCE(CASE WHEN gcd.age > 330 and gcd.age <=360 THEN gcd.balance END,0::money) AS "330-360 Sum",
-COALESCE(CASE WHEN gcd.age > 360 and gcd.age <=450 THEN gcd.balance END,0::money) AS "360-450 Sum (Q4)",
-COALESCE(CASE WHEN gcd.age > 450 and gcd.age <=540 THEN gcd.balance END,0::money) AS"450-540 Sum (Q3)",
-COALESCE(CASE WHEN gcd.age > 540 and gcd.age <=630 THEN gcd.balance END,0::money) AS "540-630 Sum (Q3)",
-COALESCE(CASE WHEN gcd.age > 630 and gcd.age <=730 THEN gcd.balance END,0::money) AS "630-730 Sum (Q1)",
-COALESCE(CASE WHEN gcd.age > 730 THEN gcd.balance END,0::money) AS "730+ Sum",
+    COALESCE(CASE WHEN gcd.age > 120 and gcd.age <=150  THEN gcd.balance END,0::money) AS "120-150 Sum",
+    COALESCE(CASE WHEN gcd.age > 150 and gcd.age <=180  THEN gcd.balance END,0::money) AS "150-180 Sum",
+    COALESCE(CASE WHEN gcd.age > 180 and gcd.age <=210 THEN gcd.balance END,0::money) AS "180-210 Sum",
+    COALESCE(CASE WHEN gcd.age > 210 and gcd.age <=240 THEN gcd.balance END,0::money) AS "210-240 Sum",
+    COALESCE(CASE WHEN gcd.age > 240 and gcd.age <=270 THEN gcd.balance END,0::money) AS "240-270 Sum",
+    COALESCE(CASE WHEN gcd.age > 270 and gcd.age <=300 THEN gcd.balance END,0::money) AS "270-300 Sum",
+    COALESCE(CASE WHEN gcd.age > 300 and gcd.age <=330 THEN gcd.balance END,0::money) AS "300-330 Sum",
+    COALESCE(CASE WHEN gcd.age > 330 and gcd.age <=360 THEN gcd.balance END,0::money) AS "330-360 Sum",
+    COALESCE(CASE WHEN gcd.age > 360 and gcd.age <=450 THEN gcd.balance END,0::money) AS "360-450 Sum (Q4)",
+    COALESCE(CASE WHEN gcd.age > 450 and gcd.age <=540 THEN gcd.balance END,0::money) AS"450-540 Sum (Q3)",
+    COALESCE(CASE WHEN gcd.age > 540 and gcd.age <=630 THEN gcd.balance END,0::money) AS "540-630 Sum (Q2)",
+    COALESCE(CASE WHEN gcd.age > 630 and gcd.age <=730 THEN gcd.balance END,0::money) AS "630-730 Sum (Q1)",
+    COALESCE(CASE WHEN gcd.age > 730 THEN gcd.balance END,0::money) AS "730+ Sum",
  
  
      <% } else { %> 
@@ -134,7 +134,25 @@ aged_ar_sum AS ( SELECT
        sum(cast("0-30 Sum" AS NUMERIC))::MONEY as "0-30 Sum", 
        sum(cast("30-60 Sum" AS NUMERIC))::MONEY as "30-60 Sum",
        sum("60-90 Sum") as "60-90 Sum",sum("90-120 Sum") as "90-120 Sum", 
-       sum(cast("120+ Sum" AS NUMERIC))::MONEY as "120+ Sum",
+
+       <% if(excelExtented == 'true') { %>    
+        sum(cast("120-150 Sum" AS NUMERIC))::MONEY as "120-150 Sum",
+        sum(cast("150-180 Sum" AS NUMERIC))::MONEY as "150-180 Sum",
+        sum(cast("180-210 Sum" AS NUMERIC))::MONEY as "180-210 Sum",
+        sum(cast("210-240 Sum" AS NUMERIC))::MONEY as "210-240 Sum",
+        sum(cast("240-270 Sum" AS NUMERIC))::MONEY as "240-270 Sum",
+        sum(cast("270-300 Sum" AS NUMERIC))::MONEY as "270-300 Sum",
+        sum(cast("300-330 Sum" AS NUMERIC))::MONEY as "300-330 Sum",
+        sum(cast("330-360 Sum" AS NUMERIC))::MONEY as "330-360 Sum",
+        sum(cast("360-450 Sum (Q4)" AS NUMERIC))::MONEY as "360-450 Sum (Q4)",
+        sum(cast("450-540 Sum (Q3)" AS NUMERIC))::MONEY as "450-540 Sum (Q3)",
+        sum(cast("540-630 Sum (Q2)" AS NUMERIC))::MONEY as "540-630 Sum (Q2)",
+        sum(cast("630-730 Sum (Q1)" AS NUMERIC))::MONEY as "630-730 Sum (Q1)",
+	    sum(cast("730+ Sum" AS NUMERIC))::MONEY as "730+ Sum",
+             <% } else { %> 
+                sum(cast("120+ Sum" AS NUMERIC))::MONEY as "120+ Sum",
+             <%}%>  
+
        sum("Total") AS "Total" 
    FROM 
        aging_details 
@@ -155,8 +173,25 @@ aged_ar_total AS ( SELECT
     ('--- Total ---')::text as "Provider Type", 
     sum(cast("0-30 Sum" AS NUMERIC))::MONEY as "0-30 Sum", 
     sum(cast("30-60 Sum" AS NUMERIC))::MONEY as "30-60 Sum",
-    sum("60-90 Sum") as "60-90 Sum",sum("90-120 Sum") as "90-120 Sum", 
-    sum(cast("120+ Sum" AS NUMERIC))::MONEY as "120+ Sum" ,
+    sum("60-90 Sum") as "60-90 Sum",
+    sum("90-120 Sum") as "90-120 Sum", 
+    <% if(excelExtented == 'true') { %>    
+        sum(cast("120-150 Sum" AS NUMERIC))::MONEY as "120-150 Sum",
+        sum(cast("150-180 Sum" AS NUMERIC))::MONEY as "150-180 Sum",
+        sum(cast("180-210 Sum" AS NUMERIC))::MONEY as "180-210 Sum",
+        sum(cast("210-240 Sum" AS NUMERIC))::MONEY as "210-240 Sum",
+        sum(cast("240-270 Sum" AS NUMERIC))::MONEY as "240-270 Sum",
+        sum(cast("270-300 Sum" AS NUMERIC))::MONEY as "270-300 Sum",
+        sum(cast("300-330 Sum" AS NUMERIC))::MONEY as "300-330 Sum",
+        sum(cast("330-360 Sum" AS NUMERIC))::MONEY as "330-360 Sum",
+        sum(cast("360-450 Sum (Q4)" AS NUMERIC))::MONEY as "360-450 Sum (Q4)",
+        sum(cast("450-540 Sum (Q3)" AS NUMERIC))::MONEY as "450-540 Sum (Q3)",
+        sum(cast("540-630 Sum (Q2)" AS NUMERIC))::MONEY as "540-630 Sum (Q2)",
+        sum(cast("630-730 Sum (Q1)" AS NUMERIC))::MONEY as "630-730 Sum (Q1)",
+        sum(cast("730+ Sum" AS NUMERIC))::MONEY as "730+ Sum",
+             <% } else { %> 
+                sum(cast("120+ Sum" AS NUMERIC))::MONEY as "120+ Sum",
+             <%}%>  
     sum("Total") AS "Total"
 FROM 
 aging_details ),
