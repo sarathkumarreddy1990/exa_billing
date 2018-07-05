@@ -170,7 +170,7 @@ module.exports = {
 
         return await queryWithAudit(delete_data, {
             ...params,
-            logDescription: 'Deleted.' || id
+            logDescription: 'Deleted.' || params.id
         });
     }
 };
