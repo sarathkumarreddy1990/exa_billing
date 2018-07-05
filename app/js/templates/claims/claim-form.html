@@ -217,16 +217,44 @@
                                                 </td>
 
                                                 <td>
-                                                    <input id="ddlModifier1_<%= row.data_row_id %>" class="form-control inputModifiers typeahead modifiers" data-type="M1" data-value="<%= row.data_row_id %>" type="text">
+                                                    <select id="ddlModifier1_<%= row.data_row_id %>" class="form-control inputModifiers typeahead modifiers" data-type="M1" data-value="<%= row.data_row_id %>">
+                                                        <option value="">Select</option>
+                                                        <% _.each(row.modifiers1, function(modifier) { %>
+                                                            <option value='<%= modifier.id %>'>
+                                                                <%=modifier.code%>
+                                                            </option>
+                                                            <% }); %>
+                                                    </select>
                                                 </td>
                                                 <td>
-                                                    <input id="ddlModifier2_<%= row.data_row_id %>" class="form-control inputModifiers typeahead modifiers" data-type="M2" data-value="<%= row.data_row_id %>" type="text">
+                                                    <select id="ddlModifier2_<%= row.data_row_id %>" class="form-control inputModifiers typeahead modifiers" data-type="M2" data-value="<%= row.data_row_id %>">
+                                                        <option value="">Select</option>
+                                                        <% _.each(row.modifiers2, function(modifier) { %>
+                                                            <option value='<%= modifier.id %>'>
+                                                                <%=modifier.code%>
+                                                            </option>
+                                                            <% }); %>
+                                                    </select>
                                                 </td>
                                                 <td>
-                                                    <input id="ddlModifier3_<%= row.data_row_id %>" class="form-control inputModifiers typeahead modifiers" data-type="M3" data-value="<%= row.data_row_id %>" type="text">
+                                                    <select id="ddlModifier3_<%= row.data_row_id %>" class="form-control inputModifiers typeahead modifiers" data-type="M3" data-value="<%= row.data_row_id %>">
+                                                        <option value="">Select</option>
+                                                        <% _.each(row.modifiers3, function(modifier) { %>
+                                                            <option value='<%= modifier.id %>'>
+                                                                <%=modifier.code%>
+                                                            </option>
+                                                            <% }); %>
+                                                    </select>
                                                 </td>
                                                 <td>
-                                                    <input id="ddlModifier4_<%= row.data_row_id %>" class="form-control inputModifiers typeahead modifiers" data-type="M4" data-value="<%= row.data_row_id %>" type="text">
+                                                    <select id="ddlModifier4_<%= row.data_row_id %>" class="form-control inputModifiers typeahead modifiers" data-type="M4" data-value="<%= row.data_row_id %>">
+                                                        <option value="">Select</option>
+                                                        <% _.each(row.modifiers4, function(modifier) { %>
+                                                            <option value='<%= modifier.id %>'>
+                                                                <%=modifier.code%>
+                                                            </option>
+                                                            <% }); %>
+                                                    </select>
                                                 </td>
                                             
                                                 <td>

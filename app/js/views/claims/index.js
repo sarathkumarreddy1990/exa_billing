@@ -345,6 +345,7 @@ define(['jquery',
                                 obj.charge_dt = commonjs.checkNotEmpty(obj.charge_dt) ? commonjs.convertToFacilityTimeZone(claimDetails.facility_id, obj.charge_dt).format('L LT z') : '';
                                 obj.facility_id = claimDetails.facility_id;
                                 obj.data_row_id = index;
+                                self.bindModifiersData(obj);
                                 self.claimChargeList.push(obj);
                                 self.chargeModel.push({
                                     id: obj.id,
@@ -354,7 +355,7 @@ define(['jquery',
                                     study_id: obj.study_id,
                                     accession_no: obj.accession_no,
                                     payment_exists: obj.payment_exists,
-                                    is_deleted: false
+                                    is_deleted: false,
                                 });
                             });
 
@@ -381,7 +382,10 @@ define(['jquery',
                                     $('#select2-txtCptDescription_' + index + '-container').html(data.display_description).prop('title', data.display_description).attr({ 'data_code': data.cpt_code, 'data_description': data.display_description, 'data_id': data.cpt_id });
                                     $('#txtCptCode_' + index).removeClass('cptIsExists');
                                 }
-
+                                $('#ddlModifier1_' + index).val(data.modifier1_id ? data.modifier1_id : "");
+                                $('#ddlModifier2_' + index).val(data.modifier2_id ? data.modifier2_id : "");
+                                $('#ddlModifier3_' + index).val(data.modifier3_id ? data.modifier3_id : "");
+                                $('#ddlModifier4_' + index).val(data.modifier1_id ? data.modifier4_id : "");
                             });
 
                            
@@ -821,7 +825,7 @@ define(['jquery',
                                         claim_id: null,
                                         ref_charge_id: item.study_cpt_id,
                                         accession_no: item.accession_no,
-                                        study_id: item.study_id,
+                                        study_id: item.study_id, 
                                         data_row_id: index
                                     });
 
@@ -891,6 +895,8 @@ define(['jquery',
                     }
                 }
 
+                self.bindModifiersData(_rowObj);
+
                 self.addLineItems(_rowObj, _rowObj.data_row_id, false);
                 self.assignLineItemsEvents();
                 self.assignModifierEvent();
@@ -903,10 +909,27 @@ define(['jquery',
 
             },
 
+            bindModifiersData: function(rowObj) {
+                var m = 1;
+                var data = function(id) {
+                    var modifiers = app.modifiers.filter(function(item){
+                        return item['modifier' + id] == "true";
+                    });
+                    rowObj["modifiers" + id] = modifiers;
+                    m++;
+                    if(m < 5) {
+                        data(m);
+                    } 
+
+                }
+                data(m);
+            },
+
             addLineItems: function (data, index, isDefault) {
                 var self = this;
 
                 data.claim_dt = (commonjs.checkNotEmpty(self.cur_study_date) ? self.cur_study_date : '');
+                self.bindModifiersData(data);
                 var chargeTableRow = self.chargerowtemplate({ row: data });
                 $('#tBodyCharge').append(chargeTableRow);
                 self.setChargeAutoComplete(index, 'code');
@@ -930,12 +953,12 @@ define(['jquery',
                     if (isDefault) {
                         var _pointer = data.icd_pointers && data.icd_pointers[m - 1] ? data.icd_pointers[m - 1] : '';
                         $('#ddlPointer' + m + '_' + index).val(_pointer);
-                        //$('#ddlModifier' + m + '_' + index).val(data['m' + m])
+                        $('#ddlModifier' + m + '_' + index).val(data['m' + m])
                         //self.bindModifiersData('ddlModifier' + m + '_' + index, arr);
                     }else{
                         $('#ddlPointer' + m + '_' + index).val(data['pointer' + m]);
                         // ToDo:: Once modifiers dropdown added have to bind
-                        //$('#ddlModifier' + m + '_' + index).val(data['modifier' + m +'_id']); 
+                        $('#ddlModifier' + m + '_' + index).val(data['modifier' + m +'_id']); 
                     }
 
                 }
@@ -1048,9 +1071,10 @@ define(['jquery',
 
                     var dataContent = $(e.target).val();
                     var modifierLevel = $(e.target).attr('data-type');
+                    modifierLevel = modifierLevel.replace('M','modifier');
                     if (dataContent != '') {
                         var existData = jQuery.grep(app.modifiers, function (value) {
-                            return (value.code == dataContent && (value[modifierLevel] == true || value[modifierLevel] == 'true'));
+                            return (value.id == dataContent && (value[modifierLevel] == true || value[modifierLevel] == 'true'));
                         });
                         if (existData.length > 0) {
                             $(e.target).css('border-color', '')
@@ -2147,10 +2171,10 @@ define(['jquery',
                         pointer2: $('#ddlPointer2_' + id).val() || null,
                         pointer3: $('#ddlPointer3_' + id).val() || null,
                         pointer4: $('#ddlPointer4_' + id).val() || null,
-                        modifier1_id: null,
-                        modifier2_id: null,
-                        modifier3_id: null,
-                        modifier4_id: null,
+                        modifier1_id: ($('#ddlModifier1_' + id).val() && parseInt($('#ddlModifier1_' + id).val())) || null,
+                        modifier2_id: ($('#ddlModifier2_' + id).val() && parseInt($('#ddlModifier2_' + id).val())) || null,
+                        modifier3_id: ($('#ddlModifier3_' + id).val() && parseInt($('#ddlModifier3_' + id).val())) || null,
+                        modifier4_id: ($('#ddlModifier4_' + id).val() && parseInt($('#ddlModifier4_' + id).val())) || null,
                         bill_fee: parseFloat($('#txtBillFee_' + id).val()) || 0.00,
                         allowed_amount: parseFloat($('#txtAllowedFee_' + id).val()) || 0.00,
                         units: parseFloat($('#txtUnits_' + id).val()),
