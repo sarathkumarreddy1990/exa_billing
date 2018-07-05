@@ -252,33 +252,33 @@ define([
             hasValidViewModel: function () {
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
                     //   commonjs.showWarning('Please check report id, category, and/or format!');
-                    return false;
+                    return ;
                 }
 
                 // Billing Provider validataion
                 if ($('#billingProChk').attr('checked')) {
                     if ($('#ddlBillingProvider option:selected').length < 1) {
                         //commonjs.showWarning('Please select billing provider in option');
-                        return false;
+                        return;
                     }
                 }
                 // Facility Validataion
                 if ($('#facilityChk').attr('checked')) {
                     if ($('#ddlFacilityFilter option:selected').length < 1) {
-                        // commonjs.showWarning('Please select facility in option');
-                        return false;
+                         commonjs.showWarning('Please select facility in option');
+                        return ;
                     }
                 }
 
                 if (!($('#chkServiceDateBill').attr('checked')) && !($('#chkServicePayDateCPT').attr('checked')) && !($('#billCreatedDate').attr('checked'))) {
                     commonjs.showWarning('Please Select Service / Pay / Bill Created Date');
-                    return false;
+                    return ;
                 }
 
                 // claim Selection Validation
                 if ($('#ddlClaimSelectBoxes option:selected').length < 1) {
-                    // commonjs.showWarning('Please Select Claim Selection');
-                    return false;
+                     commonjs.showWarning('Please Select Claim Selection');
+                    return;
                 }
 
                 // ref.Doctor Selection Validation
@@ -287,6 +287,12 @@ define([
                         //  commonjs.showWarning('Please Add Referring Doctor');
                         return false;
                     }
+                }
+
+                 // claim Selection Validation
+                 if ($('#ddlClaimSelectBoxes').length < 0) {
+                    commonjs.showWarning('Please Select Claim Selection');
+                    return ;
                 }
                 return true;
             },

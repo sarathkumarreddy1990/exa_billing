@@ -42,7 +42,12 @@ define([
             agingSummaryTemplate: _.template(agingSummaryHTML),
             claimPatientLogTemplate: _.template(claimPatientLogHTML),
             payCmtGrid: '',
-            claim_id: null,      
+            claim_id: null,     
+            events: {
+                "click #radioActivityStatus": "showActivityStatus",
+                "click #radActivityAllStatus": "showAllActivity",
+
+            },
 
             initialize: function (options) {
                 this.options = options;
@@ -633,12 +638,14 @@ define([
             saveIsInternalComment: function () {
                 var comments = [];
                 var self = this;
-                var selectedFollowUpDate = $('#txtCIFollowUpDate').val() ? moment($('#txtCIFollowUpDate').val()).format('L') : '';
-                var currentDate = moment().format('L');
-                if (moment(selectedFollowUpDate).format('MM/DD/YYYY') < currentDate) {
-                    commonjs.showWarning('Cannot Select Past date');
-                    return;
-                }
+                var selectedFollowUpDate = $('#txtCIFollowUpDate').val() ? new Date($('#txtCIFollowUpDate').val()).toDateString() : '';
+                var currentDate = new Date().toDateString();
+                if (selectedFollowUpDate) {
+                    if (selectedFollowUpDate < currentDate) {
+                        commonjs.showWarning('Cannot Select Past date');
+                        return;
+                    }
+                }              
 
                 $('#tblCIClaimComments  td input:checkbox').each(function () {
                     var content = {};
@@ -685,10 +692,50 @@ define([
 
             patientInquiryForm: function (claimId, patientId) {
                 var self = this;
+                setTimeout(function () {
+                    var billingProviderList = app.billing_providers,reportBy
+                        ddlBillingProvider = $('#ddlBillingProvider');
+                    ddlBillingProvider.empty();
+                    if (billingProviderList && billingProviderList.length > 0) {
+                        for (var b = 0; b < billingProviderList.length; b++) {
+                            ddlBillingProvider.append($('<option/>', {
+                                value: billingProviderList[b].id,
+                                text: billingProviderList[b].full_name
+                            }));
+                        }
+                    }
+                    $('#ddlBillingProvider').multiselect({
+                        maxHeight: 200,
+                        buttonWidth: '250px',
+                        enableFiltering: true,
+                        includeSelectAllOption: true,
+                        enableCaseInsensitiveFiltering: true
+                    });
+                }, 300);
+
+
                 this.$el.html(this.claimPatientTemplate());
                 self.showPatientClaimsGrid(claimId, patientId);
                 $('#btnPatientActivity').on().click(function () {
-                    self.generatePatientActivity(claimId, patientId);
+                    if ($('#radActivityAllStatus').prop("checked")){
+                        reportBy = true;
+                    }
+                    else{
+                        reportBy = false;
+                        fromDate = $('#txtDate').val();
+                        toDate = $('#txtOtherDate').val();
+                    }
+
+               
+                    var billing_pro = [], selectedBillingProList, allBillingProvider;
+                    var selected = $("#ddlBillingProvider option:selected");
+                    selected.each(function () {
+                        billing_pro.push($(this).val());
+                    });
+                    selectedBillingProList = billing_pro;
+                    allBillingProvider = selectedBillingProList && selectedBillingProList.length === $("#ddlBillingProvider option").length;
+
+                    self.generatePatientActivity(claimId, patientId, reportBy, fromDate, toDate, selectedBillingProList);
                 });
             },
 
@@ -800,16 +847,24 @@ define([
                     commonjs.showWarning('Error on process claim');
                 }
             },
-            generatePatientActivity: function (patientIds, claimIds, e) {
+
+            generatePatientActivity: function (patientIds, claimIds, reportBy, fromDate, toDate, selectedBillingProList, e) {
                 var self = this;
-                self.patientActivityStatement = new patientActivityStatement({ el: $('#reportFrame') });
+                self.patientActivityStatement = new patientActivityStatement({
+                    el: $('#reportFrame')
+                });
                 var claimInfo = {
                     'claimID': patientIds,
-                     flag: "patient-activity-statement",
-                    'patientId': claimIds
+                    flag: "patient-activity-statement",
+                    'patientId': claimIds,
+                     reportByFlag: reportBy ,
+                    'fromDate': fromDate || '',
+                    'toDate': toDate || '',
+                    'billingProId': selectedBillingProList || []
                 }
                 self.patientActivityStatement.onReportViewClick(e, claimInfo);
             },
+
             generatePrintInvoice: function(claimId, e){
                 var self = this;
                 self.patientActivityStatement = new patientActivityStatement({ el: $('#reportFrame') });
@@ -818,6 +873,17 @@ define([
                      flag: "paymentInvoice"                    
                 }
                 self.patientActivityStatement.onReportViewClick(e, claimInfo);
+            },
+
+            showActivityStatus: function () {
+                if ($('#radioActivityStatus').is(':visible'))
+                    $('#activityDetails').show();
+            },
+
+            showAllActivity: function () {
+                if ($('#radActivityAllStatus').is(':visible'))
+                    $('#activityDetails').hide();
+                $('input[type=date]').val('');
             }
         });
 

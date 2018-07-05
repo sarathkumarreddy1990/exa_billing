@@ -12,13 +12,12 @@ WITH referringProviderSummary as (
         pp.provider_code AS provider_code,
         pp.full_name AS provider_name,
         COUNT(pp.id) AS orderCount,
-        SUM(bch.bill_fee * units) AS BillingFee,
-        SUM(bch.allowed_amount * units) AS AllowedFee
+        (SELECT charges_bill_fee_total FROM billing.get_claim_totals(bc.id)) AS BillingFee,
+        (SELECT charges_allowed_amount_total FROM billing.get_claim_totals(bc.id)) AS AllowedFee
     FROM 
         billing.claims bc    
     INNER JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
     INNER JOIN public.providers pp ON pp.id = ppc.provider_id
-    LEFT JOIN billing.charges bch ON bch.claim_id = bc.id
     <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
     WHERE 1=1 
         AND <%= companyId %>
@@ -27,7 +26,8 @@ WITH referringProviderSummary as (
         <% if(billingProID) { %> AND <% print(billingProID); } %>
     GROUP BY 
         pp.provider_code,
-        pp.full_name
+        pp.full_name,
+        bc.id
     ORDER BY 
         pp.full_name ASC
  )
