@@ -188,7 +188,8 @@
             "appliedTotal": "Applied Total",
             "adjustmentTotal": "Adjustment Total",
             "allActivity" : "All Activity",
-            "activityByDate": "Activity By Date"
+            "activityByDate": "Activity By Date",
+            "comment": "Include All Comments"
         },
         "refund": {
             "scheduleDate": "Schedule Date",

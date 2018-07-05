@@ -18,8 +18,7 @@ define(['jquery',
         paymentsGrid,
         paymentsLists,
         ModelPaymentsPager,
-        paymentPDF)
-    {
+        paymentPDF) {
         var paymentsView = Backbone.View.extend({
             el: null,
             pager: null,
@@ -71,7 +70,7 @@ define(['jquery',
                 });
 
                 this.paymentStatusList = new modelCollection(paymentStatus);
-                var facilities =  app.facilities ;
+                var facilities = app.facilities;
                 var adjustment_codes = jQuery.grep([], function (obj, i) {
                     return (obj.type == "ADJCDE" || obj.type == "REFADJ");
                 });
@@ -122,7 +121,7 @@ define(['jquery',
                     selectAllText: true,
                     numberDisplayed: 2,
                     selectAllValue: 'multiselect-all'
-                });                
+                });
             },
 
             refreshPayments: function () {
@@ -173,8 +172,8 @@ define(['jquery',
                         gridelementid: '#tblpaymentsGrid',
                         custompager: this.pager,
                         emptyMessage: 'No Record found',
-                        colNames: ['<span  id="spnStatus" class="icon-ic-worklist" onclick="commonjs.popOverActions(event)" ></span>','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                        i18nNames: ['','', '', 'billing.payments.paymentID', '', 'billing.payments.referencePaymentID', 'billing.payments.paymentDate', 'billing.payments.accountingDate', 'billing.payments.payertype', 'billing.payments.payerName', 'billing.payments.paymentAmount', 'billing.payments.paymentApplied', 'billing.payments.balance', 'billing.payments.adjustment', 'billing.payments.postedBy', 'billing.payments.paymentmode', 'billing.payments.facility_name', '', '', ''],
+                        colNames: ['<span  id="spnStatus" class="icon-ic-worklist" onclick="commonjs.popOverActions(event)" ></span>', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                        i18nNames: ['', '', '', 'billing.payments.paymentID', '', 'billing.payments.referencePaymentID', 'billing.payments.paymentDate', 'billing.payments.accountingDate', 'billing.payments.payertype', 'billing.payments.payerName', 'billing.payments.paymentAmount', 'billing.payments.paymentApplied', 'billing.payments.balance', 'billing.payments.adjustment', 'billing.payments.postedBy', 'billing.payments.paymentmode', 'billing.payments.facility_name', '', '', ''],
                         colModel: [
                             {
                                 name: 'edit', width: 50, sortable: false, search: false,
@@ -189,9 +188,9 @@ define(['jquery',
                                     return 'style=text-align:center;'
                                 }
                             },
-                            { name: 'id', index: 'id', key: true, searchFlag: 'int',hidden: true  },
+                            { name: 'id', index: 'id', key: true, searchFlag: 'int', hidden: true },
                             { name: 'current_status', hidden: true },
-                            { name: 'payment_id',  searchFlag: 'int' },
+                            { name: 'payment_id', searchFlag: 'int' },
                             { name: 'invoice_no', hidden: true },
                             { name: 'display_id', width: 150, searchFlag: '%' },
                             { name: 'payment_dt', width: 250, searchFlag: 'date_pure', formatter: self.paymentDateFormatter },
@@ -255,12 +254,12 @@ define(['jquery',
                         self.adjustmentTimer = setTimeout(self.calculateAdjustmentTotal, 25);
                         clearTimeout(self.appliedTimer);
                         self.appliedTimer = setTimeout(self.calculateAppliedTotal, 25);
-                        var dataSet={
+                        var dataSet = {
                             paymentStatus: $("#ulPaymentStatus").val(),
-                            filterData:JSON.stringify(self.pager.get("FilterData")),
-                            filterCol:JSON.stringify(self.pager.get("FilterCol")),
-                            sortField:self.pager.get("SortField"), 
-                            sortOrder:self.pager.get("SortOrder"), 
+                            filterData: JSON.stringify(self.pager.get("FilterData")),
+                            filterCol: JSON.stringify(self.pager.get("FilterCol")),
+                            sortField: self.pager.get("SortField"),
+                            sortOrder: self.pager.get("SortOrder"),
                         };
 
                         jQuery.ajax({
@@ -268,11 +267,11 @@ define(['jquery',
                             type: "GET",
                             data: dataSet,
                             success: function (data, textStatus, jqXHR) {
-                               if(data &&data.length){
-                                $("#divAmountTotal").html(data[0].total_amount);
-                                $("#divAppliedTotal").html(data[0].total_applied);
-                                $("#divAdjTotal").html(data[0].total_adjustment);   
-                               }
+                                if (data && data.length) {
+                                    $("#divAmountTotal").html(data[0].total_amount);
+                                    $("#divAppliedTotal").html(data[0].total_applied);
+                                    $("#divAdjTotal").html(data[0].total_adjustment);
+                                }
                             },
                             error: function (err) {
                                 commonjs.handleXhrError(err);
@@ -285,7 +284,7 @@ define(['jquery',
                     this.paymentTable.refresh();
                 }
             },
-            
+
             editPayment: function (rowId) {
                 Backbone.history.navigate('#billing/payments/edit/' + rowId, true);
             },
@@ -329,82 +328,158 @@ define(['jquery',
             generatePDF: function (e) {
                 var self = this;
                 self.paymentPDF = new paymentPDF({ el: $('#modal_div_container') });
-                var paymentPDFArgs = {                   
+                var paymentPDFArgs = {
                     'isDateFlag': $('#filterByPostingDt').prop('checked') ? true : false
                 }
                 self.paymentPDF.onReportViewClick(e, paymentPDFArgs);
             },
 
-            prepareValueForCSV: function(val) {
+            prepareValueForCSV: function (val) {
                 val = '' + val;
                 val = val.replace(/"/g, '""');
                 return '"' + val + '"';
             },
 
             exportExcel: function () {
-                var self = this;
-                var responseJSON = self.paymentsList;
-                var ReportTitle = 'Payment';
-                var ShowLabel = 'Payment';
-                var paymentExcelData = typeof responseJSON != 'object' ? JSON.parse(responseJSON) : responseJSON;
-                var CSV = '';
-                CSV += ReportTitle + '\r';
-                if (ShowLabel) {
-                    var row = "";
 
-                    row += 'PAYMENT ID' + ',';
-                    row += 'REF. PAYMENT ID' + ',';
-                    row += 'PAYMENT DATE' + ',';
-                    row += 'ACCOUNTING DATE' + ',';
-                    row += 'PAYER TYPE' + ',';
-                    row += 'PAYER NAME' + ',';
-                    row += 'PAYMENT AMOUNT' + ',';
-                    row += 'PAYMENT APPLIED' + ',';
-                    row += 'BALANCE' + ',';
-                    row += 'ADJUSTMENT' + ',';
-                    row += 'POSTED BY' + ',';
-                    row += 'PAYMENT MODE' + ',';
-                    row += 'FACILITY' + ',';
-                }
-                row = row.slice(0, -1);
-                CSV += row + '\r\n';
+                $.ajax({
+                    url: "/exa_modules/billing/payments/list",
+                    type: 'GET',
+                    data: {
+                        paymentReportFlag: true
+                    },
+                    success: function (data, response) {
+                        var responseJSON = data;
+                        var ReportTitle = 'Payments';
+                        var ShowLabel = 'Payment List';
+                        var paymentExcelData = typeof responseJSON != 'object' ? JSON.parse(responseJSON) : responseJSON;
+                        var CSV = '';
+                        CSV += ReportTitle + '\r';
+                        if (ShowLabel) {
+                            var row = "";
+                            row += 'PAYMENT ID' + ',';
+                            row += 'REF. PAYMENT ID' + ',';
+                            row += 'PAYMENT DATE' + ',';
+                            row += 'ACCOUNTING DATE' + ',';
+                            row += 'PAYER TYPE' + ',';
+                            row += 'PAYER NAME' + ',';
+                            row += 'PAYMENT AMOUNT' + ',';
+                            row += 'PAYMENT APPLIED' + ',';
+                            row += 'BALANCE' + ',';
+                            row += 'ADJUSTMENT' + ',';
+                            row += 'POSTED BY' + ',';
+                            row += 'PAYMENT MODE' + ',';
+                            row += 'FACILITY' + ',';
+                        }
+                        row = row.slice(0, -1);
+                        CSV += row + '\r\n';
 
-                for (var i = 0; i < paymentExcelData.models.length; i++) {
-                    var row = "";
-                    var paymentResult = paymentExcelData.models[i].attributes;
-                    row += '"' + paymentResult.id + '",';
-                    row += '"' + (paymentResult.display_id > 0) ? paymentResult.display_id : '0' + '",';
-                    row += '"' + moment(paymentResult.payment_dt).format('L') + '",';
-                    row += '"' + moment(paymentResult.accounting_dt).format('L') + '",';
-                    row += '"' + paymentResult.payer_type + '",';
-                    row += '"' + paymentResult.payer_name + '",';
-                    row += '"' + paymentResult.amount + '",';
-                    row += '"' + paymentResult.applied + '",';
-                    row += '"' + paymentResult.available_balance + '",';
-                    row += '"' + paymentResult.adjustment_amount + '",';
-                    row += '"' + paymentResult.user_full_name + '",';
-                    row += '"' + paymentResult.payment_mode + '",';
-                    row += '"' + paymentResult.facility_name + '",';
-                    row.slice(0, row.length - 1);
-                    CSV += row + '\r\n';
-                }
+                        for (var i = 0; i < paymentExcelData.length; i++) {
+                            var row = "";
+                            var paymentResult = paymentExcelData[i];                         
+                              
+                                    row += '"' + paymentResult.id + '",' ,
+                                    row += '"' + paymentResult.alternate_payment_id + '",' ,
+                                    row += '"' + paymentResult.payment_dt + '",' ,
+                                    row += '"' + paymentResult.accounting_dt + '",' ,
+                                    row += '"' + paymentResult.payer_type + '",' ,
+                                    row += '"' + paymentResult.payer_name + '",' ,
+                                    row += '"' + paymentResult.amount + '",' ,
+                                    row += '"' + paymentResult.applied + '",' ,
+                                    row += '"' + paymentResult.available_balance + '",' ,
+                                    row += '"' + paymentResult.adjustment_amount + '",' ,
+                                    row += '"' + paymentResult.user_full_name + '",' ,
+                                    row += '"' + paymentResult.payment_mode + '",' ,
+                                    row += '"' + paymentResult.facility_name + '",'                           
 
-                if (CSV == '') {
-                    alert("Invalid data");
-                    return;
-                }
-                var fileName = "";
-                fileName += ReportTitle.replace(/ /g, "_");
-                var uri = 'data:text/csv;charset=utf-8,' + escape(CSV);
-                var link = document.createElement("a");
-                link.href = uri;
-                link.style = "visibility:hidden";
-                link.download = fileName + ".csv";
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                            CSV += row + '\r\n';
+                        }
+
+                        if (CSV == '') {
+                            alert("Invalid data");
+                            return;
+                        }
+                        var fileName = "";
+                        fileName += ReportTitle.replace(/ /g, "_");
+                        var uri = 'data:text/csv;charset=utf-8,' + escape(CSV);
+                        var link = document.createElement("a");
+                        link.href = uri;
+                        link.style = "visibility:hidden";
+                        link.download = fileName + ".csv";
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        $('#btnValidateExport').prop('disabled', false);
+                    },
+                    error: function (err) {
+                        commonjs.handleXhrError(err);
+                    }
+                });
+
+
+                // var self = this;
+                // var responseJSON = self.paymentsList;
+                // var ReportTitle = 'Payment';
+                // var ShowLabel = 'Payment';
+                // var paymentExcelData = typeof responseJSON != 'object' ? JSON.parse(responseJSON) : responseJSON;
+                // var CSV = '';
+                // CSV += ReportTitle + '\r';
+                // if (ShowLabel) {
+                //     var row = "";
+
+                //     row += 'PAYMENT ID' + ',';
+                //     row += 'REF. PAYMENT ID' + ',';
+                //     row += 'PAYMENT DATE' + ',';
+                //     row += 'ACCOUNTING DATE' + ',';
+                //     row += 'PAYER TYPE' + ',';
+                //     row += 'PAYER NAME' + ',';
+                //     row += 'PAYMENT AMOUNT' + ',';
+                //     row += 'PAYMENT APPLIED' + ',';
+                //     row += 'BALANCE' + ',';
+                //     row += 'ADJUSTMENT' + ',';
+                //     row += 'POSTED BY' + ',';
+                //     row += 'PAYMENT MODE' + ',';
+                //     row += 'FACILITY' + ',';
+                // }
+                // row = row.slice(0, -1);
+                // CSV += row + '\r\n';
+
+                // for (var i = 0; i < paymentExcelData.models.length; i++) {
+                //     var row = "";
+                //     var paymentResult = paymentExcelData.models[i].attributes;
+                //     row += '"' + paymentResult.id + '",';
+                //     row += '"' + (paymentResult.display_id > 0) ? paymentResult.display_id : '0' + '",';
+                //     row += '"' + moment(paymentResult.payment_dt).format('L') + '",';
+                //     row += '"' + moment(paymentResult.accounting_dt).format('L') + '",';
+                //     row += '"' + paymentResult.payer_type + '",';
+                //     row += '"' + paymentResult.payer_name + '",';
+                //     row += '"' + paymentResult.amount + '",';
+                //     row += '"' + paymentResult.applied + '",';
+                //     row += '"' + paymentResult.available_balance + '",';
+                //     row += '"' + paymentResult.adjustment_amount + '",';
+                //     row += '"' + paymentResult.user_full_name + '",';
+                //     row += '"' + paymentResult.payment_mode + '",';
+                //     row += '"' + paymentResult.facility_name + '",';
+                //     row.slice(0, row.length - 1);
+                //     CSV += row + '\r\n';
+                // }
+
+                // if (CSV == '') {
+                //     alert("Invalid data");
+                //     return;
+                // }
+                // var fileName = "";
+                // fileName += ReportTitle.replace(/ /g, "_");
+                // var uri = 'data:text/csv;charset=utf-8,' + escape(CSV);
+                // var link = document.createElement("a");
+                // link.href = uri;
+                // link.style = "visibility:hidden";
+                // link.download = fileName + ".csv";
+                // document.body.appendChild(link);
+                // link.click();
+                // document.body.removeChild(link);
             },
-            
+
             bindDateRangeOnSearchBox: function (gridObj) {
                 var self = this, tabtype = 'order';
                 var columnsToBind = ['payment_dt', 'accounting_dt']
@@ -415,7 +490,7 @@ define(['jquery',
                     var colSelector = '#gs_' + col;
 
                     var colElement = $(colSelector);
-     
+
                     var drp = commonjs.bindDateRangePicker(colElement, drpOptions, rangeSetName, function (start, end, format) {
                         if (start && end) {
                             currentFilter.startDate = start.format('L');
