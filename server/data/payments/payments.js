@@ -613,7 +613,7 @@ module.exports = {
                             RETURNING *, '{}'::jsonb old_values),
                             change_responsible_party AS (
                                     SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId})
-                            )
+                            ),
                         update_cas_application AS(
                                     UPDATE billing.cas_payment_application_details bcpad
                                         SET
