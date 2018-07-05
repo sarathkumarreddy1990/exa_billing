@@ -514,6 +514,13 @@ define(['jquery',
                 $('#txtResponsibleNotes').val(claim_data.billing_notes || '')
 
                 /* Billing summary end */
+                /* BenefitOnDate Start*/
+                var today = moment().format('YYYY-MM-DD');
+                $('#txtBenefitOnDate3').val(today);
+                $('#txtBenefitOnDate').val(today);
+                $('#txtBenefitOnDate2').val(today);
+                
+                /* BenefitOnDate End*/
                 /* ResponsibleList start*/
 
                 self.updateResponsibleList({
@@ -591,6 +598,8 @@ define(['jquery',
                     $('#txtPriPolicyNo').val(claimData.p_policy_number);
                     $('#txtPriGroupNo').val(claimData.p_group_number);
                     $("#ddlPriRelationShip").val(claimData.p_subscriber_relationship_id);
+                    var priSelf = ($('#ddlPriRelationShip option:selected').text()).toLowerCase();
+                    ($.trim(priSelf) == 'self' || $.trim(priSelf) == 'select') ? $('#showPriSelf').hide() : $('#showPriSelf').show();
                     $('#txtPriSubFirstName').val(claimData.p_subscriber_firstname);
                     $('#txtPriSubMiName').val(claimData.p_subscriber_middlename);
                     $('#txtPriSubLastName').val(claimData.p_subscriber_lastname);
@@ -630,6 +639,8 @@ define(['jquery',
                     $('#txtSecPolicyNo').val(claimData.s_policy_number);
                     $('#txtSecGroupNo').val(claimData.s_group_number);
                     $("#ddlSecRelationShip").val(claimData.s_subscriber_relationship_id);
+                    var secSelf = ($('#ddlSecRelationShip option:selected').text()).toLowerCase();   
+                    ($.trim(secSelf) == 'self' || $.trim(secSelf) == 'select') ? $('#showSecSelf').hide() : $('#showSecSelf').show();                 
                     $('#txtSecSubFirstName').val(claimData.s_subscriber_firstname);
                     $('#txtSecSubMiName').val(claimData.s_subscriber_middlename);
                     $('#ddlSecGender').val(claimData.s_subscriber_gender);
@@ -666,6 +677,8 @@ define(['jquery',
                     $('#txtTerPolicyNo').val(claimData.t_policy_number);
                     $('#txtTerGroupNo').val(claimData.t_group_number);
                     $("#ddlTerRelationShip").val(claimData.t_subscriber_relationship_id);
+                    var terSelf = ($('#ddlTerRelationShip option:selected').text()).toLowerCase();  
+                    ($.trim(terSelf) == 'self' || $.trim(terSelf) == 'select') ? $('#showTerSelf').hide() : $('#showTerSelf').show();                  
                     $('#txtTerSubFirstName').val(claimData.t_subscriber_firstname);
                     $('#txtTerSubMiName').val(claimData.t_subscriber_middlename);
                     $('#ddlTerGender').val(claimData.t_subscriber_gender);
@@ -794,7 +807,21 @@ define(['jquery',
                 //     self.urlNavigation(e);
                 // });
 
+                $("#ddlPriRelationShip, #ddlSecRelationShip, #ddlTerRelationShip").off().change(function (e) {
+                    self.showSelf(e);
+                });
 
+                $("#chkPriSelf").off().change(function (e) {
+                    self.setPriRelationShipSelf(e);
+                });
+
+                $(" #chkSecSelf").off().change(function (e) {
+                    self.setSecRelationShipSelf(e);
+                });
+
+                $(" #chkTerSelf").off().change(function (e) {
+                    self.setTerRelationShipSelf(e);
+                });
             },
             getLineItemsAndBind: function (selectedStudyIds) {
                 var self = this;
@@ -2004,6 +2031,8 @@ define(['jquery',
                     $('#txt' + flag + 'PolicyNo').val(result.policy_number);
                     $('#txt' + flag + 'GroupNo').val(result.group_number);
                     $('#ddl' + flag + 'RelationShip').val(result.subscriber_relationship_id);
+                    var priSelf = ($('#ddl' + flag + 'RelationShip'+' option:selected').text()).toLowerCase();
+                    ($.trim(priSelf) == 'self' || $.trim(priSelf) == 'select') ? $('#show'+ flag + 'Self').hide() : $('#show'+ flag + 'Self').show();                    
                     $('#txt' + flag + 'SubFirstName').val(result.subscriber_firstname);
                     $('#txt' + flag + 'MiddleName').val(result.subscriber_middlename);
                     $('#txt' + flag + 'SubLastName').val(result.subscriber_lastname);
@@ -3147,6 +3176,53 @@ define(['jquery',
                     $('.woClaimRelated').show();
                 }, 200);
 
+            },
+
+            showSelf: function() {
+                var priSelf = ($('#ddlPriRelationShip option:selected').text()).toLowerCase();
+                var secSelf = ($('#ddlSecRelationShip option:selected').text()).toLowerCase();
+                var terSelf = ($('#ddlTerRelationShip option:selected').text()).toLowerCase();
+                
+                $.trim(priSelf) == 'self' ? $('#showPriSelf').hide() : $('#showPriSelf').show() ;
+                $.trim(secSelf) == 'self' ? $('#showSecSelf').hide() : $('#showSecSelf').show() ;
+                $.trim(terSelf) == 'self' ? $('#showTerSelf').hide() : $('#showTerSelf').show() ;
+            },
+
+            setPriRelationShipSelf: function(e) {
+                if($('#chkPriSelf').is(":checked")) {
+                    var selfValue = $("#ddlPriRelationShip option:contains('Self')").val();
+                    $('#ddlPriRelationShip').val(selfValue).attr('selected', true);
+                    $('#showPriSelf').hide();
+                    $('#chkPriSelf').prop('checked', false);
+                } else {
+                    $("#ddlPriRelationShip option:contains('Selected')").attr('selected', 'selected');
+                    $('#showPriSelf').show();
+                } 
+                
+            },
+
+            setSecRelationShipSelf: function(e) {
+                if($('#chkSecSelf').is(":checked")) {
+                    var selfValue = $("#ddlSecRelationShip option:contains('Self')").val();
+                    $('#ddlSecRelationShip').val(selfValue).attr('selected', true);
+                    $('#showSecSelf').hide();
+                    $('#chkSecSelf').prop('checked', false);
+                } else {
+                    $("#ddlSecRelationShip option:contains('Selected')").attr('selected', 'selected');
+                    $('#showSecSelf').show();
+                } 
+            },
+
+            setTerRelationShipSelf: function(e) {
+                if($('#chkTerSelf').is(":checked")) {
+                    var selfValue = $("#ddlTerRelationShip option:contains('Self')").val();
+                    $('#ddlTerRelationShip').val(selfValue).attr('selected', true);
+                    $('#showTerSelf').hide();
+                    $('#chkTerSelf').prop('checked', false);
+                } else {
+                    $("#ddlTerRelationShip option:contains('Selected')").attr('selected', 'Selected');
+                    $('#showTerSelf').show();
+                } 
             }
 
         });
