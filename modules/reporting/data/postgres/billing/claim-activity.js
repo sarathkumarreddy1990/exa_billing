@@ -41,7 +41,7 @@ SELECT
     cd.claim_id as claim_id,
     cd.patient_name as patient_name,
     cd.account_no as account_no,
-    cd.claim_date as claim_date,
+    (cd.claim_date)::date as claim_date,
     cd.referring_physician as referring_physician,
     cd.reading_physician as reading_physician,
     cd.ordering_facility as ordering_facility,
@@ -49,7 +49,7 @@ SELECT
     ('charge')::text as type,
     null::bigint as payment_id,
     null::date as payment_date,
-    cd.claim_date as accounting_date,
+    null::date as accounting_date,
     pcpt.display_code as code,
     pcpt.display_description as description,
     array[pm1.code,pm2.code,pm3.code,pm4.code] as modifiers,
@@ -77,7 +77,7 @@ SELECT
     cd.claim_id as claim_id,
     cd.patient_name as patient_name,
     cd.account_no as account_no,
-    cd.claim_date as claim_date,
+    (cd.claim_date)::date as claim_date,
     cd.referring_physician as referring_physician,
     cd.reading_physician as reading_physician,
     cd.ordering_facility as ordering_facility,
@@ -97,7 +97,7 @@ SELECT
            p.full_name
     END as description, --Payment description is payer
     array['']::text[] as modifiers,
-    pa.amount as amount,
+    sum(pa.amount) as amount,
     bp.payment_dt::date as created_on,
     get_full_name(u.last_name,u.first_name,u.middle_initial,null,u.suffix) as created_by
 FROM claim_details cd
@@ -110,25 +110,28 @@ FROM claim_details cd
      LEFT JOIN public.provider_groups  pg on pg.id = bp.provider_group_id
      LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
      LEFT JOIN public.providers p on p.id = pc.provider_id
+     GROUP by bp.id,cd.claim_id,cd.patient_name,cd.account_no,cd.claim_date, cd.referring_physician,
+     cd.reading_physician,cd.ordering_facility,cd.facility_code,bp.payment_dt,bp.accounting_dt,description
+     ,modifiers,created_on,get_full_name(u.last_name,u.first_name,u.middle_initial,null,u.suffix)
 )
 SELECT
     claim_id,
     patient_name,
     account_no,
-    claim_date,
+    to_char(claim_date,'MM/DD/YYYY') AS claim_date,
     referring_physician,
     reading_physician,
     ordering_facility,
     facility_code,
     TYPE,
     payment_id,
-    payment_date,
-    accounting_date,
+    to_char(payment_date,'MM/DD/YYYY') AS payment_date,
+    to_char(accounting_date,'MM/DD/YYYY') AS accounting_date,
     code,
     description,
     modifiers,
     amount,
-    created_on,
+    to_char(created_on,'MM/DD/YYYY') AS created_on,
     created_by
 FROM
     charge_details
@@ -137,20 +140,20 @@ SELECT
     claim_id,
     patient_name,
     account_no,
-    claim_date,
+    to_char(claim_date,'MM/DD/YYYY') AS claim_date,
     referring_physician,
     reading_physician,
     ordering_facility,
     facility_code,
     TYPE,
     payment_id,
-    payment_date,
-    accounting_date,
+    to_char(payment_date,'MM/DD/YYYY') AS payment_date,
+    to_char(accounting_date,'MM/DD/YYYY') AS accounting_date,
     code,
     description,
     modifiers,
     amount,
-    created_on,
+    to_char(created_on,'MM/DD/YYYY') AS created_on,
     created_by
 FROM
     payment_details
