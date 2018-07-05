@@ -1497,7 +1497,7 @@ define(['jquery',
                                     var rowVal = index + 1;
                                     $('#selectGroupCode' + rowVal).val(appln.cas_group_code_id).attr('cas_id', appln.id);
                                     $('#selectReason' + rowVal).val(appln.cas_reason_code_id);
-                                    $('#txtAmount' + rowVal).val(appln.amount.substr(1));
+                                    $('#txtAmount' + rowVal).val(appln.amount.indexOf('$') == 0 ? appln.amount.substr(1) : appln.amount);
                                 });
 
                             $('#divPaymentCAS').attr('data-charge_id', chargeId).show();
