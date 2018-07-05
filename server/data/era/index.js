@@ -246,7 +246,7 @@ module.exports = {
                                UPDATE billing.payments
                                 SET 
                                     amount = ( SELECT claim_bill_fee_total FROM matched_claim_payment ),
-                                    notes =  notes || E'\n' || ( SELECT notes FROM matched_claim_payment ) || E'\n' || ${paymentDetails.uploaded_file_name}
+                                    notes =  notes || E'\n' || ( SELECT notes FROM matched_claim_payment ) || E'\n\n' || ${paymentDetails.uploaded_file_name}
                                 WHERE id = ${paymentDetails.id}
                             )
                             ,insert_claim_comments AS (
