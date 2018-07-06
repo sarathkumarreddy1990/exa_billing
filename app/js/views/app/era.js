@@ -9,11 +9,13 @@ define([
     'text!templates/app/era-progress.html',
     'text!templates/app/era-preview.html',
     'collections/app/era',
-    'models/pager'],
-    function (jQuery, Immutable, _, Backbone, JGrid, JGridLocale, eraGrid, eraProgress, EraPreview, eraLists, EobFilesPager) {
+    'models/pager',
+	'text!templates/app/eraProcessedResponse.html'],
+    function (jQuery, Immutable, _, Backbone, JGrid, JGridLocale, eraGrid, eraProgress, EraPreview, eraLists, EobFilesPager, EraResponse) {
         var eraView = Backbone.View.extend({
 
             eraGridTemplate: _.template(eraGrid),
+            eraResponseTemplate: _.template(EraResponse),
             eraProgressTemplate: _.template(eraProgress),
             subGridFilesTable: null,
             subGridPager: null,
@@ -53,7 +55,7 @@ define([
                 this.eobFilesTable.refresh();
 
                 var fileUploadedObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileNameUploaded');
-                var fileDuplicateObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileIsDuplicate');            
+                var fileDuplicateObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileIsDuplicate');
 
                 fileDuplicateObj.innerHTML = '';
                 fileUploadedObj.innerHTML = '';
@@ -82,13 +84,13 @@ define([
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblEOBFileList').jqGrid('getRowData', rowID);
-                                if ('success' == gridData.current_status){
+                                if ('success' == gridData.current_status) {
                                     self.showPayments(rowID, gridData.uploaded_file_name);
                                 }
                                 else {
                                     commonjs.showWarning('File not in Success status');
                                 }
-                                
+
                             }
                         },
                         { name: 'id', index: 'id', searchFlag: 'int', searchFlag: '%' },
@@ -194,7 +196,7 @@ define([
                     },
                     success: function (model, response) {
 
-                        var array_to_object = function($value){
+                        var array_to_object = function ($value) {
                             return isArray($value) ? array_to_object($value[0]) : $value;
                         }
 
@@ -222,9 +224,9 @@ define([
                                 commonjs.showWarning(msg);
                                 //commonjs.showWarning('Already Payment Processed');
                             }
-                        $('#btnProcessPayment').prop('disabled', false);
+                            $('#btnProcessPayment').prop('disabled', false);
                         }
-                       
+
                     },
                     error: function (err, response) {
                         commonjs.handleXhrError(err, response);
@@ -258,9 +260,9 @@ define([
                     self.reloadERAFilesLocal();
                 });
                 $('#btnProcessPayment').off().click(function (e) {
-                    if(!$('#select2-ddlInsuranceProviders-container').attr('data_description') || !$('#select2-ddlInsuranceProviders-container').attr('data_id')){
+                    if (!$('#select2-ddlInsuranceProviders-container').attr('data_description') || !$('#select2-ddlInsuranceProviders-container').attr('data_id')) {
                         commonjs.showWarning('Please select Insurance provider');
-                    }else{
+                    } else {
                         self.processFile(file_id, payerDetails, 'applypayments');
                     }
                 });
@@ -387,10 +389,8 @@ define([
             },
 
             showPayments: function (fileId, fileName) {
-                $("#divEraResult").show();
-
+                var self = this;
                 if (fileId) {
-
                     $.ajax({
                         url: '/exa_modules/billing/era/era_details',
                         type: "GET",
@@ -402,30 +402,37 @@ define([
                         success: function (model, response) {
 
                             if (model && model.rows.length) {
-
                                 var $eraTable = $('#eraResultTable');
-                                fileName =  fileName.substr(0, fileName.lastIndexOf('.'));
-                                $('#eraResultTitle').html('Result : '+ fileName);
-                                $eraTable.empty();
-                                var $trHead = '<tr> <th>Payment Id</th> <th>Claim Id</th> <th>Charge Id</th> <th>CPT Code</th> <th>Modifiers</th></tr>';
-                                var $tr = '';
-                                $.each(model.rows, function (index, obj) {
+                                fileName = fileName.substr(0, fileName.lastIndexOf('.'));
+                                
+                                var ins = model.rows[0];
+                                var claims = [];
 
-                                    obj.payment_id = obj.payment_id ? obj.payment_id : '';
-                                    obj.claim_id = obj.claim_id ? obj.claim_id : '';
-                                    obj.charge_id = obj.charge_id ? obj.charge_id : '';
-                                    obj.display_code = obj.display_code ? obj.display_code : '';
-                                    obj.modifiers = obj.modifiers ? obj.modifiers : '';
+                                var claimDetails = ins.claimsDetails;
+                                var chargeDetails = ins.chargeDetails;
 
-                                    $tr += '<tr><td>' + obj.payment_id + '</td>'
-                                        + '<td>' + obj.claim_id + '</td>'
-                                        + '<td>' + obj.charge_id + '</td>'
-                                        + '<td>' + obj.display_code + '</td>'
-                                        + '<td>' + obj.modifiers + '</td></tr>';
+                                var totalBillFee = 0.00;
+                                var totalAllowedFee = 0.00;
+                                $.each(claimDetails, function (index, row) {
+                                    row["charges"] = [];
+                                    for (var j = 0; j < chargeDetails.length; j++) {
+                                        if (row.claim_id === chargeDetails[j].claim_id) {
+                                            totalBillFee += parseFloat(chargeDetails[j].bill_fee.substr(1));
+                                            totalAllowedFee += parseFloat(chargeDetails[j].allowed_fee.substr(1));
+                                            row["charges"].push(chargeDetails[j]);
+                                        }
+                                    }
+                                    claims.push(row);
+                                    row["totalBillFee"] = totalBillFee;
+                                    row["totalAllowedFee"] = totalAllowedFee;
                                 });
-                                $trHead += $tr;
-                                $eraTable.append($trHead);
-                            }else{
+
+                                $('#eraResultTitle').html('Result : ' + fileName);
+                                $('#divEraResponse').html(self.eraResponseTemplate({ claims: claims, ins: ins }));
+                                $('#divResponseSection').height($(window).height() - 350);
+                                commonjs.showDialog({ header: 'Result : ' + fileName, width: '80%', height: '70%', html: $('#divEraResponse').html() });
+                            }
+                            else {
                                 commonjs.showWarning('No details to show');
                             }
                         },
