@@ -131,7 +131,7 @@ WITH claim_data as(
          tertiary_patient_insurance_id
    END)   
    WHERE 1 = 1
-   AND <%= claimDate %>  
+   <% if(reportBy == "false") { %> AND <% print(claimDate); } %>   
 
     order by first_name),
     detail_cte AS(
@@ -707,7 +707,6 @@ const api = {
         else {
             params.push(reportParams.sDate);         
             filters.sDate = `$${params.length}::date`;
-            
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);           
             filters.claimDate = queryBuilder.whereDateBetween(' bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');

@@ -73,7 +73,7 @@ var layout = {
         'User Log': '#aUserLog',
         'EDI Templates': '#aEDITemplate',
         'Paper Claim Templates': '#aPaperClaimTemplate',
-        'Insurance VS LOP' : '#aInsuranceLOP',
+        'Insurance VS LOP' : '#aInsuraceLOP',
         'Printer Templates' : '#aPrinterTemplate'
         /// To be added
     },
