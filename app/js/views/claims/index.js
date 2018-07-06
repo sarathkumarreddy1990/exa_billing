@@ -374,19 +374,28 @@ define(['jquery',
                             /* Header Details */
                             $(parent.document).find('#spanModalHeader').html('Edit: <STRONG>' + claimDetails.patient_full_name + '</STRONG> (Acc#:' + claimDetails.patient_account_no + '), <i>' + claimDetails.patient_dob + '</i>  ');
                             $.each(self.claimChargeList, function (index, data) {
-                                self.setChargeAutoComplete(index, 'code');
-                                self.setChargeAutoComplete(index, 'description');
                                 /* Bind charge table data*/
                                 if (data.cpt_code || data.display_description) {
-                                    $('#select2-txtCptCode_' + index + '-container').html(data.cpt_code).prop('title', data.cpt_code).attr({ 'data_code': data.cpt_code, 'data_description': data.display_description, 'data_id': data.cpt_id }).css('min-width', '80');
-                                    $('#select2-txtCptDescription_' + index + '-container').html(data.display_description).prop('title', data.display_description).attr({ 'data_code': data.cpt_code, 'data_description': data.display_description, 'data_id': data.cpt_id });
-                                    $('#txtCptCode_' + index).removeClass('cptIsExists');
+                                    $('#lblCptCode_' + index).html(data.cpt_code).attr({
+                                        'data_id': data.cpt_id,
+                                        'data_description': data.display_description,
+                                        'data_code': data.cpt_code
+                                    });
+                                    $('#lblCptDescription_' + index).html(data.display_description).attr({
+                                        'data_id': data.cpt_id,
+                                        'data_description': data.display_description,
+                                        'data_code': data.cpt_code
+                                    });
+                                    $('#lblCptCode_' + index).removeClass('cptIsExists');
                                 }
+                                self.bindCPTSelectionEvents('#divCptCode_' + index);
+                                self.bindCPTSelectionEvents('#divCptDescription_' + index);
                                 $('#ddlModifier1_' + index).val(data.modifier1_id ? data.modifier1_id : "");
                                 $('#ddlModifier2_' + index).val(data.modifier2_id ? data.modifier2_id : "");
                                 $('#ddlModifier3_' + index).val(data.modifier3_id ? data.modifier3_id : "");
                                 $('#ddlModifier4_' + index).val(data.modifier1_id ? data.modifier4_id : "");
                             });
+
 
                            
                             if (isFrom && isFrom == 'studies')
@@ -959,15 +968,21 @@ define(['jquery',
                 self.bindModifiersData(data);
                 var chargeTableRow = self.chargerowtemplate({ row: data });
                 $('#tBodyCharge').append(chargeTableRow);
-                self.setChargeAutoComplete(index, 'code');
-                self.setChargeAutoComplete(index, 'description');
 
                 /* Bind charge table data*/
                 if (data.cpt_code || data.display_description) {
-                    $('#select2-txtCptCode_' + index + '-container').html(data.cpt_code).prop('title', data.cpt_code).attr({ 'data_code': data.cpt_code, 'data_description': data.display_description, 'data_id': data.cpt_id }).css('min-width', '80');
-                    $('#select2-txtCptDescription_' + index + '-container').html(data.display_description).prop('title', data.display_description).attr({ 'data_code': data.cpt_code, 'data_description': data.display_description, 'data_id': data.cpt_id });
-                    $('#txtCptCode_' + index).removeClass('cptIsExists');
+                    $('#lblCptCode_' + index)
+                            .html(data.cpt_code)
+                            .attr({'data_id': data.cpt_id});
+                    $('#lblCptDescription_' + index).html(data.display_description).attr({'data_id': data.cpt_id});
+                    $('#lblCptCode_' + index).removeClass('cptIsExists');
                 }
+
+                self.bindCPTSelectionEvents('#divCptCode_' + index);
+                self.bindCPTSelectionEvents('#divCptDescription_' + index);
+
+
+
 
                 // modifiers dropdown
                 for (var m = 1; m <= 4; m++) {
@@ -990,6 +1005,96 @@ define(['jquery',
 
                 }
 
+            },
+
+            bindCPTSelectionEvents: function (el) {
+                var self = this;
+                $(el).mouseover(function (e) {
+                    var spnElement = $(this).children('span');
+                    if (!spnElement.hasClass('icon-ic-edit') && !$(this).prop('disabled')) {
+                        $(this).children('span')
+                            .addClass('icon-ic-edit')
+                            .css({
+                                'min-width': '50px',
+                                'cursor': 'pointer',
+                                'margin-left': '15px'
+                            })
+                            .click(function (e) {
+                                e.stopImmediatePropagation();
+                                var rowIndex = e.target.id;
+                                var type = $(e.target).attr('data-type');
+                                if (type == 'cpt') {
+                                    self.setChargeAutoComplete(rowIndex, 'code');
+                                    $('#divCptCode_' + rowIndex).hide();
+                                    $('#divSelCptCode_' + rowIndex).show();
+                                    $('#select2-txtCptCode_' + rowIndex + '-container').html($('#lblCptCode_' + rowIndex).html()).attr({
+                                        'data_id': $('#lblCptCode_' + rowIndex).attr('data_id'),
+                                        'data_description': $('#lblCptCode_' + rowIndex).attr('data_description'),
+                                        'data_code': $('#lblCptCode_' + rowIndex).attr('data_code')
+                                    });
+                                    $('#divCptDescription_' + rowIndex).prop('disabled',true);
+                                    self.bindCPTUpdateEvents($('#divSelCptCode_' + rowIndex).find('.icon-ic-check'));
+                                    self.bindCPTUpdateEvents($('#divSelCptCode_' + rowIndex).find('.icon-ic-close'));
+                                } else {
+                                    self.setChargeAutoComplete(rowIndex, 'description');
+                                    $('#divCptDescription_' + rowIndex).hide();
+                                    $('#divSelCptDescription_' + rowIndex).show();
+                                    $('#divCptCode_' + rowIndex).prop('disabled',true);
+                                    $('#select2-txtCptDescription_' + rowIndex + '-container').html($('#lblCptDescription_' + rowIndex).html()).attr({
+                                        'data_id': $('#lblCptDescription_' + rowIndex).attr('data_id'),
+                                        'data_description': $('#lblCptDescription_' + rowIndex).attr('data_description'),
+                                        'data_code': $('#lblCptDescription_' + rowIndex).attr('data_code')
+                                    });
+                                    self.bindCPTUpdateEvents($('#divSelCptDescription_' + rowIndex).find('.icon-ic-check'));
+                                    self.bindCPTUpdateEvents($('#divSelCptDescription_' + rowIndex).find('.icon-ic-close'));
+                                }
+                            });
+                    }
+                }).mouseout(function (e) {
+                    $(this).children('span').removeClass('icon-ic-edit');
+                });
+            },
+
+            bindCPTUpdateEvents: function(el) {
+                $(el).click(function(e) {
+                    var type = $(this).attr('data-type');
+                    var id = e.target.id;
+                    var lblCptCodeElement = null;
+                    var lblCptDescElement = null;
+                    var txtElement = null;
+                    if(type == 'cptCheck' || type == 'cptDescCheck') {
+                        lblCptCodeElement = '#lblCptCode_' + id;
+                        lblCptDescElement = '#lblCptDescription_' + id;
+                        txtElement = type == 'cptCheck' ? 'txtCptCode_' : 'txtCptDescription_';
+                        var selCPTElement = $('#select2-' + txtElement + id + '-container');
+                        var cpt_id = selCPTElement.attr('data_id');
+                        var cpt_code = selCPTElement.attr('data_code');
+                        var cpt_description = selCPTElement.attr('data_description');
+                        if(cpt_id) {
+                            $('#lblCptCode_' + id).removeClass('cptIsExists');
+                        }
+                        $(lblCptCodeElement)
+                            .html(cpt_code)
+                            .attr({
+                                'data_id': cpt_id,
+                                'data_description': cpt_description,
+                                'data_code': cpt_code
+                            });
+                        $(lblCptDescElement)
+                            .html(cpt_description)
+                            .attr({
+                                'data_id': cpt_id,
+                                'data_description': cpt_description,
+                                'data_code': cpt_code
+                            });
+                    }
+                    $('#divCptDescription_' + id).prop('disabled',false);
+                    $('#divCptCode_' + id).prop('disabled',false);
+                    $('#divCptCode_' + id).show();
+                    $('#divSelCptCode_' + id).hide();
+                    $('#divCptDescription_' + id).show();
+                    $('#divSelCptDescription_' + id).hide();
+                });
             },
 
             assignModifierEvent: function () {
@@ -1351,33 +1456,23 @@ define(['jquery',
                         var duration = (res.duration > 0) ? res.duration : 15;
                         var units = (res.units > 0) ? parseFloat(res.units) : 1.0;
                         var fee = (res.globalfee > 0) ? parseFloat(res.globalfee) : 0.0;
-                        self.setCptValues(rowIndex, txtCptCode, txtCptDescription, res, duration, units, fee);
+                        self.setCptValues(rowIndex, res, duration, units, fee, type);
+
                     }
                     return type == 'code' ? res.display_code : res.display_description;
                 }
             },
 
-            setCptValues: function (rowIndex, txtCptCode, txtCptDescription, res, duration, units, fee) {
-                var self = this;
-                $('#select2-' + txtCptCode + '-container').html(res.display_code).attr('title', res.display_code);
-                $('#select2-' + txtCptCode + '-container').attr('data_code', res.display_code);
-                $('#select2-' + txtCptCode + '-container').attr('data_description', res.display_description);
-                $('#select2-' + txtCptCode + '-container').attr('data_id', res.id);
-
-                $('#select2-' + txtCptDescription + '-container').html(res.display_description).attr('title', res.display_description);
-                $('#select2-' + txtCptDescription + '-container').attr('data_code', res.display_code);
-                $('#select2-' + txtCptDescription + '-container').attr('data_description', res.display_description);
-                $('#select2-' + txtCptDescription + '-container').attr('data_id', res.id);
-
+            setCptValues: function (rowIndex, res, duration, units, fee, type) {
+                var txtCptEl = type == 'code' ?  'txtCptCode_' + rowIndex : 'txtCptDescription_' + rowIndex;
+                $('#select2-' + txtCptEl + '-container').html(res.display_code).attr('title', res.display_code);
+                $('#select2-' + txtCptEl + '-container').attr('data_code', res.display_code);
+                $('#select2-' + txtCptEl + '-container').attr('data_description', res.display_description);
+                $('#select2-' + txtCptEl + '-container').attr('data_id', res.id);
                 $('#txtUnits_' + rowIndex).val(units);
                 $('#txtBillFee_' + rowIndex).val(parseFloat(fee).toFixed(2));
                 $('#txtAllowedFee_' + rowIndex).val(parseFloat(fee).toFixed(2));
                 $('#txtTotalAllowedFee_' + rowIndex).val(parseFloat(units * fee).toFixed(2));
-                $('#txtTotalBillFee_' + rowIndex).val(parseFloat(units * fee).toFixed(2));
-
-                // this class used to validate if cpt choosen or not
-                $('#' + txtCptCode).removeClass('cptIsExists');
-
             },
 
             setProviderAutoComplete: function (provider_type) {
@@ -2189,7 +2284,7 @@ define(['jquery',
                 claim_model.charges = [];
                 $('#tBodyCharge').find('tr').each(function (index, rowObject) {
                     var id = $(this).attr('data_row_id');
-                    var cpt_code_id = $('#select2-txtCptCode_' + id + '-container').attr('data_id');
+                    var cpt_code_id = $('#lblCptCode_' + id).attr('data_id');
                     var rowData = _.find(self.chargeModel, { 'data_row_id': parseInt(id) });
                     claim_model.charges.push({
                         id: rowData.id ? rowData.id : null,
