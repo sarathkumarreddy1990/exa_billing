@@ -395,8 +395,6 @@ define(['jquery',
                                 $('#ddlModifier3_' + index).val(data.modifier3_id ? data.modifier3_id : "");
                                 $('#ddlModifier4_' + index).val(data.modifier1_id ? data.modifier4_id : "");
                             });
-
-
                            
                             if (isFrom && isFrom == 'studies')
                                 $('.claimProcess').hide(); // hide Next/Prev btn if opened from studies worklist
@@ -980,9 +978,6 @@ define(['jquery',
 
                 self.bindCPTSelectionEvents('#divCptCode_' + index);
                 self.bindCPTSelectionEvents('#divCptDescription_' + index);
-
-
-
 
                 // modifiers dropdown
                 for (var m = 1; m <= 4; m++) {
