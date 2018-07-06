@@ -44,7 +44,7 @@ define([
                     'CRBE': 'aCreditBalanceEncounters',
                     'DSPS': 'aDateSVC', //this report is display none
                     'DICN': 'aDiagnosisCount',
-                    'IVSL': 'aInsuranceLOP',
+                    'IVSL': 'aInsuraceLOP',
                     'MOSU': 'aModalitySummary',
                     'MNRC': 'aMonthlyRecap',
                     'PATS': 'aPatientStatement',

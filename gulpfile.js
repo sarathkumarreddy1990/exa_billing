@@ -28,7 +28,7 @@ let getCurrentVersion = function () {
 
 
 gulp.task('clean', () => {
-    return gulp.src(['./build', './dist'])
+    return gulp.src(['./build', './build2', './dist'])
         .pipe(clean());
 });
 

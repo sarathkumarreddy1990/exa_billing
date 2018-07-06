@@ -150,7 +150,7 @@ define(['jquery',
                     'followUpDetails': ''
                 },
                 success: function (data, response) {
-                    commonjs.showStatus('Followup Reset Successfully');
+                    commonjs.showStatus('Followup canceled successfully');
                     $('#btnClaimsRefresh').trigger('click');
                 },
                 error: function (err) {
