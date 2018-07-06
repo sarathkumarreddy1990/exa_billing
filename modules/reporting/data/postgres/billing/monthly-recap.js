@@ -105,7 +105,7 @@ SELECT
     provider_type  AS "Ins Class"
     , COALESCE(agg_claim.facility_name, 'Total')  AS "Facility Name"    
     , SUM(charge_details.total_bill_fee) AS "Charges"
-    , SUM(pri_ins_payment.pri_adjustment) AS "Adjustments"
+    , SUM(COALESCE(pri_ins_payment.pri_adjustment,0::money)) AS "Adjustments"
     , SUM(agg_claim.claim_balance) AS "Balance"
     , SUM(charge_details.expected_amount) AS "Expected Payments"
     , SUM(COALESCE(total_credit.tot_credit,0::money)) AS "All Credits"
