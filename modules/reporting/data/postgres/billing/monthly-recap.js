@@ -10,7 +10,8 @@ const _ = require('lodash')
 const claimActivityDataSetQueryTemplate = _.template(`
 WITH agg_claim AS(
     SELECT 
-	     f.facility_name as facility_name
+         pippt.code AS provider_type
+	    , f.facility_name as facility_name
     	, f.id as facility_id
         , bc.id AS claim_id
         , payer_type
@@ -18,6 +19,11 @@ WITH agg_claim AS(
     FROM
     	billing.claims bc
     INNER JOIN public.facilities f ON f.id = bc.facility_id
+    LEFT JOIN public.patient_insurances ppi ON ppi.id = CASE WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
+                                                            WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
+                                                            WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id END
+    LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
+    LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
     <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
      WHERE 1 = 1
      AND <%= companyId %>
@@ -95,18 +101,19 @@ patient_payment AS(
     INNER JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id AND bpa.amount_type = 'payment'
     GROUP BY agg_claim.claim_id
 )
-SELECT 
-      COALESCE(agg_claim.facility_name, 'Total')  AS "Facility Name"    
+SELECT
+    provider_type  AS "Ins Class"
+    , COALESCE(agg_claim.facility_name, 'Total')  AS "Facility Name"    
     , SUM(charge_details.total_bill_fee) AS "Charges"
-    , SUM(pri_ins_payment.pri_adjustment) AS "Adjustments"
+    , SUM(COALESCE(pri_ins_payment.pri_adjustment,0::money)) AS "Adjustments"
     , SUM(agg_claim.claim_balance) AS "Balance"
     , SUM(charge_details.expected_amount) AS "Expected Payments"
-    , SUM(total_credit.tot_credit) AS "All Credits"
-    , SUM(pri_ins_payment.pri_payment) AS "Ins1 Pay"
-    , SUM(sec_ins_payment.sec_payment) AS "Ins2 Pay"
-    , SUM(ter_ins_payment.ter_payment) AS "Ins3 Pay"
-    , SUM(patient_payment.patient_pay) AS "Patient Payment"
-    , SUM(charge_details.units) AS "Units"
+    , SUM(COALESCE(total_credit.tot_credit,0::money)) AS "All Credits"
+    , SUM(COALESCE(pri_ins_payment.pri_payment,0::money)) AS "Ins1 Pay"
+    , SUM(COALESCE(sec_ins_payment.sec_payment,0::money)) AS "Ins2 Pay"
+    , SUM(COALESCE(ter_ins_payment.ter_payment,0::money)) AS "Ins3 Pay"
+    , SUM(COALESCE(patient_payment.patient_pay,0::money)) AS "Patient Payment"
+    , SUM(COALESCE(charge_details.units,0::numeric)) AS "Units"
     , SUM(charge_details.cpt_count) AS "Num Process."
 FROM agg_claim
 LEFT JOIN pri_ins_payment ON agg_claim.claim_id = pri_ins_payment.claim_id
@@ -115,8 +122,9 @@ LEFT JOIN ter_ins_payment ON agg_claim.claim_id = ter_ins_payment.claim_id
 LEFT JOIN total_credit ON agg_claim.claim_id = total_credit.claim_id
 LEFT JOIN charge_details ON agg_claim.claim_id = charge_details.claim_id
 LEFT JOIN patient_payment ON agg_claim.claim_id = patient_payment.claim_id
-GROUP BY ROLLUP (agg_claim.facility_name)
-
+GROUP BY GROUPING SETS(
+    ( "Ins Class"), ("Ins Class","Facility Name"),())
+ORDER BY "Ins Class"
 `);
 
 const api = {

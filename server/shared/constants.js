@@ -173,6 +173,7 @@ module.exports = {
         'transcription': 'ECLM',
         'vieworder': 'ECLM', // view doc Rmenu
         'claim_charge': 'ECLM', //delete Claim Rmenu 
-        'upload': 'ERAI'
+        'upload': 'ERAI',
+        'user_settings':'BUST'
     }
 };

@@ -475,9 +475,13 @@ define('grid', [
                 }
 
                 if (this.homeOpentab == 'Follow_up_queue') {
-                    var liResetFollowUp = commonjs.getRightClickMenu('anc_reset_followup', 'setup.rightClickMenu.resetFollowUp', false, 'Reset Follow-up', false);
+                    var liResetFollowUp = commonjs.getRightClickMenu('anc_reset_followup', 'setup.rightClickMenu.resetFollowUp', false, 'Cancel Follow-up', false);
                     $divObj.append(liResetFollowUp);
                     $('#anc_reset_followup').click(function () {
+                        if (!window.confirm('Are you sure you want to cancel?')) {
+                            return false;
+                        }
+
                         self.followUpView = new followUpView();
                         self.followUpView.resetFollowUp(studyIds);
                     });
@@ -527,6 +531,13 @@ define('grid', [
             else {
                 var studyStore = new Studies(null, { 'filterID': filterID });
             }
+
+            var billingUserList = {};
+
+            $.each(app.billing_user_list, function ( index, users ) {                    
+                billingUserList[ users.id ] = users.username+' ( '+users.last_name +', '+users.first_name +' ) ';
+            });
+
             var claimsTable = new customGrid(studyStore, gridID);
             var changeGrid = initChangeGrid(claimsTable);
             var transcriptionHide = true;
@@ -570,12 +581,12 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 (options.isClaimGrid ? '<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />' : ''),
-                '', '', '', '', '','','','','','','','',''
+                '', '', '', '', '','','','','','','','','','AssignedTo'
 
             ]);
 
             i18nName = i18nName.concat([
-                '', '', '', '', '', '','','','','','','','',''
+                '', '', '', '', '', '','','','','','','','','','billing.claims.assignedTo'
             ]);
 
             colModel = colModel.concat([
@@ -743,7 +754,27 @@ define('grid', [
                     search: false,
                     hidden: true,
                     isIconCol: true
-                }
+                },
+                {   
+                    name: 'assigned_to',
+                    width: 200,
+                    sortable: false,
+                    resizable: false,
+                    search: true,
+                    hidden: !(options.filterid =="Follow_up_queue"),
+                    isIconCol: true,
+                    "stype": "select",
+                    "searchoptions": { 
+                        "value": billingUserList,
+                        "defaultValue":billingUserList
+                    },
+                    formatter: function (cellvalue, options, rowObject) {
+                        var users = commonjs.getBillingUserName(rowObject.assigned_to);
+                        if (users && users.length)
+                            return users[0].username + ' ( ' + users[0].last_name + ', ' + users[0].first_name + ' ) ';
+                        else ''
+                    }
+                },
             ]);
 
             if (app.showserial) {

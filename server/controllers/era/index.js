@@ -3,6 +3,7 @@ const ediConnect = require('../../../modules/edi');
 const paymentController = require('../payments/payments');
 const eraParser = require('./era-parser');
 const logger = require('../../../logger');
+const shared = require('../../shared');
 
 const mkdirp = require('mkdirp');
 const fs = require('fs');
@@ -13,10 +14,46 @@ const { promisify } = require('util');
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 
+const createDir = function (fileStorePath, filePath) {
+
+    const dirPath = `${fileStorePath}\\${filePath}`;
+
+    logger.info(`File store: ${fileStorePath}, ${filePath}`);
+
+    if (fileStorePath) {
+        if (!fs.exists(dirPath)) {
+            mkdirp(dirPath);
+        } else {
+            throw new Error('Directory not found');
+        }
+    } else {
+        throw new Error('Directory not found in file store');
+    }
+};
+
 module.exports = {
 
     getEraFiles: function (params) {
         return data.getEraFiles(params);
+    },
+
+    getDetailedEob: async function (params) {
+
+        if (!params.f) {
+            return new Error('Invalid ERA file');
+        }
+
+        const fileName = shared.base64Decode(params.f);
+        const eraRequestText = await readFile(fileName, 'utf8');
+        const templateName = await ediConnect.getDefaultEraTemplate();
+
+        if (!templateName) {
+            return new Error('ERA template not found to process file');
+        }
+
+        const eraResponseJson = await ediConnect.parseEra(templateName, eraRequestText);
+
+        return eraResponseJson;
     },
 
     uploadFile: async function (params) {
@@ -25,6 +62,9 @@ module.exports = {
                 status: 'INVALID_FILE',
             };
         }
+
+        const mode = params.body.mode.toUpperCase();
+        const isPreviewMode = mode === 'PREVIEW_EOB';
 
         const buffer = params.file.buffer;
         const fileSize = params.file.size;
@@ -43,20 +83,30 @@ module.exports = {
 
         const currentTime = new Date();
 
-        const localPath = `${currentTime.getFullYear()}\\${currentTime.getMonth()}\\${currentTime.getDate()}`;
-        const dirPath = `${fileStorePath}\\${localPath}`;
+        let fileRootPath = `${currentTime.getFullYear()}\\${currentTime.getMonth()}\\${currentTime.getDate()}`;
 
-        logger.info(`ERA File store: ${fileStorePath}`);
+        if (isPreviewMode) {
+            logger.info('ERA Preview MODE');
+            fileRootPath = `trash\\${currentTime.getFullYear()}\\${currentTime.getMonth()}`;
+            createDir(fileStorePath, fileRootPath);
 
-        if (fileStorePath) {
-            if (!fs.exists(dirPath)) {
-                mkdirp(dirPath);
-            } else {
-                throw new Error('Directory not found');
-            }
-        } else {
-            throw new Error('Directory not found in file store');
+            let diskFileName = params.session.id + '__' + fileName;
+
+            let filePath = path.join(fileStorePath, fileRootPath, diskFileName);
+            logger.info(`Writing file in Disk -  ${filePath}`);
+
+            await writeFile(filePath, bufferString, 'binary');
+
+            logger.info(`File uploaded successfully. ${filePath}`);
+
+            return {
+                previewFileName: shared.base64Encode(filePath),
+                status: 'PREVIEW',
+            };
         }
+
+        logger.info('ERA Process MODE');
+        createDir(fileStorePath, fileRootPath);
 
         if (fileExist != false) {
             logger.info(`ERA Duplicate file: ${fileMd5}`);
@@ -73,7 +123,7 @@ module.exports = {
             company_id: params.audit.companyId,
             status: 'pending',
             file_type: '835',
-            file_path: localPath,
+            file_path: fileRootPath,
             file_size: fileSize,
             file_md5: fileMd5,
             fileName: fileName
@@ -85,7 +135,7 @@ module.exports = {
             };
         }
 
-        let filePath = path.join(dirPath, dataResponse.rows[0].id);
+        let filePath = path.join(fileStorePath, fileRootPath, dataResponse.rows[0].id);
         logger.info(`Writing file in Disk -  ${filePath}`);
 
         await writeFile(filePath, bufferString, 'binary');
@@ -307,9 +357,9 @@ module.exports = {
         return data.getFileStorePath(params);
     },
 
-    getProcessedEraFileDetails: async function(params){
+    getProcessedEraFileDetails: async function (params) {
 
         return data.getProcessedFileData(params);
-        
+
     }
 };

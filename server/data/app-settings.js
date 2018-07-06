@@ -90,7 +90,8 @@ module.exports = {
                                         description,
                                         is_system_status
                                     FROM   billing.claim_status
-                                    WHERE  NOT is_system_status AND company_id=${companyID} AND inactivated_dt IS NULL ) AS claim_status)
+                                    WHERE  NOT is_system_status AND company_id=${companyID} AND inactivated_dt IS NULL
+                                    ORDER  BY display_order ) AS claim_status)
                 , cte_billing_codes AS(
                                     SELECT Json_agg(Row_to_json(billing_codes)) billing_codes
                                     FROM  (
@@ -197,6 +198,19 @@ module.exports = {
                                     , accounting_entry_type  
                                     FROM billing.adjustment_codes 
                                     WHERE company_id = ${companyID} AND inactivated_dt IS NULL ) AS adjustment_code_list)
+                , cte_user_group_list AS(
+                                    SELECT Json_agg(Row_to_json(billing_user_list)) billing_user_list
+                                    FROM  (
+                                    SELECT 
+                                    username,
+                                    first_name,
+                                    last_name,
+                                    user_type,
+                                    users.id
+                                    FROM users inner join user_groups on user_groups.id=user_group_id 
+                                    WHERE (group_name='Billing' OR user_type='SU')        
+                                    AND users.has_deleted=false and users.is_active = true
+                                    AND users.company_id = ${companyID} ) AS billing_user_list)
                
                SELECT *
                FROM   cte_company,
@@ -218,7 +232,8 @@ module.exports = {
                       cte_printer_templates,
                       cte_billing_providers,
                       cte_places_of_service,
-                      cte_adjustment_code_list
+                      cte_adjustment_code_list,
+                      cte_user_group_list
                `;
 
         return await query(sql);
