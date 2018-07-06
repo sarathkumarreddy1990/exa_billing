@@ -877,9 +877,19 @@ define(['jquery',
                                     self.bindDefaultClaimDetails(_defaultDetails);
                                 }, 200);
                                 
-                                self.bindProblemsContent(diagnosisCodes,diagnosisCodesOrder);
+                                self.bindProblemsContent(diagnosisCodes, diagnosisCodesOrder);
 
-                                if(modelDetails && modelDetails.charges && modelDetails.charges.length)
+                                /* Bind chargeLineItems events - started*/
+                                self.assignLineItemsEvents();
+                                self.assignModifierEvent();
+                                app.modifiers_in_order = true;
+                                commonjs.enableModifiersOnbind('M'); // Modifier
+                                commonjs.enableModifiersOnbind('P'); // Diagnostic Pointer
+                                commonjs.validateControls();
+                                commonjs.isMaskValidate();
+                                /* Bind chargeLineItems events - Ended */
+
+                                if (modelDetails && modelDetails.charges && modelDetails.charges.length)
                                     $("#txtClaimDate").attr("disabled", "disabled"); 
                             }                            
                         },
