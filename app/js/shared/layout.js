@@ -53,7 +53,7 @@ var layout = {
         'Credit Balance Encounters': '#aCreditBalanceEncounters',
         'Date Of SVC Payment': '#aDateSVC',
         'Diagnosis Count': '#aDiagnosisCount',
-        'Insurance VS LOP': '#aInsuraceLOP',
+        'Insurance VS LOP': '#aInsuranceLOP',
         'Modality Summary': '#aModalitySummary',
         'Monthly Recap': '#aMonthlyRecap',
         'Patient Statement': '#aPatientStatement',
@@ -72,8 +72,7 @@ var layout = {
         'Audit Log': '#aAuditLog',
         'User Log': '#aUserLog',
         'EDI Templates': '#aEDITemplate',
-        'Paper Claim Templates': '#aPaperClaimTemplate',
-        'Insurance VS LOP' : '#aInsuraceLOP',
+        'Paper Claim Templates': '#aPaperClaimTemplate',      
         'Printer Templates' : '#aPrinterTemplate'
         /// To be added
     },

@@ -56,7 +56,7 @@ module.exports = {
         'payer-mix': 'Payer Mix Report',
         // 'payment': 'Payments Report' Need to change the name,
         'claim-inquiry': 'Claim Inquiry Report',
-        'insurance-vs-lop': 'Insurance vs LOP Report',
+        'insurance-vs-lop': 'Insurance Vs LOP Report',
         'patients-by-insurance-company': 'Patients by Insurance Company',
         'payments-by-ins-company': 'Payments by Insurance Company',
         'procedure-analysis-by-insurance': 'Procedure Analysis by Insurance Report',
