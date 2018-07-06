@@ -23,6 +23,7 @@ module.exports = {
                  ,paper_claim_original_template_id
                  ,direct_invoice_template_id
                  ,patient_invoice_template_id
+                 ,company_id
                 )
             SELECT
                   ${args.userId}
@@ -35,6 +36,7 @@ module.exports = {
                 , ${args.paper_claim_original}
                 , ${args.direct_invoice}
                 , ${args.patient_invoice}
+                , ${args.companyId}
             WHERE NOT EXISTS (
                 SELECT * FROM billing.user_settings WHERE user_id = ${args.userId} AND grid_name = ${args.flag}
             )
