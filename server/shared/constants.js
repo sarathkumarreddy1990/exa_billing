@@ -117,7 +117,6 @@ module.exports = {
         'claim_workbench': 'CLIM',
         'claims_total_records': 'CLIM',
         'claim_filters': 'CLIM',
-        'follow_ups': 'CLIM',
         'providers': 'CLIM', // AS OF NOW ---->  providers Auto Complete if claim have right then all drop will get rights
         'icd_codes':'CLIM', //Auto Cpmplete
         'provider_group': 'CLIM', //Auto Cpmplete
@@ -131,9 +130,9 @@ module.exports = {
         'claim_json':'CLIM', //when claim
         'get_patient_insurances': 'CLIM', //create claim
         'get_line_items': 'CLIM', //create claim
-        'studies': 'STDS',
+        'studies': 'HSTY', 
         'study_filters': 'SFIL',
-        'studies_total_records': 'STDS',
+        'studies_total_records': 'HSTY',
         'payments': 'PAYM',
         'claim_inquiry': 'CLMI',
         'split_claim': 'MASO',
@@ -173,6 +172,9 @@ module.exports = {
         'transcription': 'ECLM',
         'vieworder': 'ECLM', // view doc Rmenu
         'claim_charge': 'ECLM', //delete Claim Rmenu 
-        'upload': 'ERAI'
+        'upload': 'ERAI',
+        'user_settings':'BUST',
+        'claim_study': 'ECLM',
+        'follow_ups': 'ECLM'
     }
 };

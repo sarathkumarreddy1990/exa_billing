@@ -151,6 +151,11 @@ define([
                         gridName: self.gridFilterName
                     },
                     success: function (data, response) {
+                        if(data.error){
+                            $('#divForm_Mysettings').hide();
+                            $('#divAccess').show();
+                            return;
+                        }
                         var displayFields = [];
                         self.billingDisplayFields = [];
                         self.displayFieldChecked = [];
@@ -160,7 +165,7 @@ define([
                         if (self.gridFilterName == 'studies')
                             self.billingDisplayFields = result.study_fields;
                         var result_data = data && data.length && data[1] && data[1].rows && data[1].rows.length ? data[1].rows[0] : {};
-                        self.checkedBillingDisplayFields = result_data.field_order;
+                        self.checkedBillingDisplayFields = result_data.field_order || [] ;
                         var checkedGridFields = self.checkedBillingDisplayFields ? self.checkedBillingDisplayFields : [];
                         var gridFieldArray = [],
                             field_order = [];
