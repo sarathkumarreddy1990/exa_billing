@@ -1268,13 +1268,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 "i18n_name": "billing.fileInsurance.claimNo",
                 "field_info": {
                     "custom_name": "Claim #",
-                    "name": "claim_no",
+                    "name": "claim_id",
                     "width": 200,
-                    "formatter": function ( cellvalue, options, rowObject ) {
-                        return billing_status.indexOf(rowObject.order_status_code) > -1 ?
-                               '' :
-                               rowObject.order_id;
-                    },
                     "defaultValue": ""
                 },
                 "field_code": "claim_no"

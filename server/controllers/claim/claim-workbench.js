@@ -81,8 +81,8 @@ module.exports = {
                 header:result.rows[0].header,
                 'bht': {
                     'requestID': '1',
-                    'tsCreationDate': '20180204',
-                    'tsCreationTime': '0604'
+                    'tsCreationDate': result.rows[0].header.fgDate,
+                    'tsCreationTime':  result.rows[0].header.fgTime
                 },
                 data:ediData
             };
