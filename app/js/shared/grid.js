@@ -475,9 +475,13 @@ define('grid', [
                 }
 
                 if (this.homeOpentab == 'Follow_up_queue') {
-                    var liResetFollowUp = commonjs.getRightClickMenu('anc_reset_followup', 'setup.rightClickMenu.resetFollowUp', false, 'Reset Follow-up', false);
+                    var liResetFollowUp = commonjs.getRightClickMenu('anc_reset_followup', 'setup.rightClickMenu.resetFollowUp', false, 'Cancel Follow-up', false);
                     $divObj.append(liResetFollowUp);
                     $('#anc_reset_followup').click(function () {
+                        if (!window.confirm('Are you sure you want to cancel?')) {
+                            return false;
+                        }
+
                         self.followUpView = new followUpView();
                         self.followUpView.resetFollowUp(studyIds);
                     });
