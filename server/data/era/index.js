@@ -171,9 +171,9 @@ module.exports = {
                                 ,claim_status_code bigint
                              )
                             ),
-                           selected_Items AS (
+                           matched_claims AS (
                                 SELECT 
-                                    application_details.claim_number,
+                                    application_details.claim_number AS claim_id,
                                     application_details.claim_status_code,
                                     json_build_object(
                                         'charge_id',charges.id,
@@ -214,32 +214,25 @@ module.exports = {
                            ), 
                            insert_payment_adjustment AS (
                                 SELECT
-                                    selected_Items.claim_number
-                                    ,selected_Items.claim_status_code
+                                    matched_claims.claim_id
+                                    ,matched_claims.claim_status_code
                                     ,billing.create_payment_applications(
                                         ${paymentDetails.id}
                                         ,( SELECT id FROM billing.adjustment_codes WHERE code ='ERA' ORDER BY id ASC LIMIT 1 )
                                         ,${paymentDetails.created_by}
-                                        ,json_build_array(selected_Items.json_build_object)::jsonb
+                                        ,json_build_array(matched_claims.json_build_object)::jsonb
                                         ,(${JSON.stringify(audit_details)})::json
                                     )
                                 FROM
-	                                selected_Items
+	                                matched_claims
                             ),
-                            inserted_claims AS ( 
-                                SELECT 
-                                    DISTINCT claim_number as claim_id
-                                    ,claim_status_code
-                                FROM 
-                                    insert_payment_adjustment 
-                            )
-                            ,matched_claim_payment AS (
+                            matched_claim_payment AS (
                                 SELECT
                                     COALESCE(sum(c.bill_fee * c.units),'0')::numeric AS claim_bill_fee_total
                                     ,'Amount received for matching orders : ' || COALESCE(sum(c.bill_fee * c.units),'0')::numeric AS notes
                                 FROM
                                     billing.charges AS c
-                                    INNER JOIN inserted_claims ON inserted_claims.claim_id = c.claim_id
+                                    INNER JOIN matched_claims ON matched_claims.claim_id = c.claim_id
                                     INNER JOIN public.cpt_codes AS pc ON pc.id = c.cpt_id
                             )
                             ,update_payment AS (
@@ -271,20 +264,22 @@ module.exports = {
                                         ,note text
                                         ,type text
                                     )
-                                INNER JOIN inserted_claims ic on ic.claim_id = claim_notes.claim_number
+                                INNER JOIN matched_claims mc on mc.claim_id = claim_notes.claim_number
                                 RETURNING id AS claim_comment_id
                                 ),
                                 update_claim_status_and_payer AS (
                                     SELECT  
-                                        billing.change_responsible_party(claim_id, claim_status_code, ${paymentDetails.company_id}) 
+                                        claim_id
+                                        ,billing.change_responsible_party(claim_id, claim_status_code, ${paymentDetails.company_id}) 
                                     FROM 
-                                        inserted_claims
+                                        matched_claims
                                 )
                                 SELECT
 	                            ( SELECT json_agg(row_to_json(insert_payment_adjustment)) insert_payment_adjustment
                                             FROM (
                                                     SELECT
                                                           *
+                                                          , ( SELECT array_agg(claim_id) FROM update_claim_status_and_payer LIMIT 1 )
                                                     FROM
                                                     insert_payment_adjustment
                                             
