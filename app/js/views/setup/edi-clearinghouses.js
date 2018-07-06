@@ -216,9 +216,7 @@ define(['jquery',
                         $("#txtReceiverName").val($.trim($('#txtReceiverName').val()) || null);
                         $("#txtReceiverID").val($.trim($('#txtReceiverID').val()) || null);
                         $("#txtEdiTemplateName").val($.trim($('#txtEdiTemplateName').val()) || null);
-                        $("#txtAuthInfo").val($.trim($('#txtAuthInfo').val()) || null);
                         $("#txtAuthInfoQualifier").val($.trim($('#txtAuthInfoQualifier').val()) || null);
-                        $("#txtSecurityInfo").val($.trim($('#txtSecurityInfo').val()) || null);
                         $("#txtSecurityAuthQualifier").val($.trim($('#txtSecurityAuthQualifier').val()) || null);
                         $("#txtSenderID").val($.trim($('#txtSenderID').val()) || null);
                         $("#txtSenderIDQualifier").val($.trim($('#txtSenderIDQualifier').val()) || null);
@@ -296,9 +294,9 @@ define(['jquery',
 
             save: function () {
                 var communication_info = {
-                    authorizationInformation: $('#txtAuthInfo').val(),
+                    authorizationInformation: $('#txtAuthInfo').val() == '' ? '\xa0' : $('#txtAuthInfo').val().replace(/ /g, '\xa0'),
                     authorizationInformationQualifier: $('#txtAuthInfoQualifier').val(),
-                    securityInformation: $('#txtSecurityInfo').val(),
+                    securityInformation: $('#txtSecurityInfo').val() == '' ? '\xa0' : $('#txtSecurityInfo').val().replace(/ /g, '\xa0'),
                     securityInformationQualifier: $('#txtSecurityAuthQualifier').val(),
                     interchangeSenderId: $('#txtSenderID').val(),
                     interchangeSenderIdQualifier: $('#txtSenderIDQualifier').val(),
