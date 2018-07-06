@@ -7,9 +7,10 @@ define([
     'jqgridlocale',
     'text!templates/app/eraGrid.html',
     'text!templates/app/era-progress.html',
+    'text!templates/app/era-preview.html',
     'collections/app/era',
     'models/pager'],
-    function (jQuery, Immutable, _, Backbone, JGrid, JGridLocale, eraGrid, eraProgress, eraLists, EobFilesPager) {
+    function (jQuery, Immutable, _, Backbone, JGrid, JGridLocale, eraGrid, eraProgress, EraPreview, eraLists, EobFilesPager) {
         var eraView = Backbone.View.extend({
 
             eraGridTemplate: _.template(eraGrid),
@@ -357,6 +358,9 @@ define([
 
             showEraPreview: function (fileName) {
 
+                var self = this;
+                commonjs.showLoading();
+
                 $.ajax({
                     url: '/exa_modules/billing/era/era_file_preview',
                     type: "GET",
@@ -365,7 +369,16 @@ define([
                         f: fileName
                     },
                     success: function (eraJson, response) {
-                        console.log(eraJson)
+                        commonjs.hideLoading();console.log(eraJson)
+
+                        try {
+                            var eraPreview = _.template(EraPreview);
+                            var previewHtml = eraPreview({ data: eraJson });
+
+                            commonjs.showDialog({ header: 'ERA Preview', width: '60%', height: '60%', html: previewHtml }, true);
+                        } catch (err) {
+                            commonjs.showError('Unable to process');
+                        }
                     },
                     error: function (err, response) {
                         commonjs.handleXhrError(err, response);
