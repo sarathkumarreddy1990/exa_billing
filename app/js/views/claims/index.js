@@ -770,7 +770,8 @@ define(['jquery',
                     self.assignExistInsurance(e);
                 });
 
-                $("#ddlPriRelationShip, #ddlSecRelationShip, #ddlTerRelationShip").off().change(function (e) {
+                $("#ddlPriRelationShip, #ddlSecRelationShip, #ddlTerRelationShip").off().change(function (e) {                
+                    self.showSelf(e);
                     self.changeRelationalShip(e);
                 });
 
@@ -807,20 +808,19 @@ define(['jquery',
                 //     self.urlNavigation(e);
                 // });
 
-                $("#ddlPriRelationShip, #ddlSecRelationShip, #ddlTerRelationShip").off().change(function (e) {
-                    self.showSelf(e);
-                });
-
                 $("#chkPriSelf").off().change(function (e) {
                     self.setPriRelationShipSelf(e);
+                    self.changeRelationalShip(e);
                 });
 
                 $(" #chkSecSelf").off().change(function (e) {
                     self.setSecRelationShipSelf(e);
+                    self.changeRelationalShip(e);
                 });
 
                 $(" #chkTerSelf").off().change(function (e) {
                     self.setTerRelationShipSelf(e);
+                    self.changeRelationalShip(e);
                 });
             },
             getLineItemsAndBind: function (selectedStudyIds) {
@@ -2459,7 +2459,11 @@ define(['jquery',
                 var patID = self.cur_patient_id;
                 this.patientmodel = new patientModel();
                 var subscriberFlag = false;
-                var _targetFlag = $(e.target).attr('id') == "ddlPriRelationShip" ? 'Pri' : ($(e.target).attr('id') == "ddlSecRelationShip" ? 'Sec' : 'Ter');
+
+                var _targetFlag = $(e.target).attr('id') == "ddlPriRelationShip" || $(e.target).attr('id') == "chkPriSelf" ?
+                    'Pri' : $(e.target).attr('id') == "ddlSecRelationShip" || $(e.target).attr('id') == "chkSecSelf" ?
+                        'Sec' : 'Ter';
+
                 if (!subscriberFlag) {
                     this.patientmodel.fetch({
                         data: { id: patID },
