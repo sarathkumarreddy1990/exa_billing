@@ -424,6 +424,7 @@ module.exports = {
                                     accounting_entry_type AS type
                             FROM billing.adjustment_codes 
                             WHERE company_id = ${params.companyID}
+                                AND inactivated_dt IS NULL
                             ) 
                     AS adjustment_codes),
                 charges AS(

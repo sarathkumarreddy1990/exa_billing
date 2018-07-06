@@ -467,34 +467,77 @@ module.exports = {
             file_id
         } = params;
 
-        const sql = SQL` SELECT 
-                    		efp.payment_id
-                    		,charges.claim_id
-                    		,charges.charge_id
-                    		,charges.display_code
-                    		,charges.modifiers
-                    	FROM billing.edi_file_payments efp
-                    	LEFT JOIN LATERAL (
-                            SELECT 
-                                DISTINCT ch.id as charge_id
-                                ,ch.claim_id
-                                ,cpt_codes.display_code
-                    		    , (
-                    			    SELECT array_agg(code) FROM public.modifiers where id in (
-                    				    SELECT unnest(array_remove(ARRAY[modifier1_id,modifier2_id,modifier3_id,modifier4_id], null))
-                    				    FROM billing.charges WHERE id = ch.id
-                    			    )
-                    		    ) as modifiers
-                                FROM 
-                                    billing.charges ch	
-                                INNER JOIN cpt_codes on cpt_codes.id = ch.cpt_id
-                                LEFT JOIN billing.payment_applications pa ON pa.charge_id = ch.id 
-                                LEFT JOIN public.modifiers m ON m.id = ch.id 
-                               WHERE 
-                                pa.payment_id = efp.payment_id 
+        const sql = SQL`
+        
+            WITH insurance_details AS(
+                SELECT 
+                    bp.id as payment_id ,
+                    pip.id ,
+                    pip.insurance_name ,
+                    pip.insurance_info->'payerID' AS payer_id,
+                    bp.payment_dt AS payment_dt,
+                    pip.insurance_info->'Address1' AS address1,
+                    pip.insurance_info->'Address2' AS address2,
+                    pip.insurance_info->'City'  AS city,
+                    pip.insurance_info->'State' AS state,
+                    pip.insurance_info->'PhoneNo' AS phone_no,
+                    pip.insurance_info->'ZipCode' AS zip
+                FROM 
+                    billing.edi_files bef 
+                    INNER JOIN billing.edi_file_payments befp ON befp.edi_file_id = bef.id 
+                    INNER JOIN billing.payments bp on bp.id = befp.payment_id 
+                    INNER JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id 
+                    where bef.id = ${file_id}
+                ),
+                charge_details AS (         
+                    (SELECT Json_agg(Row_to_json(chargeDetails)) "chargeDetails"
+                    FROM 
+                   (
+                    SELECT 
+                    bch.claim_id, 
+                    bch.charge_dt::date,
+                    pcc.display_code AS cpt_decsription,
+                    (bch.bill_fee * bch.units) AS bill_fee ,
+                    (bch.allowed_amount * bch.units) AS allowed_fee 
+                    FROM  
+                    billing.edi_files bef 
+                    LEFT JOIN billing.edi_file_payments befp ON befp.edi_file_id = bef.id 
+                    LEFT JOIN billing.payments bp on bp.id = befp.payment_id 
+                    LEFT JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id 
+                    
+                    LEFT JOIN billing.payment_applications bpa on bpa.payment_id = bp .id
+                    LEFT JOIN billing.charges bch on bch.id = bpa.charge_id
+                    LEFT JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
 
-                            ) AS charges ON true
-                    	WHERE efp.edi_file_id = ${file_id}  ORDER BY efp.payment_id `;
+                    LEFT JOIN public.modifiers pm on pm.id = any (ARRAY [modifier1_id,modifier2_id,modifier3_id,modifier4_id]) where bef.id = ${file_id}
+                ) AS chargeDetails )
+                    ),
+                claim_details AS (              
+                    (SELECT Json_agg(Row_to_json(claimsDetails)) "claimsDetails"
+                     FROM 
+                    (  SELECT 
+                        patients.id,
+                        patients.account_no,
+                        get_full_name (patients.last_name,patients.first_name) AS pat_name,
+                        claim_id
+                        FROM 
+                        (
+                            SELECT DISTINCT
+                            bch.claim_id
+                            FROM billing.edi_files
+                            INNER JOIN billing.edi_file_payments efp on efp.edi_file_id  = edi_files.id
+                            LEFT JOIN billing.payments pay on pay.id = efp.payment_id
+                            LEFT  JOIN billing.payment_applications bpa on bpa.payment_id = pay.id
+                            LEFT  JOIN billing.charges bch on bch.id = bpa.charge_id 
+                            where edi_files.id = ${file_id}
+                        ) AS claim_details
+
+                        inner join billing.claims on claims.id = claim_details.claim_id
+                        inner join patients on patients.id = claims.patient_id    
+                    ) AS claimsDetails      )       
+                )
+                SELECT * FROM insurance_details, charge_details, claim_details
+        `;
 
         return await query(sql);
 
