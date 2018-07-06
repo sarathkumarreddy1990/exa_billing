@@ -532,7 +532,7 @@ define('grid', [
                 var studyStore = new Studies(null, { 'filterID': filterID });
             }
 
-            let billingUserList = {};
+            var billingUserList = {};
 
             $.each(app.billing_user_list, function ( index, users ) {                    
                 billingUserList[ users.id ] = users.username+' ( '+users.last_name +', '+users.first_name +' ) ';
