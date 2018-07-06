@@ -13,8 +13,9 @@ define('grid', [
     'text!templates/setup/study-filter-grid.html',
     'views/claims/claim-inquiry',
     'views/claims/split-claim',
-    'views/claims/followup'
-], function (jQuery, _, initChangeGrid, utils, Pager, StudyFields, Studies, claimWorkbench, claimsView, UserSettingsView, StudyFilterView, studyFilterGrid, claimInquiryView, splitClaimView, followUpView) {
+    'views/claims/followup',
+    'shared/permissions'
+], function (jQuery, _, initChangeGrid, utils, Pager, StudyFields, Studies, claimWorkbench, claimsView, UserSettingsView, StudyFilterView, studyFilterGrid, claimInquiryView, splitClaimView, followUpView, Permission) {
     var $ = jQuery;
     var isTrue = utils.isTrue;
     var isFalse = utils.isFalse;
@@ -42,7 +43,7 @@ define('grid', [
         var risOrderChoose = false;
         var risOrderID = 0;
         var risOrderDetails = [];
-
+        var rightclickMenuRights = (new Permission()).init();
 
         var handleStudyDblClick = function (data, event, gridID) {
             event.stopPropagation();
@@ -161,13 +162,16 @@ define('grid', [
             if (isClaimGrid) {
                 var liClaimStatus = commonjs.getRightClickMenu('ul_change_claim_status','setup.rightClickMenu.billingStatus',false,'Change Claim Status',true); 
                 $divObj.append(liClaimStatus);
+                self.checkSubMenuRights('li_ul_change_claim_status');
                 var liArray = [];
                 commonjs.getClaimStudy(selectedStudies[0].study_id).then(function (result) {
                     if (result) {
                         study_id = result.study_id;
                         order_id = result.order_id;
-                        $('#anc_view_documents').removeClass('disabled')
-                        $('#anc_view_reports').removeClass('disabled')
+                        if(rightclickMenuRights.indexOf('anc_view_documents') == -1){
+                            $('#anc_view_documents').removeClass('disabled')
+                            $('#anc_view_reports').removeClass('disabled')
+                        }  
                     }
                 });
                 $.each(app.claim_status, function (index, claimStatus) {                      
@@ -197,6 +201,7 @@ define('grid', [
 
                 var liBillingCode = commonjs.getRightClickMenu('ul_change_billing_code','setup.rightClickMenu.billingCode',false,'Change Billing Code',true);       
                 $divObj.append(liBillingCode);
+                self.checkSubMenuRights('li_ul_change_billing_code');
                 var liArrayBillingCode = [];
 
                 $.each(app.billing_codes, function (index, billing_code) {                   
@@ -227,6 +232,7 @@ define('grid', [
 
                 var liBillingClass = commonjs.getRightClickMenu('ul_change_billing_class','setup.rightClickMenu.billingClass',false,'Change Billing Class',true);                 
                 $divObj.append(liBillingClass);
+                self.checkSubMenuRights('li_ul_change_billing_class'); 
                 var liArrayBillingClass = [];
                 $.each(app.billing_classes, function (index, billing_class) {       
                     var $BillingClassLink = $(commonjs.getRightClickMenu('ancBillingClass_' + billing_class.id,'setup.rightClickMenu.billingClass',true,billing_class.description ,false));                                   
@@ -257,6 +263,7 @@ define('grid', [
                 if (studyArray.length == 1) {
                     var liPayerType = commonjs.getRightClickMenu('ul_change_payer_type', 'setup.rightClickMenu.billingPayerType', false, 'Change Billing PayerType', true);
                     $divObj.append(liPayerType);
+                    self.checkSubMenuRights('li_ul_change_payer_type');
                     var liPayerTypeArray = [];
                     $.ajax({
                         url: '/exa_modules/billing/claim_workbench/billing_payers?id=' + rowID,
@@ -329,12 +336,15 @@ define('grid', [
                 }
 
                 var liEditClaim = commonjs.getRightClickMenu('anc_edit_claim','setup.rightClickMenu.editClaim',false,'Edit Claim',false);         
-                
                 if(studyArray.length == 1)
                     $divObj.append(liEditClaim);
 
-                $('#anc_edit_claim').off().click(function () {
+                self.checkRights('anc_edit_claim');
 
+                $('#anc_edit_claim').off().click(function () {
+                    if ($('#anc_edit_claim').hasClass('disabled')) {
+                        return false;
+                    }
                     self.claimView = new claimsView();
                     self.claimView.showEditClaimForm(studyIds, null, {
                         'study_id': study_id,
@@ -344,14 +354,18 @@ define('grid', [
                     });
                 });
 
-                var liDeleteClaim = commonjs.getRightClickMenu('anc_delete_claim','setup.rightClickMenu.deleteClaim',false,'Delete Claim',false);         
+                var liDeleteClaim = commonjs.getRightClickMenu('anc_delete_claim','setup.rightClickMenu.deleteClaim',false,'Delete Claim',false);        
                 
                 if(studyArray.length == 1)
                     $divObj.append(liDeleteClaim);
 
-              
+                self.checkRights('anc_delete_claim'); 
                     
                 $('#anc_delete_claim').off().click(function () {
+                    if ($('#anc_delete_claim').hasClass('disabled')) {
+                        return false;
+                    }
+
                 if(confirm("Are you sure want to delete claims")){
                     if(confirm("Please confirm claim has been deleted and also dependent deleted ")){
                     $.ajax({
@@ -376,7 +390,12 @@ define('grid', [
                 var liClaimInquiry = commonjs.getRightClickMenu('anc_claim_inquiry','setup.rightClickMenu.claimInquiry',false,'Claim Inquiry',false);
                 if(studyArray.length == 1)
                     $divObj.append(liClaimInquiry);
+                self.checkRights('anc_claim_inquiry');
                 $('#anc_claim_inquiry').click(function () {
+                    if ($('#anc_claim_inquiry').hasClass('disabled')) {
+                        return false;
+                    }
+
                     self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
                     self.claimInquiryView.render(studyIds,selectedStudies[0].patient_id, false);
                 });
@@ -385,7 +404,12 @@ define('grid', [
                 var liPatientClaimInquiry = commonjs.getRightClickMenu('anc_patient_claim_inquiry','setup.rightClickMenu.patientClaim',false,'Patient Claim',false);
                 if(studyArray.length == 1)
                     $divObj.append(liPatientClaimInquiry);
+                self.checkRights('anc_patient_claim_inquiry');
                 $('#anc_patient_claim_inquiry').click(function () {
+                    if ($('#anc_patient_claim_inquiry').hasClass('disabled')) {
+                        return false;
+                    }
+
                      commonjs.showDialog({
                     'header': 'Patient Claim',
                     'width': '85%',
@@ -399,7 +423,12 @@ define('grid', [
                 var liPatientClaimLog = commonjs.getRightClickMenu('anc_patient_claim_log','setup.rightClickMenu.patientClaimLog',false,'Patient Claim Log',false);
                 if(studyArray.length == 1)
                     $divObj.append(liPatientClaimLog);
+                self.checkRights('anc_patient_claim_log');
                 $('#anc_patient_claim_log').click(function () {
+                    if ($('#anc_patient_claim_log').hasClass('disabled')) {
+                        return false;
+                    }
+
                      commonjs.showDialog({
                     'header': 'Patient Claim Log',
                     'width': '95%',
@@ -413,14 +442,19 @@ define('grid', [
                 var liSplitOrders = commonjs.getRightClickMenu('anc_split_claim','setup.rightClickMenu.splitClaim',false,'Split Claim',false);
                 if(studyArray.length == 1)
                     $divObj.append(liSplitOrders);
+                self.checkRights('anc_split_claim');
                 $('#anc_split_claim').click(function () {
+                    if ($('#anc_split_claim').hasClass('disabled')) {
+                        return false;
+                    }
                     self.splitClaimView = new splitClaimView();
                     self.splitClaimView.validateSplitClaim(studyIds);
                 });
 
                 if (selectedStudies.length == 1) {
-                    var liViewDocumetns = commonjs.getRightClickMenu('anc_view_documents', 'setup.rightClickMenu.viewDocuments', false, 'View Documents', false);
+                    var liViewDocumetns = commonjs.getRightClickMenu('anc_view_documents', 'setup.rightClickMenu.viewDocuments', false, 'View Documents', false); 
                     $divObj.append(liViewDocumetns);
+                    self.checkRights('anc_view_documents');
                     $('#anc_view_documents').click(function () {
                         if ($('#anc_view_documents').hasClass('disabled')) {
                             return false;
@@ -437,6 +471,7 @@ define('grid', [
 
                     var liViewReports = commonjs.getRightClickMenu('anc_view_reports', 'setup.rightClickMenu.viewReports', false, 'View Reports', false);
                     $divObj.append(liViewReports);
+                    self.checkRights('anc_view_reports');
                     $('#anc_view_reports').click(function () {
                         if ($('#anc_view_reports').hasClass('disabled')) {
                             return false;
@@ -468,7 +503,11 @@ define('grid', [
                 if(this.homeOpentab != 'Follow_up_queue'){
                     var liFollowUp = commonjs.getRightClickMenu('anc_add_followup', 'setup.rightClickMenu.addFollowUP', false, 'Follow-up', false);
                     $divObj.append(liFollowUp);
+                    self.checkRights('anc_add_followup');
                     $('#anc_add_followup').click(function () {
+                        if ($('#anc_add_followup').hasClass('disabled')) {
+                            return false;
+                        }
                         self.followUpView = new followUpView();
                         self.followUpView.render(studyIds);
                     });
@@ -477,7 +516,11 @@ define('grid', [
                 if (this.homeOpentab == 'Follow_up_queue') {
                     var liResetFollowUp = commonjs.getRightClickMenu('anc_reset_followup', 'setup.rightClickMenu.resetFollowUp', false, 'Cancel Follow-up', false);
                     $divObj.append(liResetFollowUp);
+                    self.checkRights('anc_reset_followup');
                     $('#anc_reset_followup').click(function () {
+                        if ($('#anc_reset_followup').hasClass('disabled')) {
+                            return false;
+                        }
                         if (!window.confirm('Are you sure you want to cancel?')) {
                             return false;
                         }
@@ -491,8 +534,12 @@ define('grid', [
                 if(!isbilled_status)  {
                     var liCreateClaim = commonjs.getRightClickMenu('anc_create_claim','setup.rightClickMenu.createClaim',false,'Create Claim',false);
                     $divObj.append(liCreateClaim);
+                    self.checkRights('anc_create_claim');
                     $('#anc_create_claim').off().click(function () {
-    
+                        
+                        if ($('#anc_create_claim').hasClass('disabled')) {
+                            return false;
+                        }
                             window.localStorage.setItem('selected_studies', null);
                             window.localStorage.setItem('primary_study_details', JSON.stringify(selectedStudies[0]));
                             window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
@@ -506,7 +553,7 @@ define('grid', [
                 if (isbilled_status) {
                     var liEditClaim = commonjs.getRightClickMenu('anc_edit_claim', 'setup.rightClickMenu.editClaim', false, 'Edit Claim', false);
                     $divObj.append(liEditClaim);
-
+                    self.checkRights('anc_edit_claim');
                     $('#anc_edit_claim').off().click(function () {
                         self.claimView = new claimsView();
                         self.claimView.showEditClaimForm(selectedStudies[0].claim_id, null, {
@@ -1184,5 +1231,15 @@ define('grid', [
             }
 
         };
+
+        self.checkRights = function(menuId) {
+            rightclickMenuRights.indexOf(menuId) !== -1 ? $('#'+ menuId).addClass('disabled') : ''
+        },
+
+        self.checkSubMenuRights = function(menuId) {
+            // if(rightclickMenuRights.indexOf(menuId) !== -1 ){
+            //     $('#'+ menuId).css({'pointer-events': 'none', 'opacity':'0.7'});
+            // }
+        }
     };
 });
