@@ -10,40 +10,128 @@ const _ = require('lodash')
 const InsuranceVSLOPDataSetQueryTemplate = _.template(`
 WITH study_cte AS (
     SELECT
-	bc.id AS claim_id,
-        ps.id AS study_id, 
-	ps.modality_id,
-        bc.primary_patient_insurance_id,
-	bc.secondary_patient_insurance_id,
-	bc.tertiary_patient_insurance_id
-    FROM public.studies AS ps
-    INNER JOIN billing.charges_studies bcs on bcs.study_id = ps.id
-    INNER JOIN billing.charges bch on bch.id = bcs.charge_id
-    INNER JOIN billing.claims bc on bc.id = bch.id 
-    WHERE
-          ( ps.company_id = 1 )
-      AND NOT ps.has_deleted
-      AND ps.accession_no NOT ILIKE '%.c')
-    , insurance_flag_cte AS (
+      bc.id AS claim_id,
+      ps.id AS study_id,
+      ps.modality_id,
+      bc.claim_dt,
+      unnest(ARRAY [ bc.primary_patient_insurance_id, bc.secondary_patient_insurance_id, bc.tertiary_patient_insurance_id ]) AS patient_insurance_id
+    FROM
+      public.studies AS ps
+      INNER JOIN billing.charges_studies bcs ON bcs.study_id = ps.id
+      INNER JOIN billing.charges bch ON bch.id = bcs.charge_id
+      INNER JOIN billing.claims bc ON bc.id = bch.id
+    WHERE 1=1
+    AND NOT ps.has_deleted
+    AND ps.accession_no NOT ILIKE '%.c' 
+      AND  <%= companyId %>
+      AND <%= claimDate %>
+  ),
+  insurance_flag_cte AS (
     SELECT
-        s.study_id,
-        s.modality_id,
-        s.study_dt,
-        -- this will be selected AS max
-        CASE
-        WHEN s.patient_insurance_id IS NULL THEN -1 -- no insurance is assigned, counted as not_assigned
-        WHEN ac.code IS NULL THEN 0 -- none of the insurance assigned has provider type, counted as other
-        WHEN ac.code != 'PI' THEN 1 -- none of the insurance is PI, but one is other than PI, counted as insurance
-        WHEN ac.code = 'PI' THEN 2 -- one of the insurance is PI, counted as lop
-        END AS flag
-    FROM study_cte AS s
-    LEFT JOIN patient_insuarances AS pi ON s.patient_insurance_id = pi.id
-    LEFT JOIN insurance_providers AS ip ON pi.insurance_provider_id = ip.id
-    LEFT JOIN adjustment_codes    AS ac ON ac.id::text = ip.insurance_info->'providerType'
-    WHERE 1=1 
-    AND  <%= companyId %>
-    AND <%= claimDate %>
-    )
+      s.study_id, s.modality_id, s.claim_dt, -- this will be selected AS max
+      CASE WHEN s.patient_insurance_id IS NULL THEN - 1 -- no insurance is assigned, counted as not_assigned
+      WHEN pippt.code IS NULL THEN 0 -- none of the insurance assigned has provider type, counted as other
+      WHEN pippt.code != 'PI' THEN 1 -- none of the insurance is PI, but one is other than PI, counted as insurance
+      WHEN pippt.code = 'PI' THEN 2 -- one of the insurance is PI, counted as lop
+      END AS flag
+    FROM
+      study_cte AS s
+    LEFT JOIN public.patient_insurances ppi ON s.patient_insurance_id = ppi.id
+    LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
+    LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id)
+  ,insurance_cte AS (
+    SELECT
+      study_id,
+      modality_id,
+      claim_dt,
+      max(flag) AS flag
+    FROM
+      insurance_flag_cte
+    GROUP BY
+      study_id, modality_id, claim_dt
+  )
+  , count_cte AS (
+      SELECT
+        modality_id,
+        claim_dt,
+        count(*) FILTER ( WHERE flag = 2) AS lop_count,
+        count(*) FILTER ( WHERE flag = 1) AS insurance_count,
+        count(*) FILTER ( WHERE flag = 0) AS other_count,
+        count(*) FILTER ( WHERE flag = - 1) AS not_assigned_count
+      FROM
+        insurance_cte
+      GROUP BY
+        modality_id, claim_dt
+  )
+  , modality_sum_cte AS (
+        SELECT
+          modality_id, sum(lop_count) AS lop_sum, sum(insurance_count) AS insurance_sum, sum(other_count) AS other_sum, sum(not_assigned_count) AS not_assigned_sum
+        FROM
+          count_cte
+        GROUP BY
+          modality_id)
+  , grand_sum_cte AS (
+          SELECT
+            sum(lop_count) AS lop_sum,
+            sum(insurance_count) AS insurance_sum,
+            sum(other_count) AS other_sum,
+            sum(not_assigned_count) AS not_assigned_sum
+          FROM
+            count_cte)
+  , union_cte AS (
+            SELECT
+              coalesce(m.modality_code, 'N/A') AS modality_code,
+              NULL AS claim_dt,
+              insurance_sum AS insurance,
+              lop_sum AS lop,
+              other_sum AS other,
+              not_assigned_sum AS not_assigned,
+              insurance_sum + lop_sum + other_sum + not_assigned_sum AS total,
+              NULL::DATE AS sort_calim_date 
+            FROM
+              modality_sum_cte AS c
+            LEFT JOIN modalities AS m ON c.modality_id = m.id
+        UNION
+        SELECT
+          NULL AS modality_code,
+          NULL AS claim_dt,
+          insurance_sum AS insurance,
+          lop_sum AS lop,
+          other_sum AS other,
+          not_assigned_sum AS not_assigned,
+          insurance_sum + lop_sum + other_sum + not_assigned_sum AS total,
+          NULL::DATE AS sort_calim_date 
+        FROM
+          grand_sum_cte
+        UNION
+        SELECT
+          coalesce(m.modality_code, 'N/A') AS modality_code,
+          to_char(c.claim_dt, 'MM/DD/YYYY') AS claim_dt,
+          coalesce(c.insurance_count, 0) AS insurance,
+          coalesce(c.lop_count, 0) AS lop,
+          coalesce(c.other_count, 0) AS other,
+          coalesce(c.not_assigned_count, 0) AS not_assigned,
+          coalesce(c.insurance_count, 0) + coalesce(c.lop_count, 0) + coalesce(c.other_count, 0) + coalesce(c.not_assigned_count, 0) AS total,
+          c.claim_dt AS sort_calim_date
+        FROM
+          count_cte AS c
+        LEFT JOIN modalities AS m ON c.modality_id = m.id
+  )
+    SELECT
+      CASE WHEN claim_dt IS NULL THEN NULL
+       ELSE modality_code 
+      END AS "Modality",
+      CASE WHEN modality_code IS NOT NULL AND claim_dt IS NULL THEN 'Modality Totals'
+           WHEN modality_code IS NULL AND claim_dt IS NULL THEN 'Grand Totals'
+           ELSE claim_dt
+      END AS "Date",
+      insurance AS "Insurance",
+      lop AS "LOP",
+      other AS "Other",
+      not_assigned AS "Not Assigned",
+      total AS "Total"
+   FROM union_cte
+   ORDER BY modality_code, sort_calim_date   
 `);
 
 const api = {

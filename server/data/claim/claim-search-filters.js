@@ -144,6 +144,11 @@ const colModel = [
         name: 'claim_notes',
         searchColumns: ['claims.claim_notes'],
         searchFlag: '%'
+    },
+    {
+        name: 'assigned_to',
+        searchColumns: ['users.id'],
+        searchFlag: '='
     }
 ];
 
@@ -188,7 +193,8 @@ const api = {
             case 'study_dt':
             case 'study_received_dt': return 'claims.claim_dt';
             case 'claim_status': return 'claim_status.description';
-            case 'id': return 'claims.id';
+            case 'claim_id': 
+            case 'id': return 'claims.id';           
             case 'patient_name': return 'patients.full_name';
             case 'birth_date': return 'patients.birth_date::text';
             case 'account_no': return 'patients.account_no';
@@ -207,6 +213,7 @@ const api = {
             case 'group_number': return 'patient_insurances.group_number';
             case 'payer_type':
             case 'ref_phy': return 'claims.payer_type';
+            case 'assigned_to' : return 'users.username';
             case 'payer_name':
                 return `(  CASE payer_type 
                 WHEN 'primary_insurance' THEN insurance_providers.insurance_name
@@ -273,9 +280,9 @@ const api = {
         }
 
         if(filterID=='Follow_up_queue'){
-            r += ' INNER JOIN billing.claim_followups ON  claim_followups.claim_id=claims.id ';
+            r += ' INNER JOIN billing.claim_followups ON  claim_followups.claim_id=claims.id left join users on users.id=assigned_to';
         }else if (tables.claim_followups) {
-            r += ' LEFT JOIN billing.claim_followups  ON claim_followups.claim_id=claims.id';
+            r += ' LEFT JOIN billing.claim_followups  ON claim_followups.claim_id=claims.id left join users on users.id=assigned_to';
         }
 
         if (tables.patient_insurances || tables.insurance_providers || tables.edi_clearinghouses) {
@@ -324,6 +331,7 @@ const api = {
             'render_provider.full_name as   rendering_provider',
             '(select charges_bill_fee_total from BILLING.get_claim_totals(claims.id)) as billing_fee',
             'claim_followups.followup_date::text as followup_date',
+            'users.username as assigned_to',
             'claims.current_illness_date::text as current_illness_date',
             'claims.id As claim_no',
             'patient_insurances.policy_number',
@@ -379,9 +387,9 @@ const api = {
             ` OFFSET ${((args.pageNo - 1) * args.pageSize) || 0} `
             ;
 
-        if(args.customArgs.filter_id=='Follow_up_queue'){
-            args.filterQuery += ` AND claim_followups.assigned_to = ${args.userId} `;
-        }
+        //if(args.customArgs.filter_id=='Follow_up_queue'){
+            //args.filterQuery += ` AND claim_followups.assigned_to = ${args.userId} `;
+        //}
 
         let innerQuery = api.getWLQuery(`
                             row_number() over(${sort}) as number

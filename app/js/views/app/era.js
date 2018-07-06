@@ -7,10 +7,11 @@ define([
     'jqgridlocale',
     'text!templates/app/eraGrid.html',
     'text!templates/app/era-progress.html',
+    'text!templates/app/era-preview.html',
     'collections/app/era',
     'models/pager',
-    'text!templates/app/eraProcessedResponse.html',],
-    function (jQuery, Immutable, _, Backbone, JGrid, JGridLocale, eraGrid, eraProgress, eraLists, EobFilesPager, EraResponse) {
+	'text!templates/app/eraProcessedResponse.html'],
+    function (jQuery, Immutable, _, Backbone, JGrid, JGridLocale, eraGrid, eraProgress, EraPreview, eraLists, EobFilesPager, EraResponse) {
         var eraView = Backbone.View.extend({
 
             eraGridTemplate: _.template(eraGrid),
@@ -50,6 +51,7 @@ define([
             reloadERAFilesLocal: function () {
                 this.pager.set({ "PageNo": 1 });
                 $('.ui-jqgrid-htable:visible').find('input, select').val('');
+
                 this.eobFilesTable.refresh();
 
                 var fileUploadedObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileNameUploaded');
@@ -334,6 +336,14 @@ define([
                 var iframeObj = document.getElementById("ifrEobFileUpload") && document.getElementById("ifrEobFileUpload").contentWindow ? document.getElementById("ifrEobFileUpload").contentWindow : null;
                 var fileUploadedObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileNameUploaded');
                 var fileDuplicateObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileIsDuplicate');
+                
+                var hdnPreviewFileName = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('hdnPreviewFileName');
+
+                if(hdnPreviewFileName && hdnPreviewFileName.innerHTML && hdnPreviewFileName.innerHTML.length > 0) {
+                    this.showEraPreview(hdnPreviewFileName.innerHTML);
+                    hdnPreviewFileName.innerHTML = '';
+                    return;
+                }
 
                 if (fileDuplicateObj.innerHTML == 'true') {
                     commonjs.showWarning('This file has been already processed');
@@ -346,6 +356,36 @@ define([
                     $('.ui-jqgrid-htable:visible').find('input, select').val('');
                     this.eobFilesTable.refreshAll();
                 }
+            },
+
+            showEraPreview: function (fileName) {
+
+                var self = this;
+                commonjs.showLoading();
+
+                $.ajax({
+                    url: '/exa_modules/billing/era/era_file_preview',
+                    type: "GET",
+                    dataType: 'json',
+                    data: {
+                        f: fileName
+                    },
+                    success: function (eraJson, response) {
+                        commonjs.hideLoading();//console.log(eraJson)
+
+                        try {
+                            var eraPreview = _.template(EraPreview);
+                            var previewHtml = eraPreview({ data: eraJson });
+
+                            commonjs.showDialog({ header: 'EOB Preview', width: '60%', height: '60%', html: previewHtml }, true);
+                        } catch (err) {
+                            commonjs.showError('Unable to process');
+                        }
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                })
             },
 
             showPayments: function (fileId, fileName) {
