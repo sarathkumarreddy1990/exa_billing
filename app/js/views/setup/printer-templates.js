@@ -104,7 +104,7 @@ define(['jquery',
                                     self.model.destroy({
                                         success: function (model, response) {
                                             commonjs.showStatus("Deleted Successfully");
-                                            self.paperClaimTemplatesList.refresh();
+                                            self.paperClaimTemplatesTable.refresh();
                                         },
                                         error: function (model, response) {
                                             commonjs.handleXhrError(model, response);
