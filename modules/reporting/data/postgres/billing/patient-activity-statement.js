@@ -2,7 +2,7 @@ const _ = require('lodash')
     , Promise = require('bluebird')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder')    
+    , queryBuilder = require('../queryBuilder')
     , logger = require('../../../../../logger');
 
 // generate query template ***only once*** !!!
@@ -16,8 +16,11 @@ WITH claim_data as(
     FROM billing.claims bcc
     <% if (billingProviderIds) { %> INNER JOIN billing.providers bp ON bp.id = bcc.billing_provider_id <% } %>
     WHERE 1=1 
-    AND <%= claimIds %>    
+    AND <%= patientIds %>  
+   
+    
     <% if(billingProviderIds) { %> AND <% print(billingProviderIds); } %>
+   
     ),
      billing_comments as 
     (
@@ -126,11 +129,9 @@ WITH claim_data as(
          secondary_patient_insurance_id
    WHEN  bc.payer_type = 'tertiary_insurance' THEN
          tertiary_patient_insurance_id
-   END)
-         WHERE 1= 1
-           <% if (billingProviderIds) { %>AND <% print(billingProviderIds); } %>
-         <% if (patientIds) { %>AND <% print(patientIds); } %>             
-         AND <%= whereDate %>             
+   END)   
+   WHERE 1 = 1
+   AND <%= claimDate %>  
 
     order by first_name),
     detail_cte AS(
@@ -151,22 +152,14 @@ WITH claim_data as(
     ),
     sum_statement_credit_cte AS (
           SELECT 
-            pid
-            <% if (reportBy) { %> 
+            pid          
           , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '30 days' and  <%= sDate %>) as current_amount
           , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '60 days' and  <%= sDate %>- interval '31 days') as over30_amount
           , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '90 days' and  <%= sDate %>- interval '61 days') as over60_amount
           , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '120 days' and <%= sDate %> - interval '91 days') as over90_amount
           , sum(enc_total_amount) FILTER (WHERE bucket_date <= <%= sDate %> - interval '121 days') as over120_amount
-          , sum(enc_total_amount) AS statement_total_amount
-          <% } else { %>
-            , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '30 days' and  <%= sDate %>) as current_amount
-            , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '60 days' and  <%= sDate %>- interval '31 days') as over30_amount
-            , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '90 days' and  <%= sDate %>- interval '61 days') as over60_amount
-            , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '120 days' and <%= sDate %> - interval '91 days') as over90_amount
-            , sum(enc_total_amount) FILTER (WHERE bucket_date <= <%= sDate %> - interval '121 days') as over120_amount
-            , sum(enc_total_amount) AS statement_total_amount
-            <% }  %>
+          , sum(enc_total_amount) AS statement_total_amount      
+          
           FROM sum_encounter_cte
           GROUP BY pid
     ),
@@ -604,12 +597,12 @@ const api = {
         }
 
         if (initialReportData.report.params.payToProvider && initialReportData.report.params.payToProvider !== undefined) {
-          initialReportData.report.params.payToProvider = initialReportData.report.params.payToProvider === 'true';
+            initialReportData.report.params.payToProvider = initialReportData.report.params.payToProvider === 'true';
         } else {
-          initialReportData.report.params.payToProvider = false;
+            initialReportData.report.params.payToProvider = false;
         }
 
-        return Promise.join(            
+        return Promise.join(
             api.createpatientStatementDataSet(initialReportData.report.params),
             dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
             dataHelper.getPatientInfo(initialReportData.report.params.companyId, initialReportData.report.params.patientIds),
@@ -641,19 +634,19 @@ const api = {
         const filtersUsed = [];
         filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
 
-       
+
         // Facility Filter
         if (params.allFacilities && params.facilityIds)
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
         else {
-            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id,10)) > -1).map(f => f.name).value();
+            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
         }
-      
-        // Min Amount 
-        filtersUsed.push({ name: 'minAmount', label: 'Minumum Amount', value: params.minAmount});
 
-        filtersUsed.push({ name: 'sDate', label: 'Statement Date', value: params.sDate});
+        // Min Amount 
+        filtersUsed.push({ name: 'minAmount', label: 'Minumum Amount', value: params.minAmount });
+
+        filtersUsed.push({ name: 'sDate', label: 'Statement Date', value: params.sDate });
 
         const patientNames = params.patientOption === 'All' ? 'All' : _(lookups.patients).map(f => f.name).value();
         filtersUsed.push({ name: 'patientNames', label: 'Patients', value: patientNames });
@@ -686,11 +679,10 @@ const api = {
         const filters = {
             companyId: null,
             patientIds: null,
-            billingProviderIds: null,
-            claimIds: null,
-            reportBy: null
-         
-           
+            billingProviderIds: null,           
+            reportBy: null,
+            claimDate: null
+          
         };
 
         // company id
@@ -698,29 +690,40 @@ const api = {
         filters.companyId = queryBuilder.where('bc.id', '=', [params.length]);
 
         params.push(reportParams.patientIID);
-        filters.claimIds = queryBuilder.where('bcc.patient_id', '=', [params.length]);
-      
-       
-           // Min Amount
+        filters.patientIds = queryBuilder.where('bcc.patient_id', '=', [params.length]);
+
+
+        // Min Amount
         filters.minAmount = reportParams.minAmount || 0;
 
-        params.push(reportParams.sDate);
-        filters.sDate = `$${params.length}::date`;
-        filters.whereDate = queryBuilder.whereDateInTz(`bc.claim_dt`, `<=`, [params.length], `f.time_zone`);   
-        reportBy = reportParams.reportBy ? true : false
+        // params.push(reportParams.sDate);
+        // filters.sDate = `$${params.length}::date`;
 
-            // billingProvider single or multiple
-            if (reportParams.billingProviderIds && reportParams.billingProviderIds.length > 0) {
-                params.push(reportParams.billingProviderIds);
-                filters.billingProviderIds = queryBuilder.whereIn(`bp.id`, [params.length]);
-              }
-    
+        //  claim date
+        if (reportParams.reportBy == "true") {
+            params.push(reportParams.sDate);
+            filters.sDate = `$${params.length}::date`;
+        }
+        else {
+            params.push(reportParams.sDate);         
+            filters.sDate = `$${params.length}::date`;
+            
+            params.push(reportParams.fromDate);
+            params.push(reportParams.toDate);           
+            filters.claimDate = queryBuilder.whereDateBetween(' bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+        }
 
-   
+        filters.reportBy = reportParams.reportBy 
+
+        // billingProvider single or multiple
+        if (reportParams.billingProviderIds && reportParams.billingProviderIds.length > 0) {
+            params.push(reportParams.billingProviderIds);
+            filters.billingProviderIds = queryBuilder.whereIn(`bp.id`, [params.length]);
+        }
 
         return {
             queryParams: params,
-            templateData: filters         
+            templateData: filters
         }
     }
 }
