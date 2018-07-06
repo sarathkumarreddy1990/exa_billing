@@ -167,6 +167,7 @@ module.exports = {
                                 ,patient_mname text
                                 ,patient_prefix text
                                 ,patient_suffix text
+                                ,original_reference text
                                 ,cas_details jsonb
                                 ,claim_status_code bigint
                              )
@@ -176,6 +177,7 @@ module.exports = {
                                     application_details.claim_number AS claim_id,
                                     application_details.claim_status_code,
                                     application_details.payment,
+                                    application_details.original_reference,
                                     json_build_object(
                                         'charge_id',charges.id,
                                         'payment',application_details.payment,
@@ -262,7 +264,7 @@ module.exports = {
                                 update_claim_status_and_payer AS (
                                     SELECT  
                                         claim_id
-                                        ,billing.change_responsible_party(claim_id, claim_status_code, ${paymentDetails.company_id}) 
+                                        ,billing.change_responsible_party(claim_id, claim_status_code, ${paymentDetails.company_id}, original_reference) 
                                     FROM 
                                         matched_claims
                                 )

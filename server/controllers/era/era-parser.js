@@ -133,6 +133,7 @@ module.exports = {
                             adjustment: adjustmentAmount || 0.00,
                             cpt_code: val.qualifierData.cptCode,
                             claim_number: value.claimNumber,
+                            original_reference: value.payerClaimContorlNumber || null,
                             claim_status_code: value.claimStatusCode || 0,
                             cas_details: cas_obj,
                             charge_id: charge_id,
