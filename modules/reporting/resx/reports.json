@@ -1445,7 +1445,7 @@
         "jsreport": {
             "pdf": {
                 "template": {
-                    "name": "billing-print-payment-receipt-pdf"
+                    "name": "billing-payment-receipt-form-pdf"
                 }
             }
         }

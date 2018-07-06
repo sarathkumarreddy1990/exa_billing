@@ -15,11 +15,10 @@ define([
                 //var routeParts = routeOptions.routePrefix.split('/'); //do not use
                 var fragment = Backbone.history.getFragment();
                 var routeParts = fragment.split('/');
-                if (routeParts.length < 2) {
+                if (routeParts.length < 3) {
                     console.error('Less than 2 parts in route!');
                 }
                 viewModel.reportId = routeParts[routeParts.length - 1];
-                this.reportId = routeParts[routeParts.length - 1];
                 viewModel.reportCategory = 'billing';
                 viewModel.reportTitle = routeOptions.screen;
 
@@ -53,6 +52,7 @@ define([
 
                 var iframeUrl = UI.generateReportUrl(id, category, format, params);
                 if (openInNewTab) {
+                    UI.clearIframe('reportFrame');
                     window.open(iframeUrl, '_blank');
                 }
 
