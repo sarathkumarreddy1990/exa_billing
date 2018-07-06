@@ -244,6 +244,7 @@ define(['jquery',
 
             savePaperClaimTemplates: function (doGoBack) {
                 var self = this;
+                self.doGoback = doGoBack;
                 commonjs.validateForm({
                     rules: {
                         templateName: {
@@ -274,7 +275,7 @@ define(['jquery',
                         // bottomMargin: commonjs.getMessage("e", "Margin Bottom")
                     },
                     submitHandler: function () {
-                        self.save(doGoBack);
+                        self.save(self.doGoback);
                     },
                     formID: '#formPaperClaimTemplates'
                 });
@@ -358,7 +359,7 @@ define(['jquery',
             },
 
             save: function (doGoBack) {
-
+                var self = this;
                 this.templateData = ace.edit('paperClaimEditor').getValue();
 
                 this.model.set({
@@ -380,9 +381,13 @@ define(['jquery',
                         success: function (model, response) {
                             if (response) {
                                 commonjs.showStatus("Saved Successfully");
-
+                                var id = response[0] && response[0].id;
                                 if (doGoBack) {
                                     location.href = "#setup/printer_templates/list";
+                                } else {
+                                    self.model.set({
+                                        id: id
+                                    });
                                 }
                             }
                         },
