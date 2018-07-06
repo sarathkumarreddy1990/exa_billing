@@ -1269,6 +1269,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 "field_info": {
                     "custom_name": "Claim #",
                     "name": "claim_id",
+                    "search": false,
+                    "sortable": false,
                     "width": 200,
                     "defaultValue": ""
                 },
