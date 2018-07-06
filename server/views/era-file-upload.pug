@@ -1,30 +1,49 @@
 doctype html
 html
     head
-        meta(http-equiv="Content-Type", content="text/html;charset=Windows-1252")
         title EOB File Upload
-    script.
-               function seletImportProviders(e){
-                 if (!/edi|era|835|txt/i.test(e.target.files[0].name.slice(-3))) {
-                   parent.commonjs.showError('Allowed file extensions: era,835,txt');
-                   e.target.form.reset();
-                   return;
-                 }
 
-                  parent.commonjs.showLoading('Uploading file. please wait..');
-                  document.getElementById("inSubmit").click();
-                  var btns = parent.document.getElementsByClassName('eobControls');
-                  for(var i = 0; i < btns.length; i++){
+        link(rel='stylesheet', href=staticAssetsRoot + '/node_modules/bootstrap/dist/css/bootstrap.min.css')
+
+    script.
+            function fireUpload(e) {
+                document.getElementById("hdnMode").value = e.target.id.replace(/btn/g, '');
+                document.getElementById("eraFile").click();
+                
+                return false;
+            }
+
+            function doImport(e) {
+                if (!/edi|era|835|txt/i.test(e.target.files[0].name.slice(-3))) {
+                    parent.commonjs.showError('Allowed file extensions: era,835,txt');
+                    e.target.form.reset();
+                    return;
+                }
+
+                parent.commonjs.showLoading('Uploading file. please wait..');
+                document.getElementById("inSubmit").click();
+                var btns = parent.document.getElementsByClassName('eobControls');
+
+                for(var i = 0; i < btns.length; i++){
                     btns[i].style.display = 'block';
-                  }
-               }
+                }
+            }
+
     body(class="exportFrame" style="background-color: transparent !important;")
         form#eraFileUpload(name='formEraUpload', action='/exa_modules/billing/era/upload', method='POST', style="float:right;", enctype="multipart/form-data")
-            input#eraFile(type="file", name="displayImage" , onchange="seletImportProviders(event);" )
+            button#btnProcess_EOB.btn.btn-primary.btn-sm(type="button", onClick="fireUpload(event);", style="margin-right: 5px;") PROCESS EOB FILE
+            button#btnPreview_EOB.btn.btn-primary.btn-sm(type="button", onClick="fireUpload(event);") PREVIEW EOB FILE
+
+            input#eraFile(type="file", name="displayImage", onchange="doImport(event);", style="visibility:hidden; height:0px; width: 0px" )
             input#inSubmit(type="submit", style="visibility:hidden;height:0px")
-            span#fileNameUploaded(style="visibility:hidden") #{fileNameUploaded}
-            span#fileIsDuplicate(style="visibility:hidden") #{duplicate_file}
-            span#fileStatus(style="visibility:hidden") #{status}
+
+            span#fileNameUploaded(style="display:none") #{fileNameUploaded}
+            span#hdnPreviewFileName(style="display:none") #{previewFileName}
+            //- span#fileIsDuplicate(style="display:none") #{duplicate_file}
+            span#fileIsDuplicate(style="display:none") #{duplicate_file}
+            span#fileStatus(style="display:none") #{status}
+
+            input#hdnMode(type="text", style="visibility:hidden;height:0px", name="mode")
     script.
         parent.commonjs.hideLoading();
         parent.document.getElementById('btnReloadERA').click();
