@@ -747,6 +747,7 @@ function customGrid ( datastore, gridID ) {
         var filterCol = [];
         var searchFlagArr=[];
         var $toolBar = $('#gview_' + self.options.gridelementid.replace('#', '')).find('.ui-search-toolbar');
+        
         var elements = $toolBar.find('.ui-th-column')
             .filter(function() {
                 var element = $(this);
@@ -763,6 +764,10 @@ function customGrid ( datastore, gridID ) {
             .find('select, input');
 
         $.each(elements, function (index, element) {
+            if (element && element.id == 'gs_assigned_to' && !$(element).val() && self.options.isClaimGrid) {
+                $("#gs_assigned_to").val(app.userID)
+            }
+
             if (element && element.id == 'gs_billing_method' && $(element).val() == '' && self.options.isClaimGrid) {
                 $("#btnPaperClaim").hide();
                 if (self.options.filterid != "Follow_up_queue")

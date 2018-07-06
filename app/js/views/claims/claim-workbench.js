@@ -1426,7 +1426,8 @@ define(['jquery',
                 var $loading = $(document.getElementById('divPageLoading'));
                 $loading.show();
                 commonjs.showLoading();
-
+                $("#btnInsuranceClaim").show();
+                $("#btnPaperClaim").hide();
                 jQuery.ajax({
                     url: "/exa_modules/billing/user_settings",
                     type: "GET",
