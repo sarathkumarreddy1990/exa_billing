@@ -300,6 +300,11 @@ const colModel = [
         name: 'billed_status',
         searchFlag: '='
     },
+    {
+        name: 'claim_id',
+        searchColumns: ['(SELECT claim_id FROM billing.charges_studies inner JOIN billing.charges ON charges.id= charges_studies.charge_id  WHERE study_id = studies.id LIMIT 1) '],
+        searchFlag: '='
+    },
 ];
 
 const api = {
@@ -357,6 +362,7 @@ const api = {
         //console.log('getSortFields: ', args, screenName);
         switch (args) {
             case 'study_id': return 'studies.id';
+            case 'claim_id': return '(SELECT claim_id FROM billing.charges_studies inner JOIN billing.charges ON charges.id= charges_studies.charge_id  WHERE study_id = studies.id LIMIT 1) ';
             case 'insurance_providers': return 'orders.insurance_providers';
             case 'image_delivery': return 'imagedelivery.image_delivery';            
             case 'station': return "study_info->'station'";
@@ -550,6 +556,7 @@ const api = {
                 ) AS auth ON true
                 `;
         }
+       
        
         if (tables.insurance_providers){
             r += `
