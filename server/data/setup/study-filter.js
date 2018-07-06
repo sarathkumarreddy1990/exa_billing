@@ -1,4 +1,4 @@
-const { SQL, query } = require('../index');
+const { query, SQL, queryWithAudit } = require('../index');
 
 
 module.exports = {
@@ -34,7 +34,7 @@ module.exports = {
                 WHERE NOT EXISTS (
                     SELECT 1 FROM billing.grid_filters WHERE filter_name ILIKE ${args.filterName} LIMIT 1
                 )
-                RETURNING id
+                RETURNING id, '{}'::jsonb old_values
         ),
         update_grid_filter AS
         (
@@ -57,13 +57,52 @@ module.exports = {
                 AND id !=  ${args.id}
                 LIMIT 1
             )
-            RETURNING id
+            RETURNING id,
+            (
+                SELECT row_to_json(old_row)
+                FROM   (
+                    SELECT *
+                    FROM   billing.grid_filters
+                    WHERE  id = ${args.id}) old_row
+            ) old_values
+        ),
+        insert_audit_cte AS(
+            SELECT billing.create_audit(
+                ${args.companyId},
+                ${args.screenName},
+                id,
+                ${args.screenName},
+                ${args.moduleName},
+               'Study Filter Created ' || id ,
+                ${args.clientIp || '127.0.0.1'},
+                json_build_object(
+                    'old_values', (SELECT COALESCE(old_values, '{}') FROM insert_grid_filter),
+                    'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM insert_grid_filter) temp_row)
+                )::jsonb,
+                ${args.userId || 0}
+            ) id
+            from insert_grid_filter
+        ),
+        update_audit_cte AS(
+            SELECT billing.create_audit(
+                ${args.companyId},
+                ${args.screenName},
+                id,
+                ${args.screenName},
+                ${args.moduleName},
+                'Study Filter Updated ' || id ,
+                ${args.clientIp || '127.0.0.1'},
+                json_build_object(
+                    'old_values', (SELECT COALESCE(old_values, '{}') FROM update_grid_filter),
+                    'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_grid_filter) temp_row)
+                 )::jsonb,
+                ${args.userId || 0}
+            ) id
+            from update_grid_filter
         )
-        SELECT id FROM insert_grid_filter
+        SELECT id FROM insert_audit_cte
         UNION
-        SELECT id FROM update_grid_filter
-         `;
-
+        SELECT id FROM update_audit_cte `;
 
         return await query(insert_update_study_filter);
     },
@@ -71,7 +110,7 @@ module.exports = {
     get: async function (args) {
         args.sortOrder = args.sortOrder || ' ASC';
         let whereQuery = [];
-        let {   filter_name,   filter_order,  filter_type,  sortOrder,    sortField,  pageNo,   pageSize   } = args;
+        let {   filter_name,   filter_order,  filter_type,  sortOrder,    sortField,  pageNo,   pageSize,  userId } = args;
 
         if(filter_name){
             whereQuery.push(` filter_name ILIKE '%${filter_name}%'`);
@@ -81,7 +120,7 @@ module.exports = {
             whereQuery.push(` filter_order :: TEXT ILIKE '%${filter_order}%'`);
         }
 
-        whereQuery.push(` filter_type = '${filter_type}' AND deleted_dt IS NULL`);
+        whereQuery.push(` filter_type = '${filter_type}' AND deleted_dt IS NULL AND user_id = ${userId}`);
 
         let get_all = SQL` SELECT
         id
@@ -127,8 +166,11 @@ module.exports = {
     },
 
     delete: async function (params) {
-        let delete_data = SQL` DELETE FROM billing.grid_filters WHERE id = ${params.id} `;
+        let delete_data = SQL` DELETE FROM billing.grid_filters WHERE id = ${params.id} RETURNING  id,'{}'::jsonb old_values `;
 
-        return await query(delete_data);
+        return await queryWithAudit(delete_data, {
+            ...params,
+            logDescription: 'Deleted.' || params.id
+        });
     }
 };

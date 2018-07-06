@@ -1,4 +1,4 @@
-const { query, SQL } = require('../index');
+const { query, queryRows, SQL } = require('../index');
 
 module.exports = {
 
@@ -16,7 +16,7 @@ module.exports = {
         const studyIds = params.study_ids.split(',').map(Number);
 
         const firstStudyId = studyIds.length > 0 ? studyIds[0] : null;
-        
+
         let sql = SQL`SELECT * FROM (
             SELECT json_agg(row_to_json(charge)) "charges" 
                       FROM (SELECT
@@ -26,10 +26,10 @@ module.exports = {
                                 , s.accession_no
                                 , sc.study_id            
                                 , sc.cpt_code
-                                , COALESCE(sc.study_cpt_info->'modifiers1', '') AS m1
-                                , COALESCE(sc.study_cpt_info->'modifiers2', '') AS m2
-                                , COALESCE(sc.study_cpt_info->'modifiers3', '') AS m3
-                                , COALESCE(sc.study_cpt_info->'modifiers4', '') AS m4
+                                , atp.modifier1_id AS m1
+                                , atp.modifier2_id AS m2
+                                , atp.modifier3_id AS m3
+                                , atp.modifier4_id AS m4
                                 , string_to_array(regexp_replace(study_cpt_info->'diagCodes_pointer', '[^0-9,]', '', 'g'),',')::int[] AS icd_pointers
                                 , COALESCE(sc.study_cpt_info->'bill_fee','1')::NUMERIC AS bill_fee
                                 , COALESCE(sc.study_cpt_info->'allowed_fee','0')::NUMERIC AS allowed_fee
@@ -46,6 +46,8 @@ module.exports = {
                             INNER JOIN public.studies s ON s.id = sc.study_id
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
                             INNER JOIN public.orders o on o.id = s.order_id
+                            INNER JOIN appointment_types at ON at.id = s.appointment_type_id
+                            INNER JOIN appointment_type_procedures atp ON atp.procedure_id = sc.cpt_code_id
                             WHERE
                                 study_id = ANY(${studyIds})
                             ORDER BY s.accession_no DESC
@@ -348,10 +350,11 @@ module.exports = {
                             save_charge_study AS (
                                     INSERT INTO billing.charges_studies
                                         ( charge_id
-                                        , study_id)
-                                    values
-                                    ( (SELECT id FROM save_charges )
-                                    , ${params.study_id})
+                                        , study_id )
+                                    SELECT
+                                    (SELECT id FROM save_charges )
+                                    , ${params.study_id}
+                                    WHERE ${params.study_id} IS NOT NULL
                             ) select * from save_charges `;
 
         return await query(sql);
@@ -600,6 +603,7 @@ module.exports = {
                             , ip.id AS insurance_provider_id
                             , ip.insurance_name
                             , ip.insurance_code
+                            , ip.insurance_info->'partner_id' AS ins_partner_id
                             , pi.coverage_level
                         FROM public.patient_insurances pi
                         INNER JOIN public.insurance_providers ip ON ip.id = pi.insurance_provider_id                                                          
@@ -629,7 +633,7 @@ module.exports = {
     },
 
     update: async function (args) {
-     
+
         let self = this;
         let result;
         let {
@@ -639,7 +643,7 @@ module.exports = {
             , charges
         } = args;
 
-        
+
         const sqlQry = SQL`
         WITH insurance_details AS (
                   SELECT
@@ -983,7 +987,7 @@ module.exports = {
         } else {
 
             await query(sqlQry);
-            result =  await self.updateIns_claims(claims);
+            result = await self.updateIns_claims(claims);
         }
 
         return result;
@@ -1003,7 +1007,22 @@ module.exports = {
         return await query(sqlQry);
     },
 
-    getFolderPath: async(params) => {
+    getProviderInfo: async (billingProviderId, insuranceProviderId) => {
+
+        let sqlQry = SQL`
+                SELECT name, 
+                    npi_no, 
+                    (SELECT insurance_info -> 'partner_id' 
+                    FROM   insurance_providers 
+                    WHERE  id = ${insuranceProviderId}) AS trading_partner_id 
+                FROM   billing.providers
+                WHERE  id = ${billingProviderId}
+        `;
+
+        return await queryRows(sqlQry);
+    },
+
+    getFolderPath: async (params) => {
 
         let sqlQry = SQL`
         SELECT account_no, facility_info->'pokitdok_response' as filepath from public.patients p INNER JOIN public.facilities f on f.id = p.facility_id where p.id = ${params.patient_id} `;
@@ -1011,7 +1030,7 @@ module.exports = {
         return await query(sqlQry);
     },
 
-    getClaimVersion: async(params) => {
+    getClaimVersion: async (params) => {
 
         let sqlQry = SQL`
         SELECT xmin as claim_row_version from billing.claims where id = ${params.id} `;

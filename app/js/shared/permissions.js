@@ -1,17 +1,20 @@
 define([
     'jquery',
-    'backbone',
+    'underscore',
+    'backbone'
 ], function (
     $,
+    _,
     Backbone
 ) {
         return function () {
 
             this.init = function () {
+                var self = this;
                 var accessDeniedScreens = [];
                 var billingScreenCodes = ['ADJC', 'BICO', 'BICL', 'CLST', 'BIPR', 'PRCQ', 'BILM', 'PARE', 'CASG', 'CASR', 'STCC', 'BIVA', 'PCA', 'EDRT', 'INSM', 'CLHO', 'BULG', 'BALG',
                     'AGAR', 'AARD', 'CHRG', 'CLAY', 'CLIN', 'CLTR', 'CRBE', 'DSPS', 'DICN', 'IVSL', 'MOSU', 'MNRC', 'PATS', 'PYMX', 'PAYT', 'PAIC', 'PBIC', 'PABI', 'PRCN', 'RPFR', 'REPC', 'REPS', 'TSUM',
-                    'CLIM', 'STDS', 'ECLM', 'CLMI', 'MASO', 'CLVA', 'ERAI', 'PAYM']
+                    'CLIM', 'STDS', 'ECLM', 'CLMI', 'MASO', 'CLVA', 'ERAI', 'PAYM', 'BUST', 'SFIL']
 
                 mappingObject = {
                     'ADJC': 'aAdjustmentCodes',
@@ -58,22 +61,34 @@ define([
                     'CLMI': 'anc_claim_inquiry',
                     'MASO': 'anc_split_claim',
                     'STDS': 'aStudies',
-                    'CLIM': 'aClaims',
+                    'CLIM': ['aClaims', 'anc_create_claim'],
                    // 'CLIM': 'anc_create_claim',
                     'CLVA': 'btnValidateOrder',
                     'ERAI': 'aEob',
-                    'PAYM': 'aPayments'
+                    'PAYM': 'aPayments',
+                    'BUST': 'mySettings',
+                    'SFIL':'btnStudyFilter'
                 };
-                accessDeniedScreens = _.difference(billingScreenCodes, app.screens)
+                accessDeniedScreens = _.difference(billingScreenCodes, app.screens);
 
                 _.each(accessDeniedScreens, function (code) {
                     var screenId = '';
                     screenId = mappingObject[code];
-                    $('#' + screenId).addClass('disabled');
-                    $('#' + screenId).attr('href', '#');
-                    $('.' + screenId).addClass('disabled');
-                    $('.' + screenId).attr('href', '#');
+                    if(typeof screenId == 'string'){
+                        self.hideScreens(screenId);
+                    } else if(typeof screenId == 'object'){
+                        _.each(screenId, function (screen) {
+                            self.hideScreens(screen);
+                        });
+                    }
                 });
             };
+
+            this.hideScreens = function(screenId) {
+                $('#' + screenId).addClass('disabled');
+                $('#' + screenId).attr('href', '#');
+                $('.' + screenId).addClass('disabled');
+                $('.' + screenId).attr('href', '#');
+            }
         }
     });

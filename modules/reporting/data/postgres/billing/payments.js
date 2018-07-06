@@ -68,8 +68,20 @@ const summaryQueryTemplate = _.template(`
                     CASE  
                     WHEN payer_type IS NULL THEN 'Payer Type Total' 
                     ELSE 
-                        payer_type 
-                    END             AS "Payer Type", 
+                        
+                    CASE
+                    WHEN
+                       payer_type = 'patient' THEN  'Patient'
+                      
+                     WHEN
+                      payer_type = 'insurance' THEN 'Insurance'
+                     WHEN
+                       payer_type = 'ordering_facility' THEN 'Ordering Facility'
+                      WHEN
+                       payer_type = 'ordering_provider' THEN 'Ordering Provider'
+
+                    END         
+                    END  AS "Payer Type", 
                 <% } %>        
                     SUM(payment_applied)    AS "Total Payment applied",
                     SUM(adjustment) AS "Total Adjustment",
@@ -127,7 +139,20 @@ const detailQueryTemplate = _.template(`
          	        get_full_name(pp.last_name, pp.first_name, pp.middle_name, pp.prefix_name, pp.suffix_name) AS "Patient Name",
          	        pp.account_no "Account #" ,
          	        to_char(c.claim_dt, 'MM/DD/YYYY') "Claim Date",
-         	        p.payer_type "Payer Type",
+                    
+                     
+                     CASE
+                      WHEN
+                         p.payer_type = 'patient' THEN  'Patient'
+                        
+                       WHEN
+                        p.payer_type = 'insurance' THEN 'Insurance'
+                       WHEN
+                         p.payer_type = 'ordering_facility' THEN 'Ordering Facility'
+                        WHEN
+                         p.payer_type = 'ordering_provider' THEN 'Ordering Provider'
+                         END  AS "Payer Type",
+                         
                      CASE
                       WHEN
                          p.payer_type = 'patient' THEN 

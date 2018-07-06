@@ -34,15 +34,15 @@ module.exports = {
     },
 
     update: async (params) => {
-        
+
         let claimData = await data.getClaimVersion(params);
 
-        if(claimData && claimData.rows.length > 0) {
+        if (claimData && claimData.rows.length > 0) {
 
-            if(params.claim_row_version != claimData.rows[0].claim_row_version) {
+            if (params.claim_row_version != claimData.rows[0].claim_row_version) {
 
                 return {
-                    'message' : 'Claim row version does not matched'
+                    'message': 'Claim row version does not matched'
                 };
             }
         }
@@ -59,11 +59,11 @@ module.exports = {
 
                 if (!obj1.id) {
 
-                    if (!obj1.study_id) {
-                        charge_arr.push(data.saveChargesOnly(obj1));
-                    } else {
-                        charge_arr.push(data.saveCharges(obj1));
-                    }
+                    // if (!obj1.study_id) {
+                    //     charge_arr.push(data.saveChargesOnly(obj1));
+                    // } else {
+                    charge_arr.push(data.saveCharges(obj1));
+                    // }
 
                 }
 
@@ -75,48 +75,52 @@ module.exports = {
     },
     getData: async (params) => { return await data.getClaimData(params); },
 
+    /// TODO: have to include benefitOnDate & relationshipCode
     eligibility: async (params) => {
-        const model = await data.getFolderPath(params);
-        model.account_no = model.rows[0].account_no;
+        const payerInfoResponse = await data.getProviderInfo(params.billingProviderId, params.insuranceProviderId);
+
+        if (!payerInfoResponse.length) {
+            throw new Error('Unknown provider..');
+        }
+
+        const payerInfo = payerInfoResponse[0];
+
+        /// TODO: need to rescratch
         let pokitdokSecretKey = await data.getKeys();
         let insEligibility = pokitdokSecretKey.rows[0].info.value;
         let pokitdok_client_id = pokitdokSecretKey.rows[1].info.value;
         let pokitdok_client_secret = pokitdokSecretKey.rows[2].info.value;
 
         let pokitdok = new PokitDok(pokitdok_client_id, pokitdok_client_secret);
-        const birthDate = moment(params.BirthDate);
-        model.BirthDate = birthDate.format('YYYY-MM-DD');
+        let birthDate = moment(params.birthDate).format('YYYY-MM-DD');
 
-        return await new Promise((resolve, reject ) => {
+        return await new Promise((resolve, reject) => {
 
             pokitdok.eligibility({
                 member: {
-                    birth_date: moment(model.BirthDate).format('YYYY-MM-DD'),
-                    first_name: params.FirstName,
-                    last_name: params.LastName,
-                    id: params.PolicyNo
+                    birth_date: birthDate,
+                    first_name: params.firstName,
+                    last_name: params.lastName,
+                    id: params.policyNo
                 },
                 provider: {
-                    organization_name: params.InsuranceCompanyName,
-                    npi: params.NpiNo
+                    organization_name: payerInfo.name,
+                    npi: payerInfo.npi_no
                 },
-                service_types: params.ServiceTypes, 
-                trading_partner_id: params.tradingPartnerId
+                service_types: params.serviceTypeCodes,
+                trading_partner_id: payerInfo.trading_partner_id
             }, function (err, res) {
                 res.insPokitdok = insEligibility;
-                let eligibility_response =  res;
+                let eligibility_response = res;
 
-                if(err){
-                    eligibility_response = err;                    
+                if (err) {
+                    eligibility_response = err;
                     reject(eligibility_response);
                 }
-                
-                
+
                 resolve(eligibility_response);
             });
-
-        }).catch(function(result){
-
+        }).catch(function (result) {
             return result;
         });
     },

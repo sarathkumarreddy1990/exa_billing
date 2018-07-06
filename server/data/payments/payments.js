@@ -6,10 +6,13 @@ module.exports = {
 
     getPayments: async function (params) {
         let whereQuery = [];
-        params.sortOrder = params.sortOrder || ' ASC';
-        params.sortField = params.sortField == 'id' ? ' payments.id ' : params.sortField;
 
-        params.sortField = params.sortField == 'payment_dt' ? ' payments.payment_dt ' : params.sortField;
+        if(!params.paymentReportFlag) {
+            params.sortOrder = params.sortOrder || ' ASC';
+            params.sortField = params.sortField == 'id' ? ' payments.id ' : params.sortField;        
+
+            params.sortField = params.sortField == 'payment_dt' ? ' payments.payment_dt ' : params.sortField;
+        }
 
         let {
             payment_id,
@@ -162,7 +165,7 @@ module.exports = {
                 .append(whereQuery.join(' AND '));
         }
 
-        if (!isGetTotal) {
+        if (!isGetTotal && !params.paymentReportFlag) {
             sql.append(SQL` ORDER BY  `)
                 .append(sortField)
                 .append(' ')
@@ -484,6 +487,9 @@ module.exports = {
                                 ) AS id 
                                 FROM insert_calim_comments
                                 WHERE id IS NOT NULL
+                            ),
+                            change_responsible_party AS (
+                                    SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId})
                             )
                             SELECT details,null FROM insert_application
                             UNION ALL
@@ -608,6 +614,9 @@ module.exports = {
                             , now()
                             FROM claim_comment_details
                             RETURNING *, '{}'::jsonb old_values),
+                            change_responsible_party AS (
+                                    SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId})
+                            ),
                         update_cas_application AS(
                                     UPDATE billing.cas_payment_application_details bcpad
                                         SET
