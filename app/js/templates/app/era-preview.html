@@ -1,0 +1,67 @@
+<div id="divValidateSchClaim">
+    <% _.each(data, function(eraData) { %>
+        <div>
+            <% _.each(eraData.headerNumber, function(headerNumber) { %>
+                <div>
+                    <% _.each(headerNumber.claimPaymentInformation, function(claimPaymentInformation) { %>
+                        <div style="margin-top: 20px;">
+                            <div>
+                                <h5 class="card-title">
+                                    <%= claimPaymentInformation.patientName.lastName %>,
+                                        <%= claimPaymentInformation.patientName.firstName %>
+                                </h5>
+                                <p class="card-text">Paid:
+                                    <%= claimPaymentInformation.paidAmount %>
+                                </p>
+                                <p class="card-text">Patient Responsible:
+                                    <%= claimPaymentInformation.patientResponsibleAmount %>
+                                </p>
+                                <p class="card-text">Claim No:
+                                    <%= claimPaymentInformation.claimNumber %>
+                                </p>
+                                <p class="card-text">Claim Status Code:
+                                    <%= claimPaymentInformation.claimStatusCode %>
+                                </p>
+                                <p class="card-text">Payer Claim Control No (Claim Ref #):
+                                    <%= claimPaymentInformation.payerClaimContorlNumber %>
+                                </p>
+                            </div>
+                        </div>
+                        <div style="margin-top: 20px; border-bottom: 4px solid #d6d6d6;">
+                            <table class="table table-bordered table-striped">
+                                <tr class="thead-light">
+                                    <th>CPT</th>
+                                    <th>Modifier</th>
+                                    <th>Bill Fee</th>
+                                    <th>Amount</th>
+                                    <th>Date</th>
+                                </tr>
+                                <% _.each(claimPaymentInformation.servicePaymentInformation, function(servicePaymentInformation) { %>
+                                    <tr>
+                                        <td>
+                                            <%= servicePaymentInformation.qualifierData.cptCode %>
+                                        </td>
+                                        <td>
+                                            <%= servicePaymentInformation.qualifierData.modifier1 %>
+                                        </td>
+                                        <td>
+                                            <%= servicePaymentInformation.billFee %>
+                                        </td>
+                                        <td>
+                                            <%= servicePaymentInformation.paidamount %>
+                                        </td>
+                                        <td>
+                                            <%= servicePaymentInformation.serviceDate.serviceDate %>
+                                        </td>
+                                    </tr>
+                                    <% }); %>
+                            </table>
+                        </div>
+
+                        <% }); %>
+                </div>
+
+                <% }); %>
+        </div>
+        <% }); %>
+</div>
