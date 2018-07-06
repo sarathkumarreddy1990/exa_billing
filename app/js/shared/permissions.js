@@ -85,7 +85,7 @@ define([
                         });
                     }
                 });
-                return _.flatten(accessDeniedRightClickIDs);
+                return {screenID : _.flatten(accessDeniedRightClickIDs), screenCode: accessDeniedScreens};
             };
 
             this.hideScreens = function(screenId) {

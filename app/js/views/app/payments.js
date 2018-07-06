@@ -7,7 +7,8 @@ define(['jquery',
     'text!templates/app/payments.html',
     'collections/app/payments',
     'models/pager',
-    'views/reports/payments-pdf'],
+    'views/reports/payments-pdf',
+    'shared/permissions'],
 
     function (jQuery,
         Immutable,
@@ -18,7 +19,8 @@ define(['jquery',
         paymentsGrid,
         paymentsLists,
         ModelPaymentsPager,
-        paymentPDF) {
+        paymentPDF,
+        Permission) {
         var paymentsView = Backbone.View.extend({
             el: null,
             pager: null,
@@ -89,6 +91,8 @@ define(['jquery',
                 this.paymentsList = new paymentsLists();
                 this.adjustmentCodeList = new modelCollection(adjustment_codes);
                 this.claimStatusList = new modelCollection(claim_status);
+                var rights = (new Permission()).init();
+                this.screenCode = rights.screenCode;
             },
 
             initializeDateTimePickers: function () {
@@ -182,6 +186,8 @@ define(['jquery',
                                     return "<span class='icon-ic-edit' title='click Here to Edit'></span>";
                                 },
                                 customAction: function (rowID, e) {
+                                    if(self.screenCode.indexOf('ECLM') > -1)
+                                        $('#divPendingPay').addClass('maskPendingPay');
                                     self.editPayment(rowID);
                                 },
                                 cellattr: function (rowId, value, rowObject, colModel, arrData) {
@@ -221,6 +227,8 @@ define(['jquery',
                         offsetHeight: 01,
                         dblClickActionIndex: 1,
                         ondblClickRow: function (rowID) {
+                            if(self.screenCode.indexOf('ECLM') > -1)
+                                $('#divPendingPay').addClass('maskPendingPay');
                             self.editPayment(rowID);
                         },
                         onaftergridbind: function (model, gridObj) {
