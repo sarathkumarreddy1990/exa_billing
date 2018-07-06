@@ -1004,7 +1004,9 @@ define(['jquery',
 
             bindCPTSelectionEvents: function (el) {
                 var self = this;
-                $(el).mouseover(function (e) {
+                $(el).click(function (e) {
+                    $(this).children('span').click();
+                }).mouseover(function (e) {
                     var spnElement = $(this).children('span');
                     if (!spnElement.hasClass('icon-ic-edit') && !$(this).prop('disabled')) {
                         $(this).children('span')
@@ -1027,14 +1029,14 @@ define(['jquery',
                                         'data_description': $('#lblCptCode_' + rowIndex).attr('data_description'),
                                         'data_code': $('#lblCptCode_' + rowIndex).attr('data_code')
                                     });
-                                    $('#divCptDescription_' + rowIndex).prop('disabled',true);
+                                    $('#divCptDescription_' + rowIndex).prop('disabled', true);
                                     self.bindCPTUpdateEvents($('#divSelCptCode_' + rowIndex).find('.icon-ic-check'));
                                     self.bindCPTUpdateEvents($('#divSelCptCode_' + rowIndex).find('.icon-ic-close'));
                                 } else {
                                     self.setChargeAutoComplete(rowIndex, 'description');
                                     $('#divCptDescription_' + rowIndex).hide();
                                     $('#divSelCptDescription_' + rowIndex).show();
-                                    $('#divCptCode_' + rowIndex).prop('disabled',true);
+                                    $('#divCptCode_' + rowIndex).prop('disabled', true);
                                     $('#select2-txtCptDescription_' + rowIndex + '-container').html($('#lblCptDescription_' + rowIndex).html()).attr({
                                         'data_id': $('#lblCptDescription_' + rowIndex).attr('data_id'),
                                         'data_description': $('#lblCptDescription_' + rowIndex).attr('data_description'),
@@ -1050,14 +1052,14 @@ define(['jquery',
                 });
             },
 
-            bindCPTUpdateEvents: function(el) {
-                $(el).click(function(e) {
+            bindCPTUpdateEvents: function (el) {
+                $(el).click(function (e) {
                     var type = $(this).attr('data-type');
                     var id = e.target.id;
                     var lblCptCodeElement = null;
                     var lblCptDescElement = null;
                     var txtElement = null;
-                    if(type == 'cptCheck' || type == 'cptDescCheck') {
+                    if (type == 'cptCheck' || type == 'cptDescCheck') {
                         lblCptCodeElement = '#lblCptCode_' + id;
                         lblCptDescElement = '#lblCptDescription_' + id;
                         txtElement = type == 'cptCheck' ? 'txtCptCode_' : 'txtCptDescription_';
@@ -1065,7 +1067,7 @@ define(['jquery',
                         var cpt_id = selCPTElement.attr('data_id');
                         var cpt_code = selCPTElement.attr('data_code');
                         var cpt_description = selCPTElement.attr('data_description');
-                        if(cpt_id) {
+                        if (cpt_id) {
                             $('#lblCptCode_' + id).removeClass('cptIsExists');
                         }
                         $(lblCptCodeElement)
@@ -1083,8 +1085,8 @@ define(['jquery',
                                 'data_code': cpt_code
                             });
                     }
-                    $('#divCptDescription_' + id).prop('disabled',false);
-                    $('#divCptCode_' + id).prop('disabled',false);
+                    $('#divCptDescription_' + id).prop('disabled', false);
+                    $('#divCptCode_' + id).prop('disabled', false);
                     $('#divCptCode_' + id).show();
                     $('#divSelCptCode_' + id).hide();
                     $('#divCptDescription_' + id).show();

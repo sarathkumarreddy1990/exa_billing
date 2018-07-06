@@ -199,7 +199,7 @@
                                                 </td>
                                                 <td class="charges__cpt-code">
                                                     <div id="divCptCode_<%= row.data_row_id %>">
-                                                        <label id="lblCptCode_<%= row.data_row_id %>"  class="cptIsExists cptcode">
+                                                        <label id="lblCptCode_<%= row.data_row_id %>"  class="pointerCursor cptIsExists cptcode">
                                                                     Select 
                                                         </label>
                                                         <span id="<%= row.data_row_id %>" style="min-width:50px;" data-type="cpt"></span>
@@ -207,21 +207,21 @@
                                                     <div id="divSelCptCode_<%= row.data_row_id %>" style="display:none;">
                                                         <select id="txtCptCode_<%= row.data_row_id %>"></select>
                                                         <div style="float:right;">
-                                                                <span id="<%= row.data_row_id %>" class="icon-ic-check" data-type="cptCheck" style="min-width:50px;cursor:pointer;"></span>
-                                                                <span id="<%= row.data_row_id %>" class="icon-ic-close" data-type="cptClose" style="min-width:50px;cursor:pointer;"></span>
+                                                                <span id="<%= row.data_row_id %>" class="icon-ic-check pointerCursor" data-type="cptCheck" style="min-width:50px;"></span>
+                                                                <span id="<%= row.data_row_id %>" class="icon-ic-close pointerCursor" data-type="cptClose" style="min-width:50px;"></span>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td class="charges__cpt-description">
                                                     <div id="divCptDescription_<%= row.data_row_id %>">
-                                                            <label id="lblCptDescription_<%= row.data_row_id %>">Select</label>
+                                                            <label id="lblCptDescription_<%= row.data_row_id %>" class="pointerCursor">Select</label>
                                                             <span id="<%= row.data_row_id %>" style="min-width:50px;"></span>
                                                     </div>
                                                     <div id="divSelCptDescription_<%= row.data_row_id %>" style="display:none;">
                                                         <select id="txtCptDescription_<%= row.data_row_id %>" class="cptdescription"></select>
                                                         <div style="float:right;">
-                                                                <span id="<%= row.data_row_id %>" class="icon-ic-check" data-type="cptDescCheck" style="min-width:50px;cursor:pointer;"></span>
-                                                                <span id="<%= row.data_row_id %>" class="icon-ic-close" data-type="cptDescClose" style="min-width:50px;cursor:pointer;"></span>
+                                                                <span id="<%= row.data_row_id %>" class="icon-ic-check pointerCursor" data-type="cptDescCheck" style="min-width:50px;"></span>
+                                                                <span id="<%= row.data_row_id %>" class="icon-ic-close pointerCursor" data-type="cptDescClose" style="min-width:50px;"></span>
                                                         </div>
                                                     </div>
                                                 </td>
