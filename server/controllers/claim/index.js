@@ -59,11 +59,11 @@ module.exports = {
 
                 if (!obj1.id) {
 
-                    // if (!obj1.study_id) {
-                    //     charge_arr.push(data.saveChargesOnly(obj1));
-                    // } else {
-                    charge_arr.push(data.saveCharges(obj1));
-                    // }
+                    if (!obj1.study_id) {
+                        charge_arr.push(data.saveChargesOnly(obj1));
+                    } else {
+                        charge_arr.push(data.saveCharges(obj1));
+                    }
 
                 }
 
