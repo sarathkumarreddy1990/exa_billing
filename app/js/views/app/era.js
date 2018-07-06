@@ -369,13 +369,13 @@ define([
                         f: fileName
                     },
                     success: function (eraJson, response) {
-                        commonjs.hideLoading();console.log(eraJson)
+                        commonjs.hideLoading();//console.log(eraJson)
 
                         try {
                             var eraPreview = _.template(EraPreview);
                             var previewHtml = eraPreview({ data: eraJson });
 
-                            commonjs.showDialog({ header: 'ERA Preview', width: '60%', height: '60%', html: previewHtml }, true);
+                            commonjs.showDialog({ header: 'EOB Preview', width: '60%', height: '60%', html: previewHtml }, true);
                         } catch (err) {
                             commonjs.showError('Unable to process');
                         }

@@ -31,7 +31,7 @@ html
 
     body(class="exportFrame" style="background-color: transparent !important;")
         form#eraFileUpload(name='formEraUpload', action='/exa_modules/billing/era/upload', method='POST', style="float:right;", enctype="multipart/form-data")
-            button#btnProcess_EOB.btn.btn-primary.btn-sm(type="button", onClick="fireUpload(event);", style="margin-right: 5px;") PROCESS EOB FILE
+            button#btnProcess_EOB.btn.btn-primary.btn-sm(type="button", onClick="fireUpload(event);", style="margin-right: 5px;") UPLOAD & PROCESS EOB FILE
             button#btnPreview_EOB.btn.btn-primary.btn-sm(type="button", onClick="fireUpload(event);") PREVIEW EOB FILE
 
             input#eraFile(type="file", name="displayImage", onchange="doImport(event);", style="visibility:hidden; height:0px; width: 0px" )
