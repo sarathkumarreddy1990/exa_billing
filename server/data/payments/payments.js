@@ -489,7 +489,7 @@ module.exports = {
                                 WHERE id IS NOT NULL
                             ),
                             change_responsible_party AS (
-                                    SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId})
+                                    SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId},null)
                             )
                             SELECT details,null FROM insert_application
                             UNION ALL
@@ -615,7 +615,7 @@ module.exports = {
                             FROM claim_comment_details
                             RETURNING *, '{}'::jsonb old_values),
                             change_responsible_party AS (
-                                    SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId})
+                                    SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId},null)
                             ),
                         update_cas_application AS(
                                     UPDATE billing.cas_payment_application_details bcpad

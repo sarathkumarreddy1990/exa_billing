@@ -15,7 +15,8 @@ define(['jquery',
     'collections/app/patientsearch',
     'text!templates/app/patientSearchResult.html',
     'views/reports/payments-pdf',
-    'views/claims/claim-inquiry'],
+    'views/claims/claim-inquiry',
+    'shared/permissions'],
 
     function (
         jQuery,
@@ -35,7 +36,8 @@ define(['jquery',
         patientCollection,
         patSearchContent,
         paymentEditPDF,
-        claimInquiryView) {
+        claimInquiryView,
+        Permission) {
         return Backbone.View.extend({
             el: null,
             pager: null,
@@ -146,6 +148,13 @@ define(['jquery',
                 this.appliedPayments = new appliedPayments();
                 this.patientsPager = new ModelPaymentsPager();
                 this.patientListcoll = new patientCollection();
+                if(app.userInfo.user_type != 'SU'){
+                    var rights = (new Permission()).init();
+                    this.screenCode = rights.screenCode;
+                }
+                else {
+                    this.screenCode = [];
+                }
             },
 
             returnDoubleDigits: function (str) {
@@ -177,6 +186,8 @@ define(['jquery',
                 self.showPaymentsGrid(paymentId);
                 commonjs.processPostRender();
                 commonjs.validateControls();
+                if(self.screenCode.indexOf('APAY') > -1)
+                    $('#divPendingPay').addClass('maskPendingPay');
             },
 
             showPaymentsGrid: function () {

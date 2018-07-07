@@ -354,7 +354,6 @@ module.exports = {
                                     SELECT
                                     (SELECT id FROM save_charges )
                                     , ${params.study_id}
-                                    WHERE ${params.study_id} IS NOT NULL
                             ) select * from save_charges `;
 
         return await query(sql);
