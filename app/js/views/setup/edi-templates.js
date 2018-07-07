@@ -79,7 +79,7 @@ define([
                                     });
                                 }
                                 var ediTemplate = self.getTemplateFromLocalStroage('EDITEMPLATE');
-                                if(!self.templateExists(ediTemplate,self.templateLists)) {
+                                if(ediTemplate && !self.templateExists(ediTemplate,self.templateLists)) {
                                     ediTemplate = null;
                                 }
                                 self.getEDITemplate(ediTemplate ? ediTemplate :self.templateLists[0]);
