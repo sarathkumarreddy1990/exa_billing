@@ -132,10 +132,11 @@ define([
 
                                 claim_data = claim_data[0];
                                 //binding the values from data base
+                                $('#lblCIBillProv').text(claim_data.billing_provider_name)
                                 $('#lblCIReadPhy').text(claim_data.rend_provider_name);
                                 $('#lblCIRefPhy').text(claim_data.ref_provider_name);
                                 $('#lblCIOrdFac').text(claim_data.group_name);
-                                $('#lblCIfac').text(claim_data.facility_name);
+                                $('#lblCIPOS').text(claim_data.pos_name)
                                 $('#lblCIStatus').text(claim_data.claim_status);
                                 $('#lblCIBillFee').text(claim_data.bill_fee && claim_data.bill_fee != 'undefined' ? claim_data.bill_fee : '$0.00');
                                 $('#lblCIBalance').text(claim_data.claim_balance && claim_data.claim_balance != 'undefined' ? claim_data.claim_balance : '$0.00');
@@ -405,8 +406,8 @@ define([
                     emptyMessage: 'No Records Found',
                     colNames: ['','', 'date', '', 'code', 'payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', ''],
                     colModel: [
-                        { name: 'row_number', hidden: true},
-                        { name: 'id', hidden: true },
+                        { name: 'id', hidden: true},
+                        { name: 'row_id', hidden: true },
                         { name: 'commented_dt', width: 40, search: false, sortable: false, formatter: self.commentDateFormatter },
                         { name: 'code', hidden: true },
                         { name: 'type', width: 40, search: false, sortable: false },
@@ -415,7 +416,7 @@ define([
                             customAction: function (rowID) {
                                 var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
                                 $("#tBodyCIPayment").empty();
-                                self.getPaymentofCharge(gridData.id);
+                                self.getPaymentofCharge(gridData.row_id);
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.type && rowObject.code == 'charge')
@@ -427,7 +428,14 @@ define([
                         { name: 'comments', width: 50, search: false, sortable: false },
                         { name: 'charge_pointer', width: 20, search: false, sortable: false, formatter: self.pointerFormatter },
                         { name: 'charge_amount', width: 20, search: false, sortable: false },
-                        { name: 'payment', width: 20, search: false, sortable: false },
+                        { name: 'payment', width: 20, search: false, sortable: false, 
+                            formatter: function (cellvalue, options, rowObject) {
+                                if (rowObject.code && (rowObject.code == 'adjustment' || rowObject.payment == null || rowObject.code == null))
+                                    return '';
+                                else
+                                    return rowObject.payment;
+                            } 
+                        },
                         { name: 'adjustment', width: 30, search: false, sortable: false,
                             formatter: function(cellvalue, options, rowObject){
                                 if(rowObject.adjustment && rowObject.adjustment == '$0.00' || rowObject.adjustment == null)
@@ -455,7 +463,7 @@ define([
                             customAction: function (rowID) {
                                 if (confirm("Are you sure that you want to delete?")) {
                                     var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
-                                    self.deleteClaimComment(gridData.id);
+                                    self.deleteClaimComment(gridData.row_id);
                                 }
                             },
                             formatter: function (cellvalue, options, rowObject) {
@@ -470,10 +478,10 @@ define([
                             className: 'icon-ic-edit',
                             customAction: function (rowID) {
                                 var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
-                                self.getClaimComment(gridData.id);
+                                self.getClaimComment(gridData.row_id);
                             },
                             formatter: function (cellvalue, options, rowObject) {
-                                if (rowObject.type && commentType.indexOf(rowObject.code) == -1)
+                                if (rowObject.type && rowObject.code != null && commentType.indexOf(rowObject.code) == -1)
                                     return "<span class='icon-ic-edit' rel='tooltip' title='Click here to edit'></span>"
                                 else
                                     return "";
@@ -482,11 +490,11 @@ define([
                         {
                             name: 'is_internal', width: 20, sortable: false, search: false, hidden: false,
                             formatter: function (cellvalue, options, rowObject) {
-                                if (rowObject.type && commentType.indexOf(rowObject.code) == -1) {
+                                if (rowObject.type && rowObject.code != null && commentType.indexOf(rowObject.code) == -1) {
                                     if (rowObject.is_internal == true)
-                                        return '<input type="checkbox" checked   class="chkPaymentReport" name="paymentReportChk"  id="' + rowObject.id + '" />'
+                                        return '<input type="checkbox" checked   class="chkPaymentReport" name="paymentReportChk"  id="' + rowObject.row_id + '" />'
                                     else
-                                        return '<input type="checkbox"   class="chkPaymentReport" name="paymentReportChk"  id="' + rowObject.id + '" />'
+                                        return '<input type="checkbox"   class="chkPaymentReport" name="paymentReportChk"  id="' + rowObject.row_id + '" />'
 
                                 }
                                 else
@@ -649,10 +657,10 @@ define([
             saveIsInternalComment: function () {
                 var comments = [];
                 var self = this;
-                var selectedFollowUpDate = $('#txtCIFollowUpDate').val() ? new Date($('#txtCIFollowUpDate').val()).toDateString() : '';
-                var currentDate = new Date().toDateString();
+                var selectedFollowUpDate = $('#txtCIFollowUpDate').val() ? moment($('#txtCIFollowUpDate').val()).format('L') : '';
+                var currentDate = moment().format('L');
                 if (selectedFollowUpDate) {
-                    if (selectedFollowUpDate < currentDate) {
+                    if (moment(selectedFollowUpDate) < moment(currentDate)) {
                         commonjs.showWarning('Cannot Select Past date');
                         return;
                     }

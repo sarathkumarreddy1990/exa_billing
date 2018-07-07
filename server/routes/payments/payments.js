@@ -37,4 +37,9 @@ router.delete('/payment', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/applied_amount', async function (req, res) {
+    const data = await paymentsController.getAppliedAmount(req.query.paymentId);
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;

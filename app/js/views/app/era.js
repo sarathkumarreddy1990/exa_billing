@@ -414,6 +414,8 @@ define([
                                 var totalBillFee = 0.00;
                                 var totalAllowedFee = 0.00;
                                 $.each(claimDetails, function (index, row) {
+                                    totalBillFee = 0.00;
+                                    totalAllowedFee = 0.00;
                                     row["charges"] = [];
                                     for (var j = 0; j < chargeDetails.length; j++) {
                                         if (row.claim_id === chargeDetails[j].claim_id) {
