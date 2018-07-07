@@ -1111,7 +1111,7 @@ define(['jquery',
                 }, 500);
             },
 
-            closeAppliedPendingPayments: function () {
+            closeAppliedPendingPayments: function (obj, paymentId) {
                 var self = this;
                 if ($('#divPendingPayments').is(':visible')) {
                     if (self.invoicePendPaymentTable) {
@@ -1121,7 +1121,7 @@ define(['jquery',
                     if (self.appliedPaymentTable) {
                         self.appliedPager.set({ "PageNo": 1 });
                         self.appliedPaymentTable.refreshAll();
-                    };
+                    }
                 }
                 else if ($('#divPendingPaymentsPat').is(':visible')) {
                     if (self.pendPaymentTable) {
@@ -1139,6 +1139,7 @@ define(['jquery',
                         self.appliedPaymentTable.refreshAll();
                     };
                 }    
+                self.getAppliedBalance(paymentId);
             },
 
             showApplyAndCas: function (claimId, paymentID, paymentStatus, chargeId, rowData) {
@@ -1151,7 +1152,7 @@ define(['jquery',
                 commonjs.showDialog({ header: 'Claim Charges', width: '85%', height: '72%', html: self.applyCasTemplate({ adjustmentCodes: self.adjustmentCodeList.toJSON(), 'claimStatusList': this.claimStatusList.toJSON(), cas_group_codes: self.cas_group_codes, cas_reason_codes: self.cas_reason_codes, patient_paid: patient_paid, others_paid: others_paid }) });
 
                 $('#siteModal .close, #siteModal .btn-secondary').unbind().bind('click', function (e) {
-                    self.closeAppliedPendingPayments(e);
+                    self.closeAppliedPendingPayments(e, paymentID);
                     $('#siteModal').hide();
                 })
 
@@ -1230,6 +1231,10 @@ define(['jquery',
                             $('.this_pay, .this_adjustment').unbind().blur(function (e) {
                                 self.updatePaymentAdjustment();
                                 self.updateRefundRecoupment();
+                            });
+                            
+                            $('.this_allowed').unbind().blur(function (e) {
+                                self.calculateAdjustment(e)
                             });
 
                             $('.checkDebit').unbind().click(function (e) {
@@ -1383,6 +1388,23 @@ define(['jquery',
                     });
                     $('#btnPayfullAppliedPendingPayments').attr('disabled', false);
                 }
+            },
+
+            calculateAdjustment: function (e) {
+                var row = $(e.target).closest('tr');
+                var isDebit = $('.checkDebit')[0].checked;
+                var bill_fee = parseFloat($(row).find('td:nth-child(3)').text()).toFixed(2);
+                var otherPayment = $(row).find('td:nth-child(4)').text() != '' ? parseFloat($(row).find('td:nth-child(4)').text()) : 0.00;
+                var this_pay = $(row).find('td:nth-child(5)>input').val() ? parseFloat($(row).find('td:nth-child(5)>input').val()) : 0.00;
+                var allowed_fee = $(row).find('td:nth-child(6)>input').val() ? parseFloat($(row).find('td:nth-child(6)>input').val()) : 0.00;
+                var otherAdj = parseFloat($(row).find('td:nth-child(7)').text())
+                var adjustment = bill_fee - (allowed_fee)
+                adjustment = isDebit ? -Math.abs(adjustment) : Math.abs(adjustment);
+                $(row).find('td:nth-child(8)>input').val(parseFloat(adjustment).toFixed(2));
+                var payment_amt = $(row).find('td:nth-child(5)>input').val() ? parseFloat($(row).find('td:nth-child(5)>input').val()) : 0.00;
+                var adj_amt = $(row).find('td:nth-child(8)>input').val() ? parseFloat($(row).find('td:nth-child(8)>input').val()) : 0.00;
+                var current_balance = parseFloat($(row).find('td:nth-child(3)').text()) - (otherPayment + otherAdj + payment_amt + adj_amt);
+                $(row).find('td:nth-child(9)').text(parseFloat(current_balance).toFixed(2));
             },
 
             updatePaymentAdjustment: function () {
@@ -1611,7 +1633,7 @@ define(['jquery',
                         success: function (model, response) {
                             commonjs.showStatus('Payment has been applied successfully');
                             self.casSegmentsSelected = [];
-                            self.closeAppliedPendingPayments(e);
+                            self.closeAppliedPendingPayments(e, paymentId);
                             commonjs.hideDialog();
                         },
                         error: function (err, response) {
@@ -2090,7 +2112,34 @@ define(['jquery',
             showClaimInquiry: function(id, patient_id, from) {
                 self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
                 self.claimInquiryView.render(id, patient_id, from); 
-            }
+            },
+
+            getAppliedBalance: function (paymentId) {
+                var self = this;
+                $.ajax({
+                    url: '/exa_modules/billing/pending_payments/applied_amount',
+                    type: 'GET',
+                    data: {
+                        paymentId: paymentId
+                    },
+                    success: function (data, response) {
+                        if (data && data.length) {
+                            if (data[0].applied.indexOf('$') == 0)
+                                $('#lblApplied').html(data[0].applied.substr(1));
+                            else
+                                $('#lblApplied').html(data[0].applied);
+                            
+                            if (data[0].balance.indexOf('$') == 0)
+                                $('#lblBalance').html(data[0].balance.substr(1));
+                            else
+                                $('#lblBalance').html(data[0].balance);
+                        }
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
+            },
 
         });
     });

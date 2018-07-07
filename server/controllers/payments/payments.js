@@ -173,6 +173,10 @@ module.exports = {
             return await data.updatePaymentApplication(params);
         }
 
+    },
+    
+    getAppliedAmount: function (paymentId) {
+        return data.getAppliedAmount(paymentId);
     }
 
 };
