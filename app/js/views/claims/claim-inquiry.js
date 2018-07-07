@@ -405,8 +405,8 @@ define([
                     emptyMessage: 'No Records Found',
                     colNames: ['','', 'date', '', 'code', 'payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', ''],
                     colModel: [
-                        { name: 'row_number', hidden: true},
-                        { name: 'id', hidden: true },
+                        { name: 'id', hidden: true},
+                        { name: 'row_id', hidden: true },
                         { name: 'commented_dt', width: 40, search: false, sortable: false, formatter: self.commentDateFormatter },
                         { name: 'code', hidden: true },
                         { name: 'type', width: 40, search: false, sortable: false },
@@ -415,7 +415,7 @@ define([
                             customAction: function (rowID) {
                                 var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
                                 $("#tBodyCIPayment").empty();
-                                self.getPaymentofCharge(gridData.id);
+                                self.getPaymentofCharge(gridData.row_id);
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.type && rowObject.code == 'charge')
@@ -455,7 +455,7 @@ define([
                             customAction: function (rowID) {
                                 if (confirm("Are you sure that you want to delete?")) {
                                     var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
-                                    self.deleteClaimComment(gridData.id);
+                                    self.deleteClaimComment(gridData.row_id);
                                 }
                             },
                             formatter: function (cellvalue, options, rowObject) {
@@ -470,7 +470,7 @@ define([
                             className: 'icon-ic-edit',
                             customAction: function (rowID) {
                                 var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
-                                self.getClaimComment(gridData.id);
+                                self.getClaimComment(gridData.row_id);
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.type && commentType.indexOf(rowObject.code) == -1)
@@ -484,9 +484,9 @@ define([
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.type && commentType.indexOf(rowObject.code) == -1) {
                                     if (rowObject.is_internal == true)
-                                        return '<input type="checkbox" checked   class="chkPaymentReport" name="paymentReportChk"  id="' + rowObject.id + '" />'
+                                        return '<input type="checkbox" checked   class="chkPaymentReport" name="paymentReportChk"  id="' + rowObject.row_id + '" />'
                                     else
-                                        return '<input type="checkbox"   class="chkPaymentReport" name="paymentReportChk"  id="' + rowObject.id + '" />'
+                                        return '<input type="checkbox"   class="chkPaymentReport" name="paymentReportChk"  id="' + rowObject.row_id + '" />'
 
                                 }
                                 else
@@ -649,10 +649,10 @@ define([
             saveIsInternalComment: function () {
                 var comments = [];
                 var self = this;
-                var selectedFollowUpDate = $('#txtCIFollowUpDate').val() ? new Date($('#txtCIFollowUpDate').val()).toDateString() : '';
-                var currentDate = new Date().toDateString();
+                var selectedFollowUpDate = $('#txtCIFollowUpDate').val() ? moment($('#txtCIFollowUpDate').val()).format('L') : '';
+                var currentDate = moment().format('L');
                 if (selectedFollowUpDate) {
-                    if (selectedFollowUpDate < currentDate) {
+                    if (moment(selectedFollowUpDate) < moment(currentDate)) {
                         commonjs.showWarning('Cannot Select Past date');
                         return;
                     }

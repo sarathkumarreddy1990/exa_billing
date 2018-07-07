@@ -185,7 +185,7 @@ module.exports = {
                         comments
                 )
                 SELECT
-                      id
+                      id AS row_id
                     , payment_id
                     , code
                     , type
@@ -207,7 +207,7 @@ module.exports = {
                                 WHEN 'adjustment' THEN 4
                                 WHEN 'co_insurance' THEN 5
                                 WHEN 'deductible' THEN 6 END 
-                    )
+                    ) AS id
                 FROM agg
                 ORDER BY 
                       commented_dt
@@ -430,6 +430,7 @@ module.exports = {
                         , pa.amount as payment
                         , pa_adjustment.amount as adjustment
                         , cpt.display_code AS cpt_code
+                        , pa_adjustment.id as payment_application_adjustment_id
                     FROM	billing.payment_applications pa
                     INNER JOIN billing.charges ch ON ch.id = pa.charge_id
                     INNER JOIN public.cpt_codes cpt ON cpt.id = ch.cpt_id
@@ -445,7 +446,7 @@ module.exports = {
                                     rc.code
                                 FROM billing.cas_payment_application_details cas 
                                 INNER JOIN billing.cas_reason_codes rc ON rc.id = cas.cas_reason_code_id
-                                WHERE  cas.payment_application_id = pa.payment_application_adjustment_id
+                                WHERE  cas.payment_application_id = pa_adjustment.id
                                 ) as cas
                     ) cas on true 
                     WHERE	pa.charge_id = ${charge_id}

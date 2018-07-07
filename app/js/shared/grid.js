@@ -43,9 +43,14 @@ define('grid', [
         var risOrderChoose = false;
         var risOrderID = 0;
         var risOrderDetails = [];
-        var rights = (new Permission()).init();
-        var rightclickMenuRights = rights.screenID;
-        var screenCode = rights.screenCode;
+        var rightclickMenuRights = [];
+        var screenCode = [];
+        if(app.userInfo.user_type != 'SU'){
+            var rights = (new Permission()).init();
+            rightclickMenuRights = rights.screenID;
+            screenCode = rights.screenCode;
+        }
+
 
         var handleStudyDblClick = function (data, event, gridID) {
             event.stopPropagation();
