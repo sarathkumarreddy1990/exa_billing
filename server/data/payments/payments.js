@@ -753,6 +753,28 @@ module.exports = {
                             SELECT id from insert_cas_applications_audit`;
 
         return await query(sql);
+    },
+
+    getAppliedAmount: async function (paymentId) {
+        return await query(
+            `
+            WITH 
+                applied AS (
+                    SELECT(SELECT 
+                        payments_applied_total 
+                    FROM 
+                        billing.get_payment_totals(${paymentId}))
+                    AS applied
+                ),
+                balance AS (
+                    SELECT(SELECT payment_balance_total
+                    FROM
+                        billing.get_payment_totals(${paymentId}))
+                    AS balance
+                )
+                SELECT * FROM applied, balance
+        `    
+        );
     }
 
 };
