@@ -47,7 +47,7 @@ module.exports = {
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
                             INNER JOIN public.orders o on o.id = s.order_id
                             INNER JOIN appointment_types at ON at.id = s.appointment_type_id
-                            INNER JOIN appointment_type_procedures atp ON atp.procedure_id = sc.cpt_code_id
+                            INNER JOIN appointment_type_procedures atp ON atp.procedure_id = sc.cpt_code_id AND atp.appointment_type_id = s.appointment_type_id
                             WHERE
                                 study_id = ANY(${studyIds})
                             ORDER BY s.accession_no DESC
