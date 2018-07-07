@@ -24,15 +24,19 @@ module.exports = {
                 , (SELECT SUM(claim_balance_total) FROM billing.get_claim_totals(bc.id)) AS claim_balance
                 , bc.billing_notes
                 , claim_dt
+                , pos.description AS pos_name
+                , bpr.name AS billing_provider_name
             FROM billing.claims bc
             INNER JOIN billing.claim_status st ON st.id = bc.claim_status_id
             INNER JOIN public.facilities f ON f.id = bc.facility_id
             INNER JOIN billing.charges ch ON ch.claim_id = bc.id
+            INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id
             LEFT JOIN public.provider_contacts ref_pc ON ref_pc.id = bc.referring_provider_contact_id
             LEFT JOIN public.provider_contacts rend_pc ON rend_pc.id = bc.rendering_provider_contact_id
             LEFT JOIN public.providers ref_pr ON ref_pr.id = ref_pc.provider_id
             LEFT JOIN public.providers rend_pr ON rend_pr.id = rend_pc.provider_id
             LEFT JOIN public.provider_groups pg ON pg.id = bc.ordering_facility_id
+            LEFT JOIN public.places_of_service pos ON pos.id = bc.place_of_service_id
             WHERE 
                 bc.id = ${claim_id}
             GROUP BY    
@@ -42,6 +46,8 @@ module.exports = {
                 , f.facility_name
                 , st.description
                 , pg.group_name
+                , pos.description
+                , bpr.name
             ) AS encounter
         )
     , patient_details AS 

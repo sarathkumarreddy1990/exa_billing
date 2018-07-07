@@ -132,10 +132,11 @@ define([
 
                                 claim_data = claim_data[0];
                                 //binding the values from data base
+                                $('#lblCIBillProv').text(claim_data.billing_provider_name)
                                 $('#lblCIReadPhy').text(claim_data.rend_provider_name);
                                 $('#lblCIRefPhy').text(claim_data.ref_provider_name);
                                 $('#lblCIOrdFac').text(claim_data.group_name);
-                                $('#lblCIfac').text(claim_data.facility_name);
+                                $('#lblCIPOS').text(claim_data.pos_name)
                                 $('#lblCIStatus').text(claim_data.claim_status);
                                 $('#lblCIBillFee').text(claim_data.bill_fee && claim_data.bill_fee != 'undefined' ? claim_data.bill_fee : '$0.00');
                                 $('#lblCIBalance').text(claim_data.claim_balance && claim_data.claim_balance != 'undefined' ? claim_data.claim_balance : '$0.00');
