@@ -428,7 +428,14 @@ define([
                         { name: 'comments', width: 50, search: false, sortable: false },
                         { name: 'charge_pointer', width: 20, search: false, sortable: false, formatter: self.pointerFormatter },
                         { name: 'charge_amount', width: 20, search: false, sortable: false },
-                        { name: 'payment', width: 20, search: false, sortable: false },
+                        { name: 'payment', width: 20, search: false, sortable: false, 
+                            formatter: function (cellvalue, options, rowObject) {
+                                if (rowObject.code && (rowObject.code == 'adjustment' || rowObject.payment == null || rowObject.code == null))
+                                    return '';
+                                else
+                                    return rowObject.payment;
+                            } 
+                        },
                         { name: 'adjustment', width: 30, search: false, sortable: false,
                             formatter: function(cellvalue, options, rowObject){
                                 if(rowObject.adjustment && rowObject.adjustment == '$0.00' || rowObject.adjustment == null)
@@ -474,7 +481,7 @@ define([
                                 self.getClaimComment(gridData.row_id);
                             },
                             formatter: function (cellvalue, options, rowObject) {
-                                if (rowObject.type && commentType.indexOf(rowObject.code) == -1)
+                                if (rowObject.type && rowObject.code != null && commentType.indexOf(rowObject.code) == -1)
                                     return "<span class='icon-ic-edit' rel='tooltip' title='Click here to edit'></span>"
                                 else
                                     return "";
@@ -483,7 +490,7 @@ define([
                         {
                             name: 'is_internal', width: 20, sortable: false, search: false, hidden: false,
                             formatter: function (cellvalue, options, rowObject) {
-                                if (rowObject.type && commentType.indexOf(rowObject.code) == -1) {
+                                if (rowObject.type && rowObject.code != null && commentType.indexOf(rowObject.code) == -1) {
                                     if (rowObject.is_internal == true)
                                         return '<input type="checkbox" checked   class="chkPaymentReport" name="paymentReportChk"  id="' + rowObject.row_id + '" />'
                                     else

@@ -125,7 +125,7 @@ module.exports = {
         let sql = SQL`WITH agg AS (SELECT
                           cc.id AS id
                         , COALESCE(null, '') AS payment_id
-                        , type
+                        , CASE WHEN type ='auto' THEN null ELSE type END AS type
                         , type AS code
                         , note AS comments
                         , created_dt::date as commented_dt
