@@ -14,7 +14,7 @@ with payment_details as (
         bp.id as payment_id,
         bp.mode,
         pp.account_no,
-        bp.payment_dt,
+        to_char(bp.payment_dt, 'MM/DD/YYYY') as payment_dt,
         bp.amount,
         COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient' and 
     bpa.amount_type = 'payment'),0::money) AS patient_paid,
@@ -56,7 +56,7 @@ with payment_details as (
     claim_balance,
        (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) 
     As applied,
-       bc.claim_dt,
+       to_char(bc.claim_dt,'MM/DD/YYYY'),
        bp.name,
        bp.address_line1,
        bp.city,
@@ -76,7 +76,7 @@ with payment_details as (
        pcc.display_code,
        pcc.display_description,
        billing.get_charge_icds(bch.id) as icd_code,
-       bch.charge_dt as charge_dt,
+       to_char(bch.charge_dt,'MM/DD/YYYY') as charge_dt,
        (bch.units * bch.bill_fee) As bill_fee
     FROM  billing.charges bch
     INNER JOIN  public.cpt_codes pcc ON pcc.id = bch.cpt_id

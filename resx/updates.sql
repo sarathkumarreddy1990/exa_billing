@@ -241,8 +241,8 @@ CREATE TABLE IF NOT EXISTS public.patient_insurances
     insurance_provider_id BIGINT NOT NULL,
     subscriber_relationship_id BIGINT NOT NULL,
     subscriber_employment_status_id BIGINT,
-    valid_from_date DATE NOT NULL,
-    valid_to_date DATE NOT NULL,
+    valid_from_date DATE,
+    valid_to_date DATE,
     subscriber_dob DATE NOT NULL,
     medicare_insurance_type_code TEXT,
     coverage_level TEXT NOT NULL,
@@ -275,6 +275,9 @@ CREATE TABLE IF NOT EXISTS public.patient_insurances
 );
 COMMENT ON COLUMN public.patient_insurances.medicare_insurance_type_code IS 'Code identifying the type of insurance policy within a specific insurance program. Refer EDI transaction set implementation guide -Claim 837 - SBR05-1336';
 COMMENT ON COLUMN public.patient_insurances.assign_benefits_to_patient IS 'Whether provider is accepting assignments from insurances';
+-- --------------------------------------------------------------------------------------------------------------------
+alter table public.patient_insurances alter column valid_from_date drop not null;
+alter table public.patient_insurances alter column valid_to_date drop not null;
 -- --------------------------------------------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.places_of_service
 (
@@ -475,7 +478,7 @@ END IF;
 -- --------------------------------------------------------------------------------------------------------------------
 -- Datamodel for Adjustment codes  <END>
 -- --------------------------------------------------------------------------------------------------------------------
-CREATE TABLE billing.printer_templates
+CREATE TABLE IF NOT EXISTS billing.printer_templates
 (
   id bigserial NOT NULL,
   company_id bigint NOT NULL,
@@ -865,7 +868,8 @@ CREATE TABLE IF NOT EXISTS billing.edi_files
     CONSTRAINT edi_files_file_path_cc CHECK (TRIM(file_path) <> '')
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS edi_files_file_path_ux ON billing.edi_files(lower(file_path));
+-- CREATE UNIQUE INDEX IF NOT EXISTS edi_files_file_path_ux ON billing.edi_files(lower(file_path));
+DROP INDEX IF EXISTS edi_files_file_path_ux;
 
 COMMENT ON TABLE billing.edi_files IS 'Details of 837(EDI electronic claim) and 835 (ERA response) files';
 
@@ -1106,8 +1110,8 @@ CREATE TABLE IF NOT EXISTS billing.insurance_provider_details
   CONSTRAINT insurance_provider_details_insurance_id_pk PRIMARY KEY (insurance_id),
   CONSTRAINT insurance_provider_details_clearing_house_id_fk FOREIGN KEY (clearing_house_id) REFERENCES billing.edi_clearinghouses (id),
   CONSTRAINT insurance_provider_details_insurance_id_fk FOREIGN KEY (insurance_id) REFERENCES insurance_providers (id),
-  CONSTRAINT insurance_provider_details_ins_id_clear_house_id_uc UNIQUE (insurance_id, clearing_house_id)
-  CONSTRAINT insurance_provider_details_ins_id_billing_method_uc UNIQUE (insurance_provider_id, billing_method)
+  CONSTRAINT insurance_provider_details_ins_id_clear_house_id_uc UNIQUE (insurance_id, clearing_house_id),
+  CONSTRAINT insurance_provider_details_ins_id_billing_method_uc UNIQUE (insurance_id, billing_method),
   CONSTRAINT insurance_provider_details_billing_method_cc CHECK (billing_method IN ('patient_payment', 'direct_billing', 'electronic_billing', 'paper_claim'))
 );
 -- --------------------------------------------------------------------------------------------------------------------
@@ -1732,7 +1736,7 @@ CREATE OR REPLACE FUNCTION billing.create_payment_applications(
   RETURNS TABLE(payment_application_ids json) AS
 $BODY$
 BEGIN
-RAISE NOTICE '%',i_audit_details;
+
 	RETURN QUERY
 
 	SELECT row_to_json(x2) from (
@@ -1815,7 +1819,8 @@ BEGIN
 			i_adjustment_code_id,
 			i_created_by,
 			payment_cte.id
-		FROM	payment_cte)
+		FROM payment_cte
+		WHERE i_adjustment_amount != 0::money OR i_cas_details != '[]'::jsonb)
 
 		RETURNING *, '{}'::jsonb old_values
 	),
@@ -1833,7 +1838,7 @@ BEGIN
 			cas.amount
 		FROM
 			(SELECT * FROM jsonb_to_recordset(i_cas_details) AS x(group_code_id int, reason_code_id int, amount money)) cas 
-				INNER JOIN adjustment_cte on true
+				INNER JOIN adjustment_cte on true WHERE adjustment_cte.id is not null
 		)
 
 		RETURNING *, '{}'::jsonb old_values
@@ -1907,6 +1912,61 @@ END
 $BODY$
   LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION billing.get_age_patient_claim(IN bigint)
+  RETURNS TABLE(patient_age_0_30 money, patient_age_31_60 money, patient_age_61_90 money, patient_age_91_120 money, patient_age_121 money, insurance_age_0_30 money, insurance_age_31_60 money, insurance_age_61_90 money, insurance_age_91_120 money, insurance_age_121 money, total_balance money, patient_total money, insurance_total money, total_age_30 money, total_age_31_60 money, total_age_61_90 money, total_age_91_120 money, total_age_121 money, total_unapplied money) AS
+$BODY$
+
+
+  WITH claims_sum AS ( SELECT  (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM  billing.get_claim_payments(claims.id)) as balance,
+		  (select payment_patient_total from billing.get_claim_payments(claims.id)) AS total_patient_payment,
+		  (select payment_insurance_total from billing.get_claim_payments(claims.id)) AS total_insurance_payment,
+		  payer_type,
+		  (CASE WHEN   ar_dates.num_days < 31 THEN 'age_0_30'
+			WHEN   ar_dates.num_days <  61 THEN 'age_31_60'
+			WHEN  ar_dates.num_days  <  91 THEN 'age_61_90'
+			WHEN  ar_dates.num_days  < 121 THEN 'age_91_120' ELSE 'age_121' END  ) as age_days
+		FROM billing.claims 
+
+ JOIN LATERAL (
+         SELECT now()::date - claim_dt::date AS num_days
+     ) AS ar_dates ON TRUE
+
+		WHERE patient_id=  $1
+)
+, payment_sum as(
+	 SELECT COALESCE(NULLIF(sum(balance) FILTER (WHERE age_days = 'age_0_30' AND payer_type='patient'), 0::money),0::money) as patient_age_0_30 ,
+		COALESCE(NULLIF(sum(balance) FILTER (WHERE age_days = 'age_31_60' AND payer_type='patient'), 0::money),0::money) as patient_age_31_60 ,
+		COALESCE(NULLIF(sum(balance) FILTER (WHERE age_days = 'age_61_90' AND payer_type='patient'), 0::money),0::money) as patient_age_61_90 ,
+		COALESCE(NULLIF(sum(balance) FILTER (WHERE age_days = 'age_91_120' AND payer_type='patient'), 0::money),0::money) as patient_age_91_120 ,
+		COALESCE(NULLIF(sum(balance) FILTER (WHERE age_days = 'age_121' AND payer_type='patient') , 0::money),0::money) as patient_age_121 ,
+		COALESCE(NULLIF(sum(balance) FILTER (WHERE age_days = 'age_0_30' AND payer_type !='patient'), 0::money),0::money) as insurance_age_0_30 ,
+		COALESCE(NULLIF(sum(balance) FILTER (WHERE age_days = 'age_31_60'  AND payer_type !='patient'), 0::money),0::money) as insurance_age_31_60 ,
+		COALESCE(NULLIF(sum(balance) FILTER (WHERE age_days = 'age_61_90'  AND payer_type !='patient'), 0::money),0::money) as insurance_age_61_90 ,
+		COALESCE(NULLIF(sum(balance) FILTER (WHERE age_days = 'age_91_120'  AND payer_type !='patient'), 0::money),0::money) as insurance_age_91_120 ,
+		COALESCE(NULLIF(sum(balance) FILTER (WHERE age_days = 'age_121'  AND payer_type !='patient') , 0::money),0::money) as insurance_age_121 ,
+		COALESCE(NULLIF(sum(balance), 0::money),0::money) as total_balance 
+		FROM claims_sum
+)
+ 
+,total_sum as (SELECT  	SUM(patient_age_0_30 +patient_age_31_60 +patient_age_61_90+patient_age_91_120+patient_age_121) as patient_total,
+			SUM(insurance_age_0_30 +insurance_age_31_60 +insurance_age_61_90+insurance_age_91_120+insurance_age_121) as insurance_total,
+			SUM(patient_age_0_30+insurance_age_0_30) as total_age_30 ,
+			SUM(patient_age_31_60+insurance_age_31_60) as total_age_31_60 ,
+			SUM(patient_age_61_90+insurance_age_61_90) as total_age_61_90 ,
+			SUM(patient_age_91_120+insurance_age_91_120) as total_age_91_120,
+			SUM(patient_age_121+insurance_age_121) as total_age_121 			
+			FROM payment_sum)
+
+,total_unapplied as (SELECT COALESCE(NULLIF(sum(amount), 0::money),0::money) as unapplied
+					FROM    billing.payments		
+					WHERE patient_id= $1   AND (SELECT payment_status FROM  billing.get_payment_totals(payments.id)) = 'unapplied') 
+
+SELECT *
+ FROM payment_sum,total_sum,total_unapplied
+
+$BODY$
+  LANGUAGE sql;
+-- --------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION billing.get_charge_icds(p_charge_id bigint)
   RETURNS text[] AS
 $BODY$
@@ -1941,18 +2001,36 @@ CREATE OR REPLACE FUNCTION billing.get_charge_other_payment_adjustmet(
     IN i_payment_id bigint)
   RETURNS TABLE(other_payment money, other_adjustment money) AS
 $BODY$
-        BEGIN
+BEGIN
 	RETURN QUERY 
 	   SELECT 
-	       COALESCE(sum(amount) FILTER(where amount_type = 'payment'),0::money) as other_payment,
-               COALESCE(sum(amount) FILTER(where amount_type = 'adjustment'),0::money) as other_adjustment
-           FROM billing.payment_applications 
-           WHERE   
-               charge_id = i_charge_id
-           AND payment_id != i_payment_id;
-        END;
-        $BODY$
-  LANGUAGE plpgsql;
+	        COALESCE(sum(amount) FILTER(where amount_type = 'payment'),0::money) as other_payment,
+            COALESCE(sum(amount) FILTER(where amount_type = 'adjustment'),0::money) as other_adjustment
+        FROM billing.payment_applications 
+        WHERE   
+            charge_id = i_charge_id
+        AND payment_id != i_payment_id;
+END;
+$BODY$
+LANGUAGE plpgsql;
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION billing.get_claim_patient_other_payment(IN i_claim_id bigint)
+    RETURNS TABLE(patient_paid money, others_paid money) AS
+$BODY$
+BEGIN
+	RETURN QUERY 
+	   SELECT 
+            COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient' and bpa.amount_type = 'payment'),0::money) as patient_paid,
+            COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient' and bpa.amount_type = 'payment'),0::money) as others_paid
+	   FROM billing.payments bp
+	   INNER JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
+	   INNER JOIN billing.charges bch on bch.id = bpa.charge_id
+	   INNER JOIN billing.claims bc on bc.id = bch.claim_id
+	   WHERE   
+	      bc.id = i_claim_id;
+END;
+$BODY$
+LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION billing.get_claim_payments(IN bigint)
   RETURNS TABLE(studies_count bigint, charges_count bigint, charges_bill_fee_total money, charges_allowed_amount_total money, payments_count bigint, payments_total money, payments_applied_count bigint, payments_applied_total money, adjustments_applied_count bigint, adjustments_applied_total money, claim_balance_total money, payment_insurance_total money, payment_patient_total money) AS
@@ -2042,7 +2120,7 @@ $BODY$
 , payment_sum as(
 	SELECT sum(total_patient_payment) as payment_patient_total ,sum(total_insurance_payment) as payment_insurance_total FROM claims_sum
 )
---SELECT (COALESCE(sum(NULLIF(null, 0::money)),0::money) ) FILTER (WHERE age_days = 'AGE_31_60') FROM   claims_sum
+
 ,balance_sum  as (
 
 	SELECT sum(balance) FILTER (WHERE age_days = 'AGE_0_30') as  AGE_0_30,
@@ -2059,15 +2137,6 @@ SELECT COALESCE(NULLIF(AGE_0_30, 0::money),0::money) as AGE_0_30, COALESCE(NULLI
 ,COALESCE(NULLIF(AGE_91_120, 0::money),0::money) as AGE_91_120
 ,COALESCE(NULLIF(AGE_121, 0::money),0::money) as AGE_121
 , total_balance,payment_patient_total,payment_insurance_total FROM balance_sum,payment_sum ,total_sum
-
-
-$BODY$
-  LANGUAGE sql;
--- --------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION billing.get_claim_status()
-  RETURNS text[] AS
-$BODY$
-    SELECT array_agg(code) FROM billing.claim_status
 $BODY$
   LANGUAGE sql;
 -- --------------------------------------------------------------------------------------------------------------------
@@ -2083,11 +2152,11 @@ $BODY$
         DECLARE
             l_payer_type TEXT;
             l_patient_id INTEGER;
-	    l_primary_insurance_id INTEGER;
+	        l_primary_insurance_id INTEGER;
             l_secondary_insurance_id INTEGER;
             l_tertiary_insurance_id INTEGER;
             l_ordering_facility_id INTEGER;
-	    l_referring_provider_contact_id INTEGER;
+	        l_referring_provider_contact_id INTEGER;
             l_facility_id INTEGER;
             l_ordering_physician_id INTEGER;
             l_claim_facility_id INTEGER;
@@ -2342,7 +2411,7 @@ BEGIN
 		pa_adjustment.created_by as adjustment_created_by,
 		pa.applied_dt as payment_applied_dt,
 		pa_adjustment.applied_dt as adjustment_applied_dt,
-		pa_adjustment.id as payment_application_adjustment_id
+		pa_adjustment.id as payment_application_adjustment_id 
 	FROM	billing.payment_applications pa
 	LEFT JOIN LATERAL (
 		SELECT 	* 
@@ -2351,6 +2420,44 @@ BEGIN
 	) pa_adjustment ON true
 	WHERE	pa.payment_id = i_payment_id 
 		AND pa.payment_application_id is null;
+
+END
+$BODY$
+  LANGUAGE plpgsql;
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION billing.get_payment_applications(
+    IN i_payment_id bigint,
+    IN i_application_id bigint)
+  RETURNS TABLE(id bigint, payment_id bigint, charge_id bigint, adjustment_code_id bigint, payment_amount money, adjustment_amount money, payment_created_by bigint, adjustment_created_by bigint, payment_applied_dt timestamp with time zone, adjustment_applied_dt timestamp with time zone, payment_application_adjustment_id bigint) AS
+$BODY$
+BEGIN
+	RETURN QUERY
+
+	SELECT 	pa.id,
+		pa.payment_id,
+		pa.charge_id,
+		pa_adjustment.adjustment_code_id,
+		coalesce(pa.amount,0::money) as payment_amount,
+		coalesce(pa_adjustment.amount,0::money) as adjustment_amount,
+		pa.created_by as payment_created_by,
+		pa_adjustment.created_by as adjustment_created_by,
+		pa.applied_dt as payment_applied_dt,
+		pa_adjustment.applied_dt as adjustment_applied_dt,
+		pa_adjustment.id as payment_application_adjustment_id 
+	FROM	billing.payment_applications pa
+	LEFT JOIN LATERAL (
+		SELECT 	* 
+		FROM	billing.payment_applications  
+		WHERE	payment_application_id = pa.id
+	) pa_adjustment ON true
+	LEFT JOIN LATERAL (
+		SELECT 	applied_dt 
+		FROM	billing.payment_applications bpa
+		WHERE	bpa.id = i_application_id
+	) pa_batch ON true
+	WHERE	pa.payment_id = i_payment_id 
+		AND pa.applied_dt = pa_batch.applied_dt
+		AND pa.amount_type = 'payment';
 
 END
 $BODY$
@@ -2800,42 +2907,101 @@ END;
 $BODY$
   LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION billing.get_payment_applications(
-    IN i_payment_id bigint,
-    IN i_application_id bigint)
-  RETURNS TABLE(id bigint, payment_id bigint, charge_id bigint, adjustment_code_id bigint, payment_amount money, adjustment_amount money, payment_created_by bigint, adjustment_created_by bigint, payment_applied_dt timestamp with time zone, adjustment_applied_dt timestamp with time zone, payment_application_adjustment_id bigint) AS
+CREATE OR REPLACE FUNCTION billing.change_responsible_party(
+    i_claim_id bigint,
+    i_claim_status_code bigint,
+    i_company_id bigint)
+  RETURNS boolean AS
 $BODY$
-BEGIN
-	RETURN QUERY
-	SELECT 	pa.id,
-		pa.payment_id,
-		pa.charge_id,
-		pa_adjustment.adjustment_code_id,
-		coalesce(pa.amount,0::money) as payment_amount,
-		coalesce(pa_adjustment.amount,0::money) as adjustment_amount,
-		pa.created_by as payment_created_by,
-		pa_adjustment.created_by as adjustment_created_by,
-		pa.applied_dt as payment_applied_dt,
-		pa_adjustment.applied_dt as adjustment_applied_dt,
-		pa_adjustment.id as payment_application_adjustment_id 
-	FROM	billing.payment_applications pa
-	LEFT JOIN LATERAL (
-		SELECT 	* 
-		FROM	billing.payment_applications  
-		WHERE	payment_application_id = pa.id
-	) pa_adjustment ON true
-	LEFT JOIN LATERAL (
-		SELECT 	applied_dt 
-		FROM	billing.payment_applications bpa
-		WHERE	bpa.id = i_application_id
-	) pa_batch ON true
-	WHERE	pa.payment_id = i_payment_id 
-		AND pa.applied_dt = pa_batch.applied_dt
-		AND pa.amount_type = 'payment';
+DECLARE
+BEGIN 
 
-END
+    WITH 
+	claim_details AS 
+		(	
+		  SELECT  claim_balance_total, charges_bill_fee_total, payments_applied_total, adjustments_applied_total
+		  ,(SELECT payer_type FROM  billing.claims WHERE id = i_claim_id ) AS payer_type
+		  ,(SELECT claim_status_id FROM  billing.claims WHERE id = i_claim_id ) AS default_claim_status_id
+		  FROM billing.get_claim_totals(i_claim_id)
+		)
+
+	UPDATE billing.claims
+
+	SET payer_type = (
+			CASE WHEN claim_details.adjustments_applied_total = claim_details.charges_bill_fee_total AND claim_details.payments_applied_total::money = 0::money THEN claim_details.payer_type
+			ELSE
+			    CASE 
+				WHEN claim_details.claim_balance_total > 0::money AND (claim_details.payer_type = 'primary_insurance' AND secondary_patient_insurance_id IS NOT NULL )
+				THEN 'secondary_insurance'
+			    
+				WHEN claim_details.claim_balance_total > 0::money AND (claim_details.payer_type = 'secondary_insurance' AND tertiary_patient_insurance_id IS NOT NULL )
+				THEN 'tertiary_insurance'
+				
+				WHEN claim_details.claim_balance_total > 0::money AND claim_details.payer_type = 'tertiary_insurance'
+				THEN 'patient'				    
+			    
+				WHEN claim_details.claim_balance_total > 0::money AND (secondary_patient_insurance_id IS NULL AND tertiary_patient_insurance_id IS NULL )
+				THEN 'patient'
+
+				WHEN claim_details.claim_balance_total = 0::money
+				THEN 'patient'
+
+				ELSE 
+				claim_details.payer_type
+			     END 
+			END 
+		),
+		claim_status_id = ( 
+                                     CASE WHEN i_claim_status_code = 4 OR i_claim_status_code = 23 OR i_claim_status_code = 25
+                                        THEN ( SELECT COALESCE(id, claim_details.default_claim_status_id ) FROM billing.claim_status WHERE company_id = i_company_id AND code = 'DENIED' AND inactivated_dt IS NULL )
+                                           ELSE
+                                            CASE 
+                                                WHEN claim_details.charges_bill_fee_total = claim_details.adjustments_applied_total AND claim_details.payments_applied_total = 0::money
+                                                    THEN ( SELECT COALESCE(id, claim_details.default_claim_status_id ) FROM billing.claim_status WHERE company_id = i_company_id AND code = 'DENIED' AND inactivated_dt IS NULL )
+                                                WHEN claim_details.claim_balance_total = 0::money
+                                                    THEN ( SELECT COALESCE(id, claim_details.default_claim_status_id ) FROM billing.claim_status WHERE company_id = i_company_id AND code = 'PAIDFULL' AND inactivated_dt IS NULL )
+                                                WHEN claim_details.claim_balance_total < 0::money
+                                                    THEN ( SELECT COALESCE(id, claim_details.default_claim_status_id ) FROM billing.claim_status WHERE company_id = i_company_id AND code = 'OVERPYMT' AND inactivated_dt IS NULL )
+                                                WHEN claim_details.claim_balance_total > 0::money
+                                                    THEN ( SELECT COALESCE(id, claim_details.default_claim_status_id ) FROM billing.claim_status WHERE company_id = i_company_id AND code = 'PYMTPEN' AND inactivated_dt IS NULL )
+                                                ELSE
+                                                    claim_details.default_claim_status_id
+                                           END
+                                     END	
+                                  )
+		
+	FROM claim_details WHERE billing.claims.id = i_claim_id;
+
+	RETURN TRUE;
+
+END;
 $BODY$
   LANGUAGE plpgsql;
+-- --------------------------------------------------------------------------------------------------------------------
+-- Alter script For new Table changes 
+-- --------------------------------------------------------------------------------------------------------------------
+ALTER TABLE billing.claim_status ADD COLUMN IF NOT EXISTS display_order BIGINT;
+ALTER TABLE billing.edi_clearinghouses ADD COLUMN IF NOT EXISTS edi_template_name TEXT;
+ALTER TABLE billing.edi_files ADD COLUMN IF NOT EXISTS uploaded_file_name TEXT;
+ALTER TABLE billing.grid_filters ADD COLUMN IF NOT EXISTS inactivated_dt TIMESTAMPTZ;
+DROP TABLE IF EXISTS billing.insurance_provider_clearinghouses;
+DROP TABLE IF EXISTS billing.paper_claim_printer_setup;
+ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS paper_claim_full_template_id BIGINT;
+ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS paper_claim_original_template_id BIGINT;
+ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS direct_invoice_template_id BIGINT;
+ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS patient_invoice_template_id BIGINT;
+ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS grid_field_settings JSON;
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.insurance_provider_details
+(
+  insurance_provider_id bigint NOT NULL,
+  clearing_house_id bigint,
+  billing_method text,
+  CONSTRAINT b_insurance_provider_id_pk PRIMARY KEY (insurance_provider_id),
+  CONSTRAINT b_insurance_providers_clearing_house_id_fk FOREIGN KEY (clearing_house_id) REFERENCES billing.edi_clearinghouses (id),
+  CONSTRAINT insurance_providers_insurance_provider_id_fk FOREIGN KEY (insurance_provider_id) REFERENCES insurance_providers (id),
+  CONSTRAINT insurance_providers_ins_id_clear_house_id_uc UNIQUE (insurance_provider_id, billing_method)
+);
 -- --------------------------------------------------------------------------------------------------------------------
 -- MAKE SURE THIS COMMENT STAYS AT THE BOTTOM - ADD YOUR CHANGES ABOVE !!!!
 -- RULES:

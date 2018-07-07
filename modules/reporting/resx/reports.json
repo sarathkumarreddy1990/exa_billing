@@ -1466,7 +1466,7 @@
     {
         "id": "insurance-vs-lop",
         "category": "billing",
-        "title": "Insurance Vs LOP",
+        "title": "Insurance VS LOP",
         "description": "",
         "jsreport": {
             "html": {

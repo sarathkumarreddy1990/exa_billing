@@ -10,12 +10,13 @@ const _ = require('lodash')
 const diagnosisCountDataSetQueryTemplate = _.template(`
 WITH diagnosisCount as (
   SELECT
-    icd.code  AS code
-   , COALESCE(f.facility_name, 'Total') AS facility_name
-   , CASE
-      WHEN COALESCE(f.facility_name, 'Total')  !=   'Total' THEN max(icd.description)
-      ELSE  NULL
-      END AS  description,  
+    icd.code  AS code,    
+    CASE 
+        WHEN f.facility_name IS  NULL AND  icd.code IS NOT NULL THEN '--Total--'
+        WHEN f.facility_name IS NULL AND icd.code IS NULL THEN ' --Grand Total--'   
+        ELSE f.facility_name
+    END AS "facility_name",
+    MAX(icd.description) description ,
     COUNT(1) AS icd_code_count
   FROM 
      billing.claim_icds claim_icd
