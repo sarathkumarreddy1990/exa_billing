@@ -24,15 +24,19 @@ module.exports = {
                 , (SELECT SUM(claim_balance_total) FROM billing.get_claim_totals(bc.id)) AS claim_balance
                 , bc.billing_notes
                 , claim_dt
+                , pos.description AS pos_name
+                , bpr.name AS billing_provider_name
             FROM billing.claims bc
             INNER JOIN billing.claim_status st ON st.id = bc.claim_status_id
             INNER JOIN public.facilities f ON f.id = bc.facility_id
             INNER JOIN billing.charges ch ON ch.claim_id = bc.id
+            INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id
             LEFT JOIN public.provider_contacts ref_pc ON ref_pc.id = bc.referring_provider_contact_id
             LEFT JOIN public.provider_contacts rend_pc ON rend_pc.id = bc.rendering_provider_contact_id
             LEFT JOIN public.providers ref_pr ON ref_pr.id = ref_pc.provider_id
             LEFT JOIN public.providers rend_pr ON rend_pr.id = rend_pc.provider_id
             LEFT JOIN public.provider_groups pg ON pg.id = bc.ordering_facility_id
+            LEFT JOIN public.places_of_service pos ON pos.id = bc.place_of_service_id
             WHERE 
                 bc.id = ${claim_id}
             GROUP BY    
@@ -42,6 +46,8 @@ module.exports = {
                 , f.facility_name
                 , st.description
                 , pg.group_name
+                , pos.description
+                , bpr.name
             ) AS encounter
         )
     , patient_details AS 
@@ -119,7 +125,7 @@ module.exports = {
         let sql = SQL`WITH agg AS (SELECT
                           cc.id AS id
                         , COALESCE(null, '') AS payment_id
-                        , type
+                        , CASE WHEN type ='auto' THEN null ELSE type END AS type
                         , type AS code
                         , note AS comments
                         , created_dt::date as commented_dt
@@ -185,7 +191,7 @@ module.exports = {
                         comments
                 )
                 SELECT
-                      id
+                      id AS row_id
                     , payment_id
                     , code
                     , type
@@ -207,7 +213,7 @@ module.exports = {
                                 WHEN 'adjustment' THEN 4
                                 WHEN 'co_insurance' THEN 5
                                 WHEN 'deductible' THEN 6 END 
-                    )
+                    ) AS id
                 FROM agg
                 ORDER BY 
                       commented_dt
@@ -430,6 +436,7 @@ module.exports = {
                         , pa.amount as payment
                         , pa_adjustment.amount as adjustment
                         , cpt.display_code AS cpt_code
+                        , pa_adjustment.id as payment_application_adjustment_id
                     FROM	billing.payment_applications pa
                     INNER JOIN billing.charges ch ON ch.id = pa.charge_id
                     INNER JOIN public.cpt_codes cpt ON cpt.id = ch.cpt_id
@@ -445,7 +452,7 @@ module.exports = {
                                     rc.code
                                 FROM billing.cas_payment_application_details cas 
                                 INNER JOIN billing.cas_reason_codes rc ON rc.id = cas.cas_reason_code_id
-                                WHERE  cas.payment_application_id = pa.payment_application_adjustment_id
+                                WHERE  cas.payment_application_id = pa_adjustment.id
                                 ) as cas
                     ) cas on true 
                     WHERE	pa.charge_id = ${charge_id}
