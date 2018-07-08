@@ -375,23 +375,24 @@ define(['jquery',
                             $(parent.document).find('#spanModalHeader').html('Edit: <STRONG>' + claimDetails.patient_full_name + '</STRONG> (Acc#:' + claimDetails.patient_account_no + '), <i>' + claimDetails.patient_dob + '</i>  ');
                             $.each(self.claimChargeList, function (index, data) {
                                 /* Bind charge table data*/
-                                self.createCptCodesUI(index).then(function () {
-                                    if (data.cpt_code || data.display_description) {
-                                        $('#lblCptCode_' + index).html(data.cpt_code).attr({
-                                            'data_id': data.cpt_id,
-                                            'data_description': data.display_description,
-                                            'data_code': data.cpt_code
-                                        });
-                                        $('#lblCptDescription_' + index).html(data.display_description).attr({
-                                            'data_id': data.cpt_id,
-                                            'data_description': data.display_description,
-                                            'data_code': data.cpt_code
-                                        });
-                                        $('#lblCptCode_' + index).removeClass('cptIsExists');
-                                    }
-                                    self.bindCPTSelectionEvents('#divCptCode_' + index);
-                                    self.bindCPTSelectionEvents('#divCptDescription_' + index);
-                                });
+                                self.createCptCodesUI(index);
+
+                                if (data.cpt_code || data.display_description) {
+                                    $('#lblCptCode_' + index).html(data.cpt_code).attr({
+                                        'data_id': data.cpt_id,
+                                        'data_description': data.display_description,
+                                        'data_code': data.cpt_code
+                                    });
+                                    $('#lblCptDescription_' + index).html(data.display_description).attr({
+                                        'data_id': data.cpt_id,
+                                        'data_description': data.display_description,
+                                        'data_code': data.cpt_code
+                                    });
+                                    $('#lblCptCode_' + index).removeClass('cptIsExists');
+                                }
+                                self.bindCPTSelectionEvents('#divCptCode_' + index);
+                                self.bindCPTSelectionEvents('#divCptDescription_' + index);
+
                                 $('#ddlModifier1_' + index).val(data.modifier1_id ? data.modifier1_id : "");
                                 $('#ddlModifier2_' + index).val(data.modifier2_id ? data.modifier2_id : "");
                                 $('#ddlModifier3_' + index).val(data.modifier3_id ? data.modifier3_id : "");
@@ -473,19 +474,16 @@ define(['jquery',
                 });
             },
 
-            createCptCodesUI: function( rowIndex,) {
-                return new Promise(function(resolve, reject){
-                        $('#divChargeCpt_' + rowIndex)
-                            .append($('<div/>',{id:"divCptCode_" + rowIndex})
-                            .append($('<lable/>',{id:"lblCptCode_" + rowIndex}).html("Select").addClass('pointerCursor'))
-                            .append($('<span/>',{id:rowIndex}).addClass('pointerCursor').attr({'data-type':'cpt'})));
+            createCptCodesUI: function(rowIndex) {
+                $('#divChargeCpt_' + rowIndex)
+                    .append($('<div/>', { id: "divCptCode_" + rowIndex })
+                        .append($('<lable/>', { id: "lblCptCode_" + rowIndex }).html("Select").addClass('pointerCursor'))
+                        .append($('<span/>', { id: rowIndex }).addClass('pointerCursor').attr({ 'data-type': 'cpt' })));
 
-                        $('#divChargeCptDesc_' + rowIndex)
-                            .append($('<div/>',{id:"divCptDescription_" + rowIndex})
-                            .append($('<lable/>',{id:"lblCptDescription_" + rowIndex}).html("Select").addClass('pointerCursor'))
-                            .append($('<span/>',{id:rowIndex}).addClass('pointerCursor').attr({'data-type':'cptdesc'})));
-                        resolve();
-                });
+                $('#divChargeCptDesc_' + rowIndex)
+                    .append($('<div/>', { id: "divCptDescription_" + rowIndex })
+                        .append($('<lable/>', { id: "lblCptDescription_" + rowIndex }).html("Select").addClass('pointerCursor'))
+                        .append($('<span/>', { id: rowIndex }).addClass('pointerCursor').attr({ 'data-type': 'cptdesc' })));
             },  
 
             bindDefaultClaimDetails: function (claim_data) {
@@ -996,18 +994,18 @@ define(['jquery',
 
                 /* Bind charge table data*/
 
-                self.createCptCodesUI(index).then(function() {
-                    if (data.cpt_code || data.display_description) {
-                        $('#lblCptCode_' + index)
-                                .html(data.cpt_code)
-                                .attr({'data_id': data.cpt_id});
-                        $('#lblCptDescription_' + index).html(data.display_description).attr({'data_id': data.cpt_id});
-                        $('#lblCptCode_' + index).removeClass('cptIsExists');
-                    }
-    
-                    self.bindCPTSelectionEvents('#divCptCode_' + index);
-                    self.bindCPTSelectionEvents('#divCptDescription_' + index); 
-                });
+                self.createCptCodesUI(index);
+                
+                if (data.cpt_code || data.display_description) {
+                    $('#lblCptCode_' + index)
+                            .html(data.cpt_code)
+                            .attr({'data_id': data.cpt_id});
+                    $('#lblCptDescription_' + index).html(data.display_description).attr({'data_id': data.cpt_id});
+                    $('#lblCptCode_' + index).removeClass('cptIsExists');
+                }
+
+                self.bindCPTSelectionEvents('#divCptCode_' + index);
+                self.bindCPTSelectionEvents('#divCptDescription_' + index); 
                
 
                 // modifiers dropdown
