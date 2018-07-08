@@ -2978,6 +2978,439 @@ END;
 $BODY$
   LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION billing.update_claim_charge(
+    i_claim_details json,
+    i_insurances_details json,
+    i_claim_icds json,
+    i_audit_details json,
+    i_charge_details json)
+  RETURNS json AS
+$BODY$
+DECLARE
+
+    p_audit_id BIGINT;
+    p_claim_id BIGINT;
+    p_screen_name TEXT;
+    p_module_name TEXT;
+    p_entity_name TEXT;
+    p_client_ip TEXT;
+    p_user_id BIGINT;
+    p_company_id BIGINT;
+    p_result json;
+    p_insurance_details BIGINT;
+    p_claim_details BIGINT;
+    p_charge_details BIGINT;
+    p_icd_insertion json;
+    
+BEGIN
+
+    p_screen_name := i_audit_details ->> 'screen_name';
+    p_claim_id := i_claim_details->>'claim_id';
+    p_module_name := i_audit_details ->> 'module_name';
+    p_client_ip := i_audit_details ->> 'client_ip';
+    p_entity_name := i_audit_details ->> 'entity_name';
+    p_user_id := (i_audit_details ->> 'user_id')::BIGINT;
+    p_company_id := (i_audit_details ->> 'company_id')::BIGINT;
+
+
+	        WITH insurance_details AS (
+                  SELECT
+                    patient_id
+                  , insurance_provider_id
+                  , subscriber_zipcode
+                  , subscriber_relationship_id
+                  , coverage_level
+                  , policy_number
+                  , group_number
+                  , subscriber_employment_status_id
+                  , subscriber_firstname
+                  , subscriber_lastname
+                  , subscriber_middlename
+                  , subscriber_name_suffix
+                  , subscriber_gender
+                  , subscriber_address_line1
+                  , subscriber_address_line2
+                  , subscriber_city
+                  , subscriber_state
+                  , assign_benefits_to_patient
+                  , subscriber_dob
+                  , medicare_insurance_type_code
+                  , claim_insurance_id
+                  , is_deleted
+                  , valid_from_date
+                  , valid_to_date
+            FROM
+                json_to_recordset(i_insurances_details) AS insurances (
+                   patient_id bigint
+                 , insurance_provider_id bigint 
+                 , subscriber_zipcode bigint
+                 , subscriber_relationship_id bigint
+                 , coverage_level text 
+                 , policy_number text 
+                 , group_number text
+                 , subscriber_employment_status_id bigint 
+                 , subscriber_firstname text 
+                 , subscriber_lastname text 
+                 , subscriber_middlename text
+                 , subscriber_name_suffix text
+                 , subscriber_gender text 
+                 , subscriber_address_line1 text
+                 , subscriber_address_line2 text
+                 , subscriber_city text
+                 , subscriber_state text
+                 , assign_benefits_to_patient boolean  
+                 , subscriber_dob date  
+                 , medicare_insurance_type_code bigint
+                 , claim_insurance_id bigint
+                 , is_deleted boolean 
+                 , valid_from_date date
+                 , valid_to_date date )
+        ),
+        existing_payer_type AS (
+            SELECT 
+                payer_type 
+            FROM
+                billing.claims
+            WHERE 
+                id = (i_claim_details->>'claim_id')::bigint
+        ),
+        save_insurance AS (
+                INSERT INTO patient_insurances (
+                    patient_id
+                  , insurance_provider_id
+                  , subscriber_zipcode
+                  , subscriber_relationship_id
+                  , coverage_level
+                  , policy_number
+                  , group_number
+                  , subscriber_employment_status_id
+                  , subscriber_firstname
+                  , subscriber_lastname
+                  , subscriber_middlename
+                  , subscriber_name_suffix
+                  , subscriber_gender
+                  , subscriber_address_line1
+                  , subscriber_address_line2
+                  , subscriber_city
+                  , subscriber_state
+                  , assign_benefits_to_patient
+                  , subscriber_dob
+                  , medicare_insurance_type_code
+                  , valid_from_date
+                  , valid_to_date
+            )
+            SELECT
+                      patient_id
+                    , insurance_provider_id
+                    , subscriber_zipcode
+                    , subscriber_relationship_id
+                    , coverage_level
+                    , policy_number
+                    , group_number
+                    , subscriber_employment_status_id
+                    , subscriber_firstname
+                    , subscriber_lastname
+                    , subscriber_middlename
+                    , subscriber_name_suffix
+                    , subscriber_gender
+                    , subscriber_address_line1
+                    , subscriber_address_line1
+                    , subscriber_city
+                    , subscriber_state
+                    , assign_benefits_to_patient
+                    , subscriber_dob
+                    , medicare_insurance_type_code
+                    , now()
+                    , now() + interval '1 month'
+            FROM
+                insurance_details
+            WHERE
+                claim_insurance_id IS NULL
+                AND NOT is_deleted
+                RETURNING  *, '{}'::jsonb old_values
+        ),
+	insurance_audit_cte AS (
+		SELECT billing.create_audit (
+			p_company_id,
+			p_screen_name,
+			sc.id,
+			p_screen_name,
+			p_module_name,
+			'Claim Related (claim_id) : '|| p_claim_id || 'Insurance details inserted id :' || sc.id ,
+			p_client_ip,
+			json_build_object(
+				'old_values', COALESCE(sc.old_values, '{}'),
+				'new_values', ( SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM ( SELECT * FROM save_insurance limit 1) temp_row))::jsonb,
+			p_user_id) id
+		FROM save_insurance sc),
+        update_insurance AS (
+                    UPDATE
+                        patient_insurances
+                    SET
+                      insurance_provider_id = ins.insurance_provider_id
+                    , subscriber_zipcode = ins.subscriber_zipcode
+                    , subscriber_relationship_id = ins.subscriber_relationship_id
+                    , coverage_level = ins.coverage_level
+                    , policy_number = ins.policy_number
+                    , group_number = ins.group_number
+                    , subscriber_employment_status_id = ins.subscriber_employment_status_id
+                    , subscriber_firstname = ins.subscriber_firstname
+                    , subscriber_lastname = ins.subscriber_lastname
+                    , subscriber_middlename = ins.subscriber_middlename
+                    , subscriber_name_suffix = ins.subscriber_name_suffix
+                    , subscriber_gender = ins.subscriber_gender
+                    , subscriber_address_line1 = ins.subscriber_address_line1
+                    , subscriber_address_line2 = ins.subscriber_address_line2
+                    , subscriber_city = ins.subscriber_city
+                    , subscriber_state = ins.subscriber_state
+                    , assign_benefits_to_patient = ins.assign_benefits_to_patient
+                    , subscriber_dob = ins.subscriber_dob
+                    , medicare_insurance_type_code = ins.medicare_insurance_type_code
+            FROM
+                insurance_details ins
+            WHERE
+                ins.claim_insurance_id = patient_insurances.id
+                AND ins.claim_insurance_id IS NOT NULL
+                AND NOT is_deleted
+        ),
+        insurance_deletion AS (
+            DELETE FROM 
+                patient_insurances 
+            USING insurance_details ins
+            WHERE 
+                patient_insurances.id = ins.claim_insurance_id
+                AND ins.claim_insurance_id IS NOT NULL
+                AND is_deleted
+        ),
+        update_claim_header AS (
+            UPDATE
+                billing.claims
+            SET
+                  facility_id = (i_claim_details->>'facility_id')::bigint
+                , billing_provider_id = (i_claim_details->>'billing_provider_id')::bigint
+                , rendering_provider_contact_id = (i_claim_details->>'rendering_provider_contact_id')::bigint
+                , referring_provider_contact_id = (i_claim_details->>'referring_provider_contact_id')::bigint
+                , ordering_facility_id = (i_claim_details->>'ordering_facility_id')::bigint
+                , place_of_service_id = (i_claim_details->>'place_of_service_id')::bigint
+                , claim_status_id = (i_claim_details->>'claim_status_id')::bigint
+                , billing_code_id = (i_claim_details->>'billing_code_id')::bigint
+                , billing_class_id = (i_claim_details->>'billing_class_id')::bigint
+                , billing_method = i_claim_details->>'billing_method'
+                , billing_notes = i_claim_details->>'billing_notes'
+                , current_illness_date = (i_claim_details->>'current_illness_date')::date
+                , same_illness_first_date = (i_claim_details->>'same_illness_first_date')::date
+                , unable_to_work_from_date = (i_claim_details->>'unable_to_work_from_date')::date
+                , unable_to_work_to_date = (i_claim_details->>'unable_to_work_to_date')::date
+                , hospitalization_from_date = (i_claim_details->>'hospitalization_from_date')::date
+                , hospitalization_to_date = (i_claim_details->>'hospitalization_to_date')::date
+                , claim_notes = i_claim_details->>'claim_notes'
+                , original_reference = i_claim_details->>'original_reference'
+                , authorization_no = i_claim_details->>'authorization_no'
+                , frequency = i_claim_details->>'frequency'
+                , is_auto_accident = (i_claim_details->>'is_auto_accident')::boolean
+                , is_other_accident = (i_claim_details->>'is_other_accident')::boolean
+                , is_employed = (i_claim_details->>'is_employed')::boolean
+                , service_by_outside_lab = (i_claim_details->>'service_by_outside_lab')::boolean
+                , primary_patient_insurance_id = COALESCE((i_claim_details->>'primary_patient_insurance_id')::bigint, (SELECT id FROM save_insurance WHERE coverage_level = 'primary'))
+                , secondary_patient_insurance_id = COALESCE((i_claim_details->>'secondary_patient_insurance_id')::bigint, (SELECT id FROM save_insurance WHERE coverage_level = 'secondary'))
+                , tertiary_patient_insurance_id = COALESCE((i_claim_details->>'tertiary_patient_insurance_id')::bigint, (SELECT id FROM save_insurance WHERE coverage_level = 'tertiary'))
+                
+            WHERE
+                billing.claims.id = (i_claim_details->>'claim_id')::bigint
+		RETURNING *,
+                            (
+                                SELECT row_to_json(old_row) 
+                                FROM   (SELECT * 
+                                    FROM   billing.claims 
+                                    WHERE  id = (i_claim_details->>'claim_id')::bigint) old_row 
+                            ) old_value
+        ),
+          claim_update_audit_cte AS (
+		SELECT billing.create_audit (
+			p_company_id,
+			p_screen_name,
+			ucd.id,
+			p_screen_name,
+			p_module_name,
+			'claim updated Id: ' || ucd.id || ' For patient ID : ' || ucd.patient_id,
+			p_client_ip,
+			json_build_object(
+				'old_values', COALESCE(ucd.old_value, '{}'),
+				'new_values', ( SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM ( SELECT * FROM update_claim_header limit 1) temp_row))::jsonb,
+			p_user_id) id
+		FROM update_claim_header ucd),
+        icd_details AS (
+            SELECT
+                      id
+                    , claim_id
+                    , icd_id
+                    , is_deleted
+                    
+            FROM
+                json_to_recordset(i_claim_icds) AS x (
+                      id bigint
+                    , claim_id bigint
+                    , icd_id bigint
+                    , is_deleted boolean
+                )
+        ),
+        icd_insertion AS (
+            INSERT INTO billing.claim_icds (
+                      claim_id
+                    , icd_id
+            )
+            (   SELECT
+                      claim_id
+                    , icd_id
+                FROM
+                    icd_details
+                WHERE
+                    id IS NULL
+                    AND  NOT is_deleted
+            ) RETURNING billing.claim_icds.id, billing.claim_icds.icd_id
+        ),
+        update_icds AS (
+            DELETE FROM
+                billing.claim_icds
+            USING icd_details icd
+            WHERE
+                 billing.claim_icds.id = icd.id
+                AND billing.claim_icds.icd_id = icd.icd_id
+                AND  icd.is_deleted
+                AND  icd.id is NOT NULL  RETURNING billing.claim_icds.id
+        )
+        , charge_details AS (
+            SELECT
+                id
+              , claim_id     
+              , cpt_id
+              , modifier1_id
+              , modifier2_id
+              , modifier3_id
+              , modifier4_id
+              , bill_fee
+              , allowed_amount
+              , units
+              , created_by
+              , charge_dt
+              , pointer1
+              , pointer2
+              , pointer3
+              , pointer4
+              , authorization_no
+              , is_deleted
+    FROM
+        json_to_recordset(i_charge_details) AS x (
+              id bigint
+            , claim_id bigint     
+            , cpt_id bigint
+            , modifier1_id bigint
+            , modifier2_id bigint
+            , modifier3_id bigint
+            , modifier4_id bigint
+            , bill_fee money
+            , allowed_amount money
+            , units numeric(7,3)
+            , created_by bigint
+            , charge_dt timestamp with time zone
+            , pointer1 text
+            , pointer2 text
+            , pointer3 text
+            , pointer4 text
+            , authorization_no text
+            , is_deleted boolean
+        )
+    ),
+    update_charges AS (
+        UPDATE
+            billing.charges
+        SET
+              cpt_id    = chd.cpt_id
+            , bill_fee  = CASE WHEN billing.is_need_bill_fee_recaulculation((i_claim_details->>'claim_id')::bigint,i_claim_details->>'payer_type',(SELECT payer_type FROM existing_payer_type)) = TRUE THEN
+                             billing.get_computed_bill_fee((i_claim_details->>'claim_id')::bigint,chd.cpt_id,coalesce(chd.modifier1_id,0),coalesce(chd.modifier2_id,0),coalesce(chd.modifier3_id,0),coalesce(chd.modifier4_id,0))
+                          ELSE
+                            chd.bill_fee 
+                          END 
+            , allowed_amount = chd.allowed_amount
+            , units  = chd.units
+            , pointer1  = chd.pointer1
+            , pointer2  = chd.pointer2
+            , pointer3  = chd.pointer3
+            , pointer4  = chd.pointer4
+            , modifier1_id = chd.modifier1_id
+            , modifier2_id = chd.modifier2_id
+            , modifier3_id = chd.modifier3_id
+            , modifier4_id = chd.modifier4_id
+            , authorization_no  = chd.authorization_no
+
+        FROM
+            charge_details chd
+        WHERE
+             billing.charges.id = chd.id
+            AND billing.charges.claim_id = chd.claim_id
+            AND  NOT chd.is_deleted
+            AND  chd.id is NOT NULL 
+		RETURNING *,
+                            (
+                                SELECT row_to_json(old_row) 
+                                FROM   (SELECT * 
+                                    FROM   billing.charges 
+                                    WHERE  id = chd.id) old_row 
+                            ) old_value
+    ),
+   charge_update_audit_cte AS (
+		SELECT billing.create_audit (
+			p_company_id,
+			'charges',
+			(uccc.old_value->>'id')::bigint,
+			p_screen_name,
+			p_module_name,
+			'Charge updated Id: ' || (uccc.old_value->>'id')::bigint || ' For claim ID : ' || p_claim_id,
+			p_client_ip,
+			json_build_object(
+				'old_values', COALESCE(uccc.old_value, '{}'),
+				'new_values', ( SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM ( SELECT * FROM update_charges limit 1) temp_row))::jsonb,
+			p_user_id) id
+		FROM update_charges uccc),
+    delete_charges AS (
+
+        DELETE FROM
+            billing.charges
+        USING charge_details chd
+        WHERE
+             billing.charges.id = chd.id
+            AND billing.charges.claim_id = chd.claim_id
+            AND  chd.is_deleted
+            AND  chd.id is NOT NULL
+    )
+    SELECT
+	(SELECT id FROM insurance_audit_cte) as insurance_details,
+	(SELECT id FROM claim_update_audit_cte) as claim_details,
+        (SELECT id FROM charge_update_audit_cte limit 1) as charge_details,
+	( SELECT json_agg(row_to_json(save_insurance)) save_insurance
+                FROM (
+                        SELECT
+                              *
+                        FROM
+                            save_insurance
+
+                    ) AS save_insurance
+         ) AS save_insurance,
+	( SELECT json_agg(row_to_json(icd_insertion)) icd_insertion
+                FROM (
+                        SELECT
+                              *
+                        FROM
+                        icd_insertion
+
+                    ) AS icd_insertion
+         ) AS icd_insertion into p_insurance_details,p_claim_details,p_charge_details,p_result,p_icd_insertion;
+         
+    RETURN p_result;
+END;
+$BODY$
+  LANGUAGE plpgsql;
+-- --------------------------------------------------------------------------------------------------------------------
 -- Alter script For new Table changes 
 -- --------------------------------------------------------------------------------------------------------------------
 ALTER TABLE billing.claim_status ADD COLUMN IF NOT EXISTS display_order BIGINT;
