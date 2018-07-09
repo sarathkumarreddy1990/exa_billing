@@ -34,6 +34,14 @@ module.exports = {
     },
 
     update: async (params) => {
+        let auditDetails = {
+            company_id: params.companyId,
+            screen_name: params.screenName,
+            module_name: params.moduleName,
+            client_ip: params.clientIp,
+            user_id: params.userId
+        };
+        params.auditDetails = auditDetails;
 
         let claimData = await data.getClaimVersion(params);
 
