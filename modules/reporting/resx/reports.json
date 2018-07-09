@@ -417,7 +417,7 @@
         }
     },
     {
-        "id": "payments",
+        "id": "payment-report",
         "category": "billing",
         "title": "Payments",
         "description": "Report shows totals by payment and payer type along with the details of how each charge line item is applied for given accounting date range.",
@@ -1466,7 +1466,7 @@
     {
         "id": "insurance-vs-lop",
         "category": "billing",
-        "title": "Insurance Vs LOP",
+        "title": "Insurance VS LOP",
         "description": "",
         "jsreport": {
             "html": {

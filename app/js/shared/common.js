@@ -4509,7 +4509,7 @@ var commonjs = {
 
     getRightClickMenu:function(elementID,i18n,isSubMenu,elementName,isULMenu){  
         if(isULMenu){
-            return '<li class="dropdown-submenu"><a tabindex="-1" href="javascript: void(0)" i18n='+i18n+' class="dropdown-item">'+elementName+'</a><ul id='+elementID+' style="float:right;" class="dropdown-menu"></ul></li>';
+            return '<li class="dropdown-submenu" id=li_'+elementID+'><a tabindex="-1" href="javascript: void(0)" i18n='+i18n+' class="dropdown-item">'+elementName+'</a><ul id='+elementID+' style="float:right;" class="dropdown-menu"></ul></li>';
         }
         else if(isSubMenu){
             return '<li><a class="dropdown-item" id=' + elementID + '  href="javascript: void(0)" >' + elementName + '</a></li>'
@@ -5915,7 +5915,7 @@ var facilityModules = {
         feesByRadiologistAndModality: 'Fees by Radiologist and Modality',
         patientsWorksheet: 'Patients Worksheet',
         charges: 'Charges',
-        payments: 'Payment',
+        paymentReport: 'Payment',
         calculatedTAT: 'Turnaround Time (TAT) - Calculated',
         RVU: 'Relative Value Units',
         referringPhysicianStudyCount: 'Referring Physician Study Count',
@@ -5923,7 +5923,7 @@ var facilityModules = {
         patientStatement: 'Patient Statement',
         patientActivityStatement: 'Patient Statement',
         claimTransaction: 'Claim Transaction',
-        insuranceVsLOP: 'Insurance Vs LOP',
+        insuranceVsLOP: 'Insurance VS LOP',
         claimInquiry: 'Claim Inquiry',
         monthlyGoals: 'Monthly/Daily Study Goals',
         statTracking: 'STAT Tracking',

@@ -34,6 +34,14 @@ module.exports = {
     },
 
     update: async (params) => {
+        let auditDetails = {
+            company_id: params.companyId,
+            screen_name: params.screenName,
+            module_name: params.moduleName,
+            client_ip: params.clientIp,
+            user_id: params.userId
+        };
+        params.auditDetails = auditDetails;
 
         let claimData = await data.getClaimVersion(params);
 
@@ -59,11 +67,11 @@ module.exports = {
 
                 if (!obj1.id) {
 
-                    // if (!obj1.study_id) {
-                    //     charge_arr.push(data.saveChargesOnly(obj1));
-                    // } else {
-                    charge_arr.push(data.saveCharges(obj1));
-                    // }
+                    if (!obj1.study_id) {
+                        charge_arr.push(data.saveChargesOnly(obj1));
+                    } else {
+                        charge_arr.push(data.saveCharges(obj1));
+                    }
 
                 }
 

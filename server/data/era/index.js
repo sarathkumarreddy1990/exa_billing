@@ -167,14 +167,17 @@ module.exports = {
                                 ,patient_mname text
                                 ,patient_prefix text
                                 ,patient_suffix text
+                                ,original_reference text
                                 ,cas_details jsonb
                                 ,claim_status_code bigint
                              )
                             ),
-                           selected_Items AS (
+                           matched_claims AS (
                                 SELECT 
-                                    application_details.claim_number,
+                                    application_details.claim_number AS claim_id,
                                     application_details.claim_status_code,
+                                    application_details.payment,
+                                    application_details.original_reference,
                                     json_build_object(
                                         'charge_id',charges.id,
                                         'payment',application_details.payment,
@@ -214,39 +217,23 @@ module.exports = {
                            ), 
                            insert_payment_adjustment AS (
                                 SELECT
-                                    selected_Items.claim_number
-                                    ,selected_Items.claim_status_code
+                                    matched_claims.claim_id
+                                    ,matched_claims.claim_status_code
                                     ,billing.create_payment_applications(
                                         ${paymentDetails.id}
                                         ,( SELECT id FROM billing.adjustment_codes WHERE code ='ERA' ORDER BY id ASC LIMIT 1 )
                                         ,${paymentDetails.created_by}
-                                        ,json_build_array(selected_Items.json_build_object)::jsonb
+                                        ,json_build_array(matched_claims.json_build_object)::jsonb
                                         ,(${JSON.stringify(audit_details)})::json
                                     )
                                 FROM
-	                                selected_Items
-                            ),
-                            inserted_claims AS ( 
-                                SELECT 
-                                    DISTINCT claim_number as claim_id
-                                    ,claim_status_code
-                                FROM 
-                                    insert_payment_adjustment 
-                            )
-                            ,matched_claim_payment AS (
-                                SELECT
-                                    COALESCE(sum(c.bill_fee * c.units),'0')::numeric AS claim_bill_fee_total
-                                    ,'Amount received for matching orders : ' || COALESCE(sum(c.bill_fee * c.units),'0')::numeric AS notes
-                                FROM
-                                    billing.charges AS c
-                                    INNER JOIN inserted_claims ON inserted_claims.claim_id = c.claim_id
-                                    INNER JOIN public.cpt_codes AS pc ON pc.id = c.cpt_id
+	                                matched_claims
                             )
                             ,update_payment AS (
                                UPDATE billing.payments
                                 SET 
-                                    amount = ( SELECT claim_bill_fee_total FROM matched_claim_payment ),
-                                    notes =  notes || E'\n' || ( SELECT notes FROM matched_claim_payment ) || E'\n\n' || ${paymentDetails.uploaded_file_name}
+                                    amount = ( SELECT COALESCE(sum(payment),'0')::numeric FROM matched_claims ),
+                                    notes =  notes || E'\n' || 'Amount received for matching orders : ' || ( SELECT COALESCE(sum(payment),'0')::numeric FROM matched_claims ) || E'\n\n' || ${paymentDetails.uploaded_file_name}
                                 WHERE id = ${paymentDetails.id}
                             )
                             ,insert_claim_comments AS (
@@ -271,20 +258,22 @@ module.exports = {
                                         ,note text
                                         ,type text
                                     )
-                                INNER JOIN inserted_claims ic on ic.claim_id = claim_notes.claim_number
+                                INNER JOIN matched_claims mc on mc.claim_id = claim_notes.claim_number
                                 RETURNING id AS claim_comment_id
                                 ),
                                 update_claim_status_and_payer AS (
                                     SELECT  
-                                        billing.change_responsible_party(claim_id, claim_status_code, ${paymentDetails.company_id}) 
+                                        claim_id
+                                        ,billing.change_responsible_party(claim_id, claim_status_code, ${paymentDetails.company_id}, original_reference) 
                                     FROM 
-                                        inserted_claims
+                                        matched_claims
                                 )
                                 SELECT
 	                            ( SELECT json_agg(row_to_json(insert_payment_adjustment)) insert_payment_adjustment
                                             FROM (
                                                     SELECT
                                                           *
+                                                          , ( SELECT array_agg(claim_id) FROM update_claim_status_and_payer LIMIT 1 )
                                                     FROM
                                                     insert_payment_adjustment
                                             
@@ -467,34 +456,91 @@ module.exports = {
             file_id
         } = params;
 
-        const sql = SQL` SELECT 
-                    		efp.payment_id
-                    		,charges.claim_id
-                    		,charges.charge_id
-                    		,charges.display_code
-                    		,charges.modifiers
-                    	FROM billing.edi_file_payments efp
-                    	LEFT JOIN LATERAL (
-                            SELECT 
-                                DISTINCT ch.id as charge_id
-                                ,ch.claim_id
-                                ,cpt_codes.display_code
-                    		    , (
-                    			    SELECT array_agg(code) FROM public.modifiers where id in (
-                    				    SELECT unnest(array_remove(ARRAY[modifier1_id,modifier2_id,modifier3_id,modifier4_id], null))
-                    				    FROM billing.charges WHERE id = ch.id
-                    			    )
-                    		    ) as modifiers
-                                FROM 
-                                    billing.charges ch	
-                                INNER JOIN cpt_codes on cpt_codes.id = ch.cpt_id
-                                LEFT JOIN billing.payment_applications pa ON pa.charge_id = ch.id 
-                                LEFT JOIN public.modifiers m ON m.id = ch.id 
-                               WHERE 
-                                pa.payment_id = efp.payment_id 
+        const sql = SQL`
+        
+            WITH insurance_details AS(
+                SELECT 
+                    bp.id as payment_id ,
+                    pip.id ,
+                    pip.insurance_name ,
+                    pip.insurance_info->'PayerID' AS payer_id,
+                    bp.payment_dt AS payment_dt,
+                    pip.insurance_info->'Address1' AS address1,
+                    pip.insurance_info->'Address2' AS address2,
+                    pip.insurance_info->'City'  AS city,
+                    pip.insurance_info->'State' AS state,
+                    pip.insurance_info->'PhoneNo' AS phone_no,
+                    pip.insurance_info->'ZipCode' AS zip
+                FROM 
+                    billing.edi_files bef 
+                    INNER JOIN billing.edi_file_payments befp ON befp.edi_file_id = bef.id 
+                    INNER JOIN billing.payments bp on bp.id = befp.payment_id 
+                    INNER JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id 
+                    where bef.id = ${file_id}
+                ),
+                charge_details AS (         
+                    (SELECT Json_agg(Row_to_json(chargeDetails)) "chargeDetails"
+                    FROM 
+                   (
+                    SELECT 
+                    bch.claim_id, 
+                    bch.charge_dt::date,
+                    pcc.display_code AS cpt_decsription,
+                    (bch.bill_fee * bch.units) AS bill_fee,
+                    bpa.amount_type,
+                    (bch.allowed_amount * bch.units) AS allowed_fee ,
+                    (
+                        SELECT 
+                         ('[' || modifier1.code || ',
+                         ' || modifier2.code || ',
+                         ' || modifier3.code ||  ',
+                         ' || modifier4.code || ']')
+                        FROM billing.charges 
+                        LEFT JOIN modifiers AS modifier1 on modifier1.id = modifier1_id
+                        LEFT join modifiers AS modifier2 on modifier2.id = modifier2_id
+                        LEFT join modifiers AS modifier3 on modifier3.id = modifier3_id
+                        LEFT join modifiers AS modifier4 on modifier4.id = modifier4_id     
+                            WHERE charges.id = bpa.charge_id                        
+                        ) as modifiers
+                    FROM  
+                    billing.edi_files bef 
+                    LEFT JOIN billing.edi_file_payments befp ON befp.edi_file_id = bef.id 
+                    LEFT JOIN billing.payments bp on bp.id = befp.payment_id 
+                    --LEFT JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id 
+                    
+                    LEFT JOIN billing.payment_applications bpa on bpa.payment_id = bp .id
+                    LEFT JOIN billing.charges bch on bch.id = bpa.charge_id
+                    LEFT JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
 
-                            ) AS charges ON true
-                    	WHERE efp.edi_file_id = ${file_id}  ORDER BY efp.payment_id `;
+                    WHERE bef.id = ${file_id} AND bch.claim_id IS NOT NULL
+                ) AS chargeDetails )
+                    ),
+                claim_details AS (              
+                    (SELECT Json_agg(Row_to_json(claimsDetails)) "claimsDetails"
+                     FROM 
+                    (  SELECT 
+                        patients.id,
+                        patients.account_no,
+                        get_full_name (patients.last_name,patients.first_name) AS pat_name,
+                        claim_id
+                        FROM 
+                        (
+                            SELECT DISTINCT
+                            bch.claim_id
+                            FROM billing.edi_files
+                            INNER JOIN billing.edi_file_payments efp on efp.edi_file_id  = edi_files.id
+                            LEFT JOIN billing.payments pay on pay.id = efp.payment_id
+                            LEFT  JOIN billing.payment_applications bpa on bpa.payment_id = pay.id
+                            LEFT  JOIN billing.charges bch on bch.id = bpa.charge_id 
+                            where edi_files.id = ${file_id}
+                        ) AS claim_details
+
+                        inner join billing.claims on claims.id = claim_details.claim_id
+                        inner join patients on patients.id = claims.patient_id    
+                    ) AS claimsDetails      )       
+                )
+                SELECT * FROM insurance_details, charge_details, claim_details
+        `;
 
         return await query(sql);
 

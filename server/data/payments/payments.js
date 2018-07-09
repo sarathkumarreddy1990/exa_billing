@@ -261,10 +261,10 @@ module.exports = {
         facility_id = facility_id != 0 ? facility_id : null;
 
         if (paymentId) {
-            logDescription = ` ${paymentId} Payment updated `;
+            logDescription = `Payment updated with $${amount}  Payment Id as a  `;
         }
         else {
-            logDescription = `Created Payment As $${amount}`;
+            logDescription = `Created Payment with $${amount} Payment Id as a `;
         }
 
         const sql = SQL`WITH insert_data as 
@@ -343,7 +343,7 @@ module.exports = {
                                   , id
                                   , ${screenName}
                                   , ${moduleName}
-                                  , ${logDescription}
+                                  , ${logDescription} || id
                                   , ${clientIp}
                                   , json_build_object(
                                       'old_values', COALESCE(old_values, '{}'),
@@ -361,7 +361,7 @@ module.exports = {
                                   , id
                                   , ${screenName}
                                   , ${moduleName}
-                                  , ${logDescription}
+                                  , ${logDescription} || id 
                                   , ${clientIp}
                                   , json_build_object(
                                       'old_values', COALESCE(old_values, '{}'),
@@ -489,18 +489,22 @@ module.exports = {
                                 WHERE id IS NOT NULL
                             ),
                             change_responsible_party AS (
-                                    SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId})
+                                    SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId},null) AS result
                             )
-                            SELECT details,null FROM insert_application
+                            SELECT details,null,null FROM insert_application
                             UNION ALL
-                            SELECT null,id FROM update_claims_audit_cte
+                            SELECT null,id,null FROM update_claims_audit_cte
                             UNION ALL
-                            SELECT null,id FROM insert_claim_comment_audit_cte`;
+                            SELECT null,id,null FROM insert_claim_comment_audit_cte
+                            UNION ALL
+                            SELECT null,null,result::text FROM change_responsible_party`;
 
         return await query(sql);
     },
 
     updatePaymentApplication: async function (params) {
+
+        let logDescription = `Payment application updated for claim id : ${params.claimId} For payment id : `;
 
         const sql = SQL`WITH update_application_details AS(
                             SELECT 
@@ -544,6 +548,13 @@ module.exports = {
                                   , payment_application_id BIGINT
                                   , amount MONEY
                                   , parent_application_id BIGINT)
+                                ),
+                        delete_cas_applications as(
+                                SELECT 
+                                   id as cas_id 
+                                FROM billing.cas_payment_application_details 
+                                WHERE payment_application_id IN (SELECT payment_application_id FROM cas_application_details)
+                                AND id NOT IN (SELECT cas_id FROM cas_application_details)
                                 ),
                         update_applications AS(
                             UPDATE billing.payment_applications 
@@ -615,7 +626,7 @@ module.exports = {
                             FROM claim_comment_details
                             RETURNING *, '{}'::jsonb old_values),
                             change_responsible_party AS (
-                                    SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId})
+                                    SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId},null) AS result
                             ),
                         update_cas_application AS(
                                     UPDATE billing.cas_payment_application_details bcpad
@@ -633,6 +644,10 @@ module.exports = {
                                             WHERE  id = cad.cas_id) old_row 
                                     ) old_values
                                 ),
+                        purge_cas_applications AS (
+                            DELETE FROM billing.cas_payment_application_details 
+                            WHERE id in (SELECT cas_id FROM delete_cas_applications)
+                        ),
                         insert_cas_applications AS (
                                 INSERT INTO billing.cas_payment_application_details
                                 (
@@ -659,7 +674,7 @@ module.exports = {
                                     , id
                                     , ${params.screenName}
                                     , ${params.moduleName}
-                                    , 'Payment application updated payment id : ' || payment_id
+                                    , ${logDescription} || payment_id
                                     , ${params.clientIp}
                                     , json_build_object(
                                         'old_values', COALESCE(old_value, '{}'),
@@ -742,17 +757,41 @@ module.exports = {
                                 FROM update_cas_application
                                 WHERE id IS NOT NULL
                             )
-                            SELECT id from update_applications_audit_cte
+                            SELECT id,null from update_applications_audit_cte
                             UNION
-                            SELECT id from update_claims_audit_cte
+                            SELECT id,null from update_claims_audit_cte
                             UNION
-                            SELECT id from insert_claim_comment_audit_cte
+                            SELECT id,null from insert_claim_comment_audit_cte
                             UNION
-                            SELECT id from update_cas_applications_audit
+                            SELECT id,null from update_cas_applications_audit
                             UNION
-                            SELECT id from insert_cas_applications_audit`;
+                            SELECT id,null from insert_cas_applications_audit
+                            UNION
+                            SELECT null,result::text from change_responsible_party`;
 
         return await query(sql);
+    },
+
+    getAppliedAmount: async function (paymentId) {
+        return await query(
+            `
+            WITH 
+                applied AS (
+                    SELECT(SELECT 
+                        payments_applied_total 
+                    FROM 
+                        billing.get_payment_totals(${paymentId}))
+                    AS applied
+                ),
+                balance AS (
+                    SELECT(SELECT payment_balance_total
+                    FROM
+                        billing.get_payment_totals(${paymentId}))
+                    AS balance
+                )
+                SELECT * FROM applied, balance
+        `    
+        );
     }
 
 };

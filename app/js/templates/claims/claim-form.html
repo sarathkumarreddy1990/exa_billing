@@ -198,10 +198,10 @@
                                                     </span>
                                                 </td>
                                                 <td class="charges__cpt-code">
-                                                    <select id="txtCptCode_<%= row.data_row_id %>"  class="cptIsExists cptcode" ></select>
+                                                    <div id="divChargeCpt_<%= row.data_row_id %>"></div>
                                                 </td>
                                                 <td class="charges__cpt-description">
-                                                    <select id="txtCptDescription_<%= row.data_row_id %>" class="cptdescription"></select>
+                                                    <div id="divChargeCptDesc_<%= row.data_row_id %>"></div>
                                                 </td>
                                                 <td>
                                                     <input id="ddlPointer1_<%= row.data_row_id %>" value="<%= row.pointer1 ? row.pointer1 : '' %>" class="form-control inputModifiers typeahead diagCodes" data-type="P1" data-value="<%= row.data_row_id %>" type="text">

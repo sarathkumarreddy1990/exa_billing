@@ -56,7 +56,7 @@ module.exports = {
         'payer-mix': 'Payer Mix Report',
         // 'payment': 'Payments Report' Need to change the name,
         'claim-inquiry': 'Claim Inquiry Report',
-        'insurance-vs-lop': 'Insurance vs LOP Report',
+        'insurance-vs-lop': 'Insurance Vs LOP Report',
         'patients-by-insurance-company': 'Patients by Insurance Company',
         'payments-by-ins-company': 'Payments by Insurance Company',
         'procedure-analysis-by-insurance': 'Procedure Analysis by Insurance Report',
@@ -117,7 +117,6 @@ module.exports = {
         'claim_workbench': 'CLIM',
         'claims_total_records': 'CLIM',
         'claim_filters': 'CLIM',
-        'follow_ups': 'CLIM',
         'providers': 'CLIM', // AS OF NOW ---->  providers Auto Complete if claim have right then all drop will get rights
         'icd_codes':'CLIM', //Auto Cpmplete
         'provider_group': 'CLIM', //Auto Cpmplete
@@ -131,9 +130,9 @@ module.exports = {
         'claim_json':'CLIM', //when claim
         'get_patient_insurances': 'CLIM', //create claim
         'get_line_items': 'CLIM', //create claim
-        'studies': 'STDS',
+        'studies': 'HSTY', 
         'study_filters': 'SFIL',
-        'studies_total_records': 'STDS',
+        'studies_total_records': 'HSTY',
         'payments': 'PAYM',
         'claim_inquiry': 'CLMI',
         'split_claim': 'MASO',
@@ -149,7 +148,8 @@ module.exports = {
         'monthly-recap': 'MNRC',
         'patient-statement': 'PATS',
         'payer-mix': 'PYMX',
-        //'payment':'PAYT',
+        'patient-activity-statement': 'PACT',
+        'payment-report':'PAYT',
         'claim-inquiry': 'CLIN',
         'insurance-vs-lop': 'IVSL',
         'patients-by-insurance-company': 'PAIC',
@@ -174,6 +174,9 @@ module.exports = {
         'vieworder': 'ECLM', // view doc Rmenu
         'claim_charge': 'ECLM', //delete Claim Rmenu 
         'upload': 'ERAI',
-        'user_settings':'BUST'
+        'user_settings':'BUST',
+        'claim_study': 'ECLM',
+        'follow_ups': 'ECLM',
+        'claim_patient': 'PCLM'
     }
 };

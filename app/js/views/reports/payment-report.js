@@ -3,7 +3,7 @@ define([
     , 'underscore'
     , 'backbone'
     , 'shared/report-utils'
-    , 'text!templates/reports/payments.html'
+    , 'text!templates/reports/payment-report.html'
 ],
     function ($, _, Backbone, UI, paymentsTemplate) {
 

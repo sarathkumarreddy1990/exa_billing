@@ -11,6 +11,11 @@
     #PaymentForm .select2-container {
         z-index: 999;
     }
+
+    .maskPendingPay {
+        opacity: 0.4;
+        pointer-events: none;
+    }
 </style>
 
 <div class="form-group row">
@@ -25,7 +30,7 @@
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="chkpayerInsurance" class="control-label field-required col-sm-4" i18n="billing.payments.payer">
+                        <label for="selectPayerType" class="control-label field-required col-sm-4" i18n="billing.payments.payer">
                         </label>
                         <div class="col-sm-3 payerFieldsRadio">
                             <select id="selectPayerType" tabindex="1">
@@ -109,10 +114,11 @@
                         <div class="col-sm-4">
                             <select class="form-control" id="ddlpaymentReason" tabindex="9">
                                 <option value="">Select</option>
-                                <option value="1" data-reason="COPAY" data-copay="true">Self-Pay</option>
-                                <option value="2" data-reason="PRE" data-copay="false">Insurance</option>
-                                <option value="3" data-reason="REF" data-copay="false">Co-Pay</option>
-                                <option value="4" data-reason="REF" data-copay="false">Account Payment</option>
+                                <% _.each(paymentReasons, function(paymentReason) { %>
+                                    <option value="<%= paymentReason.id %>">
+                                        <%= paymentReason.code %>
+                                    </option>
+                                    <% }); %>
                             </select>
                         </div>
                     </div>
@@ -130,7 +136,7 @@
                         </div>
                     </div>                    
                     <div class="form-group row">
-                            <label for="chkModeCash" class="control-label field-required col-sm-3" i18n="billing.payments.paymentmode"></label>
+                            <label for="selectPaymentMode" class="control-label field-required col-sm-3" i18n="billing.payments.paymentmode"></label>
                             <div class="col-sm-4">
                                 <select class="form-control" id="selectPaymentMode" tabindex="11">
                                     <option value="0">Select</option>
@@ -166,7 +172,7 @@
                     <div class="form-group row">
                         <label class="control-label field-required col-sm-4" for="txtAmount" i18n="billing.payments.amount"></label>
                         <div class="col-sm-3">
-                            <input type="text" id="txtAmount" class="form-control floatboxtwodec" tabindex="7"/>
+                            <input type="text" id="txtAmount" class="form-control floatbox" tabindex="7"/>
                         </div>
                     </div>
                     <div class="form-group row">

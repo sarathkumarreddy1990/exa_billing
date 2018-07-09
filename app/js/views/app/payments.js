@@ -18,7 +18,8 @@ define(['jquery',
         paymentsGrid,
         paymentsLists,
         ModelPaymentsPager,
-        paymentPDF) {
+        paymentPDF,
+        Permission) {
         var paymentsView = Backbone.View.extend({
             el: null,
             pager: null,
