@@ -10,7 +10,8 @@ define(['jquery',
 'text!templates/claims/insurance-eligibility.html',
 'collections/app/patientsearch',
 'text!templates/app/patientSearchResult.html',
-'text!templates/claims/claim-validation.html'],
+'text!templates/claims/claim-validation.html',
+'shared/permissions'],
     function ($, 
         _, 
         Backbone, 
@@ -23,7 +24,8 @@ define(['jquery',
         insurancePokitdokForm,
         patientCollection,
         patSearchContent,
-        claimValidation) {
+        claimValidation,
+        Permission) {
         var claimView = Backbone.View.extend({
             el: null,
             rendered: false,
@@ -87,7 +89,11 @@ define(['jquery',
                 this.InsurancePokitdokTemplateForm = new _.template(insurancePokitdokForm);
                 this.patientsPager = new modelPatientPager();
                 this.patientListcoll = new patientCollection();
-
+                this. screenCode = [];
+                if(app.userInfo.user_type != 'SU'){
+                    var rights = (new Permission()).init();
+                    this.screenCode = rights.screenCode;
+                }
             },
             urlNavigation: function () { //To restrict the change in URL based on tab selection. Maintain Same URL for every tab in claim creation screen
                 var self = this;
@@ -141,6 +147,10 @@ define(['jquery',
                     self.bindDetails();
                     self.bindTabMenuEvents();
                 }
+
+                if(self.screenCode.indexOf('CLVA') > -1) // this is for validate button rights
+                    $('#btnValidateClaim').attr('disabled', true)
+
             },
 
             checkInsuranceEligibility: function (e) {

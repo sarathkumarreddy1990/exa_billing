@@ -175,6 +175,7 @@ module.exports = {
         'upload': 'ERAI',
         'user_settings':'BUST',
         'claim_study': 'ECLM',
-        'follow_ups': 'ECLM'
+        'follow_ups': 'ECLM',
+        'claim_patient': 'PCLM'
     }
 };
