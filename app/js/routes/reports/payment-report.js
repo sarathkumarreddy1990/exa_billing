@@ -2,7 +2,7 @@ define([
     'jquery',
     'backbone',
     'backbonesubroute',
-    'views/reports/payments'
+    'views/reports/payment-report'
 ],
     function (
         $,
@@ -12,7 +12,7 @@ define([
     ) {
         return Backbone.SubRoute.extend({
             routes: {
-                'payments': 'showDefaultView'
+                'payment-report': 'showDefaultView'
             },
 
             showDefaultView: function () {
@@ -25,7 +25,7 @@ define([
             },
 
             initializeRouter: function () {
-                this.options.screen = facilityModules.reportScreens.payments;
+                this.options.screen = facilityModules.reportScreens.paymentReport;
                 this.options.currentView = this.paymentScreen;
                 layout.initializeLayout(this);
 
