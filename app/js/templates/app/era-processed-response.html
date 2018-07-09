@@ -10,7 +10,7 @@
 
     #payerDetails .control-label {
         padding: 0px !important;
-        font-weight: bold;
+        /* font-weight: bold; */
     }
 
     .topMargin {
@@ -22,47 +22,47 @@
     } */
 </style>
 <div>
-    <div class="row" id="payerDetails">
+    <div class="row" id="payerDetails" style="margin: auto;">
         <div class="col">
             <div class="form-group form-inline">
                 <label id="lblInsPRoviderName" for="auditFromDate" class="control-label">
-                    Insurance Provider :
-                    <%= ins.insurance_name %>
+                    Insurance Provider :&nbsp
+                    <b> <%= ins.insurance_name %></b>
                 </label>
             </div>
             <div class="form-group form-inline">
                 <label id="lblPayerId" for="auditFromDate" class="control-label">
-                    Payer Id :
-                    <%= ins.payer_id %>
+                    Payer Id :&nbsp
+                    <b> <%= ins.payer_id %></b>
                 </label>
             </div>
             <div class="form-group form-inline">
                 <label id="paymentDate" for="auditFromDate" class="control-label">
-                    Payment Date:
-                    <%= moment(ins.payment_dt).format('L') %>
+                    Payment Date :&nbsp
+                    <b>  <%= moment(ins.payment_dt).format('L') %></b>
                 </label>
             </div>
         </div>
         <div class="col">
             <div class="form-group form-inline">
                 <label id="lblInsProviderAddress" for="auditFromDate" class="control-label">
-                    Address :
-                    <%= ins.address1 %>/
-                        <%= ins.address2 %>
+                    Address :&nbsp
+                    <b> <%= ins.address1 %>/
+                        <%= ins.address2 %></b>
                 </label>
             </div>
             <div class="form-group form-inline">
                 <label id="lblInsProviderCityState" for="auditFromDate" class="control-label">
-                    City/State/Zip :
-                    <%= ins.city %>/
+                    City/State/Zip :&nbsp
+                    <b>  <%= ins.city %>/
                         <%= ins.state %>/
-                            <%= ins.zip %>
+                            <%= ins.zip %></b>
                 </label>
             </div>
             <div class="form-group form-inline">
                 <label id="lblInsProviderPhoneNo" for="auditFromDate" class="control-label">
-                    Phone # :
-                    <%= ins.phone_no %>
+                    Phone # :&nbsp
+                    <b> <%= ins.phone_no %></b>
                 </label>
             </div>
         </div>
@@ -92,9 +92,10 @@
                             <thead>
                                 <th>Date</th>
                                 <th>CPT Code</th>
-                                <th class="txtAlignRight">BillFee</th>
-                                <th>Modifier</th>
+                                <th class="txtAlignRight">Bill Fee</th>
+                                <th class="txtAlignRight">Adjustment</th>
                                 <th class="txtAlignRight">Allowed</th>
+                                <th>Modifier</th>
                             </thead>
                             <tbody>
                                 <% _.each(claim.charges, function(charge, key){ %>
@@ -106,13 +107,20 @@
                                             <%= charge.cpt_decsription %>
                                         </td>
                                         <td class="txtAlignRight">
-                                            <%= charge.bill_fee %>
+                                            <% if (charge.amount_type === 'payment' ) { %>
+                                                <%= charge.bill_fee %>
+                                                    <% } %>
                                         </td>
-                                        <td>
-                                            <%= charge.modifiers %>
+                                        <td class="txtAlignRight">
+                                            <% if (charge.amount_type === 'adjustment' ) { %>
+                                                <%= charge.bill_fee %>
+                                                    <% } %>
                                         </td>
                                         <td class="txtAlignRight">
                                             <%= charge.allowed_fee %>
+                                        </td>
+                                        <td>
+                                            <%= charge.modifiers %>
                                         </td>
                                     </tr>
                                     <% }); %>
@@ -121,9 +129,11 @@
                                             <td></td>
                                             <td class="txtAlignRight"> Total : $<%= claim.totalBillFee %>
                                             </td>
-                                            <td></td>
+                                            <td class="txtAlignRight"> Total : $<%= claim.totalAdjusmtment %>
+                                            </td>
                                             <td class="txtAlignRight"> Total : $<%= claim.totalAllowedFee %>
                                             </td>
+                                            <td></td>
                                         </tr>
                             </tbody>
                         </table>

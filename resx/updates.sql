@@ -467,13 +467,13 @@ CREATE TABLE IF NOT EXISTS billing.claim_status
 );
 -- --------------------------------------------------------------------------------------------------------------------
 IF NOT EXISTS(SELECT 1 FROM billing.claim_status) THEN 
-    INSERT INTO billing.claim_status(company_id,code,description,is_system_status) values(l_company_id,'SUBPEN','submission_pending',true);
-    INSERT INTO billing.claim_status(company_id,code,description,is_system_status) values(l_company_id,'PYMTPEN','payment_pending',true);
-    INSERT INTO billing.claim_status(company_id,code,description,is_system_status) values(l_company_id,'DENIED','denied',true);
-    INSERT INTO billing.claim_status(company_id,code,description,is_system_status) values(l_company_id,'OVERPYMT','over_payment',true);
-    INSERT INTO billing.claim_status(company_id,code,description,is_system_status) values(l_company_id,'PAIDFULL','paid_in_full',true);
-    INSERT INTO billing.claim_status(company_id,code,description,is_system_status) values(l_company_id,'COLLREV','collections_review',true);
-    INSERT INTO billing.claim_status(company_id,code,description,is_system_status) values(l_company_id,'COLLPEN','collections_pending',true);
+    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'SUBPEN','submission_pending',true,1);
+    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'PYMTPEN','payment_pending',true,2);
+    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'DENIED','denied',true,3);
+    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'OVERPYMT','over_payment',true,4);
+    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'PAIDFULL','paid_in_full',true,5);
+    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'COLLREV','collections_review',true,6);
+    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'COLLPEN','collections_pending',true,7);
 END IF;
 -- --------------------------------------------------------------------------------------------------------------------
 -- Datamodel for Adjustment codes  <END>
@@ -1115,6 +1115,17 @@ CREATE TABLE IF NOT EXISTS billing.insurance_provider_details
   CONSTRAINT insurance_provider_details_billing_method_cc CHECK (billing_method IN ('patient_payment', 'direct_billing', 'electronic_billing', 'paper_claim'))
 );
 -- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.insurance_provider_details
+(
+  insurance_provider_id bigint NOT NULL,
+  clearing_house_id bigint,
+  billing_method text,
+  CONSTRAINT b_insurance_provider_id_pk PRIMARY KEY (insurance_provider_id),
+  CONSTRAINT b_insurance_providers_clearing_house_id_fk FOREIGN KEY (clearing_house_id) REFERENCES billing.edi_clearinghouses (id),
+  CONSTRAINT insurance_providers_insurance_provider_id_fk FOREIGN KEY (insurance_provider_id) REFERENCES insurance_providers (id),
+  CONSTRAINT insurance_providers_ins_id_clear_house_id_uc UNIQUE (insurance_provider_id, billing_method)
+);
+-- --------------------------------------------------------------------------------------------------------------------
 -- Creating functions
 -- --------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION billing.get_claim_totals(bigint)
@@ -1145,7 +1156,8 @@ $BODY$
             , array_agg(pc.display_description) AS claim_cpt_description
         FROM
             billing.charges AS c
-            LEFT OUTER JOIN billing.charges_studies AS cs ON c.id = cs.charge_id  -- charges may or may not belong to studies os LEFT and don't count NULLs
+            INNER JOIN public.cpt_codes AS pc ON pc.id = c.cpt_id
+            LEFT OUTER JOIN billing.charges_studies AS cs ON c.id = cs.charge_id   -- charges may or may not belong to studies os LEFT and don't count NULLs
         WHERE
             c.claim_id = $1
     )
@@ -1232,7 +1244,7 @@ FROM
     billing.claims
     INNER JOIN LATERAL billing.get_claim_totals(claims.id) AS claim_totals ON TRUE
 WHERE
-    id = 4161
+    id = 4161;
 
 -- for single total column you can also use subquery
 SELECT
@@ -1241,7 +1253,7 @@ SELECT
 FROM
     billing.claims
 WHERE
-    id = 4161
+    id = 4161;
 $BODY$;
 -- --------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION billing.get_payment_totals(bigint)
@@ -1920,6 +1932,72 @@ END
 $BODY$
   LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION billing.get_claim_payments(IN bigint)
+  RETURNS TABLE(studies_count bigint, charges_count bigint, charges_bill_fee_total money, charges_allowed_amount_total money, payments_count bigint, payments_total money, payments_applied_count bigint, payments_applied_total money, adjustments_applied_count bigint, adjustments_applied_total money, payment_insurance_total money, payment_patient_total money, claim_balance_total money) AS
+$BODY$
+
+
+    -- to debug or see EXPLAIN plan, copy body of function to separate window, seach and replace $1 with claim id.
+    WITH charges AS (
+        SELECT
+              count(cs.study_id)              AS studies_count
+            , count(c.id)                     AS charges_count
+            , sum(c.bill_fee * c.units)       AS charges_bill_fee_total
+            , sum(c.allowed_amount * c.units) AS charges_allowed_amount_total
+        FROM
+            billing.charges AS c
+            LEFT OUTER JOIN billing.charges_studies AS cs ON c.id = cs.charge_id  -- charges may or may not belong to studies os LEFT and don't count NULLs
+        WHERE
+            c.claim_id = $1
+    )
+    , payments AS (
+        SELECT
+              count(p.id)   AS payments_count
+            , sum(p.amount) AS payments_total
+        FROM
+            billing.payments AS p
+            INNER JOIN (
+                SELECT
+                    distinct pa.payment_id
+                FROM
+                    billing.charges AS c
+                    INNER JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
+                WHERE
+                    c.claim_id = $1
+            ) AS pa ON p.id = pa.payment_id
+    )
+    , applications AS (
+        SELECT
+              count(pa.amount) FILTER (WHERE pa.amount_type = 'payment')    AS payments_applied_count
+            , coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)    AS payments_applied_total
+            , count(pa.amount) FILTER (WHERE pa.amount_type = 'adjustment') AS adjustments_applied_count
+            , coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment'),0::money) AS ajdustments_applied_total
+,coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment' AND payer_type='insurance'),0::money)    AS payment_insurance_total
+,coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment' AND payer_type='patient'),0::money)    AS payment_patient_total
+        FROM
+            billing.charges AS c
+            INNER JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
+            INNER JOIN billing.payments AS p ON pa.payment_id = p.id
+        WHERE
+            c.claim_id = $1
+    )
+    SELECT
+          charges.*
+        , payments.*
+        , applications.*
+        , charges.charges_bill_fee_total - (
+            applications.payments_applied_total +
+            applications.ajdustments_applied_total
+        ) AS claim_balance_total
+    FROM
+          charges
+        , payments
+        , applications
+
+
+$BODY$
+  LANGUAGE sql;
+-- --------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION billing.get_age_patient_claim(IN bigint)
   RETURNS TABLE(patient_age_0_30 money, patient_age_31_60 money, patient_age_61_90 money, patient_age_91_120 money, patient_age_121 money, insurance_age_0_30 money, insurance_age_31_60 money, insurance_age_61_90 money, insurance_age_91_120 money, insurance_age_121 money, total_balance money, patient_total money, insurance_total money, total_age_30 money, total_age_31_60 money, total_age_61_90 money, total_age_91_120 money, total_age_121 money, total_unapplied money) AS
 $BODY$
@@ -2039,72 +2117,6 @@ BEGIN
 END;
 $BODY$
 LANGUAGE plpgsql;
--- --------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION billing.get_claim_payments(IN bigint)
-  RETURNS TABLE(studies_count bigint, charges_count bigint, charges_bill_fee_total money, charges_allowed_amount_total money, payments_count bigint, payments_total money, payments_applied_count bigint, payments_applied_total money, adjustments_applied_count bigint, adjustments_applied_total money, claim_balance_total money, payment_insurance_total money, payment_patient_total money) AS
-$BODY$
-
-
-    -- to debug or see EXPLAIN plan, copy body of function to separate window, seach and replace $1 with claim id.
-    WITH charges AS (
-        SELECT
-              count(cs.study_id)              AS studies_count
-            , count(c.id)                     AS charges_count
-            , sum(c.bill_fee * c.units)       AS charges_bill_fee_total
-            , sum(c.allowed_amount * c.units) AS charges_allowed_amount_total
-        FROM
-            billing.charges AS c
-            LEFT OUTER JOIN billing.charges_studies AS cs ON c.id = cs.charge_id  -- charges may or may not belong to studies os LEFT and don't count NULLs
-        WHERE
-            c.claim_id = $1
-    )
-    , payments AS (
-        SELECT
-              count(p.id)   AS payments_count
-            , sum(p.amount) AS payments_total
-        FROM
-            billing.payments AS p
-            INNER JOIN (
-                SELECT
-                    distinct pa.payment_id
-                FROM
-                    billing.charges AS c
-                    INNER JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
-                WHERE
-                    c.claim_id = $1
-            ) AS pa ON p.id = pa.payment_id
-    )
-    , applications AS (
-        SELECT
-              count(pa.amount) FILTER (WHERE pa.amount_type = 'payment')    AS payments_applied_count
-            , coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)    AS payments_applied_total
-            , count(pa.amount) FILTER (WHERE pa.amount_type = 'adjustment') AS adjustments_applied_count
-            , coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment'),0::money) AS ajdustments_applied_total
-,coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment' AND payer_type='insurance'),0::money)    AS payment_insurance_total
-,coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment' AND payer_type='patient'),0::money)    AS payment_patient_total
-        FROM
-            billing.charges AS c
-            INNER JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
-            INNER JOIN billing.payments AS p ON pa.payment_id = p.id
-        WHERE
-            c.claim_id = $1
-    )
-    SELECT
-          charges.*
-        , payments.*
-        , applications.*
-        , charges.charges_bill_fee_total - (
-            applications.payments_applied_total +
-            applications.ajdustments_applied_total
-        ) AS claim_balance_total
-    FROM
-          charges
-        , payments
-        , applications
-
-
-$BODY$
-  LANGUAGE sql;
 -- --------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION billing.get_age_claim_payments(IN bigint)
   RETURNS TABLE(age_0_30 money, age_31_60 money, age_61_90 money, age_91_120 money, age_121 money, total_balance money, payment_insurance_total money, payment_patient_total money) AS
@@ -3460,17 +3472,6 @@ ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS paper_claim_original_
 ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS direct_invoice_template_id BIGINT;
 ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS patient_invoice_template_id BIGINT;
 ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS grid_field_settings JSON;
--- --------------------------------------------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS billing.insurance_provider_details
-(
-  insurance_provider_id bigint NOT NULL,
-  clearing_house_id bigint,
-  billing_method text,
-  CONSTRAINT b_insurance_provider_id_pk PRIMARY KEY (insurance_provider_id),
-  CONSTRAINT b_insurance_providers_clearing_house_id_fk FOREIGN KEY (clearing_house_id) REFERENCES billing.edi_clearinghouses (id),
-  CONSTRAINT insurance_providers_insurance_provider_id_fk FOREIGN KEY (insurance_provider_id) REFERENCES insurance_providers (id),
-  CONSTRAINT insurance_providers_ins_id_clear_house_id_uc UNIQUE (insurance_provider_id, billing_method)
-);
 -- --------------------------------------------------------------------------------------------------------------------
 -- MAKE SURE THIS COMMENT STAYS AT THE BOTTOM - ADD YOUR CHANGES ABOVE !!!!
 -- RULES:
