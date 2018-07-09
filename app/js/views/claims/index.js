@@ -1528,6 +1528,7 @@ define(['jquery',
                 $('#txtBillFee_' + rowIndex).val(parseFloat(fee).toFixed(2));
                 $('#txtAllowedFee_' + rowIndex).val(parseFloat(fee).toFixed(2));
                 $('#txtTotalAllowedFee_' + rowIndex).val(parseFloat(units * fee).toFixed(2));
+                $('#txtTotalBillFee_' + rowIndex).val(parseFloat(units * fee).toFixed(2));
             },
 
             setProviderAutoComplete: function (provider_type) {
