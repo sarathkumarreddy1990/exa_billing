@@ -1,5 +1,47 @@
 const data = require('../../data/era/index');
 const _ = require('lodash');
+const commentsDetails = [
+    {
+        code: 1,
+        description: 'Processed as Primary'
+    },
+    {
+        code: 2,
+        description: 'Processed as Secondary'
+    },
+    {
+        code: 3,
+        description: 'Processed as Tertiary'
+    },
+    {
+        code: 4,
+        description: 'Denied'
+    },
+    {
+        code: 19,
+        description: 'Processed as Primary, Forwarded to Additional Payer(s)'
+    },
+    {
+        code: 20,
+        description: 'Processed as Secondary, Forwarded to Additional Payer(s)'
+    },
+    {
+        code: 21,
+        description: 'Processed as Tertiary, Forwarded to Additional Payer(s)'
+    },
+    {
+        code: 22,
+        description: 'Reversal of Previous Payment'
+    },
+    {
+        code: 23,
+        description: 'Not Our Claim, Forwarded to Additional Payer(s)'
+    },
+    {
+        code: 25,
+        description: 'Predetermination Pricing Only - No Payment'
+    }
+];
 
 module.exports = {
     
@@ -144,6 +186,18 @@ module.exports = {
                             patient_suffix : value.patientName.suffix || ''
                         });
                     });
+
+                    if (value && value.claimStatusCode) {
+                        let commentDesc = _.find(commentsDetails, function (item) { return item.code == parseInt(value.claimStatusCode); });
+
+                        if (commentDesc && commentDesc.description) {
+                            claimComments.push({
+                                claim_number: value.claimNumber,
+                                note: commentDesc.description,
+                                type: 'auto'
+                            });
+                        }
+                    }
 
                     if (co_pay != '') {
 
