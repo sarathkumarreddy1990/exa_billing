@@ -10,7 +10,8 @@ define(['jquery',
 'text!templates/claims/insurance-eligibility.html',
 'collections/app/patientsearch',
 'text!templates/app/patientSearchResult.html',
-'text!templates/claims/claim-validation.html'],
+'text!templates/claims/claim-validation.html',
+'shared/permissions'],
     function ($, 
         _, 
         Backbone, 
@@ -23,7 +24,8 @@ define(['jquery',
         insurancePokitdokForm,
         patientCollection,
         patSearchContent,
-        claimValidation) {
+        claimValidation,
+        Permission) {
         var claimView = Backbone.View.extend({
             el: null,
             rendered: false,
@@ -87,7 +89,11 @@ define(['jquery',
                 this.InsurancePokitdokTemplateForm = new _.template(insurancePokitdokForm);
                 this.patientsPager = new modelPatientPager();
                 this.patientListcoll = new patientCollection();
-
+                this. screenCode = [];
+                if(app.userInfo.user_type != 'SU'){
+                    var rights = (new Permission()).init();
+                    this.screenCode = rights.screenCode;
+                }
             },
             urlNavigation: function () { //To restrict the change in URL based on tab selection. Maintain Same URL for every tab in claim creation screen
                 var self = this;
@@ -141,6 +147,10 @@ define(['jquery',
                     self.bindDetails();
                     self.bindTabMenuEvents();
                 }
+
+                if(self.screenCode.indexOf('CLVA') > -1) // this is for validate button rights
+                    $('#btnValidateClaim').attr('disabled', true)
+
             },
 
             checkInsuranceEligibility: function (e) {
@@ -476,14 +486,14 @@ define(['jquery',
 
             createCptCodesUI: function(rowIndex) {
                 $('#divChargeCpt_' + rowIndex)
-                    .append($('<div/>', { id: "divCptCode_" + rowIndex })
-                        .append($('<lable/>', { id: "lblCptCode_" + rowIndex }).html("Select").addClass('pointerCursor'))
-                        .append($('<span/>', { id: rowIndex }).addClass('pointerCursor').attr({ 'data-type': 'cpt' })));
+                    .append($('<div/>', { id: "divCptCode_" + rowIndex }).addClass('pointerCursor')
+                        .append($('<lable/>', { id: "lblCptCode_" + rowIndex }).html("Select"))
+                        .append($('<span/>', { id: rowIndex }).attr({ 'data-type': 'cpt' })));
 
                 $('#divChargeCptDesc_' + rowIndex)
-                    .append($('<div/>', { id: "divCptDescription_" + rowIndex })
-                        .append($('<lable/>', { id: "lblCptDescription_" + rowIndex }).html("Select").addClass('pointerCursor'))
-                        .append($('<span/>', { id: rowIndex }).addClass('pointerCursor').attr({ 'data-type': 'cptdesc' })));
+                    .append($('<div/>', { id: "divCptDescription_" + rowIndex }).addClass('pointerCursor')
+                        .append($('<lable/>', { id: "lblCptDescription_" + rowIndex }).html("Select"))
+                        .append($('<span/>', { id: rowIndex }).attr({ 'data-type': 'cptdesc' })));
             },  
 
             bindDefaultClaimDetails: function (claim_data) {
@@ -1034,15 +1044,17 @@ define(['jquery',
             bindCPTSelectionEvents: function (el) {
                 var self = this;
                 $(el).click(function (e) {
-                    $(this).children('span').click();
+                    if(!$(this).prop('disabled')) {
+                        $(this).children('span').click();
+                    }
                 }).mouseover(function (e) {
                     var spnElement = $(this).children('span');
                     if (!spnElement.hasClass('icon-ic-edit') && !$(this).prop('disabled')) {
+                        $(this).addClass('pointerCursor');
                         spnElement
                             .addClass('icon-ic-edit')
                             .css({
                                 'min-width': '50px',
-                                'cursor': 'pointer',
                                 'margin-left': '15px'
                             })
                             .click(function (e) {
@@ -1050,37 +1062,35 @@ define(['jquery',
                                 var rowIndex = e.target.id;
                                 var type = $(e.target).attr('data-type');
                                 if (type == 'cpt') {
-                                    self.createCPTSelectionUI(rowIndex, 'cpt').then(function () {
-                                        self.setChargeAutoComplete(rowIndex, 'code');
-                                        $('#divCptCode_' + rowIndex).hide();
-                                        $('#divSelCptCode_' + rowIndex).show();
-                                        $('#select2-txtCptCode_' + rowIndex + '-container').html($('#lblCptCode_' + rowIndex).html()).attr({
-                                            'data_id': $('#lblCptCode_' + rowIndex).attr('data_id'),
-                                            'data_description': $('#lblCptCode_' + rowIndex).attr('data_description'),
-                                            'data_code': $('#lblCptCode_' + rowIndex).attr('data_code')
-                                        });
-                                        $('#divCptDescription_' + rowIndex).prop('disabled', true);
-                                        self.bindCPTUpdateEvents($('#divSelCptCode_' + rowIndex).find('.icon-ic-check'));
-                                        self.bindCPTUpdateEvents($('#divSelCptCode_' + rowIndex).find('.icon-ic-close'));
+                                    self.createCPTSelectionUI(rowIndex, 'cpt');
+                                    self.setChargeAutoComplete(rowIndex, 'code');
+                                    $('#divCptCode_' + rowIndex).hide();
+                                    $('#divSelCptCode_' + rowIndex).show();
+                                    $('#select2-txtCptCode_' + rowIndex + '-container').html($('#lblCptCode_' + rowIndex).html()).attr({
+                                        'data_id': $('#lblCptCode_' + rowIndex).attr('data_id'),
+                                        'data_description': $('#lblCptCode_' + rowIndex).attr('data_description'),
+                                        'data_code': $('#lblCptCode_' + rowIndex).attr('data_code')
                                     });
-
+                                    $('#divCptDescription_' + rowIndex).prop('disabled', true);
+                                    self.bindCPTUpdateEvents($('#divSelCptCode_' + rowIndex).find('.icon-ic-check'));
+                                    self.bindCPTUpdateEvents($('#divSelCptCode_' + rowIndex).find('.icon-ic-close'));
                                 } else {
-                                    self.createCPTSelectionUI(rowIndex, 'cptdesc').then(function () {
-                                        self.setChargeAutoComplete(rowIndex, 'description');
-                                        $('#divCptDescription_' + rowIndex).hide();
-                                        $('#divSelCptDescription_' + rowIndex).show();
-                                        $('#divCptCode_' + rowIndex).prop('disabled', true);
-                                        $('#select2-txtCptDescription_' + rowIndex + '-container').html($('#lblCptDescription_' + rowIndex).html()).attr({
-                                            'data_id': $('#lblCptDescription_' + rowIndex).attr('data_id'),
-                                            'data_description': $('#lblCptDescription_' + rowIndex).attr('data_description'),
-                                            'data_code': $('#lblCptDescription_' + rowIndex).attr('data_code')
-                                        });
-                                        self.bindCPTUpdateEvents($('#divSelCptDescription_' + rowIndex).find('.icon-ic-check'));
-                                        self.bindCPTUpdateEvents($('#divSelCptDescription_' + rowIndex).find('.icon-ic-close'));
+                                    self.createCPTSelectionUI(rowIndex, 'cptdesc');
+                                    self.setChargeAutoComplete(rowIndex, 'description');
+                                    $('#divCptDescription_' + rowIndex).hide();
+                                    $('#divSelCptDescription_' + rowIndex).show();
+                                    $('#divCptCode_' + rowIndex).prop('disabled', true);
+                                    $('#select2-txtCptDescription_' + rowIndex + '-container').html($('#lblCptDescription_' + rowIndex).html()).attr({
+                                        'data_id': $('#lblCptDescription_' + rowIndex).attr('data_id'),
+                                        'data_description': $('#lblCptDescription_' + rowIndex).attr('data_description'),
+                                        'data_code': $('#lblCptDescription_' + rowIndex).attr('data_code')
                                     });
-
+                                    self.bindCPTUpdateEvents($('#divSelCptDescription_' + rowIndex).find('.icon-ic-check'));
+                                    self.bindCPTUpdateEvents($('#divSelCptDescription_' + rowIndex).find('.icon-ic-close'));
                                 }
                             });
+                    } else {
+                        $(this).removeClass('pointerCursor');
                     }
                 }).mouseout(function (e) {
                     $(this).children('span').removeClass('icon-ic-edit');
@@ -1088,24 +1098,21 @@ define(['jquery',
             },
 
             createCPTSelectionUI: function(rowIndex, type) {
-                return new Promise(function(resolve,reject){
-                    if(type == 'cpt') {
-                        $('#divChargeCpt_' + rowIndex)
-                        .append($('<div/>',{id:'divSelCptCode_' + rowIndex})
-                        .append($('<select/>',{id:'txtCptCode_' + rowIndex}))
-                        .append($('<div/>').css({'float':'right'})
-                        .append($('<span/>',{id:rowIndex}).addClass('icon-ic-check pointerCursor').attr({'data-type':'cptCheck'}))
-                        .append($('<span/>',{id:rowIndex}).addClass('icon-ic-close pointerCursor').attr({'data-type':'cptClose'}))));
-                    } else {
-                        $('#divChargeCptDesc_' + rowIndex)
-                        .append($('<div/>',{id:'divSelCptDescription_' + rowIndex})
-                        .append($('<select/>',{id:'txtCptDescription_' + rowIndex}))
-                        .append($('<div/>').css({'float':'right'})
-                        .append($('<span/>',{id:rowIndex}).addClass('icon-ic-check pointerCursor').attr({'data-type':'cptDescCheck'}))
-                        .append($('<span/>',{id:rowIndex}).addClass('icon-ic-close pointerCursor').attr({'data-type':'cptDescClose'}))));
-                    }
-                    resolve();
-                });
+                if(type == 'cpt') {
+                    $('#divChargeCpt_' + rowIndex)
+                    .append($('<div/>',{id:'divSelCptCode_' + rowIndex})
+                    .append($('<select/>',{id:'txtCptCode_' + rowIndex}))
+                    .append($('<div/>').css({'float':'right'})
+                    .append($('<span/>',{id:rowIndex}).addClass('icon-ic-check pointerCursor').attr({'data-type':'cptCheck'}))
+                    .append($('<span/>',{id:rowIndex}).addClass('icon-ic-close pointerCursor').attr({'data-type':'cptClose'}))));
+                } else {
+                    $('#divChargeCptDesc_' + rowIndex)
+                    .append($('<div/>',{id:'divSelCptDescription_' + rowIndex})
+                    .append($('<select/>',{id:'txtCptDescription_' + rowIndex}))
+                    .append($('<div/>').css({'float':'right'})
+                    .append($('<span/>',{id:rowIndex}).addClass('icon-ic-check pointerCursor').attr({'data-type':'cptDescCheck'}))
+                    .append($('<span/>',{id:rowIndex}).addClass('icon-ic-close pointerCursor').attr({'data-type':'cptDescClose'}))));
+                }
             },
 
             bindCPTUpdateEvents: function (el) {
@@ -1514,6 +1521,7 @@ define(['jquery',
                     }
                     return type == 'code' ? res.display_code : res.display_description;
                 }
+                $("#" + id).select2('open');
             },
 
             setCptValues: function (rowIndex, res, duration, units, fee, type) {
@@ -1526,6 +1534,7 @@ define(['jquery',
                 $('#txtBillFee_' + rowIndex).val(parseFloat(fee).toFixed(2));
                 $('#txtAllowedFee_' + rowIndex).val(parseFloat(fee).toFixed(2));
                 $('#txtTotalAllowedFee_' + rowIndex).val(parseFloat(units * fee).toFixed(2));
+                $('#txtTotalBillFee_' + rowIndex).val(parseFloat(units * fee).toFixed(2));
             },
 
             setProviderAutoComplete: function (provider_type) {
