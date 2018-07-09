@@ -14,8 +14,8 @@ define([
                 var accessDeniedScreens = [];
                 var accessDeniedRightClickIDs = [];
                 var billingScreenCodes = ['ADJC', 'BICO', 'BICL', 'CLST', 'BIPR', 'PRCQ', 'BILM', 'PARE', 'CASG', 'CASR', 'STCC', 'BIVA', 'PCA', 'EDRT', 'INSM', 'CLHO', 'BULG', 'BALG',
-                    'AGAR', 'AARD', 'CHRG', 'CLAY', 'CLIN', 'CLTR', 'CRBE', 'DSPS', 'DICN', 'IVSL', 'MOSU', 'MNRC', 'PATS', 'PYMX', 'PAYT', 'PAIC', 'PBIC', 'PABI', 'PRCN', 'RPFR', 'REPC', 'REPS', 'TSUM',
-                    'CLIM', 'HSTY', 'ECLM', 'CLMI', 'MASO', 'CLVA', 'ERAI', 'PAYM', 'BUST', 'SFIL', 'APAY']
+                    'AGAR', 'AARD', 'CHRG', 'CLAY', 'CLIN', 'CLTR', 'CRBE', 'DSPS', 'DICN', 'IVSL', 'MOSU', 'MNRC', 'PATS', 'PYMX', 'PAYT', 'PAIC', 'PBIC', 'PABI', 'PRCN', 'RPFR', 'REPC', 'REPS', 'TSUM','PACT',
+                    'CLIM', 'HSTY', 'ECLM', 'CLMI', 'MASO', 'CLVA', 'ERAI', 'PAYM', 'BUST', 'SFIL', 'APAY', 'DPAY', 'DCLM', 'PCLM']
 
                 mappingObject = {
                     'ADJC': 'aAdjustmentCodes',
@@ -59,6 +59,7 @@ define([
                     'REPC': 'aRefProCount',
                     'REPS': 'aRefProSummary',
                     'TSUM': 'aTransactionSummary',
+                    'PACT' : 'btnPatientActivity',
                     'CLMI': ['anc_claim_inquiry', 'anc_patient_claim_inquiry'],
                     'MASO': 'anc_split_claim',
                     'HSTY': 'aStudies',
@@ -68,9 +69,12 @@ define([
                     'PAYM': 'aPayments',
                     'BUST': 'mySettings',
                     'SFIL': 'btnStudyFilter',
-                    'ECLM': ['anc_edit_claim', 'anc_delete_claim', 'anc_split_claim', 'anc_view_documents', 'anc_view_reports', 'anc_add_followup', 'anc_patient_claim_log', 
+                    'ECLM': ['anc_edit_claim', 'anc_split_claim', 'anc_view_documents', 'anc_view_reports', 'anc_add_followup', 'anc_patient_claim_log', 
                                 'li_ul_change_claim_status', 'li_ul_change_billing_code', 'li_ul_change_billing_class', 'li_ul_change_payer_type'],
-                    'APAY': 'divPendingPay'
+                    'APAY': 'divPendingPay',
+                    'DPAY': 'btnPaymentDelete',
+                    'DCLM': 'anc_delete_claim',
+                    'PCLM': 'anc_patient_claim_inquiry'
                 };
                 accessDeniedScreens = _.difference(billingScreenCodes, app.screens);
                 _.each(accessDeniedScreens, function (code) {

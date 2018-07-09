@@ -15,6 +15,7 @@ define([
     'text!templates/claims/age-summary.html',
     'text!templates/claims/claim-patient-log.html',
     'collections/claim-patient-log',
+    'shared/permissions'
 ], function (
     $,
     _,
@@ -31,7 +32,8 @@ define([
     claimPatientInquiryTemplate,
     agingSummaryHTML,
     claimPatientLogHTML,
-    claimPatientLogList
+    claimPatientLogList,
+    Permission
 ) {
         return Backbone.View.extend({
             el: null,
@@ -55,6 +57,13 @@ define([
                 this.claimCommentsList = new claimCommentsList();
                 this.claimPatientList = new claimPatientList();
                 this.claimPatientLogList = new claimPatientLogList();
+                if(app.userInfo.user_type != 'SU'){
+                    var rights = (new Permission()).init();
+                    this.screenCode = rights.screenCode;
+                }
+                else {
+                    this.screenCode = [];
+                }
             },
 
             render: function (cid, patientId, from) {
@@ -734,6 +743,9 @@ define([
 
 
                 this.$el.html(this.claimPatientTemplate());
+                if(this.screenCode.indexOf('PACT') > -1)
+                    $('#btnPatientActivity').attr('disabled', true); // id Patient Activity report have rights then only can access this report
+
                 self.showPatientClaimsGrid(claimId, patientId);
                 $('#btnPatientActivity').on().click(function () {
 

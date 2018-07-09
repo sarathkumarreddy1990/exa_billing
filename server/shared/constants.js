@@ -148,7 +148,8 @@ module.exports = {
         'monthly-recap': 'MNRC',
         'patient-statement': 'PATS',
         'payer-mix': 'PYMX',
-        //'payment':'PAYT',
+        'patient-activity-statement': 'PACT',
+        'payment-report':'PAYT',
         'claim-inquiry': 'CLIN',
         'insurance-vs-lop': 'IVSL',
         'patients-by-insurance-company': 'PAIC',
@@ -175,6 +176,7 @@ module.exports = {
         'upload': 'ERAI',
         'user_settings':'BUST',
         'claim_study': 'ECLM',
-        'follow_ups': 'ECLM'
+        'follow_ups': 'ECLM',
+        'claim_patient': 'PCLM'
     }
 };
