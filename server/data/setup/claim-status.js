@@ -36,6 +36,7 @@ module.exports = {
                         , description
                         , is_system_status
                         , inactivated_dt
+                        , display_order
                         , COUNT(1) OVER (range unbounded preceding) AS total_records
                     FROM   
                         billing.claim_status `;
@@ -66,6 +67,7 @@ module.exports = {
                         , description
                         , is_system_status
                         , inactivated_dt
+                        , display_order
                     FROM   
                         billing.claim_status 
                     WHERE 
@@ -80,7 +82,8 @@ module.exports = {
             description,
             isActive,
             companyId,
-            isSystemStatus
+            isSystemStatus,
+            displayOrder
         } = params;
 
         let inactivated_date = isActive ? null : ' now() ';
@@ -91,13 +94,15 @@ module.exports = {
                             , code
                             , description
                             , inactivated_dt
-                            , is_system_status)
+                            , is_system_status
+                            , display_order)
                         VALUES(
                                ${companyId}
                              , ${code}
                              , ${description}
                              , ${inactivated_date}
-                             , ${isSystemStatus} )
+                             , ${isSystemStatus}
+                             , ${displayOrder})
                              RETURNING *, '{}'::jsonb old_values`;
 
         return await queryWithAudit(sql, {
@@ -113,7 +118,8 @@ module.exports = {
             description,
             id,
             isActive,
-            isSystemStatus
+            isSystemStatus,
+            displayOrder
         } = params;
 
         let inactivated_date = isActive ? null : ' now() ';
@@ -125,6 +131,7 @@ module.exports = {
                             , description = ${description}
                             , inactivated_dt = ${inactivated_date}
                             , is_system_status = ${isSystemStatus}
+                            , display_order = ${displayOrder}
                         WHERE
                             id = ${id}  
                             RETURNING *,
