@@ -575,13 +575,7 @@ define(['jquery',
                 $('#txtResponsibleNotes').val(claim_data.billing_notes || '')
 
                 /* Billing summary end */
-                /* BenefitOnDate Start*/
-                // var today = moment().format('YYYY-MM-DD');
-                // $('#txtBenefitOnDate3').val(today);
-                // $('#txtBenefitOnDate').val(today);
-                // $('#txtBenefitOnDate2').val(today);
-                
-                /* BenefitOnDate End*/
+
                 /* ResponsibleList start*/
 
                 self.updateResponsibleList({
