@@ -35,7 +35,7 @@ module.exports = {
             screenName = screenNames[reportName];
             entityName = entityNames[apiPath[1]] || entityNames[apiPath[0]] || apiPath[1] || screenName;
         } else {
-            screenNameInternal = apiPath[2] == 'claim_patient' ? apiPath[2] : apiPath[1] ? apiPath[1] : apiPath[0];
+            screenNameInternal = apiPath[1] ? apiPath[1] : apiPath[0];
             screenName = screenNames[apiPath[1]] || screenNames[apiPath[0]] || apiPath[1] || screenName;
             entityName = entityNames[apiPath[1]] || entityNames[apiPath[0]] || apiPath[1] || screenName;
         }

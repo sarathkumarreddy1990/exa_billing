@@ -1,5 +1,6 @@
 const shared = require('../shared');
 const { permissionsMap } = require('../shared/constants');
+const _ = require('lodash');
 
 module.exports = {
 
@@ -31,6 +32,10 @@ module.exports = {
         if (!screenNameInternal) {
             return false;
         }   
+
+        if( _.includes(route, 'claim_patient')) {
+            screenNameInternal =  'claim_patient';
+        }
 
         let permissionName = permissionsMap[screenNameInternal];
 

@@ -14,7 +14,7 @@ define([
                 var accessDeniedScreens = [];
                 var accessDeniedRightClickIDs = [];
                 var billingScreenCodes = ['ADJC', 'BICO', 'BICL', 'CLST', 'BIPR', 'PRCQ', 'BILM', 'PARE', 'CASG', 'CASR', 'STCC', 'BIVA', 'PCA', 'EDRT', 'INSM', 'CLHO', 'BULG', 'BALG',
-                    'AGAR', 'AARD', 'CHRG', 'CLAY', 'CLIN', 'CLTR', 'CRBE', 'DSPS', 'DICN', 'IVSL', 'MOSU', 'MNRC', 'PATS', 'PYMX', 'PAYT', 'PAIC', 'PBIC', 'PABI', 'PRCN', 'RPFR', 'REPC', 'REPS', 'TSUM',
+                    'AGAR', 'AARD', 'CHRG', 'CLAY', 'CLIN', 'CLTR', 'CRBE', 'DSPS', 'DICN', 'IVSL', 'MOSU', 'MNRC', 'PATS', 'PYMX', 'PAYT', 'PAIC', 'PBIC', 'PABI', 'PRCN', 'RPFR', 'REPC', 'REPS', 'TSUM','PACT',
                     'CLIM', 'HSTY', 'ECLM', 'CLMI', 'MASO', 'CLVA', 'ERAI', 'PAYM', 'BUST', 'SFIL', 'APAY', 'DPAY', 'DCLM', 'PCLM']
 
                 mappingObject = {
@@ -59,6 +59,7 @@ define([
                     'REPC': 'aRefProCount',
                     'REPS': 'aRefProSummary',
                     'TSUM': 'aTransactionSummary',
+                    'PACT' : 'btnPatientActivity',
                     'CLMI': ['anc_claim_inquiry', 'anc_patient_claim_inquiry'],
                     'MASO': 'anc_split_claim',
                     'HSTY': 'aStudies',
