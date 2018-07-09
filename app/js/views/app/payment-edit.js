@@ -1383,6 +1383,7 @@ define(['jquery',
                             thisAdjustment.val(parseFloat(-Math.abs(thisAdjustment.val())).toFixed(2));
                         }
                         else if  (adjustment_codetype === 'recoupment_debit') {
+                            $(this).find('td:nth-child(5)>input').attr('disabled', false);
                             thisAdjustment.val(parseFloat(-Math.abs(thisAdjustment.val())).toFixed(2));
                             thisPayment.val(parseFloat(-Math.abs(thisPayment.val())).toFixed(2));
                         }
