@@ -16,7 +16,7 @@ module.exports = {
             claim_id,
             invoice_no,
             full_name,
-            claim_dt,
+            claim_date,
             account_no,
             display_description,
             billing_fee,
@@ -40,8 +40,8 @@ module.exports = {
             whereQuery.push(` pp.full_name  ILIKE '%${full_name}%' `);
         }
 
-        if (claim_dt) {
-            whereQuery.push(` claim_dt::date ='${claim_dt}'::date`);
+        if (claim_date) {
+            whereQuery.push(`claim_dt::date ='${claim_date}'::date`);
         }
 
         if (account_no) {
@@ -66,9 +66,11 @@ module.exports = {
                     SELECT 
                     bc.id AS claim_id,
                     bc.patient_id,
+                    bc.facility_id,
                     bc.id,
                     bc.invoice_no,
                     get_full_name(pp.last_name,pp.first_name) AS full_name,
+                    claim_dt AS claim_date,
                     bc.claim_dt,
                     pp.account_no,
                     array_agg(pcc.display_code) AS display_description,
@@ -111,9 +113,11 @@ module.exports = {
                     SELECT 
                         bc.id AS claim_id,
                         bc.patient_id,
+                        bc.facility_id,
                         bc.id,
                         bc.invoice_no,
                         get_full_name(pp.last_name,pp.first_name) AS full_name,
+                        claim_dt AS claim_date,
                         bc.claim_dt,
                         pp.account_no,
                         array_agg(pcc.display_code) AS display_description,
@@ -190,8 +194,10 @@ module.exports = {
                     bc.id AS claim_id,
                     bc.patient_id,
                     bc.id,
+                    bc.facility_id,
                     bc.invoice_no,
                     get_full_name(pp.last_name,pp.first_name) AS full_name,
+                    claim_dt AS claim_date,
                     bc.claim_dt,
                     pp.account_no,
                     array_agg(pcc.display_code) AS display_description,
