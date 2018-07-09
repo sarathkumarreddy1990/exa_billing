@@ -1230,11 +1230,10 @@ define(['jquery',
                             paymentDet.other_payment = payment.other_payment && !isNaN(payment.other_payment) ? parseFloat(payment.other_payment).toFixed(2) : '0.00';
                             paymentDet.other_adjustment = payment.other_adjustment && !isNaN(payment.other_adjustment) ? parseFloat(payment.other_adjustment).toFixed(2) : '0.00';
                             paymentDet.bill_fee = payment.bill_fee ? parseFloat(payment.bill_fee).toFixed(2) : '0.00'
-                            paymentDet.allowed_fee = '0.00';
                             paymentDet.payment_application_id = payment.payment_application_id;
                             paymentDet.payment_applied_dt = payment.payment_applied_dt;
                             paymentDet.payment_adjustment_id = payment.adjustment_id;
-                            paymentDet.allowed_amount = payment.allowed_amount ? parseFloat(payment.allowed_amount).toFixed(2) : '0.00';
+                            paymentDet.allowed_amount = '0.00';
                             var balance = parseFloat(paymentDet.bill_fee) - (parseFloat(paymentDet.other_payment) + parseFloat(paymentDet.other_adjustment) + parseFloat(paymentDet.adjustment) + parseFloat(paymentDet.payment_amount)).toFixed(2);
                             paymentDet.balance = parseFloat(balance).toFixed(2);
 
@@ -1602,6 +1601,9 @@ define(['jquery',
                         } else {
                             return false;
                         }
+                    } else {
+                        self.isRefundApplied = false;
+                        return true;
                     }
                 }
                 else return true;

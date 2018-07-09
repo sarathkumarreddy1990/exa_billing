@@ -549,6 +549,13 @@ module.exports = {
                                   , amount MONEY
                                   , parent_application_id BIGINT)
                                 ),
+                        delete_cas_applications as(
+                                SELECT 
+                                   id as cas_id 
+                                FROM billing.cas_payment_application_details 
+                                WHERE payment_application_id IN (SELECT payment_application_id FROM cas_application_details)
+                                AND id NOT IN (SELECT cas_id FROM cas_application_details)
+                                ),
                         update_applications AS(
                             UPDATE billing.payment_applications 
                                 SET
@@ -637,6 +644,10 @@ module.exports = {
                                             WHERE  id = cad.cas_id) old_row 
                                     ) old_values
                                 ),
+                        purge_cas_applications AS (
+                            DELETE FROM billing.cas_payment_application_details 
+                            WHERE id in (SELECT cas_id FROM delete_cas_applications)
+                        ),
                         insert_cas_applications AS (
                                 INSERT INTO billing.cas_payment_application_details
                                 (
