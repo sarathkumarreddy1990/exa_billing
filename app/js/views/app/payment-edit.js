@@ -66,6 +66,7 @@ define(['jquery',
             gridFirstLoaded: false,
             canDeletePayment: true,
             pendingGridLoaderd: false,
+            isRefundApplied:false,
 
             events: {
                 'click #btnPaymentSave': 'savePayment',
@@ -1338,6 +1339,10 @@ define(['jquery',
 
                             $('.checkDebit').prop('checked', true);
                             self.updateRefundRecoupment();
+                            if(paymentStatus === 'applied' && adjCodeType === 'refund_debit')
+                            {
+                                self.isRefundApplied = true;
+                            }
                         }
                         else
                         {
@@ -1378,6 +1383,7 @@ define(['jquery',
                             thisAdjustment.val(parseFloat(-Math.abs(thisAdjustment.val())).toFixed(2));
                         }
                         else if  (adjustment_codetype === 'recoupment_debit') {
+                            $(this).find('td:nth-child(5)>input').attr('disabled', false);
                             thisAdjustment.val(parseFloat(-Math.abs(thisAdjustment.val())).toFixed(2));
                             thisPayment.val(parseFloat(-Math.abs(thisPayment.val())).toFixed(2));
                         }
@@ -1566,7 +1572,7 @@ define(['jquery',
             },
 
             validatePayerDetails: function () {
-
+                var self = this;
                 var isDebit = $('.checkDebit')[0].checked;
                 var adjustment_codetype = $('#ddlAdjustmentCode_fast').find(':selected').attr('data_code_type');
                 var val= ['refund_debit','recoupment_debit']
@@ -1585,6 +1591,16 @@ define(['jquery',
                 } else if (!isDebit && val.indexOf(adjustment_codetype) >= 0 ) {
                     commonjs.showWarning('Please select DR checkbox ');
                     return false;
+                } else if (self.isRefundApplied === true) {
+                    if ($('#ddlAdjustmentCode_fast').find(':selected').attr('data_code_type') != 'refund_debit') {
+                        let refund_change_confirm = confirm("This payment is refund mode want to overwrite this payment ? ");
+                        if (refund_change_confirm == true) {
+                            self.isRefundApplied = false;
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    }
                 }
                 else return true;
             },
