@@ -14,6 +14,7 @@
             "invoiceInfo": "Invoice Info",
             "invoiceClaim": "Invoice Claim",
             "invoiceNo": "Invoice #",
+            "claimDt": "Claim Date",
             "submitteddate": "Submitted Date:",
             "registeredDate": "Registered Date:",
             "eligibility": "Eligibility",
