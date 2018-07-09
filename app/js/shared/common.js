@@ -5915,7 +5915,7 @@ var facilityModules = {
         feesByRadiologistAndModality: 'Fees by Radiologist and Modality',
         patientsWorksheet: 'Patients Worksheet',
         charges: 'Charges',
-        payments: 'Payment',
+        paymentReport: 'Payment',
         calculatedTAT: 'Turnaround Time (TAT) - Calculated',
         RVU: 'Relative Value Units',
         referringPhysicianStudyCount: 'Referring Physician Study Count',
