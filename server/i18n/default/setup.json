@@ -18,7 +18,8 @@
             "changes": "Changes",
             "columns": "Columns",
             "oldValues": "Old Values",
-            "newValues": "New Values"
+            "newValues": "New Values",
+            "displayOrder": "Display Order"
         },
         "adjustmentcodes": {
             "credit": "Credit",
