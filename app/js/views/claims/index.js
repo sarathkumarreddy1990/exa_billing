@@ -10,7 +10,8 @@ define(['jquery',
 'text!templates/claims/insurance-eligibility.html',
 'collections/app/patientsearch',
 'text!templates/app/patientSearchResult.html',
-'text!templates/claims/claim-validation.html'],
+'text!templates/claims/claim-validation.html',
+'shared/permissions'],
     function ($, 
         _, 
         Backbone, 
@@ -23,7 +24,8 @@ define(['jquery',
         insurancePokitdokForm,
         patientCollection,
         patSearchContent,
-        claimValidation) {
+        claimValidation,
+        Permission) {
         var claimView = Backbone.View.extend({
             el: null,
             rendered: false,
@@ -87,7 +89,11 @@ define(['jquery',
                 this.InsurancePokitdokTemplateForm = new _.template(insurancePokitdokForm);
                 this.patientsPager = new modelPatientPager();
                 this.patientListcoll = new patientCollection();
-
+                this. screenCode = [];
+                if(app.userInfo.user_type != 'SU'){
+                    var rights = (new Permission()).init();
+                    this.screenCode = rights.screenCode;
+                }
             },
             urlNavigation: function () { //To restrict the change in URL based on tab selection. Maintain Same URL for every tab in claim creation screen
                 var self = this;
@@ -141,6 +147,10 @@ define(['jquery',
                     self.bindDetails();
                     self.bindTabMenuEvents();
                 }
+
+                if(self.screenCode.indexOf('CLVA') > -1) // this is for validate button rights
+                    $('#btnValidateClaim').attr('disabled', true)
+
             },
 
             checkInsuranceEligibility: function (e) {
@@ -476,14 +486,14 @@ define(['jquery',
 
             createCptCodesUI: function(rowIndex) {
                 $('#divChargeCpt_' + rowIndex)
-                    .append($('<div/>', { id: "divCptCode_" + rowIndex })
-                        .append($('<lable/>', { id: "lblCptCode_" + rowIndex }).html("Select").addClass('pointerCursor'))
-                        .append($('<span/>', { id: rowIndex }).addClass('pointerCursor').attr({ 'data-type': 'cpt' })));
+                    .append($('<div/>', { id: "divCptCode_" + rowIndex }).addClass('pointerCursor')
+                        .append($('<lable/>', { id: "lblCptCode_" + rowIndex }).html("Select"))
+                        .append($('<span/>', { id: rowIndex }).attr({ 'data-type': 'cpt' })));
 
                 $('#divChargeCptDesc_' + rowIndex)
-                    .append($('<div/>', { id: "divCptDescription_" + rowIndex })
-                        .append($('<lable/>', { id: "lblCptDescription_" + rowIndex }).html("Select").addClass('pointerCursor'))
-                        .append($('<span/>', { id: rowIndex }).addClass('pointerCursor').attr({ 'data-type': 'cptdesc' })));
+                    .append($('<div/>', { id: "divCptDescription_" + rowIndex }).addClass('pointerCursor')
+                        .append($('<lable/>', { id: "lblCptDescription_" + rowIndex }).html("Select"))
+                        .append($('<span/>', { id: rowIndex }).attr({ 'data-type': 'cptdesc' })));
             },  
 
             bindDefaultClaimDetails: function (claim_data) {
@@ -1034,15 +1044,17 @@ define(['jquery',
             bindCPTSelectionEvents: function (el) {
                 var self = this;
                 $(el).click(function (e) {
-                    $(this).children('span').click();
+                    if(!$(this).prop('disabled')) {
+                        $(this).children('span').click();
+                    }
                 }).mouseover(function (e) {
                     var spnElement = $(this).children('span');
                     if (!spnElement.hasClass('icon-ic-edit') && !$(this).prop('disabled')) {
+                        $(this).addClass('pointerCursor');
                         spnElement
                             .addClass('icon-ic-edit')
                             .css({
                                 'min-width': '50px',
-                                'cursor': 'pointer',
                                 'margin-left': '15px'
                             })
                             .click(function (e) {
@@ -1081,6 +1093,8 @@ define(['jquery',
 
                                 }
                             });
+                    } else {
+                        $(this).removeClass('pointerCursor');
                     }
                 }).mouseout(function (e) {
                     $(this).children('span').removeClass('icon-ic-edit');
@@ -1514,6 +1528,7 @@ define(['jquery',
                     }
                     return type == 'code' ? res.display_code : res.display_description;
                 }
+                $("#" + id).select2('open');
             },
 
             setCptValues: function (rowIndex, res, duration, units, fee, type) {
@@ -1526,6 +1541,7 @@ define(['jquery',
                 $('#txtBillFee_' + rowIndex).val(parseFloat(fee).toFixed(2));
                 $('#txtAllowedFee_' + rowIndex).val(parseFloat(fee).toFixed(2));
                 $('#txtTotalAllowedFee_' + rowIndex).val(parseFloat(units * fee).toFixed(2));
+                $('#txtTotalBillFee_' + rowIndex).val(parseFloat(units * fee).toFixed(2));
             },
 
             setProviderAutoComplete: function (provider_type) {

@@ -45,7 +45,7 @@ define('grid', [
         var risOrderDetails = [];
         var rightclickMenuRights = [];
         var screenCode = [];
-        if(app.userInfo.user_type != 'SU'){
+        if(app.userInfo.user_type != 'SU'){ // for Super User No need to check rights. But normal user need to chcek user. For right click options right it is used
             var rights = (new Permission()).init();
             rightclickMenuRights = rights.screenID;
             screenCode = rights.screenCode;

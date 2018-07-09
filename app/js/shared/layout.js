@@ -58,7 +58,7 @@ var layout = {
         'Monthly Recap': '#aMonthlyRecap',
         'Patient Statement': '#aPatientStatement',
         'Payer Mix': '#aPayerMix',       
-        'Payment': '#aPaymentDetails',       
+        'Payment' : '#aPaymentDetails',       
         'Patients By Insurance Company': '#aPatientsByInsCompany',
         'Aged AR Summary':'#aAgedARSummary',
         'Aged AR Details':'#aAgedARDetails',

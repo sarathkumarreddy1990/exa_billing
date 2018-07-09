@@ -1405,6 +1405,7 @@ DECLARE
     p_user_id BIGINT;
     p_company_id BIGINT; 
     p_bill_fee MONEY;
+    p_allowed_fee MONEY;
 
 BEGIN
 
@@ -1416,10 +1417,17 @@ BEGIN
     p_company_id := (i_audit_details ->> 'company_id')::BIGINT;
 
     IF i_bill_fee = 0::money THEN
-       p_bill_fee = billing.get_computed_bill_fee(i_claim_id,i_cpt_id,i_modifier1_id,i_modifier2_id,i_modifier3_id,i_modifier4_id);
+       p_bill_fee = billing.get_computed_bill_fee(i_claim_id,i_cpt_id,i_modifier1_id,i_modifier2_id,i_modifier3_id,i_modifier4_id,'billing',NULL);
     ELSE 
        p_bill_fee = i_bill_fee;
     END IF;
+
+    IF i_allowed_amount = 0::money THEN
+       p_allowed_fee = billing.get_computed_bill_fee(i_claim_id,i_cpt_id,i_modifier1_id,i_modifier2_id,i_modifier3_id,i_modifier4_id,'allowed',NULL);
+    ELSE 
+       p_allowed_fee = i_allowed_amount;
+    END IF;
+
 	WITH save_charges AS (
 		INSERT INTO billing.charges 
 			( claim_id     
@@ -1446,7 +1454,7 @@ BEGIN
 			, i_modifier3_id
 			, i_modifier4_id
 			, p_bill_fee
-			, i_allowed_amount
+			, p_allowed_fee
 			, i_units
 			, i_created_by
 			, i_charge_dt
@@ -2146,7 +2154,9 @@ CREATE OR REPLACE FUNCTION billing.get_computed_bill_fee(
     p_modifier1 integer,
     p_modifier2 integer,
     p_modifier3 integer,
-    p_modifier4 integer)
+    p_modifier4 integer,
+    p_category text,
+    p_payer_type text)
   RETURNS money AS
 $BODY$
         DECLARE
@@ -2174,6 +2184,7 @@ $BODY$
             l_fee_fs_id INTEGER;
             l_derived_fs_id INTEGER;
             l_resp_fs_id INTEGER;
+            l_resp_allowed_fs_id INTEGER;
             l_flag INTEGER DEFAULT 0;
             l_professional_fee MONEY;
             l_technical_fee MONEY;
@@ -2209,6 +2220,9 @@ $BODY$
             l_payer_type = COALESCE (l_payer_type,
                 'x');
 
+            IF p_payer_type IS NOT NULL THEN
+               l_payer_type := p_payer_type;
+	        END IF;
             ---- Get the active_modifer from the parameter list
             l_modifier1 := p_modifier1;
             l_modifier2 := p_modifier2;
@@ -2219,18 +2233,20 @@ $BODY$
             ELSIF l_modifier3 IS NOT NULL THEN
                 l_active_modifier := l_modifier3;
             ELSIF l_modifier2 IS NOT NULL THEN
-                l_active_modifier := l_modifie2;
+                l_active_modifier := l_modifier2;
             ELSIF l_modifier1 IS NOT NULL THEN
                 l_active_modifier := l_modifier1;
             ELSE
-                l_active_modifier := 'NA';
+                l_active_modifier := 0;
             END IF;
 
             -- Control gets here if Claim id and cpt id in the parameters list is valid
             -- Getting the fee schedule id assigned to the responsible party 
             IF l_payer_type = 'primary_insurance' OR l_payer_type = 'secondary_insurance' OR l_payer_type = 'tertiary_insurance' THEN
                 SELECT
-                    i.fee_schedule_id INTO l_resp_fs_id
+                    i.billing_fee_schedule_id,
+                    i.allowed_fee_schedule_id INTO l_resp_fs_id,
+                    l_resp_allowed_fs_id
                 FROM
                     public.patient_insurances pi
                 INNER JOIN 
@@ -2268,7 +2284,7 @@ $BODY$
                     public.provider_contacts pc
                 INNER JOIN 
 	            public.providers p 
-	        ON  p.provider_id = pc.id
+	        ON  p.id = pc.provider_id
                 WHERE
                     1 = 1
                     AND pc.id = l_referring_provider_contact_id
@@ -2287,6 +2303,9 @@ $BODY$
 		
             END IF;
             l_resp_fs_id := COALESCE (l_resp_fs_id,
+                0);
+
+            l_resp_allowed_fs_id := COALESCE (l_resp_allowed_fs_id,
                 0);
             IF l_resp_fs_id = 0 THEN
                 -- Getting the default fee schedule id and cpt code id from fee facilities
@@ -2320,6 +2339,17 @@ $BODY$
                 END IF;
             ELSE
                 l_derived_fs_id := l_resp_fs_id;
+            END IF;
+
+              ------ Allowed only calculate for insurances   		
+            IF p_category = 'allowed' THEN
+		        IF l_payer_type = 'primary_insurance' OR l_payer_type = 'secondary_insurance' OR l_payer_type = 'tertiary_insurance' THEN
+		            IF l_resp_allowed_fs_id != 0 THEN
+			            l_derived_fs_id =  l_resp_allowed_fs_id;
+		            END IF;
+                ELSE
+		            RETURN 0::MONEY;
+	            END IF;
             END IF;
             -- Step- 2 -- Get the Fees from Fee_schedule_cpts based on the derived scheduled id
             SELECT
@@ -2895,8 +2925,9 @@ BEGIN
 		  UPDATE 
 			billing.charges
 		  SET
-			bill_fee = billing.get_computed_bill_fee(l_charges.claim_id, l_charges.cpt_id, l_charges.modifier1_id,l_charges.modifier2_id,l_charges.modifier3_id,l_charges.modifier4_id)
-	          WHERE 
+			bill_fee = billing.get_computed_bill_fee(l_charges.claim_id, l_charges.cpt_id, l_charges.modifier1_id,l_charges.modifier2_id,l_charges.modifier3_id,l_charges.modifier4_id,'billing',NULL),
+			allowed_fee = billing.get_computed_bill_fee(l_charges.claim_id, l_charges.cpt_id, l_charges.modifier1_id,l_charges.modifier2_id,l_charges.modifier3_id,l_charges.modifier4_id,'allowed',NULL)
+	        WHERE 
 			id = l_charges.id;
 		END LOOP;
 	END IF;
@@ -3326,10 +3357,15 @@ BEGIN
             billing.charges
         SET
               cpt_id    = chd.cpt_id
-            , bill_fee  = CASE WHEN billing.is_need_bill_fee_recaulculation((i_claim_details->>'claim_id')::bigint,i_claim_details->>'payer_type',(SELECT payer_type FROM existing_payer_type)) = TRUE THEN
-                             billing.get_computed_bill_fee((i_claim_details->>'claim_id')::bigint,chd.cpt_id,coalesce(chd.modifier1_id,0),coalesce(chd.modifier2_id,0),coalesce(chd.modifier3_id,0),coalesce(chd.modifier4_id,0))
+           , bill_fee  = CASE WHEN billing.is_need_bill_fee_recaulculation((i_claim_details->>'claim_id')::bigint,i_claim_details->>'payer_type',(SELECT payer_type FROM existing_payer_type)) = TRUE THEN
+                             billing.get_computed_bill_fee((i_claim_details->>'claim_id')::bigint,chd.cpt_id,chd.modifier1_id,chd.modifier2_id,chd.modifier3_id,chd.modifier4_id,'billing',i_claim_details->>'payer_type')
                           ELSE
-                            chd.bill_fee 
+                            chd.bill_fee
+                          END 
+            , allowed_amount = CASE WHEN billing.is_need_bill_fee_recaulculation((i_claim_details->>'claim_id')::bigint,i_claim_details->>'payer_type',(SELECT payer_type FROM existing_payer_type)) = TRUE THEN
+                             billing.get_computed_bill_fee((i_claim_details->>'claim_id')::bigint,chd.cpt_id,chd.modifier1_id,chd.modifier2_id,chd.modifier3_id,chd.modifier4_id,'allowed',i_claim_details->>'payer_type')
+                          ELSE
+                             chd.allowed_amount
                           END 
             , allowed_amount = chd.allowed_amount
             , units  = chd.units
