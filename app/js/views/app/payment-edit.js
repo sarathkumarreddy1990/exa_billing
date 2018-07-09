@@ -1332,7 +1332,7 @@ define(['jquery',
                             self.getPayemntApplications(e);
                         });
 
-                        $('#applyPaymentContent').find('#btnSaveAppliedPendingPayments').unbind().on('click', function (e) {
+                        $('#applyPaymentContent').find('#btnSaveAppliedPendingPayments').unbind().one('click', function (e) {
                             self.saveAllPayments(e, claimId, paymentId, paymentStatus, chargeId);
                         });                        
 
@@ -1340,7 +1340,7 @@ define(['jquery',
                             self.clearPayments(e, paymentId, claimId);
                         });
 
-                        $('#btnPayfullAppliedPendingPayments').unbind().on('click', function (e) {
+                        $('#btnPayfullAppliedPendingPayments').unbind().one('click', function (e) {
                             self.saveAllPayments(e, claimId, paymentId, paymentStatus, chargeId);
                         });
 

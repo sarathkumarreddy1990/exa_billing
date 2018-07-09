@@ -10,7 +10,7 @@ define([
     'text!templates/app/era-preview.html',
     'collections/app/era',
     'models/pager',
-	'text!templates/app/eraProcessedResponse.html'],
+	'text!templates/app/era-processed-response.html'],
     function (jQuery, Immutable, _, Backbone, JGrid, JGridLocale, eraGrid, eraProgress, EraPreview, eraLists, EobFilesPager, EraResponse) {
         var eraView = Backbone.View.extend({
 
