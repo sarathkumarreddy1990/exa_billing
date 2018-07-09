@@ -42,6 +42,7 @@ define('grid', [
         var risOrderChoose = false;
         var risOrderID = 0;
         var risOrderDetails = [];
+        var studyDataStore =[];
 
 
         var handleStudyDblClick = function (data, event, gridID) {
@@ -525,11 +526,27 @@ define('grid', [
             event.preventDefault();
         };
 
+        self.batchClaim = function () {
+            var $checkedInputs = $tblGrid.find('input').filter('[name=chkStudy]:checked');
+            var selectedCount = $checkedInputs.length;
+            studyArray = [];
+            for (var r = 0; r < selectedCount; r++) {
+                var rowId = $checkedInputs[r].parentNode.parentNode.id;
+                studyStoreValue = getData(rowId, studyDataStore, gridID);
+                if (!studyStoreValue.study_cpt_id) {
+                    commonjs.showWarning("Please select charges record");
+                    return false;
+                }
+                studyArray.push(rowId);
+            }
+            alert(studyArray)
+        },
+
         self.renderStudy = function (flag) {
             if (options.isClaimGrid)
-                var studyStore = new claimWorkbench(null, { 'filterID': filterID });
+                var studyStore = studyDataStore = new claimWorkbench(null, { 'filterID': filterID });
             else {
-                var studyStore = new Studies(null, { 'filterID': filterID });
+                var studyStore = studyDataStore = new Studies(null, { 'filterID': filterID });
             }
 
             var billingUserList = {};
@@ -581,12 +598,12 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 (options.isClaimGrid ? '<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />' : ''),
-                '', '', '', '', '','','','','','','','','','AssignedTo'
+                '', '', '', '', '','','','','','','','','','','AssignedTo'
 
             ]);
 
             i18nName = i18nName.concat([
-                '', '', '', '', '', '','','','','','','','','','billing.claims.assignedTo'
+                '', '', '', '', '', '','','','','','','','','','','billing.claims.assignedTo'
             ]);
 
             colModel = colModel.concat([
@@ -748,6 +765,15 @@ define('grid', [
                 },
                 {
                     name: 'order_id',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true
+                },
+                {
+                    name: 'study_cpt_id',
                     width: 20,
                     sortable: false,
                     resizable: false,
@@ -996,7 +1022,7 @@ define('grid', [
 
                     if (!options.isClaimGrid) {
                         enableField = _selectEle.is(':checked');
-                        validateClaimSelection(rowID, enableField, _selectEle, studyStore);
+                       // validateClaimSelection(rowID, enableField, _selectEle, studyStore);
                     }
 
                     // var gridData = $('#'+e.currentTarget.id).jqGrid('getRowData', rowID);
