@@ -332,20 +332,6 @@
         "field_code": "account_no"
       },
       {
-        "id": 2,
-        "field_name": "ID",
-        "i18n_name": "setup.userSettings.id",
-        "field_info": {
-          "custom_name": "ID",
-          "name": "study_id",
-          "width": 0,
-          "index": "study_id",
-          "key": true,
-          "hidden": true
-        },
-        "field_code": "study_id"
-      },
-      {
         "id": 3,
         "field_name": "Study Description",
         "i18n_name": "setup.userSettings.studyDescription",
