@@ -97,16 +97,8 @@ define([
                     self.printPaymentInvoice(e);
                 });
 
-                $('#btnCICommentCancel').off().click(function () {
-                    self.closeSaveComment();
-                });
-
                 $('#btnCIAddBillingComments').off().click(function () {
                     self.billingCommentsReadonly();
-                });
-
-                $('#btnCIPayCancel').off().click(function (e) {
-                    self.closePaymentDetails(e);
                 });
 
                 $('.claimProcess').off().click(function (e) {
@@ -118,8 +110,7 @@ define([
             claimInquiryDetails: function (claimID, fromTogglePreNext, from) {
                 var self = this;
                 self.claim_id = claimID;
-                // if (!self.rendered)
-                // self.render();
+
                 $.ajax({
                     url: '/exa_modules/billing/claims/claim_inquiry',
                     type: 'GET',
@@ -459,6 +450,7 @@ define([
                             name: 'view_payment', width: 20, sortable: false, search: false,
                             customAction: function (rowID) {
                                 var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
+                                $("#tBodyCIPayment").empty();
                                 self.getDetailsOfPay(gridData.payment_id);
                             },
                             formatter: function (cellvalue, options, rowObject) {
@@ -563,17 +555,21 @@ define([
 
             showCommentPopup: function (from, comment, commentId) {
                 var self = this;
+                commonjs.showNestedDialog({
+                    header: 'Claim Inquiry',
+                    width: '50%',
+                    height: '20%',
+                    html: $('#divCIFormComment').html()
+                });
 
-                $('#divCIFormComment').css({ top: '25%', height: '20%' });
-                $('#divCIFormComment').show();
                 if (from == 'edit') {
-                    $('#siteModal').find('#txtCIAddComment').val(comment);
+                    $('#siteModalNested').find('#txtCIAddComment').val(comment);
                 }
                 else {
                     commentId = 0;
                 }
-                $('#siteModal').find('#btnCICommentSave').unbind().click(function () {
-                    var comment = $('#siteModal').find('#txtCIAddComment').val();
+                $('#siteModalNested').find('#btnCICommentSave').unbind().click(function () {
+                    var comment = $('#siteModalNested').find('#txtCIAddComment').val();
                     if (comment != '')
                         self.saveClaimComment(commentId, comment);
                     else
@@ -815,9 +811,8 @@ define([
                 self.paymentInvoice.onReportViewClick(e);
             },
 
-            closeSaveComment: function (e) {
-                $('#divCIFormComment').hide();
-                $('#txtCIAddComment').val('');
+            closeSaveComment: function () {
+                commonjs.hideNestedDialog();
             },
 
             billingCommentsReadonly: function () {
@@ -841,10 +836,21 @@ define([
                         'charge_id': charge_id
                     },
                     success: function (data, response) {
+                        $("#tBodyCIPayment").empty();
+
                         if (data.length > 0) {
-                            $('#divCIpaymentDetails').show();
+
                             var paymentCASRow = self.paymentTemplate({ rows: data });
                             $('#tBodyCIPayment').append(paymentCASRow);
+
+                            commonjs.showNestedDialog({
+                                header: 'Claim Inquiry',
+                                width: '80%',
+                                height: '30%',
+                                html: $('#divCIpaymentDetails').html()
+                            });
+                            //$('#divCIpaymentDetails').show();
+                            
                         }
                         else {
                             commonjs.showStatus('No Payment to Show');
@@ -867,10 +873,19 @@ define([
                         'payment_id': pay_id
                     },
                     success: function (data, response) {
+                        $("#tBodyCIPayment").empty();
+
                         if (data.length > 0) {
-                            $('#divCIpaymentDetails').show();
+
                             var paymentCASRow = self.paymentTemplate({ rows: data });
                             $('#tBodyCIPayment').append(paymentCASRow);
+
+                            commonjs.showNestedDialog({
+                                header: 'Claim Inquiry',
+                                width: '80%',
+                                height: '30%',
+                                html: $('#divCIpaymentDetails').html()
+                            });
                         }
                         else {
                             commonjs.showStatus('No Payment to Show');
@@ -880,11 +895,6 @@ define([
                         commonjs.handleXhrError(err);
                     }
                 })
-            },
-
-            closePaymentDetails: function (e) {
-                $('#divCIpaymentDetails').hide();
-                $("#tBodyCIPayment").empty();
             },
 
             applyToggleInquiry: function (e) {
