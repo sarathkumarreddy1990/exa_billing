@@ -1311,10 +1311,10 @@ define(['jquery',
                                 $('#ddlResponsible').append($('<option/>', { value: payerType.primary, text: payerType.primary_ins_provider_name + '(' + payerType.primary_ins_provider_code + ')(Primary Insurance)', 'data-payerType': 'primary_insurance' }));
 
                             if ((payerType.secondary && payerType.secondary != 'null') && payerType.secondary_ins_provider_name != null)
-                                $('#ddlResponsible').append($('<option/>', { value: payerType.primary, text: payerType.secondary_ins_provider_name + '(' + payerType.secondary_ins_provider_code + ')(Secondary Insurance)', 'data-payerType': 'secondary_insurance' }));
+                                $('#ddlResponsible').append($('<option/>', { value: payerType.secondary, text: payerType.secondary_ins_provider_name + '(' + payerType.secondary_ins_provider_code + ')(Secondary Insurance)', 'data-payerType': 'secondary_insurance' }));
 
                             if ((payerType.tertiary && payerType.tertiary != 'null') && payerType.tertiary_ins_provider_name != null)
-                                $('#ddlResponsible').append($('<option/>', { value: payerType.primary, text: payerType.tertiary_ins_provider_name + '(' + payerType.tertiary_ins_provider_code + ')(Tretiary Insurance)', 'data-payerType': 'tertiary_insurance' }));
+                                $('#ddlResponsible').append($('<option/>', { value: payerType.tertiary, text: payerType.tertiary_ins_provider_name + '(' + payerType.tertiary_ins_provider_code + ')(Tretiary Insurance)', 'data-payerType': 'tertiary_insurance' }));
 
                             if ((payerType.order_facility_id) && payerType.ordering_facility_name != null)
                                 $('#ddlResponsible').append($('<option/>', { value: payerType.order_facility_id, text: payerType.ordering_facility_name + '(Ordering Facility)', 'data-payerType': 'ordering_facility' }));
@@ -1324,11 +1324,20 @@ define(['jquery',
                         });
                         $("#ddlResponsible option[data-payerType=" + payerTypes[0].payer_type + "]").attr('selected', 'selected');
 
-                        $("#ddlAdjustmentCode_fast").val(charges.length ? charges[0].adjustment_code_id : '');
+                        $.each(charges, function (index, charge_details) {
+                            if(charge_details.adjustment_code_id){
+                                $("#ddlAdjustmentCode_fast").val(charge_details.adjustment_code_id);
+                                return false;
+                            }
+                            else{
+                                $("#ddlAdjustmentCode_fast").val('');
+                            }
+                        });
+                        //$("#ddlAdjustmentCode_fast").val(charges.length ? charges[0].adjustment_code_id : '');
                         
                         // $("#ddlResponsible option[val=" + charges[0].adjustment_code_id + "]").attr('selected', 'selected');
                         $('#ddlResponsible').select2();
-                        $("#ddlAdjustmentCode_fast").select2();
+                        $("#ddlAdjustmentCode_fast").select2({width: '300px'});
 
                         $('#tBodyApplyPendingPayment').find('.applyCAS').on('click', function (e) {
                             var selectedRow = $(e.target || e.srcElement).closest('tr');
@@ -1504,9 +1513,10 @@ define(['jquery',
                 var casObj = [];
                 for (var k = 1; k <= 7; k++) {
                     var emptyCasObj = {};
-                    var groupCode = $('#selectGroupCode' + k).val()
-                    var reasonCode = $('#selectReason' + k).val()
-                    var amount = $('#txtAmount' + k).val()
+                    var groupCode = $('#selectGroupCode' + k).val();
+                    var reasonCode = $('#selectReason' + k).val();
+                    var amount = $('#txtAmount' + k).val();
+                    
                     if (paymentStatus === 'applied') {
                         var cas_id = $('#selectGroupCode' + k).attr('cas_id');
                     }

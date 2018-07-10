@@ -34,8 +34,6 @@ define([
                 var _self = this;
                 this.pager = new EobFilesPager();
                 this.eraLists = new eraLists();
-                app.fileStoreId = 1;
-                app.settings.eraInboxPath = 'D:eraInbox';
             },
 
             showGrid: function () {
@@ -155,8 +153,10 @@ define([
             afterEraGridBind: function (dataset, e, self) {
                 var fileUploadedObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileNameUploaded');
 
-                if (fileUploadedObj && fileUploadedObj.innerHTML)
+                if (fileUploadedObj && fileUploadedObj.innerHTML) {
                     $('#tblEOBFileList #' + fileUploadedObj.innerHTML).dblclick();
+                    fileUploadedObj.innerHTML = '';
+                }
             },
 
             fileUpdatedDateFormatter: function (cellvalue, options, rowObject) {
