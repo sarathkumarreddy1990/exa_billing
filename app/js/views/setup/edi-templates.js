@@ -116,7 +116,7 @@ define([
                 var matchedTemplate = templateList.filter(function (template) {
                     return template.toLowerCase() == templateName.toLowerCase();
                 });
-                if (matchedTemplate && matchedTemplate[0].toLowerCase() == templateName.toLowerCase()) {
+                if (matchedTemplate && matchedTemplate.length && matchedTemplate[0].toLowerCase() == templateName.toLowerCase()) {
                     isExists = true;
                 }
                 return isExists;
@@ -183,7 +183,7 @@ define([
                 var templateName = $('#txtTemplateName').val();
                 if (templateName) {
                     if ($(e.target).html() == 'SAVE TEMPLATE') {
-                        if (self.templateExists(templateName, self.templateLists)) {
+                        if (self.templateLists && self.templateLists.length && self.templateExists(templateName, self.templateLists)) {
                             $('#txtTemplateName').focus();
                             return commonjs.showWarning("Template name already exists");
                         }
