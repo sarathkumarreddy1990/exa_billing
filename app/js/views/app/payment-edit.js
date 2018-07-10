@@ -91,7 +91,7 @@ define(['jquery',
                 'click #btnPaymentPrint': 'paymentPrintPDF',
                 'click #btnPrintReceipt': 'paymentPrintReceiptPDF',
                 'click #btnPaymentPendingRefreshOnly': 'refreshInvociePendingPayment',
-                'click #btnPaymentApplyAll': 'applyAllPending',
+                'click #btnPaymentApplyAll': 'checkAllPendingPayments',
                 'keypress #claimId, #invoiceNo' : 'searchInvoiceOrClaim'
             },
 
@@ -1244,6 +1244,8 @@ define(['jquery',
                             paymentDet.payment_application_id = payment.payment_application_id;
                             paymentDet.payment_applied_dt = payment.payment_applied_dt;
                             paymentDet.payment_adjustment_id = payment.adjustment_id;
+                            paymentDet.other_payment = (parseFloat(paymentDet.other_payment) - parseFloat(paymentDet.payment_amount)).toFixed(2);
+                            paymentDet.other_adjustment = (parseFloat(paymentDet.other_adjustment) - parseFloat(paymentDet.adjustment)).toFixed(2);
                             paymentDet.allowed_amount = '0.00';
                             var balance = parseFloat(paymentDet.bill_fee) - (parseFloat(paymentDet.other_payment) + parseFloat(paymentDet.other_adjustment) + parseFloat(paymentDet.adjustment) + parseFloat(paymentDet.payment_amount)).toFixed(2);
                             paymentDet.balance = parseFloat(balance).toFixed(2);
@@ -2193,13 +2195,75 @@ define(['jquery',
                 $('.col2 option[value="' + reasonSelected + '"]').prop("disabled", true);
             },
 
-            applyAllPending: function () {
-                if (this.pendingPayments && this.pendingPayments.length) {
+            checkAllPendingPayments: function () {
+                var self = this;
+                var paymentAmt = $('#lblBalance').text() != '' ? parseFloat($('#lblBalance').text().substring(1)) : 0.00;
 
+                if ($('#txtInvoice').val() == '') {
+                    commonjs.showWarning('Please update Invoice number to apply');
+                    return false;
                 }
-                else {
-                    commonjs.showWarning('No pending payments found to apply');
+                if (paymentAmt == 0) {
+                    commonjs.showWarning('Minimum balance required to process invoice payment');
+                    return false;
                 }
+
+
+                $.ajax({
+                    url: '/exa_modules/billing/payments/invoice_details',
+                    type: 'GET',
+                    data: {
+                        paymentId: self.payment_id,
+                        invoice_no: $('#txtInvoice').val()
+                    },
+                    success: function (data, response) {
+                        if (data && data.length) {
+                            var total_claims = data[0].total_claims || 0;
+                            var valid_claims = data[0].valid_claims || 0;
+                            var msg;
+
+                            if (total_claims != 0 && valid_claims != 0) {
+                                msg = 'Valid claim count is (' + valid_claims + ') from overall (' + total_claims + ') pending claims. Are you sure to process?';
+                            } else if (total_claims != 0 && valid_claims == 0) {
+                                msg = 'No valid claims to process payment';
+                                commonjs.showWarning(msg);
+                                return false;
+                            }
+                            if (confirm(msg)) {
+                                self.applyAllPending();
+                            }
+                        }
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
+
+
+            },
+
+            applyAllPending: function () {
+                var self = this;
+
+                $.ajax({
+                    url: '/exa_modules/billing/payments/apply_invoice_payments',
+                    type: 'POST',
+                    data: {
+                        paymentId: self.payment_id,
+                        invoice_no: $('#txtInvoice').val()
+                    },
+                    success: function (data, response) {
+                        if (data && data.length) {
+                            self.getAppliedBalance(self.payment_id);
+                            $('#btnPaymentPendingRefresh').click();
+                            $('#btnAppliedPayRefresh').click();
+                        }
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
+
             },
 
             showClaimInquiry: function(id, patient_id, from) {
