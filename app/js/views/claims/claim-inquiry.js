@@ -76,7 +76,8 @@ define([
                 });
 
                 this.bindEvents();
-                // commonjs.bindDateTimePicker("divFollowUpDate", { format: 'L' }); //to bind date picker to followup date  . Now not working that's y commented               
+                this.followDate =  commonjs.bindDateTimePicker("divFollowUpDate", { format: 'L', minDate: moment().startOf('day') });               
+                this.followDate.date();
                 this.claimInquiryDetails(cid, false, from);
                 $('#modal_div_container').removeAttr('style');
             },
@@ -156,9 +157,9 @@ define([
                             }
 
                             if (payment_data && payment_data.length > 0) {
-                                $('#lblCIPatientPaid').text(payment_data.patient_paid && payment_data.patient_paid != 'undefined' ? payment_data.patient_paid : '$0.00');
-                                $('#lblCIOthersPaid').text(payment_data.others_paid && payment_data.others_paid != 'undefined' ? payment_data.others_paid : '$0.00');
-                                $('#lblCIAdj').text(payment_data.adjustment_amount && payment_data.adjustment_amount != 'undefined' ? payment_data.adjustment_amount : '$0.00');
+                                $('#lblCIPatientPaid').text(payment_data[0].patient_paid && payment_data[0].patient_paid != 'undefined' ? payment_data[0].patient_paid : '$0.00');
+                                $('#lblCIOthersPaid').text(payment_data[0].others_paid && payment_data[0].others_paid != 'undefined' ? payment_data[0].others_paid : '$0.00');
+                                $('#lblCIAdj').text(payment_data[0].adjustment_amount && payment_data[0].adjustment_amount != 'undefined' ? payment_data[0].adjustment_amount : '$0.00');
                             }
 
                             if (patient_details && patient_details.length > 0) {
@@ -545,7 +546,7 @@ define([
                     success: function (data, response) {
                         data = data[0];
                         if (data) {
-                            self.previousFollowUpDate = (commonjs.checkNotEmpty(data.followup_date)) ? moment(data.followup_date).format('YYYY-MM-DD') : '';
+                            self.previousFollowUpDate = (commonjs.checkNotEmpty(data.followup_date)) ? moment(data.followup_date).format('MM/DD/YYYY') : '';
                             $('#txtCIFollowUpDate').val(self.previousFollowUpDate);
                         }
                         else {

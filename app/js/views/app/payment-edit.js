@@ -1608,7 +1608,7 @@ define(['jquery',
                     return false;
                 } else if (self.isRefundApplied === true) {
                     if ($('#ddlAdjustmentCode_fast').find(':selected').attr('data_code_type') != 'refund_debit') {
-                        let refund_change_confirm = confirm("This payment is refund mode want to overwrite this payment ? ");
+                        var refund_change_confirm = confirm("This payment is refund mode want to overwrite this payment ? ");
                         if (refund_change_confirm == true) {
                             self.isRefundApplied = false;
                             return true;
