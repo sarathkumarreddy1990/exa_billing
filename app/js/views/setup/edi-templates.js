@@ -246,12 +246,19 @@ define([
             saveDefinitionData: function () {
                 var templateName = $('#dropdownMenuButton').html();
                 var editor = ace.edit('editor');
-                if (templateName) {
+                var editerData=editor.getValue();
+                if(editerData && templateName){
+                    try {
+                        editerData = JSON.parse(editerData);
+                    } catch (e) {
+                        commonjs.showWarning("Invalid Json Format");
+                        return false;
+                    }
                     $.ajax({
                         url: '/exa_modules/billing/setup/x12/' + this.templateFlag + '/' + templateName,
                         type: 'PUT',
                         data:JSON.stringify({
-                            templateBody: JSON.parse(editor.getValue())
+                            templateBody: editerData
                         }),
                         contentType : "application/json",
                         dataType : "json",
