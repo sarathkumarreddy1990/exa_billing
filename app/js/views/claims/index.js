@@ -1484,17 +1484,20 @@ define(['jquery',
                 $("#" + id).select2('open');
                 $('#' + id).on('select2:close', function (e) {
                     var rowIndex = e.target.id.split('_')[1];
-                    self.hideCptSelections(rowIndex);
+                    self.hideCptSelections(rowIndex, type);
                 });
             },
 
-            hideCptSelections: function(rowIndex) {
-                $('#divCptDescription_' + rowIndex).prop('disabled', false);
-                $('#divCptCode_' + rowIndex).prop('disabled', false);
-                $('#divCptCode_' + rowIndex).show();
-                $('#divSelCptCode_' + rowIndex).remove();
-                $('#divCptDescription_' + rowIndex).show();
-                $('#divSelCptDescription_' + rowIndex).remove();
+            hideCptSelections: function(rowIndex, type) {
+                if(type == 'code') {
+                    $('#divCptDescription_' + rowIndex).prop('disabled', false);
+                    $('#divCptCode_' + rowIndex).show();
+                    $('#divSelCptCode_' + rowIndex).remove();
+                } else {
+                    $('#divCptCode_' + rowIndex).prop('disabled', false);
+                    $('#divCptDescription_' + rowIndex).show();
+                    $('#divSelCptDescription_' + rowIndex).remove();
+                }
             },
 
             setCptValues: function (rowIndex, res, duration, units, fee, type) {
@@ -1512,8 +1515,6 @@ define(['jquery',
                         'data_description': res.display_description,
                         'data_code': res.display_code
                     });
-
-                this.hideCptSelections(rowIndex);
                
                 $('#txtUnits_' + rowIndex).val(units);
                 $('#txtBillFee_' + rowIndex).val(parseFloat(fee).toFixed(2));
