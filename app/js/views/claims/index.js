@@ -293,7 +293,7 @@ define(['jquery',
                 commonjs.showLoading();
 
                 $.ajax({
-                    url: '/exa_modules/billing/claims/create_claim/eligibility',
+                    url: '/exa_modules/billing/claims/claim/eligibility',
                     type: "POST",
                     dataType: "json",
                     data: eligibilityData,
@@ -357,7 +357,7 @@ define(['jquery',
 
                 $.ajax({
                     type: 'GET',
-                    url: '/exa_modules/billing/claims/create_claim',
+                    url: '/exa_modules/billing/claims/claim',
                     data: {
                         id: claim_Id
                     },
@@ -885,7 +885,7 @@ define(['jquery',
 
                     $.ajax({
                         type: 'GET',
-                        url: '/exa_modules/billing/claims/create_claim/get_line_items',
+                        url: '/exa_modules/billing/claims/claim/line_items',
                         data: {
                             from: 'claimCreation',
                             study_ids: selectedStudyIds
@@ -1823,7 +1823,7 @@ define(['jquery',
             bindExistingPatientInsurance: function () {
                 var self = this;
                 $.ajax({
-                    url: '/exa_modules/billing/claims/create_claim/get_patient_insurances',
+                    url: '/exa_modules/billing/claims/claim/patient_insurances',
                     type: 'GET',
                     data: {
                         'patient_id': self.cur_patient_id || 0,
@@ -2085,7 +2085,7 @@ define(['jquery',
                 $('#ddlServiceType').empty();
                 $.ajax({
                     type: 'GET',
-                    url: '/exa_modules/billing/claims/create_claim/service_facilities',
+                    url: '/exa_modules/billing/claims/claim/service_facilities',
                     data: {
                     },
                     success: function (model, response) {
@@ -3227,7 +3227,7 @@ define(['jquery',
                     
                     $list = $('<ul class="studyList" style="width: 50%;margin:0px;"></ul>');
                     jQuery.ajax({
-                        url: "/exa_modules/billing/claims/create_claim/studiesby_patient_id",
+                        url: "/exa_modules/billing/claims/claim/studiesby_patient_id",
                         type: "GET",
                         data: {
                             id: patientId,

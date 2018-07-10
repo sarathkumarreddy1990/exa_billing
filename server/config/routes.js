@@ -35,7 +35,7 @@ const router = function (app) {
     app.use('/exa_modules/billing/payments', paymentsRouter);
     app.use('/exa_modules/billing/pending_payments', paymentsRouter);
     app.use('/exa_modules/billing/claims/split_claim', splitClaimRouter);
-    app.use('/exa_modules/billing/claims/create_claim', claimsRouters);
+    app.use('/exa_modules/billing/claims/claim', claimsRouters);
     app.use('/exa_modules/billing/user_settings', userSettingRouter);
     app.use('/exa_modules/billing/claim_workbench', claimsWorkbenchRouters);
     app.use('/exa_modules/billing/claims/claim_inquiry', claimInquiry);

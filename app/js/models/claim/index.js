@@ -1,6 +1,6 @@
 define(['backbone'], function (Backbone) {
     var claimsModels = Backbone.Model.extend({
-        urlRoot: "/exa_modules/billing/claims/create_claim",
+        urlRoot: "/exa_modules/billing/claims/claim",
         initialize: function (models) {
 
         },
