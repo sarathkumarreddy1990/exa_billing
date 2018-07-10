@@ -40,7 +40,7 @@ define([
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
                     colNames: ['', '', '', '', '', '',''],
-                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description', 'in_active',''],
+                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description', 'setup.common.displayOrder', 'in_active'],
                     colModel: [
                         {
                             name: 'id',
@@ -89,11 +89,10 @@ define([
                             name: 'description'
                         },
                         {
-                            name: 'inactivated_dt',
-                            hidden: true
+                            name: 'display_order',
                         },
                         {
-                            name: 'display_order',
+                            name: 'inactivated_dt',
                             hidden: true
                         }
                     ],
@@ -191,11 +190,15 @@ define([
                         },
                         description: {
                             required: true
+                        },
+                        displayOrder: {
+                            required: true
                         }
                     },
                     messages: {
                         code: commonjs.getMessage("e", "Code"),
-                        description: commonjs.getMessage("e", "Description")
+                        description: commonjs.getMessage("e", "Description"),
+                        displayOrder: commonjs.getMessage("e", "Display Order")
                     },
                     submitHandler: function () {
                         self.save();
