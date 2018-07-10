@@ -556,7 +556,7 @@ define([
             showCommentPopup: function (from, comment, commentId) {
                 var self = this;
                 commonjs.showNestedDialog({
-                    header: 'Claim Inquiry',
+                    header: 'Add Comment',
                     width: '50%',
                     height: '20%',
                     html: $('#divCIFormComment').html()
@@ -844,12 +844,11 @@ define([
                             $('#tBodyCIPayment').append(paymentCASRow);
 
                             commonjs.showNestedDialog({
-                                header: 'Claim Inquiry',
+                                header: 'Payment of Charge Details',
                                 width: '80%',
                                 height: '30%',
                                 html: $('#divCIpaymentDetails').html()
                             });
-                            //$('#divCIpaymentDetails').show();
                             
                         }
                         else {
@@ -881,7 +880,7 @@ define([
                             $('#tBodyCIPayment').append(paymentCASRow);
 
                             commonjs.showNestedDialog({
-                                header: 'Claim Inquiry',
+                                header: 'Payment Details',
                                 width: '80%',
                                 height: '30%',
                                 html: $('#divCIpaymentDetails').html()
