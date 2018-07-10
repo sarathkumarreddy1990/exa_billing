@@ -1184,13 +1184,13 @@ define('grid', [
                                 row += result == "Follow-up Date" ? 'Follow-up Date' + ',' : '';
                                 row += result == "Place OF Service" ? 'Place OF Service' + ',' : '';
                                 row += result == "Balance" ? 'Balance' + ',' : '';
+                                row += result == "Referring Providers" ? 'Referring Providers' + ',' : '';
                                 row += result == "Rendering Providers" ? 'Rendering Providers' + ',' : '';
                                 row += result == "SSN" ? '"' + 'SSN' + '",' : '';
                                 row += result == "Group Number" ? 'Group Number' + ',' : '';
                                 row += result == "Payer Type" ? 'Payer Type' + ',' : '';
                                 row += result == "Billing Class" ? 'Billing Class' + ',' : '';
                                 row += result == "Billing Code" ? 'Billing Code' + ',' : '';
-                             
                               
                             });
                         }
@@ -1200,28 +1200,44 @@ define('grid', [
                         for (var i = 0; i < paymentExcelData.length; i++) {
                             var row = "";
                             var paymentResult = paymentExcelData[i];
+                            var claimDate = moment(paymentResult.claim_dt).format('L');
+                            var patientName = paymentResult.patient_name || " ";
+                            var clearingHouse = paymentResult.clearing_house || " ";
+                            var billingClass = paymentResult.billing_class || " ";
+                            var billingCode = paymentResult.billing_code || " "; 
+                            var balanceAmount = paymentResult.claim_balance || "$0.00"; 
+                            var policyNumber = paymentResult.policy_number || " ";
+                            var groupNumber = paymentResult.group_number || " ";
+                            var renderingProviders = paymentResult.rendering_provider || " ";
+                            var referingProviders = paymentResult.referring_providers || " ";
+                            var placeOfService =  paymentResult.place_of_service || " ";
+                            var followUpDate = paymentResult.followup_date || " ";
+                            var invoiceNumber = paymentResult.invoice_no || " ";
+                            var notes = paymentResult.claim_notes || " ";
+                            var payerName = paymentResult.payer_name || " ";
+
                             _.each(colHeader, function (result, index) {
-                                row += result == "Claim Date" ? paymentResult.claim_dt + ',' : '',
-                                    row += result == "Patient Name" ? '"' + paymentResult.patient_name + '",' : '',
-                                    row += result == "Clearing House" ? '"' + paymentResult.clearing_house + '",' : '',
+                                row += result == "Claim Date" ? claimDate + ',' : '',
+                                    row += result == "Patient Name" ? '"' + patientName + '",' : '',
+                                    row += result == "Clearing House" ? '"' + clearingHouse + '",' : '',
                                     row += result == "Billing Method" ? '"' + paymentResult.billing_method + '",' : '',
                                     row += result == "Billing Provider" ? '"' + paymentResult.billing_provider + '",' : '',
                                     row += result == "Billing Fee" ? '"' + paymentResult.billing_fee + '",' : '',
                                     row += result == "Account No" ? '"' + paymentResult.account_no + '",' : '',
-                                    row += result == "Policy Number" ? '"' + paymentResult.policy_number + '",' : '',
+                                    row += result == "Policy Number" ? '"' + policyNumber + '",' : '',
                                     row += result == "Claim Status" ? '"' + paymentResult.claim_status + '",' : '',
                                     row += result == "Date Of Birth" ? '"' + paymentResult.birth_date + '",' : '',
-                                    row += result == "Invoice" ? '"' + paymentResult.invoice_no + '",' : '',
-                                    row += result == "Follow-up Date" ? paymentResult.followup_date + ',' : '',
-                                    row += result == "Place OF Service" ? '"' + paymentResult.place_of_service + '",' : '',
-                                    row += result == "Balance" ? '"' + paymentResult.claim_balance + '",' : '',
-                                    row += result == "Rendering Providers" ? '"' + paymentResult.rendering_provider + '",' : '',
+                                    row += result == "Invoice" ? '"' + invoiceNumber + '",' : '',
+                                    row += result == "Follow-up Date" ?   followUpDate + ',' : '',
+                                    row += result == "Place OF Service" ? '"' + placeOfService + '",' : '',
+                                    row += result == "Balance" ? '"' + balanceAmount + '",' : '',
+                                    row += result == "Referring Providers" ? '"' + referingProviders + '",' : '',
+                                    row += result == "Rendering Providers" ? '"' + renderingProviders + '",' : '',
                                     row += result == "SSN" ? '"' + paymentResult.patient_ssn + '",' : '',
-                                    row += result == "Group Number" ? '"' + paymentResult.group_number + '",' : '',
+                                    row += result == "Group Number" ? '"' + groupNumber  + '",' : '',
                                     row += result == "Payer Type" ? '"' + paymentResult.payer_type + '",' : '',
-                                    row += result == "Billing Class" ? '"' + paymentResult.billing_class + '",' : '',
-                                    row += result == "Billing Code" ? '"' + paymentResult.billing_code + '",' : ''
-                               
+                                    row += result == "Billing Class" ? '"' + billingClass + '",' : '',
+                                    row += result == "Billing Code" ? '"' + billingCode + '",' : ''                                                                                              
                                   
                             });
 
