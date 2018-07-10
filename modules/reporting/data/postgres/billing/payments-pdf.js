@@ -120,13 +120,9 @@ const api = {
         const lookups = initialReportData.lookups;
         const params = initialReportData.report.params;
         const filtersUsed = [];
+        
         filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });  
 
-       
-
-        filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
-        filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
-        return filtersUsed;
     },
 
     // ================================================================================================================

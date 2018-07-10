@@ -29,7 +29,8 @@
         "minamount": "Min Amount",
         "patients": "Patients" ,
         "referingphysician": "Referring Physician",
-        "totalByMonth": " By Month / Day"
+        "totalByMonth": " By Month / Day",
+        "payToProvider":"Use address of Pay-To-Provider"
     
                
     }

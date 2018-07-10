@@ -1108,31 +1108,45 @@ var commonjs = {
             case 0:
                 commonjs.showError('messages.errors.notconnected');
                 break;
+
             case 404:
                 commonjs.showError('messages.errors.requestnotfound');
                 break;
+
             case 500:
                 commonjs.showError('messages.errors.serversideerror');
                 break;
+
             case 100:
                 commonjs.showError(errorMessage);
                 break;
+
             case '23503':
                 commonjs.showError('Dependent records found');
                 break;
+
             case '23505':
                 commonjs.showError('Duplicate record found');
                 break;
+
+            case '23514':
+                errorMessage = errorMessage.replace(/new row for relation/g, '');
+                commonjs.showError(errorMessage || 'Constraint violation');
+                break;
+
             case '55801':
                 commonjs.showError('Unable to connect EDI Server');
                 break;
+
             case 'HANDLED_EXCEPTION':
                 commonjs.showError(errorMessage || 'Error :(');
                 break;
+
             case 'INVALID_SESSION':
                 $('#divPageLoading').hide();
                 commonjs.showDialog({ header: 'Invalid Session', width: '50%', height: '50%', html: response.responseText }, true);
                 break;
+                
             default:
                 commonjs.showError('messages.errors.someerror');
                 break;
