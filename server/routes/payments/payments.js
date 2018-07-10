@@ -44,7 +44,7 @@ router.get('/applied_amount', async function (req, res) {
 
 router.get('/invoice_details', async function (req, res) {
     const data = await paymentsController.getInvoiceDetails(req.query);
-    httpHandler.sendRows(req, res, data);
+    httpHandler.send(req, res, data);
 });
 
 router.post('/apply_invoice_payments', async function (req, res) {

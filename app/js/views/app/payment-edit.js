@@ -2151,10 +2151,19 @@ define(['jquery',
                     success: function (data, response) {
                         if (data && data.length) {
                             console.log(data);
-                            if (!data) {
+                            var total_claims = data[0].total_claims || 0;
+                            var valid_claims = data[0].valid_claims || 0;
+                            var msg;
+
+                            if (total_claims != 0 && valid_claims != 0) {
+                                msg = 'Valid claim count is (' + valid_claims + ') from overall (' + total_claims + ') pending claims. Are you sure to process?';
+                            } else if (total_claims != 0 && valid_claims == 0) {
+                                msg = 'No valid claims to process payment';
+                                commonjs.showWarning(msg);
+                                return false;
+                            }
+                            if (confirm(msg)) {
                                 self.applyAllPending();
-                            } else {
-                                commonjs.showWarning('No pending payments found to apply');
                             }
                         }
                     },

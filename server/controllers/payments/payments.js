@@ -184,12 +184,14 @@ module.exports = {
         
         let claimIds = [];
         let flag = true;
+        let result = [];
         let totalPaymentAmount = 0;
 
         let claimCharges = await data.getInvoiceDetails(params);
 
         claimCharges = claimCharges.rows.length ? claimCharges.rows : [];
         let paymentAmount = claimCharges[0].payment_balance_total || 0;
+        let totalClaim = claimCharges[0].total_claims || 0;
 
         await _.each(claimCharges, function (item) {
 
@@ -215,7 +217,12 @@ module.exports = {
             }
         });
 
-        return '';
+        result.push({
+            total_claims: totalClaim,
+            valid_claims: claimIds.length
+        });
+
+        return result;
     },
 
     createInvoicePaymentapplications: async function (params) {
