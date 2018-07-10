@@ -649,7 +649,7 @@ module.exports = {
             (${JSON.stringify(claim_icds)})::json,
             (${JSON.stringify(auditDetails)})::json,
             (${JSON.stringify(charges)})::json) as result`;
-            
+        
         if (claims.payer_type == 'patient') {
 
             await self.updateIns_claims(claims);
@@ -675,6 +675,19 @@ module.exports = {
             billing.claims.id = ${params.claim_id} 
         RETURNING id    `;
 
+        return await query(sqlQry);
+    },
+
+    getExistingPayer: async (params) => {
+
+        let sqlQry = SQL`
+        SELECT 
+            payer_type 
+        FROM 
+            billing.claims
+        WHERE 
+            id = ${params.id}`;
+        
         return await query(sqlQry);
     },
 
