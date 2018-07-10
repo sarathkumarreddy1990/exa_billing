@@ -338,6 +338,9 @@ module.exports = {
 
         let LineItemsAndClaimLists = await eraParser.getFormatedLineItemsAndClaims(claimLists, params);
 
+        paymentDetails.code = 'ERA';
+        paymentDetails.isFrom = 'EOB';
+
         let processedClaims = await data.createPaymentApplication(LineItemsAndClaimLists, paymentDetails);
 
         await data.updateERAFileStatus(paymentDetails);
