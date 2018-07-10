@@ -77,6 +77,12 @@ module.exports = {
 
         const dataRes = await data.isProcessed(fileMd5, 1);
 
+        if (!(dataRes.rows[0].file_store_info && dataRes.rows[0].file_store_info.length)) {
+            return {
+                file_store_status: 'FILE_STORE_NOT_EXISTS'
+            };
+        }
+
         const fileStorePath = dataRes.rows[0].file_store_info[0].root_directory;
         const fileStoreId = dataRes.rows[0].file_store_info[0].file_store_id;
         const fileExist = dataRes.rows[0].file_exists[0];

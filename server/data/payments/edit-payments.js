@@ -474,7 +474,8 @@ module.exports = {
                     name,
                     description
                     FROM billing.cas_group_codes 
-                    WHERE company_id =  ${params.companyID}
+                WHERE company_id =  ${params.companyID}
+                    AND inactivated_dt IS NULL
                     )
             AS cas_group_codes ),
                  cte_cas_reason_codes AS(
@@ -485,7 +486,8 @@ module.exports = {
                         code,
                         description
                         FROM billing.cas_reason_codes 
-                        WHERE company_id = ${params.companyID}
+                    WHERE company_id = ${params.companyID}
+                        AND inactivated_dt IS NULL
                         ) 
                     AS cas_reason_codes)
             SELECT *
