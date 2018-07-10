@@ -158,7 +158,7 @@ module.exports = {
 
     getClaimData: async (params) => {
 
-		let claimIds=params.claimIds.split(',');
+        let claimIds=params.claimIds.split(',');
 
         let sql = SQL`
         
