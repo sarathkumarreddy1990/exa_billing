@@ -30,7 +30,10 @@
         "patients": "Patients" ,
         "referingphysician": "Referring Physician",
         "totalByMonth": " By Month / Day",
-        "payToProvider":"Use address of Pay-To-Provider"
+        "payToProvider":"Use address of Pay-To-Provider",
+        "insurances": "Insurance",
+        "insuranceProvider": "Insurance Provider",
+        "cpt": "CPT"
     
                
     }
