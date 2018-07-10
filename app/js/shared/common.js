@@ -77,7 +77,7 @@ var commonjs = {
     studyFilters: Immutable.List(),
     loadedStudyFilters: Immutable.Map(),
     currentStudyFilter: '',
-    
+
     localCacheMaxErrorLimit: 0,
 
     filterData: {},
@@ -103,31 +103,31 @@ var commonjs = {
      *    class="... get-city-state-by-zip get-zip-by-city-state"
      * - Whatever view has the inputs must also run `commonjs.initializeScreen()` or `commonjs.setupCityStateZipInputs()`
      */
-    setupCityStateZipInputs: function setupCityStateZipInputs () {
+    setupCityStateZipInputs: function setupCityStateZipInputs() {
         var $getCityStateByZipContainer = $('.get-city-state-by-zip');
-        $getCityStateByZipContainer.each(function ( index ) {
+        $getCityStateByZipContainer.each(function (index) {
             var $this = $(this);
             var $cityInput = $this.find('.city-input');
             var $stateInput = $this.find('.state-input');
             var $zipInput = $this.find('.zip-input');
 
-            function handleChangeZip ( event ) {
+            function handleChangeZip(event) {
                 var zip = ($zipInput.val() || '').trim();
 
-                if ( zip > 0 ) {
+                if (zip > 0) {
                     $.ajax({
                         'url': '/getCityState',
                         'data': {
                             'zip': zip
                         },
-                        success: function ( response ) {
+                        success: function (response) {
                             var result = response.result;
-                            if ( String(~~result.zip) === zip && result.city && result.state ) {
+                            if (String(~~result.zip) === zip && result.city && result.state) {
                                 $cityInput.val(result.city);
                                 $stateInput.val(result.state);
                             }
                         },
-                        error: function ( error ) {
+                        error: function (error) {
                             console.error('Error getting city/state using zip ' + zip, error);
                         }
                     });
@@ -141,7 +141,7 @@ var commonjs = {
         });
 
         var $getZipByCityStateContainer = $('.get-zip-by-city-state');
-        $getZipByCityStateContainer.each(function ( index ) {
+        $getZipByCityStateContainer.each(function (index) {
             var $this = $(this);
             var $cityInput = $this.find('.city-input');
             var $stateInput = $this.find('.state-input');
@@ -150,24 +150,24 @@ var commonjs = {
             var $zipList = $zipListContainer.find('.zip-list');
             var $applyZipButton = $zipListContainer.find('.apply-zip');
 
-            function handleChangeCityState ( event ) {
+            function handleChangeCityState(event) {
                 var city = ($cityInput.val() || '').trim().toUpperCase();
                 var state = ($stateInput.val() || '').trim().toUpperCase();
 
-                if ( city && state ) {
+                if (city && state) {
                     $.ajax({
                         'url': '/getZip',
                         'data': {
                             'city': city,
                             'state': state
                         },
-                        success: function ( response ) {
+                        success: function (response) {
                             var result = response.result;
                             $zipList.empty();
                             var currentZip = ($zipInput.val() || '').trim();
 
-                            if ( result.zip && result.zip.length > 0 && result.zip.indexOf(currentZip) === -1 && result.city === city && result.state === state ) {
-                                var options = result.zip.sort().reduce(function ( list, zip ) {
+                            if (result.zip && result.zip.length > 0 && result.zip.indexOf(currentZip) === -1 && result.city === city && result.state === state) {
+                                var options = result.zip.sort().reduce(function (list, zip) {
                                     var option = document.createElement('option');
                                     option.value = zip;
                                     option.innerHTML = zip;
@@ -186,14 +186,14 @@ var commonjs = {
                                 $applyZipButton.attr('disabled', true);
                             }
                         },
-                        error: function ( error ) {
+                        error: function (error) {
                             console.error('Error getting city/state using zip ' + zip, error);
                         }
                     });
                 }
             }
 
-            function handleApplyZip ( event ) {
+            function handleApplyZip(event) {
                 $zipInput.val($zipList.val());
                 $zipListContainer.hide();
                 $applyZipButton.attr('disabled', true);
@@ -211,8 +211,8 @@ var commonjs = {
 
         });
     },
-        
-    getDates: function ( data ) {
+
+    getDates: function (data) {
         /*
          if > 13 characters then it's a range
 
@@ -223,11 +223,11 @@ var commonjs = {
             2 - (delimiters between those three)
             3 - " - " splitter for range
         */
-        if ( data.length > 13 ) {
+        if (data.length > 13) {
             var dateArray = data.split(/\s-\s/);
-            if ( dateArray.length > 1 ) {
-                var date1 = moment(dateArray[ 0 ], 'L').locale('en').format('YYYY-MM-DD');
-                var date2 = moment(dateArray[ 1 ], 'L').locale('en').format('YYYY-MM-DD');
+            if (dateArray.length > 1) {
+                var date1 = moment(dateArray[0], 'L').locale('en').format('YYYY-MM-DD');
+                var date2 = moment(dateArray[1], 'L').locale('en').format('YYYY-MM-DD');
                 return date1 + ' - ' + date2;
             }
             else {
@@ -461,7 +461,7 @@ var commonjs = {
                 return type;//acts as message when not passing the second arg
         }
     },
-    
+
     checkWhetherIE: function () {
         return {
             isOpera: !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0,
@@ -834,15 +834,46 @@ var commonjs = {
     },
 
     showDialog: function (options) {
+        options.modalContainerId = '#siteModal';
+        options.spanHeaderId = '#spanModalHeader';
+        options.modalBodyId = '#modalBody';
+        options.modalDialogId = '#modalDialog';
+        options.modalDivContainerId = '#modal_div_container';
+
+        commonjs.showDefaultDialog(options);
+    },
+
+    showNestedDialog: function (options) {
+        options.modalContainerId = '#siteModalNested';
+        options.spanHeaderId = '#spanModalHeaderNested';
+        options.modalBodyId = '#modalBodyNested';
+        options.modalDialogId = '#modalDialogNested';
+        options.modalDivContainerId = '#modal_div_container_nested';
+
+        commonjs.showDefaultDialog(options);
+    },
+
+    showDefaultDialog: function (options) {
         console.trace("commonjs::showDialog: header: '%s', url: '%s', options: %O", options.header, options.url, options);
+
         var dataContainer, wid, hei;
+        var modalContainerId = options.modalContainerId || '#siteModal';
+        var modalDivContainerId = options.modalDivContainerId || '#modal_div_container';
+        var modalDialogId = options.modalDialogId || '#modalDialog';
+        var modalBodyId = options.modalBodyId || '#modalBody';
+        var spanHeader = options.spanHeaderId || '#spanModalHeader';
+
+        var $modalContainer = $(modalContainerId);
+        var $modalDivContainer = $(modalDivContainerId);
+        var $modalDialog = $(modalDialogId);
+        var $modalBody = $(modalBodyId);
+        var $spanHeader = $(spanHeader);
+
         if (options.width.indexOf('%') > 0) {
             var wwid = $window.width();
             wid = parseInt(options.width.replace('%', ''));
             wid = (wwid / 100) * wid;
-        }
-
-        else {
+        } else {
             wid = parseInt(options.width.replace('%', '').replace('px', ''));
         }
 
@@ -850,8 +881,7 @@ var commonjs = {
             var whei = $window.height();
             hei = parseInt(options.height.replace('%', ''));
             hei = (whei / 100) * hei;
-        }
-        else {
+        } else {
             hei = parseInt(options.height.replace('%', '').replace('px', ''));
         }
 
@@ -861,16 +891,16 @@ var commonjs = {
                 ifr.id = 'site_modal_iframe_container';
                 ifr.frameBorder = 0;
                 ifr.style.width = '100%';
-                $('#siteModal .modal-body').append($(ifr));
-                $('#siteModal .modal-body').css({ 'padding': '0px' })
+
+                $modalBody.append($(ifr));
+                $modalBody.css({ 'padding': '0px' })
             }
             dataContainer = $('#site_modal_iframe_container');
             dataContainer.attr('src', options.url);
             dataContainer.show();
-            $('#modal_div_container').hide();
-        }
-        else if (typeof options.html != 'undefined' && commonjs.checkNotEmpty(options.html)) {
-            dataContainer = $('#modal_div_container').css({ 'overflow-x': 'hidden' });
+            $modalDivContainer.hide();
+        } else if (typeof options.html != 'undefined' && commonjs.checkNotEmpty(options.html)) {
+            dataContainer = $modalDivContainer.css({ 'overflow-x': 'hidden' });
 
             if (!options.haveContentInContainer) {
                 dataContainer.html(options.html);
@@ -880,28 +910,29 @@ var commonjs = {
             dataContainer.show();
             $('#site_modal_iframe_container').hide();
         }
+
         if (typeof options.onLoad != 'undefined' && commonjs.checkNotEmpty(options.onLoad)) {
             dataContainer = $('#site_modal_iframe_container');
             dataContainer.attr('onLoad', options.onLoad);
         }
+
         if (options.i18nHeader) {
-            $('#spanModalHeader').html(commonjs.geti18NString(options.i18nHeader));
+            $spanHeader.html(commonjs.geti18NString(options.i18nHeader));
         } else {
-            $('#spanModalHeader').html(options.header);
+            $spanHeader.html(options.header);
         }
-        //$('#siteModal').attr('data-width', wid);
-        $('.modal-dialog').attr('style', 'width:' + wid + 'px');
+
+        //$modalContainer.attr('data-width', wid);
+        $modalDialog.attr('style', 'width:' + wid + 'px');
         if (dataContainer) {
             if (options.needShrink) {
                 if (window.innerHeight > window.innerWidth) {
                     var height = $window.height() / 2;
                     dataContainer.css('height', (height - 100) + 'px');
-                }
-                else {
+                } else {
                     dataContainer.css('height', hei + 'px');
                 }
-            }
-            else {
+            } else {
                 dataContainer.css('height', hei + 'px');
             }
         }
@@ -909,26 +940,28 @@ var commonjs = {
         var boolKeyboard = (!app.changePassword);   // Sets whether the modal will allow keyboard commands such as ESC to close it
         if (options.isPatientNotes) {
             dataContainer.css('overflow', 'auto');
-            //$('#siteModal').modal({width: wid + 'px', show: true});
-            $('#siteModal').modal({ show: true, keyboard: boolKeyboard });
-        }
-        else if (options.isInitial) {
-            $('#siteModal').modal({ show: true, keyboard: boolKeyboard });
-            $('#siteModal').width(wid + 'px');
-            $('#siteModal').css({
+            //$modalContainer.modal({width: wid + 'px', show: true});
+            $modalContainer.modal({ show: true, keyboard: boolKeyboard });
+        } else if (options.isInitial) {
+            $modalContainer.modal({ show: true, keyboard: boolKeyboard });
+            $modalContainer.width(wid + 'px');
+
+            $modalContainer.css({
                 'margin-left': function () {
                     return -($(this).width() / 2);
                 }
             });
+        } else {
+            //$modalContainer.modal({width: wid + 'px', show: true});
+            $modalContainer.modal({ show: true, keyboard: boolKeyboard });
         }
-        else
-            //$('#siteModal').modal({width: wid + 'px', show: true});
-            $('#siteModal').modal({ show: true, keyboard: boolKeyboard });
-        $('#siteModal').on('hide', function (event) {
-            if ($('#siteModal').find('iframe')) {
-                var url = $('#siteModal').find('iframe').attr('src');
-                if (url)
-                    $('#siteModal').find('iframe').remove();
+
+        $modalContainer.on('hide', function (event) {
+            if ($modalContainer.find('iframe')) {
+                var url = $modalContainer.find('iframe').attr('src');
+                if (url) {
+                    $modalContainer.find('iframe').remove();
+                }
 
                 if (parent.editStudyID > 0 && app.transcriptionLock) {
                     commonjs.lockUnlockTranscription({ study_id: parent.editStudyID, lockType: "unlock", user_id: app.userID });
@@ -938,11 +971,13 @@ var commonjs = {
             if (options.onHide && typeof options.onHide === 'function') {
                 options.onHide();
             }
+
             if (window.reportWindow)
                 window.reportWindow.close();
             if (window.updaterRegisteredPortalInfo == true)
                 window.updaterRegisteredPortalInfoObj.close();
-            $('#siteModal').off('hide');
+
+            $modalContainer.off('hide');
         });
     },
 
@@ -1002,6 +1037,10 @@ var commonjs = {
                 "description": "[Updox] Sent - Failed"
             }
         ];
+    },
+
+    hideNestedDialog: function () {
+        //TODO: Will Do
     },
 
     hideDialog: function (callback) {
@@ -1108,31 +1147,45 @@ var commonjs = {
             case 0:
                 commonjs.showError('messages.errors.notconnected');
                 break;
+
             case 404:
                 commonjs.showError('messages.errors.requestnotfound');
                 break;
+
             case 500:
                 commonjs.showError('messages.errors.serversideerror');
                 break;
+
             case 100:
                 commonjs.showError(errorMessage);
                 break;
+
             case '23503':
                 commonjs.showError('Dependent records found');
                 break;
+
             case '23505':
                 commonjs.showError('Duplicate record found');
                 break;
+
+            case '23514':
+                errorMessage = errorMessage.replace(/new row for relation/g, '');
+                commonjs.showError(errorMessage || 'Constraint violation');
+                break;
+
             case '55801':
                 commonjs.showError('Unable to connect EDI Server');
                 break;
+
             case 'HANDLED_EXCEPTION':
                 commonjs.showError(errorMessage || 'Error :(');
                 break;
+
             case 'INVALID_SESSION':
                 $('#divPageLoading').hide();
                 commonjs.showDialog({ header: 'Invalid Session', width: '50%', height: '50%', html: response.responseText }, true);
                 break;
+
             default:
                 commonjs.showError('messages.errors.someerror');
                 break;
@@ -1859,10 +1912,10 @@ var commonjs = {
         }
         return i18nString;
     },
-    
+
     isMaskValidate: function () {
         $(".maskPhone").inputmask({ mask: "[(999)999-9999", skipOptionalPartCharacter: ["(", ")"] });
-        $(".postal-code-mask").inputmask({mask:"99999[-9999]"});
+        $(".postal-code-mask").inputmask({ mask: "99999[-9999]" });
         $(".maskSSN").inputmask("999-99-9999");
         $(".maskDate").inputmask();
         var dateTemplate = moment(new Date('December 31, 2017'))
@@ -1870,7 +1923,7 @@ var commonjs = {
             .replace(/12/, 'MM')
             .replace(/31/, 'DD')
             .replace(/2017/, 'YYYY');
-        $(".maskDateLocale").inputmask(dateTemplate.toLowerCase(), {"placeholder": dateTemplate});
+        $(".maskDateLocale").inputmask(dateTemplate.toLowerCase(), { "placeholder": dateTemplate });
         $(".maskDateMonth").inputmask("mm/dd/yyyy", { "placeholder": "MM/DD/YYYY" });
         $(".maskMonthYear").inputmask("mm/yyyy", { "placeholder": "MM/YYYY" });
         //$(".maskMonthYear").inputmask("dd/MM/yyyy hh:mm:ss",{ "placeholder": "dd/MM/yyyy hh:mm:ss" });
@@ -1883,32 +1936,32 @@ var commonjs = {
             autoGroup: true,
             prefix: '',
             rightAlign: true,
-            allowMinus:false
+            allowMinus: false
         });
-        $('.maskUnits').attr('placeholder','0.000');
+        $('.maskUnits').attr('placeholder', '0.000');
 
         $(".maskUnits").on("keypress", function (e) {     // function for allow 3 digits before decimal point in amount
             value1 = $(this).val();
             value = value1;
             if (value1 > 999.999)
-                this.value =  this.oldvalue;
+                this.value = this.oldvalue;
             else
                 this.oldvalue = this.value;
         });
 
-        $('.maskFee').inputmask("numeric", {  
+        $('.maskFee').inputmask("numeric", {
             radixPoint: ".",
             groupSeparator: "",
             digits: 2,
             autoGroup: true,
             prefix: '',
             rightAlign: true,
-            allowMinus:false,
-            oncomplete: function () {return false;}
+            allowMinus: false,
+            oncomplete: function () { return false; }
         });
 
-        $('.maskFee, .maskUnits').focus(function(e){
-            if(parseFloat($(this).val()) == 0){
+        $('.maskFee, .maskUnits').focus(function (e) {
+            if (parseFloat($(this).val()) == 0) {
                 $(this).val('');
             }
         });
@@ -1921,11 +1974,11 @@ var commonjs = {
             else
                 this.oldvalue = this.value;
         });
-        $('.maskFee').attr('placeHolder','0.00');
+        $('.maskFee').attr('placeHolder', '0.00');
 
         $(".maskFee, .maskUnits").on("keydown", function (e) {
-            if(e.ctrlKey) return false;
-        });        
+            if (e.ctrlKey) return false;
+        });
 
     },
     parseDicomDate: function (str) {
@@ -2363,7 +2416,7 @@ var commonjs = {
         }
         $('#divGadgetSummaryNew .widget.item').css('width', (_gw - 26) + 'px');
         $('#column1 .masonry-wrap').css('width', ($(window).width() - 50 + 'px'));
-       // $('#column1').masonry();
+        // $('#column1').masonry();
 
     },
 
@@ -2388,7 +2441,7 @@ var commonjs = {
         }
         else {
             //EXA-7310 - For schedule book-> new order screen header was hided , when replace launch login url -> worklist page showing header element.
-            if(!$('header.header').is(':visible'))
+            if (!$('header.header').is(':visible'))
                 $('header.header').show();
             var topnavHieght = $('.header').outerHeight() + $('.top-nav').outerHeight()
             switch (commonjs.currentModule) {
@@ -2478,11 +2531,11 @@ var commonjs = {
                 return 'menuTitles.setup.mobRad';
             case 'GENERAL':
                 return 'menuTitles.setup.general';
-            case 'HL7'  :
+            case 'HL7':
                 return 'menuTitles.setup.hl7';
-            case 'LOG'  :
+            case 'LOG':
                 return 'menuTitles.setup.log';
-            case 'STRUCTURED REPORTING'  :
+            case 'STRUCTURED REPORTING':
                 return 'menuTitles.setup.cardiology';
         }
     },
@@ -2749,7 +2802,7 @@ var commonjs = {
                 break;
             case "ordering_facility":
                 payer = "Ordering Facility";
-                break;                
+                break;
             case "primary_insurance":
                 payer = "Primary Insurance";
                 break;
@@ -3389,7 +3442,7 @@ var commonjs = {
         });
         return false;
     },
-    
+
     type: function (arg) {
         return !!arg && Object.prototype.toString.call(arg).match(/(\w+)\]/)[1];
     },
@@ -3595,21 +3648,22 @@ var commonjs = {
                         app.settings.studyflag.push(flagData.description);
                     });
                     app.settings.patientLocation = (patientLocation && patientLocation.length > 0) ? patientLocation : [];
-                    app.usersettings = typeof appsettingsobj.usersettings === "object" && appsettingsobj.usersettings || {id:1,
-                        field_orders:[1,2,3,4],
-                        grid_options:[
-                            {name: "Modality", width: 150},
+                    app.usersettings = typeof appsettingsobj.usersettings === "object" && appsettingsobj.usersettings || {
+                        id: 1,
+                        field_orders: [1, 2, 3, 4],
+                        grid_options: [
+                            { name: "Modality", width: 150 },
 
-                            {name: "Patient", width: 200},
+                            { name: "Patient", width: 200 },
 
-                            {name: "Accession #", width: 200},
+                            { name: "Accession #", width: 200 },
 
-                            {name: "Status", width: 150}
+                            { name: "Status", width: 150 }
                         ],
-                        sort_column:"Accession #",
-                        sort_order:"Desc",
-                        wl_sort_field:"accession_no",
-                        study_fields:["Modality","Patient","Accession #","Status"]
+                        sort_column: "Accession #",
+                        sort_order: "Desc",
+                        wl_sort_field: "accession_no",
+                        study_fields: ["Modality", "Patient", "Accession #", "Status"]
                     };
                     function change_theme(theme) {
                         app.currentTheme = theme;
@@ -3896,7 +3950,7 @@ var commonjs = {
     /**
      * Set screen name cookie to Studies so different user login doesn't break, EXA-7505, EXA-7830
      */
-    resetScreenNameCookie: function() {
+    resetScreenNameCookie: function () {
         commonjs.setCookieOptions(2, 'Studies');
     },
 
@@ -3929,7 +3983,7 @@ var commonjs = {
             }
         });
     },
-    
+
     closeOpenWindows: function () {
         if (app && app.openWindows) {
             for (var i = 0; i < app.openWindows.length; i++) {
@@ -3937,7 +3991,7 @@ var commonjs = {
             }
         }
     },
-    
+
     checkMultiple: function (e, gridIDPrefix1) {
         e = e || event;
         /* get IE event ( not passed ) */
@@ -4008,8 +4062,8 @@ var commonjs = {
                 var posX = $((e.target || e.srcElement)).offset().left;
                 var posY = $((e.target || e.srcElement)).offset().top + 20;
                 $(div).css({ top: posY, left: posX, position: 'absolute' });
-            }    
-        }    
+            }
+        }
     },
     disableKeys: function (e) {
         $("#" + element.id).data('tooltip').destroy();
@@ -4247,7 +4301,7 @@ var commonjs = {
         }
     },
 
-    checkSpecialCharExists: function(e) {
+    checkSpecialCharExists: function (e) {
         var key_pressed;
         var $element = $(e.target || e.srcElement);
         document.all ? key_pressed = e.keyCode : key_pressed = e.which;
@@ -4259,7 +4313,7 @@ var commonjs = {
                 $('#divInvalidChar').show();
             else {
                 $('<div/>').attr('id', 'divInvalidChar').addClass('tooltip fade bottom in alert alert-danger')
-                    .css({'text-align': 'center','top': offsetVal.top + 30, 'left': offsetVal.left })
+                    .css({ 'text-align': 'center', 'top': offsetVal.top + 30, 'left': offsetVal.left })
                     .html('Special characters not allowed')
                     .appendTo('body');
             }
@@ -4499,29 +4553,29 @@ var commonjs = {
     },
 
     updateCulture: function (culture, cb) {
-       var upCul = i18n.loadDefaultLanguage(function () {
-           i18n.setLang(culture);
-           i18n.t(undefined, cb);
-       });
-       
-       return upCul;
+        var upCul = i18n.loadDefaultLanguage(function () {
+            i18n.setLang(culture);
+            i18n.t(undefined, cb);
+        });
+
+        return upCul;
     },
 
-    getRightClickMenu:function(elementID,i18n,isSubMenu,elementName,isULMenu){  
-        if(isULMenu){
-            return '<li class="dropdown-submenu" id=li_'+elementID+'><a tabindex="-1" href="javascript: void(0)" i18n='+i18n+' class="dropdown-item">'+elementName+'</a><ul id='+elementID+' style="float:right;" class="dropdown-menu"></ul></li>';
+    getRightClickMenu: function (elementID, i18n, isSubMenu, elementName, isULMenu) {
+        if (isULMenu) {
+            return '<li class="dropdown-submenu" id=li_' + elementID + '><a tabindex="-1" href="javascript: void(0)" i18n=' + i18n + ' class="dropdown-item">' + elementName + '</a><ul id=' + elementID + ' style="float:right;" class="dropdown-menu"></ul></li>';
         }
-        else if(isSubMenu){
+        else if (isSubMenu) {
             return '<li><a class="dropdown-item" id=' + elementID + '  href="javascript: void(0)" >' + elementName + '</a></li>'
         }
-        else{
-            return '<li><a id='+elementID+' href="javascript: void(0)" i18n='+i18n+' class="dropdown-item">'+elementName+'</a></li>';
-        }   
-        
+        else {
+            return '<li><a id=' + elementID + ' href="javascript: void(0)" i18n=' + i18n + ' class="dropdown-item">' + elementName + '</a></li>';
+        }
+
     },
 
     getColorCodeForStatus: function (facility_id, code, screenName) {
-        var statusCodes = app.study_status && app.study_status.length && app.study_status ||parent.app.study_status;
+        var statusCodes = app.study_status && app.study_status.length && app.study_status || parent.app.study_status;
         if (statusCodes && statusCodes.length > 0) {
             return $.grep(statusCodes, function (currentObj) {
                 return ((currentObj.facility_id == facility_id) && (currentObj.status_code == code));
@@ -4530,10 +4584,10 @@ var commonjs = {
         return [];
     },
 
-    getBillingUserName: function (username) {       
+    getBillingUserName: function (username) {
         if (app.billing_user_list && app.billing_user_list.length > 0) {
             return $.grep(app.billing_user_list, function (users) {
-                    return users.username==username ; 
+                return users.username == username;
             });
         }
         return [];
@@ -4549,17 +4603,17 @@ var commonjs = {
         return [];
     },
 
-    getClaimStudy : function(claim_id) {
-        return new Promise(function(resolve,reject){
+    getClaimStudy: function (claim_id) {
+        return new Promise(function (resolve, reject) {
             var result = {
-                'study_id' : 0,
-                'order_id' : 0
+                'study_id': 0,
+                'order_id': 0
             };
             $.ajax({
                 url: '/exa_modules/billing/claim_workbench/claim_study?claim_id=' + claim_id,
                 type: 'GET',
                 success: function (data, response) {
-                    if(data && data.length > 0) {
+                    if (data && data.length > 0) {
                         result.study_id = data[0].study_id;
                         result.order_id = data[0].order_id;
                     }
@@ -4582,9 +4636,9 @@ var commonjs = {
         this.openWindow(url);
     },
 
-    openWindow: function(url) {
+    openWindow: function (url) {
         var self = this;
-        self.detectChromeExtension(function(hasEx){
+        self.detectChromeExtension(function (hasEx) {
             if (hasEx) {
                 self.placeWindows(url);
             } else {
@@ -4642,7 +4696,7 @@ var commonjs = {
         self.displayL = [];
         window.parent.postMessage({ type: "FROM_PAGE", action: "0" }, "*");
 
-        var msgHandler = function(event) {
+        var msgHandler = function (event) {
             var indexL = -1;
             var indexR = -1;
             var xpoint = window.screen.
@@ -4667,7 +4721,7 @@ var commonjs = {
                 curIndex = indexR;
             else if (indexL > -1)
                 curIndex = indexL;
-            else if(curIndex < 0 && self.displayL && self.displayL.length > 0)
+            else if (curIndex < 0 && self.displayL && self.displayL.length > 0)
                 curIndex = 0;
 
             if (curIndex > -1) {
@@ -4878,14 +4932,14 @@ var commonjs = {
         console.log(msg + ': ' + new Date().getTime());
     },
 
-    getParametersByName: function() {
+    getParametersByName: function () {
         if (location.hash.indexOf('&') > -1) {
             return commonjs.getParameterByName(location.hash);
         }
-        return commonjs.getParameterByName(location.search,/[\?&#]/);
+        return commonjs.getParameterByName(location.search, /[\?&#]/);
     },
 
-    getParameterByName: function (queryString,sep) {
+    getParameterByName: function (queryString, sep) {
         var params = {}, queries, temp, i, l;
         if (queryString) {
             // Split into key/value pairs
@@ -4898,8 +4952,8 @@ var commonjs = {
             }
         }
         return params;
-    },    
-    
+    },
+
     getSessionArgs: function () {
         return 'session=' + commonjs.getSession();
     },
@@ -5011,7 +5065,7 @@ var commonjs = {
      * @param {String} code
      * @returns {boolean}
      */
-    hasPermission: function(code) {
+    hasPermission: function (code) {
         return _.includes(app.screenCodes, code) || app.userInfo.user_type === 'SU';
     },
 
@@ -5098,7 +5152,7 @@ var commonjs = {
             }
         }
     },
-    
+
     // SMH Bug #2604 - Method for getting all possibly visible columns for toggling
     getWorklistIconColumns: function (tabPane) {
 
@@ -5278,14 +5332,14 @@ var commonjs = {
      * @param {Array} modalityIds
      * @returns {Object}
      */
-    getHighestPriorityModality: function(modalityIds) {
+    getHighestPriorityModality: function (modalityIds) {
         if (!modalityIds) {
             return {};
         }
 
         return app.modalities
-            .filter(function(modality) { return _.includes(modalityIds, modality.id)})
-            .sort(function(a, b) { return b.priority > a.priority })[0];
+            .filter(function (modality) { return _.includes(modalityIds, modality.id) })
+            .sort(function (a, b) { return b.priority > a.priority })[0];
     },
 
     /**
@@ -5294,8 +5348,8 @@ var commonjs = {
      * @param {Number} id
      * @returns {String}
      */
-    getModalityCodeFromId: function(id) {
-        var modality = _.find(app.modalities, {'id': id}) || '';
+    getModalityCodeFromId: function (id) {
+        var modality = _.find(app.modalities, { 'id': id }) || '';
         return modality.modality_code || ''
     },
 
@@ -5448,18 +5502,18 @@ var commonjs = {
      * returns facility array with inactive facilities removed - specifically for use in drop downs
      * @param {boolean} showStudiesFlag - if true returns facilities where is_active true and show_studies is enabled
     */
-    getActiveFacilities: function(showStudiesFlag){
+    getActiveFacilities: function (showStudiesFlag) {
         facilities = app.userInfo.user_type === "SU"
             ? app.facilities
             : app.userfacilities;
         if (showStudiesFlag) {
-            return facilities.reduce(function(facilitiesAcc, facility) {
+            return facilities.reduce(function (facilitiesAcc, facility) {
                 var parsedFacility = Object.assign({}, facility, { facility_info: commonjs.hstoreParse(facility.facility_info) });
-                if(facility.is_active || parsedFacility.facility_info.show_studies === "true") facilitiesAcc.push(facility);
+                if (facility.is_active || parsedFacility.facility_info.show_studies === "true") facilitiesAcc.push(facility);
                 return facilitiesAcc;
-            },[]);
-        } else{
-            return facilities.filter(function(fac){
+            }, []);
+        } else {
+            return facilities.filter(function (fac) {
                 return fac.is_active
             });
         }
@@ -5859,7 +5913,7 @@ var facilityModules = {
         familyHealthHistory: 'Family Health History',
         peerReview: 'Peer Review',
         dispatchingDashboard: 'Dispatching Dashboard',
-        queryRetrieve:'Query Retrieve',
+        queryRetrieve: 'Query Retrieve',
         createSplitOrders: "Create/Split Orders"
     },
     reportScreens: {
@@ -6049,7 +6103,7 @@ function CreateCheckBox(label, id, i18nLabel) {
         name: id,
         value: label,
         checked: false
-    }).addClass('form-check-input')).append($('<label>').attr({for: id, 'i18n': i18nLabel, 'value':label}).addClass('form-check-label').text(label));
+    }).addClass('form-check-input')).append($('<label>').attr({ for: id, 'i18n': i18nLabel, 'value': label }).addClass('form-check-label').text(label));
 }
 
 function toggleSearchRow() {

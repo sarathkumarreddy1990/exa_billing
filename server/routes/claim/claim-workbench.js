@@ -28,23 +28,23 @@ router.put('/claims/update', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
-router.get('/claim_json', async function (req, res) {
-    const data = await claimWorkbenchController.getClaimObject(req.query);
+router.post('/claim_json', async function (req, res) {
+    const data = await claimWorkbenchController.getClaimObject(req.body);
     httpHandler.sendRows(req, res, data);
 });
 
-router.get('/invoice_data', async function (req, res) {
-    const data = await claimWorkbenchController.getInvoiceData(req.query);
+router.post('/invoice_data', async function (req, res) {
+    const data = await claimWorkbenchController.getInvoiceData(req.body);
     httpHandler.sendRows(req, res, data);
 });
 
-router.get('/printer_template', async function (req, res) {
-    const data = await claimWorkbenchController.getPrinterTemplate(req.query);
+router.post('/printer_template', async function (req, res) {
+    const data = await claimWorkbenchController.getPrinterTemplate(req.body);
     httpHandler.sendRows(req, res, data);
 });
 
-router.get('/create_claim', async function (req, res) {
-    const data = await claimWorkbenchController.getEDIClaim(req.query);
+router.post('/create_claim', async function (req, res) {
+    const data = await claimWorkbenchController.getEDIClaim(req.body);
     httpHandler.send(req, res, data);
 });
 

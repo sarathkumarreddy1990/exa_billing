@@ -1,4 +1,5 @@
 const data = require('../../data/payments/payments');
+const eraData = require('../../data/era/index');
 const _ = require('lodash');
 
 module.exports = {
@@ -177,6 +178,127 @@ module.exports = {
     
     getAppliedAmount: function (paymentId) {
         return data.getAppliedAmount(paymentId);
+    },
+
+    getInvoiceDetails: async function (params) {
+        
+        let claimIds = [];
+        let flag = true;
+        let result = [];
+        let totalPaymentAmount = 0;
+
+        let claimCharges = await data.getInvoiceDetails(params);
+
+        claimCharges = claimCharges.rows.length ? claimCharges.rows : [];
+        let paymentAmount = claimCharges[0].payment_balance_total || 0;
+        let totalClaim = claimCharges[0].total_claims || 0;
+
+        _.each(claimCharges, function (item) {
+
+            let claimNumber = parseInt(item.claim_id);
+
+            if (!_.includes(claimIds, claimNumber) && !flag) {
+                return false;
+            }
+
+            if ((totalPaymentAmount < paymentAmount) || _.includes(claimIds, claimNumber)) {
+
+                if (!_.includes(claimIds, claimNumber)) {
+                    claimIds.push(parseInt(item.claim_id));
+                }
+
+                if ((totalPaymentAmount + parseInt(item.balance)) <= paymentAmount) {
+                    totalPaymentAmount += parseInt(item.balance);
+                } else {
+                    item.balance = paymentAmount - totalPaymentAmount;
+                    totalPaymentAmount += item.balance;
+                    flag = false;
+                }
+            }
+        });
+
+        result.push({
+            total_claims: totalClaim,
+            valid_claims: claimIds.length
+        });
+
+        return result;
+    },
+
+    createInvoicePaymentapplications: async function (params) {
+        
+        let auditDetails = {
+            company_id: params.companyId,
+            screen_name: params.screenName,
+            module_name: params.moduleName,
+            client_ip: params.clientIp,
+            user_id: parseInt(params.userId)
+        };
+        let paymentDetails ={};
+        let claimIds = [];
+        let flag = true;
+        let lineItems = [];
+        let totalPaymentAmount = 0;
+
+        let claimCharges =  await data.getClaimCharges(params);
+       
+        claimCharges = claimCharges.rows.length ? claimCharges.rows : [];
+        let paymentAmount = claimCharges[0].payment_balance_total || 0;
+        
+        _.each(claimCharges, function (item) {
+
+            let claimNumber = parseInt(item.claim_id);
+            
+            if (!_.includes(claimIds, claimNumber) && !flag) {
+                return false;
+            } 
+
+            if ((totalPaymentAmount < paymentAmount) || _.includes(claimIds, claimNumber) ) {
+
+                if (!_.includes(claimIds, claimNumber)){
+                    claimIds.push(parseInt(item.claim_id));
+                }
+
+                if ((totalPaymentAmount + parseInt(item.balance)) <= paymentAmount) {
+                    totalPaymentAmount += parseInt(item.balance);
+                } else {
+                    item.balance = paymentAmount - totalPaymentAmount;
+                    totalPaymentAmount += item.balance;
+                    flag = false;
+                }
+
+                lineItems.push({
+                    payment: parseInt(item.balance),
+                    adjustment: 0.00,
+                    cpt_code: item.cpt_code,
+                    claim_number: item.claim_id,
+                    original_reference: null,
+                    claim_status_code: 0,
+                    cas_details: [],
+                    charge_id: item.charge_id,
+                    patient_fname: item.patient_fname || '',
+                    patient_lname: item.patient_lname || '',
+                    patient_mname: item.patient_mname || '',
+                    patient_prefix: item.patient_prefix || '',
+                    patient_suffix: item.patient_suffix || ''
+                });
+            }
+        });
+ 
+        params.lineItems = lineItems;
+        params.claimComments = [];
+        params.audit_details = auditDetails;
+        paymentDetails.id = params.paymentId;
+        paymentDetails.code = null;
+        paymentDetails.isFrom = 'PAYMENT';
+        paymentDetails.created_by = parseInt(params.userId);
+        paymentDetails.company_id = parseInt(params.companyId);
+        paymentDetails.uploaded_file_name = ''; // Assign empty for ERA argument
+        
+        let result = await eraData.createPaymentApplication(params, paymentDetails);
+
+        return result;
     }
 
 };
+

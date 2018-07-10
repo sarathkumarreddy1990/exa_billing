@@ -34,8 +34,6 @@ define([
                 var _self = this;
                 this.pager = new EobFilesPager();
                 this.eraLists = new eraLists();
-                app.fileStoreId = 1;
-                app.settings.eraInboxPath = 'D:eraInbox';
             },
 
             showGrid: function () {
@@ -56,9 +54,11 @@ define([
 
                 var fileUploadedObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileNameUploaded');
                 var fileDuplicateObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileIsDuplicate');
+                var fileStoreExist = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileStoreExist');
 
                 fileDuplicateObj.innerHTML = '';
                 fileUploadedObj.innerHTML = '';
+                fileStoreExist.innerHTML = '';
             },
 
             getEobFilesList: function () {
@@ -153,8 +153,10 @@ define([
             afterEraGridBind: function (dataset, e, self) {
                 var fileUploadedObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileNameUploaded');
 
-                if (fileUploadedObj && fileUploadedObj.innerHTML)
+                if (fileUploadedObj && fileUploadedObj.innerHTML) {
                     $('#tblEOBFileList #' + fileUploadedObj.innerHTML).dblclick();
+                    fileUploadedObj.innerHTML = '';
+                }
             },
 
             fileUpdatedDateFormatter: function (cellvalue, options, rowObject) {
@@ -336,6 +338,7 @@ define([
                 var iframeObj = document.getElementById("ifrEobFileUpload") && document.getElementById("ifrEobFileUpload").contentWindow ? document.getElementById("ifrEobFileUpload").contentWindow : null;
                 var fileUploadedObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileNameUploaded');
                 var fileDuplicateObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileIsDuplicate');
+                var fileStoreExist = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileStoreExist');
                 
                 var hdnPreviewFileName = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('hdnPreviewFileName');
 
@@ -349,6 +352,13 @@ define([
                     commonjs.showWarning('This file has been already processed');
                     fileDuplicateObj.innerHTML = '';
                     fileUploadedObj.innerHTML = '';
+                    return false;
+                }
+                else if (fileStoreExist && fileStoreExist.innerHTML == 'FILE_STORE_NOT_EXISTS') {
+                    commonjs.showWarning('File store not yet configured');
+                    fileDuplicateObj.innerHTML = '';
+                    fileUploadedObj.innerHTML = '';
+                    fileStoreExist.innerHTML = '';
                     return false;
                 }
                 else {

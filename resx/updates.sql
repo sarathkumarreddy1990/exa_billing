@@ -1153,7 +1153,7 @@ $BODY$
             , count(c.id)                     AS charges_count
             , sum(c.bill_fee * c.units)       AS charges_bill_fee_total
             , sum(c.allowed_amount * c.units) AS charges_allowed_amount_total
-            , array_agg(pc.display_description) AS claim_cpt_description
+            , array_agg(pc.display_code) AS claim_cpt_description
         FROM
             billing.charges AS c
             INNER JOIN public.cpt_codes AS pc ON pc.id = c.cpt_id
@@ -2518,7 +2518,7 @@ DECLARE
    l_bill_fee_recalculation BOOLEAN;
    
 BEGIN 
-	l_bill_fee_recalculation := 0;
+	l_bill_fee_recalculation := TRUE;
 	SELECT 
 		    cs.description INTO STRICT l_claim_status
 		FROM
@@ -2527,13 +2527,19 @@ BEGIN
 	            id = l_claim_status_id;
 	        
 	     IF l_claim_status = 'Pending Validation' THEN
-			IF ((p_payer_type = 'primary_insurance' OR p_payer_type = 'secondary_insurance' OR p_payer_type = 'tertiary_insurance') AND (p_existing_payer_type = 'referring_provider' OR p_existing_payer_type = 'ordering_facility')) THEN
-				l_bill_fee_recalculation = TRUE;
-			ELSIF ((p_payer_type = 'referring_provider' OR p_payer_type = 'ordering_facility') AND (p_existing_payer_type = 'primary_insurance' OR p_existing_payer_type = 'secondary_insurance' OR p_existing_payer_type = 'tertiary_insurance')) THEN
-				l_bill_fee_recalculation = TRUE;
-                        ELSIF ((p_payer_type = 'primary_insurance' OR p_payer_type = 'secondary_insurance' OR p_payer_type = 'tertiary_insurance' OR p_payer_type = 'referring_provider' OR p_payer_type = 'ordering_facility')  AND (p_existing_payer_type = 'patient')) THEN
-				l_bill_fee_recalculation = TRUE;
+			IF (p_payer_type = 'patient' AND (p_existing_payer_type = 'ordering_facility' OR p_existing_payer_type = 'referring_provider' OR p_existing_payer_type = 'facility' OR p_existing_payer_type = 'primary_insurance' OR p_existing_payer_type = 'secondary_insurance' OR p_existing_payer_type = 'tertiary_insurance')) THEN
+				l_bill_fee_recalculation = FALSE;
+			ELSIF ((p_payer_type = 'primary_insurance' OR p_payer_type = 'secondary_insurance') AND p_existing_payer_type = 'tertiary_insurance') THEN
+				l_bill_fee_recalculation = FALSE;
+			ELSIF ((p_payer_type = 'primary_insurance' OR p_payer_type = 'tertiary_insurance') AND p_existing_payer_type = 'secondary_insurance') THEN
+				l_bill_fee_recalculation = FALSE;
+			ELSIF ((p_payer_type = 'secondary_insurance' OR p_payer_type = 'tertiary_insurance') AND p_existing_payer_type = 'primary_insurance') THEN
+				l_bill_fee_recalculation = FALSE;
 			END IF;
+		END IF;
+
+		IF p_payer_type = p_existing_payer_type THEN
+		     l_bill_fee_recalculation = FALSE;
 		END IF;
 		
 	RETURN l_bill_fee_recalculation;
@@ -2859,6 +2865,10 @@ BEGIN
 	purge_payment_applications AS (
 	    DELETE FROM billing.payment_applications
 	    WHERE payment_id = i_payment_id
+            RETURNING *),
+ 	edi_file_payments AS (
+	    DELETE FROM billing.edi_file_payments
+	    WHERE payment_id = i_payment_id
             RETURNING *), 
 	purge_payment AS (
 		DELETE FROM billing.payments bp
@@ -2899,27 +2909,28 @@ DECLARE
      l_charges RECORD;
      l_is_need_recalculation BOOLEAN;
 BEGIN 
-        l_is_need_recalculation := 0;
+        l_is_need_recalculation := FALSE;
 
 	----------Getting Existing Payer Type
 	SELECT 
 	     payer_type INTO STRICT l_old_payer_type
 	FROM 
-             billing.claim
+             billing.claims
 	WHERE
 	     id = p_claim_id;
 
 	---------Update new payer type into claim
-	UPDATE billing.claim 
+	UPDATE billing.claims
         SET
-            payer_type = p_payer_type 
+            payer_type = p_payer_type,
+            billing_method = (SELECT billing.get_claim_billing_method(p_claim_id, p_payer_type))
         WHERE id = p_claim_id;
 
 
 	--------
-	l_is_need_recalculation = billing.is_need_bill_fee_recaulculation(p_claim_id,p_payer_type,p_existing_payer_type);
+	l_is_need_recalculation = billing.is_need_bill_fee_recaulculation(p_claim_id,p_payer_type,l_old_payer_type);
 
-	IF l_is_need_recalculation = 1 THEN 
+	IF l_is_need_recalculation = TRUE THEN 
 
 		FOR l_charges IN SELECT 
 				id,
@@ -2938,13 +2949,13 @@ BEGIN
 			billing.charges
 		  SET
 			bill_fee = billing.get_computed_bill_fee(l_charges.claim_id, l_charges.cpt_id, l_charges.modifier1_id,l_charges.modifier2_id,l_charges.modifier3_id,l_charges.modifier4_id,'billing',NULL),
-			allowed_fee = billing.get_computed_bill_fee(l_charges.claim_id, l_charges.cpt_id, l_charges.modifier1_id,l_charges.modifier2_id,l_charges.modifier3_id,l_charges.modifier4_id,'allowed',NULL)
+			allowed_amount = billing.get_computed_bill_fee(l_charges.claim_id, l_charges.cpt_id, l_charges.modifier1_id,l_charges.modifier2_id,l_charges.modifier3_id,l_charges.modifier4_id,'allowed',NULL)
 	        WHERE 
 			id = l_charges.id;
 		END LOOP;
 	END IF;
 	
-	RETURN 1;
+	RETURN TRUE;
 
 END;
 $BODY$
@@ -3111,14 +3122,6 @@ BEGIN
                  , is_deleted boolean 
                  , valid_from_date date
                  , valid_to_date date )
-        ),
-        existing_payer_type AS (
-            SELECT 
-                payer_type 
-            FROM
-                billing.claims
-            WHERE 
-                id = (i_claim_details->>'claim_id')::bigint
         ),
         save_insurance AS (
                 INSERT INTO patient_insurances (
@@ -3372,12 +3375,12 @@ BEGIN
             billing.charges
         SET
               cpt_id    = chd.cpt_id
-           , bill_fee  = CASE WHEN billing.is_need_bill_fee_recaulculation((i_claim_details->>'claim_id')::bigint,i_claim_details->>'payer_type',(SELECT payer_type FROM existing_payer_type)) = TRUE THEN
+           , bill_fee  = CASE WHEN billing.is_need_bill_fee_recaulculation((i_claim_details->>'claim_id')::bigint,i_claim_details->>'payer_type',i_claim_details->>'existing_payer_type') = TRUE THEN
                              billing.get_computed_bill_fee((i_claim_details->>'claim_id')::bigint,chd.cpt_id,chd.modifier1_id,chd.modifier2_id,chd.modifier3_id,chd.modifier4_id,'billing',i_claim_details->>'payer_type')
                           ELSE
                             chd.bill_fee
                           END 
-            , allowed_amount = CASE WHEN billing.is_need_bill_fee_recaulculation((i_claim_details->>'claim_id')::bigint,i_claim_details->>'payer_type',(SELECT payer_type FROM existing_payer_type)) = TRUE THEN
+            , allowed_amount = CASE WHEN billing.is_need_bill_fee_recaulculation((i_claim_details->>'claim_id')::bigint,i_claim_details->>'payer_type',i_claim_details->>'existing_payer_type') = TRUE THEN
                              billing.get_computed_bill_fee((i_claim_details->>'claim_id')::bigint,chd.cpt_id,chd.modifier1_id,chd.modifier2_id,chd.modifier3_id,chd.modifier4_id,'allowed',i_claim_details->>'payer_type')
                           ELSE
                              chd.allowed_amount
@@ -3489,3 +3492,47 @@ RAISE NOTICE '--- END OF THE SCRIPT ---';
 END
 $$;
 -- ====================================================================================================================
+
+-- Function: billing.get_claim_billing_method(bigint, text)
+
+-- DROP FUNCTION billing.get_claim_billing_method(bigint, text);
+
+CREATE OR REPLACE FUNCTION billing.get_claim_billing_method(claimid bigint, payertype text)
+  RETURNS text AS
+$BODY$
+DECLARE
+ c_payer_type TEXT;
+BEGIN 
+
+
+    IF payertype IS NULL THEN
+       c_payer_type = (SELECT  payer_type FROM  billing.claims  WHERE claims.id = claimid);
+    ELSE 
+       c_payer_type = payertype;
+    END IF;
+
+
+    RETURN(SELECT  (CASE   WHEN  c_payer_type = 'patient' THEN 'patient_payment'  
+                           WHEN  c_payer_type ='primary_insurance' OR  c_payer_type ='secondary_insurance'  
+                           OR c_payer_type ='tertiary_insurance'
+                           THEN 
+                            (SELECT insurance_provider_details.billing_method FROM billing.claims 
+                            INNER JOIN    patient_insurances  ON  patient_insurances.id = 
+                            (  CASE c_payer_type 
+                            WHEN 'primary_insurance' THEN primary_patient_insurance_id
+                            WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
+                            WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
+                            END )
+                            
+                            INNER JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id  
+                            INNER JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
+                            WHERE claims.id = claimid )		
+                            ELSE 'direct_billing' END ));
+
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION billing.get_claim_billing_method(bigint, text)
+  OWNER TO postgres;
+-- --------------------------------------------------------------------------------------------------------------------

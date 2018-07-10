@@ -56,7 +56,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var billingCodeValue = commonjs.makeValue(app.billing_codes, ":All;", "id", "description");
         var billingClassesValue = commonjs.makeValue(app.billing_classes, ":All;", "id", "description");
         var claimStatusValue = commonjs.makeValue(app.claim_status, ":All;", "id", "description");
-        var billedStatus = ':All;billed:Billed;unbilled:Unbilled';
+        var billedStatus = ':All;billed:Billed;unbilled:Unbilled'; 
+        var balanceSearchList = ':All;=:= 0;>:> 0;<:< 0';
         var studyFlagArray = app.studyflag;
         var isNoneExist = false;
 
@@ -252,7 +253,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "stype": "select",
                         "searchoptions": { 
                             "value": payerTypeValue,
-                            "defaultValue":payerTypeValue
+                            "tempvalue":payerTypeValue
                         },
                         "formatter": function ( cellvalue ) {
                             return commonjs.checkNotEmpty(cellvalue) ?
@@ -292,7 +293,12 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "i18n_name": "billing.claims.balance",
                     "field_info": {
                         "name": "claim_balance",
-                        "width": 100
+                        "width": 100,
+                        "stype": "select",
+                        "searchoptions": {
+                            "value": balanceSearchList,
+                            "tempvalue": balanceSearchList
+                        }
                     }
                 },
                 "Billing Class": {
@@ -306,7 +312,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "stype": "select",
                         "searchoptions": { 
                             "value": billingClassesValue,
-                            "defaultValue":billingClassesValue
+                            "tempvalue":billingClassesValue
                          }
                     }
                 },
@@ -321,7 +327,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "stype": "select",
                         "searchoptions": {
                             "value": billingCodeValue,
-                            "defaultValue":billingCodeValue
+                            "tempvalue":billingCodeValue
                         }
                     }
                 },
@@ -336,8 +342,9 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "stype": "select",
                         "searchoptions": { 
                             "value": claimStatusValue,
-                            "defaultValue": claimStatusValue
+                            "tempvalue": claimStatusValue
                         },
+                        "defaultValue": "",
                         "cellattr": function ( id, cellvalue, rowObject ) {
                             var statusDetail = commonjs.getClaimColorCodeForStatus(rowObject.claim_status,'claim');
                             var statusObj = statusDetail[ 0 ];
@@ -393,7 +400,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "stype": "select",
                         "searchoptions": { 
                             "value": billingMethodValue,
-                            "defaultValue":billingMethodValue
+                            "tempvalue":billingMethodValue
                         }
                     },
                 },
@@ -1544,7 +1551,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 "i18n_name": "shared.fields.billedStatus",
                 "field_info": {
                     "name": "billed_status",
-                    "width": 200,
+                    "width": 100,
                     "cellattr": function ( id, cellvalue, rowObject ) {
                         var statusDetail = commonjs.getClaimColorCodeForStatus(rowObject.claim_id > 0 ? 'billed' : 'unbilled', 'study');
                         var statusObj = statusDetail[ 0 ];

@@ -25,7 +25,7 @@ define(['jquery',
                 height: '20%',
                 html: this.followUpTemplate()
             });
-            commonjs.bindDateTimePicker("divFollowUpDateBilling", { format: 'L' });
+            commonjs.bindDateTimePicker("divFollowUpDateBilling", { format: 'L', minDate: moment().startOf('day') });
             $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr for select2 search text can't editable
             this.bindEvents(claimIDs);
         },
@@ -49,13 +49,9 @@ define(['jquery',
         saveFollowup: function (claimIDs) {
             var followUpDate = $('#txtFollowUpDate').val() ? moment($('#txtFollowUpDate').val()).format('L') : '';
             var followUPUserID = $('#txtFollowupUsers').val();
-            var currentDate = moment().format('L');
+            
             if(followUpDate == '') {
                 commonjs.showWarning('Please Select Follow-up Date');
-                return;
-            }
-            if (moment(followUpDate) < moment(currentDate)) {
-                commonjs.showWarning('Cannot Select Past date');
                 return;
             }
 

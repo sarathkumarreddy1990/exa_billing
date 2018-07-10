@@ -221,7 +221,7 @@ module.exports = {
                                     ,matched_claims.claim_status_code
                                     ,billing.create_payment_applications(
                                         ${paymentDetails.id}
-                                        ,( SELECT id FROM billing.adjustment_codes WHERE code ='ERA' ORDER BY id ASC LIMIT 1 )
+                                        ,( SELECT id FROM billing.adjustment_codes WHERE code =${paymentDetails.code} ORDER BY id ASC LIMIT 1 )
                                         ,${paymentDetails.created_by}
                                         ,json_build_array(matched_claims.json_build_object)::jsonb
                                         ,(${JSON.stringify(audit_details)})::json
@@ -234,7 +234,8 @@ module.exports = {
                                 SET 
                                     amount = ( SELECT COALESCE(sum(payment),'0')::numeric FROM matched_claims ),
                                     notes =  notes || E'\n' || 'Amount received for matching orders : ' || ( SELECT COALESCE(sum(payment),'0')::numeric FROM matched_claims ) || E'\n\n' || ${paymentDetails.uploaded_file_name}
-                                WHERE id = ${paymentDetails.id}
+                                WHERE id = ${paymentDetails.id} 
+                                AND 'EOB' = ${paymentDetails.isFrom}
                             )
                             ,insert_claim_comments AS (
                                 INSERT INTO billing.claim_comments
