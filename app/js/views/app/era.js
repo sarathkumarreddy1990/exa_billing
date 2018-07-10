@@ -194,8 +194,7 @@ define([
                         status: currentStatus || gridData.current_status,
                         file_id: file_id || null,
                         payer_details: payerDetails,
-                        company_id: app.companyID,
-                        facility_id: app.facilityID
+                        company_id: app.companyID
                     },
                     success: function (model, response) {
 

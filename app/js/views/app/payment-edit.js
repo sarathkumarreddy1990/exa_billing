@@ -2216,7 +2216,6 @@ define(['jquery',
                     },
                     success: function (data, response) {
                         if (data && data.length) {
-                            console.log(data);
                             var total_claims = data[0].total_claims || 0;
                             var valid_claims = data[0].valid_claims || 0;
                             var msg;
@@ -2253,7 +2252,6 @@ define(['jquery',
                     },
                     success: function (data, response) {
                         if (data && data.length) {
-                            console.log(data);
                             self.getAppliedBalance(self.payment_id);
                             $('#btnPaymentPendingRefresh').click();
                             $('#btnAppliedPayRefresh').click();

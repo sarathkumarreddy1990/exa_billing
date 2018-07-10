@@ -193,7 +193,7 @@ module.exports = {
         let paymentAmount = claimCharges[0].payment_balance_total || 0;
         let totalClaim = claimCharges[0].total_claims || 0;
 
-        await _.each(claimCharges, function (item) {
+        _.each(claimCharges, function (item) {
 
             let claimNumber = parseInt(item.claim_id);
 
@@ -245,7 +245,7 @@ module.exports = {
         claimCharges = claimCharges.rows.length ? claimCharges.rows : [];
         let paymentAmount = claimCharges[0].payment_balance_total || 0;
         
-        await _.each(claimCharges, function (item) {
+        _.each(claimCharges, function (item) {
 
             let claimNumber = parseInt(item.claim_id);
             
@@ -282,11 +282,9 @@ module.exports = {
                     patient_prefix: item.patient_prefix || '',
                     patient_suffix: item.patient_suffix || ''
                 });
- 
             }
-
         });
-
+ 
         params.lineItems = lineItems;
         params.claimComments = [];
         params.audit_details = auditDetails;
@@ -296,7 +294,7 @@ module.exports = {
         paymentDetails.created_by = parseInt(params.userId);
         paymentDetails.company_id = parseInt(params.companyId);
         paymentDetails.uploaded_file_name = ''; // Assign empty for ERA argument
-
+        
         let result = await eraData.createPaymentApplication(params, paymentDetails);
 
         return result;
