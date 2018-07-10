@@ -293,12 +293,12 @@ module.exports = {
         payerDetails.paymentId = null;
         payerDetails.company_id = payerDetails.company_id;
         payerDetails.user_id = payerDetails.created_by;
-        payerDetails.facility_id = 1;
+        payerDetails.facility_id = null;
         payerDetails.patient_id = null;
         payerDetails.insurance_provider_id = payerDetails.payer_id;
         payerDetails.provider_group_id = null;
         payerDetails.provider_contact_id = null;
-        payerDetails.payment_reason_id = 2;
+        payerDetails.payment_reason_id = null;
         payerDetails.amount = 0;
         payerDetails.accounting_date = 'now()';
         payerDetails.invoice_no = '';
@@ -343,6 +343,9 @@ module.exports = {
         let claimLists = eraObject && eraObject.headerNumber ? eraObject.headerNumber : {};
 
         let LineItemsAndClaimLists = await eraParser.getFormatedLineItemsAndClaims(claimLists, params);
+
+        paymentDetails.code = 'ERA';
+        paymentDetails.isFrom = 'EOB';
 
         let processedClaims = await data.createPaymentApplication(LineItemsAndClaimLists, paymentDetails);
 
