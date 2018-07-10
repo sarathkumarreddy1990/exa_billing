@@ -160,6 +160,7 @@ define([
                                 $('#lblCIPatientPaid').text(payment_data[0].patient_paid && payment_data[0].patient_paid != 'undefined' ? payment_data[0].patient_paid : '$0.00');
                                 $('#lblCIOthersPaid').text(payment_data[0].others_paid && payment_data[0].others_paid != 'undefined' ? payment_data[0].others_paid : '$0.00');
                                 $('#lblCIAdj').text(payment_data[0].adjustment_amount && payment_data[0].adjustment_amount != 'undefined' ? payment_data[0].adjustment_amount : '$0.00');
+                                $('#lblCIRefund').text(payment_data[0].refund_amount && payment_data[0].refund_amount != 'undefined' ? payment_data[0].refund_amount : '$0.00')
                             }
 
                             if (patient_details && patient_details.length > 0) {
@@ -667,14 +668,7 @@ define([
             saveIsInternalComment: function () {
                 var comments = [];
                 var self = this;
-                var selectedFollowUpDate = $('#txtCIFollowUpDate').val() ? moment($('#txtCIFollowUpDate').val()).format('L') : '';
-                var currentDate = moment().format('L');
-                if (selectedFollowUpDate) {
-                    if (moment(selectedFollowUpDate) < moment(currentDate)) {
-                        commonjs.showWarning('Cannot Select Past date');
-                        return;
-                    }
-                }              
+                var selectedFollowUpDate = $('#txtCIFollowUpDate').val() ? moment($('#txtCIFollowUpDate').val()).format('L') : '';             
 
                 $('#tblCIClaimComments  td input:checkbox').each(function () {
                     var content = {};
@@ -744,6 +738,11 @@ define([
 
 
                 this.$el.html(this.claimPatientTemplate());
+                this.fromDate =  commonjs.bindDateTimePicker("divFDate", { format: 'L' }); 
+                this.fromDate.date(); 
+                this.toDate =  commonjs.bindDateTimePicker("divTDate", { format: 'L' }); 
+                this.toDate.date(); 
+
                 if(this.screenCode.indexOf('PACT') > -1)
                     $('#btnPatientActivity').attr('disabled', true); // id Patient Activity report have rights then only can access this report
 

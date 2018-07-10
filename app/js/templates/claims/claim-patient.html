@@ -29,10 +29,16 @@
         <div class="col-2" id="divFromDate">
             <div class="form-group form-inline" id="activityDetails" style="display : none;">
                 <label for="txtDate" i18n="billing.claims.fromDate"></label>
-                <input type="date" class="form-control maskDateLocale" id="txtDate">
-
-                <label for="txtOtherDate" i18n="billing.claims.toDate" style="margin-left:15px;"></label>
-                <input type="date" class="form-control maskDateLocale" id="txtOtherDate">
+                <div id="divFDate" class="input-group">
+                    <input type="text" id="txtDate" class="form-control form-control-date">
+                    <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px;"> <i class="icon-ic-schedule"></i></span>
+                </div>
+                <!-- <input type="date" class="form-control maskDateLocale" id="txtDate"> -->
+                <label for="txtOtherDate" i18n="billing.claims.toDate"></label>
+                <div id="divTDate" class="input-group">
+                        <input type="text" id="txtOtherDate" class="form-control form-control-date">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px;"> <i class="icon-ic-schedule"></i></span>
+                </div>
             </div>
         </div>
         <div class="col-2">

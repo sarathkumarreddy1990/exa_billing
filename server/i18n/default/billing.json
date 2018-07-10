@@ -80,7 +80,9 @@
             "selectedChargeList": "Selected Charge List",
             "previous": "Previous",
             "next": "Next",
-            "self":"Self"
+            "self":"Self",
+            "serviceFacility": "Service Facility",
+            "adjustments": "Adjustments"
         },
         "payments": {
             "postingDate": "Posting Date",
@@ -207,7 +209,8 @@
             "dob": "DOB",
             "ssn": "SSN",
             "facility": "Facility",
-            "placeOfService":"Place Of Service"
+            "placeOfService":"Place Of Service",
+            "refunds": "Refunds"
         },
         "refundDetails": {
             "refundResponsible": "Responsible :",

@@ -225,13 +225,15 @@ define([
             loadPrinterTemplates : function(elID, templateType,templateValue) {
                 var element = $('#' + elID);
                 var printerTemplats = app.printer_templates.filter(function(template) {
-                    return template.template_type == templateType;
+                    return template.template_type == templateType && template.is_active;
                 });
+
                 if(printerTemplats && printerTemplats.length > 0) {
                     for(var i = 0; i < printerTemplats.length; i++) {
                         element.append($('<option/>',{value:printerTemplats[i].id}).html(printerTemplats[i].name));
                     }
                 }
+
                 element.val(templateValue);
             }
         });
