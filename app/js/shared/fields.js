@@ -252,7 +252,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "stype": "select",
                         "searchoptions": { 
                             "value": payerTypeValue,
-                            "defaultValue":payerTypeValue
+                            "tempvalue":payerTypeValue
                         },
                         "formatter": function ( cellvalue ) {
                             return commonjs.checkNotEmpty(cellvalue) ?
@@ -306,7 +306,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "stype": "select",
                         "searchoptions": { 
                             "value": billingClassesValue,
-                            "defaultValue":billingClassesValue
+                            "tempvalue":billingClassesValue
                          }
                     }
                 },
@@ -321,7 +321,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "stype": "select",
                         "searchoptions": {
                             "value": billingCodeValue,
-                            "defaultValue":billingCodeValue
+                            "tempvalue":billingCodeValue
                         }
                     }
                 },
@@ -336,8 +336,9 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "stype": "select",
                         "searchoptions": { 
                             "value": claimStatusValue,
-                            "defaultValue": claimStatusValue
+                            "tempvalue": claimStatusValue
                         },
+                        "defaultValue": "",
                         "cellattr": function ( id, cellvalue, rowObject ) {
                             var statusDetail = commonjs.getClaimColorCodeForStatus(rowObject.claim_status,'claim');
                             var statusObj = statusDetail[ 0 ];
@@ -393,7 +394,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "stype": "select",
                         "searchoptions": { 
                             "value": billingMethodValue,
-                            "defaultValue":billingMethodValue
+                            "tempvalue":billingMethodValue
                         }
                     },
                 },

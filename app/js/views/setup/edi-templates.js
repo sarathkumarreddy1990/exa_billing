@@ -208,7 +208,7 @@ define([
                         self.getAllEDITemplates();
                     },
                     error: function (err) {
-                        commonjs.showWarning(err);
+                        commonjs.handleXhrError(err);
                     }
                 });
             },
@@ -219,9 +219,13 @@ define([
                     url: '/exa_modules/billing/setup/x12/' + this.templateFlag + '/' + templateName,
                     type: 'DELETE',
                     success: function (data, response) {
-                        commonjs.showStatus("Deleted Successfully");
-                        self.cancel();
-                        self.getAllEDITemplates();
+                        if(data.err){
+                            commonjs.showWarning("Template Not Found");
+                        }else{
+                            commonjs.showStatus("Deleted Successfully");
+                            self.cancel();
+                            self.getAllEDITemplates();
+                        }
                     },
                     error: function (err) {
                         commonjs.showWarning(err);
