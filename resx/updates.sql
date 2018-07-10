@@ -3492,3 +3492,47 @@ RAISE NOTICE '--- END OF THE SCRIPT ---';
 END
 $$;
 -- ====================================================================================================================
+
+-- Function: billing.get_claim_billing_method(bigint, text)
+
+-- DROP FUNCTION billing.get_claim_billing_method(bigint, text);
+
+CREATE OR REPLACE FUNCTION billing.get_claim_billing_method(claimid bigint, payertype text)
+  RETURNS text AS
+$BODY$
+DECLARE
+ c_payer_type TEXT;
+BEGIN 
+
+
+    IF payertype IS NULL THEN
+       c_payer_type = (SELECT  payer_type FROM  billing.claims  WHERE claims.id = claimid);
+    ELSE 
+       c_payer_type = payertype;
+    END IF;
+
+
+    RETURN(SELECT  (CASE   WHEN  c_payer_type = 'patient' THEN 'patient_payment'  
+                           WHEN  c_payer_type ='primary_insurance' OR  c_payer_type ='secondary_insurance'  
+                           OR c_payer_type ='tertiary_insurance'
+                           THEN 
+                            (SELECT insurance_provider_details.billing_method FROM billing.claims 
+                            INNER JOIN    patient_insurances  ON  patient_insurances.id = 
+                            (  CASE c_payer_type 
+                            WHEN 'primary_insurance' THEN primary_patient_insurance_id
+                            WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
+                            WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
+                            END )
+                            
+                            INNER JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id  
+                            INNER JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
+                            WHERE claims.id = claimid )		
+                            ELSE 'direct_billing' END ));
+
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION billing.get_claim_billing_method(bigint, text)
+  OWNER TO postgres;
+-- --------------------------------------------------------------------------------------------------------------------
