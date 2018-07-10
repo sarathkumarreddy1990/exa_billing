@@ -271,7 +271,7 @@ define([
                 }
 
                 if (!($('#chkServiceDateBill').prop('checked')) && !($('#chkServicePayDateCPT').prop('checked')) && !($('#billCreatedDate').prop('checked'))) {
-                    commonjs.showWarning('Please Select Service / Pay / Bill Created Date');
+                   // commonjs.showWarning('Please Select Service / Pay / Bill Created Date');
                     return;
                 }
 
