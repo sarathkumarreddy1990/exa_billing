@@ -91,7 +91,7 @@ define(['jquery',
                 'click #btnPaymentPrint': 'paymentPrintPDF',
                 'click #btnPrintReceipt': 'paymentPrintReceiptPDF',
                 'click #btnPaymentPendingRefreshOnly': 'refreshInvociePendingPayment',
-                'click #btnPaymentApplyAll': 'applyAllPending'
+                'click #btnPaymentApplyAll': 'checkAllPendingPayments'
             },
 
             initialize: function (options) {
@@ -2127,36 +2127,68 @@ define(['jquery',
                 $('.col2 option[value="' + reasonSelected + '"]').prop("disabled", true);
             },
 
-            applyAllPending: function () {
+            checkAllPendingPayments: function () {
                 var self = this;
+                var paymentAmt = $('#lblBalance').text() != '' ? parseFloat($('#lblBalance').text().substring(1)) : 0.00;
 
-                if($('#txtInvoice').val() ==''){
+                if ($('#txtInvoice').val() == '') {
                     commonjs.showWarning('Please update Invoice number to apply');
                     return false;
                 }
-                if (this.pendingPayments && this.pendingPayments.length) {
-                    
-                    $.ajax({
-                        url: '/exa_modules/billing/payments/apply_invoice_payments',
-                        type: 'POST',
-                        data: {
-                            paymentId: self.payment_id,
-                            invoice_no: $('#txtInvoice').val()
-                        },
-                        success: function (data, response) {
-                            if (data && data.length) {
-                                console.log(data)
-                            }
-                        },
-                        error: function (err, response) {
-                            commonjs.handleXhrError(err, response);
-                        }
-                    });
+                if (paymentAmt == 0) {
+                    commonjs.showWarning('Minimum balance required to process invoice payment');
+                    return false;
+                }
 
-                }
-                else {
-                    commonjs.showWarning('No pending payments found to apply');
-                }
+
+                $.ajax({
+                    url: '/exa_modules/billing/payments/invoice_details',
+                    type: 'GET',
+                    data: {
+                        paymentId: self.payment_id,
+                        invoice_no: $('#txtInvoice').val()
+                    },
+                    success: function (data, response) {
+                        if (data && data.length) {
+                            console.log(data);
+                            if (!data) {
+                                self.applyAllPending();
+                            } else {
+                                commonjs.showWarning('No pending payments found to apply');
+                            }
+                        }
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
+
+
+            },
+
+            applyAllPending: function () {
+                var self = this;
+
+                $.ajax({
+                    url: '/exa_modules/billing/payments/apply_invoice_payments',
+                    type: 'POST',
+                    data: {
+                        paymentId: self.payment_id,
+                        invoice_no: $('#txtInvoice').val()
+                    },
+                    success: function (data, response) {
+                        if (data && data.length) {
+                            console.log(data);
+                            self.getAppliedBalance(self.payment_id);
+                            $('#btnPaymentPendingRefresh').click();
+                            $('#btnAppliedPayRefresh').click();
+                        }
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
+
             },
 
             showClaimInquiry: function(id, patient_id, from) {

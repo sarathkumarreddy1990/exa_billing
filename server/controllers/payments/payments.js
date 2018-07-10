@@ -180,8 +180,42 @@ module.exports = {
         return data.getAppliedAmount(paymentId);
     },
 
-    getInvoiceDetails: function (paymentId) {
-        return data.getInvoiceDetails(paymentId);
+    getInvoiceDetails: async function (params) {
+        
+        let claimIds = [];
+        let flag = true;
+        let totalPaymentAmount = 0;
+
+        let claimCharges = await data.getInvoiceDetails(params);
+
+        claimCharges = claimCharges.rows.length ? claimCharges.rows : [];
+        let paymentAmount = claimCharges[0].payment_balance_total || 0;
+
+        await _.each(claimCharges, function (item) {
+
+            let claimNumber = parseInt(item.claim_id);
+
+            if (!_.includes(claimIds, claimNumber) && !flag) {
+                return false;
+            }
+
+            if ((totalPaymentAmount < paymentAmount) || _.includes(claimIds, claimNumber)) {
+
+                if (!_.includes(claimIds, claimNumber)) {
+                    claimIds.push(parseInt(item.claim_id));
+                }
+
+                if ((totalPaymentAmount + parseInt(item.balance)) <= paymentAmount) {
+                    totalPaymentAmount += parseInt(item.balance);
+                } else {
+                    item.balance = paymentAmount - totalPaymentAmount;
+                    totalPaymentAmount += item.balance;
+                    flag = false;
+                }
+            }
+        });
+
+        return '';
     },
 
     createInvoicePaymentapplications: async function (params) {

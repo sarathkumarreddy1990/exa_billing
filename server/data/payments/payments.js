@@ -852,6 +852,42 @@ module.exports = {
                 `;
 
         return await query(sql);
+    },
+
+    getInvoiceDetails: async function (params) {
+
+        let {
+            invoice_no,
+            paymentId
+        } = params;
+
+        const sql = SQL`
+            SELECT 
+                bch.id as charge_id,
+                bc.id as claim_id,
+                (sum(bch.bill_fee * bch.units) - (
+                    SELECT   
+                        ( coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)  +  
+                          coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment'),0::money) 
+                        ) as charge_applied_total
+                    FROM
+                        billing.charges 
+                        INNER JOIN billing.payment_applications AS pa ON pa.charge_id = charges.id
+                        INNER JOIN billing.payments AS p ON pa.payment_id = p.id
+                    WHERE charges.id = bch.id 
+                    ))::numeric  AS balance
+                ,(SELECT payment_balance_total::numeric FROM billing.get_payment_totals(${paymentId}))
+                ,(SELECT count(1) FROM billing.claims WHERE  invoice_no = ${invoice_no} ) AS total_claims
+            FROM 
+                billing.claims bc
+            INNER JOIN public.patients pp on pp.id = bc.patient_id 
+            INNER JOIN billing.charges bch on bch.claim_id = bc.id
+            INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id 
+            WHERE  bc.invoice_no = ${invoice_no}
+            AND (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) > 0::money 
+            GROUP BY bch.id,bc.id ORDER BY bc.id `;
+
+        return await query(sql);
     }
 
 };
