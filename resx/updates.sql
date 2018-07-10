@@ -2909,27 +2909,28 @@ DECLARE
      l_charges RECORD;
      l_is_need_recalculation BOOLEAN;
 BEGIN 
-        l_is_need_recalculation := 0;
+        l_is_need_recalculation := FALSE;
 
 	----------Getting Existing Payer Type
 	SELECT 
 	     payer_type INTO STRICT l_old_payer_type
 	FROM 
-             billing.claim
+             billing.claims
 	WHERE
 	     id = p_claim_id;
 
 	---------Update new payer type into claim
-	UPDATE billing.claim 
+	UPDATE billing.claims
         SET
-            payer_type = p_payer_type 
+            payer_type = p_payer_type,
+            billing_method = (SELECT billing.get_claim_billing_method(p_claim_id, p_payer_type))
         WHERE id = p_claim_id;
 
 
 	--------
-	l_is_need_recalculation = billing.is_need_bill_fee_recaulculation(p_claim_id,p_payer_type,p_existing_payer_type);
+	l_is_need_recalculation = billing.is_need_bill_fee_recaulculation(p_claim_id,p_payer_type,l_old_payer_type);
 
-	IF l_is_need_recalculation = 1 THEN 
+	IF l_is_need_recalculation = TRUE THEN 
 
 		FOR l_charges IN SELECT 
 				id,
@@ -2948,13 +2949,13 @@ BEGIN
 			billing.charges
 		  SET
 			bill_fee = billing.get_computed_bill_fee(l_charges.claim_id, l_charges.cpt_id, l_charges.modifier1_id,l_charges.modifier2_id,l_charges.modifier3_id,l_charges.modifier4_id,'billing',NULL),
-			allowed_fee = billing.get_computed_bill_fee(l_charges.claim_id, l_charges.cpt_id, l_charges.modifier1_id,l_charges.modifier2_id,l_charges.modifier3_id,l_charges.modifier4_id,'allowed',NULL)
+			allowed_amount = billing.get_computed_bill_fee(l_charges.claim_id, l_charges.cpt_id, l_charges.modifier1_id,l_charges.modifier2_id,l_charges.modifier3_id,l_charges.modifier4_id,'allowed',NULL)
 	        WHERE 
 			id = l_charges.id;
 		END LOOP;
 	END IF;
 	
-	RETURN 1;
+	RETURN TRUE;
 
 END;
 $BODY$
