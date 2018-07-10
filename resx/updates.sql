@@ -1153,7 +1153,7 @@ $BODY$
             , count(c.id)                     AS charges_count
             , sum(c.bill_fee * c.units)       AS charges_bill_fee_total
             , sum(c.allowed_amount * c.units) AS charges_allowed_amount_total
-            , array_agg(pc.display_description) AS claim_cpt_description
+            , array_agg(pc.display_code) AS claim_cpt_description
         FROM
             billing.charges AS c
             INNER JOIN public.cpt_codes AS pc ON pc.id = c.cpt_id
