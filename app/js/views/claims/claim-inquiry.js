@@ -667,14 +667,7 @@ define([
             saveIsInternalComment: function () {
                 var comments = [];
                 var self = this;
-                var selectedFollowUpDate = $('#txtCIFollowUpDate').val() ? moment($('#txtCIFollowUpDate').val()).format('L') : '';
-                var currentDate = moment().format('L');
-                if (selectedFollowUpDate) {
-                    if (moment(selectedFollowUpDate) < moment(currentDate)) {
-                        commonjs.showWarning('Cannot Select Past date');
-                        return;
-                    }
-                }              
+                var selectedFollowUpDate = $('#txtCIFollowUpDate').val() ? moment($('#txtCIFollowUpDate').val()).format('L') : '';             
 
                 $('#tblCIClaimComments  td input:checkbox').each(function () {
                     var content = {};
@@ -744,6 +737,11 @@ define([
 
 
                 this.$el.html(this.claimPatientTemplate());
+                this.fromDate =  commonjs.bindDateTimePicker("divFDate", { format: 'L' }); 
+                this.fromDate.date(); 
+                this.toDate =  commonjs.bindDateTimePicker("divTDate", { format: 'L' }); 
+                this.toDate.date(); 
+
                 if(this.screenCode.indexOf('PACT') > -1)
                     $('#btnPatientActivity').attr('disabled', true); // id Patient Activity report have rights then only can access this report
 
