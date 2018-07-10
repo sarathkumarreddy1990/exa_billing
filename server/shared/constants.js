@@ -38,7 +38,7 @@ module.exports = {
         'payments': 'Payments',
         'applyPayments':'Applied Payments',
         'claim_inquiry':'Claim Inquiry',
-        'claims':'Claims',
+        'claim':'Claims',
         'studies': 'Studies',
         'Payments': 'Edit Claim',
         'split_claim': 'Split Claim',
@@ -124,12 +124,13 @@ module.exports = {
         'orderingFacility': 'CLIM', //Auto Cpmplete
         'patients': 'CLIM',  //Auto Cpmplete
         'getUsers': 'CLIM',  //Auto Cpmplete
+        'autoCompleteRouter': 'CLIM', //Auto Cpmplete cpt code
         'getUserRoles': 'CLIM', //Auto Cpmplete
         'printer_template': 'CLIM', //when claim
         'invoice_data':'CLIM', //when claim
         'claim_json':'CLIM', //when claim
-        'get_patient_insurances': 'CLIM', //create claim
-        'get_line_items': 'CLIM', //create claim
+        'patient_insurances': 'CLIM', //create claim
+        'line_items': 'CLIM', //create claim
         'studies': 'HSTY', 
         'study_filters': 'SFIL',
         'studies_total_records': 'HSTY',
@@ -148,7 +149,8 @@ module.exports = {
         'monthly-recap': 'MNRC',
         'patient-statement': 'PATS',
         'payer-mix': 'PYMX',
-        //'payment':'PAYT',
+        'patient-activity-statement': 'PACT',
+        'payment-report':'PAYT',
         'claim-inquiry': 'CLIN',
         'insurance-vs-lop': 'IVSL',
         'patients-by-insurance-company': 'PAIC',
@@ -166,7 +168,7 @@ module.exports = {
         'patient_count': 'PAYM',
         'patient_search': 'PAYM',
         'payment-receipt-pdf':'PAYM',
-        'claims': 'ECLM',
+        'claim': 'ECLM',
         'billing_payers': 'ECLM',
         'service_facilities': 'ECLM',
         'transcription': 'ECLM',
@@ -175,6 +177,7 @@ module.exports = {
         'upload': 'ERAI',
         'user_settings':'BUST',
         'claim_study': 'ECLM',
-        'follow_ups': 'ECLM'
+        'follow_ups': 'ECLM',
+        'claim_patient': 'PCLM'
     }
 };

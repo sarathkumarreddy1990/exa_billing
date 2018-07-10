@@ -39,8 +39,8 @@ define([
                     gridelementid: '#tblClaimStatusGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['', '', '', '', '', ''],
-                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description', 'in_active'],
+                    colNames: ['', '', '', '', '', '',''],
+                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description', 'in_active',''],
                     colModel: [
                         {
                             name: 'id',
@@ -91,6 +91,10 @@ define([
                         {
                             name: 'inactivated_dt',
                             hidden: true
+                        },
+                        {
+                            name: 'display_order',
+                            hidden: true
                         }
                     ],
                     afterInsertRow: function (rowid, rowdata) {
@@ -103,8 +107,8 @@ define([
                     container: self.el,
                     customizeSort: true,
                     offsetHeight: 01,
-                    sortname: "id",
-                    sortorder: "desc",
+                    sortname: "display_order",
+                    sortorder: "asc",
                     sortable: {
                         exclude: '#jqgh_tblClaimStatusGrid,#jqgh_tblClaimStatusGrid_edit,#jqgh_tblClaimStatusGrid_del'
                     },
@@ -152,6 +156,7 @@ define([
                             if (response) {
                                 $('#txtCode').val(response.code);
                                 $('#txtDescription').val(response.description);
+                                $('#txtDispOrder').val(response.display_order);
                                 $('#chkActive').prop('checked', response.inactivated_dt ? true : false);
                                 $('#chkIsSystemStatus').prop('checked', response.is_system_status  ? true : false);
                             }
@@ -164,6 +169,7 @@ define([
                     {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
                         $("#txtCode").val($.trim($('#txtCode').val()) || null);
                         $("#txtDescription").val($.trim($('#txtDescription').val()) || null);
+                        $('#txtDispOrder').val($.trim($('#txtDispOrder').val()) || null);
                         self.saveClaimStatus();
                     }},
                     {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
@@ -203,6 +209,7 @@ define([
                 this.model.set({
                     "code": $('#txtCode').val(),
                     "description": $('#txtDescription').val(),
+                    "displayOrder" : $('#txtDispOrder').val(),
                     "isActive": !$('#chkActive').prop('checked'),
                     "isSystemStatus" : $('#chkIsSystemStatus').prop('checked') ,
                     "company_id": app.companyID

@@ -928,6 +928,11 @@ define(['jquery',
                                 'updateStudiesPager': updateStudiesPager
                             });
                             table.renderStudy();
+                            
+                            $("#btnbatchClaim").click(function (e) {
+                                table.batchClaim();
+                            });
+
                         };
 
 

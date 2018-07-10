@@ -44,51 +44,53 @@
                     <div class="col-md-12"><legend class="viztekLegend" style="font-weight: bold;font-size: 15px"></legend></div>
                 </div>
                 <div class="row">
-                    <div class="col-md-2"><label class="font-weight" i18n="billing.claims.billingProvider"></label></div>
+                    <div class="col-md-3"><label class="font-weight" i18n="billing.claims.billingProvider"></label></div>
                     <div class="col-md-4"><label id="lblCIBillProv"></label></div>
                 </div>
                 <div class="row">
-                    <div class="col-md-2"><label class="font-weight" i18n="billing.fileInsurance.readPhy"></label></div>
+                    <div class="col-md-3"><label class="font-weight" i18n="billing.fileInsurance.readPhy"></label></div>
                     <div class="col-md-4"><label id="lblCIReadPhy"></label></div>
                 </div>
                 <div class="row">
-                    <div class="col-md-2"><label class="font-weight" i18n="billing.fileInsurance.refPhy"></label></div>
+                    <div class="col-md-3"><label class="font-weight" i18n="billing.fileInsurance.refPhy"></label></div>
                     <div class="col-md-4"><label id="lblCIRefPhy"></label></div>
                 </div>
                 <div class="row">
-                    <div class="col-md-2"><label class="font-weight" i18n="billing.fileInsurance.ordFacility"></label></div>
+                    <div class="col-md-3"><label class="font-weight" i18n="billing.fileInsurance.ordFacility"></label></div>
                     <div class="col-md-4"><label id="lblCIOrdFac"></label></div>
                     <div class="col-md-2"><label class="font-weight" i18n="billing.refund.placeOfService"></label></div>
                     <div class="col-md-3"><label id="lblCIPOS"></label></div>
                 </div>
                 <div class="row">
-                    <div class="col-md-2"><label class="font-weight" i18n="billing.fileInsurance.billFee"></label></div>
+                    <div class="col-md-3"><label class="font-weight" i18n="billing.fileInsurance.billFee"></label></div>
                     <div class="col-md-4"><label id="lblCIBillFee" style="float:right"></label></div>
                     <div class="col-md-2"><label class="font-weight" i18n="billing.refund.allowed"></label></div>
                     <div class="col-md-3"><label id="lblCIAllowed" style="float:right"></label></div>
                 </div>
                 <div class="row">
-                    <div class="col-md-2"><label class="font-weight" i18n="billing.payments.patientPaid"></label></div>
+                    <div class="col-md-3"><label class="font-weight" i18n="billing.payments.patientPaid"></label></div>
                     <div class="col-md-4"><label id="lblCIPatientPaid" style="float:right"></label></div>
                 </div>
                 <div class="row">
-                    <div class="col-md-2"><label class="font-weight" i18n="billing.refund.otherPaid"></label></div>
+                    <div class="col-md-3"><label class="font-weight" i18n="billing.refund.otherPaid"></label></div>
                     <div class="col-md-4"><label id="lblCIOthersPaid" style="float:right"></label></div>
                 </div>
                 <div class="row">
-                    <div class="col-md-2"><label class="font-weight" i18n="billing.payments.adjustment"></label></div>
+                    <div class="col-md-3"><label class="font-weight" i18n="billing.payments.adjustment"></label></div>
                     <div class="col-md-4"><label id="lblCIAdj" style="float:right"></label></div>
                 </div>
                 <div class="row">
-                    <div class="col-md-2"><label class="font-weight" i18n="billing.refund.balance"></label></div>
+                    <div class="col-md-3"><label class="font-weight" i18n="billing.refund.balance"></label></div>
                     <div class="col-md-4"><label id="lblCIBalance" style="float:right"></label></div>
                     <div class="col-md-2"><label i18n="billing.fileInsurance.followUpDate"></label></div>
-                    <div id="divFollowUpDate" class="col-md-4 form-inline">
-                        <input type="date" id="txtCIFollowUpDate"> 
+                    <div id="divFollowUpDate" class="col-md-3 input-group">
+                        <!-- <input type="date" id="txtCIFollowUpDate">  -->
+                        <input type="text" id="txtCIFollowUpDate" class="form-control form-control-date" name="followUpDate">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px;"> <i class="icon-ic-schedule"></i></span>
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-2"><label i18n="billing.fileInsurance.billingComments"></label></div>
+                    <div class="col-md-3"><label i18n="billing.fileInsurance.billingComments"></label></div>
                     <div class="col-md-9 form-inline">
                         <textarea id="txtCIBillingComment" class="form-control" style="height:50px;width:90%" readonly></textarea>
                         <i class='icon-ic-raw-transctipt' title='Edit Note' id="btnCIAddBillingComments"></i>

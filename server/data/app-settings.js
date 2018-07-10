@@ -168,7 +168,8 @@ module.exports = {
                                     SELECT 
                                     id,
                                     name,
-                                    template_type
+                                    template_type,
+                                    inactivated_dt is null is_active
                                     FROM   billing.printer_templates
                                     WHERE  company_id=${companyID} ) AS printer_templates)
                 , cte_billing_providers AS(
@@ -211,6 +212,17 @@ module.exports = {
                                     WHERE (group_name='Billing' OR user_type='SU')        
                                     AND users.has_deleted=false and users.is_active = true
                                     AND users.company_id = ${companyID} ) AS billing_user_list)
+                , cte_payment_reasons_list AS(
+                                    SELECT Json_agg(Row_to_json(payment_reasons)) payment_reasons
+                                    FROM  (
+                                    SELECT 
+                                        id,
+                                        code,
+                                        description
+                                    FROM 
+                                        billing.payment_reasons
+                                    WHERE
+                                        company_id = ${companyID} AND inactivated_dt IS NULL) AS payment_reasons)
                
                SELECT *
                FROM   cte_company,
@@ -233,7 +245,8 @@ module.exports = {
                       cte_billing_providers,
                       cte_places_of_service,
                       cte_adjustment_code_list,
-                      cte_user_group_list
+                      cte_user_group_list,
+                      cte_payment_reasons_list
                `;
 
         return await query(sql);

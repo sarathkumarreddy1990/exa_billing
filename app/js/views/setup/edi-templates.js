@@ -116,7 +116,7 @@ define([
                 var matchedTemplate = templateList.filter(function (template) {
                     return template.toLowerCase() == templateName.toLowerCase();
                 });
-                if (matchedTemplate && matchedTemplate[0].toLowerCase() == templateName.toLowerCase()) {
+                if (matchedTemplate && matchedTemplate.length && matchedTemplate[0].toLowerCase() == templateName.toLowerCase()) {
                     isExists = true;
                 }
                 return isExists;
@@ -183,7 +183,7 @@ define([
                 var templateName = $('#txtTemplateName').val();
                 if (templateName) {
                     if ($(e.target).html() == 'SAVE TEMPLATE') {
-                        if (self.templateExists(templateName, self.templateLists)) {
+                        if (self.templateLists && self.templateLists.length && self.templateExists(templateName, self.templateLists)) {
                             $('#txtTemplateName').focus();
                             return commonjs.showWarning("Template name already exists");
                         }
@@ -208,7 +208,7 @@ define([
                         self.getAllEDITemplates();
                     },
                     error: function (err) {
-                        commonjs.showWarning(err);
+                        commonjs.handleXhrError(err);
                     }
                 });
             },
@@ -219,9 +219,13 @@ define([
                     url: '/exa_modules/billing/setup/x12/' + this.templateFlag + '/' + templateName,
                     type: 'DELETE',
                     success: function (data, response) {
-                        commonjs.showStatus("Deleted Successfully");
-                        self.cancel();
-                        self.getAllEDITemplates();
+                        if(data.err){
+                            commonjs.showWarning("Template Not Found");
+                        }else{
+                            commonjs.showStatus("Deleted Successfully");
+                            self.cancel();
+                            self.getAllEDITemplates();
+                        }
                     },
                     error: function (err) {
                         commonjs.showWarning(err);
@@ -242,12 +246,19 @@ define([
             saveDefinitionData: function () {
                 var templateName = $('#dropdownMenuButton').html();
                 var editor = ace.edit('editor');
-                if (templateName) {
+                var editerData=editor.getValue();
+                if(editerData && templateName){
+                    try {
+                        editerData = JSON.parse(editerData);
+                    } catch (e) {
+                        commonjs.showWarning("Invalid Json Format");
+                        return false;
+                    }
                     $.ajax({
                         url: '/exa_modules/billing/setup/x12/' + this.templateFlag + '/' + templateName,
                         type: 'PUT',
                         data:JSON.stringify({
-                            templateBody: JSON.parse(editor.getValue())
+                            templateBody: editerData
                         }),
                         contentType : "application/json",
                         dataType : "json",

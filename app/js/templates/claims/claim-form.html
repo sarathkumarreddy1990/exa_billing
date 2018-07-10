@@ -3,30 +3,32 @@
     div.top-nav {
         display: none;
     }
-    .charges__cpt-code .select2-selection{
-        width: 160px !important;
+    .charges__cpt-code div{
+        width: 85px !important;
+        overflow:hidden !important;
     }
-    .charges__cpt-description .select2-selection{
-        width: 250px !important;
+    .charges__cpt-description div {
+        width: 400px !important;
+        overflow:hidden !important;
     }
 </style>
 <div class="row woClaimRelated" id="headerContainer">
     <nav id="newClaimNav" class="top-nav">
         <ul id="tab_menu" class="tn-menu">
             <li class="active">
-                <a id="newClaimNavCharge" href="#tab_1">CHARGES</a>
+                <a id="newClaimNavCharge" href="javascript:void(0)">CHARGES</a>
             </li>
             <li>
-                <a id="newClaimNavClaims" href="#tab_2">CLAIMS</a>
+                <a id="newClaimNavClaims" href="javascript:void(0)">CLAIMS</a>
             </li>
             <li>
-                <a id="newClaimNavIns" href="#tab_3">INSURANCE</a>
+                <a id="newClaimNavIns" href="javascript:void(0)">INSURANCE</a>
             </li>
             <li>
-                <a id="newClaimNavAddInfo" href="#tab_4">ADDITIONAL INFO</a>
+                <a id="newClaimNavAddInfo" href="javascript:void(0)">ADDITIONAL INFO</a>
             </li>
             <li>
-                <a id="newClaimNavBillSummary" href="#tab_5">BILLING SUMMARY</a>
+                <a id="newClaimNavBillSummary" href="javascript:void(0)">BILLING SUMMARY</a>
             </li>
         </ul>
         <ul class="new-menu-right">
@@ -327,7 +329,8 @@
                 <div class="form-group row">
                     <label for="txtClaimDate" class="col-sm-3 col-form-label field-required" i18n="billing.claims.claimDate"></label>
                     <div class="col-sm-3">
-                        <input type="date" class="form-control maskDateLocale" id="txtClaimDate" name="ClaimDate">
+                        <input type="text" id="txtClaimDate" class="form-control form-control-date" name="ClaimDate">
+                        <!-- <input type="date" class="form-control maskDateLocale" id="txtClaimDate" name="ClaimDate"> -->
                     </div>
                 </div>
                 <div class="form-group row">
@@ -507,8 +510,9 @@
                 </div>
                 <div class="form-group row">
                     <label for="txtPriDOB" class="col-sm-3 col-form-label field-required" i18n="billing.claims.dob"></label>
-                    <div class="col-sm-3">
-                        <input type="date" class="form-control maskDateLocale" name="dob1" id="txtPriDOB" placeholder="Date of Birth">
+                    <div class="col-sm-3 input-group" id="divPriDOB">
+                        <input type="text" id="txtPriDOB" class="form-control form-control-date" name="dob1">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -564,8 +568,9 @@
                 </div>
                 <div class="form-group row editClaimRelated">
                     <label for="txtBenefitOnDate" class="col-sm-3 col-form-label field-required" i18n="billing.claims.benefitOnDate"></label>
-                    <div class="col-sm-3">
-                        <input type="date" class="form-control" id="txtBenefitOnDate" name="BenefitOnDate">
+                    <div class="col-sm-4 input-group" id="divBOD1">
+                        <input type="text" id="txtBenefitOnDate" class="form-control form-control-date" name="BenefitOnDate">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
                     </div>
                     <div class="col-sm-3">
                         <button id="btnCheckEligibility" class="btn btn-success checkEligibility" i18n="billing.claims.checkEligibility"></button>
@@ -649,10 +654,10 @@
                 <div class="form-group row">
                     <label class="col-sm-3 col-form-label" i18n="billing.claims.insuranceStartExpiryDate"></label>
                     <div class="col-sm-2">
-                        <input type="text" class="form-control " placeholder="YYYY-MM-DD" id="txtSecStartDate" disabled>
+                        <input type="text" class="form-control " placeholder="MM/DD/YYYY" id="txtSecStartDate" disabled>
                     </div>
                     <div class="col-sm-2">
-                        <input type="text" class="form-control " placeholder="YYYY-MM-DD" id="txtSecExpDate" disabled>
+                        <input type="text" class="form-control " placeholder="MM/DD/YYYY" id="txtSecExpDate" disabled>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -689,8 +694,9 @@
                 </div>
                 <div class="form-group row">
                     <label for="txtSecDOB" class="col-sm-3 col-form-label field-required" i18n="billing.claims.dob"></label>
-                    <div class="col-sm-3">
-                        <input type="date" class="form-control maskDateLocale" name="dob2" id="txtSecDOB" placeholder="Date of Birth">
+                    <div class="col-sm-3 input-group" id="divSecDOB">
+                        <input type="text" id="txtSecDOB" class="form-control form-control-date" name="dob2">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -746,8 +752,9 @@
                 </div>
                 <div class="form-group row editClaimRelated">
                     <label for="txtBenefitOnDate" class="col-sm-3 col-form-label field-required" i18n="billing.claims.benefitOnDate"></label>
-                    <div class="col-sm-3">
-                        <input type="date" class="form-control" id="txtBenefitOnDate2" name="BenefitOnDate">
+                    <div class="col-sm-4 input-group" id="divBOD2">                          
+                            <input type="text" id="txtBenefitOnDate2" class="form-control form-control-date" name="BenefitOnDate">
+                            <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
                     </div>
                     <div class="col-sm-3">
                         <button id="btnCheckEligibility2" class="btn btn-success checkEligibility" i18n="billing.claims.checkEligibility"></button>
@@ -814,10 +821,10 @@
                 <div class="form-group row">
                     <label class="col-sm-3 col-form-label" i18n="billing.claims.insuranceStartExpiryDate"></label>
                     <div class="col-sm-2">
-                        <input type="text" class="form-control " placeholder="YYYY-MM-DD" id="txtTerStartDate" disabled>
+                        <input type="text" class="form-control " placeholder="MM/DD/YYYY" id="txtTerStartDate" disabled>
                     </div>
                     <div class="col-sm-2">
-                        <input type="text" class="form-control " placeholder="YYYY-MM-DD" id="txtTerExpDate" disabled>
+                        <input type="text" class="form-control " placeholder="MM/DD/YYYY" id="txtTerExpDate" disabled>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -854,8 +861,9 @@
                 </div>
                 <div class="form-group row">
                     <label for="divTerDOBDate" class="col-sm-3 col-form-label field-required" i18n="billing.claims.dob"></label>
-                    <div class="col-sm-3">
-                        <input type="date" class="form-control maskDateLocale" name="dob3" id="txtTerDOB" placeholder="Date of Birth">
+                    <div class="col-sm-3 input-group" id="divTerDOB">
+                        <input type="text" id="txtTerDOB" class="form-control form-control-date" name="dob3">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -911,8 +919,9 @@
                 </div>
                 <div class="form-group row editClaimRelated">
                     <label for="txtBenefitOnDate" class="col-sm-3 col-form-label field-required" i18n="billing.claims.benefitOnDate"></label>
-                    <div class="col-sm-3">
-                        <input type="date" class="form-control" id="txtBenefitOnDate3" name="BenefitOnDate">
+                    <div class="col-sm-4 input-group" id="divBOD3">
+                        <input type="text" id="txtBenefitOnDate3" class="form-control form-control-date" name="BenefitOnDate">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
                     </div>
                     <div class="col-sm-3">
                         <button id="btnCheckEligibility3" class="btn btn-success checkEligibility" i18n="billing.claims.checkEligibility"></button>
@@ -970,14 +979,16 @@
             </div>
             <div class="form-group row">
                 <label for="txtDate" class="col-sm-3 col-form-label" i18n="billing.claims.date"></label>
-                <div class="col-sm-3">
-                    <input type="date" class="form-control maskDateLocale" id="txtDate">
+                <div class="col-sm-3 input-group" id="divInjuryDate">
+                    <input type="text" id="txtDate" class="form-control form-control-date">
+                    <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
                 </div>
             </div>
             <div class="form-group row">
                 <label for="txtOtherDate" class="col-sm-3 col-form-label" i18n="billing.claims.otherDate"></label>
-                <div class="col-sm-3">
-                    <input type="date" class="form-control maskDateLocale" id="txtOtherDate">
+                <div class="col-sm-3 input-group" id="divOtherDate">
+                    <input type="text" id="txtOtherDate" class="form-control form-control-date">
+                    <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
                 </div>
             </div>
             <div class="form-group row" style="margin-top:10px;">
@@ -990,14 +1001,16 @@
                 <div class="col-sm-3">
                     <label for="txtWCF" class="col-form-label" i18n="billing.claims.fromDate"></label>
                 </div>
-                <div class="col-sm-3">
-                    <input type="date" class="form-control maskDateLocale" id="txtWCF">
+                <div class="col-sm-3 input-group" id="divWCF">
+                    <input type="text" id="txtWCF" class="form-control form-control-date">
+                    <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
                 </div>
                 <div class="col-sm-2">
                     <label for="txtWCT" class="col-form-label" i18n="billing.claims.toDate"></label>
                 </div>
-                <div class="col-sm-3">
-                    <input type="date" class="form-control maskDateLocale" id="txtWCT">
+                <div class="col-sm-3 input-group" id="divWCT">
+                    <input type="text" id="txtWCT" class="form-control form-control-date">
+                    <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
                 </div>
             </div>
             <div class="form-group row" style="margin-top:10px;">
@@ -1008,12 +1021,14 @@
             </div>
             <div class="form-group row">
                 <label for="txtHCF" class="col-sm-3 col-form-label" i18n="billing.claims.fromDate"></label>
-                <div class="col-sm-3">
-                    <input type="date" class="form-control maskDateLocale" id="txtHCF">
+                <div class="col-sm-3 input-group" id="divHCF">
+                    <input type="text" id="txtHCF" class="form-control form-control-date">
+                    <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
                 </div>
                 <label for="txtHCT" class="col-sm-2 col-form-label" i18n="billing.claims.toDate"></label>
-                <div class="col-sm-3">
-                    <input type="date" class="form-control maskDateLocale" id="txtHCT">
+                <div class="col-sm-3 input-group" id="divHCT">
+                    <input type="text" id="txtHCT" class="form-control form-control-date">
+                    <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
                 </div>
             </div>
             <div class="form-group row">

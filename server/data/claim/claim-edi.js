@@ -158,9 +158,7 @@ module.exports = {
 
     getClaimData: async (params) => {
 
-        const {
-            claimIds
-        } = params;
+        let claimIds=params.claimIds.split(',');
 
         let sql = SQL`
         
@@ -234,7 +232,10 @@ module.exports = {
 															email  as "email",
 															fax_number as "faxNumber",
 															zip_code_plus as "zip_code_plus",
-															contact_person_name as "contactName"
+															contact_person_name as "contactName",
+															(SELECT qualifier_code FROM billing.provider_id_code_qualifiers LEFT JOIN billing.provider_id_codes   ON  provider_id_code_qualifiers.id=provider_id_codes.qualifier_id
+																 WHERE provider_id_codes.billing_provider_id=billing_providers.id AND provider_id_codes.insurance_provider_id = insurance_providers.id ) as "legacyID"
+
 														FROM   billing.providers as billing_providers
 														WHERE  billing_providers.id=billing_provider_id)AS billingProvider1 
 
@@ -318,7 +319,9 @@ module.exports = {
 										,insurance_info->'State'  "payerState"
 										,insurance_info->'ZipCode'  "payerZIPCode"										
 										,insurance_info->'PhoneNo' as "phoneNo"
-										,insurance_info->'ZipPlus' as "zipPlus"	
+										,insurance_info->'ZipPlus' as "zipPlus"
+										,insurance_provider_payer_types.code	as "providerTypeCode"
+										,insurance_provider_payer_types.description	as "providerTypeDescription"
 										) as payer)
 										,(
 											SELECT Json_agg(Row_to_json(patient)) "patient"
@@ -376,6 +379,7 @@ module.exports = {
 										is_other_accident as  "relatedCauseCode2",
 										is_auto_accident as  "relatedCauseCode3",
 										current_illness_date::date as "illnessDate",
+										service_by_outside_lab as "outSideLab",
 										account_no as "accountNumber",
 										to_char(same_illness_first_date, 'YYYYMMDD')  as "illnessDateFormat",
 										authorization_no as "authorizationNo",
@@ -388,7 +392,11 @@ module.exports = {
 										unable_to_work_from_date::text as "unableToWorkFromDate",
 										to_char(unable_to_work_from_date, 'YYYYMMDD')  as "unableToWorkFromDateFormat",
 										unable_to_work_to_date::text as "unableToWorkToDate",
-										to_char(unable_to_work_to_date, 'YYYYMMDD')  as "unableToWorkToDateFormat"
+										to_char(unable_to_work_to_date, 'YYYYMMDD')  as "unableToWorkToDateFormat",
+										hospitalization_from_date::text as "hospitailizationFromDate",
+										to_char(hospitalization_to_date, 'YYYYMMDD')  as "hospitailizationFromDateFormat",
+										hospitalization_to_date::text as "hospitailizationToDate",
+										to_char(unable_to_work_to_date, 'YYYYMMDD')  as "hospitailizationToDateFormat"
 										,(SELECT Json_agg(Row_to_json(icd)) "icd" FROM
 										(SELECT icd_id,  code,description,(CASE code_type 
 											WHEN 'icd9' THEN '0'
@@ -507,13 +515,16 @@ module.exports = {
 					insurance_info->'State' as "state",
 					insurance_info->'ZipCode' as "zipCode",
 					insurance_info->'PhoneNo' as "phoneNo",
-					insurance_info->'ZipPlus' as "zipPlus"										
+					insurance_info->'ZipPlus' as "zipPlus",
+					pippt.code	as "providerTypeCode",
+					pippt.description	as "providerTypeDescription"								
 					FROM   patient_insurances 
 										inner join insurance_providers on insurance_providers.id=insurance_provider_id
+										LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = insurance_providers.provider_payer_type_id
 									WHERE  patient_insurances.id = 
 						(  CASE payer_type 
 						WHEN 'primary_insurance' THEN secondary_patient_insurance_id
-						WHEN 'secondary_insurance' THEN tertiary_patient_insurance_id
+						WHEN 'secondary_insurance' THEN primary_patient_insurance_id
 						WHEN 'teritary_insurance' THEN primary_patient_insurance_id
 						END) ) 
 					as OtherPayer),
@@ -522,10 +533,10 @@ module.exports = {
 									FROM 
 					(SELECT 
 					display_code as "examCpt",
-					modifier1.description as "mod1",
-					modifier2.description as "mod2",
-					modifier3.description as "mod3",
-					modifier4.description as "mod4",
+					modifier1.code as "mod1",
+					modifier2.code as "mod2",
+					modifier3.code as "mod3",
+					modifier4.code as "mod4",
 					authorization_no as "authorizationNo",
 					allowed_amount::numeric::text as "allowedAmount",
 					charges.id as "iterationIndex",
@@ -547,10 +558,10 @@ module.exports = {
 					(SELECT 
 					display_code as "cpt",
 					insurance_info->'PayerID' as "payerID",
-					modifier1.description as "modifier1",
-					modifier2.description as "modifier2",
-					modifier3.description as "modifier3",
-					modifier4.description as "modifier4",
+					modifier1.code as "modifier1",
+					modifier2.code as "modifier2",
+					modifier3.code as "modifier3",
+					modifier4.code as "modifier4",
 					sum(pa.amount)::numeric::text as "paidAmount",
 					charges.units as "unit"
 					,(SELECT Json_agg(Row_to_json(lineAdjustment)) "lineAdjustment"
@@ -613,7 +624,8 @@ module.exports = {
 											END)
 									INNER JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id   
 									LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
-									LEFT JOIN relationship_status ON  subscriber_relationship_id =relationship_status.id
+									LEFT JOIN relationship_status ON  subscriber_relationship_id =relationship_status.id									
+									LEFT JOIN public.insurance_provider_payer_types  ON insurance_provider_payer_types.id = insurance_providers.provider_payer_type_id
 
 							WHERE claims.id= ANY(${claimIds})
 							`;

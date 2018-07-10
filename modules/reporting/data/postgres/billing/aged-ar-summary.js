@@ -146,7 +146,7 @@ END
      <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
      <% if(billingProID) { %> AND <% print(billingProID); } %>
      <% if(excCreditBal == 'true'){ %> AND  gcd.balance::money > '0' <% } %>
- GROUP BY payer_name,responsible_party,pippt.code
+ GROUP BY responsible_party,payer_name,pippt.code
 
  <% if(incPatDetail == 'true') { %>     
     ORDER BY responsible_party DESC
@@ -218,7 +218,7 @@ FROM
  SELECT
     null::text "Facility",
     null::text responsible_party,
-    ('--- Total ---')::text payer_name,
+    ('--- Total A R ---')::text payer_name,
     null::text "Provider Type",
     null::text "EDI",
     sum("0-30 Count") AS "0-30 Count",

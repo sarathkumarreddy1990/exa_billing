@@ -10,7 +10,7 @@ define([
     'text!templates/app/era-preview.html',
     'collections/app/era',
     'models/pager',
-	'text!templates/app/eraProcessedResponse.html'],
+	'text!templates/app/era-processed-response.html'],
     function (jQuery, Immutable, _, Backbone, JGrid, JGridLocale, eraGrid, eraProgress, EraPreview, eraLists, EobFilesPager, EraResponse) {
         var eraView = Backbone.View.extend({
 
@@ -414,25 +414,32 @@ define([
 
                                 var totalBillFee = 0.00;
                                 var totalAllowedFee = 0.00;
+                                var totalAdjusmtment = 0.00;
                                 $.each(claimDetails, function (index, row) {
                                     totalBillFee = 0.00;
                                     totalAllowedFee = 0.00;
+                                    totalAdjusmtment = 0.00;
                                     row["charges"] = [];
                                     for (var j = 0; j < chargeDetails.length; j++) {
                                         if (row.claim_id === chargeDetails[j].claim_id) {
-                                            totalBillFee += parseFloat(chargeDetails[j].bill_fee.substr(1));
-                                            totalAllowedFee += parseFloat(chargeDetails[j].allowed_fee.substr(1));
+                                            if (chargeDetails[j].amount_type == 'payment')
+                                                totalBillFee += parseFloat(chargeDetails[j].bill_fee.substr(1).replace(',', ''));
+                                            else
+                                                totalAdjusmtment += parseFloat(chargeDetails[j].bill_fee.substr(1).replace(',', ''));
+
+                                            totalAllowedFee += parseFloat(chargeDetails[j].allowed_fee.substr(1).replace(',', ''));
                                             row["charges"].push(chargeDetails[j]);
                                         }
                                     }
                                     claims.push(row);
                                     row["totalBillFee"] = totalBillFee;
                                     row["totalAllowedFee"] = totalAllowedFee;
+                                    row["totalAdjusmtment"] = totalAdjusmtment;
                                 });
 
                                 $('#eraResultTitle').html('Result : ' + fileName);
                                 $('#divEraResponse').html(self.eraResponseTemplate({ claims: claims, ins: ins }));
-                                $('#divResponseSection').height($(window).height() - 350);
+                                $('#divResponseSection').height($(window).height() - 380);
                                 commonjs.showDialog({ header: 'Result : ' + fileName, width: '80%', height: '70%', html: $('#divEraResponse').html() });
                             }
                             else {

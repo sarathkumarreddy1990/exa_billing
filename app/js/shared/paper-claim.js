@@ -136,8 +136,9 @@ define([
 
                 $.ajax({
                     url: this.pdfDetails[templateType].api,
+                    type:'post',
                     data: {
-                        claimIds: claimIDs
+                        claimIds: claimIDs.toString()
                     }, success: function (data, response) {
                         callback(null, data);
                     }, error: function (err, response) {
@@ -151,8 +152,9 @@ define([
 
                 $.ajax({
                     url: '/exa_modules/billing/claim_workbench/printer_template',
+                    type:'post',
                     data: {
-                        claimIds: claimIDs,
+                        claimIds: claimIDs.toString(),
                         templateType: templateType
                     }, success: function (data, response) {
                         callback(null, data.length > 0 ? data[0] : {});

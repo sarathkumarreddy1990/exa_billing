@@ -464,7 +464,7 @@ module.exports = {
                     bp.id as payment_id ,
                     pip.id ,
                     pip.insurance_name ,
-                    pip.insurance_info->'payerID' AS payer_id,
+                    pip.insurance_info->'PayerID' AS payer_id,
                     bp.payment_dt AS payment_dt,
                     pip.insurance_info->'Address1' AS address1,
                     pip.insurance_info->'Address2' AS address2,
@@ -487,19 +487,33 @@ module.exports = {
                     bch.claim_id, 
                     bch.charge_dt::date,
                     pcc.display_code AS cpt_decsription,
-                    (bch.bill_fee * bch.units) AS bill_fee ,
-                    (bch.allowed_amount * bch.units) AS allowed_fee 
+                    (bch.bill_fee * bch.units) AS bill_fee,
+                    bpa.amount_type,
+                    (bch.allowed_amount * bch.units) AS allowed_fee ,
+                    (
+                        SELECT 
+                         ('[' || modifier1.code || ',
+                         ' || modifier2.code || ',
+                         ' || modifier3.code ||  ',
+                         ' || modifier4.code || ']')
+                        FROM billing.charges 
+                        LEFT JOIN modifiers AS modifier1 on modifier1.id = modifier1_id
+                        LEFT join modifiers AS modifier2 on modifier2.id = modifier2_id
+                        LEFT join modifiers AS modifier3 on modifier3.id = modifier3_id
+                        LEFT join modifiers AS modifier4 on modifier4.id = modifier4_id     
+                            WHERE charges.id = bpa.charge_id                        
+                        ) as modifiers
                     FROM  
                     billing.edi_files bef 
                     LEFT JOIN billing.edi_file_payments befp ON befp.edi_file_id = bef.id 
                     LEFT JOIN billing.payments bp on bp.id = befp.payment_id 
-                    LEFT JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id 
+                    --LEFT JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id 
                     
                     LEFT JOIN billing.payment_applications bpa on bpa.payment_id = bp .id
                     LEFT JOIN billing.charges bch on bch.id = bpa.charge_id
                     LEFT JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
 
-                    LEFT JOIN public.modifiers pm on pm.id = any (ARRAY [modifier1_id,modifier2_id,modifier3_id,modifier4_id]) where bef.id = ${file_id}
+                    WHERE bef.id = ${file_id} AND bch.claim_id IS NOT NULL
                 ) AS chargeDetails )
                     ),
                 claim_details AS (              
