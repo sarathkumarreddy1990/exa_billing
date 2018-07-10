@@ -1153,7 +1153,7 @@ $BODY$
             , count(c.id)                     AS charges_count
             , sum(c.bill_fee * c.units)       AS charges_bill_fee_total
             , sum(c.allowed_amount * c.units) AS charges_allowed_amount_total
-            , array_agg(pc.display_description) AS claim_cpt_description
+            , array_agg(pc.display_code) AS claim_cpt_description
         FROM
             billing.charges AS c
             INNER JOIN public.cpt_codes AS pc ON pc.id = c.cpt_id
@@ -2518,7 +2518,7 @@ DECLARE
    l_bill_fee_recalculation BOOLEAN;
    
 BEGIN 
-	l_bill_fee_recalculation := 0;
+	l_bill_fee_recalculation := TRUE;
 	SELECT 
 		    cs.description INTO STRICT l_claim_status
 		FROM
@@ -2527,13 +2527,19 @@ BEGIN
 	            id = l_claim_status_id;
 	        
 	     IF l_claim_status = 'Pending Validation' THEN
-			IF ((p_payer_type = 'primary_insurance' OR p_payer_type = 'secondary_insurance' OR p_payer_type = 'tertiary_insurance') AND (p_existing_payer_type = 'referring_provider' OR p_existing_payer_type = 'ordering_facility')) THEN
-				l_bill_fee_recalculation = TRUE;
-			ELSIF ((p_payer_type = 'referring_provider' OR p_payer_type = 'ordering_facility') AND (p_existing_payer_type = 'primary_insurance' OR p_existing_payer_type = 'secondary_insurance' OR p_existing_payer_type = 'tertiary_insurance')) THEN
-				l_bill_fee_recalculation = TRUE;
-                        ELSIF ((p_payer_type = 'primary_insurance' OR p_payer_type = 'secondary_insurance' OR p_payer_type = 'tertiary_insurance' OR p_payer_type = 'referring_provider' OR p_payer_type = 'ordering_facility')  AND (p_existing_payer_type = 'patient')) THEN
-				l_bill_fee_recalculation = TRUE;
+			IF (p_payer_type = 'patient' AND (p_existing_payer_type = 'ordering_facility' OR p_existing_payer_type = 'referring_provider' OR p_existing_payer_type = 'facility' OR p_existing_payer_type = 'primary_insurance' OR p_existing_payer_type = 'secondary_insurance' OR p_existing_payer_type = 'tertiary_insurance')) THEN
+				l_bill_fee_recalculation = FALSE;
+			ELSIF ((p_payer_type = 'primary_insurance' OR p_payer_type = 'secondary_insurance') AND p_existing_payer_type = 'tertiary_insurance') THEN
+				l_bill_fee_recalculation = FALSE;
+			ELSIF ((p_payer_type = 'primary_insurance' OR p_payer_type = 'tertiary_insurance') AND p_existing_payer_type = 'secondary_insurance') THEN
+				l_bill_fee_recalculation = FALSE;
+			ELSIF ((p_payer_type = 'secondary_insurance' OR p_payer_type = 'tertiary_insurance') AND p_existing_payer_type = 'primary_insurance') THEN
+				l_bill_fee_recalculation = FALSE;
 			END IF;
+		END IF;
+
+		IF p_payer_type = p_existing_payer_type THEN
+		     l_bill_fee_recalculation = FALSE;
 		END IF;
 		
 	RETURN l_bill_fee_recalculation;
@@ -3112,14 +3118,6 @@ BEGIN
                  , valid_from_date date
                  , valid_to_date date )
         ),
-        existing_payer_type AS (
-            SELECT 
-                payer_type 
-            FROM
-                billing.claims
-            WHERE 
-                id = (i_claim_details->>'claim_id')::bigint
-        ),
         save_insurance AS (
                 INSERT INTO patient_insurances (
                     patient_id
@@ -3372,12 +3370,12 @@ BEGIN
             billing.charges
         SET
               cpt_id    = chd.cpt_id
-           , bill_fee  = CASE WHEN billing.is_need_bill_fee_recaulculation((i_claim_details->>'claim_id')::bigint,i_claim_details->>'payer_type',(SELECT payer_type FROM existing_payer_type)) = TRUE THEN
+           , bill_fee  = CASE WHEN billing.is_need_bill_fee_recaulculation((i_claim_details->>'claim_id')::bigint,i_claim_details->>'payer_type',i_claim_details->>'existing_payer_type') = TRUE THEN
                              billing.get_computed_bill_fee((i_claim_details->>'claim_id')::bigint,chd.cpt_id,chd.modifier1_id,chd.modifier2_id,chd.modifier3_id,chd.modifier4_id,'billing',i_claim_details->>'payer_type')
                           ELSE
                             chd.bill_fee
                           END 
-            , allowed_amount = CASE WHEN billing.is_need_bill_fee_recaulculation((i_claim_details->>'claim_id')::bigint,i_claim_details->>'payer_type',(SELECT payer_type FROM existing_payer_type)) = TRUE THEN
+            , allowed_amount = CASE WHEN billing.is_need_bill_fee_recaulculation((i_claim_details->>'claim_id')::bigint,i_claim_details->>'payer_type',i_claim_details->>'existing_payer_type') = TRUE THEN
                              billing.get_computed_bill_fee((i_claim_details->>'claim_id')::bigint,chd.cpt_id,chd.modifier1_id,chd.modifier2_id,chd.modifier3_id,chd.modifier4_id,'allowed',i_claim_details->>'payer_type')
                           ELSE
                              chd.allowed_amount

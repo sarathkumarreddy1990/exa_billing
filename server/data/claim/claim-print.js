@@ -3,7 +3,7 @@ const { SQL, query } = require('../index');
 module.exports = {
 
     getInvoiceData: async function (params) {
-
+        params.claimIds = params.claimIds.split(',');
         let sql = SQL`
 			WITH claim_details AS(
                 SELECT 

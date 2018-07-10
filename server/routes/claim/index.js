@@ -8,12 +8,12 @@ const readFileAsync = promisify(fs.readFile);
 const claimsController = require('../../controllers/claim/index');
 const httpHandler = require('../../shared/http');
 
-router.get('/get_line_items', async function (req, res) {
+router.get('/line_items', async function (req, res) {
     const data = await claimsController.getLineItemsDetails(req.query);
     httpHandler.sendRows(req, res, data);
 });
 
-router.get('/get_patient_insurances', async function (req, res) {
+router.get('/patient_insurances', async function (req, res) {
     const data = await claimsController.getPatientInsurances(req.query);
     httpHandler.sendRows(req, res, data);
 });
@@ -27,7 +27,7 @@ router.get('/service_facilities', async function (req, res) {
 });
 
 
-router.get('/get_service_facility', async function (req, res) {
+router.get('/service_facility', async function (req, res) {
     let file_path = path.join(__dirname, '../resx/site-info.json');
     let siteInfo = await readFileAsync(file_path, 'utf8');
     siteInfo = JSON.parse(siteInfo);

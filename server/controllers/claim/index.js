@@ -55,6 +55,12 @@ module.exports = {
             }
         }
 
+        let existingPayers = await data.getExistingPayer(params);
+
+        if(existingPayers && existingPayers.rows.length) {
+            params.claims.existing_payer_type = existingPayers.rows[0].payer_type;
+        }
+
         update_charges(params);
 
         async function update_charges(objects) {

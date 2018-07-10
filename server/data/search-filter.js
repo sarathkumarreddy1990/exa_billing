@@ -477,6 +477,7 @@ const api = {
             case 'billed_status': return `(SELECT  CASE WHEN (SELECT 1 FROM billing.charges_studies inner JOIN billing.charges ON charges.id= 
                                                 charges_studies.charge_id  WHERE study_id = studies.id LIMIT 1) >0 THEN 'billed'
                                                 ELSE 'unbilled' END)`;
+            case 'study_cpt_id': return 'study_cpt.study_cpt_id';
         }
 
         return args;
@@ -555,6 +556,12 @@ const api = {
                         SELECT get_authorization(studies.id,studies.facility_id,studies.modality_id,studies.patient_id,orders.insurance_provider_ids,studies.study_dt)::text AS as_authorization
                 ) AS auth ON true
                 `;
+        }
+
+        if(tables.study_cpt){
+            r += `   LEFT JOIN LATERAL (
+                SELECT id as study_cpt_id FROM study_cpt   WHERE study_id = studies.id AND study_cpt.has_deleted=false LIMIT 1
+            ) AS study_cpt ON true `;
         }
        
        
@@ -785,6 +792,7 @@ const api = {
             'report_delivery.report_queue_status', 
             `are_notes_empty(studies.notes, patients.notes, orders.order_notes) 
                 AS empty_notes_flag`,
+            `study_cpt.study_cpt_id`,    
             // Lock
             // TODO: move this out of postgres (or at least as JOIN for now)
             `(
