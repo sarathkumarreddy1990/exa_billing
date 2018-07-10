@@ -38,7 +38,7 @@ module.exports = {
         'payments': 'Payments',
         'applyPayments':'Applied Payments',
         'claim_inquiry':'Claim Inquiry',
-        'claims':'Claims',
+        'create_claim':'Claims',
         'studies': 'Studies',
         'Payments': 'Edit Claim',
         'split_claim': 'Split Claim',
@@ -124,6 +124,7 @@ module.exports = {
         'orderingFacility': 'CLIM', //Auto Cpmplete
         'patients': 'CLIM',  //Auto Cpmplete
         'getUsers': 'CLIM',  //Auto Cpmplete
+        'autoCompleteRouter': 'CLIM', //Auto Cpmplete cpt code
         'getUserRoles': 'CLIM', //Auto Cpmplete
         'printer_template': 'CLIM', //when claim
         'invoice_data':'CLIM', //when claim
@@ -167,7 +168,7 @@ module.exports = {
         'patient_count': 'PAYM',
         'patient_search': 'PAYM',
         'payment-receipt-pdf':'PAYM',
-        'claims': 'ECLM',
+        'create_claim': 'ECLM',
         'billing_payers': 'ECLM',
         'service_facilities': 'ECLM',
         'transcription': 'ECLM',
