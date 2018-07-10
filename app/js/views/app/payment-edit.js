@@ -91,7 +91,8 @@ define(['jquery',
                 'click #btnPaymentPrint': 'paymentPrintPDF',
                 'click #btnPrintReceipt': 'paymentPrintReceiptPDF',
                 'click #btnPaymentPendingRefreshOnly': 'refreshInvociePendingPayment',
-                'click #btnPaymentApplyAll': 'applyAllPending'
+                'click #btnPaymentApplyAll': 'applyAllPending',
+                'keypress #claimId, #invoiceNo' : 'searchInvoiceOrClaim'
             },
 
             initialize: function (options) {
@@ -862,7 +863,7 @@ define(['jquery',
                         { name: 'claim_id', searchColumn: ['orders.id'], searchFlag: '%', width: 150 },
                         { name: 'invoice_no', searchFlag: '%', width: 150 },
                         { name: 'full_name', searchFlag: '%', searchColumn: ['pp.full_name'], width: 250 },
-                        { name: 'claim_date', searchFlag: '%', searchColumn: ['claim_date'], width: 250, formatter: self.studyDateFormatter },
+                        { name: 'claim_date', searchFlag: '%', searchColumn: ['claim_date'], width: 250, formatter: self.claimDateFormatter },
                         { name: 'billing_fee', searchFlag: 'int', formatter: self.billingFeeFormatter, width: 100 },
                         { name: 'balance', searchFlag: 'int', formatter: self.balanceFormatter, width: 100 },
                         { name: 'display_description', searchFlag: '%', width: 300 },
@@ -905,9 +906,9 @@ define(['jquery',
                 }, 500);
             },
 
-            studyDateFormatter: function (cellvalue, options, rowObject) {
+            claimDateFormatter: function (cellvalue, options, rowObject) {
                 var colValue;
-                colValue = (commonjs.checkNotEmpty(rowObject.claim_date) ? commonjs.convertToFacilityTimeZone(rowObject.facility_id, rowObject.claim_date).format('L LT z') : '');
+                colValue = (commonjs.checkNotEmpty(rowObject.claim_date) ? commonjs.convertToFacilityTimeZone(rowObject.facility_id, rowObject.claim_date).format('L') : '');
                 return colValue;
             },
  
@@ -951,7 +952,7 @@ define(['jquery',
                             { name: 'claim_id', searchColumn: ['orders.id'], searchFlag: '%', width: 150 },
                             { name: 'invoice_no', searchFlag: '%', width: 150 },
                             { name: 'full_name', searchFlag: '%', searchColumn: ['pp.full_name'], width: 250 },
-                            { name: 'claim_date', searchFlag: '%', searchColumn: ['claim_date'], width: 250, formatter: self.studyDateFormatter },
+                            { name: 'claim_date', searchFlag: '%', searchColumn: ['claim_date'], width: 250, formatter: self.claimDateFormatter },
                             { name: 'billing_fee', searchFlag: 'int', formatter: self.billingFeeFormatter, width: 100 },
                             { name: 'balance', searchFlag: 'int', formatter: self.balanceFormatter, width: 100 },
                             { name: 'display_description', searchFlag: '%', width: 300 },
@@ -1258,6 +1259,7 @@ define(['jquery',
                             
                             $('.this_allowed').unbind().blur(function (e) {
                                 self.calculateAdjustment(e)
+                                self.updatePaymentAdjustment();
                             });
 
                             $('.checkDebit').unbind().click(function (e) {
@@ -1291,10 +1293,10 @@ define(['jquery',
                         $.each(adjustmentCodes, function (index, adjustmentCode) {
                             var $Option = $('<option/>', { value: adjustmentCode.id, text: adjustmentCode.description, 'data_code_type': adjustmentCode.type });
                             if (adjustmentCode.type === 'refund_debit') {
-                                $Option.css({ background: 'gray' }).attr('title', 'Refund Adjustment');
+                                $Option.css({ background: 'gray' }).attr('title', 'Refund Adjustment').addClass('refund_debit');
                             }
                             else if (adjustmentCode.type === 'recoupment_debit') {
-                                $Option.css({ background: 'lightgray' }).attr('title', 'Recoupment Adjustment');
+                                $Option.css({ background: 'lightgray' }).attr('title', 'Recoupment Adjustment').addClass('recoupment_debit');
                             }
                             $('#ddlAdjustmentCode_fast').append($Option); 
                         }); 
@@ -1324,7 +1326,7 @@ define(['jquery',
                         
                         // $("#ddlResponsible option[val=" + charges[0].adjustment_code_id + "]").attr('selected', 'selected');
                         $('#ddlResponsible').select2();
-                        // $("#ddlAdjustmentCode_fast").select2();
+                        $("#ddlAdjustmentCode_fast").select2();
 
                         $('#tBodyApplyPendingPayment').find('.applyCAS').on('click', function (e) {
                             var selectedRow = $(e.target || e.srcElement).closest('tr');
@@ -1332,7 +1334,7 @@ define(['jquery',
                             self.getPayemntApplications(e);
                         });
 
-                        $('#applyPaymentContent').find('#btnSaveAppliedPendingPayments').unbind().one('click', function (e) {
+                        $('#applyPaymentContent').find('#btnSaveAppliedPendingPayments').unbind().on('click', function (e) {
                             self.saveAllPayments(e, claimId, paymentId, paymentStatus, chargeId);
                         });                        
 
@@ -1340,7 +1342,7 @@ define(['jquery',
                             self.clearPayments(e, paymentId, claimId);
                         });
 
-                        $('#btnPayfullAppliedPendingPayments').unbind().one('click', function (e) {
+                        $('#btnPayfullAppliedPendingPayments').unbind().on('click', function (e) {
                             self.saveAllPayments(e, claimId, paymentId, paymentStatus, chargeId);
                         });
 
@@ -1552,7 +1554,8 @@ define(['jquery',
                                     var rowVal = index + 1;
                                     $('#selectGroupCode' + rowVal).val(appln.cas_group_code_id).attr('cas_id', appln.id);
                                     $('#selectReason' + rowVal).val(appln.cas_reason_code_id);
-                                    $('#txtAmount' + rowVal).val(appln.amount.indexOf('$') == 0 ? appln.amount.substr(1) : appln.amount);
+                                    var amount = appln.amount.indexOf('$') == 0 ? appln.amount.substr(1) : appln.amount;
+                                    $('#txtAmount' + rowVal).val(parseFloat(amount).toFixed(2));
                                 });
 
                             $('#divPaymentCAS').attr('data-charge_id', chargeId).show();
@@ -1572,7 +1575,7 @@ define(['jquery',
                             var rowVal = index + 1;
                             $('#selectGroupCode' + rowVal).val(appln.group_code_id);
                             $('#selectReason' + rowVal).val(appln.reason_code_id);
-                            $('#txtAmount' + rowVal).val(appln.amount);
+                            $('#txtAmount' + rowVal).val(parseFloat(appln.amount).toFixed(2));
                         });
                     }
                     $('#divPaymentCAS').attr('data-charge_id', chargeId).show();
@@ -2016,6 +2019,47 @@ define(['jquery',
                 $('#spnPatInfo').text(patient_name + ' (' + account_no + ') ');
                 this.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, patientId);
             },
+            
+            validateClaimId: function () {
+                if ($('#claimId').val() == '') {
+                    commonjs.showWarning('Please enter claim id to search');
+                }
+                else
+                    return true;    
+            },
+
+            validateInvoice: function () {
+                if ($('#invoiceNo').val() == '') {
+                    commonjs.showWarning('Please enter invoice # to search');
+                }
+                else return true;
+            },
+
+            searchInvoiceOrClaim: function (e) {
+                var self = this;
+                if (e.which == 13) {
+                    var self = this;
+                    var target = $(e.target || e.srcElement);
+                    self.patientId = 0;
+                    self.claimIdToSearch = $('#claimId').val();
+                    self.invoiceNoToSearch = $('#invoiceNo').val();
+
+                    if ($(e.target).is('#claimId')) {
+                        if (self.validateClaimId()) {
+                            $('#commonMsg').text('Pending payments for claim id : ')
+                            $('#spnPatInfo').text(self.claimIdToSearch);
+                            self.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, 0, self.claimIdToSearch, '');
+                        }
+                    }
+                    else if ($(e.target).is('#invoiceNo')) {
+                        if (self.validateInvoice()) {
+                            $('#commonMsg').text('Pending payments for inovice # : ')
+                            $('#spnPatInfo').text(self.invoiceNoToSearch);
+                            self.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, 0, '', self.invoiceNoToSearch);
+                        }
+                    }
+                }
+            },
 
             showPatientOrders: function (e) {
                 var self = this;
@@ -2025,20 +2069,14 @@ define(['jquery',
                 self.invoiceNoToSearch = $('#invoiceNo').val();
 
                 if ($(e.target).is('#anc_search_claim')) {
-                    if ($('#claimId').val() == '') {
-                        commonjs.showWarning('Please enter claim id to search');
-                    }
-                    else {
+                    if (self.validateClaimId()) {
                         $('#commonMsg').text('Pending payments for claim id : ')
                         $('#spnPatInfo').text(self.claimIdToSearch);
                         self.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, 0, self.claimIdToSearch, '');
                     }
                 }
                 else if ($(e.target).is('#anc_search')) {
-                    if ($('#invoiceNo').val() == '') {
-                        commonjs.showWarning('Please enter invoice # to search');
-                    }
-                    else {
+                    if (self.validateInvoice()) {
                         $('#commonMsg').text('Pending payments for inovice # : ')
                         $('#spnPatInfo').text(self.invoiceNoToSearch);
                         self.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, 0, '', self.invoiceNoToSearch);
@@ -2194,7 +2232,7 @@ define(['jquery',
                         commonjs.handleXhrError(err, response);
                     }
                 });
-            },
+            }
 
         });
     });
