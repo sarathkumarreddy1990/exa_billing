@@ -1039,6 +1039,10 @@ var commonjs = {
         ];
     },
 
+    hideNestedDialog: function () {
+        //TODO: Will Do
+    },
+
     hideDialog: function (callback) {
         var $siteModal = $('#siteModal');
         if (typeof callback === 'function') {

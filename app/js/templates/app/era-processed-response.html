@@ -39,7 +39,7 @@
             <div class="form-group form-inline">
                 <label id="paymentDate" for="auditFromDate" class="control-label">
                     Payment Date :&nbsp
-                    <b>  <%= moment(ins.payment_dt).format('L') %></b>
+                    <b>  <%= ins.payment_dt ? moment(ins.payment_dt).format('L') : '' %></b>
                 </label>
             </div>
         </div>

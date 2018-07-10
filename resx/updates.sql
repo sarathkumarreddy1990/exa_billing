@@ -2865,6 +2865,10 @@ BEGIN
 	purge_payment_applications AS (
 	    DELETE FROM billing.payment_applications
 	    WHERE payment_id = i_payment_id
+            RETURNING *),
+ 	edi_file_payments AS (
+	    DELETE FROM billing.edi_file_payments
+	    WHERE payment_id = i_payment_id
             RETURNING *), 
 	purge_payment AS (
 		DELETE FROM billing.payments bp
@@ -2905,27 +2909,28 @@ DECLARE
      l_charges RECORD;
      l_is_need_recalculation BOOLEAN;
 BEGIN 
-        l_is_need_recalculation := 0;
+        l_is_need_recalculation := FALSE;
 
 	----------Getting Existing Payer Type
 	SELECT 
 	     payer_type INTO STRICT l_old_payer_type
 	FROM 
-             billing.claim
+             billing.claims
 	WHERE
 	     id = p_claim_id;
 
 	---------Update new payer type into claim
-	UPDATE billing.claim 
+	UPDATE billing.claims
         SET
-            payer_type = p_payer_type 
+            payer_type = p_payer_type,
+            billing_method = (SELECT billing.get_claim_billing_method(p_claim_id, p_payer_type))
         WHERE id = p_claim_id;
 
 
 	--------
-	l_is_need_recalculation = billing.is_need_bill_fee_recaulculation(p_claim_id,p_payer_type,p_existing_payer_type);
+	l_is_need_recalculation = billing.is_need_bill_fee_recaulculation(p_claim_id,p_payer_type,l_old_payer_type);
 
-	IF l_is_need_recalculation = 1 THEN 
+	IF l_is_need_recalculation = TRUE THEN 
 
 		FOR l_charges IN SELECT 
 				id,
@@ -2944,13 +2949,13 @@ BEGIN
 			billing.charges
 		  SET
 			bill_fee = billing.get_computed_bill_fee(l_charges.claim_id, l_charges.cpt_id, l_charges.modifier1_id,l_charges.modifier2_id,l_charges.modifier3_id,l_charges.modifier4_id,'billing',NULL),
-			allowed_fee = billing.get_computed_bill_fee(l_charges.claim_id, l_charges.cpt_id, l_charges.modifier1_id,l_charges.modifier2_id,l_charges.modifier3_id,l_charges.modifier4_id,'allowed',NULL)
+			allowed_amount = billing.get_computed_bill_fee(l_charges.claim_id, l_charges.cpt_id, l_charges.modifier1_id,l_charges.modifier2_id,l_charges.modifier3_id,l_charges.modifier4_id,'allowed',NULL)
 	        WHERE 
 			id = l_charges.id;
 		END LOOP;
 	END IF;
 	
-	RETURN 1;
+	RETURN TRUE;
 
 END;
 $BODY$
@@ -3487,3 +3492,47 @@ RAISE NOTICE '--- END OF THE SCRIPT ---';
 END
 $$;
 -- ====================================================================================================================
+
+-- Function: billing.get_claim_billing_method(bigint, text)
+
+-- DROP FUNCTION billing.get_claim_billing_method(bigint, text);
+
+CREATE OR REPLACE FUNCTION billing.get_claim_billing_method(claimid bigint, payertype text)
+  RETURNS text AS
+$BODY$
+DECLARE
+ c_payer_type TEXT;
+BEGIN 
+
+
+    IF payertype IS NULL THEN
+       c_payer_type = (SELECT  payer_type FROM  billing.claims  WHERE claims.id = claimid);
+    ELSE 
+       c_payer_type = payertype;
+    END IF;
+
+
+    RETURN(SELECT  (CASE   WHEN  c_payer_type = 'patient' THEN 'patient_payment'  
+                           WHEN  c_payer_type ='primary_insurance' OR  c_payer_type ='secondary_insurance'  
+                           OR c_payer_type ='tertiary_insurance'
+                           THEN 
+                            (SELECT insurance_provider_details.billing_method FROM billing.claims 
+                            INNER JOIN    patient_insurances  ON  patient_insurances.id = 
+                            (  CASE c_payer_type 
+                            WHEN 'primary_insurance' THEN primary_patient_insurance_id
+                            WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
+                            WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
+                            END )
+                            
+                            INNER JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id  
+                            INNER JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
+                            WHERE claims.id = claimid )		
+                            ELSE 'direct_billing' END ));
+
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION billing.get_claim_billing_method(bigint, text)
+  OWNER TO postgres;
+-- --------------------------------------------------------------------------------------------------------------------

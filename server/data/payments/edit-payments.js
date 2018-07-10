@@ -407,8 +407,8 @@ module.exports = {
                         LEFT JOIN public.facilities ON facilities.id = bc.facility_id
 
                         LEFT  JOIN public.patient_insurances AS pip ON pip.id = bc.primary_patient_insurance_id
-                        LEFT  JOIN public.patient_insurances AS sip ON pip.id = bc.secondary_patient_insurance_id
-                        LEFT  JOIN public.patient_insurances AS tip ON pip.id = bc.tertiary_patient_insurance_id
+                        LEFT  JOIN public.patient_insurances AS sip ON sip.id = bc.secondary_patient_insurance_id
+                        LEFT  JOIN public.patient_insurances AS tip ON tip.id = bc.tertiary_patient_insurance_id
                   
                         LEFT JOIN public.insurance_providers pips ON pips.id = pip.insurance_provider_id
                         LEFT JOIN public.insurance_providers sips ON sips.id = sip.insurance_provider_id

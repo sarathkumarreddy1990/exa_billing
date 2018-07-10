@@ -271,12 +271,12 @@ const api = {
 
         if (tables.ref_provider) {
             r += ` LEFT JOIN provider_contacts  ON provider_contacts.id=claims.referring_provider_contact_id 
-                                        LEFT JOIN providers as ref_provider ON ref_provider.id=provider_contacts.id`;
+                                        LEFT JOIN providers as ref_provider ON ref_provider.id=provider_contacts.provider_id`;
         } // This should be inner
 
         if (tables.render_provider) {
             r += ` LEFT JOIN provider_contacts as rendering_pro_contact ON rendering_pro_contact.id=claims.rendering_provider_contact_id
-                                           LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.id`;
+                                           LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.provider_id`;
         }
 
         if(filterID=='Follow_up_queue'){
@@ -425,6 +425,38 @@ const api = {
         return await query(innerQuery, params);
     },
 
+    setBalanceFilterFlag: function (args, colModel) {
+        var column = JSON.parse(args.filterCol);
+        var data = JSON.parse(args.filterData);
+
+        if (column.indexOf('claim_balance') > -1) {
+
+            var colIndex = column.indexOf('claim_balance');
+            
+            for (var i = 0; i < colModel.length; i++) {
+                if (colModel[i].name == 'claim_balance') {
+                    switch (data[colIndex]) {
+                        case '=':
+                            colModel[i].searchFlag = '='; //Equals
+                            break;
+                        case '<':
+                            colModel[i].searchFlag = 'lt'; //Less than
+                            break;
+                        case '>':
+                            colModel[i].searchFlag = 'gt'; //Greated that
+                            break;
+                        case 'default':
+                            colModel[i].searchFlag = '='; //Equals by default
+                            break;
+                    }
+                    data[colIndex] = '0';
+                    args.filterData = JSON.stringify(data);
+                    break;
+                }
+            }
+        }
+    },
+
     getWL: async function (args) {
         const AND = (a, q) => a + ((a.length > 0) ? '\nAND ' : '') + q;
         let whereClause = {
@@ -522,6 +554,7 @@ const api = {
                 isFrom: 'Claims',
                 statOverride: statOverride
             };
+            api.setBalanceFilterFlag(args, colModel);
             const response = await filterValidator.generateQuery(colModel, args.filterCol, args.filterData, query_options);
             args.filterQuery = response;
 
