@@ -49,13 +49,9 @@ define(['jquery',
         saveFollowup: function (claimIDs) {
             var followUpDate = $('#txtFollowUpDate').val() ? moment($('#txtFollowUpDate').val()).format('L') : '';
             var followUPUserID = $('#txtFollowupUsers').val();
-            var currentDate = moment().format('L');
+            
             if(followUpDate == '') {
                 commonjs.showWarning('Please Select Follow-up Date');
-                return;
-            }
-            if (moment(followUpDate) < moment(currentDate)) {
-                commonjs.showWarning('Cannot Select Past date');
                 return;
             }
 
