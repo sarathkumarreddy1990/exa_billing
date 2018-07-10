@@ -819,7 +819,6 @@ module.exports = {
                             ,sum(c.bill_fee * c.units)       AS charges_bill_fee_total
                             ,(
                                 SELECT   
-                                    -- coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)    AS charge_applied_total
                                     ( coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)  +  
 			                          coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment'),0::money) 
 			                        ) as charge_applied_total
