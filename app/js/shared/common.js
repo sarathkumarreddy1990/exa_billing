@@ -1130,6 +1130,10 @@ var commonjs = {
             response = err;
         }
 
+        if (typeof response !== 'object') {
+            response = err;
+        }
+
         if (response && response.responseJSON && response.responseJSON.errorCode) {
             response.status = response.responseJSON.errorCode;
         }

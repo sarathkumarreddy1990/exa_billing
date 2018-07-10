@@ -44,6 +44,12 @@ module.exports = {
         }
 
         const fileName = shared.base64Decode(params.f);
+        const eraResponseJson = await this.getRawEobResponse(fileName);
+
+        return eraResponseJson;
+    },
+
+    getRawEobResponse: async function(fileName) {
         const eraRequestText = await readFile(fileName, 'utf8');
         const templateName = await ediConnect.getDefaultEraTemplate();
 
@@ -342,12 +348,12 @@ module.exports = {
 
         let claimLists = eraObject && eraObject.headerNumber ? eraObject.headerNumber : {};
 
-        let LineItemsAndClaimLists = await eraParser.getFormatedLineItemsAndClaims(claimLists, params);
+        let lineItemsAndClaimLists = await eraParser.getFormatedLineItemsAndClaims(claimLists, params);
 
         paymentDetails.code = 'ERA';
         paymentDetails.isFrom = 'EOB';
 
-        let processedClaims = await data.createPaymentApplication(LineItemsAndClaimLists, paymentDetails);
+        let processedClaims = await data.createPaymentApplication(lineItemsAndClaimLists, paymentDetails);
 
         await data.updateERAFileStatus(paymentDetails);
 
@@ -367,8 +373,20 @@ module.exports = {
     },
 
     getProcessedEraFileDetails: async function (params) {
+        let eraResponse = await data.getProcessedFileData(params);
 
-        return data.getProcessedFileData(params);
+        if(eraResponse.rows && eraResponse.rows[0].file_name) {
+            const filePath = path.join(eraResponse.rows[0].root_directory, eraResponse.rows[0].file_path, eraResponse.rows[0].file_name);
 
+            try {
+                const eraResponseJson = await this.getRawEobResponse(filePath);
+                eraResponse.rows[0].rawResponse = eraResponseJson; 
+            } catch(err) {
+                logger.error(err);
+                eraResponse.rows[0].rawResponse = {};                 
+            }
+        }
+
+        return eraResponse;
     }
 };
