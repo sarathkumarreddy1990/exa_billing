@@ -70,10 +70,12 @@ module.exports = {
                   COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient'),0::money) AS patient_paid
                 , COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient'),0::money) AS others_paid
                 , SUM(CASE WHEN amount_type = 'adjustment' THEN bpa.amount ELSE 0::money END) AS adjustment_amount
+                , SUM(CASE WHEN accounting_entry_type = 'refund_debit' THEN bpa.amount ELSE 0::money END) AS refund_amount
             FROM billing.claims bc
             INNER JOIN billing.charges ch ON ch.claim_id = bc.id
             LEFT JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id 
             LEFT JOIN billing.payments bp ON bp.id = bpa.payment_id
+            LEFT JOIN billing.adjustment_codes adj ON adj.id = bpa.adjustment_code_id
             WHERE 
                 bc.id = ${claim_id}
          ) AS pay     

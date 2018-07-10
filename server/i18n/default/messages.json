@@ -28,7 +28,15 @@
                 "missingResponsible": "Please select responsible",
                 "problemAlreadyExists": "Problem already exists",
                 "icdLimitExists": "Cannot add more than 12 ICD"
-            }
+            },
+          "setup": {
+            "selectitemstodelete": "Select Message To Delete",
+            "entertextandselect": "Enter Teaxt and Select",
+            "enter": "Enter",
+            "entertotime": "Enter ToTime",
+            "enterfromtime": "Enter FromTime",
+            "selectfromtodate": "Select From Date"
+          }
         },
         "loadingMsg": {
             "default": "Loading ...",

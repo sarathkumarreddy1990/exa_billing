@@ -2865,6 +2865,10 @@ BEGIN
 	purge_payment_applications AS (
 	    DELETE FROM billing.payment_applications
 	    WHERE payment_id = i_payment_id
+            RETURNING *),
+ 	edi_file_payments AS (
+	    DELETE FROM billing.edi_file_payments
+	    WHERE payment_id = i_payment_id
             RETURNING *), 
 	purge_payment AS (
 		DELETE FROM billing.payments bp

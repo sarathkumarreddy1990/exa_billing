@@ -24,6 +24,7 @@ module.exports = {
                  ,direct_invoice_template_id
                  ,patient_invoice_template_id
                  ,company_id
+                 ,default_date_range
                 )
             SELECT
                   ${args.userId}
@@ -37,6 +38,7 @@ module.exports = {
                 , ${args.direct_invoice}
                 , ${args.patient_invoice}
                 , ${args.companyId}
+                , 'this_year'
             WHERE NOT EXISTS (
                 SELECT * FROM billing.user_settings WHERE user_id = ${args.userId} AND grid_name = ${args.flag}
             )
