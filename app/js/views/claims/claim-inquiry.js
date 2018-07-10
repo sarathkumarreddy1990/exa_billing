@@ -160,6 +160,7 @@ define([
                                 $('#lblCIPatientPaid').text(payment_data[0].patient_paid && payment_data[0].patient_paid != 'undefined' ? payment_data[0].patient_paid : '$0.00');
                                 $('#lblCIOthersPaid').text(payment_data[0].others_paid && payment_data[0].others_paid != 'undefined' ? payment_data[0].others_paid : '$0.00');
                                 $('#lblCIAdj').text(payment_data[0].adjustment_amount && payment_data[0].adjustment_amount != 'undefined' ? payment_data[0].adjustment_amount : '$0.00');
+                                $('#lblCIRefund').text(payment_data[0].refund_amount && payment_data[0].refund_amount != 'undefined' ? payment_data[0].refund_amount : '$0.00')
                             }
 
                             if (patient_details && patient_details.length > 0) {
