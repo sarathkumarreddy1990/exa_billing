@@ -34,9 +34,17 @@ define([
                 ]});
                 this.model.fetch({
                     success: function (model, response) {
-                        if(!response[0] || (!response[0].edi_validation && !response[0].invoice_validation && !response[0].patient_validation )){
+                        if(!response[0] || (!response[0].edi_validation || !response[0].invoice_validation || !response[0].patient_validation )){
                             $.getJSON( "billing/static/resx/validation_fields.json", function( data ) {
-                                response = data;
+                                if(!response[0].edi_validation || !response[0].edi_validation.length){
+                                    response[0].edi_validation =  data[0].edi_validation;
+                                }
+                                if(!response[0].invoice_validation || !response[0].invoice_validation.length){
+                                    response[0].invoice_validation =  data[0].invoice_validation;
+                                }
+                                if(!response[0].patient_validation || !response[0].patient_validation.length){
+                                    response[0].patient_validation =  data[0].patient_validation;
+                                }
                                 self.bindValidationFields(response[0]);
                             });
                         }
