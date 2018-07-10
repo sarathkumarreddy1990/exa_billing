@@ -169,6 +169,7 @@ module.exports = {
         'patient_count': 'PAYM',
         'patient_search': 'PAYM',
         'payment-receipt-pdf':'PAYM',
+        'payment-print-pdf': 'PAYM',
         'applied_amount': 'APAY',
         'claim-charges': 'APAY',
         'fee_details': 'APAY',
