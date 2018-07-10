@@ -2225,7 +2225,7 @@ define(['jquery',
                     type: 'GET',
                     data: {
                         paymentId: self.payment_id,
-                        invoice_no: $('#txtInvoice').val(),
+                        invoice_no: $('#txtInvoice').val() || 0,
                         payer_type : payer,
                         payer_id : self.payer_id
                     },
@@ -2235,7 +2235,10 @@ define(['jquery',
                             var valid_claims = data[0].valid_claims || 0;
                             var msg;
 
-                            if (total_claims != 0 && valid_claims != 0) {
+                            if (total_claims == valid_claims) {
+                                msg = 'Overall (' + valid_claims + ') pending claims. Are you sure to process?';
+                            }
+                            else if (total_claims != 0 && valid_claims != 0) {
                                 msg = 'Valid claim count is (' + valid_claims + ') from overall (' + total_claims + ') pending claims. Are you sure to process?';
                             } else if (total_claims != 0 && valid_claims == 0) {
                                 msg = 'No valid claims to process payment';
@@ -2263,12 +2266,16 @@ define(['jquery',
             applyAllPending: function () {
                 var self = this;
 
+                var payer = $('#selectPayerType :selected').val();
+
                 $.ajax({
                     url: '/exa_modules/billing/payments/apply_invoice_payments',
                     type: 'POST',
                     data: {
                         paymentId: self.payment_id,
-                        invoice_no: $('#txtInvoice').val()
+                        invoice_no: $('#txtInvoice').val() || 0,
+                        payer_type: payer,
+                        payer_id: self.payer_id
                     },
                     success: function (data, response) {
                         if (data && data.length) {

@@ -259,6 +259,8 @@ module.exports = {
                     claimIds.push(parseInt(item.claim_id));
                 }
 
+                item.balance = parseFloat(item.balance) < 0 ? 0.00 : parseFloat(item.balance);
+
                 if ((totalPaymentAmount + parseFloat(item.balance)) <= paymentAmount) {
                     totalPaymentAmount += parseFloat(item.balance);
                 } else {
