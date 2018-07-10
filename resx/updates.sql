@@ -2953,7 +2953,8 @@ $BODY$
 CREATE OR REPLACE FUNCTION billing.change_responsible_party(
     i_claim_id bigint,
     i_claim_status_code bigint,
-    i_company_id bigint)
+    i_company_id bigint,
+    i_original_reference text)
   RETURNS boolean AS
 $BODY$
 DECLARE
@@ -2964,6 +2965,7 @@ BEGIN
 		(	
 		  SELECT  claim_balance_total, charges_bill_fee_total, payments_applied_total, adjustments_applied_total
 		  ,(SELECT payer_type FROM  billing.claims WHERE id = i_claim_id ) AS payer_type
+		  ,(SELECT original_reference FROM  billing.claims WHERE id = i_claim_id ) AS default_original_reference
 		  ,(SELECT claim_status_id FROM  billing.claims WHERE id = i_claim_id ) AS default_claim_status_id
 		  FROM billing.get_claim_totals(i_claim_id)
 		)
@@ -3011,7 +3013,8 @@ BEGIN
                                                     claim_details.default_claim_status_id
                                            END
                                      END	
-                                  )
+                                  ),
+                original_reference = COALESCE(i_original_reference, claim_details.default_original_reference )
 		
 	FROM claim_details WHERE billing.claims.id = i_claim_id;
 
@@ -3472,6 +3475,10 @@ ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS paper_claim_original_
 ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS direct_invoice_template_id BIGINT;
 ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS patient_invoice_template_id BIGINT;
 ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS grid_field_settings JSON;
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE INDEX charges_studies_idx1 ON billing.charges_studies(study_id);
+CREATE INDEX charges_studies_idx2 ON billing.charges_studies(charge_id);
+CREATE INDEX payment_applications_idx1 ON billing.payment_applications(charge_id);
 -- --------------------------------------------------------------------------------------------------------------------
 -- MAKE SURE THIS COMMENT STAYS AT THE BOTTOM - ADD YOUR CHANGES ABOVE !!!!
 -- RULES:
