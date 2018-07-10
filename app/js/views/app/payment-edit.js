@@ -1324,7 +1324,16 @@ define(['jquery',
                         });
                         $("#ddlResponsible option[data-payerType=" + payerTypes[0].payer_type + "]").attr('selected', 'selected');
 
-                        $("#ddlAdjustmentCode_fast").val(charges.length ? charges[0].adjustment_code_id : '');
+                        $.each(charges, function (index, charge_details) {
+                            if(charge_details.adjustment_code_id){
+                                $("#ddlAdjustmentCode_fast").val(charge_details.adjustment_code_id);
+                                return false;
+                            }
+                            else{
+                                $("#ddlAdjustmentCode_fast").val('');
+                            }
+                        });
+                        //$("#ddlAdjustmentCode_fast").val(charges.length ? charges[0].adjustment_code_id : '');
                         
                         // $("#ddlResponsible option[val=" + charges[0].adjustment_code_id + "]").attr('selected', 'selected');
                         $('#ddlResponsible').select2();
@@ -1504,9 +1513,10 @@ define(['jquery',
                 var casObj = [];
                 for (var k = 1; k <= 7; k++) {
                     var emptyCasObj = {};
-                    var groupCode = $('#selectGroupCode' + k).val()
-                    var reasonCode = $('#selectReason' + k).val()
-                    var amount = $('#txtAmount' + k).val()
+                    var groupCode = $('#selectGroupCode' + k).val();
+                    var reasonCode = $('#selectReason' + k).val();
+                    var amount = $('#txtAmount' + k).val();
+                    
                     if (paymentStatus === 'applied') {
                         var cas_id = $('#selectGroupCode' + k).attr('cas_id');
                     }
