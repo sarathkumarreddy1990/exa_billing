@@ -177,6 +177,71 @@ module.exports = {
     
     getAppliedAmount: function (paymentId) {
         return data.getAppliedAmount(paymentId);
+    },
+
+    getInvoiceDetails: function (paymentId) {
+        return data.getInvoiceDetails(paymentId);
+    },
+
+    createInvoicePaymentapplications: async function (params) {
+        
+        let auditDetails = {
+            company_id: params.companyId,
+            screen_name: params.screenName,
+            module_name: params.moduleName,
+            client_ip: params.clientIp,
+            user_id: parseInt(params.userId)
+        };
+        
+        let claimCharges =  await data.getClaimCharges(params);
+        let claimComments = [];
+        let lineItems = [];
+        let totalPaymenyAmount = 0;
+        claimCharges = claimCharges.rows.length ? claimCharges.rows : [];
+        let paymentAmount = claimCharges[0].payment_balance_total || 0;
+        claimCharges = _.groupBy(claimCharges, 'claim_id');
+
+        await _.each(claimCharges, function (charges) {
+            
+            let claimNumber = parseInt(charges[0].claim_id);
+
+            _.each(charges, function (item) {
+
+                if ((totalPaymenyAmount < paymentAmount) || claimNumber == item.claim_id) {
+
+                    if ((totalPaymenyAmount + parseInt(item.balance)) <= paymentAmount) {
+                        totalPaymenyAmount += parseInt(item.balance);
+                    } else {
+                        item.balance = paymentAmount - totalPaymenyAmount;
+                        totalPaymenyAmount += item.balance;
+                    }
+
+                    lineItems.push({
+                        payment: parseInt(item.balance),
+                        adjustment: 0.00,
+                        cpt_code: item.cpt_code,
+                        claim_number: item.claim_id,
+                        original_reference: null,
+                        claim_status_code: 0,
+                        cas_details: [],
+                        charge_id: item.charge_id,
+                        patient_fname: item.patient_fname || '',
+                        patient_lname: item.patient_lname || '',
+                        patient_mname: item.patient_mname || '',
+                        patient_prefix: item.patient_prefix || '',
+                        patient_suffix: item.patient_suffix || ''
+                    });
+
+                }
+            });
+
+        });
+
+        return {
+            lineItems: lineItems,
+            claimComments: claimComments,
+            audit_details: auditDetails
+        };
     }
 
 };

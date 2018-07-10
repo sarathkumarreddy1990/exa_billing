@@ -2128,7 +2128,30 @@ define(['jquery',
             },
 
             applyAllPending: function () {
+                var self = this;
+
+                if($('#txtInvoice').val() ==''){
+                    commonjs.showWarning('Please update Invoice number to apply');
+                    return false;
+                }
                 if (this.pendingPayments && this.pendingPayments.length) {
+                    
+                    $.ajax({
+                        url: '/exa_modules/billing/payments/apply_invoice_payments',
+                        type: 'POST',
+                        data: {
+                            paymentId: self.payment_id,
+                            invoice_no: $('#txtInvoice').val()
+                        },
+                        success: function (data, response) {
+                            if (data && data.length) {
+                                console.log(data)
+                            }
+                        },
+                        error: function (err, response) {
+                            commonjs.handleXhrError(err, response);
+                        }
+                    });
 
                 }
                 else {
