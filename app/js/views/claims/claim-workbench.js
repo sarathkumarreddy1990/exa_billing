@@ -468,9 +468,9 @@ define(['jquery',
 
                 jQuery.ajax({
                     url: "/exa_modules/billing/claim_workbench/create_claim",
-                    type: "GET",
+                    type: "POST",
                     data: {
-                        claimIds:claimIds
+                        claimIds:claimIds.toString()
                     },
                     success: function (data, textStatus, jqXHR) {
                         commonjs.hideLoading();
