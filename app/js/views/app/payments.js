@@ -342,7 +342,8 @@ define(['jquery',
             },
 
             exportExcel: function () {
-
+                $('#btnGenerateExcel').prop('disabled', true);
+                commonjs.showStatus('Exporting Excel ...');
                 $.ajax({
                     url: "/exa_modules/billing/payments/list",
                     type: 'GET',
@@ -377,21 +378,24 @@ define(['jquery',
 
                         for (var i = 0; i < paymentExcelData.length; i++) {
                             var row = "";
-                            var paymentResult = paymentExcelData[i];                         
-                              
-                                    row += '"' + paymentResult.id + '",' ,
-                                    row += '"' + paymentResult.alternate_payment_id + '",' ,
-                                    row += '"' + paymentResult.payment_dt + '",' ,
-                                    row += '"' + paymentResult.accounting_dt + '",' ,
-                                    row += '"' + paymentResult.payer_type + '",' ,
-                                    row += '"' + paymentResult.payer_name + '",' ,
-                                    row += '"' + paymentResult.amount + '",' ,
-                                    row += '"' + paymentResult.applied + '",' ,
-                                    row += '"' + paymentResult.available_balance + '",' ,
-                                    row += '"' + paymentResult.adjustment_amount + '",' ,
-                                    row += '"' + paymentResult.user_full_name + '",' ,
-                                    row += '"' + paymentResult.payment_mode + '",' ,
-                                    row += '"' + paymentResult.facility_name + '",'                           
+                            var paymentResult = paymentExcelData[i];
+                            var paymentDate = moment(paymentResult.payment_dt).format('L');
+                            var accountingDate = moment(paymentResult.accounting_dt).format('L');
+                            var refPaymentId = paymentResult.alternate_payment_id || " ";
+                            var facilityName = paymentResult.facility_name || " ";
+                               row += '"' + paymentResult.id + '",',
+                                row += '"' + refPaymentId + '",',
+                                row += '"' + paymentDate + '",',
+                                row += '"' + accountingDate + '",',
+                                row += '"' + paymentResult.payer_type + '",',
+                                row += '"' + paymentResult.payer_name + '",',
+                                row += '"' + paymentResult.amount + '",',
+                                row += '"' + paymentResult.applied + '",',
+                                row += '"' + paymentResult.available_balance + '",',
+                                row += '"' + paymentResult.adjustment_amount + '",',
+                                row += '"' + paymentResult.user_full_name + '",',
+                                row += '"' + paymentResult.payment_mode + '",',
+                                row += '"' + facilityName + '",'
 
                             CSV += row + '\r\n';
                         }
@@ -410,75 +414,12 @@ define(['jquery',
                         document.body.appendChild(link);
                         link.click();
                         document.body.removeChild(link);
-                        $('#btnValidateExport').prop('disabled', false);
+                        $('#btnGenerateExcel').prop('disabled', false);
                     },
                     error: function (err) {
                         commonjs.handleXhrError(err);
                     }
                 });
-
-
-                // var self = this;
-                // var responseJSON = self.paymentsList;
-                // var ReportTitle = 'Payment';
-                // var ShowLabel = 'Payment';
-                // var paymentExcelData = typeof responseJSON != 'object' ? JSON.parse(responseJSON) : responseJSON;
-                // var CSV = '';
-                // CSV += ReportTitle + '\r';
-                // if (ShowLabel) {
-                //     var row = "";
-
-                //     row += 'PAYMENT ID' + ',';
-                //     row += 'REF. PAYMENT ID' + ',';
-                //     row += 'PAYMENT DATE' + ',';
-                //     row += 'ACCOUNTING DATE' + ',';
-                //     row += 'PAYER TYPE' + ',';
-                //     row += 'PAYER NAME' + ',';
-                //     row += 'PAYMENT AMOUNT' + ',';
-                //     row += 'PAYMENT APPLIED' + ',';
-                //     row += 'BALANCE' + ',';
-                //     row += 'ADJUSTMENT' + ',';
-                //     row += 'POSTED BY' + ',';
-                //     row += 'PAYMENT MODE' + ',';
-                //     row += 'FACILITY' + ',';
-                // }
-                // row = row.slice(0, -1);
-                // CSV += row + '\r\n';
-
-                // for (var i = 0; i < paymentExcelData.models.length; i++) {
-                //     var row = "";
-                //     var paymentResult = paymentExcelData.models[i].attributes;
-                //     row += '"' + paymentResult.id + '",';
-                //     row += '"' + (paymentResult.display_id > 0) ? paymentResult.display_id : '0' + '",';
-                //     row += '"' + moment(paymentResult.payment_dt).format('L') + '",';
-                //     row += '"' + moment(paymentResult.accounting_dt).format('L') + '",';
-                //     row += '"' + paymentResult.payer_type + '",';
-                //     row += '"' + paymentResult.payer_name + '",';
-                //     row += '"' + paymentResult.amount + '",';
-                //     row += '"' + paymentResult.applied + '",';
-                //     row += '"' + paymentResult.available_balance + '",';
-                //     row += '"' + paymentResult.adjustment_amount + '",';
-                //     row += '"' + paymentResult.user_full_name + '",';
-                //     row += '"' + paymentResult.payment_mode + '",';
-                //     row += '"' + paymentResult.facility_name + '",';
-                //     row.slice(0, row.length - 1);
-                //     CSV += row + '\r\n';
-                // }
-
-                // if (CSV == '') {
-                //     alert("Invalid data");
-                //     return;
-                // }
-                // var fileName = "";
-                // fileName += ReportTitle.replace(/ /g, "_");
-                // var uri = 'data:text/csv;charset=utf-8,' + escape(CSV);
-                // var link = document.createElement("a");
-                // link.href = uri;
-                // link.style = "visibility:hidden";
-                // link.download = fileName + ".csv";
-                // document.body.appendChild(link);
-                // link.click();
-                // document.body.removeChild(link);
             },
 
             bindDateRangeOnSearchBox: function (gridObj) {
