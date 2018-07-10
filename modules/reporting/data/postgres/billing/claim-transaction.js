@@ -13,24 +13,22 @@ WITH details AS(
         bc.id AS "Claim#",
         pp.last_name AS "Last Name",
         pp.first_name AS "First Name",
-        pip.insurance_name AS "Insurance Name",
-        pip.insurance_code AS  "Insurance Code",
-        (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) AS paid_amount,
-        MAX(to_char(bp.payment_dt,'MM/DD/YYYY'))           AS "Payment Date",
-        MAX(to_char(bp.accounting_dt,'MM/DD/YYYY') )       AS "Accounting Date",
-        SUM(bch.bill_fee * bch.units) AS charge_amount,
-        CASE WHEN bc.payer_type = 'primary_insurance'  OR  bc.payer_type = 'secondary_insurance' OR bc.payer_type = 'tertiary_insurance' THEN (SELECT claim_balance_total FROM billing.get_claim_totals(bc.id)) END AS ins_balance,
         to_char(bc.claim_dt,'MM/DD/YYYY') AS "Claim Date",
+        MAX(to_char(bp.payment_dt,'MM/DD/YYYY'))           AS "Paid Date",       
+        SUM(bch.bill_fee * bch.units) AS "Charge Amount",
+        (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) AS  "Paid Amount",
+        CASE WHEN bc.payer_type = 'primary_insurance'  OR  bc.payer_type = 'secondary_insurance' OR bc.payer_type = 'tertiary_insurance' THEN (SELECT claim_balance_total FROM billing.get_claim_totals(bc.id)) END AS "Insurance Balance",
+       
         CASE WHEN (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) != 0::money AND bc.payer_type = 'primary_insurance' THEN  pip.insurance_name
          WHEN (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) != 0::money AND bc.payer_type = 'secondary_insurance' THEN  pip.insurance_name
          WHEN (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) != 0::money AND bc.payer_type = 'tertiary_insurance' THEN  pip.insurance_name
         ELSE pip.insurance_name 
-        END AS "Insurance Paid", 
+        END AS "Insurance (Paid)", 
        CASE WHEN  (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) != 0::money AND bc.payer_type = 'primary_insurance' THEN  pip.insurance_code
          WHEN (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) != 0::money AND bc.payer_type = 'secondary_insurance' THEN  pip.insurance_code
          WHEN (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) != 0::money AND bc.payer_type = 'tertiary_insurance' THEN  pip.insurance_code
         ELSE pip.insurance_code
-        END AS Ins_Cur,
+        END AS "Insurance (Cur)",
         pr.full_name AS "Ref. Doctor"        
         --, ac.description       AS "Insurance Payer Type"    
     FROM billing.claims bc
@@ -56,6 +54,7 @@ WITH details AS(
         <% if(CPTDate) { %> AND <%=CPTDate%> <%}%>
         <% if(sumbittedDt) { %> AND <%=sumbittedDt%> <%}%>
         <% if(insuranceIds) { %> AND <%=insuranceIds%> <%}%>
+        <% if(claimNoSearch) { %> AND <% print(claimNoSearch); } %>
         <% if(insGroups) { %> AND <%=insGroups%> <%}%>
     
         <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
@@ -80,7 +79,11 @@ WITH details AS(
         <% } else if(orderBy == "serviceDate")  { %>
                ORDER BY bc.claim_dt
             <%} else if(orderBy == "commentDate"){ %>
-                ORDER BY bc.submitted_dt                
+                ORDER BY bc.submitted_dt   
+                <%} else if(orderBy == "firstName"){ %>
+                    ORDER BY pp.first_name 
+                    <%} else if(orderBy == "lastName"){ %>
+                        ORDER BY pp.last_name  
                 <%} else { %>
                     ORDER BY pip.insurance_name
                     <% } %>
@@ -88,12 +91,11 @@ WITH details AS(
         SELECT * FROM details
         UNION ALL
         SELECT
-             null,'---','---','---','---'
-             ,(SELECT SUM(a.paid_amount) from details AS a)
-         ,null,null
-             ,(SELECT SUM(a.charge_amount) FROM details AS a)
-             ,(SELECT SUM(a.ins_balance)::money from details AS a)
-            ,null,'---','---','---'
+             null,'---','---', null             
+         ,null             
+             ,(SELECT SUM("Insurance Balance")::money from details)
+             ,(SELECT SUM("Charge Amount") FROM details) 
+            ,(SELECT SUM("Paid Amount") from details ) ,'---','---','---'
         WHERE (SELECT COUNT(*) FROM details) > 0
 `);
 
@@ -220,7 +222,7 @@ const api = {
         }
 
         //Referring Physician Info
-        
+
         if (params.referringProIds) {
             const referringPhysicianInfo = _(lookups.referringPhyInfo).map(f => f.name).value();
             filtersUsed.push({ name: 'referringPhysicianInfo', label: 'Referring Provider', value: referringPhysicianInfo });
@@ -268,7 +270,8 @@ const api = {
             cptPaymentDate: null,
             cptCodeLists: null,
             CPTDate_count: null,
-            orderBy: null
+            orderBy: null,
+            claimNoSearch: null
         };
 
         // company id
@@ -347,13 +350,18 @@ const api = {
         }
         filters.orderBy = reportParams.orderBy || 0;
 
-          // claim Selection
-          if (reportParams.insurancePayerTypeOption && reportParams.insurancePayerTypeOption.length > 0) {
+        // claim Selection
+        if (reportParams.insurancePayerTypeOption && reportParams.insurancePayerTypeOption.length > 0) {
             filters.insPaid = _.includes(reportParams.insurancePayerTypeOption, 'InsPaid');
             filters.patPaid = _.includes(reportParams.insurancePayerTypeOption, 'PatPaid');
             filters.unPaid = _.includes(reportParams.insurancePayerTypeOption, 'UnPaid');
-          }
+        }
 
+        if (reportParams.claimFrom && reportParams.claimTo) {
+            params.push(reportParams.claimFrom);
+            params.push(reportParams.claimTo);
+            filters.claimNoSearch = queryBuilder.whereBetween('bc.id', [params.length - 1, params.length]);
+        }
         return {
             queryParams: params,
             templateData: filters
