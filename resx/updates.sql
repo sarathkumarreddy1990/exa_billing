@@ -2281,7 +2281,8 @@ $BODY$
 							WHEN l_payer_type = 'tertiary_insurance' THEN l_tertiary_insurance_id
 						   END
                     AND i.has_deleted IS FALSE
-		    AND i.is_active IS TRUE;
+		            AND i.is_active IS TRUE
+                     LIMIT 1;
             ELSIF l_payer_type = 'ordering_facility' THEN
                 SELECT
                    pg.fee_schedule_id INTO l_resp_fs_id
@@ -2290,7 +2291,8 @@ $BODY$
                 WHERE
                     pg.id = l_ordering_facility_id
                     AND pg.has_deleted IS FALSE
-                    AND pg.is_active IS TRUE;
+                    AND pg.is_active IS TRUE
+                    LIMIT 1;
             ELSIF l_payer_type = 'facility' THEN
                 SELECT
                    fee_schedule_id INTO l_resp_fs_id
@@ -2299,7 +2301,8 @@ $BODY$
                 WHERE
                     f.id = l_facility_id
                     AND f.has_deleted IS FALSE
-                    AND f.is_active IS TRUE;
+                    AND f.is_active IS TRUE
+                    LIMIT 1;
             ELSIF l_payer_type = 'referring_provider' THEN
                 SELECT
                    p.fee_schedule_id INTO l_resp_fs_id
@@ -2312,7 +2315,8 @@ $BODY$
                     1 = 1
                     AND pc.id = l_referring_provider_contact_id
                     AND p.has_deleted IS FALSE
-                    AND p.is_active IS TRUE;
+                    AND p.is_active IS TRUE
+                    LIMIT 1;
 	    ELSIF l_payer_type = 'patient' THEN
 		SELECT
                     fs.id INTO l_resp_fs_id
@@ -2339,7 +2343,8 @@ $BODY$
                 WHERE
                     f.id = l_facility_id
                     AND f.has_deleted IS FALSE
-                    AND f.is_active IS TRUE;
+                    AND f.is_active IS TRUE
+                    LIMIT 1;
                 l_facility_fs_id := COALESCE (l_facility_fs_id,
                     0);
                 --- If fee schedule is not attached to facility, take the default fee schedule from fee schedules setup
@@ -2353,7 +2358,7 @@ $BODY$
                         1 = 1
                         AND fs.category = 'default'
                         AND fs.inactivated_dt IS NULL
-                    LIMIT 1;
+                        LIMIT 1;
                     l_fee_fs_id := COALESCE (l_fee_fs_id,
                         0);
                     l_derived_fs_id := l_fee_fs_id;
@@ -2378,7 +2383,7 @@ $BODY$
             SELECT
                 professional_fee,
                 technical_fee,
-                global_fee INTO STRICT l_professional_fee,
+                global_fee INTO l_professional_fee,
                 l_technical_fee,
                 l_global_Fee
             FROM
@@ -2386,14 +2391,15 @@ $BODY$
             WHERE
                 1 = 1
                 AND fsc.fee_schedule_id = l_derived_fs_id
-                AND fsc.cpt_code_id = p_cpt_id;
+                AND fsc.cpt_code_id = p_cpt_id
+                LIMIT 1;
             -- Get the modifier details for the given input
 	    SELECT 
 	         m.level,
 		 m.override_amount,
 	         m.type,
 	         m.sign,
-		 m.modifier_amount INTO STRICT l_fee_level,
+		 m.modifier_amount INTO l_fee_level,
 		 l_fee_override,
 		 l_dynamic_fee_modifier_type,
 		 l_dynamic_fee_modifier,
@@ -2401,8 +2407,8 @@ $BODY$
 	    FROM
 	         public.modifiers m 
 	    WHERE 
-                 m.id = l_active_modifier;
-            
+                 m.id = l_active_modifier
+                LIMIT 1;
             -- Calculate the base fee.
             IF l_fee_level = 'global' THEN
                 l_base_fee := l_global_fee;

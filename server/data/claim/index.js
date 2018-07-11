@@ -62,7 +62,7 @@ module.exports = {
                                         order_info->'similarIll' AS same_illness_first_date,
                                         order_info->'wTo' AS unable_to_work_to_date,
                                         order_info->'wFrom' AS unable_to_work_from_date,
-                                        order_info->'hTo' AS hospitalization_to_dt,
+                                        order_info->'hTo' AS hospitalization_to_date,
                                         order_info->'hFrom' AS hospitalization_from_date,
                                         order_info->'claim_notes' AS claim_notes,
                                         COALESCE(NULLIF(order_info->'outsideLab',''), 'false')::boolean AS service_by_outside_lab,
