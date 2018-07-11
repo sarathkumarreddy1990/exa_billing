@@ -1508,13 +1508,17 @@ define(['jquery',
             },
 
             checkPreviousRowIsEmpty: function (previousRow, currentRow) {
-                var groupCode = $('#selectGroupCode' + previousRow).val()
-                var reasonCode = $('#selectReason' + previousRow).val()
-                var amount = $('#txtAmount' + previousRow).val()
-                if (groupCode === '' && reasonCode === '' && amount === '') {
-                    commonjs.showWarning('Please fill the values in row ' + previousRow + ' before filling row ' + currentRow);
+                for (var casRow = 1; casRow < currentRow; casRow++) {
+                    var _row = casRow;
+                    var groupCode = $('#selectGroupCode' + _row).val()
+                    var reasonCode = $('#selectReason' + _row).val()
+                    var amount = $('#txtAmount' + _row).val()
+                    if (groupCode === '' && reasonCode === '' && amount === '') {
+                        commonjs.showWarning('Please fill the values in row ' + _row + ' before filling row ' + currentRow);
+                        return false;
+                    }
                 }
-                else return true;
+                return true;
             },
 
             vaidateCasCodeAndReason: function (payment_application_id, paymentStatus, charge_id) {
