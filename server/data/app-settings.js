@@ -18,7 +18,9 @@ module.exports = {
                                     FROM   facilities
                                     WHERE  company_id=${companyID}
                                     AND    NOT has_deleted
-                                    AND    is_active)AS facilities )
+                                    AND    is_active 
+                                    ORDER BY 
+                                        facility_name )AS facilities )
                     , cte_company AS(
                             SELECT (Row_to_json(company)) company
                             FROM   (
@@ -90,7 +92,7 @@ module.exports = {
                                         description,
                                         is_system_status
                                     FROM   billing.claim_status
-                                    WHERE  NOT is_system_status AND company_id=${companyID} AND inactivated_dt IS NULL
+                                    WHERE  company_id=${companyID} AND inactivated_dt IS NULL
                                     ORDER  BY display_order ) AS claim_status)
                 , cte_billing_codes AS(
                                     SELECT Json_agg(Row_to_json(billing_codes)) billing_codes

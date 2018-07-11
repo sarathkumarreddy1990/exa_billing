@@ -6,7 +6,7 @@ module.exports = {
 
         let sql = SQL`SELECT 
 							bc.id
-						, billing_method
+						, bc.billing_method
 						, claim_notes
 						, (SELECT array_agg(field) FROM jsonb_to_recordset((
 							SELECT 
@@ -51,8 +51,8 @@ module.exports = {
 									, 'payer_city', p_ip.insurance_info->'City'
 									, 'payer_state', p_ip.insurance_info->'State'
 									, 'payer_zip_code', p_ip.insurance_info->'ZipCode'
-									, 'claimClearingHouse', p_ip.insurance_info->'claimCHCode' 
-									, 'edi_request_templates_id', p_ip.insurance_info->'claimRequestTemplate'
+									, 'claimClearingHouse', p_edi_clearinghouse.receiver_name
+									, 'edi_request_templates_id',  p_edi_clearinghouse.edi_template_name
 									, 'claim_req_type', p_ip.insurance_info->'claim_req_type_prov')
 								WHEN bc.payer_type = 'secondary_insurance' THEN
 									json_build_object('payer_name',  s_ip.insurance_name 
@@ -60,8 +60,8 @@ module.exports = {
 									, 'payer_city', s_ip.insurance_info->'City'
 									, 'payer_state', s_ip.insurance_info->'State' 
 									, 'payer_zip_code', s_ip.insurance_info->'ZipCode'
-									, 'claimClearingHouse', s_ip.insurance_info->'claimCHCode' 
-									, 'edi_request_templates_id', s_ip.insurance_info->'claimRequestTemplate'
+									, 'claimClearingHouse',  s_edi_clearinghouse.receiver_name
+									, 'edi_request_templates_id',  s_edi_clearinghouse.edi_template_name
 									, 'claim_req_type', s_ip.insurance_info->'claim_req_type_prov')
 								WHEN bc.payer_type = 'tertiary_insurance' THEN
 									json_build_object( 'payer_name', t_ip.insurance_name 
@@ -70,8 +70,8 @@ module.exports = {
 									, 'payer_state', t_ip.insurance_info->'State' 
 									, 'payer_zip_code', t_ip.insurance_info->'ZipCode'
 									, 'claim_req_type', t_ip.insurance_info->'claim_req_type_prov'
-									, 'claimClearingHouse', t_ip.insurance_info->'claimCHCode' 
-									, 'edi_request_templates_id', t_ip.insurance_info->'claimRequestTemplate')
+									, 'claimClearingHouse', t_edi_clearinghouse.receiver_name
+									, 'edi_request_templates_id', t_edi_clearinghouse.edi_template_name)
 								WHEN bc.payer_type = 'ordering_facility' THEN	
 								json_build_object(
 									'payer_name',  pg.group_name 
@@ -144,11 +144,17 @@ module.exports = {
 					LEFT JOIN public.places_of_service pos ON pos.id = bc.place_of_service_id
 					LEFT JOIN public.provider_groups pg ON pg.id = bc.ordering_facility_id
 					LEFT JOIN public.patient_insurances p_pi on p_pi.id = bc.primary_patient_insurance_id
-					LEFT JOIN public.patient_insurances s_pi on s_pi.id = bc.primary_patient_insurance_id
-					LEFT JOIN public.patient_insurances t_pi on t_pi.id = bc.primary_patient_insurance_id
+					LEFT JOIN public.patient_insurances s_pi on s_pi.id = bc.secondary_patient_insurance_id
+					LEFT JOIN public.patient_insurances t_pi on t_pi.id = bc.tertiary_patient_insurance_id
 					LEFT JOIN public.insurance_providers p_ip on p_ip.id = p_pi.insurance_provider_id
 					LEFT JOIN public.insurance_providers s_ip on s_ip.id = s_pi.insurance_provider_id
 					LEFT JOIN public.insurance_providers t_ip on t_ip.id = t_pi.insurance_provider_id
+					LEFT JOIN billing.insurance_provider_details p_ins_det ON p_ins_det.insurance_provider_id = p_ip.id
+					LEFT JOIN billing.insurance_provider_details s_ins_det ON s_ins_det.insurance_provider_id = s_ip.id
+					LEFT JOIN billing.insurance_provider_details t_ins_det ON t_ins_det.insurance_provider_id = t_ip.id
+					LEFT JOIN billing.edi_clearinghouses p_edi_clearinghouse ON p_edi_clearinghouse.id=p_ins_det.clearing_house_id
+					LEFT JOIN billing.edi_clearinghouses s_edi_clearinghouse ON s_edi_clearinghouse.id=s_ins_det.clearing_house_id
+					LEFT JOIN billing.edi_clearinghouses t_edi_clearinghouse ON t_edi_clearinghouse.id=t_ins_det.clearing_house_id
 					LEFT JOIN 
 						LATERAL (SELECT icd_id FROM billing.claim_icds ci WHERE ci.claim_id = bc.id LIMIT 1) claim_icd ON true
 					WHERE bc.id = ANY(${params.claim_ids})`;
@@ -158,7 +164,9 @@ module.exports = {
 
     getClaimData: async (params) => {
 
-        let claimIds=params.claimIds.split(',');
+        let claimIds = params.claimIds.split(',');
+        params.payerId = params.payerId || null;
+        params.payerType = params.payerType || null;
 
         let sql = SQL`
         
@@ -617,7 +625,7 @@ module.exports = {
 					INNER JOIN facilities ON facilities.id=claims.facility_id
 					INNER JOIN patients ON patients.id=claims.patient_id
 					INNER JOIN    patient_insurances  ON  patient_insurances.id = 
-											(  CASE payer_type 
+											(  CASE COALESCE(${params.payerType}, payer_type) 
 											WHEN 'primary_insurance' THEN primary_patient_insurance_id
 											WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
 											WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
@@ -628,8 +636,8 @@ module.exports = {
 									LEFT JOIN public.insurance_provider_payer_types  ON insurance_provider_payer_types.id = insurance_providers.provider_payer_type_id
 
 							WHERE claims.id= ANY(${claimIds})
-							`;
-
+                            `;
+                            
         return await query(sql);
     },
 

@@ -37,7 +37,7 @@ define([
             },
 
             initializeRouter: function () {
-                this.options.screen = "Billing Provider";//facilityModules.setupScreens.icd;
+                this.options.screen = "Billing Providers";
                 this.options.currentView = this.billingProvidersScreen;
                 layout.initializeLayout(this);
 
