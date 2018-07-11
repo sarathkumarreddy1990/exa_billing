@@ -2410,6 +2410,8 @@ define(['jquery',
                                 commonjs.showWarning(response.message);
                             } else {
                                 commonjs.showStatus("messages.status.successfullyCompleted");
+                                $("#btnClaimsRefresh").click();
+                                $("#btnStudiesRefresh").click();
                                 commonjs.hideDialog();
                             }
                             

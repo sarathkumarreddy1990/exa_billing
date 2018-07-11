@@ -825,6 +825,21 @@ function customGrid ( datastore, gridID ) {
             }
         });
 
+        let filterDataValue=filterData;
+
+        if (self.options.isClaimGrid) {
+            if (this.options.filterid == 'Follow_up_queue') {
+                $("#btnPaperClaim").hide();
+                $("#btnInsuranceClaim").hide();
+            } else if (filterCol.indexOf('billing_method') > -1 && filterDataValue.indexOf('paper\\_claim')>-1) {                
+                $("#btnPaperClaim").show();
+                $("#btnInsuranceClaim").hide();
+            } else {
+                $("#btnPaperClaim").hide();
+                $("#btnInsuranceClaim").show();
+            }
+
+        }
         self.pager.set({
             "DefaultFilterQuery": "",
             "FilterQuery": "",
@@ -1229,21 +1244,7 @@ function customGrid ( datastore, gridID ) {
         if (typeof fieldValue == 'undefined' || fieldValue == "" || fieldValue == "Select") {
             return '';
         }
-        
-        if (self.options.isClaimGrid) {
-            if (this.options.filterid == 'Follow_up_queue') {
-                $("#btnPaperClaim").hide();
-                $("#btnInsuranceClaim").hide();
-            } else if (uiFieldID == "billing_method" && fieldValue == "paper_claim") {
-                $("#btnPaperClaim").show();
-                $("#btnInsuranceClaim").hide();
-            } else {
-                $("#btnPaperClaim").hide();
-                $("#btnInsuranceClaim").show();
-            }
 
-        }
-       
         return fieldValue.replace(/'/g, "''").replace(/_/g, '\\_');
     };
 
