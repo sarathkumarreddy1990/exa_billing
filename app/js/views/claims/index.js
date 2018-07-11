@@ -307,7 +307,7 @@ define(['jquery',
                             return;
                         }
                         else if (!data.errors && response.insPokitdok == true) {
-                            $('#divPokidokResponse').append($(self.InsurancePokitdokTemplateForm({'InsuranceData': response.data, 'InsuranceDatavalue': response.meta})));
+                            $('#divPokidokResponse').html($(self.InsurancePokitdokTemplateForm({'InsuranceData': response.data, 'InsuranceDatavalue': response.meta})));
                             commonjs.showDialog({ header: 'Pokitdok Response', width: '80%', height: '70%', html: $('#divPokidokResponse').html() });
                         }
 
@@ -2411,6 +2411,8 @@ define(['jquery',
                                 commonjs.showWarning(response.message);
                             } else {
                                 commonjs.showStatus("messages.status.successfullyCompleted");
+                                $("#btnClaimsRefresh").click();
+                                $("#btnStudiesRefresh").click();
                                 commonjs.hideDialog();
                             }
                             
