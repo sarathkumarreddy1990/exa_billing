@@ -155,9 +155,9 @@
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="txtBillProCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.citystatezip"></label>
+                        <label for="txtCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.citystatezip"></label>
                         <div class="col-sm-3">
-                            <input type="text" class="form-control" id="txtCity" name="city">
+                            <input type="text" class="form-control" id="txtCity" name="city" placeholder="City" >
                         </div>
                         <div class="col-sm-2" style="padding-left:0px;">
                             <select id="ddlState" class="form-control" style="height:32px;" name="state">
@@ -178,16 +178,16 @@
                             </select>
                         </div>
                         <div class="col-sm-2" style="padding-left:0px;">
-                            <input type="text" class="form-control" id="txtZip" name="zip">
+                            <input type="text" class="form-control integerbox" id="txtZip" name="zip" placeholder="Zip" maxlength="5">
                         </div>
                         <div class="col-sm-2" style="padding-left:0px;">
-                            <input type="text" class="form-control" id="txtZipPlus" name="zipPlus">
+                            <input type="text" class="form-control integerbox" id="txtZipPlus" name="zipPlus" placeholder="ZipPlus" maxlength="4">
                         </div>
                     </div>
                     <div class="form-group row">
                         <label for="txtBillProPhoneNo" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.phoneno"></label>
                         <div class="col-sm-3">
-                            <input type="text" class="form-control form-control-med" id="txtBillProPhoneNo" name="phoneNo">
+                            <input type="text" class="form-control form-control-med maskPhone" id="txtBillProPhoneNo" name="phoneNo">
                         </div>
                     </div>
                     <div class="form-group row">
@@ -230,9 +230,9 @@
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="txtPayBillProCity" class="col-sm-3 col-form-label" i18n="setup.billingprovider.citystatezip"></label>
+                        <label for="txtPayCity" class="col-sm-3 col-form-label" i18n="setup.billingprovider.citystatezip"></label>
                         <div class="col-sm-3">
-                            <input type="text" class="form-control" id="txtPayCity" name="payCity">
+                            <input type="text" class="form-control" id="txtPayCity" name="payCity" placeholder="City">
                         </div>
                         <div class="col-sm-2" style="padding-left:0px;">
                             <select id="ddlPayState" class="form-control" style="height:32px;" name="payState">
@@ -253,16 +253,16 @@
                             </select>
                         </div>
                         <div class="col-sm-2" style="padding-left:0px;">
-                            <input type="text" class="form-control" id="txtPayZip" name="payZip">
+                            <input type="text" class="form-control integerbox" id="txtPayZip" name="payZip" placeholder="Zip" maxlength="5">
                         </div>
                         <div class="col-sm-2" style="padding-left:0px;">
-                            <input type="text" class="form-control" id="txtPayZipPlus" name="payZipPlus">
+                            <input type="text" class="form-control integerbox" id="txtPayZipPlus" name="payZipPlus" placeholder="ZipPlus" maxlength="4">
                         </div>
                     </div>
                     <div class="form-group row">
                         <label for="txtPayBillProPhoneNo" class="col-sm-3 col-form-label" i18n="setup.billingprovider.phoneno"></label>
                         <div class="col-sm-3">
-                            <input type="text" class="form-control" id="txtPayBillProPhoneNo" name="payPhoneNo">
+                            <input type="text" class="form-control maskPhone" id="txtPayBillProPhoneNo" name="payPhoneNo">
                         </div>
                     </div>
                     <div class="form-group row">

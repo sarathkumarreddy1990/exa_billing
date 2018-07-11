@@ -4,6 +4,7 @@ define([
     'backbone',
     'jqgrid',
     'jqgridlocale',
+    'shared/paper-claim',
     'models/pager',
     'text!templates/claims/claim-inquiry.html',
     'collections/claim-inquiry',
@@ -22,6 +23,7 @@ define([
     Backbone,
     JGrid,
     JGridLocale,
+    PaperClaim,
     Pager,
     claimInquiryTemplate,
     claimCommentsList,
@@ -35,6 +37,8 @@ define([
     claimPatientLogList,
     Permission
 ) {
+        var paperClaim = new PaperClaim(true);
+
         return Backbone.View.extend({
             el: null,
             pager: null,
@@ -957,7 +961,14 @@ define([
                 if ($('#radActivityAllStatus').is(':visible'))
                     $('#activityDetails').hide();
                 $('input[type=date]').val('');
+            },
+
+            showPaperClaim: function (format, claimId, insuranceProviderId, payerType) {
+                paperClaim.print(format, claimId, {
+                    payerType: payerType,
+                    payerId: insuranceProviderId
+                });
             }
-        });
+    });
 
     });

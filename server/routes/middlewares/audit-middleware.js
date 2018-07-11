@@ -21,6 +21,10 @@ app.use(function (req, res, next) {
 
         let clientIp = (req.headers['x-forwarded-for'] || req.connection.remoteAddress.split(':').pop() || '127.0.0.1').split(',')[0];
 
+        if (clientIp && clientIp.split('.').length < 4) {
+            clientIp = '127.0.0.1';
+        }
+
         if (!screenName) {
             return next();
         }
