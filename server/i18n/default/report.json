@@ -1,6 +1,6 @@
 {
     "report": {
-        "arCutoffDate": "AR Cut Off Date",
+        "arCutoffDate": "A/R Cut-off Date",
         "facilities": "Facility",
         "billingProviders": "Billing Provider",
         "reportByPrimaryPayaer": "Report By Primary Payer",

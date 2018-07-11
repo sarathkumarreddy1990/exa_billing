@@ -12,6 +12,7 @@
         "buttons": {
             "useExisting": "Use existing",
             "createNewClaim": "New Claim",
+            "batchClaim": "Batch Claim",
             "convertDirectly": "Convert directly",
             "fax": "Fax",
             "faxSelected": "Fax selected",
@@ -157,7 +158,8 @@
             "billingProvider":"Billing Provider",
             "id": "ID",
             "studyDate": "Study Date",
-            "series": "Series"
+            "series": "Series",
+            "billedStatus": "Billed Status"
         }
     }
 }

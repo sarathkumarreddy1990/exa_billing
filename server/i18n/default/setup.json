@@ -128,13 +128,13 @@
             "providerOffice" : "Provider Office"
         },
         "userSettings": {
-            "accountNo": "Account#",
-            "accession": "Accession#",
+            "accountNo": "Account #",
+            "accession": "Accession #",
             "id": "Id",
             "studyDescription": "Study Description",
             "station": "Station",
             "studyReceivedDate": "Study Received Date",
-            "bodyPart": "BodyPart",
+            "bodyPart": "Body Part",
             "department": "Department",
             "reasonForStudy": "Reason for Study",
             "modality": "Modality",
@@ -187,8 +187,8 @@
             "eligibility": "Eligibility",
             "providerAlerts": "Provider Alerts",
             "attorney": "Attorney",
-            "imageDelivery": "Image delivery",
-            "patientRoom": "Pateint Room#",
+            "imageDelivery": "Image Delivery",
+            "patientRoom": "Pateint Room #",
             "insProviderType": "Ins Provider Type",
             "patientVisitNumber": "Patient Visit #",
             "claimDate": "Claim Date",
@@ -341,16 +341,16 @@
             "contains": "Contains",
             "add": "Add",
             "remove": "Remove",
-            "accountNo": "Account#",
+            "accountNo": "Account #",
             "institution": "Institution",
             "modality": "Modality",
             "modalityRoom": "Modality Room",
             "status": "Status",
-            "bodyPart": "BodyPart",
+            "bodyPart": "Body Part",
             "stat": "Stat",
             "flag": "Flag",
             "dicomStudyID": "Dicom StudyID",
-            "accession": "Accession#",
+            "accession": "Accession #",
             "readPhy": "ReadPhy",
             "refPhy": "Ref.Phy",
             "lastTime": "Last Time",
@@ -473,6 +473,9 @@
             "definition":"Template Definition",
             "pageHeight": "Page Height",
             "pageWidth": "Page Width"
+        }, 
+        "providers": {
+            "imageDelivery": "Image Delivery"
         }
     }
 }

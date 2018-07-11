@@ -198,7 +198,7 @@
         "refund": {
             "scheduleDate": "Schedule Date",
             "patientName": "Patient Name",
-            "accountNo": "Account No",
+            "accountNo": "Account #",
             "billFee": "Bill Fee",
             "allowedFee": "Allowed Fee",
             "patientPaid": "Patient Paid",
@@ -218,7 +218,7 @@
             "refundResponsible": "Responsible :",
             "scheduleDate": "Schedule Date :",
             "patientName": "Patient Name :",
-            "accountNo": "Account No :",
+            "accountNo": "Account # :",
             "billingAmount": "Billing Amount :",
             "allowed": "Allowed :",
             "patientPaid": "Patient Paid :",
@@ -306,6 +306,9 @@
             "reasonAmount":"Please enter amount for selected reason",
             "selectClaimStatus":"Please select claim status",
             "selectResponsible":"Please select responsible"
+        },
+        "charges": {
+            "charges": "Charges"
         },
         "claims" : {
             "claims" : "Claims",
