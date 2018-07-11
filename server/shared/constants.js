@@ -116,6 +116,7 @@ module.exports = {
         'audit_log': 'BALG',
         'claim_workbench': 'CLIM',
         'claims_total_records': 'CLIM',
+        'create_claim': 'CLIM',
         'claim_filters': 'CLIM',
         'providers': 'CLIM', // AS OF NOW ---->  providers Auto Complete if claim have right then all drop will get rights
         'icd_codes':'CLIM', //Auto Cpmplete
