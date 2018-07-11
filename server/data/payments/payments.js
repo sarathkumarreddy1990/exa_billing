@@ -667,6 +667,10 @@ module.exports = {
                                 WHERE cas.cas_id is null
                                 RETURNING *, '{}'::jsonb old_values
                             ),
+                        purge_cas_details as (
+                            DELETE FROM billing.cas_payment_application_details
+                            WHERE payment_application_id = ANY (${(params.clearCasDetais).map(Number)})
+                            ),
                             update_applications_audit_cte as(
                                 SELECT billing.create_audit(
                                     ${params.companyId}

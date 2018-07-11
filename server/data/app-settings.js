@@ -92,7 +92,7 @@ module.exports = {
                                         description,
                                         is_system_status
                                     FROM   billing.claim_status
-                                    WHERE  NOT is_system_status AND company_id=${companyID} AND inactivated_dt IS NULL
+                                    WHERE  company_id=${companyID} AND inactivated_dt IS NULL
                                     ORDER  BY display_order ) AS claim_status)
                 , cte_billing_codes AS(
                                     SELECT Json_agg(Row_to_json(billing_codes)) billing_codes

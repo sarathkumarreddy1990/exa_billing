@@ -18,7 +18,7 @@ module.exports = {
         'billing_codes': 'Billing Codes',
         'cas_group_codes': 'CAS Group Codes',
         'cas_reason_codes': 'CAS Reason Codes',
-        'billing_providers': 'Billing Providers',
+        'billing_providers': 'Billing Provider',
         'billing_classes': 'Billing Classes',
         'provider_id_code_qualifiers': 'Provider ID Code Qualifiers',
         'provider_id_codes': 'Provider ID Codes',
@@ -116,6 +116,7 @@ module.exports = {
         'audit_log': 'BALG',
         'claim_workbench': 'CLIM',
         'claims_total_records': 'CLIM',
+        'create_claim': 'CLIM',
         'claim_filters': 'CLIM',
         'providers': 'CLIM', // AS OF NOW ---->  providers Auto Complete if claim have right then all drop will get rights
         'icd_codes':'CLIM', //Auto Cpmplete
@@ -181,6 +182,7 @@ module.exports = {
         'claim_charge': 'ECLM', //delete Claim Rmenu 
         'era_list': 'ERAI',
         'upload': 'ERAI',
+        'era_file_preview': 'ERAI',
         'claim_study': 'ECLM',
         'follow_ups': 'ECLM',
         'claim_patient': 'PCLM'

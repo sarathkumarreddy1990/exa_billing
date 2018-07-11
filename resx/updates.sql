@@ -2304,7 +2304,7 @@ $BODY$
                     AND p.is_active IS TRUE;
 	    ELSIF l_payer_type = 'patient' THEN
 		SELECT
-                    fs.id INTO STRICT l_resp_fs_id
+                    fs.id INTO l_resp_fs_id
                 FROM
                     public.fee_schedules fs
                 WHERE
@@ -2335,7 +2335,7 @@ $BODY$
                 IF l_facility_fs_id = 0 THEN
                     -- Getting the default fee schedule id from fee schedules
                     SELECT
-                        fs.id INTO STRICT l_fee_fs_id
+                        fs.id INTO l_fee_fs_id
                     FROM
                         fee_schedules fs
                     WHERE

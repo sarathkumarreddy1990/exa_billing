@@ -94,7 +94,7 @@ define(['jquery',
                             className:'icon-ic-edit',
                             route: '#setup/status_color_codes/edit/',
                             formatter: function(e, model, data) {
-                                return "<span class='icon-ic-edit' title='click here to Edit'></span>"
+                                return "<i class='icon-ic-edit' title='Click here to edit'></i>"
                             }
                         },
                         {
@@ -116,7 +116,7 @@ define(['jquery',
                                 }
                             },
                             formatter: function(e, model, data) {
-                                return "<span class='icon-ic-delete' title='click here to Delete'></span>"
+                                return "<i class='icon-ic-delete' title='Click here to delete'></i>"
                             }
                         },
                         {
@@ -180,7 +180,6 @@ define(['jquery',
             renderForm: function(id) {
                 var self = this;
                 $('#divStatusColorCodesForm').html(this.statusColorCodesFormTemplate());
-                self.loadProcessStatus(self.claimStatus);
                 if(id > 0) {
                     this.model.set({id: id});
                     this.model.fetch({
@@ -235,8 +234,10 @@ define(['jquery',
                     this.loadProcessStatus(this.claimStatus);
                 } else if (processType == 'payment') {
                     this.loadProcessStatus(this.paymentStatus);
-                } else {
+                } else if (processType == 'study') {
                     this.loadProcessStatus(this.studyStatus);
+                } else {
+                    $('#ddlProcessStatus').empty();
                 }
             },
 
