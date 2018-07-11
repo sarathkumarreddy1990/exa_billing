@@ -2322,7 +2322,7 @@ $BODY$
             IF l_resp_fs_id = 0 THEN
                 -- Getting the default fee schedule id and cpt code id from fee facilities
                 SELECT
-                    fee_schedule_id INTO l_facility_fs_id
+                    f.fee_schedule_id INTO l_facility_fs_id
                 FROM
                     facilities f
                 WHERE
