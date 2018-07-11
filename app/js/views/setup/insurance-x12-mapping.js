@@ -85,7 +85,7 @@ define(['jquery',
                             className:'icon-ic-edit',
                             route: '#setup/insurance_x12_mapping/edit/',
                             formatter: function(e, model, data) {
-                                return "<span class='icon-ic-edit' title='click here to Edit'></span>"
+                                return "<span class='icon-ic-edit' title='Edit'></span>"
                             }
                         },
                         {

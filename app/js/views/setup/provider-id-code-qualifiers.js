@@ -57,7 +57,7 @@ define([
                             className: 'icon-ic-edit',
                             route: '#setup/provider_id_code_qualifiers/edit/',
                             formatter: function (e, model, data) {
-                                return "<span class='icon-ic-edit' title='click Here to Edit'></span>"
+                                return "<span class='icon-ic-edit' title='Edit'></span>"
                             }
                         },
                         {

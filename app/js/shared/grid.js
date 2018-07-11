@@ -409,7 +409,7 @@ define('grid', [
                 });
 
 
-                var liPatientClaimInquiry = commonjs.getRightClickMenu('anc_patient_claim_inquiry','setup.rightClickMenu.patientClaim',false,'Patient Claim',false);
+                var liPatientClaimInquiry = commonjs.getRightClickMenu('anc_patient_claim_inquiry','setup.rightClickMenu.patientClaim',false,'Patients Claim',false);
                 if(studyArray.length == 1)
                     $divObj.append(liPatientClaimInquiry);
                 self.checkRights('anc_patient_claim_inquiry');
@@ -419,7 +419,7 @@ define('grid', [
                     }
 
                      commonjs.showDialog({
-                    'header': 'Patient Claim',
+                    'header': 'Patients Claim',
                     'width': '85%',
                     'height': '75%',
                     'needShrink': true
@@ -428,7 +428,7 @@ define('grid', [
                 self.claimInquiryView.patientInquiryForm(studyIds,selectedStudies[0].patient_id);
                 });
 
-                var liPatientClaimLog = commonjs.getRightClickMenu('anc_patient_claim_log','setup.rightClickMenu.patientClaimLog',false,'Patient Claim Log',false);
+                var liPatientClaimLog = commonjs.getRightClickMenu('anc_patient_claim_log','setup.rightClickMenu.patientClaimLog',false,'Patients Claim Log',false);
                 if(studyArray.length == 1)
                     $divObj.append(liPatientClaimLog);
                 self.checkRights('anc_patient_claim_log');
@@ -438,7 +438,7 @@ define('grid', [
                     }
 
                      commonjs.showDialog({
-                    'header': 'Patient Claim Log',
+                    'header': 'Patients Claim Log',
                     'width': '95%',
                     'height': '80%',
                     'needShrink': true

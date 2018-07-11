@@ -3,57 +3,69 @@
     <!-- row: form elements -->
     <div class="row">
         <!-- col: form elements -->
-        <div class="col-3">
-            <div class="form-group form-inline">
-                <div class="col-form-label">
-                    <label class="control-label field-required" for="txtDateRange" i18n="report.arCutoffDate" />
+        <div class="col-4">
+            <!-- <div class="row"> -->
+            <div class="col-24">
+                <div style="padding-top:10px">
+                    <label class="checkbox-inline" for="incPat">
+                        <input type="checkbox" id="incPat" value="IncludePatient" style="display: inline">
+                        <span i18n="report.reportByPrimaryPayaer"> </span>
+                    </label>
                 </div>
-                <div class="col-form-content">
-                    <div id="divFromDate" class="input-group">
-                        <span class="input-group-addon add-on">
-                            <i class="fa fa-calendar"></i>
-                        </span>
-                        <input type="text" id="txtFromDate" class="form-control" required="required" name="fromDate">
+                <div style="padding-top:10px">
+                    <label class="checkbox-inline" for="excCreBal">
+                        <input type="checkbox" id="excCreBal" value="ExcludeCreditBalance" style="display: inline">
+                        <span i18n="report.excludeCreditBalance"> </span>
+                    </label>
+                </div>
+            </div>
+            <!-- </div> -->
+            <!-- <div class="row"> -->
+            <div class="col-24">
+                <div class="form-group form-inline">
+                    <div class="col-form-label">
+                        <label class="control-label field-required" for="txtDateRange" i18n="report.arCutoffDate" />
+                        <!-- <div class="col-form-content"> -->
+                        <div id="divFromDate" class="input-group">
+                            <span class="input-group-addon add-on">
+                                <i class="fa fa-calendar"></i>
+                            </span>
+                            <input type="text" id="txtFromDate" class="form-control" required="required" name="fromDate">
+                        </div>
+                        <!-- </div> -->
+                    </div>
+
+                </div>
+                <!-- </div>  -->
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="col-24">
+                <div class="form-group form-inline">
+                    <div class="col-form-label" class="multiselect">
+                        <label class="control-label" i18n="report.facilities">
+                        </label>
+                        <select id="ddlFacilityFilter" multiple="multiple">
+                            <% _.each(facilities.toJSON(), function(facility) { %>
+                                <option value='<%= facility.id %>'>
+                                    <%=facility.facility_name%>
+                                </option>
+                                <% }); %>
+                        </select>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="col-3">
-            <div class="form-group form-inline">
-                <div class="col-form-label" class="multiselect">
-                    <label class="control-label" i18n="report.facilities">
-                    </label>
-                    <select id="ddlFacilityFilter" multiple="multiple">
-                        <% _.each(facilities.toJSON(), function(facility) { %>
-                            <option value='<%= facility.id %>'>
-                                <%=facility.facility_name%>
-                            </option>
-                            <% }); %>
-                    </select>
+            <div class="col-24">
+                <div class="form-group form-inline">
+                    <div class="col-form-label" class="multiselect">
+                        <label class="control-label" i18n="report.billingProviders">
+                        </label>
+                        <select id="ddlBillingProvider" multiple="multiple" />
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-3">
-            <div class="form-group form-inline">
-                <div class="col-form-label" class="multiselect">
-                    <label class="control-label" i18n="report.billingProviders">
-                    </label>
-                    <select id="ddlBillingProvider" multiple="multiple" />
-                </div>
-            </div>
-        </div>
 
-        <div class="col-3">
-            <div style="padding-top:10px">
-                <label class="checkbox-inline" for="incPat">
-                    <input type="checkbox" id="incPat" value="IncludePatient" style="display: inline"> <span i18n="report.reportByPrimaryPayaer"> </span>
-                </label>
-            </div>
-            <div style="padding-top:10px">
-                <label class="checkbox-inline" for="excCreBal">
-                    <input type="checkbox" id="excCreBal" value="ExcludeCreditBalance" style="display: inline"><span i18n="report.excludeCreditBalance"> </span>
-                </label>
-            </div>
+
         </div>
     </div>
 

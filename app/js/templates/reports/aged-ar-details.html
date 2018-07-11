@@ -3,9 +3,20 @@
     <!-- row: form elements -->
     <div class="row">
         <!-- col: form elements -->
-        <div class="col-3">
+        <div class="col-4">
+                <div class="col-24">
+                        <div class="form-group form-inline">
+            
+                            <div style="padding-top:10px">
+                                <label class="checkbox-inline" for="byPrimaryPayer">
+                                    <input type="checkbox" id="byPrimaryPayer" value="byPrimaryPayer" style="display: inline"> Report By Primary Payer
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+        <div class="col-24">
             <div class="form-group form-inline">              
-                <div class="col-form-content">
+                <div class="col-form-label">
                         <label class="control-label field-required" for="txtDateRange" i18n="report.arCutoffDate" />
                     <div id="divFromDate" class="input-group">
                         <span class="input-group-addon add-on">
@@ -16,23 +27,38 @@
                 </div>
             </div>
         </div>
-
-        <div class="col-3">
-            <div class="form-group form-inline">
-                <div class="col-form-label" class="multiselect">
-                    <label class="control-label">Facility
-                    </label>
-                    <select id="ddlFacilityFilter" multiple="multiple">
-                        <% _.each(facilities.toJSON(), function(facility) { %>
-                            <option value='<%= facility.id %>'>
-                                <%=facility.facility_name%>
-                            </option>
-                            <% }); %>
-                    </select>
+       
+            <div class="col-xs-24" style="display: none">
+                    <div style="padding-top:10px">
+                        <label class="checkbox-inline" for="incPat">
+                            <input type="checkbox" id="incPat" value="IncludePatient" style="display: inline"> Include Patient Details
+                        </label>
+                    </div>
+                    <div style="padding-top:10px">
+                        <label class="checkbox-inline" for="excCreBal">
+                            <input type="checkbox" id="excCreBal" value="ExcludeCreditBalance" style="display: inline"> Exclude Credit Balance
+                        </label>
+                    </div>
                 </div>
-            </div>
+       
         </div>
-        <div class="col-3">
+        <div class="col-4">
+                <div class="col-24">
+                        <div class="form-group form-inline">
+                            <div class="col-form-label" class="multiselect">
+                                <label class="control-label">Facility
+                                </label>
+                                <select id="ddlFacilityFilter" multiple="multiple">
+                                    <% _.each(facilities.toJSON(), function(facility) { %>
+                                        <option value='<%= facility.id %>'>
+                                            <%=facility.facility_name%>
+                                        </option>
+                                        <% }); %>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+        <div class="col-24">
             <div class="form-group form-inline">
                 <div class="col-form-label" class="multiselect">
                     <label class="control-label">Billing Provider
@@ -40,29 +66,9 @@
                     <select id="ddlBillingProvider" multiple="multiple" />
                 </div>
             </div>
-        </div>
-        <div class="col-3">
-            <div class="form-group form-inline">
-
-                <div style="padding-top:10px">
-                    <label class="checkbox-inline" for="byPrimaryPayer">
-                        <input type="checkbox" id="byPrimaryPayer" value="byPrimaryPayer" style="display: inline"> Report By Primary Payer
-                    </label>
-                </div>
-            </div>
-        </div>
-        <div class="col-xs-3" style="display: none">
-            <div style="padding-top:10px">
-                <label class="checkbox-inline" for="incPat">
-                    <input type="checkbox" id="incPat" value="IncludePatient" style="display: inline"> Include Patient Details
-                </label>
-            </div>
-            <div style="padding-top:10px">
-                <label class="checkbox-inline" for="excCreBal">
-                    <input type="checkbox" id="excCreBal" value="ExcludeCreditBalance" style="display: inline"> Exclude Credit Balance
-                </label>
-            </div>
-        </div>
+        </div>      
+      
+    </div>
     </div>
 
     <!-- row: form buttons -->

@@ -16,19 +16,19 @@
     <nav id="newClaimNav" class="top-nav">
         <ul id="tab_menu" class="tn-menu">
             <li class="active">
-                <a id="newClaimNavCharge" href="javascript:void(0)">CHARGES</a>
+                <a id="newClaimNavCharge" href="#tab_1">CHARGES</a>
             </li>
             <li>
-                <a id="newClaimNavClaims" href="javascript:void(0)">CLAIMS</a>
+                <a id="newClaimNavClaims" href="#tab_2">CLAIMS</a>
             </li>
             <li>
-                <a id="newClaimNavIns" href="javascript:void(0)">INSURANCE</a>
+                <a id="newClaimNavIns" href="#tab_3">INSURANCE</a>
             </li>
             <li>
-                <a id="newClaimNavAddInfo" href="javascript:void(0)">ADDITIONAL INFO</a>
+                <a id="newClaimNavAddInfo" href="#tab_4">ADDITIONAL INFO</a>
             </li>
             <li>
-                <a id="newClaimNavBillSummary" href="javascript:void(0)">BILLING SUMMARY</a>
+                <a id="newClaimNavBillSummary" href="#tab_5">BILLING SUMMARY</a>
             </li>
         </ul>
         <ul class="new-menu-right">
@@ -264,7 +264,7 @@
                                                 </td>
                                                 <td>
                                                     <input disabled value="<%= row.bill_fee ? row.bill_fee : 0.00 %>" id="txtBillFee_<%= row.data_row_id %>" type="text" class="billFee form-control-med form-control maskFee floatbox"  style="display:inline-block;width:auto;" edit="false">
-                                                    <span id="editBillFee_<%= row.data_row_id %>" class="editBillFee icon-ic-edit" style="margin-left: 4px;cursor:pointer;" rel="tooltip" title="" data-original-title="Click here to edit"></span>
+                                                    <span id="editBillFee_<%= row.data_row_id %>" class="editBillFee icon-ic-edit" style="margin-left: 4px;cursor:pointer;" title="Edit" ></span>
                                                 </td>
                                                 <td>
                                                     <input disabled value="<%= row.total_bill_fee ? row.total_bill_fee : 0.00 %>" id="txtTotalBillFee_<%= row.data_row_id %>" type="text" class="totalbill form-control floatbox">
