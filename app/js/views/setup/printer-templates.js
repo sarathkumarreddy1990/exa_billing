@@ -361,7 +361,10 @@ define(['jquery',
             save: function (doGoBack) {
                 var self = this;
                 this.templateData = ace.edit('paperClaimEditor').getValue();
-
+                if(this.templateData === ""){
+                    commonjs.showError("Invalid Template");
+                    return false;
+                }
                 this.model.set({
                     "name": $('#txtTemplateName').val(),
                     "isActive": !$('#chkActive').prop('checked'),
