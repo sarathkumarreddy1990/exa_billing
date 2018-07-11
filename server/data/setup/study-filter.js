@@ -109,7 +109,7 @@ module.exports = {
             whereQuery.push(` filter_order :: TEXT ILIKE '%${filter_order}%'`);
         }
 
-        whereQuery.push(` filter_type = '${filter_type}' AND deleted_dt IS NULL AND user_id = ${userId}`);
+        whereQuery.push(` filter_type = '${filter_type}' AND user_id = ${userId}`);
 
         let get_all = SQL` SELECT
         id

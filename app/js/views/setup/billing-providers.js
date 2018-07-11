@@ -74,7 +74,7 @@ define(['jquery',
                             className: 'icon-ic-edit',
                             route: '#setup/billing_providers/edit/',
                             formatter: function (e, model, data) {
-                                return "<span class='icon-ic-edit' title='click Here to Edit'></span>"
+                                return "<i class='icon-ic-edit' title='Click here to edit'></i>"
                             }
                         },
                         {
@@ -96,7 +96,7 @@ define(['jquery',
                                 }
                             },
                             formatter: function (e, model, data) {
-                                return "<span class='icon-ic-delete' title='click Here to Delete'></span>"
+                                return "<i class='icon-ic-delete' title='Click here to delete'></i>"
                             }
                         },
                         {
@@ -514,13 +514,13 @@ define(['jquery',
                         {
                             name: 'edit', width: 20, sortable: false, search: false,
                             formatter: function () {
-                                return "<span class='icon-ic-edit' title='Edit this ID Code'></span>"
+                                return "<span class='icon-ic-edit' title='Edit this id code'></span>"
                             }
                         },
                         {
                             name: 'del', width: 20, sortable: false, search: false,
                             formatter: function () {
-                                return "<span class='icon-ic-delete' title='Delete this ID Code'></span>"
+                                return "<span class='icon-ic-delete' title='Delete this id code'></span>"
                             }
                         },
                         { name: 'insurance_name', width: 300 },
