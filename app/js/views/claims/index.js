@@ -2211,7 +2211,10 @@ define(['jquery',
                     $('#txt' + flag + 'City').val(result.subscriber_city);
                     $('#ddl' + flag + 'State').val(result.subscriber_state);
                     $('#txt' + flag + 'ZipCode').val(result.subscriber_zipcode);
-
+                    if(result.coverage_level == "secondary" && result.medicare_insurance_type_code != null) {
+                        $('#chkSecMedicarePayer').prop('checked',true);
+                        $('#selectMedicalPayer').val(result.medicare_insurance_type_code).toggle(true);
+                    }
                     setTimeout(function () {
                         if (!self.isEdit)
                             $('#ddlResponsible').val('PIP_P');
