@@ -21,131 +21,168 @@
         text-align: right;
     } */
 </style>
-<div>
-    <div class="row" id="payerDetails" style="margin: auto;">
-        <div class="col">
-            <div class="form-group form-inline">
-                <label id="lblInsPRoviderName" for="auditFromDate" class="control-label">
-                    Insurance Provider :&nbsp
-                    <b> <%= ins.insurance_name %></b>
-                </label>
-            </div>
-            <div class="form-group form-inline">
-                <label id="lblPayerId" for="auditFromDate" class="control-label">
-                    Payer Id :&nbsp
-                    <b> <%= ins.payer_id %></b>
-                </label>
-            </div>
-            <div class="form-group form-inline">
-                <label id="paymentDate" for="auditFromDate" class="control-label">
-                    Payment Date :&nbsp
-                    <b>  <%= ins.payment_dt ? moment(ins.payment_dt).format('L') : '' %></b>
-                </label>
-            </div>
-        </div>
-        <div class="col">
-            <div class="form-group form-inline">
-                <label id="lblInsProviderAddress" for="auditFromDate" class="control-label">
-                    Address :&nbsp
-                    <b> <%= ins.address1 %>/
-                        <%= ins.address2 %></b>
-                </label>
-            </div>
-            <div class="form-group form-inline">
-                <label id="lblInsProviderCityState" for="auditFromDate" class="control-label">
-                    City/State/Zip :&nbsp
-                    <b>  <%= ins.city %>/
-                        <%= ins.state %>/
-                            <%= ins.zip %></b>
-                </label>
-            </div>
-            <div class="form-group form-inline">
-                <label id="lblInsProviderPhoneNo" for="auditFromDate" class="control-label">
-                    Phone # :&nbsp
-                    <b> <%= ins.phone_no %></b>
-                </label>
-            </div>
-        </div>
-    </div>
-    <div id="divResponseSection" style="overflow: auto; margin-top: 10px; margin: auto;margin-top: 10px;" class="row">
-        <% if (claims&& claims.length ) { %>
-            <% _.each(claims, function(claim, key){ %>
-                <div class="col-md-12" id="divClaimDetails_<%= key %>" style="border-top: 1px solid #dfe2e6;">
-                    <div class="col-md-6 topMargin" style="float: left;">
-                        Patient Name :
-                        <%= claim.pat_name %>
-                    </div>
-                    <div <div class="col-md-6 topMargin" style="float: right;">
-                        Claim No :
-                        <%= claim.claim_id %>
-                    </div>
-                    <div <div class="col-md-6 topMargin" style="float: right;">
-                        No.of Charges :
-                        <%= claim.charges.length ? claim.charges.length: 0 %>
-                    </div>
-                    <div <div class="col-md-6 topMargin" style="float: right;">
-                        Account # :
-                        <%= claim.account_no %>
-                    </div>
-                    <% if(claim.charges){ %>
-                        <table class="table table-bordered table-striped">
-                            <thead>
-                                <th>Date</th>
-                                <th>CPT Code</th>
-                                <th class="txtAlignRight">Bill Fee</th>
-                                <th class="txtAlignRight">Adjustment</th>
-                                <th class="txtAlignRight">Allowed</th>
-                                <th>Modifier</th>
-                            </thead>
-                            <tbody>
-                                <% _.each(claim.charges, function(charge, key){ %>
-                                    <tr>
-                                        <td>
-                                            <%= charge.charge_dt %>
-                                        </td>
-                                        <td>
-                                            <%= charge.cpt_decsription %>
-                                        </td>
-                                        <td class="txtAlignRight">
-                                            <% if (charge.amount_type === 'payment' ) { %>
-                                                <%= charge.bill_fee %>
-                                                    <% } %>
-                                        </td>
-                                        <td class="txtAlignRight">
-                                            <% if (charge.amount_type === 'adjustment' ) { %>
-                                                <%= charge.bill_fee %>
-                                                    <% } %>
-                                        </td>
-                                        <td class="txtAlignRight">
-                                            <%= charge.allowed_fee %>
-                                        </td>
-                                        <td>
-                                            <%= charge.modifiers %>
-                                        </td>
-                                    </tr>
-                                    <% }); %>
-                                        <tr>
-                                            <td> </td>
-                                            <td></td>
-                                            <td class="txtAlignRight"> Total : $<%= claim.totalBillFee %>
-                                            </td>
-                                            <td class="txtAlignRight"> Total : $<%= claim.totalAdjusmtment %>
-                                            </td>
-                                            <td class="txtAlignRight"> Total : $<%= claim.totalAllowedFee %>
-                                            </td>
-                                            <td></td>
-                                        </tr>
-                            </tbody>
-                        </table>
-                </div>
-                <% }  %>
-                    <% }); %>
-                        <% } else { %>
-                            <div>
-                                <span style="color:#000;position: absolute; margin-right:-50px; top: 50%; right: 50%; color:inherit;">No charges found</span>
+<div id="divEraResult" class="eramodal" tabindex="-1">
+    <div id="divEraResponse">
+        <div class="tabbable">
+            <ul id="claimsTabs" class="nav tn-menu tn-menu-a">
+                <li id="liEobProcessed" class="nav-item">
+                    <a href="#divEobProcessed" class="nav-link active show" data-toggle="tab">EOB Processed</a>
+                </li>
+                <li id="liEobOriginal" class="nav-item">
+                    <a href="#div-era-processed-preview" class="nav-link" data-toggle="tab">Original</a>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane active" id="divEobProcessed" style="margin-top: 10px;">
+                    <div>
+                        <div class="row" id="payerDetails" style="margin: auto;">
+                            <div class="col">
+                                <div class="form-group form-inline">
+                                    <label id="lblInsPRoviderName" for="auditFromDate" class="control-label">
+                                        Insurance Provider :&nbsp
+                                        <b>
+                                            <%= ins.insurance_name %>
+                                        </b>
+                                    </label>
+                                </div>
+                                <div class="form-group form-inline">
+                                    <label id="lblPayerId" for="auditFromDate" class="control-label">
+                                        Payer Id :&nbsp
+                                        <b>
+                                            <%= ins.payer_id %>
+                                        </b>
+                                    </label>
+                                </div>
+                                <div class="form-group form-inline">
+                                    <label id="paymentDate" for="auditFromDate" class="control-label">
+                                        Payment Date :&nbsp
+                                        <b>
+                                            <%= ins.payment_dt ? moment(ins.payment_dt).format('L') : '' %>
+                                        </b>
+                                    </label>
+                                </div>
                             </div>
-                            <% } %>
+                            <div class="col">
+                                <div class="form-group form-inline">
+                                    <label id="lblInsProviderAddress" for="auditFromDate" class="control-label">
+                                        Address :&nbsp
+                                        <b>
+                                            <%= ins.address1 %>/
+                                                <%= ins.address2 %>
+                                        </b>
+                                    </label>
+                                </div>
+                                <div class="form-group form-inline">
+                                    <label id="lblInsProviderCityState" for="auditFromDate" class="control-label">
+                                        City/State/Zip :&nbsp
+                                        <b>
+                                            <%= ins.city %>/
+                                                <%= ins.state %>/
+                                                    <%= ins.zip %>
+                                        </b>
+                                    </label>
+                                </div>
+                                <div class="form-group form-inline">
+                                    <label id="lblInsProviderPhoneNo" for="auditFromDate" class="control-label">
+                                        Phone # :&nbsp
+                                        <b>
+                                            <%= ins.phone_no %>
+                                        </b>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="divResponseSection" style="overflow: auto; margin-top: 10px; margin: auto;margin-top: 10px;" class="row">
+                            <% if (claims&& claims.length ) { %>
+                                <% _.each(claims, function(claim, key){ %>
+                                    <div class="col-md-12" id="divClaimDetails_<%= key %>" style="border-top: 1px solid #dfe2e6;">
+                                        <div class="col-md-6 topMargin" style="float: left;">
+                                            Patient Name :
+                                            <%= claim.pat_name %>
+                                        </div>
+                                        <div <div class="col-md-6 topMargin" style="float: right;">
+                                            Claim No :
+                                            <%= claim.claim_id %>
+                                        </div>
+                                        <div <div class="col-md-6 topMargin" style="float: right;">
+                                            No.of Charges :
+                                            <%= claim.charges.length ? claim.charges.length: 0 %>
+                                        </div>
+                                        <div <div class="col-md-6 topMargin" style="float: right;">
+                                            Account # :
+                                            <%= claim.account_no %>
+                                        </div>
+                                        <% if(claim.charges){ %>
+                                            <table class="table table-bordered table-striped">
+                                                <thead>
+                                                    <th>Date</th>
+                                                    <th>CPT Code</th>
+                                                    <th class="txtAlignRight">Bill Fee</th>
+                                                    <th class="txtAlignRight">Adjustment</th>
+                                                    <th class="txtAlignRight">Allowed</th>
+                                                    <th>Modifier</th>
+                                                </thead>
+                                                <tbody>
+                                                    <% _.each(claim.charges, function(charge, key){ %>
+                                                        <tr>
+                                                            <td>
+                                                                <%= charge.charge_dt %>
+                                                            </td>
+                                                            <td>
+                                                                <%= charge.cpt_decsription %>
+                                                            </td>
+                                                            <td class="txtAlignRight">
+                                                                <% if (charge.amount_type === 'payment' ) { %>
+                                                                    <%= charge.bill_fee %>
+                                                                        <% } %>
+                                                            </td>
+                                                            <td class="txtAlignRight">
+                                                                <% if (charge.amount_type === 'adjustment' ) { %>
+                                                                    <%= charge.bill_fee %>
+                                                                        <% } %>
+                                                            </td>
+                                                            <td class="txtAlignRight">
+                                                                <%= charge.allowed_fee %>
+                                                            </td>
+                                                            <td>
+                                                                <%= charge.modifiers %>
+                                                            </td>
+                                                        </tr>
+                                                        <% }); %>
+                                                            <tr>
+                                                                <td> </td>
+                                                                <td></td>
+                                                                <td class="txtAlignRight"> Total : $
+                                                                    <%= claim.totalBillFee %>
+                                                                </td>
+                                                                <td class="txtAlignRight"> Total : $
+                                                                    <%= claim.totalAdjusmtment %>
+                                                                </td>
+                                                                <td class="txtAlignRight"> Total : $
+                                                                    <%= claim.totalAllowedFee %>
+                                                                </td>
+                                                                <td></td>
+                                                            </tr>
+                                                </tbody>
+                                            </table>
+                                    </div>
+                                    <% }  %>
+                                        <% }); %>
+                                            <% } else { %>
+                                                <div>
+                                                    <span style="color:#000;position: absolute; margin-right:-50px; top: 50%; right: 50%; color:inherit;">No charges found</span>
+                                                </div>
+                                                <% } %>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane" id="div-era-processed-preview">
+                    <div class="row" class="tab-pane" id="era-processed-preview" style="margin: auto; overflow: auto;">
+
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-<div class="row" id="era-processed-preview" style="margin: auto; display: none;">
 </div>
