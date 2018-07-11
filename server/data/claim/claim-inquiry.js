@@ -94,16 +94,27 @@ module.exports = {
             ) AS icd
         ) 
     , pat_ins_ids AS (
-        SELECT
-            ARRAY[ primary_patient_insurance_id, secondary_patient_insurance_id, tertiary_patient_insurance_id] AS pi_ids
-        FROM billing.claims bc
-        WHERE 
-            bc.id = ${claim_id}
-        )  
+        SELECT * 
+        FROM   (SELECT Unnest(pi_ids)      patient_insurance_id, 
+                    Unnest(payer_types) payer_type 
+                FROM   (SELECT array[ primary_patient_insurance_id, 
+                    secondary_patient_insurance_id, 
+                    tertiary_patient_insurance_id] 
+                    AS pi_ids, 
+                    array[ 'primary_insurance', 'secondary_insurance', 
+                    'tertiary_insurance'] 
+                    AS 
+                    payer_types 
+                        FROM   billing.claims bc 
+                        WHERE  bc.id = ${claim_id} 
+                    ) x) y 
+        WHERE  y.patient_insurance_id IS NOT NULL 
+    )  
     , insurance_details AS 
         ( SELECT json_agg(row_to_json(ins)) insurance_details
         FROM (SELECT
                   ip.id 
+                , claim_ins.payer_type 
                 , ip.insurance_code
                 , ip.insurance_name
                 , (COALESCE(TRIM(pi.subscriber_lastname),'') ||' '|| COALESCE(TRIM(pi.subscriber_firstname),'')) AS name 
@@ -111,8 +122,8 @@ module.exports = {
                 , pi.policy_number 
                 , pi.group_number
             FROM public.patient_insurances pi
+            INNER JOIN pat_ins_ids claim_ins ON pi.id = claim_ins.patient_insurance_id 
             INNER JOIN insurance_providers ip ON ip.id = pi.insurance_provider_id 
-            WHERE pi.id = ANY(SELECT UNNEST(pi_ids) FROM  pat_ins_ids)
             ) AS ins
         )                            
     SELECT * FROM  claim_details, payment_details, icd_details, insurance_details, patient_details  `;

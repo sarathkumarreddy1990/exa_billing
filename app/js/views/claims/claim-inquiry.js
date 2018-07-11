@@ -217,7 +217,7 @@ define([
                             customAction: function (rowID) {
                             },
                             formatter: function (cellvalue, options, rowObject) {
-                                return "<input type='button' style='line-height: 1;' class='btn btn-paper-claim-original btn-primary' value='Paper Claim' i18n='shared.buttons.paperclaimOrg' id='spnPaperClaim_" + rowObject.id + "'>"
+                                return "<input type='button' style='line-height: 1;' class='btn btn-paper-claim-original btn-primary' value='Paper Claim' data-payer-type=" + rowObject.payer_type + " i18n='shared.buttons.paperclaimOrg' id='spnPaperClaim_" + rowObject.id + "'>"
                             }
                         },
                         {
@@ -225,7 +225,7 @@ define([
                             customAction: function (rowID) {
                             },
                             formatter: function (cellvalue, options, rowObject) {
-                                return "<input type='button' style='line-height: 1;' class='btn btn-paper-claim-full btn-primary' value='Paper Claim' i18n='shared.buttons.paperclaimFull' id='spnPaperClaim_" + rowObject.id + "'>"
+                                return "<input type='button' style='line-height: 1;' class='btn btn-paper-claim-full btn-primary' value='Paper Claim' data-payer-type=" + rowObject.payer_type + " i18n='shared.buttons.paperclaimFull' id='spnPaperClaim_" + rowObject.id + "'>"
                             }
                         }
                     ],
@@ -237,16 +237,17 @@ define([
                     beforeSelectRow: function (rowid, e) {
                         var target = e.target || e.srcElement;
                         var cellIndex = (target).parentNode.cellIndex;
+                        var payerType = $(target).attr('data-payer-type');
 
-                        if(target.className.indexOf('btn-paper-claim-original') > -1) {
-                            self.showPaperClaim('paper_claim_original', claimID, rowid, '');
-                        } else if(target.className.indexOf('btn-paper-claim-full') > -1) {
-                            self.showPaperClaim('paper_claim_full', claimID, rowid, '');
-                        }                         
+                        if (target.className.indexOf('btn-paper-claim-original') > -1) {
+                            self.showPaperClaim('paper_claim_original', claimID, rowid, payerType);
+                        } else if (target.className.indexOf('btn-paper-claim-full') > -1) {
+                            self.showPaperClaim('paper_claim_full', claimID, rowid, payerType);
+                        }
                     },
                 });
 
-                $('#gview_tblCIInsurance').find('.ui-jqgrid-bdiv').css('max-height', '100px')
+                $('#gview_tblCIInsurance').find('.ui-jqgrid-bdiv').css('max-height', '130px')
             },
 
             showDiagnosisGrid: function (data) {

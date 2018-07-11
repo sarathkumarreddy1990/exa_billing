@@ -302,7 +302,7 @@ define(['jquery',
                         data = response.data;
                         $('#btnCheckEligibility' + ins).prop('disabled',false);
                         if (data && data.errors) {
-                            commonjs.showWarning(data.errors.query ? data.errors.query : JSON.stringify(data.errors));
+                            commonjs.showWarning(data.errors.query ? data.errors.query : 'ERR: ' + JSON.stringify(data.errors) + '..');
                             return;
                         } else if(!data.errors && response.insPokitdok == true) {
                             $('#divPokidokResponse').append($(self.InsurancePokitdokTemplateForm({'InsuranceData': response.data, 'InsuranceDatavalue': response.meta})));

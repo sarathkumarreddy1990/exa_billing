@@ -121,7 +121,7 @@ module.exports = {
                     organization_name: payerInfo.name,
                     npi: payerInfo.npi_no
                 },
-                service_types: params.serviceTypeCodes,
+                service_types: params.serviceTypes,
                 trading_partner_id: payerInfo.trading_partner_id
             }, function (err, res) {
                 res.insPokitdok = insEligibility;
