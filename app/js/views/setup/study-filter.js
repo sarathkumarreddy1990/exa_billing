@@ -406,7 +406,7 @@ define([
                             },
 
                             formatter: function (e, model, data) {
-                                return "<span class='icon-ic-delete' title='click Here to Delete'></span>";
+                                return "<i class='icon-ic-delete' title='Click here to delete'></i>";
                             },
 
                             cellattr: function () {

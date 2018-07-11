@@ -150,7 +150,7 @@ const detailQueryTemplate = _.template(`
                        WHEN
                          p.payer_type = 'ordering_facility' THEN 'Ordering Facility'
                         WHEN
-                         p.payer_type = 'ordering_provider' THEN 'Ordering Provider'
+                         p.payer_type = 'ordering_provider' THEN 'Provider'
                          END  AS "Payer Type",
                          
                      CASE

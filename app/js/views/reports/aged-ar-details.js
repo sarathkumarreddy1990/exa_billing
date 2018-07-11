@@ -86,7 +86,9 @@ define(['jquery',
 
 
             onReportViewClick: function (e) {
-                var btnClicked = e && e.target ? $(e.target) : null;
+                var btnClicked = e && e.target ? $(e.target) : null; 
+                this.getSelectedFacility();
+                this.getBillingProvider();
                 if (btnClicked && btnClicked.prop('tagName') === 'I') {
                     btnClicked = btnClicked.parent(); // in case FA icon 'inside'' button was clicked...
                 }
@@ -141,16 +143,16 @@ define(['jquery',
             },
 
             getReportParams: function () {
-                var urlParams = {
-                    'allFacilities': this.viewModel.allFacilities,
-                    'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
-                    'fromDate': this.viewModel.fromDate.date().format('YYYY-MM-DD'),
-                    'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
-                    'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
+                var urlParams = {                    
+                    'fromDate': this.viewModel.fromDate.date().format('YYYY-MM-DD'),                   
                     'incPatDetail': $('#byPrimaryPayer').prop('checked'),
                     'excCreditBal': $('#excCreBal').prop('checked'),
                     'excelExtended': this.excelExtended ? this.excelExtended : 'false',
-                    'changeByPayer': $('#byPrimaryPayer').prop('checked')
+                    'changeByPayer': $('#byPrimaryPayer').prop('checked'),
+                    'allFacilities': this.viewModel.allFacilities,
+                    'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
+                    'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
+                    'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
                 }
                 return urlParams;
             }

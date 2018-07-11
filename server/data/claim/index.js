@@ -31,7 +31,7 @@ module.exports = {
                                 , atp.modifier3_id AS m3
                                 , atp.modifier4_id AS m4
                                 , string_to_array(regexp_replace(study_cpt_info->'diagCodes_pointer', '[^0-9,]', '', 'g'),',')::int[] AS icd_pointers
-                                , COALESCE(sc.study_cpt_info->'bill_fee','1')::NUMERIC AS bill_fee
+                                , COALESCE(sc.study_cpt_info->'bill_fee','0')::NUMERIC AS bill_fee
                                 , COALESCE(sc.study_cpt_info->'allowed_fee','0')::NUMERIC AS allowed_fee
                                 , COALESCE(sc.study_cpt_info->'units','1')::NUMERIC AS units
                                 , (COALESCE(sc.study_cpt_info->'bill_fee','0')::NUMERIC * COALESCE(sc.study_cpt_info->'units','1')::NUMERIC) AS total_bill_fee
@@ -49,6 +49,7 @@ module.exports = {
                             INNER JOIN appointment_types at ON at.id = s.appointment_type_id
                             INNER JOIN appointment_type_procedures atp ON atp.procedure_id = sc.cpt_code_id AND atp.appointment_type_id = s.appointment_type_id
                             WHERE
+                            
                                 study_id = ANY(${studyIds})
                             ORDER BY s.accession_no DESC
                             ) AS charge
@@ -61,7 +62,7 @@ module.exports = {
                                         order_info->'similarIll' AS same_illness_first_date,
                                         order_info->'wTo' AS unable_to_work_to_date,
                                         order_info->'wFrom' AS unable_to_work_from_date,
-                                        order_info->'hTo' AS hospitalization_to_dt,
+                                        order_info->'hTo' AS hospitalization_to_date,
                                         order_info->'hFrom' AS hospitalization_from_date,
                                         order_info->'claim_notes' AS claim_notes,
                                         COALESCE(NULLIF(order_info->'outsideLab',''), 'false')::boolean AS service_by_outside_lab,

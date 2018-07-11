@@ -203,6 +203,7 @@ define(['jquery',
                 "click #btnClaimRefreshAll": "refreshAllClaims",
                 "click #btnValidateExport": "exportExcel",
                 "click #btnClaimsRefresh": "refreshClaims",
+                "click #btnClaimsCompleteRefresh": "completeRefresh"
             },
 
             initialize: function (options) {

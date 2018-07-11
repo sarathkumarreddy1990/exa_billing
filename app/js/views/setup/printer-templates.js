@@ -113,7 +113,7 @@ define(['jquery',
                                 }
                             },
                             formatter: function (e, model, data) {
-                                return "<span class='icon-ic-delete' title='click Here to Delete'></span>"
+                                return "<i class='icon-ic-delete' title='Click here to delete'></i>"
                             }
                         },
                         {
@@ -361,7 +361,10 @@ define(['jquery',
             save: function (doGoBack) {
                 var self = this;
                 this.templateData = ace.edit('paperClaimEditor').getValue();
-
+                if(this.templateData === ""){
+                    commonjs.showError("Invalid Template");
+                    return false;
+                }
                 this.model.set({
                     "name": $('#txtTemplateName').val(),
                     "isActive": !$('#chkActive').prop('checked'),

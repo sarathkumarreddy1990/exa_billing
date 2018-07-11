@@ -145,7 +145,8 @@
             "descOrder": "Descending Order",
             "processPayement":"Process Payments",
             "exportToExcel": "Export To Excel",
-            "paperclaim": "Paper Claim"
+            "paperclaimOrg": "Paper Claim Original",
+            "paperclaimFull": "Paper Claim Full"
         },
         "screens": {},
         "fields": {

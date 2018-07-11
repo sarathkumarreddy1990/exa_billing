@@ -89,14 +89,14 @@ define(['jquery',
                                 }
                             },
                             formatter: function(e, model, data) {
-                                return "<span class='icon-ic-delete' title='click here to Delete'></span>"
+                                return "<i class='icon-ic-delete' title='Click here to delete'></i>"
                             }
                         },
                         {
-                            name: 'code',
+                            name: 'code'
                         },
                         {
-                            name: 'description',
+                            name: 'description'
                         },
                         {
                             name: 'inactivated_dt',

@@ -70,10 +70,10 @@ define(['jquery',
                             }
                         },
                         {
-                            name: 'code',
+                            name: 'code'
                         },
                         {
-                            name: 'description',
+                            name: 'description'
                         }
                     ],
                     datastore: self.billingMessagesList,
