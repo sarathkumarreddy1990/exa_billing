@@ -223,6 +223,7 @@ define(['jquery',
                     $('#btnPaymentPrint').hide();
                     $('#btnPrintReceipt').hide();
                     $('#btnPaymentRefClick').hide();
+                    $('#selectPayerType').focus();
                     commonjs.hideLoading();
                 }
                 else {
@@ -638,6 +639,7 @@ define(['jquery',
                 if (!self.casCodesLoaded)
                     self.setCasGroupCodesAndReasonCodes();
                 self.payment_row_version = response.payment_row_version;
+                $('#selectPayerType').focus();
             },
 
             setPayerName: function (payerType, payerNames) {
@@ -1585,7 +1587,7 @@ define(['jquery',
                                     $('#selectGroupCode' + rowVal).val(appln.cas_group_code_id).attr('cas_id', appln.id);
                                     $('#selectReason' + rowVal).val(appln.cas_reason_code_id);
                                     var amount = appln.amount.indexOf('$') == 0 ? appln.amount.substr(1) : appln.amount;
-                                    $('#txtAmount' + rowVal).val(parseFloat(amount).toFixed(2));
+                                    $('#txtAmount' + rowVal).val(parseFloat(amount.replace(/,/g, '')).toFixed(2));
                                 });
 
                             $('#divPaymentCAS').attr('data-charge_id', chargeId).show();
