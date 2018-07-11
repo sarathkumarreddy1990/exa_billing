@@ -345,7 +345,7 @@ define(['jquery',
                 $('#btnGenerateExcel').prop('disabled', true);
                 commonjs.showStatus('Exporting Excel ...');
                 $.ajax({
-                    url: "/exa_modules/billing/payments/list",
+                    url: "/exa_modules/billing/payments/payments_list",
                     type: 'GET',
                     data: {
                         paymentReportFlag: true

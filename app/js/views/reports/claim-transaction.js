@@ -221,7 +221,7 @@ define([
                 this.viewModel.insuranceIds = $('ul#ulListInsurance li').map(function () {
                     return this.id;
                 }).get();
-                this.viewModel.insuranceGroupList = $('ul#ulListInsuranceProvider li').map(function (){
+                this.viewModel.insuranceGroupList = $('ul#ulListInsuranceProvider li').map(function () {
                     return this.id;
                 }).get();
                 this.viewModel.userIds = $('ul#ulListUsers li').map(function () {
@@ -243,56 +243,42 @@ define([
                 this.getSelectedFacility();
                 this.getBillingProvider();
 
-                //if (this.hasValidViewModel()) {
-                var urlParams = this.getReportParams();
-                UI.showReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
-                //}
+                if (this.hasValidViewModel()) {
+                    var urlParams = this.getReportParams();
+                    UI.showReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
+                }
             },
 
             hasValidViewModel: function () {
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
-                    //   commonjs.showWarning('Please check report id, category, and/or format!');
-                    return ;
-                }
-
-                // Billing Provider validataion
-                if ($('#billingProChk').attr('checked')) {
-                    if ($('#ddlBillingProvider option:selected').length < 1) {
-                        //commonjs.showWarning('Please select billing provider in option');
-                        return;
-                    }
-                }
-                // Facility Validataion
-                if ($('#facilityChk').attr('checked')) {
-                    if ($('#ddlFacilityFilter option:selected').length < 1) {
-                         commonjs.showWarning('Please select facility in option');
-                        return ;
-                    }
-                }
-
-                if (!($('#chkServiceDateBill').attr('checked')) && !($('#chkServicePayDateCPT').attr('checked')) && !($('#billCreatedDate').attr('checked'))) {
-                    commonjs.showWarning('Please Select Service / Pay / Bill Created Date');
-                    return ;
-                }
-
-                // claim Selection Validation
-                if ($('#ddlClaimSelectBoxes option:selected').length < 1) {
-                     commonjs.showWarning('Please Select Claim Selection');
+                    commonjs.showWarning('Please check report id, category, and/or format!');
                     return;
                 }
 
-                // ref.Doctor Selection Validation
-                if ($('#ddlReferringPhysicianOption').val() == 'S') {
-                    if (this.viewModel.referringProIds && this.viewModel.referringProIds.length < 1) {
-                        //  commonjs.showWarning('Please Add Referring Doctor');
-                        return false;
-                    }
+                // Claim # validatation for from# &  To #
+                if ($('#claimIdFrom').val() != '' && $('#claimIdTo').val() == "") {
+                    commonjs.showWarning('Please Enter To Range (Claim #)');
+                    return;
+                }
+                if ($('#claimIdTo').val() != '' && $('#claimIdFrom').val() == "") {
+                    commonjs.showWarning('Please Enter From Range (Claim #)');
+                    return;
                 }
 
-                 // claim Selection Validation
-                 if ($('#ddlClaimSelectBoxes').length < 0) {
+                if ($('#claimIdFrom').val() > $('#claimIdTo').val()) {
+                    commonjs.showWarning('Claim From# not Greater than To#');
+                    return;
+                }
+
+                if (!($('#chkServiceDateBill').prop('checked')) && !($('#chkServicePayDateCPT').prop('checked')) && !($('#billCreatedDate').prop('checked'))) {
+                   // commonjs.showWarning('Please Select Service / Pay / Bill Created Date');
+                    return;
+                }
+
+                // claim Selection Validation
+                if ($('#ddlClaimSelectBoxes').length < 0) {
                     commonjs.showWarning('Please Select Claim Selection');
-                    return ;
+                    return;
                 }
                 return true;
             },
@@ -314,13 +300,13 @@ define([
                     billingProFlag: this.viewModel.allBillingProvider == 'true' ? true : false,
 
                     'fromDate': ($('#chkServiceDateBill').prop('checked')) == true ? this.viewModel.dateFrom.format('MM/DD/YYYY') : '',
-                    'toDate':($('#chkServiceDateBill').prop('checked')) == true ? this.viewModel.dateTo.format('MM/DD/YYYY') : '',
+                    'toDate': ($('#chkServiceDateBill').prop('checked')) == true ? this.viewModel.dateTo.format('MM/DD/YYYY') : '',
 
-                    'cmtFromDate':  ($('#chkServicePayDateCPT').prop('checked')) == true  ? this.viewModel.cmtFromDate.format('MM/DD/YYYY') : '',
-                    'cmtToDate':  ($('#chkServicePayDateCPT').prop('checked')) == true  ? this.viewModel.cmtToDate.format('MM/DD/YYYY') : '',
+                    'cmtFromDate': ($('#chkServicePayDateCPT').prop('checked')) == true ? this.viewModel.cmtFromDate.format('MM/DD/YYYY') : '',
+                    'cmtToDate': ($('#chkServicePayDateCPT').prop('checked')) == true ? this.viewModel.cmtToDate.format('MM/DD/YYYY') : '',
                     'cptDateOption': $('#chkServicePayDateCPT').is(':checked') ? $("input[name='accountingAndActualPayment']:checked").val() : '',
 
-                    'billCreatedDateFrom':($('#billCreatedDate').prop('checked')) == true  ? this.viewModel.billCreatedDateFrom.format('MM/DD/YYYY') : '',
+                    'billCreatedDateFrom': ($('#billCreatedDate').prop('checked')) == true ? this.viewModel.billCreatedDateFrom.format('MM/DD/YYYY') : '',
                     'billCreatedDateTo': ($('#billCreatedDate').prop('checked')) == true ? this.viewModel.billCreatedDateTo.format('MM/DD/YYYY') : '',
 
                     insuranceIds: this.viewModel.insuranceIds,
@@ -344,7 +330,7 @@ define([
                     cptCodeLists: this.viewModel.cptCodeLists ? this.viewModel.cptCodeLists : '',
 
                     orderBy: $('#ddlOrderBySelection').val() ? $('#ddlOrderBySelection').val() : '',
-                    insurancePayerTypeOption :  $('#ddlClaimSelectBoxes').val() || ''
+                    insurancePayerTypeOption: $('#ddlClaimSelectBoxes').val() || ''
 
                 };
             },
@@ -385,7 +371,7 @@ define([
                     this.selectedInsGrpList = []; // empty the selected insurance group list
                 }
             },
-            
+
             onOptionChangeSelectUser: function () {
                 if ($('#ddlUsersOption').val() == 'S') {
                     $("#ddlUsersBox").show();
@@ -506,8 +492,8 @@ define([
                 selected.each(function () {
                     facilities.push($(this).val());
                 });
-                 this.selectedFacilityList = facilities
-                   this.viewModel.allFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlFacilityFilter option").length;
+                this.selectedFacilityList = facilities
+                this.viewModel.allFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlFacilityFilter option").length;
             },
             // multi select billing provider - worked
             getBillingProvider: function (e) {
@@ -584,11 +570,11 @@ define([
                 // Show OR Hide accounting date and payment date
                 if ($('#chkServicePayDateCPT').prop('checked')) {
                     $('#accountingAndActualPaymentInfo').show();
-                    $('#divAccountingDate').show();
+                    $('#divAccountingDate').css('visibility', 'visible');
                     $('#accountingDate').prop('checked', true);
                 }
                 else {
-                    $('#divAccountingDate').hide();
+                    $('#divAccountingDate').css('visibility', 'hidden');
                     $('#accountingAndActualPaymentInfo').hide();
                     $('#accountingDate').prop('checked', false);
                 }

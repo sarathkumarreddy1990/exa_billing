@@ -106,7 +106,7 @@ define([
                         }
                     },
                     error: function (err) {
-                        commonjs.showWarning(err);
+                        commonjs.handleXhrError(err);
                     }
                 });
             },
@@ -146,7 +146,7 @@ define([
                             }
                         },
                         error: function (err) {
-                            commonjs.showWarning(err);
+                            commonjs.handleXhrError(err);
                         }
                     });
                 }
@@ -228,7 +228,7 @@ define([
                         }
                     },
                     error: function (err) {
-                        commonjs.showWarning(err);
+                        commonjs.handleXhrError(err);
                     }
                 });
             },
@@ -266,7 +266,7 @@ define([
                             commonjs.showStatus("UpdatedSuccessfully");
                         },
                         error: function (err) {
-                            commonjs.showWarning(err);
+                            commonjs.handleXhrError(err);
                         }
                     });
                 }

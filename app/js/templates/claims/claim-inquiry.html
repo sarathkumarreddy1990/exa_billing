@@ -64,7 +64,7 @@
                 <div class="row">
                     <div class="col-md-3"><label class="font-weight" i18n="billing.fileInsurance.billFee"></label></div>
                     <div class="col-md-4"><label id="lblCIBillFee" style="float:right"></label></div>
-                    <div class="col-md-2"><label class="font-weight" i18n="billing.refund.allowed"></label></div>
+                    <div class="col-md-2"><label class="font-weight" i18n="billing.payments.allowed"></label></div>
                     <div class="col-md-3"><label id="lblCIAllowed" style="float:right"></label></div>
                 </div>
                 <div class="row">
@@ -76,8 +76,12 @@
                     <div class="col-md-4"><label id="lblCIOthersPaid" style="float:right"></label></div>
                 </div>
                 <div class="row">
-                    <div class="col-md-3"><label class="font-weight" i18n="billing.payments.adjustment"></label></div>
+                    <div class="col-md-3"><label class="font-weight" i18n="billing.fileInsurance.adjustments"></label></div>
                     <div class="col-md-4"><label id="lblCIAdj" style="float:right"></label></div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3"><label class="font-weight" i18n="billing.refund.refunds"></label></div>
+                    <div class="col-md-4"><label id="lblCIRefund" style="float:right"></label></div>
                 </div>
                 <div class="row">
                     <div class="col-md-3"><label class="font-weight" i18n="billing.refund.balance"></label></div>
@@ -173,7 +177,6 @@
                    </thead>
                    <tbody id="tBodyCIPayment"></tbody>
                </table>
-               <input type="button" id="btnCIPayCancel" class="btn btnCommentSave  btn-primary" value="Save" i18n="shared.buttons.cancel" style="float:right">
         </div>
         <!--style="display:none; position:fixed; width:30%; left:35%; z-index:10000; border-style:groove; background-color: white"-->
         <div id="divCIFormComment" class="divBackgroundPayment form-horizontal commonBorder" style="left:35%; display: none; position: absolute; border-radius:10px;z-index:10000; width: 30%; height:23%; padding:20px;background-color: white;  
@@ -185,8 +188,7 @@
                         </div>
                     </div>
                     <div class="col-xs-2">
-                        <input type="button" id="btnCICommentSave" class="btn btnCommentSave  btn-primary" style="margin-left: 20px;line-height:1" value="Save" i18n="shared.buttons.save">
-                        <input type="button" id="btnCICommentCancel" class="btn btnCommentSave  btn-primary" value="Save" i18n="shared.buttons.cancel" style="line-height:1">
+                        <input type="button" id="btnCICommentSave" class="btn btnCommentSave  btn-primary" style="margin-left: 20px;" value="Save" i18n="shared.buttons.save">
                     </div>
                 </div>
         </div>

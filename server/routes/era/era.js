@@ -9,7 +9,7 @@ const { staticAssetsRoot } = require('../../shared/constants');
 
 const multer = require('multer');
 
-router.get('/list', async function (req, res) {
+router.get('/era_list', async function (req, res) {
     const data = await eraController.getEraFiles(req.query);
     httpHandler.sendRows(req, res, data);
 });
