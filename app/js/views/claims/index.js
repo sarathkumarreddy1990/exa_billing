@@ -881,7 +881,7 @@ define(['jquery',
             },
             getLineItemsAndBind: function (selectedStudyIds) {
                 var self = this;
-
+                self.chargeModel = [];
                 if (selectedStudyIds) {
 
                     $.ajax({
