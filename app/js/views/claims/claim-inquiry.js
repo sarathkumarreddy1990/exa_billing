@@ -4,6 +4,7 @@ define([
     'backbone',
     'jqgrid',
     'jqgridlocale',
+    'shared/paper-claim',
     'models/pager',
     'text!templates/claims/claim-inquiry.html',
     'collections/claim-inquiry',
@@ -22,6 +23,7 @@ define([
     Backbone,
     JGrid,
     JGridLocale,
+    PaperClaim,
     Pager,
     claimInquiryTemplate,
     claimCommentsList,
@@ -35,6 +37,8 @@ define([
     claimPatientLogList,
     Permission
 ) {
+        var paperClaim = new PaperClaim(true);
+
         return Backbone.View.extend({
             el: null,
             pager: null,
@@ -97,16 +101,8 @@ define([
                     self.printPaymentInvoice(e);
                 });
 
-                $('#btnCICommentCancel').off().click(function () {
-                    self.closeSaveComment();
-                });
-
                 $('#btnCIAddBillingComments').off().click(function () {
                     self.billingCommentsReadonly();
-                });
-
-                $('#btnCIPayCancel').off().click(function (e) {
-                    self.closePaymentDetails(e);
                 });
 
                 $('.claimProcess').off().click(function (e) {
@@ -118,8 +114,7 @@ define([
             claimInquiryDetails: function (claimID, fromTogglePreNext, from) {
                 var self = this;
                 self.claim_id = claimID;
-                // if (!self.rendered)
-                // self.render();
+
                 $.ajax({
                     url: '/exa_modules/billing/claims/claim_inquiry',
                     type: 'GET',
@@ -181,7 +176,7 @@ define([
                                 $("#tblCIDiagnosis").jqGrid('setGridParam', { datatype: 'local', data: data.icdcode_details }).trigger("reloadGrid");
 
                             } else {
-                                self.showInsuranceGrid(data.insurance_details);
+                                self.showInsuranceGrid(data.insurance_details, claimID);
                                 self.showDiagnosisGrid(data.icdcode_details);
                                 self.showClaimCommentsGrid();
                             }
@@ -202,12 +197,13 @@ define([
                 });
             },
 
-            showInsuranceGrid: function (data) {
+            showInsuranceGrid: function (data, claimID) {
+                var self = this;
 
                 $('#tblCIInsurance').jqGrid({
                     datatype: 'local',
                     data: data != null ? data : [],
-                    colNames: ['', 'code', 'description', 'Subscriber Name', 'DOB', 'Policy No', 'Group No', 'Paper Claim'],
+                    colNames: ['', 'code', 'description', 'Subscriber Name', 'DOB', 'Policy No', 'Group No', 'Paper Claim Original', 'Paper Claim Full'],
                     colModel: [
                         { name: 'id', hidden: true },
                         { name: 'insurance_code', search: false },
@@ -217,20 +213,41 @@ define([
                         { name: 'policy_number', search: false },
                         { name: 'group_number', search: false },
                         {
-                            name: 'paper_claim', search: false,
+                            name: 'paper_claim_original', search: false,
                             customAction: function (rowID) {
                             },
                             formatter: function (cellvalue, options, rowObject) {
-                                return "<input type='button' id='btnCIPaperClaim' class='btn btnCommentSave  btn-primary' value='Paper Claim' i18n='shared.buttons.paperclaim' id='spnPaperClaim_" + rowObject.id + "'>"
+                                return "<input type='button' style='line-height: 1;' class='btn btn-paper-claim-original btn-primary' value='Paper Claim' data-payer-type=" + rowObject.payer_type + " i18n='shared.buttons.paperclaimOrg' id='spnPaperClaim_" + rowObject.id + "'>"
+                            }
+                        },
+                        {
+                            name: 'paper_claim_full', search: false,
+                            customAction: function (rowID) {
+                            },
+                            formatter: function (cellvalue, options, rowObject) {
+                                return "<input type='button' style='line-height: 1;' class='btn btn-paper-claim-full btn-primary' value='Paper Claim' data-payer-type=" + rowObject.payer_type + " i18n='shared.buttons.paperclaimFull' id='spnPaperClaim_" + rowObject.id + "'>"
                             }
                         }
                     ],
                     cmTemplate: { sortable: false },
                     customizeSort: true,
                     width: $('#claimDetails').width() - 50,
-                    shrinkToFit: true
+                    shrinkToFit: true,
+
+                    beforeSelectRow: function (rowid, e) {
+                        var target = e.target || e.srcElement;
+                        var cellIndex = (target).parentNode.cellIndex;
+                        var payerType = $(target).attr('data-payer-type');
+
+                        if (target.className.indexOf('btn-paper-claim-original') > -1) {
+                            self.showPaperClaim('paper_claim_original', claimID, rowid, payerType);
+                        } else if (target.className.indexOf('btn-paper-claim-full') > -1) {
+                            self.showPaperClaim('paper_claim_full', claimID, rowid, payerType);
+                        }
+                    },
                 });
-                $('#gview_tblCIInsurance').find('.ui-jqgrid-bdiv').css('max-height', '100px')
+
+                $('#gview_tblCIInsurance').find('.ui-jqgrid-bdiv').css('max-height', '130px')
             },
 
             showDiagnosisGrid: function (data) {
@@ -459,6 +476,7 @@ define([
                             name: 'view_payment', width: 20, sortable: false, search: false,
                             customAction: function (rowID) {
                                 var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
+                                $("#tBodyCIPayment").empty();
                                 self.getDetailsOfPay(gridData.payment_id);
                             },
                             formatter: function (cellvalue, options, rowObject) {
@@ -563,17 +581,21 @@ define([
 
             showCommentPopup: function (from, comment, commentId) {
                 var self = this;
+                commonjs.showNestedDialog({
+                    header: 'Add Comment',
+                    width: '50%',
+                    height: '20%',
+                    html: $('#divCIFormComment').html()
+                });
 
-                $('#divCIFormComment').css({ top: '25%', height: '20%' });
-                $('#divCIFormComment').show();
                 if (from == 'edit') {
-                    $('#siteModal').find('#txtCIAddComment').val(comment);
+                    $('#siteModalNested').find('#txtCIAddComment').val(comment);
                 }
                 else {
                     commentId = 0;
                 }
-                $('#siteModal').find('#btnCICommentSave').unbind().click(function () {
-                    var comment = $('#siteModal').find('#txtCIAddComment').val();
+                $('#siteModalNested').find('#btnCICommentSave').unbind().click(function () {
+                    var comment = $('#siteModalNested').find('#txtCIAddComment').val();
                     if (comment != '')
                         self.saveClaimComment(commentId, comment);
                     else
@@ -815,9 +837,8 @@ define([
                 self.paymentInvoice.onReportViewClick(e);
             },
 
-            closeSaveComment: function (e) {
-                $('#divCIFormComment').hide();
-                $('#txtCIAddComment').val('');
+            closeSaveComment: function () {
+                commonjs.hideNestedDialog();
             },
 
             billingCommentsReadonly: function () {
@@ -841,10 +862,20 @@ define([
                         'charge_id': charge_id
                     },
                     success: function (data, response) {
+                        $("#tBodyCIPayment").empty();
+
                         if (data.length > 0) {
-                            $('#divCIpaymentDetails').show();
+
                             var paymentCASRow = self.paymentTemplate({ rows: data });
                             $('#tBodyCIPayment').append(paymentCASRow);
+
+                            commonjs.showNestedDialog({
+                                header: 'Payment of Charge Details',
+                                width: '80%',
+                                height: '30%',
+                                html: $('#divCIpaymentDetails').html()
+                            });
+                            
                         }
                         else {
                             commonjs.showStatus('No Payment to Show');
@@ -867,10 +898,19 @@ define([
                         'payment_id': pay_id
                     },
                     success: function (data, response) {
+                        $("#tBodyCIPayment").empty();
+
                         if (data.length > 0) {
-                            $('#divCIpaymentDetails').show();
+
                             var paymentCASRow = self.paymentTemplate({ rows: data });
                             $('#tBodyCIPayment').append(paymentCASRow);
+
+                            commonjs.showNestedDialog({
+                                header: 'Payment Details',
+                                width: '80%',
+                                height: '30%',
+                                html: $('#divCIpaymentDetails').html()
+                            });
                         }
                         else {
                             commonjs.showStatus('No Payment to Show');
@@ -880,11 +920,6 @@ define([
                         commonjs.handleXhrError(err);
                     }
                 })
-            },
-
-            closePaymentDetails: function (e) {
-                $('#divCIpaymentDetails').hide();
-                $("#tBodyCIPayment").empty();
             },
 
             applyToggleInquiry: function (e) {
@@ -948,7 +983,14 @@ define([
                 if ($('#radActivityAllStatus').is(':visible'))
                     $('#activityDetails').hide();
                 $('input[type=date]').val('');
+            },
+
+            showPaperClaim: function (format, claimId, insuranceProviderId, payerType) {
+                paperClaim.print(format, claimId, {
+                    payerType: payerType,
+                    payerId: insuranceProviderId
+                });
             }
-        });
+    });
 
     });

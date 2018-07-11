@@ -94,6 +94,7 @@ module.exports = {
             let claimCommentDetails = {};
             let updateAppliedPayments = [];
             let coPaycoInsDeductdetails = [];
+            let clearCasDetais = [];
             let { paymentId, line_items, user_id, coPay, coInsurance, deductible, claimId, adjustmentId } = params;
             line_items = JSON.parse(line_items);
             const save_cas_details = [];
@@ -131,6 +132,10 @@ module.exports = {
                         cas_id : details.cas_id || null
                     });
                 });
+
+                if (value.cas_details.length == 0) {
+                    clearCasDetais.push(value.adjustmentApplicationId);
+                }
 
             });
 
@@ -171,6 +176,7 @@ module.exports = {
             params.updateAppliedPayments = updateAppliedPayments;
             params.save_cas_details = save_cas_details;
             params.claimCommentDetails = claimCommentDetails;
+            params.clearCasDetais = clearCasDetais;
             return await data.updatePaymentApplication(params);
         }
 
@@ -190,8 +196,8 @@ module.exports = {
         let claimCharges = await data.getInvoiceDetails(params);
 
         claimCharges = claimCharges.rows.length ? claimCharges.rows : [];
-        let paymentAmount = claimCharges[0].payment_balance_total || 0;
-        let totalClaim = claimCharges[0].total_claims || 0;
+        let paymentAmount = claimCharges.length && claimCharges[0].payment_balance_total || 0;
+        let totalClaim = claimCharges.length && claimCharges[0].total_claims || 0;
 
         _.each(claimCharges, function (item) {
 
@@ -243,7 +249,7 @@ module.exports = {
         let claimCharges =  await data.getClaimCharges(params);
        
         claimCharges = claimCharges.rows.length ? claimCharges.rows : [];
-        let paymentAmount = claimCharges[0].payment_balance_total || 0;
+        let paymentAmount = claimCharges.length && claimCharges[0].payment_balance_total || 0;
         
         _.each(claimCharges, function (item) {
 
@@ -259,8 +265,10 @@ module.exports = {
                     claimIds.push(parseInt(item.claim_id));
                 }
 
-                if ((totalPaymentAmount + parseInt(item.balance)) <= paymentAmount) {
-                    totalPaymentAmount += parseInt(item.balance);
+                item.balance = parseFloat(item.balance) < 0 ? 0.00 : parseFloat(item.balance);
+
+                if ((totalPaymentAmount + parseFloat(item.balance)) <= paymentAmount) {
+                    totalPaymentAmount += parseFloat(item.balance);
                 } else {
                     item.balance = paymentAmount - totalPaymentAmount;
                     totalPaymentAmount += item.balance;
@@ -268,7 +276,7 @@ module.exports = {
                 }
 
                 lineItems.push({
-                    payment: parseInt(item.balance),
+                    payment: parseFloat(item.balance),
                     adjustment: 0.00,
                     cpt_code: item.cpt_code,
                     claim_number: item.claim_id,
@@ -294,7 +302,7 @@ module.exports = {
         paymentDetails.created_by = parseInt(params.userId);
         paymentDetails.company_id = parseInt(params.companyId);
         paymentDetails.uploaded_file_name = ''; // Assign empty for ERA argument
-        
+
         let result = await eraData.createPaymentApplication(params, paymentDetails);
 
         return result;

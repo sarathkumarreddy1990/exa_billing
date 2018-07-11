@@ -61,7 +61,7 @@ define([
         },
         {
             "code":"teritary_insurance",
-            "desc":"Teritary Insurance"
+            "desc":"Tertiary Insurance"
         }
     ];
     var defaultStatusArray = [
@@ -380,7 +380,7 @@ define([
                                 self.showForm(rowID);
                             },
                             formatter: function (e, model, data) {
-                                return "<span class='icon-ic-edit' title='click Here to Edit'></span>";
+                                return "<i class='icon-ic-edit' title='Click here to edit'></i>";
                             },
                             cellattr: function () {
                                 return 'style=text-align:center;cursor:pointer;'
@@ -406,7 +406,7 @@ define([
                             },
 
                             formatter: function (e, model, data) {
-                                return "<span class='icon-ic-delete' title='click Here to Delete'></span>";
+                                return "<i class='icon-ic-delete' title='Click here to delete'></i>";
                             },
 
                             cellattr: function () {

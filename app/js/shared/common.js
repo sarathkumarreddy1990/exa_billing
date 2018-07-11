@@ -839,6 +839,7 @@ var commonjs = {
         options.modalBodyId = '#modalBody';
         options.modalDialogId = '#modalDialog';
         options.modalDivContainerId = '#modal_div_container';
+        options.iframeContainerId = 'site_modal_iframe_container';
 
         commonjs.showDefaultDialog(options);
     },
@@ -849,6 +850,7 @@ var commonjs = {
         options.modalBodyId = '#modalBodyNested';
         options.modalDialogId = '#modalDialogNested';
         options.modalDivContainerId = '#modal_div_container_nested';
+        options.iframeContainerId = 'site_modal_iframe_container_nested';
 
         commonjs.showDefaultDialog(options);
     },
@@ -862,6 +864,7 @@ var commonjs = {
         var modalDialogId = options.modalDialogId || '#modalDialog';
         var modalBodyId = options.modalBodyId || '#modalBody';
         var spanHeader = options.spanHeaderId || '#spanModalHeader';
+        var iframeContainerId = options.iframeContainerId || 'site_modal_iframe_container';
 
         var $modalContainer = $(modalContainerId);
         var $modalDivContainer = $(modalDivContainerId);
@@ -886,16 +889,17 @@ var commonjs = {
         }
 
         if (typeof options.url != 'undefined' && commonjs.checkNotEmpty(options.url)) {
-            if (!document.getElementById('site_modal_iframe_container')) {
+            if (!document.getElementById(iframeContainerId)) {
                 var ifr = document.createElement('iframe');
-                ifr.id = 'site_modal_iframe_container';
+                ifr.id = iframeContainerId;
                 ifr.frameBorder = 0;
                 ifr.style.width = '100%';
 
                 $modalBody.append($(ifr));
                 $modalBody.css({ 'padding': '0px' })
             }
-            dataContainer = $('#site_modal_iframe_container');
+
+            dataContainer = $('#' + iframeContainerId);
             dataContainer.attr('src', options.url);
             dataContainer.show();
             $modalDivContainer.hide();
@@ -908,11 +912,11 @@ var commonjs = {
 
             commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
             dataContainer.show();
-            $('#site_modal_iframe_container').hide();
+            $('#' + iframeContainerId).hide();
         }
 
         if (typeof options.onLoad != 'undefined' && commonjs.checkNotEmpty(options.onLoad)) {
-            dataContainer = $('#site_modal_iframe_container');
+            dataContainer = $('#' + iframeContainerId);
             dataContainer.attr('onLoad', options.onLoad);
         }
 
@@ -937,7 +941,7 @@ var commonjs = {
             }
         }
 
-        var boolKeyboard = (!app.changePassword);   // Sets whether the modal will allow keyboard commands such as ESC to close it
+        var boolKeyboard = false; //(!app.changePassword);   // Sets whether the modal will allow keyboard commands such as ESC to close it
         if (options.isPatientNotes) {
             dataContainer.css('overflow', 'auto');
             //$modalContainer.modal({width: wid + 'px', show: true});
@@ -979,6 +983,64 @@ var commonjs = {
 
             $modalContainer.off('hide');
         });
+    },
+
+    hideDialog: function (callback) {
+        var options = {};
+
+        options.modalContainerId = '#siteModal';
+        options.modalDivContainerId = '#modal_div_container';
+        options.iframeContainerId = 'site_modal_iframe_container';
+
+        commonjs.hideDefaultDialog(options, callback);
+    },
+
+    hideNestedDialog: function (callback) {
+        var options = {};
+        
+        options.modalContainerId = '#siteModalNested';
+        options.modalDivContainerId = '#modal_div_container_nested';
+        options.iframeContainerId = 'site_modal_iframe_container_nested';
+
+        commonjs.hideDefaultDialog(options, callback);
+    },
+
+    hideDefaultDialog: function (options, callback) {
+        var modalContainerId = options.modalContainerId || '#siteModal';
+        var modalDivContainerId = options.modalDivContainerId || '#modal_div_container';
+        var iframeContainerId = options.iframeContainerId || 'site_modal_iframe_container';
+
+        var $siteModal = $(modalContainerId);
+        var $modalDivContainer = $(modalDivContainerId);
+        var $iframeContainer = $('#' + iframeContainerId);
+
+        if (typeof callback === 'function') {
+            if ($siteModal.is(':visible')) {
+                $siteModal
+                    .on('hidden.bs.modal', function () {
+                        /**
+                         * Have to remove this before callback is called or
+                         * transition will conflict when opened window closes
+                         * and tries to open a new dialog.
+                         */
+
+                        $('.modal-backdrop').remove();
+
+
+                        $modalDivContainer.html('');
+                        $iframeContainer.attr('src', '');
+
+                        callback();
+                        $(this).off('hidden.bs.modal');
+                    });
+            } else {
+                $modalDivContainer.html('');
+                $iframeContainer.attr('src', '');
+                callback();
+            }
+        }
+
+        $siteModal.modal('hide');
     },
 
     // Set app.settings.report_queue_status using API
@@ -1039,37 +1101,6 @@ var commonjs = {
         ];
     },
 
-    hideDialog: function (callback) {
-        var $siteModal = $('#siteModal');
-        if (typeof callback === 'function') {
-            if ($siteModal.is(':visible')) {
-                $siteModal
-                    .on('hidden.bs.modal', function () {
-                        /**
-                         * Have to remove this before callback is called or
-                         * transition will conflict when opened window closes
-                         * and tries to open a new dialog.
-                         */
-
-                        $('.modal-backdrop').remove();
-
-
-                        $('#modal_div_container').html('');
-                        $('#site_modal_iframe_container').attr('src', '');
-
-                        callback();
-                        $(this).off('hidden.bs.modal');
-                    });
-            }
-            else {
-                $('#modal_div_container').html('');
-                $('#site_modal_iframe_container').attr('src', '');
-                callback();
-            }
-        }
-        $siteModal.modal('hide');
-    },
-
     generateRandomNumber: function () {
         var randomNo = Math.random()
         randomNo = randomNo.toString();
@@ -1123,6 +1154,10 @@ var commonjs = {
         commonjs.hideLoading();
 
         if (!response && err) {
+            response = err;
+        }
+
+        if (typeof response !== 'object') {
             response = err;
         }
 
@@ -2806,7 +2841,7 @@ var commonjs = {
                 payer = "Secondary Insurance";
                 break;
             case "teritary_insurance":
-                payer = "Teritary Insurance";
+                payer = "Tertiary Insurance";
                 break;
             default:
                 payer = "";
@@ -6029,23 +6064,6 @@ if (typeof String.prototype.startsWith != 'function') {
 })();
 
 
-window.addEventListener("message", function (event) {
-
-    if (event.data == 'insert') {
-        commonjs.hideDialog();
-        commonjs.clickDocumentReload('Patient Document inserted');
-    }
-    else if (event.data == 'update') {
-        commonjs.hideDialog();
-        commonjs.clickDocumentReload('Patient Document updated');
-    }
-    else {
-        $('#site_modal_iframe_container').height(event.data + 'px');
-    }
-
-});
-
-
 function getDisplayCoordinates() {
     return document.getElementById('pluginPrefetcher').getDisplays();
 }
@@ -6180,43 +6198,8 @@ function showToolsMenu() {
     });
 
 }
+
 function removeIframeHeader() {
     $('iframe#site_modal_iframe_container, iframe#ifSettings').contents().find('head').append('<style>header.header{display:none;}nav.sub-top-nav, nav#subSetupMenu {display: none;}</style>');
-}
-function removeIframeReportsHeader() {
-    $('iframe#site_modal_iframe_container').contents().find('head').append('<style>header.header{display:none;}nav.sub-top-nav, nav#subSetupMenu{display: none;}</style>');
-    setTimeout(function () {
-        // Timeout set because the gridMeasures stuff doesn't happen immediately
-        var $gridContainer = $('div.ui-jqgrid').addClass('flex-parent-vert');
-        var bgColor = $('div.ui-jqgrid-hdiv table', $gridContainer).css('background-color');
-
-        $gridContainer.attr('style', 'position:absolute; top:0; bottom:0; left:0; right: 0;');
-        $('div.ui-jqgrid-view', $gridContainer).addClass('flex-fill flex-parent-vert').removeAttr('style');//.attr('style', "display: -webkit-box; display: -moz-box; display: -ms-flexbox; display: -webkit-flex; display: flex; flex-direction: column;  -webkit-flex-direction: column;  -moz-flex-direction: column;  -ms-flex-direction: column;");
-        $('div.ui-jqgrid-hdiv', $gridContainer).attr('style', 'background-color: ' + bgColor);
-        $('div.ui-jqgrid-hdiv table', $gridContainer).removeAttr('style');
-        $('div.ui-jqgrid-bdiv', $gridContainer).removeAttr('style').addClass('flex-fill');
-        $('div.ui-jqgrid-bdiv > div', $gridContainer).removeAttr('style');
-        $('div.ui-jqgrid-bdiv > div > *:not(table)', $gridContainer).removeAttr('style');
-        $('#gridPager_SetupInsurance_right').removeAttr('style');
-    }, 60);
-}
-function showFlyoutMenu(menu) {
-    $('.fly-out-menu').hide();
-    var offset = $(menu).parent().position().top;
-    if (offset + $(menu).height() >= $(window).height() - 20) {
-        $(menu).css({ 'top': 'auto', 'bottom': 30 });
-    } else {
-        $(menu).css({ 'top': offset - 5, 'bottom': 'auto' });
-    }
-    $(menu).show('fast');
-}
-function removeIframeTranscriptionHeader() {
-    $('iframe#site_modal_iframe_container').contents().find('head').append('<style>div#divEditOrderHeader{display:none;}</style>');
-}
-function removeIframeOrderHeader() {
-    $('iframe#site_modal_iframe_container').contents().find('head').append('<style>#divEditOrderHeader{display:none;}</style>');
-}
-function removeIframePatientExportHeader() {
-    $('iframe#site_modal_iframe_container, iframe#ifSettings').contents().find('head').append('<style>header.header{display:none;}nav.sub-top-nav, nav#subSetupMenu{display: none;}</style>');
 }
 

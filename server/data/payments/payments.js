@@ -667,6 +667,10 @@ module.exports = {
                                 WHERE cas.cas_id is null
                                 RETURNING *, '{}'::jsonb old_values
                             ),
+                        purge_cas_details as (
+                            DELETE FROM billing.cas_payment_application_details
+                            WHERE payment_application_id = ANY (${(params.clearCasDetais).map(Number)})
+                            ),
                             update_applications_audit_cte as(
                                 SELECT billing.create_audit(
                                     ${params.companyId}
@@ -798,8 +802,12 @@ module.exports = {
       
         let {
             invoice_no,
-            paymentId
+            paymentId,
+            payer_type,
+            payer_id
         } = params;
+
+        let whereQuery = payer_type == 'patient' ? ` WHERE bc.patient_id = ${payer_id} ` : ` WHERE bc.invoice_no = ${invoice_no} `;
 
         const sql =SQL`WITH 
                     claims_details AS (
@@ -808,10 +816,11 @@ module.exports = {
                             bc.patient_id,
                             bc.invoice_no,
                             bc.claim_dt
-                        FROM billing.claims bc
-                        WHERE 1=1
-                            AND bc.invoice_no = ${invoice_no}
-                            AND (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) > 0::money 
+                        FROM billing.claims bc `;
+
+        sql.append(whereQuery);
+
+        sql.append(SQL` AND (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) > 0::money 
                     )
                     , charges AS (
                         SELECT
@@ -858,8 +867,7 @@ module.exports = {
                 FROM 
                     charges
                 INNER JOIN public.patients pp on pp.id = charges.patient_id 
-                ORDER BY claim_id
-                `;
+                ORDER BY claim_id `);
 
         return await query(sql);
     },
@@ -868,8 +876,12 @@ module.exports = {
 
         let {
             invoice_no,
-            paymentId
+            paymentId,
+            payer_type,
+            payer_id
         } = params;
+
+        let whereQuery = payer_type == 'patient' ? ` WHERE bc.patient_id = ${payer_id} ` : ` WHERE bc.invoice_no = ${invoice_no} `;
 
         const sql = SQL`
             SELECT 
@@ -887,15 +899,19 @@ module.exports = {
                     WHERE charges.id = bch.id 
                     ))::numeric  AS balance
                 ,(SELECT payment_balance_total::numeric FROM billing.get_payment_totals(${paymentId}))
-                ,(SELECT count(1) FROM billing.claims WHERE  invoice_no = ${invoice_no} ) AS total_claims
+                ,(SELECT count(1) FROM billing.claims bc `; // WHERE ${whereQuery} ) AS total_claims
+        sql.append(whereQuery);
+
+        sql.append(SQL` ) AS total_claims
             FROM 
                 billing.claims bc
             INNER JOIN public.patients pp on pp.id = bc.patient_id 
             INNER JOIN billing.charges bch on bch.claim_id = bc.id
-            INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id 
-            WHERE  bc.invoice_no = ${invoice_no}
-            AND (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) > 0::money 
-            GROUP BY bch.id,bc.id ORDER BY bc.id `;
+            INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id `);
+
+        sql.append(whereQuery);
+
+        sql.append(SQL` AND (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) > 0::money GROUP BY bch.id,bc.id ORDER BY bc.id `);
 
         return await query(sql);
     }

@@ -164,7 +164,9 @@ module.exports = {
 
     getClaimData: async (params) => {
 
-        let claimIds=params.claimIds.split(',');
+        let claimIds = params.claimIds.split(',');
+        params.payerId = params.payerId || null;
+        params.payerType = params.payerType || null;
 
         let sql = SQL`
         
@@ -623,7 +625,7 @@ module.exports = {
 					INNER JOIN facilities ON facilities.id=claims.facility_id
 					INNER JOIN patients ON patients.id=claims.patient_id
 					INNER JOIN    patient_insurances  ON  patient_insurances.id = 
-											(  CASE payer_type 
+											(  CASE COALESCE(${params.payerType}, payer_type) 
 											WHEN 'primary_insurance' THEN primary_patient_insurance_id
 											WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
 											WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
@@ -634,8 +636,8 @@ module.exports = {
 									LEFT JOIN public.insurance_provider_payer_types  ON insurance_provider_payer_types.id = insurance_providers.provider_payer_type_id
 
 							WHERE claims.id= ANY(${claimIds})
-							`;
-
+                            `;
+                            
         return await query(sql);
     },
 

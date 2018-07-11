@@ -709,12 +709,13 @@ define([
                         return false;
                     }
                     if ($('#' + ulListCPTCode + ' li a[data-id="' + $('#' + txtCPTCodeInformation).select2('data')[0].id + '"]').length) {
-                        commonjs.showWarning("Provider is already selected");
+                        commonjs.showWarning("CPT is already selected");
                         return false;
                     }
                     var data_id = $('#' + txtCPTCodeInformation).select2('data')[0].id;
                     var bind_text = $('#' + txtCPTCodeInformation).select2('data')[0].display_description;
-                    $('#' + ulListCPTCode).append('<li id="' + data_id + '"><span style="background:#3c91f0; color:white; border:1px solid black">' + bind_text + '</span><a class="remove" data-id="' + $('#' + txtCPTCodeInformation).select2('data')[0].id + '"><span class="icon-ic-close" style="margin-left:8px;"></span></a></li>')
+                    var bind_code = $('#' + txtCPTCodeInformation).select2('data')[0].display_code;
+                    $('#' + ulListCPTCode).append('<li id="' + data_id + '"><span style="background:#3c91f0; color:white; border:1px solid black">' + bind_text + '('+ bind_code + ')' +'</span><a class="remove" data-id="' + $('#' + txtCPTCodeInformation).select2('data')[0].id + '"><span class="icon-ic-close" style="margin-left:8px;"></span></a></li>')
                     $('#' + txtCPTCodeInformation + 'a span').html('Select CPT');
                 });
 

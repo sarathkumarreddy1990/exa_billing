@@ -50,7 +50,7 @@ module.exports = {
             if (params.claim_row_version != claimData.rows[0].claim_row_version) {
 
                 return {
-                    'message': 'Claim row version does not matched'
+                    'message': 'This claim has been already updated by some other user. please refresh the page and try again'
                 };
             }
         }
@@ -121,7 +121,7 @@ module.exports = {
                     organization_name: payerInfo.name,
                     npi: payerInfo.npi_no
                 },
-                service_types: params.serviceTypeCodes,
+                service_types: params.serviceTypes,
                 trading_partner_id: payerInfo.trading_partner_id
             }, function (err, res) {
                 res.insPokitdok = insEligibility;
