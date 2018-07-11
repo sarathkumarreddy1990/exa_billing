@@ -69,7 +69,7 @@ define(['jquery',
                             className: 'icon-ic-edit',
                             route: '#setup/adjustment_codes/edit/',
                             formatter: function (e, model, data) {
-                                return "<span class='icon-ic-edit' title='click Here to Edit'></span>"
+                                return "<i class='icon-ic-edit' title='click Here to Edit'></i>"
                             }
                         },
                         {
@@ -91,7 +91,7 @@ define(['jquery',
                                 }
                             },
                             formatter: function (e, model, data) {
-                                return "<span class='icon-ic-delete' title='click Here to Delete'></span>"
+                                return "<i class='icon-ic-delete' title='click Here to Delete'></i>"
                             }
                         },
                         {

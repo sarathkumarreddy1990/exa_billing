@@ -66,7 +66,7 @@ define(['jquery',
                             className:'icon-ic-edit',
                             route: '#setup/billing_codes/edit/',
                             formatter: function(e, model, data) {
-                                return "<span class='icon-ic-edit' title='click here to Edit'></span>"
+                                return "<i class='icon-ic-edit' title='click here to Edit'></i>"
                             }
                         },
                         {
@@ -88,14 +88,14 @@ define(['jquery',
                                 }
                             },
                             formatter: function(e, model, data) {
-                                return "<span class='icon-ic-delete' title='click here to Delete'></span>"
+                                return "<i class='icon-ic-delete' title='click here to Delete'></i>"
                             }
                         },
                         {
-                            name: 'code',
+                            name: 'code'
                         },
                         {
-                            name: 'description',
+                            name: 'description'
                         },
                         {
                             name: 'inactivated_dt',

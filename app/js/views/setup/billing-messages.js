@@ -66,14 +66,14 @@ define(['jquery',
                             className:'icon-ic-edit',
                             route: '#setup/billing_messages/edit/',
                             formatter: function(e, model, data) {
-                                return "<span class='icon-ic-edit' title='click here to Edit'></span>"
+                                return "<i class='icon-ic-edit' title='click here to Edit'></i>"
                             }
                         },
                         {
-                            name: 'code',
+                            name: 'code'
                         },
                         {
-                            name: 'description',
+                            name: 'description'
                         }
                     ],
                     datastore: self.billingMessagesList,
