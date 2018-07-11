@@ -1,8 +1,8 @@
 {
     "report": {
         "arCutoffDate": "AR Cut Off Date",
-        "facilities": "Facilities",
-        "billingProviders": "Billing Providers",
+        "facilities": "Facility",
+        "billingProviders": "Billing Provider",
         "reportByPrimaryPayaer": "Report By Primary Payer",
         "excludeCreditBalance": "Exclude Credit Balance",
         "claimDate": "Claim Date",

@@ -94,6 +94,7 @@ module.exports = {
             let claimCommentDetails = {};
             let updateAppliedPayments = [];
             let coPaycoInsDeductdetails = [];
+            let clearCasDetais = [];
             let { paymentId, line_items, user_id, coPay, coInsurance, deductible, claimId, adjustmentId } = params;
             line_items = JSON.parse(line_items);
             const save_cas_details = [];
@@ -131,6 +132,10 @@ module.exports = {
                         cas_id : details.cas_id || null
                     });
                 });
+
+                if (value.cas_details.length == 0) {
+                    clearCasDetais.push(value.adjustmentApplicationId);
+                }
 
             });
 
@@ -171,6 +176,7 @@ module.exports = {
             params.updateAppliedPayments = updateAppliedPayments;
             params.save_cas_details = save_cas_details;
             params.claimCommentDetails = claimCommentDetails;
+            params.clearCasDetais = clearCasDetais;
             return await data.updatePaymentApplication(params);
         }
 
