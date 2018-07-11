@@ -58,7 +58,7 @@ define([
                             search: false,
                             className: 'icon-ic-reports',
                             formatter: function (e, model, data) {
-                                return "<i class='icon-ic-reports' title='click here to view this log'></i>";
+                                return "<i class='icon-ic-reports' title='Click here to view this log'></i>";
                             },
                             cellattr: function () {
                                 return 'style=text-align:center;cursor:pointer;'
@@ -75,7 +75,7 @@ define([
                             },
 
                             formatter: function (e, model, data) {
-                                return "<span class='icon-ic-secureData' title='secure data'></span>";
+                                return "<span class='icon-ic-secureData' title='Secure data'></span>";
                             },
 
                             cellattr: function () {

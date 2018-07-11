@@ -67,7 +67,7 @@ define(['jquery',
                             className: 'icon-ic-edit',
                             route: '#setup/cas_group_codes/edit/',
                             formatter: function (e, model, data) {
-                                return "<i class='icon-ic-edit' title='click Here to Edit'></i>"
+                                return "<i class='icon-ic-edit' title='Click here to edit'></i>"
                             }
                         },
                         {
@@ -88,7 +88,7 @@ define(['jquery',
                                 }
                             },
                             formatter: function (e, model, data) {
-                                return "<i class='icon-ic-delete' title='click Here to Delete'></i>"
+                                return "<i class='icon-ic-delete' title='Click here to delete'></i>"
                             }
                         },
                         {
