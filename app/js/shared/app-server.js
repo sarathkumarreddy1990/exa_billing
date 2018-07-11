@@ -29,7 +29,28 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                                 grid_name: "claims"
                             },
                         ]
+                    } else if(app.usersettings.length <= 1) {                      
+                        if(! _.where(app.usersettings, {grid_name: 'studies'}).length) {
+                            app.usersettings.push({
+                                default_column: 'study_status',
+                                default_column_order_by: "Asc",
+                                default_tab: 'All Studies',
+                                field_order: [1,10,15,50],
+                                grid_name: "studies"
+                            })
+                        } 
+
+                        if(! _.where(app.usersettings, {grid_name: 'claims'}).length) {
+                            app.usersettings.push({
+                                default_column: 'claim_dt',
+                                default_column_order_by: "Asc",
+                                default_tab: 'All Claims',
+                                field_order: [1,2,12,22,27],
+                                grid_name: "claims"
+                            })
+                        }
                     }
+ 
                     app.study_user_settings = _.where(app.usersettings, { grid_name: 'studies' })[0];
                     app.claim_user_settings = _.where(app.usersettings, { grid_name: 'claims' })[0];
                     var sys_config = app.company.sys_config;

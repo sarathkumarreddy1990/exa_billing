@@ -182,6 +182,7 @@ module.exports = {
         'claim_charge': 'ECLM', //delete Claim Rmenu 
         'era_list': 'ERAI',
         'upload': 'ERAI',
+        'era_file_preview': 'ERAI',
         'claim_study': 'ECLM',
         'follow_ups': 'ECLM',
         'claim_patient': 'PCLM'
