@@ -34,7 +34,7 @@ var layout = {
         'Billing Codes': '#aBillingCodes',
         'Billing Classes': '#aBillingClasses',
         'Claim Status': '#aClaimStatus',
-        'Billing Providers': '#aBillingProviders',
+        'Billing Provider': '#aBillingProviders',
         'Provider ID Code Qualifiers': '#aProviderIdCodeQualifiers',
         'Payment Reasons': '#aPaymentReasons',
         'CAS Group Codes': '#aCasGroupCodes',
