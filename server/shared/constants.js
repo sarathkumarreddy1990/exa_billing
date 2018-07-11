@@ -18,7 +18,7 @@ module.exports = {
         'billing_codes': 'Billing Codes',
         'cas_group_codes': 'CAS Group Codes',
         'cas_reason_codes': 'CAS Reason Codes',
-        'billing_providers': 'Billing Providers',
+        'billing_providers': 'Billing Provider',
         'billing_classes': 'Billing Classes',
         'provider_id_code_qualifiers': 'Provider ID Code Qualifiers',
         'provider_id_codes': 'Provider ID Codes',

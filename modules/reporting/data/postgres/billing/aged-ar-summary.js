@@ -320,10 +320,10 @@ const api = {
         filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
 
         if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
-            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
+            filtersUsed.push({ name: 'facilities', label: 'Facility', value: 'All' });
         else {
             const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
-            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
+            filtersUsed.push({ name: 'facilities', label: 'Facility', value: facilityNames });
         }
 
         // // Billing provider Filter
