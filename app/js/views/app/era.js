@@ -400,6 +400,7 @@ define([
 
             showPayments: function (fileId, fileName) {
                 var self = this;
+                commonjs.showLoading('Generating preview. please wait');
                 if (fileId) {
                     $.ajax({
                         url: '/exa_modules/billing/era/era_details',
@@ -445,24 +446,26 @@ define([
                                     row["totalAllowedFee"] = totalAllowedFee;
                                     row["totalAdjusmtment"] = totalAdjusmtment;
                                 });
-
+                                
                                 $('#eraResultTitle').html('Result : ' + fileName);
-                                $('#divEraResponse').html(self.eraResponseTemplate({ claims: claims, ins: ins }));
-                                $('#divResponseSection').height($(window).height() - 380);
+                                commonjs.showDialog({ header: 'Result : ' + fileName, width: '80%', height: '70%', html: self.eraResponseTemplate({ claims: claims, ins: ins }) });
 
                                 try {
                                     var eraPreview = _.template(EraPreview);
                                     var previewHtml = eraPreview({ data: ins.rawResponse });
                                     $('#era-processed-preview').html(previewHtml);
-                                } catch (err) {
+                                }
+                                catch (err) {
                                     console.log(err);
                                 }
-
-                                commonjs.showDialog({ header: 'Result : ' + fileName, width: '80%', height: '70%', html: $('#divEraResponse').html() });
+                                
+                                $('#divResponseSection').height($(window).height() - 440);
+                                $('#era-processed-preview').height(($(window).height() - 360));
                             }
                             else {
                                 commonjs.showWarning('No details to show');
                             }
+                            commonjs.hideLoading();
                         },
                         error: function (err, response) {
                             commonjs.handleXhrError(err, response);

@@ -61,7 +61,7 @@ define([
         },
         {
             "code":"teritary_insurance",
-            "desc":"Teritary Insurance"
+            "desc":"Tertiary Insurance"
         }
     ];
     var defaultStatusArray = [

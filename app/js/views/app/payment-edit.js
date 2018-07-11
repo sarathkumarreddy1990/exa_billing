@@ -1507,10 +1507,25 @@ define(['jquery',
                 }
             },
 
+            checkPreviousRowIsEmpty: function (previousRow, currentRow) {
+                for (var casRow = 1; casRow < currentRow; casRow++) {
+                    var _row = casRow;
+                    var groupCode = $('#selectGroupCode' + _row).val()
+                    var reasonCode = $('#selectReason' + _row).val()
+                    var amount = $('#txtAmount' + _row).val()
+                    if (groupCode === '' && reasonCode === '' && amount === '') {
+                        commonjs.showWarning('Please fill the values in row ' + _row + ' before filling row ' + currentRow);
+                        return false;
+                    }
+                }
+                return true;
+            },
+
             vaidateCasCodeAndReason: function (payment_application_id, paymentStatus, charge_id) {
                 var self = this;
                 var hasReturned = false;
                 var casObj = [];
+                var rowCame = 0;
                 for (var k = 1; k <= 7; k++) {
                     var emptyCasObj = {};
                     var groupCode = $('#selectGroupCode' + k).val();
@@ -1522,12 +1537,15 @@ define(['jquery',
                     }
 
                     if (groupCode != '' && reasonCode != '' && amount != '') {
-                        emptyCasObj['group_code_id'] = groupCode;
-                        emptyCasObj['reason_code_id'] = reasonCode;
-                        emptyCasObj['amount'] = amount;
-                        if (paymentStatus === 'applied') { emptyCasObj['cas_id'] = cas_id; }
-                        casObj.push(emptyCasObj);
-                        hasReturned = true;
+                        if (k != 0 && self.checkPreviousRowIsEmpty(k - 1, k)) {
+                            emptyCasObj['group_code_id'] = groupCode;
+                            emptyCasObj['reason_code_id'] = reasonCode;
+                            emptyCasObj['amount'] = amount;
+                            if (paymentStatus === 'applied') { emptyCasObj['cas_id'] = cas_id; }
+                            casObj.push(emptyCasObj);
+                            rowCame = k;
+                        }
+                        else return false;
                     }
                     else if (groupCode != '' && reasonCode == '') {
                         commonjs.showWarning('Please select the reason in row ' + k);
