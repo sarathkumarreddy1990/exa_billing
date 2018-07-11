@@ -290,8 +290,8 @@ define(['jquery',
                 $('#imgLoading').show();
                 
 
-                commonjs.showLoading();
-
+                commonjs.showLoading('Connecting Pokitdok. please wait');
+                $('#divPokidokResponse').empty();
                 $.ajax({
                     url: '/exa_modules/billing/claims/claim/eligibility',
                     type: "POST",
@@ -305,9 +305,10 @@ define(['jquery',
                         if (data && data.errors) {
                             commonjs.showWarning(data.errors.query ? data.errors.query : 'ERR: ' + JSON.stringify(data.errors) + '..');
                             return;
-                        } else if(!data.errors && response.insPokitdok == true) {
-                            $('#divPokidokResponse').append($(self.InsurancePokitdokTemplateForm({'InsuranceData': response.data, 'InsuranceDatavalue': response.meta})));
-                            $('#divPokidokResponse').show();
+                        }
+                        else if (!data.errors && response.insPokitdok == true) {
+                            $('#divPokidokResponse').html($(self.InsurancePokitdokTemplateForm({'InsuranceData': response.data, 'InsuranceDatavalue': response.meta})));
+                            commonjs.showDialog({ header: 'Pokitdok Response', width: '80%', height: '70%', html: $('#divPokidokResponse').html() });
                         }
 
                         $("#btnClosePokidokPopup").unbind().click(function (e) {
@@ -2245,7 +2246,7 @@ define(['jquery',
                     subscriber_address_line2: $('#txtPriSubSecAddr').val(),
                     subscriber_city: $('#txtPriCity').val(),
                     subscriber_state: $('#ddlPriState option:selected').val() || null,
-                    subscriber_zipcode: $('#txtPriZipCode').val() != '' ? parseInt($('#txtPriZipCode').val()) : null,
+                    subscriber_zipcode: $('#txtPriZipCode').val() != '' ? $('#txtPriZipCode').val() : null,
                     assign_benefits_to_patient: $('#chkPriAcptAsmt').prop("checked"),
                     medicare_insurance_type_code: null,
                     valid_from_date: $('#txtPriStartDate').val() != '' ? $('#txtPriStartDate').val() : moment().subtract(21, 'years').format('YYYY-MM-DD'),
@@ -2268,7 +2269,7 @@ define(['jquery',
                     subscriber_address_line1: $('#txtSecSubPriAddr').val(),
                     subscriber_address_line2: $('#txtSecSubSecAddr').val(),
                     subscriber_city: $('#txtSecCity').val(),
-                    subscriber_zipcode: $('#txtSecZipCode').val() != '' ? parseInt($('#txtSecZipCode').val()) : null,
+                    subscriber_zipcode: $('#txtSecZipCode').val() != '' ? $('#txtSecZipCode').val() : null,
                     subscriber_state: $('#ddlSecState option:selected').val() || null,
                     assign_benefits_to_patient: $('#chkSecAcptAsmt').prop("checked"),
                     subscriber_dob: $('#txtSecDOB').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtSecDOB').val()).format('YYYY-MM-DD')) : null,
@@ -2293,7 +2294,7 @@ define(['jquery',
                     subscriber_address_line1: $('#txtTerSubPriAddr').val(),
                     subscriber_address_line2: $('#txtTerSubSecAddr').val(),
                     subscriber_city: $('#txtTerCity').val(),
-                    subscriber_zipcode: $('#txtTerZipCode').val() != '' ? parseInt($('#txtTerZipCode').val()) : null,
+                    subscriber_zipcode: $('#txtTerZipCode').val() != '' ? $('#txtTerZipCode').val() : null,
                     subscriber_state: $('#ddlTerState option:selected').val() || null,
                     assign_benefits_to_patient: $('#chkTerAcptAsmt').prop("checked"),
                     subscriber_dob: $('#txtTerDOB').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtTerDOB').val()).format('YYYY-MM-DD')) : null,
@@ -2410,6 +2411,8 @@ define(['jquery',
                                 commonjs.showWarning(response.message);
                             } else {
                                 commonjs.showStatus("messages.status.successfullyCompleted");
+                                $("#btnClaimsRefresh").click();
+                                $("#btnStudiesRefresh").click();
                                 commonjs.hideDialog();
                             }
                             
@@ -2450,40 +2453,40 @@ define(['jquery',
                 /* Insurance section */
                 var mandatory_fields = {
                     primaryfields: [
-                        $('#txtPriPolicyNo').val(),
-                        $('#txtPriSubFirstName').val(),
-                        $('#txtPriSubLastName').val(),
-                        $('#ddlPriGender option:selected').val() || '',
-                        $('#txtPriSubPriAddr').val(),
-                        $('#ddlPriRelationShip option:selected').val() || '',
-                        $('#txtPriDOB').val(),
-                        $('#txtPriCity').val(),
-                        $('#ddlPriState option:selected').val() || '',
-                        $('#txtPriZipCode').val()
+                        $('#txtPriPolicyNo').val().trim(),
+                        $('#txtPriSubFirstName').val().trim(),
+                        $('#txtPriSubLastName').val().trim(),
+                        $('#ddlPriGender option:selected').val().trim() || '',
+                        $('#txtPriSubPriAddr').val().trim(),
+                        $('#ddlPriRelationShip option:selected').val().trim() || '',
+                        $('#txtPriDOB').val().trim().trim(),
+                        $('#txtPriCity').val().trim(),
+                        $('#ddlPriState option:selected').val().trim() || '',
+                        $('#txtPriZipCode').val().trim()
                     ],
                     secondaryfields: [
-                        $('#txtSecPolicyNo').val(),
-                        $('#txtSecSubFirstName').val(),
-                        $('#txtSecSubLastName').val(),
-                        $('#ddlSecGender option:selected').val() || '',
-                        $('#txtSecSubPriAddr').val(),
-                        $('#ddlSecRelationShip option:selected').val() || '',
-                        $('#txtSecDOB').val(),
-                        $('#txtSecCity').val(),
-                        $('#ddlSecState option:selected').val() || '',
-                        $('#txtSecZipCode').val()
+                        $('#txtSecPolicyNo').val().trim(),
+                        $('#txtSecSubFirstName').val().trim(),
+                        $('#txtSecSubLastName').val().trim(),
+                        $('#ddlSecGender option:selected').val().trim() || '',
+                        $('#txtSecSubPriAddr').val().trim(),
+                        $('#ddlSecRelationShip option:selected').val().trim() || '',
+                        $('#txtSecDOB').val().trim(),
+                        $('#txtSecCity').val().trim(),
+                        $('#ddlSecState option:selected').val().trim() || '',
+                        $('#txtSecZipCode').val().trim()
                     ],
                     tertiaryfields: [
-                        $('#txtTerPolicyNo').val(),
-                        $('#txtTerSubFirstName').val(),
-                        $('#txtTerSubLastName').val(),
-                        $('#ddlTerGender option:selected').val() || '',
-                        $('#txtTerSubPriAddr').val(),
-                        $('#ddlTerRelationShip option:selected').val() || '',
-                        $('#txtTerDOB').val(),
-                        $('#txtTerCity').val(),
-                        $('#ddlTerState option:selected').val() || '',
-                        $('#txtTerZipCode').val()
+                        $('#txtTerPolicyNo').val().trim(),
+                        $('#txtTerSubFirstName').val().trim(),
+                        $('#txtTerSubLastName').val().trim(),
+                        $('#ddlTerGender option:selected').val().trim() || '',
+                        $('#txtTerSubPriAddr').val().trim(),
+                        $('#ddlTerRelationShip option:selected').val().trim() || '',
+                        $('#txtTerDOB').val().trim(),
+                        $('#txtTerCity').val().trim(),
+                        $('#ddlTerState option:selected').val().trim() || '',
+                        $('#txtTerZipCode').val().trim()
                     ]
                 }
 

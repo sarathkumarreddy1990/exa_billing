@@ -393,7 +393,7 @@ define([
 
             dateFormatter: function (cellvalue, options, rowObject) {
                 return commonjs.checkNotEmpty(cellvalue) ?
-                    commonjs.convertToFacilityTimeZone(rowObject.facility_id, cellvalue).format('L LT z') :
+                    commonjs.convertToFacilityTimeZone(rowObject.facility_id, cellvalue).format('L') :
                     '';
             },
 
@@ -496,7 +496,7 @@ define([
                                 }
                             },
                             formatter: function (cellvalue, options, rowObject) {
-                                if (rowObject.type && commentType.indexOf(rowObject.code) == -1)
+                                if (rowObject.code && commentType.indexOf(rowObject.code) == -1)
                                     return "<span class='icon-ic-delete' rel='tooltip' title='Click here to delete'></span>"
                                 else
                                     return "";
@@ -510,7 +510,7 @@ define([
                                 self.getClaimComment(gridData.row_id);
                             },
                             formatter: function (cellvalue, options, rowObject) {
-                                if (rowObject.type && rowObject.code != null && commentType.indexOf(rowObject.code) == -1)
+                                if (rowObject.code && rowObject.code != null && commentType.indexOf(rowObject.code) == -1)
                                     return "<span class='icon-ic-edit' rel='tooltip' title='Click here to edit'></span>"
                                 else
                                     return "";
@@ -519,7 +519,7 @@ define([
                         {
                             name: 'is_internal', width: 20, sortable: false, search: false, hidden: false,
                             formatter: function (cellvalue, options, rowObject) {
-                                if (rowObject.type && rowObject.code != null && commentType.indexOf(rowObject.code) == -1) {
+                                if (rowObject.code && rowObject.code != null && commentType.indexOf(rowObject.code) == -1) {
                                     if (rowObject.is_internal == true)
                                         return '<input type="checkbox" checked   class="chkPaymentReport" name="paymentReportChk"  id="' + rowObject.row_id + '" />'
                                     else
