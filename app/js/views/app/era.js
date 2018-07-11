@@ -449,6 +449,15 @@ define([
                                 $('#eraResultTitle').html('Result : ' + fileName);
                                 $('#divEraResponse').html(self.eraResponseTemplate({ claims: claims, ins: ins }));
                                 $('#divResponseSection').height($(window).height() - 380);
+
+                                try {
+                                    var eraPreview = _.template(EraPreview);
+                                    var previewHtml = eraPreview({ data: ins.rawResponse });
+                                    $('#era-processed-preview').html(previewHtml);
+                                } catch (err) {
+                                    console.log(err);
+                                }
+
                                 commonjs.showDialog({ header: 'Result : ' + fileName, width: '80%', height: '70%', html: $('#divEraResponse').html() });
                             }
                             else {

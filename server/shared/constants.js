@@ -161,13 +161,15 @@ module.exports = {
         'referring-provider-count': 'REPC',
         'referring-provider-summary': 'REPS',
         'transaction-summary': 'TSUM',
-        'list': 'PAYM', // screenNameInternal = list for EOB doubts having
+        'payments_list': 'PAYM', // screenNameInternal = list for EOB doubts having
+        'payments-pdf': 'PAYM',
         'total_amount': 'PAYM',
         'groupcodes_and_reasoncodes': 'PAYM',
         'all': 'PAYM',
         'patient_count': 'PAYM',
         'patient_search': 'PAYM',
         'payment-receipt-pdf':'PAYM',
+        'payment-print-pdf': 'PAYM',
         'applied_amount': 'APAY',
         'claim-charges': 'APAY',
         'fee_details': 'APAY',
@@ -177,8 +179,8 @@ module.exports = {
         'transcription': 'ECLM',
         'vieworder': 'ECLM', // view doc Rmenu
         'claim_charge': 'ECLM', //delete Claim Rmenu 
+        'era_list': 'ERAI',
         'upload': 'ERAI',
-        'user_settings':'BUST',
         'claim_study': 'ECLM',
         'follow_ups': 'ECLM',
         'claim_patient': 'PCLM'
