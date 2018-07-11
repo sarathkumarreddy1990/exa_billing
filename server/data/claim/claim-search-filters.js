@@ -426,14 +426,14 @@ const api = {
     },
 
     setBalanceFilterFlag: function (args, colModel) {
-        var column = JSON.parse(args.filterCol);
-        var data = JSON.parse(args.filterData);
+        let column = JSON.parse(args.filterCol);
+        let data = JSON.parse(args.filterData);
 
         if (column.indexOf('claim_balance') > -1) {
 
-            var colIndex = column.indexOf('claim_balance');
-            
-            for (var i = 0; i < colModel.length; i++) {
+            let colIndex = column.indexOf('claim_balance');
+
+            for (let i = 0; i < colModel.length; i++) {
                 if (colModel[i].name == 'claim_balance') {
                     switch (data[colIndex]) {
                         case '=':
@@ -449,6 +449,7 @@ const api = {
                             colModel[i].searchFlag = '='; //Equals by default
                             break;
                     }
+                    
                     data[colIndex] = '0';
                     args.filterData = JSON.stringify(data);
                     break;
