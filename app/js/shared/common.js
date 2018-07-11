@@ -2841,7 +2841,7 @@ var commonjs = {
                 payer = "Secondary Insurance";
                 break;
             case "teritary_insurance":
-                payer = "Teritary Insurance";
+                payer = "Tertiary Insurance";
                 break;
             default:
                 payer = "";
