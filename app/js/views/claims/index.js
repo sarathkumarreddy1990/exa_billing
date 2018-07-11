@@ -618,7 +618,7 @@ define(['jquery',
                 /* Common Details Edit & Claim creation */
                 if (self.isEdit) {
                     self.bindEditClaimInsuranceDetails(claim_data);
-                    var responsibleIndex = _.find(self.responsible_list, function(item) { return item.payer_type_name == claim_data.payer_type;});
+                    var responsibleIndex = _.find(self.responsible_list, function (item) { return item.payer_type_name == claim_data.payer_type; });
                     $('#ddlResponsible').val(responsibleIndex.payer_type);
                     $('#ddlClaimStatus').val(claim_data.claim_status_id || '');
                     $('#ddlFrequencyCode').val(claim_data.frequency || '')
@@ -626,7 +626,11 @@ define(['jquery',
                 } else {
                     $('#ddlResponsible').val('PPP');
                     $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
-                    $('#ddlFrequencyCode').val(claim_data.frequency);
+                    var frequency = [{ code: 7, desc: 'corrected' }, { code: 8, desc: 'void' }, { code: 1, desc: 'original' }];
+                    if (claim_data.frequency) {
+                        var code = _.find(frequency, function (item) { return item.code == parseInt(claim_data.frequency); });
+                        $('#ddlFrequencyCode').val(code.desc || '');
+                    }
                     if (claim_data.pos_type_code && claim_data.pos_type_code != '') {
                         $('#ddlPOSType').val($('option[data-code = ' + claim_data.pos_type_code.trim() + ']').val());
                     }
