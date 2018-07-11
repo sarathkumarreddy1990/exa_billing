@@ -27,7 +27,7 @@ WITH get_claim_details AS(
  to_char(bc.claim_dt, 'MM/DD/YYYY') AS "Claim Date",
  pp.account_no as "Account #",
  <% if(incPatDetail == 'true') { %>     
-    CASE WHEN primary_patient_insurance_id is not null THEN 'Primary Insurance' ELSE '-- No payer --'  END AS "Responsible Party",     
+    CASE WHEN primary_patient_insurance_id is not null THEN 'Primary Insurance' ELSE '-No payer-'  END AS "Responsible Party",     
 <%} else {%>    
 CASE WHEN payer_type = 'primary_insurance' THEN 'Insurance'
 WHEN payer_type = 'secondary_insurance' THEN 'Insurance'
@@ -118,6 +118,7 @@ COALESCE(CASE WHEN gcd.age > 90 and gcd.age <=120 THEN gcd.balance END,0::money)
       <% if(billingProID) { %> AND <% print(billingProID); } %>
       <% if(excCreditBal == 'true'){ %> AND  gcd.balance::money > '0' <% } %>
 GROUP BY "Payer Name","Facility","Claim ID","Cut-off Date","Billing Pro Name","Patient Name","Claim Date","Account #","Responsible Party","EDI","Provider Type", gcd.age,gcd.balance
+
 ),
 aged_ar_sum AS ( SELECT 
        null::text as "Facility", 
@@ -157,7 +158,7 @@ aged_ar_sum AS ( SELECT
    FROM 
        aging_details 
    GROUP BY 
-       "Payer Name"
+       "Payer Name"       
 ),
 aged_ar_total AS ( SELECT 
     null::text as "Facility", 
@@ -208,7 +209,12 @@ aging_result as ( SELECT
                   FROM aged_ar_total 
 ) 
 SELECT * FROM aging_result 
-ORDER BY "Payer Name","Responsible Party"
+<% if(incPatDetail == 'true') { %>     
+    ORDER BY "Responsible Party" ASC
+   <% } else { %>
+    ORDER BY "Responsible Party",  "Payer Name"
+
+    <% } %>
 `);
 
 const api = {
@@ -313,23 +319,21 @@ const api = {
         params.push(reportParams.companyId);
         filters.companyId = queryBuilder.where('bc.company_id', '=', [params.length]);
 
-        //claim facilities
-        if (!reportParams.allFacilities && reportParams.facilityIds) {
+               if (!reportParams.allFacilities && reportParams.facilityIds) {
             params.push(reportParams.facilityIds);
             filters.facilityIds = queryBuilder.whereIn('bc.facility_id', [params.length]);
         }
 
+         // billingProvider single or multiple
+         if (reportParams.billingProvider) {
+            params.push(reportParams.billingProvider);
+            filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
+        }
         //  claim_dt
 
         params.push(reportParams.fromDate);
         filters.claimDate = `$${params.length}::date`;
-
-        // billingProvider single or multiple
-        if (reportParams.billingProvider) {
-            params.push(reportParams.billingProvider);
-            filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
-        }
-
+      
         filters.excelExtented = reportParams.excelExtended;
         filters.excCreditBal = reportParams.excCreditBal
         filters.incPatDetail = reportParams.incPatDetail
