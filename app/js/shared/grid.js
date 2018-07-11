@@ -148,6 +148,7 @@ define('grid', [
                 if (_storeEle.billed_status == 'billed') {
                     isbilled_status = true;
                 }
+
                 if (_storeEle.billed_status == 'unbilled') {
                     isUnbilled_status = true;
                 }
@@ -539,7 +540,7 @@ define('grid', [
                 }
 
             } else {
-                if(!isbilled_status)  {
+                if (!isbilled_status) {
                     var liCreateClaim = commonjs.getRightClickMenu('anc_create_claim','setup.rightClickMenu.createClaim',false,'Create Claim',false);
                     $divObj.append(liCreateClaim);
                     self.checkRights('anc_create_claim');
@@ -1060,10 +1061,13 @@ define('grid', [
                 isClaimGrid: options.isClaimGrid,
 
                 onRightClickRow: function (rowID, iRow, iCell, event, options) {
-                    if (disableRightClick()) {
+                    var gridData = $('#' + event.currentTarget.id).jqGrid('getRowData', rowID);
+                    if (['Aborted', 'Cancelled', 'No Shows'].indexOf(gridData.study_status) >-1 || gridData.has_deleted=="Yes") {
+                        event.stopPropagation();
+                    } else if (disableRightClick()) {
                         var _selectEle = $(event.currentTarget).find('#' + rowID).find('input:checkbox');
                         _selectEle.attr('checked', true);
-                        var gridData = $('#' + event.currentTarget.id).jqGrid('getRowData', rowID);
+
                         if (!options.isClaimGrid && !gridData.claim_id) {
                             validateClaimSelection(rowID, true, _selectEle, studyStore);
                         }

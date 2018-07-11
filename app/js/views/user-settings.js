@@ -86,11 +86,23 @@ define([
                 this.model.save({},
                     {
                         success: function (model, response) {
+                           
                             $('#save_settings').attr('disabled', false);
-                            if (self.gridFilterName == 'studies')
-                                $('#btnStudiesRefreshAll').click();
-                            else if (self.gridFilterName == 'claims')
-                                $('#btnClaimRefreshAll').click();
+                            if (self.gridFilterName == 'studies'){
+                                app.study_user_settings.field_order = claimSettingFields.map(Number);
+                                app.study_user_settings.default_column_order_by =claim_sort_order;
+                                app.study_user_settings.default_column =claim_col_name;
+                                app.study_user_settings.default_tab =self.default_tab;
+                                $('#btnStudiesCompleteRefresh').click();
+                            }                                  
+                            else if (self.gridFilterName == 'claims'){
+                                app.claim_user_settings.field_order =claimSettingFields.map(Number);
+                                app.claim_user_settings.default_column_order_by =claim_sort_order;
+                                app.claim_user_settings.default_column =claim_col_name;
+                                app.claim_user_settings.default_tab =self.default_tab;
+                                $('#btnClaimsCompleteRefresh').click();
+                            }
+                                  
                             commonjs.hideDialog();
                             commonjs.hideLoading();
                         },
