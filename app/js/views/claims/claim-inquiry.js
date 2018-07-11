@@ -176,7 +176,7 @@ define([
                                 $("#tblCIDiagnosis").jqGrid('setGridParam', { datatype: 'local', data: data.icdcode_details }).trigger("reloadGrid");
 
                             } else {
-                                self.showInsuranceGrid(data.insurance_details);
+                                self.showInsuranceGrid(data.insurance_details, claimID);
                                 self.showDiagnosisGrid(data.icdcode_details);
                                 self.showClaimCommentsGrid();
                             }
@@ -197,12 +197,13 @@ define([
                 });
             },
 
-            showInsuranceGrid: function (data) {
+            showInsuranceGrid: function (data, claimID) {
+                var self = this;
 
                 $('#tblCIInsurance').jqGrid({
                     datatype: 'local',
                     data: data != null ? data : [],
-                    colNames: ['', 'code', 'description', 'Subscriber Name', 'DOB', 'Policy No', 'Group No', 'Paper Claim'],
+                    colNames: ['', 'code', 'description', 'Subscriber Name', 'DOB', 'Policy No', 'Group No', 'Paper Claim Original', 'Paper Claim Full'],
                     colModel: [
                         { name: 'id', hidden: true },
                         { name: 'insurance_code', search: false },
@@ -212,19 +213,39 @@ define([
                         { name: 'policy_number', search: false },
                         { name: 'group_number', search: false },
                         {
-                            name: 'paper_claim', search: false,
+                            name: 'paper_claim_original', search: false,
                             customAction: function (rowID) {
                             },
                             formatter: function (cellvalue, options, rowObject) {
-                                return "<input type='button' id='btnCIPaperClaim' class='btn btnCommentSave  btn-primary' value='Paper Claim' i18n='shared.buttons.paperclaim' id='spnPaperClaim_" + rowObject.id + "'>"
+                                return "<input type='button' style='line-height: 1;' class='btn btn-paper-claim-original btn-primary' value='Paper Claim' i18n='shared.buttons.paperclaimOrg' id='spnPaperClaim_" + rowObject.id + "'>"
+                            }
+                        },
+                        {
+                            name: 'paper_claim_full', search: false,
+                            customAction: function (rowID) {
+                            },
+                            formatter: function (cellvalue, options, rowObject) {
+                                return "<input type='button' style='line-height: 1;' class='btn btn-paper-claim-full btn-primary' value='Paper Claim' i18n='shared.buttons.paperclaimFull' id='spnPaperClaim_" + rowObject.id + "'>"
                             }
                         }
                     ],
                     cmTemplate: { sortable: false },
                     customizeSort: true,
                     width: $('#claimDetails').width() - 50,
-                    shrinkToFit: true
+                    shrinkToFit: true,
+
+                    beforeSelectRow: function (rowid, e) {
+                        var target = e.target || e.srcElement;
+                        var cellIndex = (target).parentNode.cellIndex;
+
+                        if(target.className.indexOf('btn-paper-claim-original') > -1) {
+                            self.showPaperClaim('paper_claim_original', claimID, rowid, '');
+                        } else if(target.className.indexOf('btn-paper-claim-full') > -1) {
+                            self.showPaperClaim('paper_claim_full', claimID, rowid, '');
+                        }                         
+                    },
                 });
+
                 $('#gview_tblCIInsurance').find('.ui-jqgrid-bdiv').css('max-height', '100px')
             },
 

@@ -180,7 +180,6 @@ define(['jquery',
             renderForm: function(id) {
                 var self = this;
                 $('#divStatusColorCodesForm').html(this.statusColorCodesFormTemplate());
-                self.loadProcessStatus(self.claimStatus);
                 if(id > 0) {
                     this.model.set({id: id});
                     this.model.fetch({
@@ -235,8 +234,10 @@ define(['jquery',
                     this.loadProcessStatus(this.claimStatus);
                 } else if (processType == 'payment') {
                     this.loadProcessStatus(this.paymentStatus);
-                } else {
+                } else if (processType == 'study') {
                     this.loadProcessStatus(this.studyStatus);
+                } else {
+                    $('#ddlProcessStatus').empty();
                 }
             },
 
