@@ -129,7 +129,7 @@ define([
                     }
                     var insurance_info = commonjs.hstoreParse(repo.insurance_info);
                     var markup = "<table><tr>";
-                    markup += "<td  data-id='" + repo.id + " ' title='" + repo.insurance_code + "(" + repo.insurance_name + ")'> <div>" + repo.insurance_code + "(" + repo.insurance_name + ")" + "</div>";
+                    markup += "<td  data-id='" + repo.id + " ' title='" + repo.insurance_code + "(" + repo.insurance_name + ")'> <div>" + repo.insurance_code + "(" + repo.insurance_name +  + " " + repo.insurance_info.Address1 + " " + repo.insurance_info.Address2 + " " + repo.insurance_info.City + " " + repo.insurance_info.State +   ")" + "</div>";
 
                     markup += "</td></tr></table>";
                     return markup;

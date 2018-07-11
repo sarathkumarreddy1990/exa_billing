@@ -50,8 +50,7 @@ define(['jquery',
                 { payer_type: "PIP_S", payer_type_name: "secondary_insurance", payer_id: null, coverage_level: "S", payer_name: null, billing_method: null },
                 { payer_type: "PIP_T", payer_type_name: "tertiary_insurance", payer_id: null, coverage_level: "T", payer_name: null, billing_method: null },
                 { payer_type: "POF", payer_type_name: "ordering_facility", payer_id: null, payer_name: null },
-                { payer_type: "RF", payer_type_name: "referring_provider", payer_id: null, payer_name: null },
-                { payer_type: "PF", payer_type_name: "facility", payer_id: null, payer_name: null }
+                { payer_type: "RF", payer_type_name: "referring_provider", payer_id: null, payer_name: null }
             ],
             usermessage: {
                 selectStudyRefProvider: 'Select Refer. Provider',
@@ -290,8 +289,8 @@ define(['jquery',
                 $('#imgLoading').show();
                 
 
-                commonjs.showLoading();
-
+                commonjs.showLoading('Connecting Pokitdok. please wait');
+                $('#divPokidokResponse').empty();
                 $.ajax({
                     url: '/exa_modules/billing/claims/claim/eligibility',
                     type: "POST",
@@ -305,9 +304,10 @@ define(['jquery',
                         if (data && data.errors) {
                             commonjs.showWarning(data.errors.query ? data.errors.query : 'ERR: ' + JSON.stringify(data.errors) + '..');
                             return;
-                        } else if(!data.errors && response.insPokitdok == true) {
+                        }
+                        else if (!data.errors && response.insPokitdok == true) {
                             $('#divPokidokResponse').html($(self.InsurancePokitdokTemplateForm({'InsuranceData': response.data, 'InsuranceDatavalue': response.meta})));
-                            $('#divPokidokResponse').show();
+                            commonjs.showDialog({ header: 'Pokitdok Response', width: '80%', height: '70%', html: $('#divPokidokResponse').html() });
                         }
 
                         $("#btnClosePokidokPopup").unbind().click(function (e) {
@@ -591,14 +591,6 @@ define(['jquery',
                 });
 
                 var facility = $('#ddlFacility option:selected').val();
-                if (facility != '') {
-                    self.updateResponsibleList({
-                        payer_type: 'PF',
-                        payer_id: facility,
-                        payer_name: $('#ddlFacility option:selected').text().trim() + '( Facility )'
-                    });
-                }
-
                 if (self.group_id || null) {
                     self.updateResponsibleList({
                         payer_type: 'POF',
@@ -618,7 +610,7 @@ define(['jquery',
                 /* Common Details Edit & Claim creation */
                 if (self.isEdit) {
                     self.bindEditClaimInsuranceDetails(claim_data);
-                    var responsibleIndex = _.find(self.responsible_list, function(item) { return item.payer_type_name == claim_data.payer_type;});
+                    var responsibleIndex = _.find(self.responsible_list, function (item) { return item.payer_type_name == claim_data.payer_type; });
                     $('#ddlResponsible').val(responsibleIndex.payer_type);
                     $('#ddlClaimStatus').val(claim_data.claim_status_id || '');
                     $('#ddlFrequencyCode').val(claim_data.frequency || '')
@@ -626,7 +618,11 @@ define(['jquery',
                 } else {
                     $('#ddlResponsible').val('PPP');
                     $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
-                    $('#ddlFrequencyCode').val(claim_data.frequency);
+                    var frequency = [{ code: 7, desc: 'corrected' }, { code: 8, desc: 'void' }, { code: 1, desc: 'original' }];
+                    if (claim_data.frequency) {
+                        var code = _.find(frequency, function (item) { return item.code == parseInt(claim_data.frequency); });
+                        $('#ddlFrequencyCode').val(code.desc || '');
+                    }
                     if (claim_data.pos_type_code && claim_data.pos_type_code != '') {
                         $('#ddlPOSType').val($('option[data-code = ' + claim_data.pos_type_code.trim() + ']').val());
                     }
@@ -886,7 +882,7 @@ define(['jquery',
             },
             getLineItemsAndBind: function (selectedStudyIds) {
                 var self = this;
-
+                self.chargeModel = [];
                 if (selectedStudyIds) {
 
                     $.ajax({
@@ -900,7 +896,7 @@ define(['jquery',
                             if (model && model.length > 0) {
                                 $('#tBodyCharge').empty();
                                 var modelDetails = model[0];
-                                self.studyDate = modelDetails && modelDetails.charges && modelDetails.charges[0].study_dt ? modelDetails.charges[0].study_dt : '' ;
+                                self.studyDate = modelDetails && modelDetails.charges && modelDetails.charges.length && modelDetails.charges[0].study_dt ? modelDetails.charges[0].study_dt : '' ;
                                 var diagnosisCodes = [];
                                 var diagnosisCodesOrder = [];
                                 _.each(modelDetails.charges, function (item) {
@@ -2410,6 +2406,8 @@ define(['jquery',
                                 commonjs.showWarning(response.message);
                             } else {
                                 commonjs.showStatus("messages.status.successfullyCompleted");
+                                $("#btnClaimsRefresh").click();
+                                $("#btnStudiesRefresh").click();
                                 commonjs.hideDialog();
                             }
                             
@@ -3319,15 +3317,6 @@ define(['jquery',
                 });
                 
                 $('#ddlFacility').val(app.facilityID || '');
-
-                if (app.facilityID) {
-                    self.updateResponsibleList({
-                        payer_type: 'PF',
-                        payer_id: app.facilityID,
-                        payer_name: $('#ddlFacility option:selected').text().trim() + '( Facility )'
-                    });
-                }
-
                 $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
                 $('#ddlResponsible').val('PPP');
 

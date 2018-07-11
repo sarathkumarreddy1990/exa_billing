@@ -91,7 +91,7 @@ WITH details AS(
         SELECT * FROM details
         UNION ALL
         SELECT
-             null,'---','---', null             
+             null,'---','Total', null             
          ,null             
              ,(SELECT SUM("Insurance Balance")::money from details)
              ,(SELECT SUM("Charge Amount") FROM details) 

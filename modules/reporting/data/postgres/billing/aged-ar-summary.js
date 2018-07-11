@@ -22,7 +22,7 @@ aged_ar_summary_details AS(
  SELECT
  <% if (facilityIds) { %> MAX(pf.facility_name) <% } else  { %> 'All'::text <% } %> as "Facility",
  <% if(incPatDetail == 'true') { %>     
-            CASE WHEN primary_patient_insurance_id is not null THEN 'Primary Insurance' ELSE '-- No payer --'  END AS responsible_party,     
+            CASE WHEN primary_patient_insurance_id is not null THEN 'Primary Insurance' ELSE '-- No payer --'  END AS "Responsible Party",     
  <%} else {%>    
  CASE WHEN payer_type = 'primary_insurance' THEN 'Insurance'
       WHEN payer_type = 'secondary_insurance' THEN 'Insurance'
@@ -30,7 +30,7 @@ aged_ar_summary_details AS(
       WHEN payer_type = 'referring_provider' THEN 'Provider'
       WHEN payer_type = 'patient' THEN 'Patient'
       WHEN payer_type = 'ordering_facility' THEN 'Ordering Facility'     
-END AS responsible_party,
+END AS "Responsible Party",
     <% } %>
 <% if(incPatDetail == 'true') { %>     
         CASE WHEN primary_patient_insurance_id is not null THEN pip.insurance_name 
@@ -42,7 +42,7 @@ END AS responsible_party,
                 WHEN payer_type = 'patient' THEN get_full_name(pp.last_name,pp.first_name)
                 WHEN payer_type = 'ordering_facility' THEN ppg.group_name
             END
-  END AS payer_name,     
+  END AS "Payer Name",     
 <%} else {%>   
  CASE WHEN payer_type = 'primary_insurance' THEN pip.insurance_name
       WHEN payer_type = 'secondary_insurance' THEN pip.insurance_name
@@ -50,7 +50,7 @@ END AS responsible_party,
       WHEN payer_type = 'referring_provider' THEN  ppr.full_name
       WHEN payer_type = 'patient' THEN get_full_name(pp.last_name,pp.first_name)
       WHEN payer_type = 'ordering_facility' THEN ppg.group_name
-END AS payer_name,
+END AS "Payer Name",
  <% } %>
   pippt.code AS "Provider Type",
  CASE
@@ -146,16 +146,16 @@ END
      <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
      <% if(billingProID) { %> AND <% print(billingProID); } %>
      <% if(excCreditBal == 'true'){ %> AND  gcd.balance::money > '0' <% } %>
- GROUP BY responsible_party,payer_name,pippt.code
+ GROUP BY "Responsible Party","Payer Name",pippt.code
 
  <% if(incPatDetail == 'true') { %>     
-    ORDER BY responsible_party DESC
+    ORDER BY "Responsible Party" DESC
    <% } %>
  )
  SELECT
     "Facility",
-    responsible_party,
-    payer_name,
+    "Responsible Party",
+    "Payer Name",
     "Provider Type",
     "EDI",
     "0-30 Count",
@@ -218,7 +218,7 @@ FROM
  SELECT
     null::text "Facility",
     null::text responsible_party,
-    ('--- Total A R ---')::text payer_name,
+    ('--- Total A R ---')::text "Payer Name",
     null::text "Provider Type",
     null::text "EDI",
     sum("0-30 Count") AS "0-30 Count",
