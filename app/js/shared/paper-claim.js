@@ -7,7 +7,7 @@ define([
     _get,
     Backbone
 ) {
-        return function () {
+        return function (showNestedDialog) {
 
             this.pdfDetails = {
                 'paper_claim_original': {
@@ -31,7 +31,7 @@ define([
                 },
             };
 
-            this.print = function (templateType, claimIDs) {
+            this.print = function (templateType, claimIDs, options) {
                 var self = this;
                 var win = null;
 
@@ -46,7 +46,7 @@ define([
                 commonjs.showLoading();
 
                 this.getTemplate(claimIDs, templateType, function (err, template) {
-                    self.getClaimObject(claimIDs, templateType, function (err, claimData) {
+                    self.getClaimObject(claimIDs, templateType, options, function (err, claimData) {
 
                         var docDefinition = self.mergeTemplate(templateType, template, claimData);
                         //var docDefinition = { content: 'This is an sample PDF printed with pdfMake', style: 'header', mmmm: 'sdfdsfdsf' };
@@ -61,12 +61,15 @@ define([
                         }
 
                         pdfWorker.onmessage = function (res) {
-                            console.log('Response received from worker');
-
                             commonjs.hideLoading();
-                            //document.getElementById('ifrPdfPreview').src = outDoc;
 
-                            commonjs.showDialog({
+                            var showDialog = commonjs.showDialog;
+
+                            if (showNestedDialog) {
+                                showDialog = commonjs.showNestedDialog;
+                            }
+
+                            showDialog({
                                 header: self.pdfDetails[templateType].header,
                                 width: '95%',
                                 height: '80%',
@@ -81,29 +84,6 @@ define([
                         };
 
                         pdfWorker.postMessage(docDefinition);
-                        return;
-                      
-
-                        // commonjs.hideLoading();
-
-                        // try {
-                        //     if (win) {
-                        //         pdfMake.createPdf(docDefinition).open({}, win);
-                        //     } else {
-                        //         pdfMake.createPdf(docDefinition).getDataUrl(function (outDoc) {
-                        //             document.getElementById('ifrPdfPreview').src = outDoc;
-
-                        //             commonjs.showDialog({
-                        //                 header: self.pdfDetails[templateType].header,
-                        //                 width: '95%',
-                        //                 height: '80%',
-                        //                 url: outDoc
-                        //             });
-                        //         });
-                        //     }
-                        // } catch (err) {
-                        //     console.log(err);
-                        // }
                     });
                 });
             };
@@ -132,13 +112,17 @@ define([
                 return template;
             }
 
-            this.getClaimObject = function (claimIDs, templateType, callback) {
+            this.getClaimObject = function (claimIDs, templateType, options, callback) {
+
+                options = options || {};
 
                 $.ajax({
                     url: this.pdfDetails[templateType].api,
-                    type:'post',
+                    type: 'post',
                     data: {
-                        claimIds: claimIDs.toString()
+                        claimIds: claimIDs.toString(),
+                        payerType: options.payerType || '',
+                        payerId: options.payerId || ''
                     }, success: function (data, response) {
                         callback(null, data);
                     }, error: function (err, response) {
@@ -152,7 +136,7 @@ define([
 
                 $.ajax({
                     url: '/exa_modules/billing/claim_workbench/printer_template',
-                    type:'post',
+                    type: 'post',
                     data: {
                         claimIds: claimIDs.toString(),
                         templateType: templateType
