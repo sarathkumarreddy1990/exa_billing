@@ -605,7 +605,7 @@ define(['jquery',
                     },
                     success: function (model, response) {
                         $('#tblProviderIDCodesGrid').jqGrid('delRowData', rowID);
-                        self.clearIDCodeForm();
+                        self.clearIDCodesForm();
                         self.bindProviderIDCodes();
                     },
                     error: function (model, response) {
