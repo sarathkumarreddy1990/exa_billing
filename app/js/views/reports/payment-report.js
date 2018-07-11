@@ -159,10 +159,10 @@ define([
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = openInNewTab && rFormat === 'html';
                 this.viewModel.paymentOptions = $('#ddlPaymentOption').val();
-                //if (this.hasValidViewModel()) {
-                var urlParams = this.getReportParams();
-                UI.showReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
-                //}             
+                if (this.hasValidViewModel()) {
+                    var urlParams = this.getReportParams();
+                    UI.showReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
+                }
             },
 
 
@@ -185,7 +185,7 @@ define([
 
                 if ($('#ddlUsersRoleOption').val() == 'S' && $('#ulListUsersRole li').length == 0) {
                     $('#txtUsersRole a span').val('Select User Role');
-                    commonjs.showWarning('Please select at atleast one user');
+                    commonjs.showWarning('Please select at atleast one user Role');
                     return;
                 }
                 return true;

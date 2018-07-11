@@ -23,7 +23,7 @@ define([
                 reportFormat: null,
                 facilities: null,
                 allFacilities: null,
-                fromDate : null
+                fromDate: null
             },
             selectedFacilityList: [],
             events: {
@@ -90,6 +90,7 @@ define([
                     includeSelectAllOption: true,
                     enableCaseInsensitiveFiltering: true
                 });
+                this.onNumberKeyPress();
             },
 
             getSelectedFacility: function (e) {
@@ -138,21 +139,9 @@ define([
                     commonjs.showWarning('Please check report id, category, and/or format!');
                     return;
                 }
-                if (!(this.viewModel.fromDate && this.viewModel.fromDate.date())) {
-                    commonjs.showWarning('Please select date!');
-                    return ;
-                }   
-                if (this.viewModel.fromDate.date().diff(commonjs.getFacilityCurrentDateTime(app.facilityID)) > 0) {
-                    commonjs.showWarning('Please do not select future date ');
-                    return ;
-                }            
 
-                if (isNaN(this.viewModel.minAmount) || this.viewModel.minAmount === '') {
-                    //  commonjs.showWarning('Please enter minimum amount!');
-                    return false;
-                }
-                if (this.viewModel.minAmount < 0) {
-                    commonjs.showWarning('Please enter minimum amount greater than or equal to 0!');
+                if ($('#minAmount').val() === '') {
+                    commonjs.showWarning('Please enter minimum amount!');
                     return;
                 }
                 return true;
@@ -165,10 +154,22 @@ define([
                     patientOption: this.viewModel.patientOption,
                     patientIds: this.viewModel.patientIds,
                     billingProviderIds: this.viewModel.billingProvider,
-                    minAmount: this.viewModel.minAmount,                   
-                    payToProvider: $('#chkPayToProvider').prop('checked'), 
-                    sDate : this.viewModel.fromDate.date().format('YYYY-MM-DD')
+                    minAmount: this.viewModel.minAmount,
+                    payToProvider: $('#chkPayToProvider').prop('checked'),
+                    sDate: this.viewModel.fromDate.date().format('YYYY-MM-DD')
                 };
+            },
+
+            onNumberKeyPress: function () {
+                var number = document.getElementById('minAmount');
+                // Listen for input event on numInput.
+                number.onkeydown = function (e) {
+                    if (!((e.keyCode > 95 && e.keyCode < 106)
+                        || (e.keyCode > 47 && e.keyCode < 58)
+                        || e.keyCode == 8)) {
+                        return false;
+                    }
+                }
             },
 
             onOptionChange: function () {
