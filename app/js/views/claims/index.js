@@ -1445,8 +1445,7 @@ define(['jquery',
                     placeholder: message,
                     escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
                     minimumInputLength: 0,
-                    templateResult: formatRepo,
-                    templateSelection: formatRepoSelection
+                    templateResult: formatRepo
                 });
                 function formatRepo(repo) {
                     if (repo.loading) {
@@ -1481,11 +1480,37 @@ define(['jquery',
                     }
                     return type == 'code' ? res.display_code : res.display_description;
                 }
-                $("#" + id).select2('open');
+                $('#' + id).select2('open');
+                $('#' + id).on('select2:selecting',function(e) {
+                    var res = e.params.args.data;
+                     if (res.id) {
+                        var duration = (res.duration > 0) ? res.duration : 15;
+                        var units = (res.units > 0) ? parseFloat(res.units) : 1.0;
+                        var fee = (res.globalfee > 0) ? parseFloat(res.globalfee) : 0.0;
+                        if(self.isCptAlreadyExists(res.id,rowIndex)) {
+                            e.preventDefault();
+                            commonjs.showWarning("CPT Already Exists");
+                        } else {
+                            self.setCptValues(rowIndex, res, duration, units, fee, type);
+                        }
+                    }
+                });
                 $('#' + id).on('select2:close', function (e) {
                     var rowIndex = e.target.id.split('_')[1];
                     self.hideCptSelections(rowIndex, type);
                 });
+            },
+
+            isCptAlreadyExists: function(cptID,rowID) {
+                var isExists = false;
+                 $('#tBodyCharge').find('tr').each(function (index, rowObject) {
+                    var id = $(this).attr('data_row_id');
+                    var cpt_code_id = $('#lblCptCode_' + id).attr('data_id');
+                    if(rowID != id && cpt_code_id == cptID) {
+                        isExists = true; 
+                    }
+                 });
+                 return isExists;
             },
 
             hideCptSelections: function(rowIndex, type) {
@@ -1980,7 +2005,7 @@ define(['jquery',
                         self.updateInsAddress('Pri', res);
                         self.is_primary_available = true;
                         if($('#ddlPriInsurance').val() !='') {
-                            $('#chkPriAcptAsmt').attr('checked', true);
+                            $('#chkPriAcptAsmt').prop('checked', true);
                         }
                         break;
                     case 'ddlSecInsurance':
@@ -1994,7 +2019,7 @@ define(['jquery',
                         self.updateInsAddress('Sec', res);
                         self.is_secondary_available = true;
                         if($('#ddlSecInsurance').val() !='') {
-                            $('#chkSecAcptAsmt').attr('checked', true);
+                            $('#chkSecAcptAsmt').prop('checked', true);
                         }
                         break;
                     case 'ddlTerInsurance':
@@ -2008,7 +2033,7 @@ define(['jquery',
                         self.updateInsAddress('Ter', res);
                         self.is_tertiary_available = true;
                         if($('#ddlTerInsurance').val() !='') {
-                            $('#chkTerAcptAsmt').attr('checked', true);
+                            $('#chkTerAcptAsmt').prop('checked', true);
                         }
                         break;
                 }
@@ -2165,7 +2190,7 @@ define(['jquery',
                     document.querySelector('#txt' + flag + 'ExpDate').value = result.valid_to_date ? moment(result.valid_to_date).format('MM/DD/YYYY') : '';
                     document.querySelector('#txt' + flag + 'DOB').value = result.subscriber_dob ? moment(result.subscriber_dob).format('MM/DD/YYYY') : '';
                     $('#select2-ddl' + flag + 'Insurance-container').html(result.insurance_name);
-                    $('#chk' + flag + 'AcptAsmt').prop('checked', result.assign_benefits_to_patient);                    
+                    $('#chk' + flag + 'AcptAsmt').prop('checked', true);                    
                     $('#lbl' + flag + 'InsPriAddr').html(result.ins_pri_address);
                     var csz = result.ins_city + (commonjs.checkNotEmpty(result.ins_state) ? ',' + result.ins_state : "") + (commonjs.checkNotEmpty(result.ins_zip_code) ? ',' + result.ins_zip_code : "");
                     $('#lbl' + flag + 'InsCityStateZip').html(csz);

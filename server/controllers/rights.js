@@ -40,10 +40,6 @@ module.exports = {
 
         let permissionName = permissionsMap[screenNameInternal];
 
-        if(screenNameInternal == 'list'){
-            permissionName = moduleNameInternal == 'era' ? 'ERAI' : 'PAYM';
-        }
-
         if (screens.indexOf(permissionName) > -1) {
             return true;
         }

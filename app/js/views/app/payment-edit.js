@@ -1324,7 +1324,16 @@ define(['jquery',
                         });
                         $("#ddlResponsible option[data-payerType=" + payerTypes[0].payer_type + "]").attr('selected', 'selected');
 
-                        $("#ddlAdjustmentCode_fast").val(charges.length ? charges[0].adjustment_code_id : '');
+                        $.each(charges, function (index, charge_details) {
+                            if(charge_details.adjustment_code_id){
+                                $("#ddlAdjustmentCode_fast").val(charge_details.adjustment_code_id);
+                                return false;
+                            }
+                            else{
+                                $("#ddlAdjustmentCode_fast").val('');
+                            }
+                        });
+                        //$("#ddlAdjustmentCode_fast").val(charges.length ? charges[0].adjustment_code_id : '');
                         
                         // $("#ddlResponsible option[val=" + charges[0].adjustment_code_id + "]").attr('selected', 'selected');
                         $('#ddlResponsible').select2();
@@ -1515,9 +1524,10 @@ define(['jquery',
                 var rowCame = 0;
                 for (var k = 1; k <= 7; k++) {
                     var emptyCasObj = {};
-                    var groupCode = $('#selectGroupCode' + k).val()
-                    var reasonCode = $('#selectReason' + k).val()
-                    var amount = $('#txtAmount' + k).val()
+                    var groupCode = $('#selectGroupCode' + k).val();
+                    var reasonCode = $('#selectReason' + k).val();
+                    var amount = $('#txtAmount' + k).val();
+                    
                     if (paymentStatus === 'applied') {
                         var cas_id = $('#selectGroupCode' + k).attr('cas_id');
                     }
@@ -2212,8 +2222,20 @@ define(['jquery',
             checkAllPendingPayments: function () {
                 var self = this;
                 var paymentAmt = $('#lblBalance').text() != '' ? parseFloat($('#lblBalance').text().substring(1)) : 0.00;
-
-                if ($('#txtInvoice').val() == '') {
+                var payer = $('#selectPayerType :selected').val();
+                if ($('#selectPayerType').val() === '0') {
+                    commonjs.showWarning("Please select payer type");
+                    $('#selectPayerType').focus();
+                    return false;
+                }
+                if (!self.validatePayer($('#selectPayerType').val())) {
+                    return false;
+                }
+                if (!self.payer_id) {
+                    commonjs.showWarning("Payer id not setted properly");
+                    return false;
+                }
+                if ($('#txtInvoice').val() == '' && payer != 'patient') {
                     commonjs.showWarning('Please update Invoice number to apply');
                     return false;
                 }
@@ -2222,13 +2244,14 @@ define(['jquery',
                     return false;
                 }
 
-
                 $.ajax({
                     url: '/exa_modules/billing/payments/invoice_details',
                     type: 'GET',
                     data: {
                         paymentId: self.payment_id,
-                        invoice_no: $('#txtInvoice').val()
+                        invoice_no: $('#txtInvoice').val() || 0,
+                        payer_type : payer,
+                        payer_id : self.payer_id
                     },
                     success: function (data, response) {
                         if (data && data.length) {
@@ -2236,10 +2259,18 @@ define(['jquery',
                             var valid_claims = data[0].valid_claims || 0;
                             var msg;
 
-                            if (total_claims != 0 && valid_claims != 0) {
+                            if (total_claims == valid_claims) {
+                                msg = 'Overall (' + valid_claims + ') pending claims. Are you sure to process?';
+                            }
+                            else if (total_claims != 0 && valid_claims != 0) {
                                 msg = 'Valid claim count is (' + valid_claims + ') from overall (' + total_claims + ') pending claims. Are you sure to process?';
                             } else if (total_claims != 0 && valid_claims == 0) {
                                 msg = 'No valid claims to process payment';
+                                commonjs.showWarning(msg);
+                                return false;
+                            }
+                            else if (total_claims == 0) {
+                                msg = "No valid claims to process payment(Pending claims doesn't have balance)";
                                 commonjs.showWarning(msg);
                                 return false;
                             }
@@ -2259,12 +2290,16 @@ define(['jquery',
             applyAllPending: function () {
                 var self = this;
 
+                var payer = $('#selectPayerType :selected').val();
+
                 $.ajax({
                     url: '/exa_modules/billing/payments/apply_invoice_payments',
                     type: 'POST',
                     data: {
                         paymentId: self.payment_id,
-                        invoice_no: $('#txtInvoice').val()
+                        invoice_no: $('#txtInvoice').val() || 0,
+                        payer_type: payer,
+                        payer_id: self.payer_id
                     },
                     success: function (data, response) {
                         if (data && data.length) {
