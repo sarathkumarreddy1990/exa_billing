@@ -290,8 +290,8 @@ define(['jquery',
                 $('#imgLoading').show();
                 
 
-                commonjs.showLoading();
-
+                commonjs.showLoading('Connecting Pokitdok. please wait');
+                $('#divPokidokResponse').empty();
                 $.ajax({
                     url: '/exa_modules/billing/claims/claim/eligibility',
                     type: "POST",
@@ -305,9 +305,10 @@ define(['jquery',
                         if (data && data.errors) {
                             commonjs.showWarning(data.errors.query ? data.errors.query : 'ERR: ' + JSON.stringify(data.errors) + '..');
                             return;
-                        } else if(!data.errors && response.insPokitdok == true) {
+                        }
+                        else if (!data.errors && response.insPokitdok == true) {
                             $('#divPokidokResponse').append($(self.InsurancePokitdokTemplateForm({'InsuranceData': response.data, 'InsuranceDatavalue': response.meta})));
-                            $('#divPokidokResponse').show();
+                            commonjs.showDialog({ header: 'Pokitdok Response', width: '80%', height: '70%', html: $('#divPokidokResponse').html() });
                         }
 
                         $("#btnClosePokidokPopup").unbind().click(function (e) {
