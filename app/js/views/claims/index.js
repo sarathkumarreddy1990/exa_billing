@@ -50,8 +50,7 @@ define(['jquery',
                 { payer_type: "PIP_S", payer_type_name: "secondary_insurance", payer_id: null, coverage_level: "S", payer_name: null, billing_method: null },
                 { payer_type: "PIP_T", payer_type_name: "tertiary_insurance", payer_id: null, coverage_level: "T", payer_name: null, billing_method: null },
                 { payer_type: "POF", payer_type_name: "ordering_facility", payer_id: null, payer_name: null },
-                { payer_type: "RF", payer_type_name: "referring_provider", payer_id: null, payer_name: null },
-                { payer_type: "PF", payer_type_name: "facility", payer_id: null, payer_name: null }
+                { payer_type: "RF", payer_type_name: "referring_provider", payer_id: null, payer_name: null }
             ],
             usermessage: {
                 selectStudyRefProvider: 'Select Refer. Provider',
@@ -591,14 +590,6 @@ define(['jquery',
                 });
 
                 var facility = $('#ddlFacility option:selected').val();
-                if (facility != '') {
-                    self.updateResponsibleList({
-                        payer_type: 'PF',
-                        payer_id: facility,
-                        payer_name: $('#ddlFacility option:selected').text().trim() + '( Facility )'
-                    });
-                }
-
                 if (self.group_id || null) {
                     self.updateResponsibleList({
                         payer_type: 'POF',
@@ -3323,15 +3314,6 @@ define(['jquery',
                 });
                 
                 $('#ddlFacility').val(app.facilityID || '');
-
-                if (app.facilityID) {
-                    self.updateResponsibleList({
-                        payer_type: 'PF',
-                        payer_id: app.facilityID,
-                        payer_name: $('#ddlFacility option:selected').text().trim() + '( Facility )'
-                    });
-                }
-
                 $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
                 $('#ddlResponsible').val('PPP');
 
