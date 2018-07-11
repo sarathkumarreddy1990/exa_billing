@@ -393,7 +393,7 @@ define([
 
             dateFormatter: function (cellvalue, options, rowObject) {
                 return commonjs.checkNotEmpty(cellvalue) ?
-                    commonjs.convertToFacilityTimeZone(rowObject.facility_id, cellvalue).format('L LT z') :
+                    commonjs.convertToFacilityTimeZone(rowObject.facility_id, cellvalue).format('L') :
                     '';
             },
 
