@@ -895,7 +895,7 @@ define(['jquery',
                             if (model && model.length > 0) {
                                 $('#tBodyCharge').empty();
                                 var modelDetails = model[0];
-                                self.studyDate = modelDetails && modelDetails.charges && modelDetails.charges[0].study_dt ? modelDetails.charges[0].study_dt : '' ;
+                                self.studyDate = modelDetails && modelDetails.charges && modelDetails.charges.length && modelDetails.charges[0].study_dt ? modelDetails.charges[0].study_dt : '' ;
                                 var diagnosisCodes = [];
                                 var diagnosisCodesOrder = [];
                                 _.each(modelDetails.charges, function (item) {
