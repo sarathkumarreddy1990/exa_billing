@@ -306,7 +306,7 @@ define(['jquery',
                             commonjs.showWarning(data.errors.query ? data.errors.query : 'ERR: ' + JSON.stringify(data.errors) + '..');
                             return;
                         } else if(!data.errors && response.insPokitdok == true) {
-                            $('#divPokidokResponse').append($(self.InsurancePokitdokTemplateForm({'InsuranceData': response.data, 'InsuranceDatavalue': response.meta})));
+                            $('#divPokidokResponse').html($(self.InsurancePokitdokTemplateForm({'InsuranceData': response.data, 'InsuranceDatavalue': response.meta})));
                             $('#divPokidokResponse').show();
                         }
 
