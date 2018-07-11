@@ -1470,16 +1470,6 @@ define(['jquery',
                         return markup1;
                     }
                 }
-                function formatRepoSelection(res) {
-                    if (res.id) {
-                        var duration = (res.duration > 0) ? res.duration : 15;
-                        var units = (res.units > 0) ? parseFloat(res.units) : 1.0;
-                        var fee = (res.globalfee > 0) ? parseFloat(res.globalfee) : 0.0;
-                        self.setCptValues(rowIndex, res, duration, units, fee, type);
-
-                    }
-                    return type == 'code' ? res.display_code : res.display_description;
-                }
                 $('#' + id).select2('open');
                 $('#' + id).on('select2:selecting',function(e) {
                     var res = e.params.args.data;
@@ -2751,7 +2741,6 @@ define(['jquery',
                 if (flag && payer_type) {
                     $('#ddlExist' + flag + 'Ins').val('');
                     $('#txt' + flag + 'Insurance').val('');
-                    $('#select2-ddl' + flag + 'Insurance-container').html(self.usermessage.selectCarrier);
                     $('#chk' + flag + 'AcptAsmt').prop('checked', false);
                     $('#lbl' + flag + 'InsPriAddr').html('');
                     $('#lbl' + flag + 'InsCityStateZip').html('');
@@ -2781,8 +2770,7 @@ define(['jquery',
                         $('#ddlServiceType').multiselect("deselectAll", false).multiselect("refresh");
                         $('#txtBenefitOnDate').val('');
                     }
-                    else 
-                    if(flag == 'Sec'){
+                    else if(flag == 'Sec'){
                         $('#ddlServiceType2').multiselect("deselectAll", false).multiselect("refresh");
                         $('#txtBenefitOnDate2').val('');
                     }
@@ -2790,6 +2778,8 @@ define(['jquery',
                          $('#ddlServiceType3').multiselect("deselectAll", false).multiselect("refresh");
                          $('#txtBenefitOnDate3').val('');
                     }
+                    $('#ddl' + flag + 'Insurance').empty();
+                    $('#select2-ddl' + flag + 'Insurance-container').html(self.usermessage.selectCarrier);
 
                     // remove from ResponsibleList
                     self.updateResponsibleList({
