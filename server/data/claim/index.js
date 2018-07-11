@@ -305,7 +305,7 @@ module.exports = {
                     (${JSON.stringify(claim_icds)})::json,
                     (${JSON.stringify(auditDetails)})::json,
                     (${JSON.stringify(charges)})::json) as result `;
-        let result = await query(sql);
+        await query(sql);
         return result;
     },
 
