@@ -57,7 +57,7 @@ define([
                             className: 'icon-ic-edit',
                             route: '#setup/payment_reasons/edit/',
                             formatter: function (e, model, data) {
-                                return "<span class='icon-ic-edit' title='click Here to Edit'></span>";
+                                return "<i class='icon-ic-edit' title='Click here to edit'></i>";
                             }
                         },
                         {
@@ -79,7 +79,7 @@ define([
                                 }
                             },
                             formatter: function (e, model, data) {
-                                return "<span class='icon-ic-delete' title='click Here to Delete'></span>";
+                                return "<i class='icon-ic-delete' title='Click here to delete'></i>";
                             }
                         },
                         {
