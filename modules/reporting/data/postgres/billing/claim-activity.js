@@ -222,10 +222,10 @@ const api = {
 
         // Facility Filter
         if (params.allFacilities && params.facilityIds)
-            filtersUsed.push({ name: 'facilities', label: 'Facility', value: 'All' });
+            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
         else {
             const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
-            filtersUsed.push({ name: 'facilities', label: 'Facility', value: facilityNames });
+            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
         }
         // Billing provider Filter
         if (params.allBillingProvider == 'true')
