@@ -138,7 +138,12 @@ WITH claim_data as(
     detail_cte AS(
     select * From main_detail_cte
     where (CASE WHEN payment_type = 'adjustment' THEN amount != 0::money ELSE 1 = 1 END)
+    <% if (minAmount > 0)  {%> 
     AND sum_amount >=  <%= minAmount  %>::money
+    <% } else { %>
+        AND sum_amount >  <%= minAmount  %>::money
+        <% } %>
+
     ),
     sum_encounter_cte AS (
     SELECT 

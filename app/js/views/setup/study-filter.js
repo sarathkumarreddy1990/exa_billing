@@ -516,7 +516,7 @@ define([
 
                         $('#listOrdFacility option[value="' + $(this).attr('data-id') + '"]').prop('selected', true);
                         $('#ulListOrdFacility').append('<li><span>' + $('#select2-ddlOrdFacility-container').text() + '</span><a class="remove" data-id="' + $(this).attr('data-id') + '"><span class="icon-ic-close"></span></a></li>')
-
+                        $('#select2-ddlOrdFacility-container').text('');
                     });
                     $('#ulListStudyDescriptions').delegate('a.remove', 'click', function () {
                         $(this).closest('li').remove();
@@ -554,7 +554,6 @@ define([
                 }
 
                 if (id > 0) {
-                    this.model = new studyFiltersModel();
                     this.model.set({id: id});
                     this.model.fetch({
                         data: {id: this.model.id},
@@ -836,6 +835,8 @@ define([
                         }
                     });
                 }
+                else
+                    this.model = new studyFiltersModel();
                 this.studyFilterSideMenuResize();
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
             },
@@ -1426,7 +1427,7 @@ define([
                         }
                         break;
                 }
-                e.preventDefault();
+                e.stopPropagation();
                 return false;
             },
 
@@ -1473,6 +1474,7 @@ define([
                         }
                         break;
                 }
+                e.stopPropagation();
                 return false;
             },
 
@@ -1627,6 +1629,7 @@ define([
                 $('#txtAccession').val('');
                 $('#txtAttorney').val('');
                 $('#txtStudyDescription').val('');
+                $('#txtInstitutionStudyFilter').val('');
 
                 $('#ulListOrdFacility').empty();
                 $('#listOrdFacility option').remove();
@@ -1751,7 +1754,7 @@ define([
                 // Date From - Date To
                 else {
                     var fromDt = $('#txtDateFrom').val(),
-                        toDt = $('#txtDateFrom').val();
+                        toDt = $('#txtDateTo').val();
                     if (fromDt && toDt) {
                         var fromTime = $('#txtFromTimeDate').val() ? " " + $('#txtFromTimeDate').val() : "";
                         var toTime = $('#txtToTimeDate').val() ? " " + $('#txtToTimeDate').val(): "";

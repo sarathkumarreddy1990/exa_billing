@@ -44,6 +44,12 @@ module.exports = {
         }
 
         const fileName = shared.base64Decode(params.f);
+        const eraResponseJson = await this.getRawEobResponse(fileName);
+
+        return eraResponseJson;
+    },
+
+    getRawEobResponse: async function(fileName) {
         const eraRequestText = await readFile(fileName, 'utf8');
         const templateName = await ediConnect.getDefaultEraTemplate();
 
@@ -76,6 +82,12 @@ module.exports = {
         let fileMd5 = crypto.createHash('MD5').update(bufferString, 'utf8').digest('hex');
 
         const dataRes = await data.isProcessed(fileMd5, 1);
+
+        if (!(dataRes.rows[0].file_store_info && dataRes.rows[0].file_store_info.length)) {
+            return {
+                file_store_status: 'FILE_STORE_NOT_EXISTS'
+            };
+        }
 
         const fileStorePath = dataRes.rows[0].file_store_info[0].root_directory;
         const fileStoreId = dataRes.rows[0].file_store_info[0].file_store_id;
@@ -287,12 +299,12 @@ module.exports = {
         payerDetails.paymentId = null;
         payerDetails.company_id = payerDetails.company_id;
         payerDetails.user_id = payerDetails.created_by;
-        payerDetails.facility_id = 1;
+        payerDetails.facility_id = null;
         payerDetails.patient_id = null;
         payerDetails.insurance_provider_id = payerDetails.payer_id;
         payerDetails.provider_group_id = null;
         payerDetails.provider_contact_id = null;
-        payerDetails.payment_reason_id = 2;
+        payerDetails.payment_reason_id = null;
         payerDetails.amount = 0;
         payerDetails.accounting_date = 'now()';
         payerDetails.invoice_no = '';
@@ -336,9 +348,12 @@ module.exports = {
 
         let claimLists = eraObject && eraObject.headerNumber ? eraObject.headerNumber : {};
 
-        let LineItemsAndClaimLists = await eraParser.getFormatedLineItemsAndClaims(claimLists, params);
+        let lineItemsAndClaimLists = await eraParser.getFormatedLineItemsAndClaims(claimLists, params);
 
-        let processedClaims = await data.createPaymentApplication(LineItemsAndClaimLists, paymentDetails);
+        paymentDetails.code = 'ERA';
+        paymentDetails.isFrom = 'EOB';
+
+        let processedClaims = await data.createPaymentApplication(lineItemsAndClaimLists, paymentDetails);
 
         await data.updateERAFileStatus(paymentDetails);
 
@@ -358,8 +373,20 @@ module.exports = {
     },
 
     getProcessedEraFileDetails: async function (params) {
+        let eraResponse = await data.getProcessedFileData(params);
 
-        return data.getProcessedFileData(params);
+        if(eraResponse.rows && eraResponse.rows[0].file_name) {
+            const filePath = path.join(eraResponse.rows[0].root_directory, eraResponse.rows[0].file_path, eraResponse.rows[0].file_name);
 
+            try {
+                const eraResponseJson = await this.getRawEobResponse(filePath);
+                eraResponse.rows[0].rawResponse = eraResponseJson; 
+            } catch(err) {
+                logger.error(err);
+                eraResponse.rows[0].rawResponse = {};                 
+            }
+        }
+
+        return eraResponse;
     }
 };

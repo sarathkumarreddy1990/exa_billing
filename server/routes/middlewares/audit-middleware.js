@@ -19,6 +19,8 @@ app.use(function (req, res, next) {
             entityName
         } = shared.getScreenDetails(req.path);
 
+        let clientIp = (req.headers['x-forwarded-for'] || req.connection.remoteAddress.split(':').pop() || '127.0.0.1').split(',')[0];
+
         if (!screenName) {
             return next();
         }
@@ -28,7 +30,7 @@ app.use(function (req, res, next) {
             screenName,
             moduleName,
             entityName,
-            clientIp: '127.0.0.1',
+            clientIp,
         };
 
         req.body = {

@@ -221,7 +221,7 @@ module.exports = {
                                     ,matched_claims.claim_status_code
                                     ,billing.create_payment_applications(
                                         ${paymentDetails.id}
-                                        ,( SELECT id FROM billing.adjustment_codes WHERE code ='ERA' ORDER BY id ASC LIMIT 1 )
+                                        ,( SELECT id FROM billing.adjustment_codes WHERE code =${paymentDetails.code} ORDER BY id ASC LIMIT 1 )
                                         ,${paymentDetails.created_by}
                                         ,json_build_array(matched_claims.json_build_object)::jsonb
                                         ,(${JSON.stringify(audit_details)})::json
@@ -234,7 +234,8 @@ module.exports = {
                                 SET 
                                     amount = ( SELECT COALESCE(sum(payment),'0')::numeric FROM matched_claims ),
                                     notes =  notes || E'\n' || 'Amount received for matching orders : ' || ( SELECT COALESCE(sum(payment),'0')::numeric FROM matched_claims ) || E'\n\n' || ${paymentDetails.uploaded_file_name}
-                                WHERE id = ${paymentDetails.id}
+                                WHERE id = ${paymentDetails.id} 
+                                AND 'EOB' = ${paymentDetails.isFrom}
                             )
                             ,insert_claim_comments AS (
                                 INSERT INTO billing.claim_comments
@@ -470,9 +471,13 @@ module.exports = {
                     pip.insurance_info->'City'  AS city,
                     pip.insurance_info->'State' AS state,
                     pip.insurance_info->'PhoneNo' AS phone_no,
-                    pip.insurance_info->'ZipCode' AS zip
+                    pip.insurance_info->'ZipCode' AS zip,
+				    fs.root_directory,
+				    bef.id as file_name, 
+				    bef.file_path
                 FROM 
                     billing.edi_files bef 
+                    INNER JOIN file_stores fs on fs.id = bef.file_store_id
                     INNER JOIN billing.edi_file_payments befp ON befp.edi_file_id = bef.id 
                     INNER JOIN billing.payments bp on bp.id = befp.payment_id 
                     INNER JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id 
