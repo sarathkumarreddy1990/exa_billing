@@ -137,10 +137,10 @@ module.exports = {
 
     delete: async (params) => {
         const {
-                id,
-                processType,
-                processStatus
-            } = params;
+            id,
+            processType,
+            processStatus
+        } = params;
 
         const sql = SQL`DELETE FROM 
                             billing.status_color_codes 

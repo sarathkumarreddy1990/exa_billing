@@ -126,7 +126,7 @@ module.exports = {
 
     delete: async function (params) {
 
-    const {
+        const {
             id,
             code,
             description

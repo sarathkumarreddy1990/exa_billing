@@ -179,10 +179,9 @@ module.exports = {
 
     delete: async (params) => {
         const {
-                id,
-                name,
-                templateType
-            } = params;
+            id,
+            name
+        } = params;
 
         const sql = SQL`DELETE FROM 
                             billing.printer_templates 

@@ -47,12 +47,12 @@ module.exports = {
         }
 
         if (isFrom != 'claimStatus') {
-            sql.append(SQL ` ORDER BY `)
+            sql.append(SQL` ORDER BY `)
                 .append(sortField)
                 .append(' ')
                 .append(sortOrder)
-                .append(SQL ` LIMIT ${pageSize} `)
-                .append(SQL ` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+                .append(SQL` LIMIT ${pageSize} `)
+                .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
         }
 
         return await query(sql);
@@ -149,7 +149,7 @@ module.exports = {
     },
 
     delete: async (params) => {
-    const {
+        const {
             id,
             code,
             description
