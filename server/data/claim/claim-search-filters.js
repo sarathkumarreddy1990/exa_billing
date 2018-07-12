@@ -554,9 +554,11 @@ const api = {
                 isFrom: 'Claims',
                 statOverride: statOverride
             };
+
             if(args.filterCol && args.filterData){
-            api.setBalanceFilterFlag(args, colModel);
+                api.setBalanceFilterFlag(args, colModel);
             }
+            
             const response = await filterValidator.generateQuery(colModel, args.filterCol, args.filterData, query_options);
             args.filterQuery = response;
 
