@@ -126,10 +126,10 @@ module.exports = {
 
     delete: async (params) => {
         const {
-                id,
-                code,
-                description
-            } = params;
+            id,
+            code,
+            description
+        } = params;
 
         const sql = SQL`DELETE FROM 
                             billing.cas_reason_codes 

@@ -141,8 +141,6 @@ var layout = {
 
         this.highlightSideMenu(options.module, options.screen);
 
-        if (options.layout == siteLayouts.customer)
-            this.highlightMainMenu_Customer(options.screen);
         if (options.module == 'Setup') {
             $('#ancCompany').attr('href', '#setup/company/edit/' + app.company_code);
             if (app.userInfo.user_type == 'SU') {
