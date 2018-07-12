@@ -418,7 +418,7 @@ define(['jquery',
                             /* Bind chargeLineItems events - Ended */
 
                             /* Header Details */
-                            $(parent.document).find('#spanModalHeader').html('Edit: <STRONG>' + claimDetails.patient_full_name + '</STRONG> (Acc#:' + claimDetails.patient_account_no + '), <i>' + moment(claimDetails.patient_dob).format('MM/DD/YYYY') + '</i>  ');
+                            $(parent.document).find('#spanModalHeader').html('Edit : <STRONG>' + claimDetails.patient_full_name + '</STRONG> (Acc#:' + claimDetails.patient_account_no + ') ' + moment(claimDetails.patient_dob).format('MM/DD/YYYY') + '');
                             $.each(self.claimChargeList, function (index, data) {
                                 /* Bind charge table data*/
                                 self.createCptCodesUI(index);
