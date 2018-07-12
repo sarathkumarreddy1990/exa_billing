@@ -19,16 +19,8 @@ WITH details AS(
         (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) AS  "Paid Amount",
         CASE WHEN bc.payer_type = 'primary_insurance'  OR  bc.payer_type = 'secondary_insurance' OR bc.payer_type = 'tertiary_insurance' THEN (SELECT claim_balance_total FROM billing.get_claim_totals(bc.id)) END AS "Insurance Balance",
        
-        CASE WHEN (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) != 0::money AND bc.payer_type = 'primary_insurance' THEN  pip.insurance_name
-         WHEN (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) != 0::money AND bc.payer_type = 'secondary_insurance' THEN  pip.insurance_name
-         WHEN (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) != 0::money AND bc.payer_type = 'tertiary_insurance' THEN  pip.insurance_name
-        ELSE pip.insurance_name 
-        END AS "Insurance (Paid)", 
-       CASE WHEN  (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) != 0::money AND bc.payer_type = 'primary_insurance' THEN  pip.insurance_code
-         WHEN (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) != 0::money AND bc.payer_type = 'secondary_insurance' THEN  pip.insurance_code
-         WHEN (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) != 0::money AND bc.payer_type = 'tertiary_insurance' THEN  pip.insurance_code
-        ELSE pip.insurance_code
-        END AS "Insurance (Cur)",
+        pip.insurance_name AS "Insurance (Paid)", 
+        pip.insurance_code AS "Insurance (Cur)",
         pr.full_name AS "Ref. Doctor"        
         --, ac.description       AS "Insurance Payer Type"    
     FROM billing.claims bc
@@ -37,11 +29,7 @@ WITH details AS(
     LEFT JOIN billing.payment_applications bpa ON bpa.charge_id = bch.id
     LEFT JOIN billing.payments bp ON bp.id = bpa.payment_id
     <% if (cptCodeLists) { %>   inner join cpt_codes cc on cc.id = bch.cpt_id  <% } %>
-    LEFT JOIN public.patient_insurances ppi ON ppi.id = CASE WHEN bc.payer_type = 'primary_insurance' THEN bc.primary_patient_insurance_id
-                                                             WHEN bc.payer_type = 'secondary_insurance' THEN bc.secondary_patient_insurance_id
-                                                             WHEN bc.payer_type = 'tertiary_insurance' THEN bc.tertiary_patient_insurance_id
-                                 ELSE bc.primary_patient_insurance_id
-                                                             END
+    LEFT JOIN public.patient_insurances ppi ON ppi.id =  bc.primary_patient_insurance_id
     LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
     LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
     LEFT JOIN public.providers pr ON  pr.id = ppc.provider_id
