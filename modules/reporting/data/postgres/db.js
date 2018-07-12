@@ -1,6 +1,6 @@
 const config = require('../../../../server/config')
     , logger = require('../../../../logger')
-    , dbConnString = config.get(config.keys.dbConnection)
+    , dbConnString = config.get(config.keys.dbConnectionBilling)
     , pgConnStrngParser = require('pg-connection-string').parse
     , pg = require('pg')
     , pgTypes = require('pg').types   //https://github.com/brianc/node-pg-types

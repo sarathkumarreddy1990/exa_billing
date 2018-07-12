@@ -6,7 +6,7 @@ const logger = require('../../logger');
 const config = require('../config');
 const constants = require('../shared/constants');
 
-const dbConnString = config.get(config.keys.dbConnection);
+const dbConnString = config.get(config.keys.dbConnectionBilling);
 
 const poolConfig = ((connStr) => {
     const params = url.parse(connStr);

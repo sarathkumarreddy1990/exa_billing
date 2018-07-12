@@ -7,6 +7,7 @@ module.exports = {
 
     keys: {
         dbConnection: 'dbConnection',
+        dbConnectionBilling: 'dbConnectionBilling',
         RedisStore: 'RedisStore',
         dbCacheEnabled: 'dbCacheEnabled',
         dbCacheTtl: 'dbCacheTtl'
