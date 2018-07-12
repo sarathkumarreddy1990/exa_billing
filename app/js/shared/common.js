@@ -891,6 +891,7 @@ var commonjs = {
         if ($('#' + iframeContainerId)) {
             $('#' + iframeContainerId).hide();
             $modalDivContainer.show();
+            $modalBody.css({ 'padding': '1rem' })
         }
 
         if (typeof options.url != 'undefined' && commonjs.checkNotEmpty(options.url)) {
