@@ -2928,7 +2928,7 @@ DECLARE
 BEGIN
      
      IF payer_type is null THEN 
-	SELECT payer_type INTO p_payer_type FROM billing.claims where id = i_claim_id;
+	SELECT bc.payer_type INTO p_payer_type FROM billing.claims bc where id = i_claim_id;
      ELSE 
         p_payer_type := payer_type;
      END IF; 
@@ -3092,8 +3092,6 @@ END;
 $BODY$
   LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
-
-
 CREATE OR REPLACE FUNCTION billing.update_claim_charge(
     i_claim_details json,
     i_insurances_details json,
@@ -3559,9 +3557,11 @@ BEGIN
 		) charges  WHERE id is null;
 
 
-	UPDATE billing.claims SET payer_type = (i_claim_details->>'payer_type')::TEXT WHERE id = (i_claim_details->>'claim_id')::bigint;
-
-	UPDATE billing.claims SET billing_method = billing.get_billing_method((i_claim_details->>'claim_id')::bigint,(i_claim_details->>'payer_type')::text) WHERE id = (i_claim_details->>'claim_id')::bigint;
+	UPDATE billing.claims 
+        SET 
+            payer_type = (i_claim_details->>'payer_type')::TEXT,
+            billing_method = billing.get_billing_method((i_claim_details->>'claim_id')::bigint,(i_claim_details->>'payer_type')::text)
+    WHERE id = (i_claim_details->>'claim_id')::bigint;
 
 
     RETURN p_result;
