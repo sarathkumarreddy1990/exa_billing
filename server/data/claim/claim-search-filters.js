@@ -424,7 +424,6 @@ const api = {
         let innerQuery = api.getWLQuery(select_total, args, params);
         return await query(innerQuery, params);
     },
-
     setBalanceFilterFlag: function (args, colModel) {
         let column = JSON.parse(args.filterCol);
         let data = JSON.parse(args.filterData);
@@ -555,7 +554,9 @@ const api = {
                 isFrom: 'Claims',
                 statOverride: statOverride
             };
+            if(args.filterCol && args.filterData){
             api.setBalanceFilterFlag(args, colModel);
+            }
             const response = await filterValidator.generateQuery(colModel, args.filterCol, args.filterData, query_options);
             args.filterQuery = response;
 

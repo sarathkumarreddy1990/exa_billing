@@ -579,6 +579,16 @@ define(['jquery',
                 $('#ddlBillingCode').val(claim_data.billing_code_id || '');
                 $('#ddlBillingClass').val(claim_data.billing_class_id || '');
                 $('#txtResponsibleNotes').val(claim_data.billing_notes || '')
+                
+                var claim_fee_details = claim_data.claim_fee_details && claim_data.claim_fee_details.length ? claim_data.claim_fee_details[0] : {};
+                
+                $('#spBillFee').text(commonjs.roundFee(claim_fee_details.bill_fee || ''));
+                $('#spBalance').text(commonjs.roundFee(claim_fee_details.balance || ''));
+                //$('#spAllowed').text(commonjs.roundFee(claim_fee_details || ''));
+                $('#spPatientPaid').text(commonjs.roundFee(claim_fee_details.patient_paid || ''));
+                $('#spOthersPaid').text(commonjs.roundFee(claim_fee_details.others_paid || ''));
+                $('#spAdjustment').text(commonjs.roundFee(claim_fee_details.adjustment || ''));
+                //$('#spRefund').text(commonjs.roundFee(claim_fee_details.refund || ''));                
 
                 /* Billing summary end */
 
@@ -632,8 +642,7 @@ define(['jquery',
                     $('#txtClaimDate').val(self.studyDate ? lineItemStudyDate : defaultStudyDate);
                 }
                 /* Common Details end */
-                // trigger blur event for update Total bill fee, balance etc.
-                $(".allowedFee").blur();
+               
 
             },
 
@@ -2846,7 +2855,7 @@ define(['jquery',
                             if (!data.invalidClaim_data.length)
                                 commonjs.showStatus(commonjs.geti18NString("messages.status.validatedSuccessfully"));
                             else
-                                commonjs.showDialog({ header: 'Validation Results', i18nHeader: 'menuTitles.order.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });  
+                                commonjs.showNestedDialog({ header: 'Validation Results', i18nHeader: 'menuTitles.order.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });  
                         }
                     },
                     error: function (err, response) {

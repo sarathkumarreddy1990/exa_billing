@@ -130,6 +130,7 @@
         "userSettings": {
             "accountNo": "Account #",
             "accession": "Accession #",
+            "payerName":"Payer Name",
             "id": "Id",
             "studyDescription": "Study Description",
             "station": "Station",
