@@ -172,10 +172,10 @@ module.exports = {
     delete: async function (params) {
 
         let {
-                id,
-                name,
-                receiverName
-            } = params;
+            id,
+            name,
+            receiverName
+        } = params;
 
         const sql = SQL` DELETE FROM
                              billing.edi_clearinghouses

@@ -583,7 +583,7 @@ define('grid', [
                 var rowId = $checkedInputs[r].parentNode.parentNode.id;
                 studyStoreValue = getData(rowId, studyDataStore, gridID);
                 if (!studyStoreValue.study_cpt_id) {
-                    commonjs.showWarning("Please select charges record");
+                    commonjs.showWarning("Please select charges record for batch claim");
                     return false;
                 }
                 batchClaimArray.push({
@@ -611,6 +611,8 @@ define('grid', [
                         commonjs.handleXhrError(err, response);
                     }
                 });
+            }else{
+                commonjs.showWarning("Please select record for batch claim");
             }
         },
 
