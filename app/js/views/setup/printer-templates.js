@@ -102,6 +102,7 @@ define(['jquery',
                                     var gridData = $('#tblPaperClaimTemplatesGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
+                                        data: $.param({name: gridData.name, templateType:gridData.template_type}),
                                         success: function (model, response) {
                                             commonjs.showStatus("Deleted Successfully");
                                             self.paperClaimTemplatesTable.refresh();
@@ -361,7 +362,10 @@ define(['jquery',
             save: function (doGoBack) {
                 var self = this;
                 this.templateData = ace.edit('paperClaimEditor').getValue();
-
+                if(this.templateData === ""){
+                    commonjs.showError("Invalid Template");
+                    return false;
+                }
                 this.model.set({
                     "name": $('#txtTemplateName').val(),
                     "isActive": !$('#chkActive').prop('checked'),

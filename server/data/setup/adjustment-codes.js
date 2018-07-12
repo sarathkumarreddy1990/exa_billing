@@ -147,7 +147,11 @@ module.exports = {
     },
 
     delete: async (params) => {
-        const { id } = params;
+    const {
+            id,
+            code,
+            description
+        } = params;
 
         const sql = SQL`DELETE FROM 
                             billing.adjustment_codes 
@@ -157,7 +161,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: 'Deleted.'
+            logDescription: `Deleted ${description} (${code})`
         });
     }
 };

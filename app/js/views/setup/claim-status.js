@@ -68,6 +68,7 @@ define([
                                     var gridData = $('#tblClaimStatusGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
+                                        data: $.param({code: gridData.code, description:gridData.description}),
                                         success: function (model, response) {
                                             commonjs.showStatus("Deleted Successfully");
                                             self.claimStatusTable.refresh();
@@ -100,6 +101,9 @@ define([
                         if (rowdata.inactivated_dt) {
                             var $row = $('#tblClaimStatusGrid').find('#' + rowid);
                             $row.css('text-decoration', 'line-through');
+                        }
+                        if (rowdata.is_system_status) {
+                            $('#tblClaimStatusGrid').find('#' + rowid).find('[aria-describedby=tblClaimStatusGrid_del]>i').hide();
                         }
                     },
                     datastore: self.claimStatusList,
@@ -158,6 +162,10 @@ define([
                                 $('#txtDispOrder').val(response.display_order);
                                 $('#chkActive').prop('checked', response.inactivated_dt ? true : false);
                                 $('#chkIsSystemStatus').prop('checked', response.is_system_status  ? true : false);
+                                if (response.is_system_status) {
+                                    $('#txtCode').attr('disabled', 'disabled');
+                                    $('#chkActive').attr('disabled', 'disabled');
+                                }
                             }
                         }
                     });

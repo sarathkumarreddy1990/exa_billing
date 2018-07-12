@@ -734,7 +734,7 @@
       {
         "id": 35,
         "field_name": "Responsible",
-        "i18n_name": "setup.userSettings.responsible",
+        "i18n_name": "setup.userSettings.payerName",
         "field_info": {
           "custom_name": "Responsible",
           "name": "payer_name",

@@ -85,6 +85,7 @@ define(['jquery',
                                     var gridData = $('#tblBillingProvidersGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
+                                        data: $.param({code: gridData.code, description:gridData.name}),
                                         success: function (model, response) {
                                             commonjs.showStatus("Deleted Successfully");
                                             self.billingProvidersTable.refresh();
@@ -605,7 +606,7 @@ define(['jquery',
                     },
                     success: function (model, response) {
                         $('#tblProviderIDCodesGrid').jqGrid('delRowData', rowID);
-                        self.clearIDCodeForm();
+                        self.clearIDCodesForm();
                         self.bindProviderIDCodes();
                     },
                     error: function (model, response) {

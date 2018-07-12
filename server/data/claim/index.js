@@ -31,7 +31,7 @@ module.exports = {
                                 , atp.modifier3_id AS m3
                                 , atp.modifier4_id AS m4
                                 , string_to_array(regexp_replace(study_cpt_info->'diagCodes_pointer', '[^0-9,]', '', 'g'),',')::int[] AS icd_pointers
-                                , COALESCE(sc.study_cpt_info->'bill_fee','1')::NUMERIC AS bill_fee
+                                , COALESCE(sc.study_cpt_info->'bill_fee','0')::NUMERIC AS bill_fee
                                 , COALESCE(sc.study_cpt_info->'allowed_fee','0')::NUMERIC AS allowed_fee
                                 , COALESCE(sc.study_cpt_info->'units','1')::NUMERIC AS units
                                 , (COALESCE(sc.study_cpt_info->'bill_fee','0')::NUMERIC * COALESCE(sc.study_cpt_info->'units','1')::NUMERIC) AS total_bill_fee
@@ -49,7 +49,8 @@ module.exports = {
                             INNER JOIN appointment_types at ON at.id = s.appointment_type_id
                             INNER JOIN appointment_type_procedures atp ON atp.procedure_id = sc.cpt_code_id AND atp.appointment_type_id = s.appointment_type_id
                             WHERE
-                                study_id = ANY(${studyIds})
+                            
+                                study_id = ANY(${studyIds}) AND sc.has_deleted = FALSE
                             ORDER BY s.accession_no DESC
                             ) AS charge
                         ) charge_details
@@ -61,7 +62,7 @@ module.exports = {
                                         order_info->'similarIll' AS same_illness_first_date,
                                         order_info->'wTo' AS unable_to_work_to_date,
                                         order_info->'wFrom' AS unable_to_work_from_date,
-                                        order_info->'hTo' AS hospitalization_to_dt,
+                                        order_info->'hTo' AS hospitalization_to_date,
                                         order_info->'hFrom' AS hospitalization_from_date,
                                         order_info->'claim_notes' AS claim_notes,
                                         COALESCE(NULLIF(order_info->'outsideLab',''), 'false')::boolean AS service_by_outside_lab,
@@ -593,6 +594,7 @@ module.exports = {
                             FROM billing.claim_icds ci 
                             INNER JOIN public.icd_codes icd ON ci.icd_id = icd.id 
                             WHERE claim_id = c.id
+                            ORDER BY id ASC
                       ) icd_query) AS claim_icd_data
                     , (
                         SELECT json_agg(row_to_json(existing_insurance)) AS existing_insurance 
@@ -610,6 +612,23 @@ module.exports = {
                             pi.patient_id = c.patient_id
                         ORDER BY pi.coverage_level,pi.id ASC
                       ) existing_insurance) AS existing_insurance
+                    , (
+                        SELECT json_agg(row_to_json(claim_fee_details)) AS claim_fee_details
+                        FROM (
+                            SELECT
+			                    (SELECT charges_bill_fee_total::numeric from billing.get_claim_totals(bc.id)) AS bill_fee
+				                ,COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient' and bpa.amount_type = 'payment'),0::money)::numeric AS patient_paid
+				                ,COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient' and bpa.amount_type = 'payment'),0::money)::numeric AS others_paid
+			                    ,(SELECT adjustments_applied_total::numeric from billing.get_claim_totals(bc.id)) AS adjustment
+			                    ,(SELECT payments_applied_total::numeric from billing.get_claim_totals(bc.id)) AS payment
+			                    ,(SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id))::numeric AS balance
+				            FROM billing.claims bc
+				                INNER JOIN billing.charges bch ON bch.claim_id = bc.id 
+				                LEFT JOIN billing.payment_applications bpa ON bpa.charge_id  =  bch.id 
+				                LEFT JOIN billing.payments bp ON bp.id = bpa.payment_id 
+				            WHERE bc.id = c.id
+			                GROUP BY bc.id
+                      ) claim_fee_details) AS claim_fee_details
                     FROM
                         billing.claims c
                         INNER JOIN public.patients p ON p.id = c.patient_id

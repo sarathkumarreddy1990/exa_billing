@@ -316,6 +316,26 @@ CREATE TABLE IF NOT EXISTS public.cpt_code_provider_level_codes
     CONSTRAINT cpt_code_provider_level_codes_cpt_code_prov_lvl_code_id_uc UNIQUE(cpt_code_id,provider_level_code_id)
 );
 -- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.insurance_provider_payer_types 
+(
+    id BIGSERIAL,
+    company_id BIGINT NOT NULL,
+    inactivated_dt TIMESTAMPTZ DEFAULT NULL,
+    code TEXT NOT NULL,
+    description TEXT NOT NULL,
+    CONSTRAINT insurance_provider_payer_types_pk PRIMARY KEY(id),
+    CONSTRAINT insurance_provider_payer_types_company_id_fk FOREIGN KEY (company_id) REFERENCES public.companies (id),
+    CONSTRAINT insurance_provider_payer_types_company_code_uc UNIQUE(company_id,code)
+);
+-- --------------------------------------------------------------------------------------------------------------------
+ALTER TABLE IF EXISTS public.insurance_providers ADD COLUMN IF NOT EXISTS provider_payer_type_id BIGINT;
+IF NOT EXISTS (SELECT 1 FROM pg_catalog.pg_constraint where conname = 'insurance_providers_provider_payer_type_id_fk') THEN
+
+    ALTER TABLE IF EXISTS public.insurance_providers ADD CONSTRAINT  insurance_providers_provider_payer_type_id_fk 
+                                                     FOREIGN KEY (provider_payer_type_id) 
+                                                     REFERENCES public.insurance_provider_payer_types (id);
+END IF;
+-- --------------------------------------------------------------------------------------------------------------------
 -- Billing 2.0 Grant priveleges for exa_billing
 -- --------------------------------------------------------------------------------------------------------------------
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO exa_billing;
@@ -464,16 +484,18 @@ CREATE TABLE IF NOT EXISTS billing.claim_status
     CONSTRAINT claim_status_pk PRIMARY KEY(id),
     CONSTRAINT claim_status_company_id_fk FOREIGN KEY (company_id) REFERENCES public.companies (id), 
     CONSTRAINT claim_status_company_code_uc UNIQUE(company_id,code)
+    CONSTRAINT claim_status_company_display_order_uc UNIQUE(company_id,display_order)
 );
 -- --------------------------------------------------------------------------------------------------------------------
 IF NOT EXISTS(SELECT 1 FROM billing.claim_status) THEN 
-    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'SUBPEN','submission_pending',true,1);
-    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'PYMTPEN','payment_pending',true,2);
-    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'DENIED','denied',true,3);
-    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'OVERPYMT','over_payment',true,4);
-    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'PAIDFULL','paid_in_full',true,5);
-    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'COLLREV','collections_review',true,6);
-    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'COLLPEN','collections_pending',true,7);
+    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'PV','Pending Validation',true,1);
+    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'PS','Pending Submission',true,2);
+    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'PP','Pending Payment',true,3);
+    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'D','Denied',true,4);
+    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'PIF','Paid In Full',true,5);
+    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'OP','Over Payment',true,6);
+    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'CR','Collections Review',true,7);
+    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'CIC','Claim in Collections',true,8);
 END IF;
 -- --------------------------------------------------------------------------------------------------------------------
 -- Datamodel for Adjustment codes  <END>
@@ -1036,7 +1058,7 @@ CREATE TABLE IF NOT EXISTS billing.grid_filters
     CONSTRAINT grid_filters_id_pk PRIMARY KEY (id),
     CONSTRAINT grid_filters_user_id_fk FOREIGN KEY (user_id) REFERENCES public.users(id),
     CONSTRAINT grid_filters_filter_type_cc CHECK(filter_type IN ('studies','claims')),
-    CONSTRAINT grid_filters_filter_name_uc UNIQUE(filter_name)
+    CONSTRAINT grid_filters_filter_name_uc UNIQUE(filter_type,filter_name)
 );
 COMMENT ON TABLE billing.grid_filters IS 'To maintain Display filter tabs in billing home page (Billed/Unbilled studies) & claim work bench';
 -- --------------------------------------------------------------------------------------------------------------------
@@ -1104,26 +1126,15 @@ COMMENT ON COLUMN billing.audit_log.entity_key IS 'To store old and new values o
 -- --------------------------------------------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS billing.insurance_provider_details
 (
-  insurance_id bigint NOT NULL,
-  clearing_house_id bigint NOT NULL,
-  billing_method text,
-  CONSTRAINT insurance_provider_details_insurance_id_pk PRIMARY KEY (insurance_id),
-  CONSTRAINT insurance_provider_details_clearing_house_id_fk FOREIGN KEY (clearing_house_id) REFERENCES billing.edi_clearinghouses (id),
-  CONSTRAINT insurance_provider_details_insurance_id_fk FOREIGN KEY (insurance_id) REFERENCES insurance_providers (id),
-  CONSTRAINT insurance_provider_details_ins_id_clear_house_id_uc UNIQUE (insurance_id, clearing_house_id),
-  CONSTRAINT insurance_provider_details_ins_id_billing_method_uc UNIQUE (insurance_id, billing_method),
-  CONSTRAINT insurance_provider_details_billing_method_cc CHECK (billing_method IN ('patient_payment', 'direct_billing', 'electronic_billing', 'paper_claim'))
-);
--- --------------------------------------------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS billing.insurance_provider_details
-(
   insurance_provider_id bigint NOT NULL,
   clearing_house_id bigint,
   billing_method text,
   CONSTRAINT b_insurance_provider_id_pk PRIMARY KEY (insurance_provider_id),
   CONSTRAINT b_insurance_providers_clearing_house_id_fk FOREIGN KEY (clearing_house_id) REFERENCES billing.edi_clearinghouses (id),
   CONSTRAINT insurance_providers_insurance_provider_id_fk FOREIGN KEY (insurance_provider_id) REFERENCES insurance_providers (id),
+  CONSTRAINT insurance_provider_details_ins_id_clear_house_id_uc UNIQUE (insurance_provider_id, clearing_house_id),
   CONSTRAINT insurance_providers_ins_id_clear_house_id_uc UNIQUE (insurance_provider_id, billing_method)
+  CONSTRAINT insurance_provider_details_billing_method_cc CHECK (billing_method IN ('patient_payment', 'direct_billing', 'electronic_billing', 'paper_claim'))
 );
 -- --------------------------------------------------------------------------------------------------------------------
 -- Creating functions
@@ -1586,7 +1597,7 @@ BEGIN
 		    json_to_recordset(i_insurances_details) AS insurances (
 			  patient_id bigint
 			, insurance_provider_id bigint
-			, subscriber_zipcode bigint
+			, subscriber_zipcode text
 			, subscriber_relationship_id bigint
 			, coverage_level text
 			, policy_number text
@@ -1998,7 +2009,7 @@ $BODY$
 $BODY$
   LANGUAGE sql;
 -- --------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION billing.get_age_patient_claim(IN bigint)
+CREATE OR REPLACE FUNCTION billing.get_age_patient_claim(bigint, bigint)
   RETURNS TABLE(patient_age_0_30 money, patient_age_31_60 money, patient_age_61_90 money, patient_age_91_120 money, patient_age_121 money, insurance_age_0_30 money, insurance_age_31_60 money, insurance_age_61_90 money, insurance_age_91_120 money, insurance_age_121 money, total_balance money, patient_total money, insurance_total money, total_age_30 money, total_age_31_60 money, total_age_61_90 money, total_age_91_120 money, total_age_121 money, total_unapplied money) AS
 $BODY$
 
@@ -2017,7 +2028,7 @@ $BODY$
          SELECT now()::date - claim_dt::date AS num_days
      ) AS ar_dates ON TRUE
 
-		WHERE patient_id=  $1
+		WHERE patient_id=  $1 AND CASE WHEN $2 != 0 THEN billing_provider_id = $2 ELSE 1 = 1 END
 )
 , payment_sum as(
 	 SELECT COALESCE(NULLIF(sum(balance) FILTER (WHERE age_days = 'age_0_30' AND payer_type='patient'), 0::money),0::money) as patient_age_0_30 ,
@@ -2270,7 +2281,8 @@ $BODY$
 							WHEN l_payer_type = 'tertiary_insurance' THEN l_tertiary_insurance_id
 						   END
                     AND i.has_deleted IS FALSE
-		    AND i.is_active IS TRUE;
+		            AND i.is_active IS TRUE
+                     LIMIT 1;
             ELSIF l_payer_type = 'ordering_facility' THEN
                 SELECT
                    pg.fee_schedule_id INTO l_resp_fs_id
@@ -2279,7 +2291,8 @@ $BODY$
                 WHERE
                     pg.id = l_ordering_facility_id
                     AND pg.has_deleted IS FALSE
-                    AND pg.is_active IS TRUE;
+                    AND pg.is_active IS TRUE
+                    LIMIT 1;
             ELSIF l_payer_type = 'facility' THEN
                 SELECT
                    fee_schedule_id INTO l_resp_fs_id
@@ -2288,7 +2301,8 @@ $BODY$
                 WHERE
                     f.id = l_facility_id
                     AND f.has_deleted IS FALSE
-                    AND f.is_active IS TRUE;
+                    AND f.is_active IS TRUE
+                    LIMIT 1;
             ELSIF l_payer_type = 'referring_provider' THEN
                 SELECT
                    p.fee_schedule_id INTO l_resp_fs_id
@@ -2301,10 +2315,11 @@ $BODY$
                     1 = 1
                     AND pc.id = l_referring_provider_contact_id
                     AND p.has_deleted IS FALSE
-                    AND p.is_active IS TRUE;
+                    AND p.is_active IS TRUE
+                    LIMIT 1;
 	    ELSIF l_payer_type = 'patient' THEN
 		SELECT
-                    fs.id INTO STRICT l_resp_fs_id
+                    fs.id INTO l_resp_fs_id
                 FROM
                     public.fee_schedules fs
                 WHERE
@@ -2328,21 +2343,22 @@ $BODY$
                 WHERE
                     f.id = l_facility_id
                     AND f.has_deleted IS FALSE
-                    AND f.is_active IS TRUE;
+                    AND f.is_active IS TRUE
+                    LIMIT 1;
                 l_facility_fs_id := COALESCE (l_facility_fs_id,
                     0);
                 --- If fee schedule is not attached to facility, take the default fee schedule from fee schedules setup
                 IF l_facility_fs_id = 0 THEN
                     -- Getting the default fee schedule id from fee schedules
                     SELECT
-                        fs.id INTO STRICT l_fee_fs_id
+                        fs.id INTO l_fee_fs_id
                     FROM
                         fee_schedules fs
                     WHERE
                         1 = 1
                         AND fs.category = 'default'
                         AND fs.inactivated_dt IS NULL
-                    LIMIT 1;
+                        LIMIT 1;
                     l_fee_fs_id := COALESCE (l_fee_fs_id,
                         0);
                     l_derived_fs_id := l_fee_fs_id;
@@ -2367,7 +2383,7 @@ $BODY$
             SELECT
                 professional_fee,
                 technical_fee,
-                global_fee INTO STRICT l_professional_fee,
+                global_fee INTO l_professional_fee,
                 l_technical_fee,
                 l_global_Fee
             FROM
@@ -2375,14 +2391,15 @@ $BODY$
             WHERE
                 1 = 1
                 AND fsc.fee_schedule_id = l_derived_fs_id
-                AND fsc.cpt_code_id = p_cpt_id;
+                AND fsc.cpt_code_id = p_cpt_id
+                LIMIT 1;
             -- Get the modifier details for the given input
 	    SELECT 
 	         m.level,
 		 m.override_amount,
 	         m.type,
 	         m.sign,
-		 m.modifier_amount INTO STRICT l_fee_level,
+		 m.modifier_amount INTO l_fee_level,
 		 l_fee_override,
 		 l_dynamic_fee_modifier_type,
 		 l_dynamic_fee_modifier,
@@ -2390,8 +2407,8 @@ $BODY$
 	    FROM
 	         public.modifiers m 
 	    WHERE 
-                 m.id = l_active_modifier;
-            
+                 m.id = l_active_modifier
+                LIMIT 1;
             -- Calculate the base fee.
             IF l_fee_level = 'global' THEN
                 l_base_fee := l_global_fee;
@@ -2403,6 +2420,9 @@ $BODY$
                 l_base_fee := l_global_fee;
                 -- Default the global fee if fee level is not defined
             END IF;
+
+            l_base_fee := COALESCE (l_base_fee, 0::MONEY);
+            
             -- Apply the modifiers
             IF COALESCE (l_fee_override,
                     0::MONEY) != 0::MONEY THEN
@@ -2425,7 +2445,7 @@ $BODY$
                     END IF;
                 END IF;
             END IF;
-            l_result := l_base_fee;
+            l_result := COALESCE (l_base_fee, 0::MONEY);
             ----------------------------------------------------------------------------------------------------------------------
             RETURN l_result;
         EXCEPTION
@@ -3136,7 +3156,7 @@ BEGIN
                 json_to_recordset(i_insurances_details) AS insurances (
                    patient_id bigint
                  , insurance_provider_id bigint 
-                 , subscriber_zipcode bigint
+                 , subscriber_zipcode text
                  , subscriber_relationship_id bigint
                  , coverage_level text 
                  , policy_number text 
@@ -3421,7 +3441,6 @@ BEGIN
                           ELSE
                              chd.allowed_amount
                           END 
-            , allowed_amount = chd.allowed_amount
             , units  = chd.units
             , pointer1  = chd.pointer1
             , pointer2  = chd.pointer2
@@ -3514,6 +3533,7 @@ ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS paper_claim_original_
 ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS direct_invoice_template_id BIGINT;
 ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS patient_invoice_template_id BIGINT;
 ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS grid_field_settings JSON;
+ALTER TABLE billing.grid_filters ADD CONSTRAINT IF NOT EXISTS grid_filters_filter_name_uc UNIQUE(filter_type, filter_name);
 -- --------------------------------------------------------------------------------------------------------------------
 CREATE INDEX charges_studies_idx1 ON billing.charges_studies(study_id);
 CREATE INDEX charges_studies_idx2 ON billing.charges_studies(charge_id);

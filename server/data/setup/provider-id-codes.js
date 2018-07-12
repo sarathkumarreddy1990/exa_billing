@@ -121,7 +121,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: 'Deleted.'
+            logDescription: `Deleted ${provider_id}(${id})`
         });
     }
 };

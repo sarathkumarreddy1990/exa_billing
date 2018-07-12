@@ -1663,6 +1663,8 @@ define(['jquery',
                 var objIsPayInFull = targetObj.is('#btnPayfullAppliedPendingPayments');
                 var self = this;
                 if (this.validatePayerDetails()) {
+                    commonjs.showLoading('');
+                    targetObj.attr('disabled', true);
                     var lineItems = $("#tBodyApplyPendingPayment tr"), dataLineItems = [], orderPayment = 0.00, orderAdjustment = 0.00;
                     var line_items = [];
 
@@ -1723,6 +1725,7 @@ define(['jquery',
                         success: function (model, response) {
                             commonjs.showStatus('Payment has been applied successfully');
                             self.casSegmentsSelected = [];
+                            targetObj.removeAttr('disabled');
                             self.closeAppliedPendingPayments(e, paymentId);
                             commonjs.hideDialog();
                         },

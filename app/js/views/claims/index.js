@@ -50,8 +50,7 @@ define(['jquery',
                 { payer_type: "PIP_S", payer_type_name: "secondary_insurance", payer_id: null, coverage_level: "S", payer_name: null, billing_method: null },
                 { payer_type: "PIP_T", payer_type_name: "tertiary_insurance", payer_id: null, coverage_level: "T", payer_name: null, billing_method: null },
                 { payer_type: "POF", payer_type_name: "ordering_facility", payer_id: null, payer_name: null },
-                { payer_type: "RF", payer_type_name: "referring_provider", payer_id: null, payer_name: null },
-                { payer_type: "PF", payer_type_name: "facility", payer_id: null, payer_name: null }
+                { payer_type: "RF", payer_type_name: "referring_provider", payer_id: null, payer_name: null }
             ],
             usermessage: {
                 selectStudyRefProvider: 'Select Refer. Provider',
@@ -290,8 +289,8 @@ define(['jquery',
                 $('#imgLoading').show();
                 
 
-                commonjs.showLoading();
-
+                commonjs.showLoading('Connecting Pokitdok. please wait');
+                $('#divPokidokResponse').empty();
                 $.ajax({
                     url: '/exa_modules/billing/claims/claim/eligibility',
                     type: "POST",
@@ -305,9 +304,10 @@ define(['jquery',
                         if (data && data.errors) {
                             commonjs.showWarning(data.errors.query ? data.errors.query : 'ERR: ' + JSON.stringify(data.errors) + '..');
                             return;
-                        } else if(!data.errors && response.insPokitdok == true) {
-                            $('#divPokidokResponse').append($(self.InsurancePokitdokTemplateForm({'InsuranceData': response.data, 'InsuranceDatavalue': response.meta})));
-                            $('#divPokidokResponse').show();
+                        }
+                        else if (!data.errors && response.insPokitdok == true) {
+                            $('#divPokidokResponse').html($(self.InsurancePokitdokTemplateForm({'InsuranceData': response.data, 'InsuranceDatavalue': response.meta})));
+                            commonjs.showNestedDialog({ header: 'Pokitdok Response', width: '80%', height: '70%', html: $('#divPokidokResponse').html() });
                         }
 
                         $("#btnClosePokidokPopup").unbind().click(function (e) {
@@ -354,6 +354,8 @@ define(['jquery',
                 self.removedCharges = [];
                 self.chargeModel = [];
                 self.options = options || {};
+
+                commonjs.showLoading();
 
                 $.ajax({
                     type: 'GET',
@@ -421,13 +423,12 @@ define(['jquery',
                                         'data_id': data.cpt_id,
                                         'data_description': data.display_description,
                                         'data_code': data.cpt_code
-                                    });
+                                    }).removeClass('cptIsExists');
                                     $('#lblCptDescription_' + index).html(data.display_description).attr({
                                         'data_id': data.cpt_id,
                                         'data_description': data.display_description,
                                         'data_code': data.cpt_code
-                                    });
-                                    $('#lblCptCode_' + index).removeClass('cptIsExists');
+                                    }).removeClass('cptIsExists');
                                 }
                                 self.bindCPTSelectionEvents('#divCptCode_' + index);
                                 self.bindCPTSelectionEvents('#divCptDescription_' + index);
@@ -497,26 +498,24 @@ define(['jquery',
                             $('#btnSaveClaim').attr('disabled', false);
                             $("#txtClaimDate").attr("disabled", "disabled");                             
 
-                            var claimBindInterval = setInterval(function () {
-                                clearInterval(claimBindInterval);
-                                self.bindDefaultClaimDetails(claimDetails);
-                                $('.claimProcess').prop('disabled', false);
-                                if (self.options && !self.options.study_id)
-                                    $('#btPatientDocuemnt').prop('disabled', true);
-                            }, 1500);
+                            self.bindDefaultClaimDetails(claimDetails);
+                            $('.claimProcess').prop('disabled', false);
+                            if (self.options && !self.options.study_id)
+                                $('#btPatientDocuemnt').prop('disabled', true);
+
+                            commonjs.hideLoading();
                         }
                     },
                     error: function (model, response) {
                         commonjs.handleXhrError(model, response);
                     }
-
                 });
             },
 
             createCptCodesUI: function(rowIndex) {
                 $('#divChargeCpt_' + rowIndex)
                     .append($('<div/>', { id: "divCptCode_" + rowIndex }).addClass('pointerCursor').attr('data-type','cpt')
-                        .append($('<lable/>', { id: "lblCptCode_" + rowIndex }).attr('data-type','cpt').html("Select")
+                        .append($('<lable/>', { id: "lblCptCode_" + rowIndex }).addClass('cptcode cptIsExists').attr('data-type','cpt').html("Select")
                                 .mousemove(function(e){
                                     var msg = $(e.target).attr('data_code');
                                     $(e.target).attr('title',msg);
@@ -524,7 +523,7 @@ define(['jquery',
 
                 $('#divChargeCptDesc_' + rowIndex)
                     .append($('<div/>', { id: "divCptDescription_" + rowIndex }).addClass('pointerCursor').attr('data-type','cptdesc')
-                        .append($('<lable/>', { id: "lblCptDescription_" + rowIndex }).attr('data-type','cptdesc').html("Select")
+                        .append($('<lable/>', { id: "lblCptDescription_" + rowIndex }).addClass('cptcode cptIsExists').attr('data-type','cptdesc').html("Select")
                                 .mousemove(function(e){
                                     var msg = $(e.target).attr('data_description');
                                     $(e.target).attr('title',msg);
@@ -579,6 +578,16 @@ define(['jquery',
                 $('#ddlBillingCode').val(claim_data.billing_code_id || '');
                 $('#ddlBillingClass').val(claim_data.billing_class_id || '');
                 $('#txtResponsibleNotes').val(claim_data.billing_notes || '')
+                
+                var claim_fee_details = claim_data.claim_fee_details && claim_data.claim_fee_details.length ? claim_data.claim_fee_details[0] : {};
+                
+                $('#spBillFee').text(commonjs.roundFee(claim_fee_details.bill_fee || ''));
+                $('#spBalance').text(commonjs.roundFee(claim_fee_details.balance || ''));
+                //$('#spAllowed').text(commonjs.roundFee(claim_fee_details || ''));
+                $('#spPatientPaid').text(commonjs.roundFee(claim_fee_details.patient_paid || ''));
+                $('#spOthersPaid').text(commonjs.roundFee(claim_fee_details.others_paid || ''));
+                $('#spAdjustment').text(commonjs.roundFee(claim_fee_details.adjustment || ''));
+                //$('#spRefund').text(commonjs.roundFee(claim_fee_details.refund || ''));                
 
                 /* Billing summary end */
 
@@ -591,14 +600,6 @@ define(['jquery',
                 });
 
                 var facility = $('#ddlFacility option:selected').val();
-                if (facility != '') {
-                    self.updateResponsibleList({
-                        payer_type: 'PF',
-                        payer_id: facility,
-                        payer_name: $('#ddlFacility option:selected').text().trim() + '( Facility )'
-                    });
-                }
-
                 if (self.group_id || null) {
                     self.updateResponsibleList({
                         payer_type: 'POF',
@@ -618,7 +619,7 @@ define(['jquery',
                 /* Common Details Edit & Claim creation */
                 if (self.isEdit) {
                     self.bindEditClaimInsuranceDetails(claim_data);
-                    var responsibleIndex = _.find(self.responsible_list, function(item) { return item.payer_type_name == claim_data.payer_type;});
+                    var responsibleIndex = _.find(self.responsible_list, function (item) { return item.payer_type_name == claim_data.payer_type; });
                     $('#ddlResponsible').val(responsibleIndex.payer_type);
                     $('#ddlClaimStatus').val(claim_data.claim_status_id || '');
                     $('#ddlFrequencyCode').val(claim_data.frequency || '')
@@ -626,7 +627,11 @@ define(['jquery',
                 } else {
                     $('#ddlResponsible').val('PPP');
                     $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
-                    $('#ddlFrequencyCode').val(claim_data.frequency);
+                    var frequency = [{ code: 7, desc: 'corrected' }, { code: 8, desc: 'void' }, { code: 1, desc: 'original' }];
+                    if (claim_data.frequency) {
+                        var code = _.find(frequency, function (item) { return item.code == parseInt(claim_data.frequency); });
+                        $('#ddlFrequencyCode').val(code.desc || '');
+                    }
                     if (claim_data.pos_type_code && claim_data.pos_type_code != '') {
                         $('#ddlPOSType').val($('option[data-code = ' + claim_data.pos_type_code.trim() + ']').val());
                     }
@@ -636,8 +641,7 @@ define(['jquery',
                     $('#txtClaimDate').val(self.studyDate ? lineItemStudyDate : defaultStudyDate);
                 }
                 /* Common Details end */
-                // trigger blur event for update Total bill fee, balance etc.
-                $(".allowedFee").blur();
+               
 
             },
 
@@ -886,7 +890,7 @@ define(['jquery',
             },
             getLineItemsAndBind: function (selectedStudyIds) {
                 var self = this;
-
+                self.chargeModel = [];
                 if (selectedStudyIds) {
 
                     $.ajax({
@@ -900,7 +904,7 @@ define(['jquery',
                             if (model && model.length > 0) {
                                 $('#tBodyCharge').empty();
                                 var modelDetails = model[0];
-                                self.studyDate = modelDetails && modelDetails.charges && modelDetails.charges[0].study_dt ? modelDetails.charges[0].study_dt : '' ;
+                                self.studyDate = modelDetails && modelDetails.charges && modelDetails.charges.length && modelDetails.charges[0].study_dt ? modelDetails.charges[0].study_dt : '' ;
                                 var diagnosisCodes = [];
                                 var diagnosisCodesOrder = [];
                                 _.each(modelDetails.charges, function (item) {
@@ -1038,9 +1042,8 @@ define(['jquery',
                 if (data.cpt_code || data.display_description) {
                     $('#lblCptCode_' + index)
                             .html(data.cpt_code)
-                            .attr({'data_id': data.cpt_id});
-                    $('#lblCptDescription_' + index).html(data.display_description).attr({'data_id': data.cpt_id});
-                    $('#lblCptCode_' + index).removeClass('cptIsExists');
+                            .attr({'data_id': data.cpt_id}).removeClass('cptIsExists');
+                    $('#lblCptDescription_' + index).html(data.display_description).attr({'data_id': data.cpt_id}).removeClass('cptIsExists');
                 }
 
                 self.bindCPTSelectionEvents('#divCptCode_' + index);
@@ -1522,14 +1525,14 @@ define(['jquery',
                         'data_id': res.id,
                         'data_description': res.display_description,
                         'data_code': res.display_code
-                    });
+                    }).removeClass('cptIsExists');
                 $('#lblCptDescription_' + rowIndex)
                     .html(res.display_description)
                     .attr({
                         'data_id': res.id,
                         'data_description': res.display_description,
                         'data_code': res.display_code
-                    });
+                    }).removeClass('cptIsExists');
                
                 $('#txtUnits_' + rowIndex).val(units);
                 $('#txtBillFee_' + rowIndex).val(parseFloat(fee).toFixed(2));
@@ -2056,53 +2059,52 @@ define(['jquery',
                     $('#lbl' + level + 'InsCityStateZip').hide();
 
             },
+
             bindServiceType: function () {
                 var self = this;
                 var serviceTypeDescription = [];
                 var serviceTypeDropDown = $('#ddlServiceType');
                 $('#ddlServiceType').empty();
-                $.ajax({
-                    type: 'GET',
-                    url: '/exa_modules/billing/claims/claim/service_facilities',
-                    data: {
-                    },
-                    success: function (model, response) {
-                        var eligibilityServiceTypes = model.eligibility_service_types;
 
-                        $.each(eligibilityServiceTypes, function (index, val) {
-                            $('<option/>')
-                                .val(val.code)
-                                .text(val.description + '(' + val.code + ')')
-                                .attr('title', val.description)
-                                .appendTo('#ddlServiceType')
-                            $('<option/>')
-                                .val(val.code)
-                                .text(val.description + '(' + val.code + ')')
-                                .attr('title', val.description)
-                                .appendTo('#ddlServiceType2')
-                            $('<option/>')
-                                .val(val.code)
-                                .text(val.description + '(' + val.code + ')')
-                                .attr('title', val.description)
-                                .appendTo('#ddlServiceType3')
-                        });
-                        $('#ddlServiceType, #ddlServiceType2, #ddlServiceType3').multiselect({
-                            maxHeight: 200,
-                            buttonWidth: '250px',
-                            enableFiltering: true,
-                            enableCaseInsensitiveFiltering: true
-                        });
-                        $('.multiselect-container li').css('width', '300px');
-                        $('label').css('color', 'black');
-                        $('.multiselect-container li a').css('padding', '0');
-
-                    },
-                    error: function (model, response) {
-                        commonjs.handleXhrError(model, response);
+                commonjs.getServiceTypes(function (err, model) {
+                    if (err) {
+                        return;
                     }
-                })
-            },
 
+                    var eligibilityServiceTypes = model.eligibility_service_types;
+
+                    $.each(eligibilityServiceTypes, function (index, val) {
+                        $('<option/>')
+                            .val(val.code)
+                            .text(val.description + '(' + val.code + ')')
+                            .attr('title', val.description)
+                            .appendTo('#ddlServiceType');
+
+                        $('<option/>')
+                            .val(val.code)
+                            .text(val.description + '(' + val.code + ')')
+                            .attr('title', val.description)
+                            .appendTo('#ddlServiceType2');
+
+                        $('<option/>')
+                            .val(val.code)
+                            .text(val.description + '(' + val.code + ')')
+                            .attr('title', val.description)
+                            .appendTo('#ddlServiceType3');
+                    });
+
+                    $('#ddlServiceType, #ddlServiceType2, #ddlServiceType3').multiselect({
+                        maxHeight: 200,
+                        buttonWidth: '250px',
+                        enableFiltering: true,
+                        enableCaseInsensitiveFiltering: true
+                    });
+                    
+                    $('.multiselect-container li').css('width', '300px');
+                    $('label').css('color', 'black');
+                    $('.multiselect-container li a').css('padding', '0');
+                });
+            },
 
            assignExistInsurance: function (e) {
                 var self = this;
@@ -2413,11 +2415,11 @@ define(['jquery',
                                 $("#btnClaimsRefresh").click();
                                 $("#btnStudiesRefresh").click();
                                 commonjs.hideDialog();
-                            }
-                            
+                            }                            
                         },
                         error: function (model, response) {
                             commonjs.handleXhrError(model, response);
+                            saveButton.attr('disabled', false);
                         }
                     });
                 }
@@ -2850,7 +2852,7 @@ define(['jquery',
                             if (!data.invalidClaim_data.length)
                                 commonjs.showStatus(commonjs.geti18NString("messages.status.validatedSuccessfully"));
                             else
-                                commonjs.showDialog({ header: 'Validation Results', i18nHeader: 'menuTitles.order.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });  
+                                commonjs.showNestedDialog({ header: 'Validation Results', i18nHeader: 'menuTitles.order.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });  
                         }
                     },
                     error: function (err, response) {
@@ -3321,15 +3323,6 @@ define(['jquery',
                 });
                 
                 $('#ddlFacility').val(app.facilityID || '');
-
-                if (app.facilityID) {
-                    self.updateResponsibleList({
-                        payer_type: 'PF',
-                        payer_id: app.facilityID,
-                        payer_name: $('#ddlFacility option:selected').text().trim() + '( Facility )'
-                    });
-                }
-
                 $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
                 $('#ddlResponsible').val('PPP');
 
