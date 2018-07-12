@@ -67,9 +67,9 @@ module.exports = {
         (SELECT json_agg(row_to_json(pay)) payment_details
          FROM(
             SELECT 
-                  COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient'),0::money) AS patient_paid
-                , COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient'),0::money) AS others_paid
-                , SUM(CASE WHEN amount_type = 'adjustment' THEN bpa.amount ELSE 0::money END) AS adjustment_amount
+                  COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient' AND amount_type = 'payment'),0::money) AS patient_paid
+                , COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient' AND amount_type = 'payment'),0::money) AS others_paid
+                , SUM(CASE WHEN (amount_type = 'adjustment' AND (accounting_entry_type != 'refund_debit' OR adjustment_code_id IS NULL)) THEN bpa.amount ELSE 0::money END) AS adjustment_amount
                 , SUM(CASE WHEN accounting_entry_type = 'refund_debit' THEN bpa.amount ELSE 0::money END) AS refund_amount
             FROM billing.claims bc
             INNER JOIN billing.charges ch ON ch.claim_id = bc.id
@@ -138,7 +138,7 @@ module.exports = {
         let sql = SQL`WITH agg AS (SELECT
                           cc.id AS id
                         , COALESCE(null, '') AS payment_id
-                        , CASE WHEN type ='auto' THEN null ELSE type END AS type
+                        , CASE WHEN type ='auto' THEN null WHEN type = 'manual' THEN null ELSE type END AS type
                         , type AS code
                         , note AS comments
                         , created_dt::date as commented_dt
