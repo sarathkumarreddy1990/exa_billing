@@ -125,7 +125,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Created ${code}(${name})`
+            logDescription: `Add: New EDI Clearing House(${name}) created`
         });
     },
 
@@ -165,7 +165,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Updated ${code}(${name})`
+            logDescription: `Update: EDI Clearing House(${name}) updated`
         });
     },
 

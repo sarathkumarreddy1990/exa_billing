@@ -196,7 +196,7 @@ module.exports = {
                         , null AS charge_amount
                         , '{}'::text[] AS charge_pointer
                         , SUM(CASE WHEN pa.amount_type = 'payment' THEN pa.amount ELSE 0.00::money END)::text payment
-                        , SUM(CASE WHEN pa.amount_type = 'adjustment' THEN pa.amount  ELSE 0.00::money END)::text adjustment  
+                        , SUM(CASE WHEN (pa.amount_type = 'adjustment' AND (accounting_entry_type != 'refund_debit' OR adjustment_code_id IS NULL)) THEN pa.amount  ELSE 0.00::money END)::text adjustment  
                     FROM billing.payments bp
                     INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
                     INNER JOIN billing.charges ch on ch.id = pa.charge_id 
@@ -205,6 +205,7 @@ module.exports = {
                     LEFT JOIN public.provider_groups  pg on pg.id = bp.provider_group_id
                     LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
                     LEFT JOIN public.providers p on p.id = pc.provider_id
+                    LEFT JOIN billing.adjustment_codes adj ON adj.id = pa.adjustment_code_id
                     WHERE 
                         ch.claim_id = ${claim_id}  
                         AND CASE WHEN pa.amount_type = 'adjustment' THEN pa.amount != 0.00::money ELSE 1=1  END 
@@ -212,6 +213,28 @@ module.exports = {
                         bp.id ,  
                         pa.amount_type,
                         comments
+                    UNION ALL
+                    SELECT
+                          bp.id AS id
+                        , bp.id::text AS payment_id
+                        , 'refund' AS code
+                        , 'Refund'  AS type
+                        , adj.description AS comments
+                        , bp.accounting_dt::date AS commented_dt
+                        , false AS is_internal
+                        , null AS charge_amount
+                        , '{}'::text[] AS charge_pointer
+                        , null AS payment  
+                        , SUM( pa.amount )::text AS adjustment  
+                    FROM billing.payments bp
+                    INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
+                    INNER JOIN billing.charges ch on ch.id = pa.charge_id 
+                    LEFT JOIN billing.adjustment_codes adj ON adj.id = pa.adjustment_code_id
+                    WHERE adj.accounting_entry_type = 'refund_debit'  AND ch.claim_id = 5528 
+                    GROUP BY
+                        bp.id
+                        , pa.amount_type
+                        , adj.description 
                 )
                 SELECT
                       id AS row_id
@@ -234,8 +257,9 @@ module.exports = {
                                 WHEN 'auto' THEN 2
                                 WHEN 'payment' THEN 3
                                 WHEN 'adjustment' THEN 4
-                                WHEN 'co_insurance' THEN 5
-                                WHEN 'deductible' THEN 6 END 
+                                WHEN 'refund' THEN 5
+                                WHEN 'co_insurance' THEN 6
+                                WHEN 'deductible' THEN 7 END 
                     ) AS id
                 FROM agg
                 ORDER BY 
@@ -245,8 +269,9 @@ module.exports = {
                         WHEN 'auto' THEN 2
                         WHEN 'payment' THEN 3
                         WHEN 'adjustment' THEN 4
-                        WHEN 'co_insurance' THEN 5
-                        WHEN 'deductible' THEN 6 END `;
+                        WHEN 'refund' THEN 5
+                        WHEN 'co_insurance' THEN 6
+                        WHEN 'deductible' THEN 7 END `;
 
         return await query(sql);
     },
@@ -378,7 +403,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Created ${note}(${claim_id})`
+            logDescription: `Add: Claim Inquiry(${claim_id}) created`
         });
     },
 

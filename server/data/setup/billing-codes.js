@@ -87,7 +87,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Created ${description}(${code})`
+            logDescription: `Add: New Billing Code(${code}) created`
         });
     },
 
@@ -120,7 +120,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Updated ${description}(${code})`
+            logDescription: `Update: Billing Code(${code}) updated`
         });
     },
 
