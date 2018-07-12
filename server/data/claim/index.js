@@ -50,7 +50,7 @@ module.exports = {
                             INNER JOIN appointment_type_procedures atp ON atp.procedure_id = sc.cpt_code_id AND atp.appointment_type_id = s.appointment_type_id
                             WHERE
                             
-                                study_id = ANY(${studyIds})
+                                study_id = ANY(${studyIds}) AND sc.has_deleted = FALSE
                             ORDER BY s.accession_no DESC
                             ) AS charge
                         ) charge_details
