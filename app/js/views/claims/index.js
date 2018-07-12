@@ -2418,11 +2418,11 @@ define(['jquery',
                                 $("#btnClaimsRefresh").click();
                                 $("#btnStudiesRefresh").click();
                                 commonjs.hideDialog();
-                            }
-                            
+                            }                            
                         },
                         error: function (model, response) {
                             commonjs.handleXhrError(model, response);
+                            saveButton.attr('disabled', false);
                         }
                     });
                 }
