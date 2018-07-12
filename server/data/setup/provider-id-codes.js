@@ -69,7 +69,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Created ${providerId}(${qualifierId})`
+            logDescription: `Add: New Provider Id Code(${qualifierId}) created`
         });
     },
 
@@ -102,7 +102,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Updated ${providerId}(${qualifierId})`
+            logDescription: `Update: Provider Id Code(${qualifierId}) updated`
         });
     },
 

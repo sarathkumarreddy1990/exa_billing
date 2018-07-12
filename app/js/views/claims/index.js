@@ -420,7 +420,7 @@ define(['jquery',
                             /* Bind chargeLineItems events - Ended */
 
                             /* Header Details */
-                            $(parent.document).find('#spanModalHeader').html('Edit: <STRONG>' + claimDetails.patient_full_name + '</STRONG> (Acc#:' + claimDetails.patient_account_no + '), <i>' + claimDetails.patient_dob + '</i>  ');
+                            $(parent.document).find('#spanModalHeader').html('Edit : <STRONG>' + claimDetails.patient_full_name + '</STRONG> (Acc#:' + claimDetails.patient_account_no + ') ' + moment(claimDetails.patient_dob).format('MM/DD/YYYY') + '');
                             $.each(self.claimChargeList, function (index, data) {
                                 /* Bind charge table data*/
                                 self.createCptCodesUI(index);
@@ -663,10 +663,9 @@ define(['jquery',
                     $('#select2-ddlPriInsurance-container').html(claimData.p_insurance_name);
                     $('#chkPriAcptAsmt').prop('checked', claimData.p_assign_benefits_to_patient);
                     $('#lblPriInsPriAddr').html(claimData.p_address1);
-                    var pri_csz = claimData.p_city || '' + (commonjs.checkNotEmpty(claimData.p_state) ? ',' + claimData.p_state : "") + (commonjs.checkNotEmpty(claimData.p_zip) ? ',' + claimData.p_zip : "");
+                    var pri_csz = $.grep([claimData.p_city, claimData.p_state, claimData.p_zip], Boolean).join(", ");
                     $('#lblPriInsCityStateZip').html(pri_csz);
-                    $('#lblPriInsCityStateZip').show()
-                    $('#lblPriInsPriAddr').show()
+                    $('#lblPriPhoenNo').html(claimData.p_phone_no);
                     $('#txtPriPolicyNo').val(claimData.p_policy_number);
                     $('#txtPriGroupNo').val(claimData.p_group_number);
                     $("#ddlPriRelationShip").val(claimData.p_subscriber_relationship_id);
@@ -704,10 +703,9 @@ define(['jquery',
                     $('#selectMedicalPayer').toggle(claimData.s_medicare_insurance_type_code ? true : false);
                     $('#selectMedicalPayer').val(claimData.s_medicare_insurance_type_code);
                     $('#lblSecInsPriAddr').html(claimData.s_address1);
-                    var sec_csz = claimData.s_city || '' + (commonjs.checkNotEmpty(claimData.s_state) ? ',' + claimData.s_state : "") + (commonjs.checkNotEmpty(claimData.s_zip) ? ',' + claimData.s_zip : "");
+                    var sec_csz = $.grep([claimData.s_city, claimData.s_state, claimData.s_zip], Boolean).join(", ");
                     $('#lblSecInsCityStateZip').html(sec_csz);
-                    $('#lblSecInsCityStateZip').show();
-                    $('#lblSecInsPriAddr').show();
+                    $('#lblSecPhoenNo').html(claimData.s_phone_no);
                     $('#txtSecPolicyNo').val(claimData.s_policy_number);
                     $('#txtSecGroupNo').val(claimData.s_group_number);
                     $("#ddlSecRelationShip").val(claimData.s_subscriber_relationship_id);
@@ -741,11 +739,10 @@ define(['jquery',
                     self.terInsName = claimData.t_insurance_name;
                     $('#select2-ddlTerInsurance-container').html(claimData.t_insurance_name);
                     $('#chkTerAcptAsmt').prop('checked', claimData.t_assign_benefits_to_patient);
-                    $('#lblTerInsPriAddr').html(claimData.t_address1);
-                    var ter_csz = claimData.t_city || '' + (commonjs.checkNotEmpty(claimData.t_state) ? ',' + claimData.t_state : "") + (commonjs.checkNotEmpty(claimData.t_zip) ? ',' + claimData.t_zip : "");
+                    $('#lblTerInsPriAddr').html(claimData.t_address1);                    
+                    var ter_csz = $.grep([claimData.t_city, claimData.t_state, claimData.t_zip], Boolean).join(", ");
                     $('#lblTerInsCityStateZip').html(ter_csz);
-                    $('#lblTerInsCityStateZip').show()
-                    $('#lblTerInsPriAddr').show();
+                    $('#lblTerPhoenNo').html(claimData.t_phone_no);
                     $('#txtTerPolicyNo').val(claimData.t_policy_number);
                     $('#txtTerGroupNo').val(claimData.t_group_number);
                     $("#ddlTerRelationShip").val(claimData.t_subscriber_relationship_id);
@@ -2055,16 +2052,11 @@ define(['jquery',
                 var insuranceInfo = res.insurance_info || null;
                 var csz = insuranceInfo.City + (commonjs.checkNotEmpty(insuranceInfo.State) ? ',' + insuranceInfo.State : "") + (commonjs.checkNotEmpty(insuranceInfo.ZipCode) ? ',' + insuranceInfo.ZipCode : "");
 
-                if (insuranceInfo && insuranceInfo.Address1 != '')
-                    $('#lbl' + level + 'InsPriAddr').html(insuranceInfo.Address1);
-                else
-                    $('#lbl' + level + 'InsPriAddr').hide();
+                $('#lbl' + level + 'InsPriAddr').html(insuranceInfo.Address1);
 
-                if (csz != '')
-                    $('#lbl' + level + 'InsCityStateZip').html(csz);
-                else
-                    $('#lbl' + level + 'InsCityStateZip').hide();
+                $('#lbl' + level + 'InsCityStateZip').html(csz);
 
+                $('#lbl' + level + 'PhoenNo').html(insuranceInfo.PhoneNo);
             },
 
             bindServiceType: function () {
@@ -2193,8 +2185,7 @@ define(['jquery',
                     $('#lbl' + flag + 'InsPriAddr').html(result.ins_pri_address);
                     var csz = result.ins_city + (commonjs.checkNotEmpty(result.ins_state) ? ',' + result.ins_state : "") + (commonjs.checkNotEmpty(result.ins_zip_code) ? ',' + result.ins_zip_code : "");
                     $('#lbl' + flag + 'InsCityStateZip').html(csz);
-                    $('#lbl' + flag + 'InsPriAddr').show()
-                    $('#lbl' + flag + 'InsCityStateZip').show()
+                    $('#lbl' + flag + 'PhoenNo').html(result.ins_phone_no ? result.ins_phone_no: '');
                     $('#txt' + flag + 'PolicyNo').val(result.policy_number);
                     $('#txt' + flag + 'GroupNo').val(result.group_number);
                     $('#ddl' + flag + 'RelationShip').val(result.subscriber_relationship_id);
@@ -2758,8 +2749,7 @@ define(['jquery',
                     $('#chk' + flag + 'AcptAsmt').prop('checked', false);
                     $('#lbl' + flag + 'InsPriAddr').html('');
                     $('#lbl' + flag + 'InsCityStateZip').html('');
-                    $('#lbl' + flag + 'InsCityStateZip').show()
-                    $('#lbl' + flag + 'InsPriAddr').show()
+                    $('#lbl' + flag + 'PhoenNo').html('');
                     $('#txt' + flag + 'PolicyNo').val('');
                     $('#txt' + flag + 'GroupNo').val('');
                     $('#ddl' + flag + 'PlanName').val('');
