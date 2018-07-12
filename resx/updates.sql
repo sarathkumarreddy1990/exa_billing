@@ -2009,7 +2009,7 @@ $BODY$
 $BODY$
   LANGUAGE sql;
 -- --------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION billing.get_age_patient_claim(IN bigint, bigint)
+CREATE OR REPLACE FUNCTION billing.get_age_patient_claim(bigint, bigint)
   RETURNS TABLE(patient_age_0_30 money, patient_age_31_60 money, patient_age_61_90 money, patient_age_91_120 money, patient_age_121 money, insurance_age_0_30 money, insurance_age_31_60 money, insurance_age_61_90 money, insurance_age_91_120 money, insurance_age_121 money, total_balance money, patient_total money, insurance_total money, total_age_30 money, total_age_31_60 money, total_age_61_90 money, total_age_91_120 money, total_age_121 money, total_unapplied money) AS
 $BODY$
 
