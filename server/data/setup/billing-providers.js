@@ -326,13 +326,15 @@ module.exports = {
         let {
             id,
             userId,
+            description,
+            code,
             screenName,
             moduleName,
             logDescription,
             clientIp,
             companyId } = params;
 
-        logDescription = 'Deleted.';
+        logDescription = `Deleted ${description}(${code})`;
 
         const sql = SQL` 
             WITH delete_billing_provider AS(
