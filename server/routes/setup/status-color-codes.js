@@ -27,6 +27,7 @@ router.put('/:id', async function (req, res) {
 router.delete('/:id', async function (req, res) {
     let params = {
         ...req.params,
+        ...req.body,
         ...req.audit
     };
 

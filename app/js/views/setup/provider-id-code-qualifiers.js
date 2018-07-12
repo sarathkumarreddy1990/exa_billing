@@ -68,6 +68,7 @@ define([
                                     var gridData = $('#tblProviderIdCodeQualifiersGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
+                                        data: $.param({code: gridData.qualifier_code, description:gridData.description}),
                                         success: function (model, response) {
                                             commonjs.showStatus("Deleted Successfully");
                                             self.providerIdCodeQualifiersTable.refresh();

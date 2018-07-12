@@ -79,8 +79,10 @@ define(['jquery',
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
                                 if (confirm("Are you sure want to delete")) {
+                                    var gridData = $('#tblEDIClearingHousesGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
+                                        data: $.param({name: gridData.name, receiverName:gridData.receiver_name}),
                                         success: function (model, response) {
                                             self.ediClearingHousesTable.refreshAll();
                                             commonjs.showStatus("Deleted Successfully");

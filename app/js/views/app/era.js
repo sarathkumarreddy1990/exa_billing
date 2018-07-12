@@ -448,7 +448,13 @@ define([
                                 });
                                 
                                 $('#eraResultTitle').html('Result : ' + fileName);
-                                commonjs.showDialog({ header: 'Result : ' + fileName, width: '80%', height: '70%', html: self.eraResponseTemplate({ claims: claims, ins: ins }) });
+                                commonjs.showDialog({ 
+                                    header: 'Result : ' + fileName, 
+                                    width: '80%', 
+                                    height: '70%', 
+                                    padding: '0px',
+                                    html: self.eraResponseTemplate({ claims: claims, ins: ins }) 
+                                });
 
                                 try {
                                     var eraPreview = _.template(EraPreview);

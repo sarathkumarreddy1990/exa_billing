@@ -138,7 +138,11 @@ module.exports = {
 
     delete: async function (params) {
 
-        let { id } = params;
+        let {
+            id,
+            code,
+            description
+        } = params;
 
         const sql = SQL` DELETE FROM
                              billing.cas_group_codes
@@ -147,7 +151,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: 'Deleted.'
+            logDescription: `Deleted ${description} (${code})`
         });
     }
 };

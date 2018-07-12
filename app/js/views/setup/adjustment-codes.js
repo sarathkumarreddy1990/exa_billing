@@ -80,6 +80,7 @@ define(['jquery',
                                     var gridData = $('#tblAdjustmentCodesGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
+                                        data: $.param({code: gridData.code, description:gridData.description}),
                                         success: function (model, response) {
                                             commonjs.showStatus("Deleted Successfully");
                                             self.adjustmentCodesTable.refresh();
@@ -96,12 +97,10 @@ define(['jquery',
                         },
                         {
                             name: 'code',
-                         //   width: 180,
                             searchFlag: '%'
                         },
                         {
                             name: 'description',
-                         //   width: 180,
                             searchFlag: '%'
                         },
                         {
@@ -112,7 +111,6 @@ define(['jquery',
                             searchoptions: {
                                 value: self.entryType
                             },
-                          //  width: 180
                         },
                         {
                             name: 'inactivated_dt',

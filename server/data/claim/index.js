@@ -50,7 +50,7 @@ module.exports = {
                             INNER JOIN appointment_type_procedures atp ON atp.procedure_id = sc.cpt_code_id AND atp.appointment_type_id = s.appointment_type_id
                             WHERE
                             
-                                study_id = ANY(${studyIds})
+                                study_id = ANY(${studyIds}) AND sc.has_deleted = FALSE
                             ORDER BY s.accession_no DESC
                             ) AS charge
                         ) charge_details
@@ -594,6 +594,7 @@ module.exports = {
                             FROM billing.claim_icds ci 
                             INNER JOIN public.icd_codes icd ON ci.icd_id = icd.id 
                             WHERE claim_id = c.id
+                            ORDER BY id ASC
                       ) icd_query) AS claim_icd_data
                     , (
                         SELECT json_agg(row_to_json(existing_insurance)) AS existing_insurance 
