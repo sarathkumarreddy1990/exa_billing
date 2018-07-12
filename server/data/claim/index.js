@@ -594,6 +594,7 @@ module.exports = {
                             FROM billing.claim_icds ci 
                             INNER JOIN public.icd_codes icd ON ci.icd_id = icd.id 
                             WHERE claim_id = c.id
+                            ORDER BY id ASC
                       ) icd_query) AS claim_icd_data
                     , (
                         SELECT json_agg(row_to_json(existing_insurance)) AS existing_insurance 

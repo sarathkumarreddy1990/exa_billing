@@ -281,28 +281,28 @@ define([
                     colModel: [
                         { name: '', index: 'claim_id', key: true, hidden: true, search: false },
                         {
-                            name: 'claim_id', search: false, width: 100
+                            name: 'claim_id', search: false, width: 70
                         },
                         {
-                            name: 'claim_dt', search: false, formatter: self.dateFormatter, width: 200
+                            name: 'claim_dt', search: false, formatter: self.dateFormatter, width: 100
                         },
                         {
                             name: 'billing_fee', search: false, width: 100
                         },
                         {
-                            name: 'total_insurance_payment', search: false, width: 100
+                            name: 'total_insurance_payment', search: false, width: 150
                         },
                         {
-                            name: 'total_patient_payment', search: false, width: 100
+                            name: 'total_patient_payment', search: false, width: 150
                         },
                         {
                             name: 'claim_balance', search: false, width: 100
                         },
                         {
-                            name: 'claim_status', search: false, width: 100
+                            name: 'claim_status', search: false, width: 150
                         },
                         {
-                            name: 'payer_name', search: false, width: 200
+                            name: 'payer_name', search: false, width: 250
                         }
 
 
@@ -759,7 +759,8 @@ define([
                 this.fromDate.date(); 
                 this.toDate =  commonjs.bindDateTimePicker("divTDate", { format: 'L' }); 
                 this.toDate.date(); 
-
+                $('#radActivityAllStatus').prop('checked', true);
+                $('#activityDetails').hide();
                 if(this.screenCode.indexOf('PACT') > -1)
                     $('#btnPatientActivity').attr('disabled', true); // if Patient Activity report have rights then only can access this report
                 self.showPatientClaimsGrid(claimId, patientId, 0);
