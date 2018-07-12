@@ -3084,6 +3084,8 @@ BEGIN
 		
 	FROM claim_details WHERE billing.claims.id = i_claim_id;
 
+    UPDATE billing.claims set billing_method = (SELECT billing.get_billing_method(i_claim_id, null)) WHERE  id = i_claim_id ;
+
 	RETURN TRUE;
 
 END;
