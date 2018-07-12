@@ -383,12 +383,14 @@ define(['jquery',
                             self.terClaimInsID = claimDetails.tertiary_patient_insurance_id || null;
                             self.claim_row_version = claimDetails.claim_row_version || null;
 
+                            self.facilityId = claimDetails.facility_id; // claim facility_date
+                            self.studyDate = self.cur_study_date; // Assign claim data as studyDate variable to newly adding charges
                             /* Bind claim charge Details*/
                             $('#tBodyCharge').empty();
                             claimDetails.claim_charges = claimDetails.claim_charges || [];
                             self.claimChargeList = [];
                             $.each(claimDetails.claim_charges, function (index, obj) {
-                                obj.charge_dt = commonjs.checkNotEmpty(obj.charge_dt) ? commonjs.convertToFacilityTimeZone(claimDetails.facility_id, obj.charge_dt).format('L LT z') : '';
+                                obj.charge_dt = commonjs.checkNotEmpty(obj.charge_dt) ? commonjs.convertToFacilityTimeZone(claimDetails.facility_id, obj.charge_dt).format('L') : '';
                                 obj.facility_id = claimDetails.facility_id;
                                 obj.data_row_id = index;
                                 self.bindModifiersData(obj);
@@ -786,7 +788,7 @@ define(['jquery',
                 self.pri_accession_no = primaryStudyDetails.accession_no || null;
                 self.cur_study_id = primaryStudyDetails.study_id || null;
                 self.isEdit = self.claim_Id ? true : false;
-
+                self.facilityId = primaryStudyDetails.facility_id;
                 if (!this.rendered)
                     this.render('claim');
 
@@ -909,7 +911,8 @@ define(['jquery',
                             if (model && model.length > 0) {
                                 $('#tBodyCharge').empty();
                                 var modelDetails = model[0];
-                                self.studyDate = modelDetails && modelDetails.charges && modelDetails.charges.length && modelDetails.charges[0].study_dt ? modelDetails.charges[0].study_dt : '' ;
+                                self.studyDate = modelDetails && modelDetails.charges && modelDetails.charges.length && modelDetails.charges[0].study_dt ? modelDetails.charges[0].study_dt : self.cur_study_date ;
+                                self.facilityId = modelDetails && modelDetails.charges && modelDetails.charges.length && modelDetails.charges[0].facility_id ? modelDetails.charges[0].facility_id : self.facilityId ;
                                 var diagnosisCodes = [];
                                 var diagnosisCodesOrder = [];
                                 _.each(modelDetails.charges, function (item) {
@@ -959,8 +962,7 @@ define(['jquery',
                                 commonjs.isMaskValidate();
                                 /* Bind chargeLineItems events - Ended */
 
-                                if (modelDetails && modelDetails.charges && modelDetails.charges.length)
-                                    $("#txtClaimDate").attr("disabled", "disabled"); 
+                                $("#txtClaimDate").attr("disabled", "disabled"); 
                             }                            
                         },
                         error: function (model, response) {
@@ -1035,7 +1037,7 @@ define(['jquery',
             addLineItems: function (data, index, isDefault) {
                 var self = this;
 
-                data.claim_dt = (commonjs.checkNotEmpty(self.cur_study_date) ? self.cur_study_date : '');
+                data.charge_dt = commonjs.checkNotEmpty(self.studyDate) ? commonjs.convertToFacilityTimeZone(self.facilityId, self.studyDate).format('L') : '--';
                 self.bindModifiersData(data);
                 var chargeTableRow = self.chargerowtemplate({ row: data });
                 $('#tBodyCharge').append(chargeTableRow);
@@ -2328,7 +2330,7 @@ define(['jquery',
                     billing_code_id: $('#ddlBillingCode option:selected').val() != '' ? parseInt($('#ddlBillingCode option:selected').val()) : null,
                     billing_class_id: $('#ddlBillingClass option:selected').val() != '' ? parseInt($('#ddlBillingClass option:selected').val()) : null,
                     created_by: app.userID,
-                    claim_dt: $('#txtClaimDate').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtClaimDate').val())).format('YYYY-MM-DD hh:mm a') : null,
+                    claim_dt: self.cur_study_date ? self.cur_study_date : null,
                     current_illness_date: $('#txtDate').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtDate').val()).format('YYYY-MM-DD')) : null,
                     same_illness_first_date: $('#txtOtherDate').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtOtherDate').val()).format('YYYY-MM-DD')) : null,
                     unable_to_work_from_date: $('#txtWCF').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtWCF').val()).format('YYYY-MM-DD')) : null,
@@ -2406,6 +2408,7 @@ define(['jquery',
                 var self = this, saveButton = $('#btnSaveClaim');
 
                 saveButton.attr('disabled', true);
+                commonjs.showLoading();
                 if (self.validateClaimData()) {
                     self.setClaimDetails();
 
@@ -2420,11 +2423,13 @@ define(['jquery',
                                 $("#btnClaimsRefresh").click();
                                 $("#btnStudiesRefresh").click();
                                 commonjs.hideDialog();
-                            }                            
+                            }
+                            commonjs.hideLoading();
                         },
                         error: function (model, response) {
                             commonjs.handleXhrError(model, response);
                             saveButton.attr('disabled', false);
+                            commonjs.hideLoading();
                         }
                     });
                 }

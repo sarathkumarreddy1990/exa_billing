@@ -595,6 +595,7 @@ define('grid', [
             if (batchClaimArray.length) {
 
                 var selectedIds = JSON.stringify(batchClaimArray)
+                commonjs.showLoading();
 
                 $.ajax({
                     url: '/exa_modules/billing/claim_workbench/claims/batch',
@@ -606,9 +607,11 @@ define('grid', [
                     success: function (data, response) {
                         commonjs.showStatus('Batch Claim created successfully');
                         $("#btnStudiesRefresh").click();
+                        commonjs.hideLoading();
                     },
                     error: function (err, response) {
                         commonjs.handleXhrError(err, response);
+                        commonjs.hideLoading();
                     }
                 });
             }else{

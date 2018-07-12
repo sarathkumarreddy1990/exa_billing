@@ -195,7 +195,7 @@ module.exports = {
 
         let claimCharges = await data.getInvoiceDetails(params);
 
-        claimCharges = claimCharges.rows.length ? claimCharges.rows : [];
+        claimCharges = claimCharges.rows && claimCharges.rows.length ? claimCharges.rows : [];
         let paymentAmount = claimCharges.length && claimCharges[0].payment_balance_total || 0;
         let totalClaim = claimCharges.length && claimCharges[0].total_claims || 0;
 
@@ -248,7 +248,7 @@ module.exports = {
 
         let claimCharges =  await data.getClaimCharges(params);
        
-        claimCharges = claimCharges.rows.length ? claimCharges.rows : [];
+        claimCharges = claimCharges.rows && claimCharges.rows.length ? claimCharges.rows : [];
         let paymentAmount = claimCharges.length && claimCharges[0].payment_balance_total || 0;
         
         _.each(claimCharges, function (item) {
