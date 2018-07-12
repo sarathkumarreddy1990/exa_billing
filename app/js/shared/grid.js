@@ -191,7 +191,7 @@ define('grid', [
                                 url: '/exa_modules/billing/claim_workbench/claims/update',
                                 type: 'PUT',
                                 data: {
-                                    claimIds: [studyIds],
+                                    claimIds: studyArray,
                                     claim_status_id:claimStatus.id,
                                     process:"Claim Status"
                                 },
@@ -221,7 +221,7 @@ define('grid', [
                                 url: '/exa_modules/billing/claim_workbench/claims/update',
                                 type: 'PUT',
                                 data: {
-                                    claimIds:  [studyIds],
+                                    claimIds:  studyArray,
                                     billing_code_id:billing_code.id,
                                     process:"Billing Code"
                                 },
@@ -251,7 +251,7 @@ define('grid', [
                                     url: '/exa_modules/billing/claim_workbench/claims/update',
                                     type: 'PUT',
                                     data: {
-                                        claimIds:  [studyIds],
+                                        claimIds:studyArray,
                                         billing_class_id:billing_class.id,
                                         process:"Billing Class"
                                     },
@@ -418,13 +418,7 @@ define('grid', [
                     if ($('#anc_patient_claim_inquiry').hasClass('disabled')) {
                         return false;
                     }
-
-                     commonjs.showDialog({
-                    'header': 'Patient Claim',
-                    'width': '85%',
-                    'height': '75%',
-                    'needShrink': true
-                });
+                   
                 self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
                 self.claimInquiryView.patientInquiryForm(studyIds,selectedStudies[0].patient_id);
                 });
@@ -620,7 +614,7 @@ define('grid', [
             }
         },
 
-        self.renderStudy = function (flag) {
+        self.renderStudy = function (doExport) {
             if (options.isClaimGrid)
                 var studyStore = studyDataStore = new claimWorkbench(null, { 'filterID': filterID });
             else {
@@ -1173,7 +1167,7 @@ define('grid', [
                 },
                 rowattr: rowattr
             });
-            if (flag == true) {
+            if (doExport) {
                 commonjs.showLoading();         
                 var colHeader = studyFields.colName;
                 $.ajax({
@@ -1289,6 +1283,7 @@ define('grid', [
                     },
                     error: function (err) {
                         commonjs.handleXhrError(err);
+                        $('#btnValidateExport').prop('disabled', false); 
                     }
                 });
                 return true;

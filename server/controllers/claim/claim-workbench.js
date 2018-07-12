@@ -88,7 +88,7 @@ module.exports = {
             };
 
             ediResponse = await ediConnect.generateEdi(result.rows[0].header.edi_template_name, ediRequestJson);
-            params.claim_status = 'PYMTPEN';
+            params.claim_status = 'PP';
             params.type = 'auto';
             params.success_claimID = params.claimIds;  
             params.isClaim=true;
@@ -106,7 +106,7 @@ module.exports = {
             validClaim_data: [] };
         let error_data;
         params.success_claimID = [];
-        let pointer;
+        let pointers;
         let defaultSubsInsValidationFields = ['subscriber_addressLine1', 'subscriber_city', 'subscriber_dob', 'subscriber_firstName', 'subscriber_lastName', 'subscriber_state', 'subscriber_zipCode', 'insurance_pro_address1', 'insurance_pro_city', 'insurance_pro_payerID', 'insurance_pro_state', 'insurance_pro_zipCode', 'insurance_pro_companyName'];
 
         _.each(claimDetails, (currentClaim) => {
@@ -134,16 +134,17 @@ module.exports = {
                     insSubsValidationFields.push(validationField);
                 }
                 else if(validationField == 'service_line_dig1'){
-                    pointer = currentClaim.charge_pointer;
+                    pointers = currentClaim.charge_pointer;
 
-                    if (pointer && pointer.length > 0) {
-                        _.each(pointer, function(pointer1, k){
+                    if (pointers && pointers.length > 0) {
+                        _.each(pointers, function(pointer){
 
-                            if (pointer1 == null) {
-                                errorMessages.push(`Claim ID ( ${currentClaim.id} ) - Charge ${pointer[k].ref_code} - ${pointer[k].display_description} Serice Line-Dig1 does not exists`);
+                            if (pointer && pointer.pointer1 == null) {
+                                errorMessages.push(`Claim ID ( ${currentClaim.id} ) - Charge ${pointer.ref_code} - ${pointer.display_description} Serice Line-Dig1 does not exists`);
                             }
                         });
                     }
+
                 } else {
                     !currentClaim[validationField] || currentClaim[validationField].length == 0 ? errorMessages.push(` Claim - ${validationField} does not exists`) : null;
                 }

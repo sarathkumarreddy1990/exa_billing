@@ -2,54 +2,84 @@
     #divPatientClaimsGrid .ui-search-toolbar {
         display: none;
     }
+    #divPatientClaimsGrid .ui-jqgrid-bdiv{
+        overflow-x: hidden;
+    }
 </style>
 <div id="divPatientClaimsGrid" style="text-align: right">
     <div class="row">
-        <div class="col-2">
-            <div class="col-form-label" style="text-align: left;">
+        <div class="col-3">
+            <div class="col-form-label" style="text-align: left; padding: 0;">
                 <label i18n="report.billingProviders" />
             </div>
             <div class="form-group form-inline">
-                <select id="ddlBillingProvider" multiple="multiple" />
+                <select id="ddlBillingProvider" />
             </div>
         </div>
         <div class="col-2">
-            <div>
-                <span i18n="billing.payments.unapplied" style="font-weight: bold;">
-                </span>
-                <span id="spUnapplied">
-                </span>
-            </div>
-        </div>
-
-        <div class="col-2">
-            <input type="radio" id="radActivityAllStatus" name="patientActivity" checked>All Activity </input>
-            <input id='radioActivityStatus' type="radio" name="patientActivity"> Activity By Date</input>
-        </div>
-        <div class="col-2" id="divFromDate">
-            <div class="form-group form-inline" id="activityDetails" style="display : none;">
-                <label for="txtDate" i18n="billing.claims.fromDate"></label>
-                <div id="divFDate" class="input-group">
-                    <input type="text" id="txtDate" class="form-control form-control-date">
-                    <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px;"> <i class="icon-ic-schedule"></i></span>
-                </div>
-                <!-- <input type="date" class="form-control maskDateLocale" id="txtDate"> -->
-                <label for="txtOtherDate" i18n="billing.claims.toDate"></label>
-                <div id="divTDate" class="input-group">
-                        <input type="text" id="txtOtherDate" class="form-control form-control-date">
-                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px;"> <i class="icon-ic-schedule"></i></span>
+            <div class="col-form-label" style="text-align: left;">
+                <label i18n="billing.payments.unapplied" />
+                <div class="form-group form-inline">
+                    <span id="spUnapplied"> </span>
                 </div>
             </div>
         </div>
         <div class="col-2">
-            <input type="checkbox" id="bindComments" class="btn btn-default bindComments" i18n="billing.payments.comment">
-            <label for="bindComments">Include All Comments</label>
+            <div class="col-form-label" style="text-align: left;">
+                <span class="radio-inline" for="radActivityAllStatus">
+                    <input id="radActivityAllStatus" type="radio" name="patientActivity" style="margin-top: 3px;">
+                    <label for="radActivityAllStatus" class="field-chk" style="min-width: 20px!important; margin: 0 0 10px 0px;">All Activity</label>
+                </span>
+                <div class="form-group form-inline">
+                    <span class="radio-inline" for="radioActivityStatus">
+                        <input id="radioActivityStatus" type="radio" name="patientActivity" style="margin-top: 3px;">
+                        <label for="radioActivityStatus" class="field-chk" style="min-width: 20px!important; margin: 0 0 10px 0px;">Activity By Date</label>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="col-3" id="divFromDate">
+            <div id="activityDetails">
+                <div class="form-group form-inline">
+                    <div class="col-form-label" style="padding: 0;">
+                        <label for="txtDate" i18n="billing.claims.fromDate" class="col-form-label"></label>
+                    </div>
+                    <div class="col-form-content" style="text-align: right;">
+                        <div id="divFDate" class="input-group">
+                            <input type="text" id="txtDate" class="form-control form-control-date">
+                            <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px;">
+                                <i class="icon-ic-schedule"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <!--  To Date -->
+                <div class="form-group form-inline">
+                    <div class="col-form-label" style="padding: 0;">
+                        <label for="txtOtherDate" i18n="billing.claims.toDate" class="col-form-label" style="width: 65px;"></label>
+                    </div>
+                    <div class="col-form-content" style="text-align: right;">
+                        <div id="divTDate" class="input-group">
+                            <input type="text" id="txtOtherDate" class="form-control form-control-date">
+                            <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px;">
+                                <i class="icon-ic-schedule"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="col-2">
-            <input type="button" id="btnPatientActivity" class="btn btn-default patientActivity" i18n="billing.payments.print">
+            <div class="col-form-label" style="text-align: left;">
+                <input type="checkbox" id="bindComments" class="btn btn-default bindComments" i18n="billing.payments.comment">
+                <label for="bindComments">Include All Comments</label>
+                <div class="form-group form-inline">
+                    <input type="button" id="btnPatientActivity" class="btn btn-default patientActivity" i18n="billing.payments.print">
+                </div>
+            </div>
         </div>
     </div>
-    <div>
+    <div class="row" style="margin: auto;">
         <table id="tblPatientClaimsGrid"></table>
         <div id="gridPager_PatientClaim"></div>
     </div>

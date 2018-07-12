@@ -5,8 +5,7 @@ const _ = require('lodash');
 module.exports = {
 
     checkRights: function (args) {
-        const defaultAPIs =   ['/exa_modules/billing/app_settings', '/exa_modules/billing/app_settings/i18n/es_us.json', '/exa_modules/billing/app_settings/i18n/default.json',
-            '/exa_modules/billing/user_settings'];
+        const defaultAPIs =   ['/exa_modules/billing/app_settings', '/exa_modules/billing/user_settings', '/exa_modules/billing/setup/study_filters'];
         let {
             screens,
             userType,
@@ -33,6 +32,10 @@ module.exports = {
         if (!screenNameInternal) {
             return false;
         }   
+
+        if( _.includes(route, 'i18n')) {
+            return true;
+        }    
 
         if( _.includes(route, 'claim_patient')) {
             screenNameInternal =  'claim_patient';

@@ -126,7 +126,11 @@ module.exports = {
 
     delete: async function (params) {
 
-        let { id } = params;
+    const {
+            id,
+            code,
+            description
+        } = params;
 
         const sql = SQL` DELETE FROM
                              billing.provider_id_code_qualifiers
@@ -135,7 +139,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: 'Deleted.'
+            logDescription: `Deleted ${description} (${code})`
         });
     }
 };

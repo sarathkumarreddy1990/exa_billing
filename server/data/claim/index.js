@@ -50,7 +50,7 @@ module.exports = {
                             INNER JOIN appointment_type_procedures atp ON atp.procedure_id = sc.cpt_code_id AND atp.appointment_type_id = s.appointment_type_id
                             WHERE
                             
-                                study_id = ANY(${studyIds})
+                                study_id = ANY(${studyIds}) AND sc.has_deleted = FALSE
                             ORDER BY s.accession_no DESC
                             ) AS charge
                         ) charge_details
@@ -309,98 +309,6 @@ module.exports = {
         return await query(sql);
     },
 
-    saveCharges: async function (params) {
-
-        const sql = SQL`WITH save_charges AS (
-                                INSERT INTO billing.charges 
-                                    ( claim_id     
-                                    , cpt_id
-                                    , modifier1_id
-                                    , modifier2_id
-                                    , modifier3_id
-                                    , modifier4_id
-                                    , bill_fee
-                                    , allowed_amount
-                                    , units
-                                    , created_by
-                                    , charge_dt
-                                    , pointer1
-                                    , pointer2
-                                    , pointer3
-                                    , pointer4
-                                    , authorization_no)
-                                values 
-                                    ( ${params.claim_id}
-                                    , ${params.cpt_id}
-                                    , ${params.modifier1_id}
-                                    , ${params.modifier2_id}
-                                    , ${params.modifier3_id}
-                                    , ${params.modifier4_id}
-                                    , ${params.bill_fee}
-                                    , ${params.allowed_amount}
-                                    , ${params.units}
-                                    , ${params.created_by}
-                                    , ${params.charge_dt}
-                                    , ${params.pointer1}
-                                    , ${params.pointer2}
-                                    , ${params.pointer3}
-                                    , ${params.pointer4}
-                                    , ${params.authorization_no}
-                                ) RETURNING billing.charges.id
-                            ), 
-                            save_charge_study AS (
-                                    INSERT INTO billing.charges_studies
-                                        ( charge_id
-                                        , study_id )
-                                    SELECT
-                                    (SELECT id FROM save_charges )
-                                    , ${params.study_id}
-                            ) select * from save_charges `;
-
-        return await query(sql);
-    },
-
-    saveChargesOnly: async function (params) {
-
-        const sql = SQL`INSERT INTO billing.charges 
-                                    ( claim_id     
-                                    , cpt_id
-                                    , modifier1_id
-                                    , modifier2_id
-                                    , modifier3_id
-                                    , modifier4_id
-                                    , bill_fee
-                                    , allowed_amount
-                                    , units
-                                    , created_by
-                                    , charge_dt
-                                    , pointer1
-                                    , pointer2
-                                    , pointer3
-                                    , pointer4
-                                    , authorization_no)
-                                values 
-                                    ( ${params.claim_id}
-                                    , ${params.cpt_id}
-                                    , ${params.modifier1_id}
-                                    , ${params.modifier2_id}
-                                    , ${params.modifier3_id}
-                                    , ${params.modifier4_id}
-                                    , ${params.bill_fee}
-                                    , ${params.allowed_amount}
-                                    , ${params.units}
-                                    , ${params.created_by}
-                                    , ${params.charge_dt}
-                                    , ${params.pointer1}
-                                    , ${params.pointer2}
-                                    , ${params.pointer3}
-                                    , ${params.pointer4}
-                                    , ${params.authorization_no}
-                                ) `;
-
-        return await query(sql);
-    },
-
     getClaimData: async (params) => {
 
         const {
@@ -594,6 +502,7 @@ module.exports = {
                             FROM billing.claim_icds ci 
                             INNER JOIN public.icd_codes icd ON ci.icd_id = icd.id 
                             WHERE claim_id = c.id
+                            ORDER BY id ASC
                       ) icd_query) AS claim_icd_data
                     , (
                         SELECT json_agg(row_to_json(existing_insurance)) AS existing_insurance 
@@ -650,9 +559,7 @@ module.exports = {
     },
 
     update: async function (args) {
-
-        let self = this;
-        let result;
+        
         let {
             claims
             , insurances
@@ -668,45 +575,9 @@ module.exports = {
             (${JSON.stringify(auditDetails)})::json,
             (${JSON.stringify(charges)})::json) as result`;
         
-        if (claims.payer_type == 'patient') {
-
-            await self.updateIns_claims(claims);
-            result = await query(sqlQry);
-
-        } else {
-
-            await query(sqlQry);
-            result = await self.updateIns_claims(claims);
-        }
-
-        return result;
-    },
-
-    updateIns_claims: async (params) => {
-
-        let sqlQry = SQL`
-        UPDATE
-            billing.claims
-        SET
-          payer_type = ${params.payer_type}
-        WHERE
-            billing.claims.id = ${params.claim_id} 
-        RETURNING id    `;
 
         return await query(sqlQry);
-    },
 
-    getExistingPayer: async (params) => {
-
-        let sqlQry = SQL`
-        SELECT 
-            payer_type 
-        FROM 
-            billing.claims
-        WHERE 
-            id = ${params.id}`;
-        
-        return await query(sqlQry);
     },
 
     getProviderInfo: async (billingProviderId, insuranceProviderId) => {

@@ -839,8 +839,8 @@ define(['jquery',
                         {
                             name: 'edit', width: 20, sortable: false, search: false,
                             className: 'icon-ic-edit',
-                            formatter: function (a, b, c) {
-                                return "<span class='icon-ic-edit' title='Edit'></span>";
+                            formatter: function (e, model, data) {
+                                return "<i class='icon-ic-edit' title='Edit'></i>";
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblpendPaymentsGridOnly').jqGrid('getRowData', rowID);
@@ -852,7 +852,7 @@ define(['jquery',
                             name: 'claim_inquiry', width: 20, sortable: false, search: false,
                             className: 'icon-ic-raw-transctipt',
                             formatter: function () {
-                                return "<span class='icon-ic-raw-transctipt' title='Claim Inquiry'></span>"
+                                return "<i class='icon-ic-raw-transctipt' title='Claim Inquiry'></i>"
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblpendPaymentsGridOnly').jqGrid('getRowData', rowID);
@@ -928,8 +928,8 @@ define(['jquery',
                             {
                                 name: 'edit', width: 20, sortable: false, search: false,
                                 className: 'icon-ic-edit',
-                                formatter: function (a, b, c) {
-                                    return "<span class='icon-ic-edit' title='Edit'></span>";
+                                formatter: function (e, model, data) {
+                                    return "<i class='icon-ic-edit' title='Edit'></i>";
                                 },
                                 customAction: function (rowID, e) {
                                     var gridData = $('#tblpendPaymentsGrid').jqGrid('getRowData', rowID);
@@ -941,7 +941,7 @@ define(['jquery',
                                 name: 'claim_inquiry', width: 20, sortable: false, search: false,
                                 className: 'icon-ic-raw-transctipt',
                                 formatter: function () {
-                                    return "<span class='icon-ic-raw-transctipt' title='Claim Inquiry'></span>"
+                                    return "<i class='icon-ic-raw-transctipt' title='Claim Inquiry'></i>"
                                 },
                                 customAction: function (rowID, e) {
                                     var gridData = $('#tblpendPaymentsGrid').jqGrid('getRowData', rowID);
@@ -1063,8 +1063,8 @@ define(['jquery',
                         {
                             name: 'edit', width: 20, sortable: false, search: false,
                             className: 'icon-ic-edit',
-                            formatter: function (a, b, c) {
-                                return "<span class='icon-ic-edit' title='Edit'></span>";
+                            formatter: function (e, model, data) {
+                                return "<i class='icon-ic-edit' title='Edit'></i>";
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblAppliedPaymentsGrid').jqGrid('getRowData', rowID);
@@ -1075,7 +1075,7 @@ define(['jquery',
                             name: 'claim_inquiry', width: 20, sortable: false, search: false,
                             className: 'icon-ic-raw-transctipt',
                             formatter: function () {
-                                return "<span class='icon-ic-raw-transctipt' title='Claim Inquiry'></span>"
+                                return "<i class='icon-ic-raw-transctipt' title='Claim Inquiry'></i>"
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblAppliedPaymentsGrid').jqGrid('getRowData', rowID);
@@ -1663,6 +1663,8 @@ define(['jquery',
                 var objIsPayInFull = targetObj.is('#btnPayfullAppliedPendingPayments');
                 var self = this;
                 if (this.validatePayerDetails()) {
+                    commonjs.showLoading('');
+                    targetObj.attr('disabled', true);
                     var lineItems = $("#tBodyApplyPendingPayment tr"), dataLineItems = [], orderPayment = 0.00, orderAdjustment = 0.00;
                     var line_items = [];
 
@@ -1723,6 +1725,7 @@ define(['jquery',
                         success: function (model, response) {
                             commonjs.showStatus('Payment has been applied successfully');
                             self.casSegmentsSelected = [];
+                            targetObj.removeAttr('disabled');
                             self.closeAppliedPendingPayments(e, paymentId);
                             commonjs.hideDialog();
                         },

@@ -1058,7 +1058,7 @@ CREATE TABLE IF NOT EXISTS billing.grid_filters
     CONSTRAINT grid_filters_id_pk PRIMARY KEY (id),
     CONSTRAINT grid_filters_user_id_fk FOREIGN KEY (user_id) REFERENCES public.users(id),
     CONSTRAINT grid_filters_filter_type_cc CHECK(filter_type IN ('studies','claims')),
-    CONSTRAINT grid_filters_filter_name_uc UNIQUE(filter_name)
+    CONSTRAINT grid_filters_filter_name_uc UNIQUE(filter_type,filter_name)
 );
 COMMENT ON TABLE billing.grid_filters IS 'To maintain Display filter tabs in billing home page (Billed/Unbilled studies) & claim work bench';
 -- --------------------------------------------------------------------------------------------------------------------
@@ -2009,7 +2009,7 @@ $BODY$
 $BODY$
   LANGUAGE sql;
 -- --------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION billing.get_age_patient_claim(IN bigint)
+CREATE OR REPLACE FUNCTION billing.get_age_patient_claim(bigint, bigint)
   RETURNS TABLE(patient_age_0_30 money, patient_age_31_60 money, patient_age_61_90 money, patient_age_91_120 money, patient_age_121 money, insurance_age_0_30 money, insurance_age_31_60 money, insurance_age_61_90 money, insurance_age_91_120 money, insurance_age_121 money, total_balance money, patient_total money, insurance_total money, total_age_30 money, total_age_31_60 money, total_age_61_90 money, total_age_91_120 money, total_age_121 money, total_unapplied money) AS
 $BODY$
 
@@ -2028,7 +2028,7 @@ $BODY$
          SELECT now()::date - claim_dt::date AS num_days
      ) AS ar_dates ON TRUE
 
-		WHERE patient_id=  $1
+		WHERE patient_id=  $1 AND CASE WHEN $2 != 0 THEN billing_provider_id = $2 ELSE 1 = 1 END
 )
 , payment_sum as(
 	 SELECT COALESCE(NULLIF(sum(balance) FILTER (WHERE age_days = 'age_0_30' AND payer_type='patient'), 0::money),0::money) as patient_age_0_30 ,
@@ -2420,6 +2420,9 @@ $BODY$
                 l_base_fee := l_global_fee;
                 -- Default the global fee if fee level is not defined
             END IF;
+
+            l_base_fee := COALESCE (l_base_fee, 0::MONEY);
+            
             -- Apply the modifiers
             IF COALESCE (l_fee_override,
                     0::MONEY) != 0::MONEY THEN
@@ -2442,7 +2445,7 @@ $BODY$
                     END IF;
                 END IF;
             END IF;
-            l_result := l_base_fee;
+            l_result := COALESCE (l_base_fee, 0::MONEY);
             ----------------------------------------------------------------------------------------------------------------------
             RETURN l_result;
         EXCEPTION
@@ -2916,41 +2919,40 @@ END;
 $BODY$
   LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION billing.get_claim_billing_method(claimid bigint, payertype text)
-  RETURNS text AS
-$BODY$
+CREATE OR REPLACE FUNCTION billing.get_billing_method (i_claim_id bigint, payer_type text)
+    RETURNS text
+AS $BODY$
 DECLARE
- c_payer_type TEXT;
-BEGIN 
-
-
-    IF payertype IS NULL THEN
-       c_payer_type = (SELECT  payer_type FROM  billing.claims  WHERE claims.id = claimid);
-    ELSE 
-       c_payer_type = payertype;
-    END IF;
-
-
-    RETURN(SELECT  (CASE   WHEN  c_payer_type = 'patient' THEN 'patient_payment'  
-                           WHEN  c_payer_type ='primary_insurance' OR  c_payer_type ='secondary_insurance'  
-                           OR c_payer_type ='tertiary_insurance'
-                           THEN 
-                            (SELECT insurance_provider_details.billing_method FROM billing.claims 
-                            INNER JOIN    patient_insurances  ON  patient_insurances.id = 
-                            (  CASE c_payer_type 
-                            WHEN 'primary_insurance' THEN primary_patient_insurance_id
-                            WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
-                            WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
-                            END )
-                            
-                            INNER JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id  
-                            INNER JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
-                            WHERE claims.id = claimid )		
-                            ELSE 'direct_billing' END ));
-
+  p_patient_insurance_id BIGINT;
+  p_payer_type TEXT;
+BEGIN
+     
+     IF payer_type is null THEN 
+	SELECT payer_type INTO p_payer_type FROM billing.claims where id = i_claim_id;
+     ELSE 
+        p_payer_type := payer_type;
+     END IF; 
+     
+     IF p_payer_type = 'primary_insurance' THEN 
+         SELECT primary_patient_insurance_id INTO p_patient_insurance_id FROM billing.claims where id = i_claim_id;
+     ELSIF p_payer_type = 'secondary_insurance' THEN 
+         SELECT secondary_patient_insurance_id INTO p_patient_insurance_id FROM billing.claims where id = i_claim_id;
+     ELSIF p_payer_type = 'tertiary_insurance' THEN 
+         SELECT tertiary_patient_insurance_id INTO p_patient_insurance_id FROM billing.claims where id = i_claim_id;
+     END IF ;
+     
+    RETURN (
+        SELECT
+            ( CASE WHEN p_payer_type = 'patient' THEN
+                    'patient_payment'
+              WHEN p_payer_type = 'primary_insurance' OR p_payer_type = 'secondary_insurance' OR p_payer_type = 'tertiary_insurance' THEN
+                    ( SELECT billing_method FROM billing.insurance_provider_details WHERE insurance_provider_id = (SELECT insurance_provider_id FROM public.patient_insurances WHERE id = p_patient_insurance_id))
+              ELSE
+                    'direct_billing'
+              END));
 END;
 $BODY$
-  LANGUAGE plpgsql;
+LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION billing.change_payer_type(
     p_claim_id bigint,
@@ -2976,7 +2978,7 @@ BEGIN
 	UPDATE billing.claims
         SET
             payer_type = p_payer_type,
-            billing_method = (SELECT billing.get_claim_billing_method(p_claim_id, p_payer_type))
+            billing_method = (SELECT billing.get_billing_method(p_claim_id, p_payer_type))
         WHERE id = p_claim_id;
 
 
@@ -3082,12 +3084,16 @@ BEGIN
 		
 	FROM claim_details WHERE billing.claims.id = i_claim_id;
 
+    UPDATE billing.claims set billing_method = (SELECT billing.get_billing_method(i_claim_id, null)) WHERE  id = i_claim_id ;
+
 	RETURN TRUE;
 
 END;
 $BODY$
   LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
+
+
 CREATE OR REPLACE FUNCTION billing.update_claim_charge(
     i_claim_details json,
     i_insurances_details json,
@@ -3297,7 +3303,6 @@ BEGIN
                 , claim_status_id = (i_claim_details->>'claim_status_id')::bigint
                 , billing_code_id = (i_claim_details->>'billing_code_id')::bigint
                 , billing_class_id = (i_claim_details->>'billing_class_id')::bigint
-                , billing_method = i_claim_details->>'billing_method'
                 , billing_notes = i_claim_details->>'billing_notes'
                 , current_illness_date = (i_claim_details->>'current_illness_date')::date
                 , same_illness_first_date = (i_claim_details->>'same_illness_first_date')::date
@@ -3438,7 +3443,6 @@ BEGIN
                           ELSE
                              chd.allowed_amount
                           END 
-            , allowed_amount = chd.allowed_amount
             , units  = chd.units
             , pointer1  = chd.pointer1
             , pointer2  = chd.pointer2
@@ -3512,7 +3516,54 @@ BEGIN
 
                     ) AS icd_insertion
          ) AS icd_insertion into p_insurance_details,p_claim_details,p_charge_details,p_result,p_icd_insertion;
-         
+
+		PERFORM  billing.create_charge( 
+			p_claim_id
+			,charges.cpt_id
+			,charges.pointer1
+			,charges.pointer2
+			,charges.pointer3
+			,charges.pointer4
+			,charges.modifier1_id
+			,charges.modifier2_id
+			,charges.modifier3_id
+			,charges.modifier4_id
+			,charges.bill_fee
+			,charges.allowed_amount
+			,charges.units
+			,charges.created_by
+			,charges.authorization_no
+			,charges.charge_dt
+			,charges.study_id
+			,i_audit_details)
+		FROM (
+			SELECT * from 
+				json_to_recordset(i_charge_details) as x(
+					  id bigint
+					, cpt_id bigint
+					, pointer1 text
+					, pointer2 text
+					, pointer3 text
+					, pointer4 text
+					, modifier1_id bigint
+					, modifier2_id bigint
+					, modifier3_id bigint
+					, modifier4_id bigint
+					, bill_fee money
+					, allowed_amount money
+					, units bigint
+					, created_by bigint
+					, authorization_no text
+					, charge_dt timestamptz
+					, study_id bigint )
+		) charges  WHERE id is null;
+
+
+	UPDATE billing.claims SET payer_type = (i_claim_details->>'payer_type')::TEXT WHERE id = (i_claim_details->>'claim_id')::bigint;
+
+	UPDATE billing.claims SET billing_method = billing.get_billing_method((i_claim_details->>'claim_id')::bigint,(i_claim_details->>'payer_type')::text) WHERE id = (i_claim_details->>'claim_id')::bigint;
+
+
     RETURN p_result;
 END;
 $BODY$
@@ -3531,6 +3582,7 @@ ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS paper_claim_original_
 ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS direct_invoice_template_id BIGINT;
 ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS patient_invoice_template_id BIGINT;
 ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS grid_field_settings JSON;
+ALTER TABLE billing.grid_filters ADD CONSTRAINT IF NOT EXISTS grid_filters_filter_name_uc UNIQUE(filter_type, filter_name);
 -- --------------------------------------------------------------------------------------------------------------------
 CREATE INDEX charges_studies_idx1 ON billing.charges_studies(study_id);
 CREATE INDEX charges_studies_idx2 ON billing.charges_studies(charge_id);

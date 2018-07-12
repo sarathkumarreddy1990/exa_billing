@@ -74,9 +74,11 @@ define([
                 this.viewModel.paymentOptions = $('#ddlPaymentOption').val();
                 var urlParams = {
                     pamentIds: reportArgs.payment_id,
+                    paymentStatus: reportArgs.paymentStatus || " "                   
                 }
                 if (reportArgs.flag == 'paymentPDF') {
                     reportArgsFlag = 'payment-print-pdf';
+
                 }
                 else if (reportArgs.flag == 'payment-print-pdf') {
                     reportArgsFlag = 'payment-receipt-pdf';

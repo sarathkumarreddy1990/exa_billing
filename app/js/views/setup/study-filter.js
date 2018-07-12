@@ -838,6 +838,7 @@ define([
                 else
                     this.model = new studyFiltersModel();
                 this.studyFilterSideMenuResize();
+                commonjs.validateControls();
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
             },
 
@@ -1288,11 +1289,15 @@ define([
                         success: function (model, response) {
                             if (!response.length)
                                 commonjs.showStatus("Already Exists");
-                            else{
+                            else {
                                 commonjs.showStatus("Saved Succesfully");
+                                if (filterType == "studies")
+                                    $('#btnStudiesCompleteRefresh').click();
+                                else if (filterType == "claims")
+                                    $('#btnClaimsCompleteRefresh').click();
                                 commonjs.hideLoading();
                                 self.showGrid();
-                            }
+                            }                            
                         },
                         error: function (model, response) {
                             commonjs.handleXhrError(model, response);

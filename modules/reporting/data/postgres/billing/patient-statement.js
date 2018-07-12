@@ -105,7 +105,7 @@ WITH claim_data as(
         <% if (payToProvider == true) {%>
         bp.name as billing_provider_name,
         bp.pay_to_address_line1 as billing_proaddress1,
-        bp.pay_to_address_line1 as billing_proaddress2,
+        bp.pay_to_address_line2 as billing_proaddress2,
         bp.pay_to_city as billing_procity,
         bp.pay_to_state as billing_prostate,
         bp.pay_to_zip_code as billing_prozip,

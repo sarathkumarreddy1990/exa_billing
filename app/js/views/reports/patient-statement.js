@@ -111,6 +111,7 @@ define([
 
             onReportViewClick: function (e) {
                 this.getSelectedFacility();
+                $('#minAmount').val() == "" ? $('#minAmount').val('0') : $('#minAmount').val();
                 var btnClicked = e && e.target ? $(e.target) : null;
                 if (btnClicked && btnClicked.prop('tagName') === 'I') {
                     btnClicked = btnClicked.parent(); // in case FA icon 'inside'' button was clicked...
@@ -126,7 +127,7 @@ define([
 
                 this.viewModel.patientOption = $('#ddlOption').val();
                 this.viewModel.billingProvider = $('#ddlBillingProvider').val();
-                this.viewModel.minAmount = $('#minAmount').val();
+                this.viewModel.minAmount = $('#minAmount').val() || "0";
 
                 if (this.hasValidViewModel()) {
                     var urlParams = this.getReportParams();
@@ -140,10 +141,6 @@ define([
                     return;
                 }
 
-                if ($('#minAmount').val() === '') {
-                    commonjs.showWarning('Please enter minimum amount!');
-                    return;
-                }
                 return true;
             },
 
@@ -154,7 +151,7 @@ define([
                     patientOption: this.viewModel.patientOption,
                     patientIds: this.viewModel.patientIds,
                     billingProviderIds: this.viewModel.billingProvider,
-                    minAmount: this.viewModel.minAmount,
+                    minAmount: this.viewModel.minAmount || "0",
                     payToProvider: $('#chkPayToProvider').prop('checked'),
                     sDate: this.viewModel.fromDate.date().format('YYYY-MM-DD')
                 };
