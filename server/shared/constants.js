@@ -136,6 +136,7 @@ module.exports = {
         'study_filters': 'SFIL',
         'studies_total_records': 'HSTY',
         'payments': 'PAYM',
+        'payment': 'PAYM',
         'claim_inquiry': 'CLMI',
         'split_claim': 'MASO',
         'validate_claims': 'CLVA',

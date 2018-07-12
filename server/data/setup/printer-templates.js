@@ -178,7 +178,11 @@ module.exports = {
     },
 
     delete: async (params) => {
-        const { id } = params;
+        const {
+                id,
+                name,
+                templateType
+            } = params;
 
         const sql = SQL`DELETE FROM 
                             billing.printer_templates 
@@ -188,7 +192,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: 'Deleted.'
+            logDescription: `Deleted ${name}`
         });
     }
 };
