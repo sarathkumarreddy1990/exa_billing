@@ -597,7 +597,7 @@ define('grid', [
             alert(studyArray)
         },
 
-        self.renderStudy = function (flag) {
+        self.renderStudy = function (doExport) {
             if (options.isClaimGrid)
                 var studyStore = studyDataStore = new claimWorkbench(null, { 'filterID': filterID });
             else {
@@ -1150,7 +1150,7 @@ define('grid', [
                 },
                 rowattr: rowattr
             });
-            if (flag == true) {
+            if (doExport) {
                 commonjs.showLoading();         
                 var colHeader = studyFields.colName;
                 $.ajax({
@@ -1266,6 +1266,7 @@ define('grid', [
                     },
                     error: function (err) {
                         commonjs.handleXhrError(err);
+                        $('#btnValidateExport').prop('disabled', false); 
                     }
                 });
                 return true;
