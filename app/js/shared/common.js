@@ -894,6 +894,10 @@ var commonjs = {
             $modalBody.css({ 'padding': '1rem' })
         }
 
+        if (options.padding) {
+            $modalBody.css({ 'padding': options.padding })
+        }
+
         if (typeof options.url != 'undefined' && commonjs.checkNotEmpty(options.url)) {
             if (!document.getElementById(iframeContainerId)) {
                 var ifr = document.createElement('iframe');
