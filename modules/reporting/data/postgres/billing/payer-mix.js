@@ -36,19 +36,30 @@ WITH payerMixDetails AS (
               pip.insurance_code,
               pip.insurance_name,
               pf.facility_name,
-              bc.claim_dt),())
+              bc.claim_dt))
     ORDER BY 
         insurance_name,
-        facility_name
+        facility_name ASC
     )
     SELECT
         display_code AS "CPT CODE",
         insurance_code AS "INSURANCE CODE",
         insurance_name AS "INSURANCE NAME",
-        COALESCE(facility_name,'---Total---') AS "FACILITY NAME",
+        COALESCE(facility_name,' ─ ─ Total ─ ─ ') AS "FACILITY NAME",
         claim_date AS "CLAIM DATE",
         bill_fee AS "BILL FEE",
         claim_count AS "CLAIM COUNT"
+    FROM
+         payerMixDetails
+    UNION ALL
+    SELECT
+        null::TEXT AS "CPT CODE",
+        null::TEXT AS "INSURANCE CODE",
+        null::TEXT AS "INSURANCE NAME",
+        '─ GRAND TOTAL ─'::TEXT AS "FACILITY NAME",
+        null::TEXT AS "CLAIM DATE",
+        SUM(bill_fee) AS "BILL FEE",
+        SUM(claim_count) AS "CLAIM COUNT"
     FROM
          payerMixDetails
 `);
