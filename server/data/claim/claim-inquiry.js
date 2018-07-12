@@ -378,7 +378,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Created ${note}(${claim_id})`
+            logDescription: `Add: Claim Inquiry(${claim_id}) created`
         });
     },
 
