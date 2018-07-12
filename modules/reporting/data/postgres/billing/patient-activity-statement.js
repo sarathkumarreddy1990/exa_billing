@@ -679,10 +679,10 @@ const api = {
         const filters = {
             companyId: null,
             patientIds: null,
-            billingProviderIds: null,           
+            billingProviderIds: null,
             reportBy: null,
             claimDate: null
-          
+
         };
 
         // company id
@@ -705,17 +705,17 @@ const api = {
             filters.sDate = `$${params.length}::date`;
         }
         else {
-            params.push(reportParams.sDate);         
+            params.push(reportParams.sDate);
             filters.sDate = `$${params.length}::date`;
             params.push(reportParams.fromDate);
-            params.push(reportParams.toDate);           
+            params.push(reportParams.toDate);
             filters.claimDate = queryBuilder.whereDateBetween(' bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
         }
 
-        filters.reportBy = reportParams.reportBy 
+        filters.reportBy = reportParams.reportBy
 
         // billingProvider single or multiple
-        if (reportParams.billingProviderIds && reportParams.billingProviderIds.length > 0) {
+        if (reportParams.billingProviderIds && reportParams.billingProviderIds.length > 0 && reportParams.billingProviderIds[0] != "0") {
             params.push(reportParams.billingProviderIds);
             filters.billingProviderIds = queryBuilder.whereIn(`bp.id`, [params.length]);
         }

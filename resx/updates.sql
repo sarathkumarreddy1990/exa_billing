@@ -2919,41 +2919,40 @@ END;
 $BODY$
   LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION billing.get_claim_billing_method(claimid bigint, payertype text)
-  RETURNS text AS
-$BODY$
+CREATE OR REPLACE FUNCTION billing.get_billing_method (i_claim_id bigint, payer_type text)
+    RETURNS text
+AS $BODY$
 DECLARE
- c_payer_type TEXT;
-BEGIN 
-
-
-    IF payertype IS NULL THEN
-       c_payer_type = (SELECT  payer_type FROM  billing.claims  WHERE claims.id = claimid);
-    ELSE 
-       c_payer_type = payertype;
-    END IF;
-
-
-    RETURN(SELECT  (CASE   WHEN  c_payer_type = 'patient' THEN 'patient_payment'  
-                           WHEN  c_payer_type ='primary_insurance' OR  c_payer_type ='secondary_insurance'  
-                           OR c_payer_type ='tertiary_insurance'
-                           THEN 
-                            (SELECT insurance_provider_details.billing_method FROM billing.claims 
-                            INNER JOIN    patient_insurances  ON  patient_insurances.id = 
-                            (  CASE c_payer_type 
-                            WHEN 'primary_insurance' THEN primary_patient_insurance_id
-                            WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
-                            WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
-                            END )
-                            
-                            INNER JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id  
-                            INNER JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
-                            WHERE claims.id = claimid )		
-                            ELSE 'direct_billing' END ));
-
+  p_patient_insurance_id BIGINT;
+  p_payer_type TEXT;
+BEGIN
+     
+     IF payer_type is null THEN 
+	SELECT payer_type INTO p_payer_type FROM billing.claims where id = i_claim_id;
+     ELSE 
+        p_payer_type := payer_type;
+     END IF; 
+     
+     IF p_payer_type = 'primary_insurance' THEN 
+         SELECT primary_patient_insurance_id INTO p_patient_insurance_id FROM billing.claims where id = i_claim_id;
+     ELSIF p_payer_type = 'secondary_insurance' THEN 
+         SELECT secondary_patient_insurance_id INTO p_patient_insurance_id FROM billing.claims where id = i_claim_id;
+     ELSIF p_payer_type = 'tertiary_insurance' THEN 
+         SELECT tertiary_patient_insurance_id INTO p_patient_insurance_id FROM billing.claims where id = i_claim_id;
+     END IF ;
+     
+    RETURN (
+        SELECT
+            ( CASE WHEN p_payer_type = 'patient' THEN
+                    'patient_payment'
+              WHEN p_payer_type = 'primary_insurance' OR p_payer_type = 'secondary_insurance' OR p_payer_type = 'tertiary_insurance' THEN
+                    ( SELECT billing_method FROM billing.insurance_provider_details WHERE insurance_provider_id = (SELECT insurance_provider_id FROM public.patient_insurances WHERE id = p_patient_insurance_id))
+              ELSE
+                    'direct_billing'
+              END));
 END;
 $BODY$
-  LANGUAGE plpgsql;
+LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION billing.change_payer_type(
     p_claim_id bigint,
@@ -2979,7 +2978,7 @@ BEGIN
 	UPDATE billing.claims
         SET
             payer_type = p_payer_type,
-            billing_method = (SELECT billing.get_claim_billing_method(p_claim_id, p_payer_type))
+            billing_method = (SELECT billing.get_billing_method(p_claim_id, p_payer_type))
         WHERE id = p_claim_id;
 
 
@@ -3085,12 +3084,16 @@ BEGIN
 		
 	FROM claim_details WHERE billing.claims.id = i_claim_id;
 
+    UPDATE billing.claims set billing_method = (SELECT billing.get_billing_method(i_claim_id, null)) WHERE  id = i_claim_id ;
+
 	RETURN TRUE;
 
 END;
 $BODY$
   LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
+
+
 CREATE OR REPLACE FUNCTION billing.update_claim_charge(
     i_claim_details json,
     i_insurances_details json,
@@ -3300,7 +3303,6 @@ BEGIN
                 , claim_status_id = (i_claim_details->>'claim_status_id')::bigint
                 , billing_code_id = (i_claim_details->>'billing_code_id')::bigint
                 , billing_class_id = (i_claim_details->>'billing_class_id')::bigint
-                , billing_method = i_claim_details->>'billing_method'
                 , billing_notes = i_claim_details->>'billing_notes'
                 , current_illness_date = (i_claim_details->>'current_illness_date')::date
                 , same_illness_first_date = (i_claim_details->>'same_illness_first_date')::date
@@ -3514,7 +3516,54 @@ BEGIN
 
                     ) AS icd_insertion
          ) AS icd_insertion into p_insurance_details,p_claim_details,p_charge_details,p_result,p_icd_insertion;
-         
+
+		PERFORM  billing.create_charge( 
+			p_claim_id
+			,charges.cpt_id
+			,charges.pointer1
+			,charges.pointer2
+			,charges.pointer3
+			,charges.pointer4
+			,charges.modifier1_id
+			,charges.modifier2_id
+			,charges.modifier3_id
+			,charges.modifier4_id
+			,charges.bill_fee
+			,charges.allowed_amount
+			,charges.units
+			,charges.created_by
+			,charges.authorization_no
+			,charges.charge_dt
+			,charges.study_id
+			,i_audit_details)
+		FROM (
+			SELECT * from 
+				json_to_recordset(i_charge_details) as x(
+					  id bigint
+					, cpt_id bigint
+					, pointer1 text
+					, pointer2 text
+					, pointer3 text
+					, pointer4 text
+					, modifier1_id bigint
+					, modifier2_id bigint
+					, modifier3_id bigint
+					, modifier4_id bigint
+					, bill_fee money
+					, allowed_amount money
+					, units bigint
+					, created_by bigint
+					, authorization_no text
+					, charge_dt timestamptz
+					, study_id bigint )
+		) charges  WHERE id is null;
+
+
+	UPDATE billing.claims SET payer_type = (i_claim_details->>'payer_type')::TEXT WHERE id = (i_claim_details->>'claim_id')::bigint;
+
+	UPDATE billing.claims SET billing_method = billing.get_billing_method((i_claim_details->>'claim_id')::bigint,(i_claim_details->>'payer_type')::text) WHERE id = (i_claim_details->>'claim_id')::bigint;
+
+
     RETURN p_result;
 END;
 $BODY$
