@@ -2856,7 +2856,7 @@ define(['jquery',
                         }
                     },
                     error: function (err, response) {
-                        $("#btnValidateOrder").attr("disabled", false);
+                        $("#btnValidateClaim").attr("disabled", false);
                         commonjs.handleXhrError(err, response);
                     }
                 })
