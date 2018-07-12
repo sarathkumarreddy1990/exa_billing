@@ -856,7 +856,7 @@ var commonjs = {
     },
 
     showDefaultDialog: function (options) {
-        console.trace("commonjs::showDialog: header: '%s', url: '%s', options: %O", options.header, options.url, options);
+        //console.trace("commonjs::showDialog: header: '%s', url: '%s', options: %O", options.header, options.url, options);
 
         var dataContainer, wid, hei;
         var modalContainerId = options.modalContainerId || '#siteModal';
@@ -4673,7 +4673,7 @@ var commonjs = {
             order_id = options.order_id,
             patient_id = options.patient_id;
 
-        var url = '#patient/patientReport/all/' + btoa(patient_id) + '/' + btoa(order_id) + '/' + btoa(study_id);
+        var url = 'vieworder#patient/patientReport/all/' + btoa(patient_id) + '/' + btoa(order_id) + '/' + btoa(study_id);
         this.openWindow(url);
     },
 
@@ -5654,6 +5654,27 @@ var commonjs = {
             colElement.on("cancel.daterangepicker", function () {
                 gridObj.refresh();
             });
+        });
+    },
+
+    getServiceTypes: function (callback) {
+        var self = this;
+
+        if (this.serviceFacilities && this.serviceFacilities.eligibility_service_types) {
+            return callback(null, this.serviceFacilities);
+        }
+
+        $.ajax({
+            type: 'GET',
+            url: '/exa_modules/billing/claims/claim/service_facilities',
+            success: function (model, response) {
+                self.serviceFacilities = model;
+                callback(null, model);
+            },
+            error: function (err, response) {
+                commonjs.handleXhrError(err, response);
+                callback(err);
+            }
         });
     },
 

@@ -306,9 +306,14 @@ define(['jquery',
                             return;
                         }
                         else if (!data.errors && response.insPokitdok == true) {
-                            $('#divPokidokResponse').html($(self.InsurancePokitdokTemplateForm({'InsuranceData': response.data, 'InsuranceDatavalue': response.meta})));
-                            commonjs.showNestedDialog({ header: 'Pokitdok Response', width: '80%', height: '70%', html: $('#divPokidokResponse').html() });
+                            commonjs.showNestedDialog({ header: 'Pokitdok Response', width: '80%', height: '70%', html: $(self.InsurancePokitdokTemplateForm({'InsuranceData': response.data, 'InsuranceDatavalue': response.meta})) });
                         }
+
+                        $('#divCoPayDetails').height('400px');
+
+                        $.each($('#divPokitdok table td'), function (index, obj) {
+                            $(obj).attr('title', $(obj).text().replace(/[*$-]/,'').trim());
+                        });
 
                         $("#btnClosePokidokPopup").unbind().click(function (e) {
                             $('#divPokidokResponse').hide();
@@ -354,6 +359,8 @@ define(['jquery',
                 self.removedCharges = [];
                 self.chargeModel = [];
                 self.options = options || {};
+
+                commonjs.showLoading();
 
                 $.ajax({
                     type: 'GET',
@@ -496,19 +503,17 @@ define(['jquery',
                             $('#btnSaveClaim').attr('disabled', false);
                             $("#txtClaimDate").attr("disabled", "disabled");                             
 
-                            var claimBindInterval = setInterval(function () {
-                                clearInterval(claimBindInterval);
-                                self.bindDefaultClaimDetails(claimDetails);
-                                $('.claimProcess').prop('disabled', false);
-                                if (self.options && !self.options.study_id)
-                                    $('#btPatientDocuemnt').prop('disabled', true);
-                            }, 1500);
+                            self.bindDefaultClaimDetails(claimDetails);
+                            $('.claimProcess').prop('disabled', false);
+                            if (self.options && !self.options.study_id)
+                                $('#btPatientDocuemnt').prop('disabled', true);
+
+                            commonjs.hideLoading();
                         }
                     },
                     error: function (model, response) {
                         commonjs.handleXhrError(model, response);
                     }
-
                 });
             },
 
@@ -2059,53 +2064,52 @@ define(['jquery',
                     $('#lbl' + level + 'InsCityStateZip').hide();
 
             },
+
             bindServiceType: function () {
                 var self = this;
                 var serviceTypeDescription = [];
                 var serviceTypeDropDown = $('#ddlServiceType');
                 $('#ddlServiceType').empty();
-                $.ajax({
-                    type: 'GET',
-                    url: '/exa_modules/billing/claims/claim/service_facilities',
-                    data: {
-                    },
-                    success: function (model, response) {
-                        var eligibilityServiceTypes = model.eligibility_service_types;
 
-                        $.each(eligibilityServiceTypes, function (index, val) {
-                            $('<option/>')
-                                .val(val.code)
-                                .text(val.description + '(' + val.code + ')')
-                                .attr('title', val.description)
-                                .appendTo('#ddlServiceType')
-                            $('<option/>')
-                                .val(val.code)
-                                .text(val.description + '(' + val.code + ')')
-                                .attr('title', val.description)
-                                .appendTo('#ddlServiceType2')
-                            $('<option/>')
-                                .val(val.code)
-                                .text(val.description + '(' + val.code + ')')
-                                .attr('title', val.description)
-                                .appendTo('#ddlServiceType3')
-                        });
-                        $('#ddlServiceType, #ddlServiceType2, #ddlServiceType3').multiselect({
-                            maxHeight: 200,
-                            buttonWidth: '250px',
-                            enableFiltering: true,
-                            enableCaseInsensitiveFiltering: true
-                        });
-                        $('.multiselect-container li').css('width', '300px');
-                        $('label').css('color', 'black');
-                        $('.multiselect-container li a').css('padding', '0');
-
-                    },
-                    error: function (model, response) {
-                        commonjs.handleXhrError(model, response);
+                commonjs.getServiceTypes(function (err, model) {
+                    if (err) {
+                        return;
                     }
-                })
-            },
 
+                    var eligibilityServiceTypes = model.eligibility_service_types;
+
+                    $.each(eligibilityServiceTypes, function (index, val) {
+                        $('<option/>')
+                            .val(val.code)
+                            .text(val.description + '(' + val.code + ')')
+                            .attr('title', val.description)
+                            .appendTo('#ddlServiceType');
+
+                        $('<option/>')
+                            .val(val.code)
+                            .text(val.description + '(' + val.code + ')')
+                            .attr('title', val.description)
+                            .appendTo('#ddlServiceType2');
+
+                        $('<option/>')
+                            .val(val.code)
+                            .text(val.description + '(' + val.code + ')')
+                            .attr('title', val.description)
+                            .appendTo('#ddlServiceType3');
+                    });
+
+                    $('#ddlServiceType, #ddlServiceType2, #ddlServiceType3').multiselect({
+                        maxHeight: 200,
+                        buttonWidth: '250px',
+                        enableFiltering: true,
+                        enableCaseInsensitiveFiltering: true
+                    });
+                    
+                    $('.multiselect-container li').css('width', '300px');
+                    $('label').css('color', 'black');
+                    $('.multiselect-container li a').css('padding', '0');
+                });
+            },
 
            assignExistInsurance: function (e) {
                 var self = this;

@@ -27,15 +27,26 @@ with payment_details as (
         (select adjustments_applied_total FROM 
     billing.get_claim_totals(bc.id)) as adjustment,
         (select claim_balance_total FROM billing.get_claim_totals(bc.id)) 
-    as balance
+    as balance,
+    (  CASE bp.payer_type 
+        WHEN 'insurance' THEN insurance_providers.insurance_name
+        WHEN 'ordering_facility' THEN provider_groups.group_name
+        WHEN 'ordering_provider' THEN ref_provider.full_name
+        WHEN 'patient' THEN pp.full_name        END) AS payer_name
     FROM billing.payments bp
     INNER JOIN billing.payment_applications bpa ON bpa.payment_id = bp.id
     INNER JOIN billing.charges bch on bch.id = bpa.charge_id
     INNER JOIN billing.claims bc on bc.id = bch.claim_id
     INNER JOIN public.patients pp ON pp.id = bc.patient_id
+    LEFT JOIN public.insurance_providers ON insurance_providers.id = bp.insurance_provider_id
+    LEFT JOIN provider_groups ON provider_groups.id = bp.provider_group_id
+    LEFT JOIN public.provider_contacts ON provider_contacts.id = bp.provider_contact_id
+    LEFT JOIN public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
     where  <%= paymentId %>
     group by  bc.id,bp.id,bp.mode, 
-    pp.account_no,bp.payment_dt,bill_fee,bp.amount
+    pp.account_no,bp.payment_dt,bill_fee,bp.amount,
+    insurance_providers.insurance_name, provider_groups.group_name,ref_provider.full_name, pp.full_name
+
     ),
     claim_details As(
     SELECT
@@ -174,7 +185,7 @@ const api = {
         };
         params.push(reportParams.pamentIds);
         filters.paymentId = queryBuilder.where('bp.id', '=', [params.length]);
-        
+
 
         return {
             queryParams: params,

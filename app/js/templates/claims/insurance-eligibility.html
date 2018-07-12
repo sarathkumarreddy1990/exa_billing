@@ -35,13 +35,17 @@
     #OutofPocket {
         margin-top: 0;
     }
+
+    #divCoPayDetails table{
+        margin-left: 20px;
+    }
 </style>
 
 <div id="divForm_PokiDok" style="width: 100%;margin-left: 0px;">
     <div class='Form' id='divPokitdok' style="padding-top: 5px;overflow: auto;overflow-x: hidden;">
         <form class="form-group" id="formAllergyInfo">
             <div class="col-xs-12">
-                <div class="col-xs-5" style=" margin-left: 2%;">
+                <div class="col-xs-5" id="divSubscriberInfo" style=" margin-left: 2%;">
                     <br/>
                     <legend class="viztekLegend">
                         <h6> SUBSCRIBER INFORMATION</h6>
@@ -98,7 +102,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-xs-6" style=" margin-left: 2%;">
+                <div class="col-xs-6" id="divCoPayDetails" style=" margin-left: 2%; overflow-y: auto; overflow-x: hidden;">
                     <br/>
                     <legend class="viztekLegend">
                         <h6>Co Pay</h6>
@@ -325,7 +329,7 @@
                             
                                     <div class="col-form-label">
                                         <label class="logFields1">
-                                            <%= InsuranceData && InsuranceData.coverage && InsuranceData.coverage.service_date ? moment(InsuranceData.coverage.service_date).format('L') : '-' %>
+                                            <%= InsuranceData && InsuranceData.coverage && InsuranceData.coverage.service_date ? InsuranceData.coverage.service_date : '-' %>
                                         </label>
                                     </div>
                                 </div>
@@ -360,8 +364,8 @@
                     </div>
                 </div>
                 <div class="tab-pane " id="OutofPocket">
-                    <div class="col-xs-12" style="margin-top: 10px">
-                        <div class="col-xs-6" style="margin-top: 10px">
+                    <div class="row" style="margin-top: 10px">
+                        <div class="col" style="margin-top: 10px;overflow: auto;">
                             <legend class="viztekLegend">
                                 <h6>Deductibles</h6>
                             </legend>
@@ -426,7 +430,7 @@
                                             </div>
                                             <% } %>
                         </div>
-                        <div class="col-xs-6" style="margin-top: 10px">
+                        <div class="col" style="margin-top: 10px;overflow: auto;">
                             <legend class="viztekLegend">
                                 <h6>Maximum Out-Of-Pockets</h6>
                             </legend>
@@ -765,7 +769,7 @@
                     </div>
                 </div>
                 <div class="tab-pane " id="RequestDetails">
-                    <div class="col-xs-12">
+                    <div class="col-xs-12" style="margin-top: 20px;">
                         <div class="col-xs-6">
                             <legend class="viztekLegend">
                                 <h6> SUBSCRIBER INFORMATION</h6>
@@ -948,7 +952,7 @@
                     </div>
                 </div>
                 <div class="tab-pane " id="Pharmacy">
-                    <div class="col-xs-12">
+                    <div class="col-xs-12" style="margin-top: 20px;">
                         <div class="form-group form-inline">
                             <div class="col-form-label">
                                 Is Eligible
