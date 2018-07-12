@@ -103,7 +103,7 @@ patient_payment AS(
 )
 SELECT
     provider_type  AS "Ins Class"
-    , COALESCE(agg_claim.facility_name, 'Total')  AS "Facility Name"    
+    , COALESCE(agg_claim.facility_name, '─ TOTAL ─')  AS "Facility Name"    
     , SUM(charge_details.total_bill_fee) AS "Charges"
     , SUM(COALESCE(pri_ins_payment.pri_adjustment,0::money)) AS "Adjustments"
     , SUM(agg_claim.claim_balance) AS "Balance"
@@ -123,8 +123,30 @@ LEFT JOIN total_credit ON agg_claim.claim_id = total_credit.claim_id
 LEFT JOIN charge_details ON agg_claim.claim_id = charge_details.claim_id
 LEFT JOIN patient_payment ON agg_claim.claim_id = patient_payment.claim_id
 GROUP BY GROUPING SETS(
-    ( "Ins Class"), ("Ins Class","Facility Name"),())
-ORDER BY "Ins Class"
+    ( "Ins Class"), ("Ins Class",agg_claim.facility_name))
+    UNION ALL
+        SELECT
+            null::TEXT  AS "Ins Class"
+        ,   '─ GRAND TOTAL ─'::TEXT AS "Facility Name"
+    ,    SUM(charge_details.total_bill_fee) AS "Charges"
+    , SUM(COALESCE(pri_ins_payment.pri_adjustment,0::money)) AS "Adjustments"
+    , SUM(agg_claim.claim_balance) AS "Balance"
+    , SUM(charge_details.expected_amount) AS "Expected Payments"
+    , SUM(COALESCE(total_credit.tot_credit,0::money)) AS "All Credits"
+    , SUM(COALESCE(pri_ins_payment.pri_payment,0::money)) AS "Ins1 Pay"
+    , SUM(COALESCE(sec_ins_payment.sec_payment,0::money)) AS "Ins2 Pay"
+    , SUM(COALESCE(ter_ins_payment.ter_payment,0::money)) AS "Ins3 Pay"
+    , SUM(COALESCE(patient_payment.patient_pay,0::money)) AS "Patient Payment"
+    , SUM(COALESCE(charge_details.units,0::numeric)) AS "Units"
+    , SUM(charge_details.cpt_count) AS "Num Process."
+    FROM agg_claim 
+LEFT JOIN pri_ins_payment ON agg_claim.claim_id = pri_ins_payment.claim_id
+LEFT JOIN sec_ins_payment ON  agg_claim.claim_id = sec_ins_payment.claim_id
+LEFT JOIN ter_ins_payment ON agg_claim.claim_id = ter_ins_payment.claim_id
+LEFT JOIN total_credit ON agg_claim.claim_id = total_credit.claim_id
+LEFT JOIN charge_details ON agg_claim.claim_id = charge_details.claim_id
+LEFT JOIN patient_payment ON agg_claim.claim_id = patient_payment.claim_id
+    ORDER BY "Ins Class" 
 `);
 
 const api = {
