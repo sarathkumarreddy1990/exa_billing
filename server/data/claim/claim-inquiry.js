@@ -482,8 +482,11 @@ module.exports = {
             sortField,
             pageNo,
             pageSize,     
-            patientId
+            patientId,
+            billProvId
         } = params;
+
+        let billProvWhereQuery = billProvId && billProvId != 0 && billProvId != '' ? `AND billing.claims.billing_provider_id = ${billProvId}` : '';
 
         let sql = SQL`SELECT
                         claims.id as claim_id
@@ -502,7 +505,7 @@ module.exports = {
                         , (select charges_bill_fee_total from BILLING.get_claim_payments(claims.id)) as billing_fee
                         , (select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from BILLING.get_claim_payments(claims.id)) as claim_balance
                         , COUNT(1) OVER (range unbounded preceding) AS total_records
-                        ,(select Row_to_json(agg_arr) agg_arr FROM (SELECT * FROM billing.get_age_patient_claim (patients.id) )as agg_arr) as age_summary
+                        ,(select Row_to_json(agg_arr) agg_arr FROM (SELECT * FROM billing.get_age_patient_claim (patients.id, ${billProvId}::bigint ) )as agg_arr) as age_summary
                     FROM billing.claims
                     INNER JOIN patients ON claims.patient_id = patients.id 
                     LEFT JOIN provider_contacts  ON provider_contacts.id=claims.referring_provider_contact_id 
@@ -521,6 +524,9 @@ module.exports = {
                      WHERE patients.id=${patientId}
                     `;
 
+        if(billProvWhereQuery){
+            sql.append(billProvWhereQuery);
+        }          
 
         sql.append(SQL` ORDER BY  `)
             .append(sortField)

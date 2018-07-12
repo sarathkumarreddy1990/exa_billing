@@ -421,13 +421,12 @@ define(['jquery',
                                         'data_id': data.cpt_id,
                                         'data_description': data.display_description,
                                         'data_code': data.cpt_code
-                                    });
+                                    }).removeClass('cptIsExists');
                                     $('#lblCptDescription_' + index).html(data.display_description).attr({
                                         'data_id': data.cpt_id,
                                         'data_description': data.display_description,
                                         'data_code': data.cpt_code
-                                    });
-                                    $('#lblCptCode_' + index).removeClass('cptIsExists');
+                                    }).removeClass('cptIsExists');
                                 }
                                 self.bindCPTSelectionEvents('#divCptCode_' + index);
                                 self.bindCPTSelectionEvents('#divCptDescription_' + index);
@@ -516,7 +515,7 @@ define(['jquery',
             createCptCodesUI: function(rowIndex) {
                 $('#divChargeCpt_' + rowIndex)
                     .append($('<div/>', { id: "divCptCode_" + rowIndex }).addClass('pointerCursor').attr('data-type','cpt')
-                        .append($('<lable/>', { id: "lblCptCode_" + rowIndex }).attr('data-type','cpt').html("Select")
+                        .append($('<lable/>', { id: "lblCptCode_" + rowIndex }).addClass('cptcode cptIsExists').attr('data-type','cpt').html("Select")
                                 .mousemove(function(e){
                                     var msg = $(e.target).attr('data_code');
                                     $(e.target).attr('title',msg);
@@ -524,7 +523,7 @@ define(['jquery',
 
                 $('#divChargeCptDesc_' + rowIndex)
                     .append($('<div/>', { id: "divCptDescription_" + rowIndex }).addClass('pointerCursor').attr('data-type','cptdesc')
-                        .append($('<lable/>', { id: "lblCptDescription_" + rowIndex }).attr('data-type','cptdesc').html("Select")
+                        .append($('<lable/>', { id: "lblCptDescription_" + rowIndex }).addClass('cptcode cptIsExists').attr('data-type','cptdesc').html("Select")
                                 .mousemove(function(e){
                                     var msg = $(e.target).attr('data_description');
                                     $(e.target).attr('title',msg);
@@ -1043,9 +1042,8 @@ define(['jquery',
                 if (data.cpt_code || data.display_description) {
                     $('#lblCptCode_' + index)
                             .html(data.cpt_code)
-                            .attr({'data_id': data.cpt_id});
-                    $('#lblCptDescription_' + index).html(data.display_description).attr({'data_id': data.cpt_id});
-                    $('#lblCptCode_' + index).removeClass('cptIsExists');
+                            .attr({'data_id': data.cpt_id}).removeClass('cptIsExists');
+                    $('#lblCptDescription_' + index).html(data.display_description).attr({'data_id': data.cpt_id}).removeClass('cptIsExists');
                 }
 
                 self.bindCPTSelectionEvents('#divCptCode_' + index);
@@ -1527,14 +1525,14 @@ define(['jquery',
                         'data_id': res.id,
                         'data_description': res.display_description,
                         'data_code': res.display_code
-                    });
+                    }).removeClass('cptIsExists');
                 $('#lblCptDescription_' + rowIndex)
                     .html(res.display_description)
                     .attr({
                         'data_id': res.id,
                         'data_description': res.display_description,
                         'data_code': res.display_code
-                    });
+                    }).removeClass('cptIsExists');
                
                 $('#txtUnits_' + rowIndex).val(units);
                 $('#txtBillFee_' + rowIndex).val(parseFloat(fee).toFixed(2));
