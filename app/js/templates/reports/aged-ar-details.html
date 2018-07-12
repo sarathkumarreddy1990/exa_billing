@@ -1,102 +1,102 @@
 <form class="form-horizonta form-list" novalidate="" _lpchecked="1">
 
-    <!-- row: form elements -->
-    <div class="row">
-        <!-- col: form elements -->
-        <div class="col" style="max-width: 420px;">
-            <div class="form-group form-inline">
+        <!-- row: form elements -->
+        <div class="row">
+            <!-- col: form elements -->
+            <div class="col-3">
+                <div class="form-group form-inline">              
+                    <div class="col-form-content">
+                            <label class="control-label field-required" for="txtDateRange" i18n="report.arCutoffDate" />
+                        <div id="divFromDate" class="input-group">
+                            <span class="input-group-addon add-on">
+                                <i class="fa fa-calendar"></i>
+                            </span>
+                            <input type="text" id="txtFromDate" class="form-control" required="required" name="fromDate">
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+            <div class="col-3">
+                <div class="form-group form-inline">
+                    <div class="col-form-label" class="multiselect">
+                        <label class="control-label">Facility
+                        </label>
+                        <select id="ddlFacilityFilter" multiple="multiple">
+                            <% _.each(facilities.toJSON(), function(facility) { %>
+                                <option value='<%= facility.id %>'>
+                                    <%=facility.facility_name%>
+                                </option>
+                                <% }); %>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="form-group form-inline">
+                    <div class="col-form-label" class="multiselect">
+                        <label class="control-label">Billing Provider
+                        </label>
+                        <select id="ddlBillingProvider" multiple="multiple" />
+                    </div>
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="form-group form-inline">
+    
+                    <div style="padding-top:10px">
+                        <label class="checkbox-inline" for="byPrimaryPayer">
+                            <input type="checkbox" id="byPrimaryPayer" value="byPrimaryPayer" style="display: inline"> Report By Primary Payer
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-3" style="display: none">
                 <div style="padding-top:10px">
-                    <label class="checkbox-inline" for="byPrimaryPayer">
-                        <input type="checkbox" id="byPrimaryPayer" value="byPrimaryPayer" style="display: inline"> Report By Primary Payer
+                    <label class="checkbox-inline" for="incPat">
+                        <input type="checkbox" id="incPat" value="IncludePatient" style="display: inline"> Include Patient Details
                     </label>
                 </div>
-                <div style="display: none">
-                    <div style="padding-top:10px">
-                        <label class="checkbox-inline" for="incPat">
-                            <input type="checkbox" id="incPat" value="IncludePatient" style="display: inline"> Include Patient Details
-                        </label>
-                    </div>
-                    <div style="padding-top:10px">
-                        <label class="checkbox-inline" for="excCreBal">
-                            <input type="checkbox" id="excCreBal" value="ExcludeCreditBalance" style="display: inline"> Exclude Credit Balance
-                        </label>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col">
-            <div class="form-group form-inline">
-                <div class="col-form-label" class="multiselect">
-                    <label class="control-label">Facility
+                <div style="padding-top:10px">
+                    <label class="checkbox-inline" for="excCreBal">
+                        <input type="checkbox" id="excCreBal" value="ExcludeCreditBalance" style="display: inline"> Exclude Credit Balance
                     </label>
-                    <select id="ddlFacilityFilter" multiple="multiple">
-                        <% _.each(facilities.toJSON(), function(facility) { %>
-                            <option value='<%= facility.id %>'>
-                                <%=facility.facility_name%>
-                            </option>
-                            <% }); %>
-                    </select>
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- </div> -->
-    <div class="row">
-        <div class="col" style="max-width: 420px;">
-            <div class="form-group form-inline">
-                <div class="col-form-label">
-                    <label class="control-label field-required" for="txtDateRange" i18n="report.arCutoffDate" />
-                    <div id="divFromDate" class="input-group">
-                        <span class="input-group-addon add-on">
-                            <i class="fa fa-calendar"></i>
-                        </span>
-                        <input type="text" id="txtFromDate" class="form-control" required="required" name="fromDate">
-                    </div>
+    
+        <!-- row: form buttons -->
+        <div class="col-xs-12 <!--col-xs-offset-1-->">
+            <div class="btn-toolbar" role="toolbar">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-primary" id="btnViewReport" data-rformat="html">
+                        <i class="fa fa-file"></i> View</button>
+                    <button type="button" class="btn btn-primary" id="btnViewReportNewTab" data-rformat="html">
+                        <i class="fa fa-external-link"></i>
+                    </button>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-primary" id="btnPdfReport" data-rformat="pdf">
+                        <i class="fa fa-file-pdf-o"></i> PDF</button>
+                    <button type="button" class="btn btn-primary" id="btnExcelReport" data-rformat="xlsx">
+                        <i class="fa fa-file-excel-o"></i> Excel</button>
+                    <button type="button" class="btn btn-primary" id="btnExcelReportExtended" data-rformat="xlsx">
+                        <i class="fa fa-file-excel-o"></i> Excel Extended</button>
+                    <button type="button" class="btn btn-primary" id="btnCsvReport" data-rformat="csv">
+                        <i class="fa fa-file-text-o"></i> CSV</button>
+                    <button type="button" class="btn btn-primary" id="btnXmlReport" data-rformat="xml">
+                        <i class="fa fa-file-code-o"></i> XML</button>
                 </div>
             </div>
         </div>
-        <div class="col">
-            <div class="form-group form-inline">
-                <div class="col-form-label" class="multiselect">
-                    <label class="control-label">Billing Provider
-                    </label>
-                    <select id="ddlBillingProvider" multiple="multiple" />
-                </div>
-            </div>
-        </div>
+        <!-- /row: form buttons -->
+    
+    
+    </form>
+    
+    
+    <!-- row: iframe -->
+    <div class="col-xs-12 form-top-padding" id="divReportFrame" style="overflow: auto; text-align: center">
+        <iframe id="reportFrame" frameBorder="0" style="width: 100%; min-height:100px"></iframe>
     </div>
-
-    <!-- row: form buttons -->
-    <div class="col-xs-12 <!--col-xs-offset-1-->">
-        <div class="btn-toolbar" role="toolbar">
-            <div class="btn-group">
-                <button type="button" class="btn btn-primary" id="btnViewReport" data-rformat="html">
-                    <i class="fa fa-file"></i> View</button>
-                <button type="button" class="btn btn-primary" id="btnViewReportNewTab" data-rformat="html">
-                    <i class="fa fa-external-link"></i>
-                </button>
-            </div>
-            <div class="btn-group">
-                <button type="button" class="btn btn-primary" id="btnPdfReport" data-rformat="pdf">
-                    <i class="fa fa-file-pdf-o"></i> PDF</button>
-                <button type="button" class="btn btn-primary" id="btnExcelReport" data-rformat="xlsx">
-                    <i class="fa fa-file-excel-o"></i> Excel</button>
-                <button type="button" class="btn btn-primary" id="btnExcelReportExtended" data-rformat="xlsx">
-                    <i class="fa fa-file-excel-o"></i> Excel Extended</button>
-                <button type="button" class="btn btn-primary" id="btnCsvReport" data-rformat="csv">
-                    <i class="fa fa-file-text-o"></i> CSV</button>
-                <button type="button" class="btn btn-primary" id="btnXmlReport" data-rformat="xml">
-                    <i class="fa fa-file-code-o"></i> XML</button>
-            </div>
-        </div>
-    </div>
-    <!-- /row: form buttons -->
-
-</form>
-
-<!-- row: iframe -->
-<div class="col-xs-12 form-top-padding" id="divReportFrame" style="overflow: auto; text-align: center">
-    <iframe id="reportFrame" frameBorder="0" style="width: 100%; min-height:100px"></iframe>
-</div>
-<!-- /row: iframe -->
+    <!-- /row: iframe -->
