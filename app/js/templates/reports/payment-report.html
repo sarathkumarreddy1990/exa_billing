@@ -23,7 +23,7 @@
             <div class="form-group form-inline">
                 <label class="control-label" i18n="report.facilities" />
                 <div class="col-form-label" class="multiselect">
-                    <select id="ddlFacilityFilter" multiple="multiple">
+                    <select id="ddlFacilityFilter"  multiple="multiple">
                         <% _.each(facilities.toJSON(), function(facility) { %>
                             <option value='<%= facility.id %>'>
                                 <%=facility.facility_name%>
@@ -111,7 +111,7 @@
             <div id="ddlUsersRoleBox" class="form-group form-inline" style="display:none;width :700px;">              
                 <div style="width: 250px; border:1px solid;margin-top:10px">
                     <select id="txtUsersRole"> </select>
-                    <a class="btn btn-primary" id="btnAddUsersRole" title="Add Users Role">
+                    <a class="btn btn-primary" id="btnAddUsersRole" tayment reportitle="Add Users Role">
                         <i class="icon-ic-plus"></i>
                     </a>
                 </div>

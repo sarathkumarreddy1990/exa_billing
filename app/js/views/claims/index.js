@@ -50,8 +50,7 @@ define(['jquery',
                 { payer_type: "PIP_S", payer_type_name: "secondary_insurance", payer_id: null, coverage_level: "S", payer_name: null, billing_method: null },
                 { payer_type: "PIP_T", payer_type_name: "tertiary_insurance", payer_id: null, coverage_level: "T", payer_name: null, billing_method: null },
                 { payer_type: "POF", payer_type_name: "ordering_facility", payer_id: null, payer_name: null },
-                { payer_type: "RF", payer_type_name: "referring_provider", payer_id: null, payer_name: null },
-                { payer_type: "PF", payer_type_name: "facility", payer_id: null, payer_name: null }
+                { payer_type: "RF", payer_type_name: "referring_provider", payer_id: null, payer_name: null }
             ],
             usermessage: {
                 selectStudyRefProvider: 'Select Refer. Provider',
@@ -580,6 +579,16 @@ define(['jquery',
                 $('#ddlBillingCode').val(claim_data.billing_code_id || '');
                 $('#ddlBillingClass').val(claim_data.billing_class_id || '');
                 $('#txtResponsibleNotes').val(claim_data.billing_notes || '')
+                
+                var claim_fee_details = claim_data.claim_fee_details && claim_data.claim_fee_details.length ? claim_data.claim_fee_details[0] : {};
+                
+                $('#spBillFee').text(commonjs.roundFee(claim_fee_details.bill_fee || ''));
+                $('#spBalance').text(commonjs.roundFee(claim_fee_details.balance || ''));
+                //$('#spAllowed').text(commonjs.roundFee(claim_fee_details || ''));
+                $('#spPatientPaid').text(commonjs.roundFee(claim_fee_details.patient_paid || ''));
+                $('#spOthersPaid').text(commonjs.roundFee(claim_fee_details.others_paid || ''));
+                $('#spAdjustment').text(commonjs.roundFee(claim_fee_details.adjustment || ''));
+                //$('#spRefund').text(commonjs.roundFee(claim_fee_details.refund || ''));                
 
                 /* Billing summary end */
 
@@ -592,14 +601,6 @@ define(['jquery',
                 });
 
                 var facility = $('#ddlFacility option:selected').val();
-                if (facility != '') {
-                    self.updateResponsibleList({
-                        payer_type: 'PF',
-                        payer_id: facility,
-                        payer_name: $('#ddlFacility option:selected').text().trim() + '( Facility )'
-                    });
-                }
-
                 if (self.group_id || null) {
                     self.updateResponsibleList({
                         payer_type: 'POF',
@@ -619,7 +620,7 @@ define(['jquery',
                 /* Common Details Edit & Claim creation */
                 if (self.isEdit) {
                     self.bindEditClaimInsuranceDetails(claim_data);
-                    var responsibleIndex = _.find(self.responsible_list, function(item) { return item.payer_type_name == claim_data.payer_type;});
+                    var responsibleIndex = _.find(self.responsible_list, function (item) { return item.payer_type_name == claim_data.payer_type; });
                     $('#ddlResponsible').val(responsibleIndex.payer_type);
                     $('#ddlClaimStatus').val(claim_data.claim_status_id || '');
                     $('#ddlFrequencyCode').val(claim_data.frequency || '')
@@ -627,7 +628,11 @@ define(['jquery',
                 } else {
                     $('#ddlResponsible').val('PPP');
                     $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
-                    $('#ddlFrequencyCode').val(claim_data.frequency);
+                    var frequency = [{ code: 7, desc: 'corrected' }, { code: 8, desc: 'void' }, { code: 1, desc: 'original' }];
+                    if (claim_data.frequency) {
+                        var code = _.find(frequency, function (item) { return item.code == parseInt(claim_data.frequency); });
+                        $('#ddlFrequencyCode').val(code.desc || '');
+                    }
                     if (claim_data.pos_type_code && claim_data.pos_type_code != '') {
                         $('#ddlPOSType').val($('option[data-code = ' + claim_data.pos_type_code.trim() + ']').val());
                     }
@@ -637,8 +642,7 @@ define(['jquery',
                     $('#txtClaimDate').val(self.studyDate ? lineItemStudyDate : defaultStudyDate);
                 }
                 /* Common Details end */
-                // trigger blur event for update Total bill fee, balance etc.
-                $(".allowedFee").blur();
+               
 
             },
 
@@ -887,7 +891,7 @@ define(['jquery',
             },
             getLineItemsAndBind: function (selectedStudyIds) {
                 var self = this;
-
+                self.chargeModel = [];
                 if (selectedStudyIds) {
 
                     $.ajax({
@@ -901,7 +905,7 @@ define(['jquery',
                             if (model && model.length > 0) {
                                 $('#tBodyCharge').empty();
                                 var modelDetails = model[0];
-                                self.studyDate = modelDetails && modelDetails.charges && modelDetails.charges[0].study_dt ? modelDetails.charges[0].study_dt : '' ;
+                                self.studyDate = modelDetails && modelDetails.charges && modelDetails.charges.length && modelDetails.charges[0].study_dt ? modelDetails.charges[0].study_dt : '' ;
                                 var diagnosisCodes = [];
                                 var diagnosisCodesOrder = [];
                                 _.each(modelDetails.charges, function (item) {
@@ -2851,7 +2855,7 @@ define(['jquery',
                             if (!data.invalidClaim_data.length)
                                 commonjs.showStatus(commonjs.geti18NString("messages.status.validatedSuccessfully"));
                             else
-                                commonjs.showDialog({ header: 'Validation Results', i18nHeader: 'menuTitles.order.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });  
+                                commonjs.showNestedDialog({ header: 'Validation Results', i18nHeader: 'menuTitles.order.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });  
                         }
                     },
                     error: function (err, response) {
@@ -3322,15 +3326,6 @@ define(['jquery',
                 });
                 
                 $('#ddlFacility').val(app.facilityID || '');
-
-                if (app.facilityID) {
-                    self.updateResponsibleList({
-                        payer_type: 'PF',
-                        payer_id: app.facilityID,
-                        payer_name: $('#ddlFacility option:selected').text().trim() + '( Facility )'
-                    });
-                }
-
                 $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
                 $('#ddlResponsible').val('PPP');
 
