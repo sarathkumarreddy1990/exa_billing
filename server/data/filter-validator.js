@@ -26,7 +26,7 @@ const validator = () => {
         const generator = queryMakers.get(fieldType);
 
         if (typeof generator !== 'function') {
-            logger.logError(`NoQuery Maker For fieldType ${fieldType} field ${fieldID} value ${fieldValue}`);
+            logger.error(`NoQuery Maker For fieldType ${fieldType} field ${fieldID} value ${fieldValue}`);
             return '';
         }
 
