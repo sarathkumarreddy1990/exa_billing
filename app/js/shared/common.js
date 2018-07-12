@@ -2545,29 +2545,29 @@ var commonjs = {
     getMenui18nName: function (screenName) {
         switch (screenName.toUpperCase()) {
             case 'OFFICE':
-                return 'menuTitles.setup.office';
+                return 'billing.setup.office';
             case 'PROVIDERS':
-                return 'menuTitles.setup.providers';
+                return 'billing.setup.providers';
             case 'SCHEDULING & CODES':
-                return 'menuTitles.setup.schCodes';
+                return 'billing.setup.schCodes';
             case 'DICOM':
-                return 'menuTitles.setup.dicom';
+                return 'billing.setup.dicom';
             case 'BILLING':
-                return 'menuTitles.masterPageMenu.billing';
+                return 'billing.masterPageMenu.billing';
             case 'MEANINGFUL USE':
-                return 'menuTitles.masterPageMenu.meaningfulUse';
+                return 'billing.masterPageMenu.meaningfulUse';
             case 'USER MANAGEMENT':
-                return 'menuTitles.setup.userMgmt';
+                return 'billing.setup.userMgmt';
             case 'MOBILE RAD':
-                return 'menuTitles.setup.mobRad';
+                return 'billing.setup.mobRad';
             case 'GENERAL':
-                return 'menuTitles.setup.general';
+                return 'billing.setup.general';
             case 'HL7':
-                return 'menuTitles.setup.hl7';
+                return 'billing.setup.hl7';
             case 'LOG':
-                return 'menuTitles.setup.log';
+                return 'billing.setup.log';
             case 'STRUCTURED REPORTING':
-                return 'menuTitles.setup.cardiology';
+                return 'billing.setup.cardiology';
         }
     },
 
