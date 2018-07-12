@@ -386,7 +386,13 @@
             "patientResponsible":"Patient Responsible",
             "insuranceResponsible":"Insurance Responsible",
             "total":"Total",
-            "assignedTo":"AssignedTo"            
+            "assignedTo":"AssignedTo",
+            "30days": "30 Days",
+            "60days": "60 Days",
+            "90days": "90 Days",
+            "120days": "120 Days",
+            "summary": "Summary",
+            "current": "Current"
         },
         "setup": {
             "office": "Office",

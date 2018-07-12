@@ -1058,7 +1058,7 @@ CREATE TABLE IF NOT EXISTS billing.grid_filters
     CONSTRAINT grid_filters_id_pk PRIMARY KEY (id),
     CONSTRAINT grid_filters_user_id_fk FOREIGN KEY (user_id) REFERENCES public.users(id),
     CONSTRAINT grid_filters_filter_type_cc CHECK(filter_type IN ('studies','claims')),
-    CONSTRAINT grid_filters_filter_name_uc UNIQUE(filter_name)
+    CONSTRAINT grid_filters_filter_name_uc UNIQUE(filter_type,filter_name)
 );
 COMMENT ON TABLE billing.grid_filters IS 'To maintain Display filter tabs in billing home page (Billed/Unbilled studies) & claim work bench';
 -- --------------------------------------------------------------------------------------------------------------------
@@ -2009,7 +2009,7 @@ $BODY$
 $BODY$
   LANGUAGE sql;
 -- --------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION billing.get_age_patient_claim(IN bigint)
+CREATE OR REPLACE FUNCTION billing.get_age_patient_claim(bigint, bigint)
   RETURNS TABLE(patient_age_0_30 money, patient_age_31_60 money, patient_age_61_90 money, patient_age_91_120 money, patient_age_121 money, insurance_age_0_30 money, insurance_age_31_60 money, insurance_age_61_90 money, insurance_age_91_120 money, insurance_age_121 money, total_balance money, patient_total money, insurance_total money, total_age_30 money, total_age_31_60 money, total_age_61_90 money, total_age_91_120 money, total_age_121 money, total_unapplied money) AS
 $BODY$
 
@@ -2028,7 +2028,7 @@ $BODY$
          SELECT now()::date - claim_dt::date AS num_days
      ) AS ar_dates ON TRUE
 
-		WHERE patient_id=  $1
+		WHERE patient_id=  $1 AND CASE WHEN $2 != 0 THEN billing_provider_id = $2 ELSE 1 = 1 END
 )
 , payment_sum as(
 	 SELECT COALESCE(NULLIF(sum(balance) FILTER (WHERE age_days = 'age_0_30' AND payer_type='patient'), 0::money),0::money) as patient_age_0_30 ,
@@ -2420,6 +2420,9 @@ $BODY$
                 l_base_fee := l_global_fee;
                 -- Default the global fee if fee level is not defined
             END IF;
+
+            l_base_fee := COALESCE (l_base_fee, 0::MONEY);
+            
             -- Apply the modifiers
             IF COALESCE (l_fee_override,
                     0::MONEY) != 0::MONEY THEN
@@ -2442,7 +2445,7 @@ $BODY$
                     END IF;
                 END IF;
             END IF;
-            l_result := l_base_fee;
+            l_result := COALESCE (l_base_fee, 0::MONEY);
             ----------------------------------------------------------------------------------------------------------------------
             RETURN l_result;
         EXCEPTION
@@ -3438,7 +3441,6 @@ BEGIN
                           ELSE
                              chd.allowed_amount
                           END 
-            , allowed_amount = chd.allowed_amount
             , units  = chd.units
             , pointer1  = chd.pointer1
             , pointer2  = chd.pointer2
@@ -3531,6 +3533,7 @@ ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS paper_claim_original_
 ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS direct_invoice_template_id BIGINT;
 ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS patient_invoice_template_id BIGINT;
 ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS grid_field_settings JSON;
+ALTER TABLE billing.grid_filters ADD CONSTRAINT IF NOT EXISTS grid_filters_filter_name_uc UNIQUE(filter_type, filter_name);
 -- --------------------------------------------------------------------------------------------------------------------
 CREATE INDEX charges_studies_idx1 ON billing.charges_studies(study_id);
 CREATE INDEX charges_studies_idx2 ON billing.charges_studies(charge_id);

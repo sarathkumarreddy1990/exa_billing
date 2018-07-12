@@ -18,7 +18,7 @@ const getFilePath = () => {
  * j: json
  */
 const getFormatter = (json) => {
-    return `${json.p} ${json.t} ${ln.LEVEL[json.l]} ${json.m} ${json.j ? JSON.stringify(json.j) : ''}\r\n`;
+    return `${json.p} ${json.t} ${ln.LEVEL[json.l]} ${json.m} ${json.j ? JSON.stringify(json.j) : ''}\r`;
 };
 
 const appenders = [{

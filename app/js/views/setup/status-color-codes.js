@@ -105,6 +105,7 @@ define(['jquery',
                                     var gridData = $('#tblStatusColorCodesGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
+                                        data: $.param({processType: gridData.process_type, processStatus:gridData.process_status}),
                                         success: function (model, response) {
                                             commonjs.showStatus("Deleted Successfully");
                                             self.statusColorCodesTable.refresh();

@@ -136,7 +136,11 @@ module.exports = {
     },
 
     delete: async (params) => {
-        const { id } = params;
+        const {
+                id,
+                processType,
+                processStatus
+            } = params;
 
         const sql = SQL`DELETE FROM 
                             billing.status_color_codes 
@@ -146,7 +150,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: 'Deleted.'
+            logDescription: `Deleted ${processType}(${processStatus})`
         });
     }
 };
