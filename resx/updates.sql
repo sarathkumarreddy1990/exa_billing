@@ -2445,7 +2445,7 @@ $BODY$
                     END IF;
                 END IF;
             END IF;
-            l_result := l_base_fee;
+            l_result := COALESCE (l_base_fee, 0::MONEY);
             ----------------------------------------------------------------------------------------------------------------------
             RETURN l_result;
         EXCEPTION
