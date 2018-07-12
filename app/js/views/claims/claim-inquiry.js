@@ -766,7 +766,7 @@ define([
                 self.showPatientClaimsGrid(claimId, patientId, 0);
 
                 $('#ddlBillingProvider').on().change(function () {
-                    self.ChangePatientIngrid(claimId, patientId);
+                    self.changePatientIngrid(claimId, patientId);
                 });
                 $('#btnPatientActivity').on().click(function () {
 
@@ -986,7 +986,7 @@ define([
                 });
             },
 
-            ChangePatientIngrid: function(claimID, patientID) {
+            changePatientIngrid: function(claimID, patientID) {
                 var self = this;
                 var selectedProv = $("#ddlBillingProvider option:selected").val() ? $("#ddlBillingProvider option:selected").val(): 0;
 
