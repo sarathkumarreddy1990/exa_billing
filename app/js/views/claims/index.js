@@ -1042,9 +1042,8 @@ define(['jquery',
                 if (data.cpt_code || data.display_description) {
                     $('#lblCptCode_' + index)
                             .html(data.cpt_code)
-                            .attr({'data_id': data.cpt_id});
-                    $('#lblCptDescription_' + index).html(data.display_description).attr({'data_id': data.cpt_id});
-                    $('#lblCptCode_' + index).removeClass('cptIsExists');
+                            .attr({'data_id': data.cpt_id}).removeClass('cptIsExists');
+                    $('#lblCptDescription_' + index).html(data.display_description).attr({'data_id': data.cpt_id}).removeClass('cptIsExists');
                 }
 
                 self.bindCPTSelectionEvents('#divCptCode_' + index);
