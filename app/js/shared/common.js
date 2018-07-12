@@ -888,6 +888,11 @@ var commonjs = {
             hei = parseInt(options.height.replace('%', '').replace('px', ''));
         }
 
+        if ($('#' + iframeContainerId)) {
+            $('#' + iframeContainerId).hide();
+            $modalDivContainer.show();
+        }
+
         if (typeof options.url != 'undefined' && commonjs.checkNotEmpty(options.url)) {
             if (!document.getElementById(iframeContainerId)) {
                 var ifr = document.createElement('iframe');
