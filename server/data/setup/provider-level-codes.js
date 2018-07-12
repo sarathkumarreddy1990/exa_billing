@@ -98,7 +98,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Created ${description}(${code})`
+            logDescription: `Add: New Provider Level Code(${code}) created`
         });
     },
 
@@ -133,7 +133,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Updated ${description}(${code})`
+            logDescription: `Update: Provider Level Code(${code}) updated`
         });
     },
 

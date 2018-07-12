@@ -100,7 +100,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Created ${description}(${code})`
+            logDescription: `Add: New CAS Group Code(${code}) created`
         });
     },
 
@@ -132,7 +132,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Updated ${description}(${code})`
+            logDescription: `Update: CAS Group Code(${code}) updated`
         });
     },
 
