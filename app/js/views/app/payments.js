@@ -330,6 +330,7 @@ define(['jquery',
                 var self = this;
                 self.paymentPDF = new paymentPDF({ el: $('#modal_div_container') });
                 var paymentPDFArgs = {
+                    paymentStatus: $("#ulPaymentStatus").val(),
                     'isDateFlag': $('#filterByPostingDt').prop('checked') ? true : false
                 }
                 self.paymentPDF.onReportViewClick(e, paymentPDFArgs);
