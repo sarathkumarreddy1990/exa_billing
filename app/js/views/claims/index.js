@@ -306,9 +306,14 @@ define(['jquery',
                             return;
                         }
                         else if (!data.errors && response.insPokitdok == true) {
-                            $('#divPokidokResponse').html($(self.InsurancePokitdokTemplateForm({'InsuranceData': response.data, 'InsuranceDatavalue': response.meta})));
-                            commonjs.showNestedDialog({ header: 'Pokitdok Response', width: '80%', height: '70%', html: $('#divPokidokResponse').html() });
+                            commonjs.showNestedDialog({ header: 'Pokitdok Response', width: '80%', height: '70%', html: $(self.InsurancePokitdokTemplateForm({'InsuranceData': response.data, 'InsuranceDatavalue': response.meta})) });
                         }
+
+                        $('#divCoPayDetails').height('400px');
+
+                        $.each($('#divPokitdok table td'), function (index, obj) {
+                            $(obj).attr('title', $(obj).text().replace(/[*$-]/,'').trim());
+                        });
 
                         $("#btnClosePokidokPopup").unbind().click(function (e) {
                             $('#divPokidokResponse').hide();

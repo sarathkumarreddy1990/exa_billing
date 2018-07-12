@@ -4663,7 +4663,7 @@ var commonjs = {
             order_id = options.order_id,
             patient_id = options.patient_id;
 
-        var url = '#patient/patientReport/all/' + btoa(patient_id) + '/' + btoa(order_id) + '/' + btoa(study_id);
+        var url = 'vieworder#patient/patientReport/all/' + btoa(patient_id) + '/' + btoa(order_id) + '/' + btoa(study_id);
         this.openWindow(url);
     },
 
