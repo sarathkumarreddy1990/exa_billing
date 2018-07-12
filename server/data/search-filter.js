@@ -560,7 +560,7 @@ const api = {
 
         if(tables.study_cpt){
             r += `   LEFT JOIN LATERAL (
-                SELECT id as study_cpt_id FROM study_cpt   WHERE study_id = studies.id AND study_cpt.has_deleted=false LIMIT 1
+                SELECT study_cpt.id as study_cpt_id FROM study_cpt INNER JOIN cpt_codes cpt ON  cpt.id=study_cpt.cpt_code_id    WHERE study_id = studies.id AND NOT study_cpt.has_deleted   AND NOT cpt.has_deleted   LIMIT 1
             ) AS study_cpt ON true `;
         }
        
@@ -569,12 +569,11 @@ const api = {
             r += `
                   LEFT JOIN LATERAL(
                         SELECT
-                            array_agg(adj.description) FILTER (WHERE adj.description is not null) provider_types,
+                            '' as provider_types,
                             orders.id AS order_id
                                 FROM orders
-                            LEFT JOIN patient_insuarances pat_ins ON pat_ins.id = ANY(orders.insurance_provider_ids)
+                            LEFT JOIN patient_insurances pat_ins ON pat_ins.id = ANY(orders.insurance_provider_ids)
                             LEFT JOIN insurance_providers insp ON pat_ins.insurance_provider_id = insp.id
-                            LEFT JOIN adjustment_codes adj ON adj.id = NULLIF (insp.insurance_info -> 'providerType','')::numeric
                             WHERE orders.id = studies.order_id
                         GROUP BY orders.id
                   ) AS insurance_providers ON true
@@ -622,19 +621,7 @@ const api = {
 
         if (tables.study_status){ r += ` LEFT JOIN study_status ON (
             CASE studies.study_status WHEN 'TE' THEN 'INC' 
-            ELSE studies.study_status END = study_status.status_code AND studies.facility_id = study_status.facility_id) `;}
-        
-        if (tables.adj1) {r += ` LEFT JOIN adjustment_codes adj1 ON 
-        (COALESCE (NULLIF (orders.order_info -> 'claim_status','' ),'0' )= adj1.id ::text  AND adj1.type = 'CLMSTS' AND adj1.has_deleted = FALSE) `;}
-        
-        if (tables.adj2){ 
-            r += ` 
-        LEFT JOIN adjustment_codes adj2 ON 
-        (COALESCE (NULLIF (orders.order_info -> 'billing_code','' ),'0' )= adj2.id ::text  AND adj2.type = 'BILCDE' AND adj2.has_deleted = FALSE) `;}
-        
-        if (tables.adj3) {r += ` 
-        LEFT JOIN adjustment_codes adj3 ON 
-        (COALESCE (NULLIF (orders.order_info -> 'billing_class','' ),'0' )= adj3.id ::text  AND adj3.type = 'BILCLS' AND adj3.has_deleted = FALSE) `;}
+            ELSE studies.study_status END = study_status.status_code AND studies.facility_id = study_status.facility_id) `;}        
         
         if (tables.study_flags){ r += ` LEFT JOIN study_flags 
         ON study_flags.id = (studies.study_info->'study_flag_id')::int `;}
@@ -819,9 +806,9 @@ const api = {
                 `orders.order_info-> 'payer_type' 
                     AS payer_type`, // Billing
                 'orders.id as claim_no', // Billing
-                'adj1.description AS claim_status',
-                'adj2.description AS billing_code',
-                'adj3.description AS billing_class'
+                ` '' AS claim_status`,
+                ` '' AS billing_code`,
+                ` '' AS billing_class`
             ],
             product('MU') && [
                 'orders.mu_last_updated',
