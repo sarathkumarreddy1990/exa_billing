@@ -1058,7 +1058,7 @@ CREATE TABLE IF NOT EXISTS billing.grid_filters
     CONSTRAINT grid_filters_id_pk PRIMARY KEY (id),
     CONSTRAINT grid_filters_user_id_fk FOREIGN KEY (user_id) REFERENCES public.users(id),
     CONSTRAINT grid_filters_filter_type_cc CHECK(filter_type IN ('studies','claims')),
-    CONSTRAINT grid_filters_filter_name_uc UNIQUE(filter_name)
+    CONSTRAINT grid_filters_filter_name_uc UNIQUE(filter_type,filter_name)
 );
 COMMENT ON TABLE billing.grid_filters IS 'To maintain Display filter tabs in billing home page (Billed/Unbilled studies) & claim work bench';
 -- --------------------------------------------------------------------------------------------------------------------
@@ -3432,7 +3432,6 @@ BEGIN
                           ELSE
                              chd.allowed_amount
                           END 
-            , allowed_amount = chd.allowed_amount
             , units  = chd.units
             , pointer1  = chd.pointer1
             , pointer2  = chd.pointer2
@@ -3525,6 +3524,7 @@ ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS paper_claim_original_
 ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS direct_invoice_template_id BIGINT;
 ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS patient_invoice_template_id BIGINT;
 ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS grid_field_settings JSON;
+ALTER TABLE billing.grid_filters ADD CONSTRAINT IF NOT EXISTS grid_filters_filter_name_uc UNIQUE(filter_type, filter_name);
 -- --------------------------------------------------------------------------------------------------------------------
 CREATE INDEX charges_studies_idx1 ON billing.charges_studies(study_id);
 CREATE INDEX charges_studies_idx2 ON billing.charges_studies(charge_id);
