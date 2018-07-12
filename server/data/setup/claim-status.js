@@ -47,12 +47,12 @@ module.exports = {
         }
 
         if (isFrom != 'claimStatus') {
-            sql.append(SQL ` ORDER BY `)
+            sql.append(SQL` ORDER BY `)
                 .append(sortField)
                 .append(' ')
                 .append(sortOrder)
-                .append(SQL ` LIMIT ${pageSize} `)
-                .append(SQL ` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+                .append(SQL` LIMIT ${pageSize} `)
+                .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
         }
 
         return await query(sql);
@@ -107,7 +107,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Created ${description}(${code})`
+            logDescription: `Add: Claim Status(${code}) created`
         });
     },
 
@@ -144,12 +144,12 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Updated ${description}(${code})`
+            logDescription: `Update: Claim Status(${code}) updated`
         });
     },
 
     delete: async (params) => {
-    const {
+        const {
             id,
             code,
             description

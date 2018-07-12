@@ -282,5 +282,40 @@ module.exports = {
         }
 
         return await query(sql);
+    },
+
+    createBatchClaims: async function (params) {
+        let {
+            study_ids,
+            auditDetails
+        } = params;
+
+        const sql = SQL`
+                    WITH batch_claim_details AS (
+                        SELECT 
+		                    patient_id, study_id 
+	                    FROM
+	                        json_to_recordset(${study_ids}) AS study_ids 
+		                    ( 
+		                        patient_id bigint,
+		                        study_id bigint
+                            )
+                    ), details AS (
+                        SELECT bcd.study_id, d.* 
+                        FROM 
+                           batch_claim_details bcd 
+                        LEFT JOIN LATERAL (select * from billing.get_batch_claim_details(bcd.study_id, ${params.created_by})) d ON true
+                      )
+                      SELECT 
+                        billing.create_claim_charge(
+                            details.claims, 
+                            details.insurances, 
+                            details.claim_icds, 
+                            (${JSON.stringify(auditDetails)})::json, 
+                            details.charges)  
+                      FROM details
+                        `;
+
+        return await query(sql);
     }
 };

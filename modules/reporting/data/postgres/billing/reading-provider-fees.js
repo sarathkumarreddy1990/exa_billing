@@ -53,7 +53,7 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
                 COALESCE(rpf.group_name, '- No Group Assigned -' )
             ELSE '' 
             END AS "Group_name"
-        , COALESCE(rpf.display_code, 'Total') AS "CPT Code"
+        , COALESCE(rpf.display_code, '─ TOTAL ─'::TEXT ) AS "CPT Code"
         , COALESCE(rpf.display_description,'---') AS "Description" 
         , claim_dt AS "Claim Date"
         , rpf.payer_name AS "Payer Name"
@@ -76,9 +76,26 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
          amount,
          accounting_dt,
          payment_dt,
-         reading_provider_percent_level ),
-        ()
+         reading_provider_percent_level )        
     )
+
+    UNION ALL
+    SELECT
+    NULL AS "Claim ID",
+    NULL AS "Group_name",
+   '─ GRAND TOTAL ─'::TEXT AS "CPT Code"
+    , NULL AS "Description"
+    , '---' AS "Claim Date"
+    , NULL AS "Payer Name"
+    , SUM(rpf.amount ) AS "Amount"
+    , '---'AS "Accounting Date"
+    , '---' AS "Payment Date"
+    , NULL AS "Reading Fee %"
+    , round(SUM((rpf.amount::numeric/100) * rpf.reading_provider_percent_level),2) AS "Reading Fee"
+FROM
+    reading_provider_fees rpf
+     
+
 `);
 
 const api = {

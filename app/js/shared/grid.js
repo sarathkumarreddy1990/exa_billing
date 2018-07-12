@@ -578,17 +578,42 @@ define('grid', [
         self.batchClaim = function () {
             var $checkedInputs = $tblGrid.find('input').filter('[name=chkStudy]:checked');
             var selectedCount = $checkedInputs.length;
-            studyArray = [];
+            batchClaimArray = [];
             for (var r = 0; r < selectedCount; r++) {
                 var rowId = $checkedInputs[r].parentNode.parentNode.id;
                 studyStoreValue = getData(rowId, studyDataStore, gridID);
                 if (!studyStoreValue.study_cpt_id) {
-                    commonjs.showWarning("Please select charges record");
+                    commonjs.showWarning("Please select charges record for batch claim");
                     return false;
                 }
-                studyArray.push(rowId);
+                batchClaimArray.push({
+                    patient_id :studyStoreValue.patient_id,
+                    study_id :studyStoreValue.study_id
+                });
             }
-            alert(studyArray)
+            
+            if (batchClaimArray.length) {
+
+                var selectedIds = JSON.stringify(batchClaimArray)
+
+                $.ajax({
+                    url: '/exa_modules/billing/claim_workbench/claims/batch',
+                    type: 'POST',
+                    data: {
+                        study_ids: selectedIds,
+                        company_id: app.companyID
+                    },
+                    success: function (data, response) {
+                        commonjs.showStatus('Batch Claim created successfully');
+                        $("#btnStudiesRefresh").click();
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
+            }else{
+                commonjs.showWarning("Please select record for batch claim");
+            }
         },
 
         self.renderStudy = function (doExport) {

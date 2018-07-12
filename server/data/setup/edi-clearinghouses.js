@@ -5,7 +5,7 @@ module.exports = {
     getData: async function (params) {
 
         params.sortOrder = params.sortOrder || ' DESC';
- 
+
         let {
             name,
             receiver_name,
@@ -43,8 +43,8 @@ module.exports = {
                             , communication_info
                             , COUNT(1) OVER (range unbounded preceding) as total_records
                         FROM   billing.edi_clearinghouses`;
-                        
-        if (isFrom == 'InsuranceEDIMapping'){
+
+        if (isFrom == 'InsuranceEDIMapping') {
             sql.append(SQL` WHERE inactivated_dt IS NULL`);
         }
 
@@ -54,14 +54,14 @@ module.exports = {
         }
 
         if (isFrom != 'InsuranceEDIMapping') {
-            sql.append(SQL ` ORDER BY `)
+            sql.append(SQL` ORDER BY `)
                 .append(sortField)
                 .append(' ')
                 .append(sortOrder)
-                .append(SQL ` LIMIT ${pageSize}`)
-                .append(SQL ` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+                .append(SQL` LIMIT ${pageSize}`)
+                .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
         }
-        
+
         return await query(sql);
 
     },
@@ -125,7 +125,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Created ${code}(${name})`
+            logDescription: `Add: New EDI Clearing House(${name}) created`
         });
     },
 
@@ -165,17 +165,17 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Updated ${code}(${name})`
+            logDescription: `Update: EDI Clearing House(${name}) updated`
         });
     },
 
     delete: async function (params) {
 
         let {
-                id,
-                name,
-                receiverName
-            } = params;
+            id,
+            name,
+            receiverName
+        } = params;
 
         const sql = SQL` DELETE FROM
                              billing.edi_clearinghouses
