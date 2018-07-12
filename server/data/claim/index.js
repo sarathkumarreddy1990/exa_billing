@@ -62,7 +62,7 @@ module.exports = {
                                         order_info->'similarIll' AS same_illness_first_date,
                                         order_info->'wTo' AS unable_to_work_to_date,
                                         order_info->'wFrom' AS unable_to_work_from_date,
-                                        order_info->'hTo' AS hospitalization_to_dt,
+                                        order_info->'hTo' AS hospitalization_to_date,
                                         order_info->'hFrom' AS hospitalization_from_date,
                                         order_info->'claim_notes' AS claim_notes,
                                         COALESCE(NULLIF(order_info->'outsideLab',''), 'false')::boolean AS service_by_outside_lab,
@@ -611,6 +611,23 @@ module.exports = {
                             pi.patient_id = c.patient_id
                         ORDER BY pi.coverage_level,pi.id ASC
                       ) existing_insurance) AS existing_insurance
+                    , (
+                        SELECT json_agg(row_to_json(claim_fee_details)) AS claim_fee_details
+                        FROM (
+                            SELECT
+			                    (SELECT charges_bill_fee_total::numeric from billing.get_claim_totals(bc.id)) AS bill_fee
+				                ,COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient' and bpa.amount_type = 'payment'),0::money)::numeric AS patient_paid
+				                ,COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient' and bpa.amount_type = 'payment'),0::money)::numeric AS others_paid
+			                    ,(SELECT adjustments_applied_total::numeric from billing.get_claim_totals(bc.id)) AS adjustment
+			                    ,(SELECT payments_applied_total::numeric from billing.get_claim_totals(bc.id)) AS payment
+			                    ,(SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id))::numeric AS balance
+				            FROM billing.claims bc
+				                INNER JOIN billing.charges bch ON bch.claim_id = bc.id 
+				                LEFT JOIN billing.payment_applications bpa ON bpa.charge_id  =  bch.id 
+				                LEFT JOIN billing.payments bp ON bp.id = bpa.payment_id 
+				            WHERE bc.id = c.id
+			                GROUP BY bc.id
+                      ) claim_fee_details) AS claim_fee_details
                     FROM
                         billing.claims c
                         INNER JOIN public.patients p ON p.id = c.patient_id

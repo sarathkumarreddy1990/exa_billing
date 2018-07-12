@@ -96,9 +96,6 @@ define(['jquery',
                 });
 
                 commonjs.initializeScreen({header: {screen: 'BillingMessages', ext: 'billingMessages'}, grid: {id: '#tblBillingMessagesGrid'}, buttons: [
-                    {value: 'Add', class: 'btn btn-danger', i18n: 'shared.buttons.add', clickEvent: function () {
-                        Backbone.history.navigate('#setup/billing_messages/new', true);
-                    }},
                     {value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
                         self.pager.set({"PageNo": 1});
                         self.billingMessagesTable.refreshAll();
@@ -127,7 +124,7 @@ define(['jquery',
                             if (response && response.length > 0) {
                                 var data = response[0];
                                 if (data) {
-                                    $('#ddlCode').val(data.code ? data.code : '');
+                                    $('#txtCode').val(data.code ? data.code : '');
                                     $('#txtDescription').val(data.description ? data.description : '');
                                 }
                             }
@@ -139,7 +136,7 @@ define(['jquery',
 
                 commonjs.initializeScreen({header: {screen: 'BillingMessages', ext: 'billingMessages'}, buttons: [
                     {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
-                        $("#ddlCode").val($.trim($('#ddlCode').val()) || null);
+                        $("#txtCode").val($.trim($('#txtCode').val()) || null);
                         $("#txtDescription").val($.trim($('#txtDescription').val()) || null);
                         self.saveBillingMessages();
                     }},
@@ -178,7 +175,7 @@ define(['jquery',
 
             save: function () {
                 this.model.set({
-                    "code": $('#ddlCode').val(),
+                    "code": $('#txtCode').val(),
                     "description": $('#txtDescription').val(),
                     "companyId" : app.companyID
                 });
