@@ -301,7 +301,7 @@ module.exports = {
 										subscriber_firstname as "firstName",
 										subscriber_lastname as "lastName",
 										subscriber_middlename as "middleName",
-										subscriber_name_suffix as "suffix",
+										subscriber_name_suffix as "suffix",	
 										'' as "prefix",
 										subscriber_address_line1 as "addressLine1",
 										subscriber_address_line2 as "addressLine2",
@@ -404,7 +404,15 @@ module.exports = {
 										hospitalization_from_date::text as "hospitailizationFromDate",
 										to_char(hospitalization_to_date, 'YYYYMMDD')  as "hospitailizationFromDateFormat",
 										hospitalization_to_date::text as "hospitailizationToDate",
-										to_char(unable_to_work_to_date, 'YYYYMMDD')  as "hospitailizationToDateFormat"
+										to_char(unable_to_work_to_date, 'YYYYMMDD')  as "hospitailizationToDateFormat",
+
+										(SELECT Json_agg(Row_to_json(payerpaidAmount)) "payerpaidAmount" FROM (
+										 SELECT primary_paid_total as "primaryPaidTotal"
+										 ,primary_adj_total as "primaryAdjTotal"
+										 ,secondary_paid_total as "secondaryPaidTotal"
+										 ,secondary_adj_total  as "secondaryAdjTotal"
+										FROM  billing.get_payer_claim_payments(claims.id)  ) as payerpaidAmount)
+
 										,(SELECT Json_agg(Row_to_json(icd)) "icd" FROM
 										(SELECT icd_id,  code,description,(CASE code_type 
 											WHEN 'icd9' THEN '0'

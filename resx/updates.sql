@@ -3836,3 +3836,46 @@ RAISE NOTICE '--- END OF THE SCRIPT ---';
 END
 $$;
 -- ====================================================================================================================
+CREATE OR REPLACE FUNCTION billing.get_payer_claim_payments(IN bigint)
+  RETURNS TABLE(primary_paid_total money, primary_adj_total money, secondary_paid_total money, secondary_adj_total money) AS
+$BODY$
+
+WITH claim_details as (
+            SELECT 
+            p_pat_ins.insurance_provider_id  as p_pat_ins_id,
+            s_pat_ins.insurance_provider_id  as s_pat_ins_id,
+            t_pat_ins.insurance_provider_id  as t_pat_ins_id
+            FROM billing.claims
+            LEFT JOIN patient_insurances p_pat_ins ON p_pat_ins.id=primary_patient_insurance_id
+            LEFT JOIN patient_insurances s_pat_ins ON s_pat_ins.id=secondary_patient_insurance_id
+            LEFT JOIN patient_insurances t_pat_ins ON t_pat_ins.id=tertiary_patient_insurance_id
+            WHERE 
+            claims.id = $1
+            )
+        SELECT
+            coalesce(sum(pa.amount)   FILTER (WHERE  insurance_provider_id = (SELECT claim_details.p_pat_ins_id FROM claim_details)),0::money)    AS  primary_paid_total,
+            coalesce(sum(pa.adjustment)   FILTER (WHERE  insurance_provider_id = (SELECT claim_details.p_pat_ins_id FROM claim_details)),0::money)    AS  primary_adj_total,
+            coalesce(sum(pa.amount)   FILTER (WHERE  insurance_provider_id = (SELECT claim_details.s_pat_ins_id FROM claim_details)),0::money)    AS secondary_paid_total,
+                coalesce(sum(pa.adjustment)   FILTER (WHERE  insurance_provider_id = (SELECT claim_details.s_pat_ins_id FROM claim_details)),0::money)    AS secondary_adj_total
+                FROM
+                    billing.payments AS p
+                    INNER JOIN (
+                        SELECT
+                            distinct pa.payment_id,
+                    sum(pa.amount) FILTER (WHERE  amount_type='payment') as amount,
+                            sum(pa.amount) FILTER (WHERE  amount_type='adjustment') as adjustment
+                        FROM
+                            billing.charges AS c
+                            INNER JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
+                        WHERE
+                            c.claim_id = $1  GROUP BY  pa.payment_id
+                    ) AS pa ON p.id = pa.payment_id 
+$BODY$
+  LANGUAGE sql VOLATILE
+  COST 100
+  ROWS 1000;
+ALTER FUNCTION billing.get_payer_claim_payments(bigint)
+  OWNER TO postgres;
+
+-- ====================================================================================================================
+
