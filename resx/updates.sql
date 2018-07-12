@@ -2420,6 +2420,9 @@ $BODY$
                 l_base_fee := l_global_fee;
                 -- Default the global fee if fee level is not defined
             END IF;
+
+            l_base_fee := COALESCE (l_base_fee, 0::MONEY);
+            
             -- Apply the modifiers
             IF COALESCE (l_fee_override,
                     0::MONEY) != 0::MONEY THEN
