@@ -510,7 +510,7 @@ define([
                                 self.getClaimComment(gridData.row_id);
                             },
                             formatter: function (cellvalue, options, rowObject) {
-                                if (rowObject.type && rowObject.code != null && commentType.indexOf(rowObject.code) == -1)
+                                if (rowObject.code && rowObject.code != null && commentType.indexOf(rowObject.code) == -1)
                                     return "<span class='icon-ic-edit' title='Edit'></span>"
                                 else
                                     return "";

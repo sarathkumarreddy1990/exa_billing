@@ -158,6 +158,26 @@
             "id": "ID",
             "studyDate": "Study Date",
             "series": "Series"
+        },
+        "status": {
+            "approved": "APPROVED",
+            "transcribed": "TRANSCRIBED",
+            "draft": "DRAFT",
+            "dictated": "DICTATED",
+            "read": "READ",
+            "unread": "UNREAD",
+            "incomplete": "INCOMPLETE",
+            "end": "END",
+            "start": "START",
+            "precheckin": "PRECHECKIN",
+            "noshows": "NOSHOWS",
+            "aborted": "ABORTED",
+            "cancelled": "CANCELED",
+            "checkedout": "CHECKEDOUT",
+            "checkedin": "CHECKEDIN",
+            "confirmed": "CONFIRMED",
+            "rescheduled": "RESCHEDULED",
+            "scheduled": "SCHEDULED"
         }
     }
 }
