@@ -380,7 +380,7 @@ define([
                                 self.showForm(rowID);
                             },
                             formatter: function (e, model, data) {
-                                return "<span class='icon-ic-edit' title='Edit'></span>";
+                                return "<i class='icon-ic-edit' title='Edit'></i>";
                             },
                             cellattr: function () {
                                 return 'style=text-align:center;cursor:pointer;'

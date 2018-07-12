@@ -94,7 +94,7 @@ define(['jquery',
                             className:'icon-ic-edit',
                             route: '#setup/status_color_codes/edit/',
                             formatter: function(e, model, data) {
-                                return "<span class='icon-ic-edit' title='Edit'></span>"
+                                return "<i class='icon-ic-edit' title='Edit'></i>"
                             }
                         },
                         {

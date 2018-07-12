@@ -66,7 +66,7 @@ define(['jquery',
                             className:'icon-ic-edit',
                             route: '#setup/billing_classes/edit/',
                             formatter: function(e, model, data) {
-                                return "<span class='icon-ic-edit' title='Edit'></span>"
+                                return "<i class='icon-ic-edit' title='Edit'></i>"
                             }
                         },
                         {

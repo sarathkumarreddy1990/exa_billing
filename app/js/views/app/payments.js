@@ -180,7 +180,7 @@ define(['jquery',
                                 name: 'edit', width: 50, sortable: false, search: false,
                                 className: 'icon-ic-edit',
                                 formatter: function (a, b, c) {
-                                    return "<span class='icon-ic-edit' title='Edi'></span>";
+                                    return "<i class='icon-ic-edit' title='Edit'></i>";
                                 },
                                 customAction: function (rowID, e) {
                                     self.editPayment(rowID);
