@@ -10,6 +10,7 @@ app.use(function (req, res, next) {
         userType: req.session.user_type,
         route: req.path,
     });
+console.log('hasRights ', hasRights);
 
     if (hasRights) {
         return next();
