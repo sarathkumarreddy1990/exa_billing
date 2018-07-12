@@ -535,18 +535,18 @@ define(['jquery',
 
                 /* Claim section start*/
 
-                var renderingProvider = claim_data.reading_phy_full_name || self.usermessage.selectStudyReadPhysician;
+                var renderingProvider = claim_data.reading_phy_full_name || claim_data.fac_reading_phy_full_name || self.usermessage.selectStudyReadPhysician;
                 var referringProvider = claim_data.ref_prov_full_name || self.usermessage.selectStudyRefProvider;
-                var orderingFacility = claim_data.ordering_facility_name || self.usermessage.selectOrdFacility;
+                var orderingFacility = claim_data.ordering_facility_name || claim_data.service_facility_name || self.usermessage.selectOrdFacility;
 
-                self.ACSelect.readPhy.contact_id = claim_data.rendering_provider_contact_id || null;
+                self.ACSelect.readPhy.contact_id = claim_data.rendering_provider_contact_id || claim_data.fac_rendering_provider_contact_id || null;
                 self.ACSelect.refPhy.contact_id = claim_data.referring_provider_contact_id || null;
                 self.ACSelect.refPhy.Code = claim_data.ref_prov_code || null;
                 self.ACSelect.refPhy.Desc = referringProvider;
-                self.group_id = claim_data.ordering_facility_id ? parseInt(claim_data.ordering_facility_id) : null;
+                self.group_id = claim_data.ordering_facility_id ? parseInt(claim_data.ordering_facility_id || claim_data.service_facility_id) : null;
                 self.group_name = orderingFacility;
 
-                $('#ddlBillingProvider').val(claim_data.billing_provider_id || '');
+                $('#ddlBillingProvider').val(claim_data.billing_provider_id ||claim_data.fac_billing_provider_id || '');
                 $('#ddlFacility').val(claim_data.facility_id || '');
                 $('#select2-ddlRenderingProvider-container').html(renderingProvider);
                 $('#select2-ddlReferringProvider-container').html(referringProvider);
