@@ -52,9 +52,13 @@ LEFT JOIN public.facilities pf ON pf.id = bp.facility_id
     account_no AS "MRN #", 
      notes AS "Note",    
     cheque_card_number AS "CHK/CC#",   
-    SUM(amount) AS "Payment"
+    SUM(amount) AS "Payment",
+    status AS "Payment Status"
   FROM
         paymentsPDF
+     WHERE  1=1 
+    <% if (paymentStatus) { %>AND <% print(paymentStatus); } %>            
+         
   GROUP BY
      grouping sets(
         ( facility_name),
@@ -64,7 +68,8 @@ LEFT JOIN public.facilities pf ON pf.id = bp.facility_id
               patient_full_name, 
               account_no,              
               cheque_card_number,
-              notes)
+              notes,
+              status)
            )
 
 `);
@@ -143,15 +148,9 @@ const api = {
     getpaymentsPDFDataSetQueryContext: (reportParams) => {
         const params = [];
         const filters = {
-          paymentDate : null
-            
-           
-
-            
-
-        };
-
-      
+          paymentDate : null,
+          paymentStatus : null
+        };    
         
         
         //  scheduled_dt
@@ -163,6 +162,12 @@ const api = {
         //     params.push(reportParams.toDate);
         //     filters.paymentDate = queryBuilder.whereDateBetween('bp.payment_dt', [params.length - 1, params.length], 'f.time_zone');
         // }
+
+
+        if (reportParams.paymentStatus) {
+            params.push(reportParams.paymentStatus);
+            filters.paymentStatus = queryBuilder.whereIn('status', [params.length]);
+        }
 
       
         

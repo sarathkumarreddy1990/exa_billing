@@ -179,7 +179,7 @@ define(['jquery',
                             {
                                 name: 'edit', width: 50, sortable: false, search: false,
                                 className: 'icon-ic-edit',
-                                formatter: function (a, b, c) {
+                                formatter: function (e, model, data) {
                                     return "<i class='icon-ic-edit' title='Edit'></i>";
                                 },
                                 customAction: function (rowID, e) {
@@ -330,6 +330,7 @@ define(['jquery',
                 var self = this;
                 self.paymentPDF = new paymentPDF({ el: $('#modal_div_container') });
                 var paymentPDFArgs = {
+                    paymentStatus: $("#ulPaymentStatus").val(),
                     'isDateFlag': $('#filterByPostingDt').prop('checked') ? true : false
                 }
                 self.paymentPDF.onReportViewClick(e, paymentPDFArgs);

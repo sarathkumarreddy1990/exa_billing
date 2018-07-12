@@ -131,7 +131,7 @@ aged_ar_sum AS ( SELECT
        null::text as "Responsible Party",
        "Payer Name",
        null::text as "EDI",
-       ('--- Total A R---')::TEXT as "Provider Type", 
+       ('A/R Total')::TEXT as "Provider Type", 
        sum(cast("0-30 Sum" AS NUMERIC))::MONEY as "0-30 Sum", 
        sum(cast("30-60 Sum" AS NUMERIC))::MONEY as "30-60 Sum",
        sum("60-90 Sum") as "60-90 Sum",sum("90-120 Sum") as "90-120 Sum", 
@@ -209,12 +209,8 @@ aging_result as ( SELECT
                   FROM aged_ar_total 
 ) 
 SELECT * FROM aging_result 
-<% if(incPatDetail == 'true') { %>     
-    ORDER BY "Responsible Party" ASC
-   <% } else { %>
-    ORDER BY "Responsible Party",  "Payer Name"
-
-    <% } %>
+    ORDER BY   "Payer Name", "Responsible Party"
+   
 `);
 
 const api = {
