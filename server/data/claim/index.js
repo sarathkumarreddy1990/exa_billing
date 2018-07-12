@@ -182,6 +182,7 @@ module.exports = {
                             , ip.insurance_info->'ZipCode' AS ins_zip_code
                             , ip.insurance_info->'Address1' AS ins_pri_address
                             , ip.insurance_info->'partner_id' AS ins_partner_id
+                            , ip.insurance_info->'PhoneNo' AS ins_phone_no
                             , pi.coverage_level
                             , pi.subscriber_relationship_id   
                             , pi.valid_from_date
@@ -373,6 +374,7 @@ module.exports = {
                     , ipp.insurance_info->'Address1' AS p_address1
                     , ipp.insurance_info->'PayerID' AS p_payer_id
                     , ipp.insurance_info->'City' AS p_city
+                    , ipp.insurance_info->'PhoneNo' AS p_phone_no
                     , ipp.insurance_info->'State' AS p_state
                     , ipp.insurance_info->'ZipCode' AS p_zip
                     , ipp.insurance_name AS p_insurance_name
@@ -400,7 +402,8 @@ module.exports = {
                     , cpi.medicare_insurance_type_code AS p_medicare_insurance_type_code
                     , ips.insurance_info->'Address1' AS s_address1
                     , ips.insurance_info->'PayerID' AS s_payer_id
-                    , ips.insurance_info->'City' AS s_city
+                    , ips.insurance_info->'City' AS s_city                    
+                    , ips.insurance_info->'PhoneNo' AS s_phone_no
                     , ips.insurance_info->'State' AS s_state
                     , ips.insurance_info->'ZipCode' AS s_zip
                     , ips.insurance_name AS s_insurance_name
@@ -428,7 +431,8 @@ module.exports = {
                     , csi.medicare_insurance_type_code AS s_medicare_insurance_type_code
                     , ipt.insurance_info->'Address1' AS t_address1
                     , ipt.insurance_info->'PayerID' AS t_payer_id
-                    , ipt.insurance_info->'City' AS t_city
+                    , ipt.insurance_info->'City' AS t_city             
+                    , ipt.insurance_info->'PhoneNo' AS t_phone_no
                     , ipt.insurance_info->'State' AS t_state
                     , ipt.insurance_info->'ZipCode' AS t_zip
                     , ipt.insurance_name AS t_insurance_name
