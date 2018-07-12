@@ -48,7 +48,6 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                     app.gender = (typeof sys_config.sys_gender == "string") ? sys_config.sys_gender.split(',') : [];
                     app.stat_level = app.stat_level_config.stat_level;
                     app.tat_config = app.tat_config.tat_config;
-                    app.modifiers = app.modifiers.modifiers_codes;
                     app.userID = app.userInfo.userID;
                     app.companyID = app.company.id;
                     app.fileStoreId = app.company.file_store_id;

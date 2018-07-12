@@ -737,6 +737,12 @@ define([
 
             patientInquiryForm: function (claimId, patientId) {
                 var self = this;
+                commonjs.showDialog({
+                    'header': 'Patient Claim',
+                    'width': '85%',
+                    'height': '75%',
+                    'needShrink': true
+                });
                 setTimeout(function () {
                     var billingProviderList = app.billing_providers,reportBy
                         ddlBillingProvider = $('#ddlBillingProvider');
@@ -821,7 +827,7 @@ define([
                     allBillingProvider = selectedBillingProList && selectedBillingProList.length === $("#ddlBillingProvider option").length;
 
                     reportBy  ? self.generatePatientActivity(claimId, patientId, reportBy,null,null, selectedBillingProList) : self.generatePatientActivity(claimId, patientId, reportBy, fromDate, toDate, selectedBillingProList)
-
+                    $('#modal_div_container').removeAttr('style');
                 });
             },
 

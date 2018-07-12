@@ -88,7 +88,7 @@ module.exports = {
             };
 
             ediResponse = await ediConnect.generateEdi(result.rows[0].header.edi_template_name, ediRequestJson);
-            params.claim_status = 'PYMTPEN';
+            params.claim_status = 'PP';
             params.type = 'auto';
             params.success_claimID = params.claimIds;  
             params.isClaim=true;

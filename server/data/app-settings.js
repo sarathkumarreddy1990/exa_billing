@@ -127,8 +127,7 @@ module.exports = {
                 , cte_sites AS(                                   
                                 SELECT id as siteID,
                                     stat_level_config,
-                                    tat_config,
-                                    modifiers 
+                                    tat_config
                                     FROM   sites
                                     WHERE  id=${siteID})
                 , cte_employment_status AS(
@@ -223,7 +222,23 @@ module.exports = {
                                         billing.payment_reasons
                                     WHERE
                                         company_id = ${companyID} AND inactivated_dt IS NULL) AS payment_reasons)
-               
+                , cte_modifiers AS(
+                                     SELECT Json_agg(Row_to_json(modifiers)) modifiers
+                                    FROM  (
+                                        SELECT modifier_amount,
+                                        override_amount,
+                                        code,
+                                        description,
+                                        level,
+                                        sign,
+                                        type,
+                                        modifier1,
+                                        modifier2,
+                                        modifier3,
+                                        modifier4
+                                        FROM   modifiers
+                                        WHERE  company_id=${companyID}  ) AS modifiers)
+
                SELECT *
                FROM   cte_company,
                       cte_facilities,
@@ -246,7 +261,8 @@ module.exports = {
                       cte_places_of_service,
                       cte_adjustment_code_list,
                       cte_user_group_list,
-                      cte_payment_reasons_list
+                      cte_payment_reasons_list,
+                      cte_modifiers
                `;
 
         return await query(sql);
