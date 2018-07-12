@@ -138,8 +138,8 @@ module.exports = {
         let sql = SQL`WITH agg AS (SELECT
                           cc.id AS id
                         , COALESCE(null, '') AS payment_id
-                        , CASE WHEN type ='auto' THEN null WHEN type = 'manual' THEN null ELSE type END AS type
                         , type AS code
+                        , null AS type
                         , note AS comments
                         , created_dt::date as commented_dt
                         , is_internal 
@@ -154,8 +154,8 @@ module.exports = {
                     SELECT  
                           ch.id AS id
                         , COALESCE(null, '') AS payment_id
-                        , cpt.display_code AS code
-                        , 'charge' AS type
+                        , 'charge' AS code
+                        , cpt.display_code AS  type
                         , cpt.short_description AS comments
                         , ch.charge_dt::date as commented_dt
                         , false AS is_internal
@@ -171,7 +171,17 @@ module.exports = {
                           bp.id AS id
                         , bp.id::text AS payment_id
                         , pa.amount_type as code
-                        , pa.amount_type as type
+                        ,  CASE WHEN pa.amount_type = 'adjustment' THEN 'Adjustment' WHEN  amount_type = 'payment' THEN
+                            CASE WHEN bp.payer_type = 'patient' THEN
+                                    'Patient'
+                            WHEN bp.payer_type = 'insurance' THEN
+                                    'Insurance'
+                            WHEN bp.payer_type = 'ordering_facility' THEN
+                                    'Ordering Facility'
+                            WHEN bp.payer_type = 'ordering_provider' THEN
+                                    'Provider'
+                            END 
+                            END  as type
                         , CASE WHEN bp.payer_type = 'patient' THEN
                                     pp.full_name
                             WHEN bp.payer_type = 'insurance' THEN
