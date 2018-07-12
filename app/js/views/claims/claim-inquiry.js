@@ -426,7 +426,7 @@ define([
 
             showClaimCommentsGrid: function () {
                 var self = this;
-                var commentType = ["payment", "adjustment", "charge"]
+                var commentType = ["payment", "adjustment", "charge", 'refund'];
                 var payCmtGrid;
                 payCmtGrid = new customGrid();
                 payCmtGrid.render({
