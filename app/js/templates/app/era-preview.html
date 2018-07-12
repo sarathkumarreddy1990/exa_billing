@@ -51,7 +51,7 @@
                                             <%= servicePaymentInformation.paidamount %>
                                         </td>
                                         <td>
-                                            <%= servicePaymentInformation.serviceDate.serviceDate ? moment(servicePaymentInformation.serviceDate.serviceDate).format('L') : ''  %>
+                                            <%= servicePaymentInformation.serviceDate.serviceDate ? servicePaymentInformation.serviceDate.serviceDate : ''  %>
                                         </td>
                                     </tr>
                                     <% }); %>
