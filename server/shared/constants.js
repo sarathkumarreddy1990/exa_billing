@@ -185,6 +185,7 @@ module.exports = {
         'era_list': 'ERAI',
         'upload': 'ERAI',
         'era_file_preview': 'ERAI',
+        'process-file': 'ERAI',
         'claim_study': 'ECLM',
         'follow_ups': 'ECLM',
         'claim_patient': 'PCLM'
