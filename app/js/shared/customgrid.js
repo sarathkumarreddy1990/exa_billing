@@ -825,7 +825,7 @@ function customGrid ( datastore, gridID ) {
             }
         });
 
-        let filterDataValue=filterData;
+        var filterDataValue=filterData;
 
         if (self.options.isClaimGrid) {
             if (this.options.filterid == 'Follow_up_queue') {

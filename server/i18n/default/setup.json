@@ -128,6 +128,7 @@
             "providerOffice" : "Provider Office"
         },
         "userSettings": {
+            "payerName":"Payer Name",
             "accountNo": "Account#",
             "accession": "Accession#",
             "id": "Id",
