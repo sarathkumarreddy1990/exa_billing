@@ -268,7 +268,7 @@ define([
                 $('#gview_tblCIDiagnosis').find('.ui-jqgrid-bdiv').css('max-height', '300px')
             },
 
-            showPatientClaimsGrid: function (claimID, patientId) {
+            showPatientClaimsGrid: function (claimID, patientId, billingProviderID) {
                 var self = this;
                 $('#divPatientClaimsGrid').show();
                 this.patientClaimsTable = new customGrid();
@@ -322,7 +322,8 @@ define([
                     disablereload: true,
                     customargs: {
                         claimID: claimID,
-                        patientId: patientId
+                        patientId: patientId,
+                        billProvId: parseInt(billingProviderID)
                     },
                     pager: '#gridPager_PatientClaim',
                     onaftergridbind: self.afterGridBind,
@@ -399,28 +400,28 @@ define([
 
             afterGridBind: function (model, gridObj) {
                 var self = this;
-                if (model && model.length > 0) {
-                    var age_summary = model[0].get('age_summary');
-                    $('#tdInsCurrent').html(age_summary.insurance_age_0_30 || '$0.00');
-                    $('#tdInsAge30').html(age_summary.insurance_age_31_60 || '$0.00');
-                    $('#tdInsAge60').html(age_summary.insurance_age_61_90 || '$0.00');
-                    $('#tdInsAge90').html(age_summary.insurance_age_91_120 || '$0.00');
-                    $('#tdInsAge120').html(age_summary.insurance_age_121 || '$0.00');
-                    $('#tdInsAgeTotal').html(age_summary.insurance_total || '$0.00');
-                    $('#tdPtCurrent').html(age_summary.patient_age_0_30 || '$0.00');
-                    $('#tdPtAge30').html(age_summary.patient_age_31_60 || '$0.00');
-                    $('#tdPtAge60').html(age_summary.patient_age_61_90 || '$0.00');
-                    $('#tdPtAge90').html(age_summary.patient_age_91_120 || '$0.00');
-                    $('#tdPtAge120').html(age_summary.patient_age_121 || '$0.00');
-                    $('#tdPtAgeTotal').html(age_summary.patient_total || '$0.00');
-                    $('#tdCurrent').html(age_summary.total_age_30 || '$0.00');
-                    $('#tdAge30').html(age_summary.total_age_31_60 || '$0.00');
-                    $('#tdAge60').html(age_summary.total_age_61_90 || '$0.00');
-                    $('#tdAge90').html(age_summary.total_age_91_120 || '$0.00');
-                    $('#tdAge120').html(age_summary.total_age_121 || '$0.00');
-                    $('#tdAgeTotal').html(age_summary.total_balance || '$0.00'); 
-                    $('#spUnapplied').html(age_summary.total_unapplied || '$0.00');
-                }
+
+                    var age_summary = model && model[0] && model[0].get('age_summary');
+                    $('#tdInsCurrent').html(age_summary && age_summary.insurance_age_0_30 || '$0.00');
+                    $('#tdInsAge30').html(age_summary && age_summary.insurance_age_31_60 || '$0.00');
+                    $('#tdInsAge60').html(age_summary && age_summary.insurance_age_61_90 || '$0.00');
+                    $('#tdInsAge90').html(age_summary && age_summary.insurance_age_91_120 || '$0.00');
+                    $('#tdInsAge120').html(age_summary && age_summary.insurance_age_121 || '$0.00');
+                    $('#tdInsAgeTotal').html(age_summary && age_summary.insurance_total || '$0.00');
+                    $('#tdPtCurrent').html(age_summary && age_summary.patient_age_0_30 || '$0.00');
+                    $('#tdPtAge30').html(age_summary && age_summary.patient_age_31_60 || '$0.00');
+                    $('#tdPtAge60').html(age_summary && age_summary.patient_age_61_90 || '$0.00');
+                    $('#tdPtAge90').html(age_summary && age_summary.patient_age_91_120 || '$0.00');
+                    $('#tdPtAge120').html(age_summary && age_summary.patient_age_121 || '$0.00');
+                    $('#tdPtAgeTotal').html(age_summary && age_summary.patient_total || '$0.00');
+                    $('#tdCurrent').html(age_summary && age_summary.total_age_30 || '$0.00');
+                    $('#tdAge30').html(age_summary && age_summary && age_summary.total_age_31_60 || '$0.00');
+                    $('#tdAge60').html(age_summary && age_summary.total_age_61_90 || '$0.00');
+                    $('#tdAge90').html(age_summary && age_summary.total_age_91_120 || '$0.00');
+                    $('#tdAge120').html(age_summary && age_summary.total_age_121 || '$0.00');
+                    $('#tdAgeTotal').html(age_summary && age_summary.total_balance || '$0.00'); 
+                    $('#spUnapplied').html(age_summary && age_summary.total_unapplied || '$0.00');
+
             },
 
             showClaimCommentsGrid: function () {
@@ -741,6 +742,7 @@ define([
                     var billingProviderList = app.billing_providers,reportBy
                         ddlBillingProvider = $('#ddlBillingProvider');
                     ddlBillingProvider.empty();
+                    ddlBillingProvider.append("<option value='0'>Select</option>")
                     if (billingProviderList && billingProviderList.length > 0) {
                         for (var b = 0; b < billingProviderList.length; b++) {
                             ddlBillingProvider.append($('<option/>', {
@@ -749,13 +751,6 @@ define([
                             }));
                         }
                     }
-                    $('#ddlBillingProvider').multiselect({
-                        maxHeight: 200,
-                        buttonWidth: '250px',
-                        enableFiltering: true,
-                        includeSelectAllOption: true,
-                        enableCaseInsensitiveFiltering: true
-                    });
                 }, 300);
 
 
@@ -766,9 +761,12 @@ define([
                 this.toDate.date(); 
 
                 if(this.screenCode.indexOf('PACT') > -1)
-                    $('#btnPatientActivity').attr('disabled', true); // id Patient Activity report have rights then only can access this report
+                    $('#btnPatientActivity').attr('disabled', true); // if Patient Activity report have rights then only can access this report
+                self.showPatientClaimsGrid(claimId, patientId, 0);
 
-                self.showPatientClaimsGrid(claimId, patientId);
+                $('#ddlBillingProvider').on().change(function () {
+                    self.ChangePatientIngrid(claimId, patientId);
+                });
                 $('#btnPatientActivity').on().click(function () {
 
                     if ($('#txtDate').val() > $('#txtOtherDate').val()) {
@@ -780,12 +778,12 @@ define([
                         reportBy = true;
                     }
                     else{
-                        if ( $('#txtOtherDate').val() < moment().format('MM/DD/YYYY')) {
+                        if ( $('#txtOtherDate').val() < moment(moment().format('MM/DD/YYYY'))) {
                             commonjs.showWarning('To date is Future');
                             return
                         }
                         
-                        if ( $('#txtDate').val() < moment().format('MM/DD/YYYY')) {
+                        if ( $('#txtDate').val() < moment(moment().format('MM/DD/YYYY'))) {
                             commonjs.showWarning('From date is Future');
                             return
                         }
@@ -813,12 +811,7 @@ define([
 
                
                     var billing_pro = [], selectedBillingProList, allBillingProvider;
-                    var selected = $("#ddlBillingProvider option:selected");
-                    selected.each(function () {
-                        billing_pro.push($(this).val());
-                    });
-                    selectedBillingProList = billing_pro;
-                    allBillingProvider = selectedBillingProList && selectedBillingProList.length === $("#ddlBillingProvider option").length;
+                    selectedBillingProList = $('#ddlBillingProvider option:selected').val() ? [$('#ddlBillingProvider option:selected').val()] : [];
 
                     reportBy  ? self.generatePatientActivity(claimId, patientId, reportBy,null,null, selectedBillingProList) : self.generatePatientActivity(claimId, patientId, reportBy, fromDate, toDate, selectedBillingProList)
 
@@ -990,6 +983,13 @@ define([
                     payerType: payerType,
                     payerId: insuranceProviderId
                 });
+            },
+
+            ChangePatientIngrid: function(claimID, patientID) {
+                var self = this;
+                var selectedProv = $("#ddlBillingProvider option:selected").val() ? $("#ddlBillingProvider option:selected").val(): 0;
+
+                self.showPatientClaimsGrid(claimID, patientID, selectedProv);
             }
     });
 
