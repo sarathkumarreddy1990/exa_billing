@@ -682,7 +682,7 @@ define([
 
             saveClaimComment: function (commentId, comment) {
                 var self = this;
-                $('#siteModalNested').find('#btnCICommentSave').addClass('disabled')
+                $('#siteModalNested').find('#btnCICommentSave').prop('disabled', true)
                 if (commentId != 0) {
 
                     $.ajax({
@@ -717,6 +717,7 @@ define([
                         },
                         success: function (data, response) {
                             commonjs.showStatus('Record Saved Successfully');
+                            $('#siteModalNested').find('#btnCICommentSave').prop('disabled', false)
                             self.closeSaveComment();
                             self.showClaimCommentsGrid();
                         },
