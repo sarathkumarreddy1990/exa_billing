@@ -2430,16 +2430,24 @@ define(['jquery',
                     
                     self.model.save({}, {
                         success: function (model, response) {
-                            //if (response && response.length > 0) {
                             commonjs.hideLoading();
 
                             if (response && response.message) {
                                 commonjs.showWarning(response.message);
                             } else {
                                 commonjs.showStatus("messages.status.successfullyCompleted");
-                                $("#btnClaimsRefresh").click();
-                                $("#btnStudiesRefresh").click();
-                                commonjs.hideDialog();
+
+                                var claimRefreshInterval = setInterval(function () {
+                                    clearInterval(claimRefreshInterval);
+
+                                    $("#btnClaimsRefresh").click();
+                                    $("#btnStudiesRefresh").click();
+                                }, 100);
+
+                                var claimHideInterval = setInterval(function () {
+                                    clearInterval(claimHideInterval);
+                                    commonjs.hideDialog();
+                                }, 200);
                             }
                         },
                         error: function (model, response) {
