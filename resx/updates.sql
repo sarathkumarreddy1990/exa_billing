@@ -3704,41 +3704,41 @@ BEGIN
               id
               FROM billing.providers
               WHERE id = COALESCE(NULLIF(order_info -> 'billing_provider',''),(SELECT COALESCE(NULLIF(billing_provider_id,''),'0')::text FROM study_details ) )::numeric 
-              AND company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) AND inactivated_dt IS NULL
+              AND company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) 
             ) AS billing_provider_id
           ,( SELECT id FROM 
               provider_groups 
               WHERE id = COALESCE(NULLIF(order_info -> 'ordering_facility_id',''), (SELECT COALESCE(NULLIF(service_facility_id,''),'0')::text FROM study_details ) )::numeric  
               AND provider_groups.has_deleted = false  AND (provider_groups.group_type = 'OF'  OR provider_groups.group_type IS NULL )
-              AND provider_groups.company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) AND is_active = TRUE
+              AND provider_groups.company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) 
             ) AS ordering_facility_id
           ,( SELECT pc.id FROM 
               public.providers p 
               INNER JOIN provider_contacts pc ON pc.provider_id = p.id
               WHERE pc.id = COALESCE(NULLIF(order_info -> 'rendering_provider_id',''), (SELECT COALESCE(NULLIF(rendering_provider_id,''),'0')::text FROM study_details ) )::numeric 
-              AND NOT p.has_deleted AND NOT pc.has_deleted AND p.is_active AND p.company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) AND p.provider_type = 'PR'
+              AND NOT p.has_deleted AND NOT pc.has_deleted AND p.company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) AND p.provider_type = 'PR'
             ) AS rendering_provider_contact_id
           ,( SELECT pc.id FROM 
               public.providers p 
               INNER JOIN provider_contacts pc ON pc.provider_id = p.id
               WHERE pc.id = COALESCE(NULLIF(referring_provider_ids [ 1 ],'0'),'0')::numeric 
-              AND NOT p.has_deleted AND NOT pc.has_deleted AND p.is_active AND p.company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) AND p.provider_type = 'RF'
+              AND NOT p.has_deleted AND NOT pc.has_deleted AND p.company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) AND p.provider_type = 'RF'
             ) AS referring_provider_contact_id
           ,( SELECT id FROM 
               public.places_of_service
-              WHERE code = COALESCE(NULLIF(order_info -> 'pos_type_code',''),'') AND company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) AND inactivated_dt IS NULL
+              WHERE code = COALESCE(NULLIF(order_info -> 'pos_type_code',''),'') AND company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) 
             ) AS place_of_service_id
           ,( SELECT id FROM 
               billing.claim_status
-              WHERE code = 'PV'  AND NOT is_system_status AND company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) AND inactivated_dt IS NULL
+              WHERE code = 'PV'  AND NOT is_system_status AND company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) 
             ) AS claim_status_id
           ,( SELECT id FROM 
               billing.billing_codes
-              WHERE id = COALESCE(NULLIF(order_info -> 'billing_code',''),'0')::numeric  AND company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) AND inactivated_dt IS NULL
+              WHERE id = COALESCE(NULLIF(order_info -> 'billing_code',''),'0')::numeric  AND company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) 
             ) AS billing_code_id
           ,( SELECT id FROM 
               billing.billing_classes
-              WHERE id = COALESCE(NULLIF(order_info -> 'billing_class',''),'0')::numeric  AND company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) AND inactivated_dt IS NULL
+              WHERE id = COALESCE(NULLIF(order_info -> 'billing_class',''),'0')::numeric  AND company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) 
             ) AS billing_class_id
           ,i_created_by  AS created_by
           ,null AS billing_notes
