@@ -115,7 +115,11 @@ module.exports = {
             let insSubsValidationFields = [];
             let insSubsInvalidFields = '';
 
-            if(currentClaim.billing_method != 'patient_payment'){
+            if (!currentClaim.billing_method) {
+                errorMessages.push('Cannot validate without billing method..');
+            }
+
+            if(currentClaim.billing_method && currentClaim.billing_method != 'patient_payment'){
                 currentClaim.payer_name = currentClaim.payer_info.payer_name;
                 currentClaim.payer_address1 = currentClaim.payer_info.payer_address1;
                 currentClaim.payer_city = currentClaim.payer_info.payer_city;
