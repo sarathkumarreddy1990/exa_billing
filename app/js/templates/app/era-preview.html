@@ -1,67 +1,140 @@
 <div style="width: 100%; padding: 1rem;">
     <% _.each(data, function(eraData) { %>
-        <div>
-            <% _.each(eraData.headerNumber, function(headerNumber) { %>
-                <div>
-                    <% _.each(headerNumber.claimPaymentInformation, function(claimPaymentInformation) { %>
-                        <div style="margin-top: 20px;">
-                            <div>
-                                <h5 class="card-title">
+        <div class="row" id="payerDetails" style="margin: auto;">
+            <div class="col">
+                <div class="form-group form-inline">
+                    <label id="lblInsPRoviderName" for="auditFromDate" class="control-label">
+                        Insurance Provider :&nbsp;
+                        <b>
+                            <%= eraData.payerIdentification.name ? eraData.payerIdentification.name : '' %>
+                        </b>
+                    </label>
+                </div>
+                <div class="form-group form-inline">
+                    <label id="lblPayerId" for="auditFromDate" class="control-label">
+                        Payer ID :&nbsp;
+                        <b>
+                            <%= eraData.payerIdentification.idCode ? eraData.payerIdentification.idCode : '' %>
+                        </b>
+                    </label>
+                </div>
+                <div class="form-group form-inline">
+                    <label id="paymentDate" for="auditFromDate" class="control-label">
+                        Date :&nbsp;
+                        <b>
+                            <%= eraData.financialInformation.length > 0 ? eraData.financialInformation[0].date || '' : '' %>
+                        </b>
+                    </label>
+                </div>
+            </div>
+            <div class="col">
+                <div class="form-group form-inline">
+                    <label id="lblInsProviderAddress" for="auditFromDate" class="control-label">
+                        Address :&nbsp;
+                        <%= eraData.payerIdentification.payerAddress.addressInformation ? eraData.payerIdentification.payerAddress.addressInformation : '' %>
+                    </label>
+                </div>
+                <div class="form-group form-inline">
+                    <label id="lblInsProviderCityState" for="auditFromDate" class="control-label">
+                        City/State/Zip :&nbsp;
+                        <%= eraData.payerIdentification.payerCityStateZipCode.payerCity ? eraData.payerIdentification.payerCityStateZipCode.payerCity : '' %>/
+                            <%= eraData.payerIdentification.payerCityStateZipCode.payerState ? eraData.payerIdentification.payerCityStateZipCode.payerState : '' %>/
+                                <%= eraData.payerIdentification.payerCityStateZipCode.payerZIPCode ? eraData.payerIdentification.payerCityStateZipCode.payerZIPCode : '' %>
+                    </label>
+                </div>
+                <div class="form-group form-inline">
+                    <label id="lblInsProviderPhoneNo" for="auditFromDate" class="control-label">
+                        Phone # :&nbsp;
+                        <%= eraData.payerIdentification.payerContactInformation.commNumber1 ? eraData.payerIdentification.payerContactInformation.commNumber1 : '' %>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <% _.each(eraData.headerNumber, function(headerNumber) { %>
+            <div>
+                <% _.each(headerNumber.claimPaymentInformation, function(claimPaymentInformation) { %>
+                    <div style="margin-top: 20px;">
+                        <div class="col-md-12" style="border-top: 2px solid #d6d6d6; padding-top: 10px;">
+                            <div class="col-md-6 topMargin" style="float: left;">
+                                Patient Name :
+                                <b>
                                     <%= claimPaymentInformation.patientName.lastName %>,
                                         <%= claimPaymentInformation.patientName.firstName %>
-                                </h5>
-                                <p class="card-text">Paid:
-                                    <%= claimPaymentInformation.paidAmount %>
-                                </p>
-                                <p class="card-text">Patient Responsible:
-                                    <%= claimPaymentInformation.patientResponsibleAmount %>
-                                </p>
-                                <p class="card-text">Claim No:
-                                    <%= claimPaymentInformation.claimNumber %>
-                                </p>
-                                <p class="card-text">Claim Status Code:
-                                    <%= claimPaymentInformation.claimStatusCode %>
-                                </p>
-                                <p class="card-text">Payer Claim Control No (Claim Ref #):
-                                    <%= claimPaymentInformation.payerClaimContorlNumber %>
-                                </p>
+                                </b>
+                            </div>
+                            <div class="col-md-6 topMargin" style="float: right;">
+                                Paid :
+                                <%= claimPaymentInformation.paidAmount ? claimPaymentInformation.paidAmount : '' %>
+                            </div>
+                            <div class="col-md-6 topMargin" style="float: right;">
+                                Patient Responsible :
+                                <%= claimPaymentInformation.patientResponsibleAmount ? claimPaymentInformation.patientResponsibleAmount : '' %>
+                            </div>
+                            <div class="col-md-6 topMargin" style="float: right;">
+                                Claim No:
+                                <b>
+                                    <%= claimPaymentInformation.claimNumber ? claimPaymentInformation.claimNumber : '' %>
+                                </b>
+                            </div>
+                            <div class="col-md-6 topMargin" style="float: right;">
+                                Claim Status Code :
+                                <%= claimPaymentInformation.claimStatusCode ? claimPaymentInformation.claimStatusCode : '' %>
+                            </div>
+                            <div class="col-md-6 topMargin" style="float: right; margin-bottom: 10px;">
+                                Payer Claim Control No (Claim Ref #) :
+                                <%= claimPaymentInformation.payerClaimContorlNumber ? claimPaymentInformation.payerClaimContorlNumber : '' %>
+                            </div>
+                            <div>
+                            </div>
+                            <div style="padding-top: 20px;">
+                                <table class="table table-bordered table-striped">
+                                    <tr class="thead-light">
+                                        <th>CPT</th>
+                                        <th>Modifier</th>
+                                        <th>Bill Fee</th>
+                                        <th>Amount</th>
+                                        <th>Date</th>
+                                    </tr>
+                                    <% var totalBillFee  = 0  %>
+                                    <% var totalAmount  = 0  %>
+                                    <% _.each(claimPaymentInformation.servicePaymentInformation, function(servicePaymentInformation) { %>
+                                        <% totalBillFee  += parseFloat(servicePaymentInformation.billFee)  %>
+                                        <% totalAmount  += parseFloat(servicePaymentInformation.paidamount)  %>
+                                        <tr>
+                                            <td>
+                                                <%= servicePaymentInformation.qualifierData.cptCode %>
+                                            </td>
+                                            <td>
+                                                <%= servicePaymentInformation.qualifierData.modifier1 %>
+                                            </td>
+                                            <td>
+                                                <%= servicePaymentInformation.billFee %>
+                                            </td>
+                                            <td>
+                                                <%= servicePaymentInformation.paidamount %>
+                                            </td>
+                                            <td>
+                                                <%= servicePaymentInformation.serviceDate.serviceDate ? servicePaymentInformation.serviceDate.serviceDate : ''  %>
+                                            </td>
+                                        </tr>
+                                    <% }); %>
+                                    <tr>
+                                        <td> </td>
+                                        <td></td>
+                                        <td class="txtAlignRight"> Total : $
+                                            <%= totalBillFee %>
+                                        </td>
+                                        <td class="txtAlignRight"> Total : $
+                                            <%= totalAmount %>
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                </table>
                             </div>
                         </div>
-                        <div style="margin-top: 20px; border-bottom: 4px solid #d6d6d6;">
-                            <table class="table table-bordered table-striped">
-                                <tr class="thead-light">
-                                    <th>CPT</th>
-                                    <th>Modifier</th>
-                                    <th>Bill Fee</th>
-                                    <th>Amount</th>
-                                    <th>Date</th>
-                                </tr>
-                                <% _.each(claimPaymentInformation.servicePaymentInformation, function(servicePaymentInformation) { %>
-                                    <tr>
-                                        <td>
-                                            <%= servicePaymentInformation.qualifierData.cptCode %>
-                                        </td>
-                                        <td>
-                                            <%= servicePaymentInformation.qualifierData.modifier1 %>
-                                        </td>
-                                        <td>
-                                            <%= servicePaymentInformation.billFee %>
-                                        </td>
-                                        <td>
-                                            <%= servicePaymentInformation.paidamount %>
-                                        </td>
-                                        <td>
-                                            <%= servicePaymentInformation.serviceDate.serviceDate ? servicePaymentInformation.serviceDate.serviceDate : ''  %>
-                                        </td>
-                                    </tr>
-                                    <% }); %>
-                            </table>
-                        </div>
-
-                        <% }); %>
-                </div>
-
+                    </div>
                 <% }); %>
-        </div>
+            </div>
         <% }); %>
+    <% }); %>
 </div>
