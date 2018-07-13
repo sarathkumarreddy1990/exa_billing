@@ -143,7 +143,8 @@ define('grid', [
                     patient_dob: _storeEle.birth_date,
                     accession_no: _storeEle.accession_no,
                     billed_status:_storeEle.billed_status,
-                    claim_id:_storeEle.claim_id
+                    claim_id:_storeEle.claim_id,
+                    invoice_no:_storeEle.invoice_no
                 };
                 if (_storeEle.billed_status == 'billed') {
                     isbilled_status = true;
@@ -423,7 +424,26 @@ define('grid', [
                 self.claimInquiryView.patientInquiryForm(studyIds,selectedStudies[0].patient_id);
                 });
 
-                var liPatientClaimLog = commonjs.getRightClickMenu('anc_patient_claim_log','setup.rightClickMenu.patientClaimLog',false,'Patients Claim Log',false);
+
+                var liInvoiceInquiry = commonjs.getRightClickMenu('anc_invoice_inquiry','setup.rightClickMenu.directBillingInquiry',false,'Direct Billing Inquiry',false);
+                if(studyArray.length == 1)
+                    $divObj.append(liInvoiceInquiry);
+                self.checkRights('anc_invoice_inquiry');
+                $('#anc_invoice_inquiry').click(function () {
+                    if ($('#anc_invoice_inquiry').hasClass('disabled')) {
+                        return false;
+                    }
+                    commonjs.showDialog({
+                        'header': 'Invoice',
+                        'width': '95%',
+                        'height': '80%',
+                        'needShrink': true
+                    });   
+                self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
+                self.claimInquiryView.invoiceInquiry(studyIds,selectedStudies[0].patient_id); //selectedStudies[0].invoice_no
+                });
+
+                var liPatientClaimLog = commonjs.getRightClickMenu('anc_patient_claim_log','setup.rightClickMenu.patientClaimLog',false,'Patient Claim Log',false);
                 if(studyArray.length == 1)
                     $divObj.append(liPatientClaimLog);
                 self.checkRights('anc_patient_claim_log');
@@ -432,12 +452,12 @@ define('grid', [
                         return false;
                     }
 
-                     commonjs.showDialog({
-                    'header': 'Patients Claim Log',
-                    'width': '95%',
-                    'height': '80%',
-                    'needShrink': true
-                });
+                    commonjs.showDialog({
+                        'header': 'Patient Claim Log',
+                        'width': '95%',
+                        'height': '80%',
+                        'needShrink': true
+                    });
                 self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
                 self.claimInquiryView.patientInquiryLog(studyIds,selectedStudies[0].patient_id);
                 });
@@ -675,12 +695,12 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 (options.isClaimGrid ? '<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />' : ''),
-                '', '', '', '', '','','','','','','','','','','','AssignedTo'
+                '', '', '', '', '','','','','','','','','','','','','AssignedTo'
 
             ]);
 
             i18nName = i18nName.concat([
-                '', '', '', '', '', '','','','','','','','','','','','billing.claims.assignedTo'
+                '', '', '', '', '', '','','','','','','','','','','','','billing.claims.assignedTo'
             ]);
 
             colModel = colModel.concat([
@@ -862,6 +882,15 @@ define('grid', [
                 },
                 {
                     name: 'claim_status_code',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true
+                },
+                {
+                    name: 'invoice_no',
                     width: 20,
                     sortable: false,
                     resizable: false,

@@ -27,7 +27,6 @@ define([
                 // this.pager = new ModelIcdPager();
                 // this.model = new ModelIcdCode();
                 // this.icdList = new IcdList();
-                // commonjs.activatelink('Scheduling & Codes');
             },
 
             render: function () {
