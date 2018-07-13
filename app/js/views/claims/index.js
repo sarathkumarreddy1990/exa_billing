@@ -2921,18 +2921,22 @@ define(['jquery',
                     $(e.target).closest('li').addClass('active');
 
                     var _height = 0;
-                    for (var i = 1; i < currId; i++){
-                        _height += parseInt($('#tab_' + i).height());
+                    for (var i = 1; i < currId; i++) {
+                        _height += parseInt($('#tab_' + i).height() + 15);
                     }
+                    if (currId == 4)
+                        _height -= parseInt($('#divTeritaryInsurances').height() + 15);
 
                     $root.animate({
                         scrollTop: _height
                     }, 100);
-                    e.preventDefault;
+
+                    if ($('#tab_' + currId).find('input[type=text],textarea, select').filter(':input:enabled:visible:first'))
+                        $('#tab_' + currId).find('input[type=text],textarea, select').filter(':input:enabled:visible:first').focus();
+                    e.preventDefault ? event.preventDefault() : event.returnValue = false;
                 });
 
                 $('#modal_div_container').scrollTop(0); 
-
             },
 
             applySearch: _.debounce(function (e) {

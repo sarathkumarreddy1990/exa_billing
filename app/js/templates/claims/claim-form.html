@@ -773,17 +773,17 @@
             </div>
         </div>
         <div class="row" id="divTeritaryInsurances" style="margin-top:10px;">
+            <div class="col-lg-6">                
             <div class="col-lg-12">
-                <div class="form-group row">
-                    <legend>
-                        <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
-                            <label i18n="billing.claims.teritaryInsurance"></label>
-                            <input type="button" id="btnResetTerInsurance" value="CLEAR" class="btn">
-                        </h5>
-                    </legend>
+                    <div class="form-group row">
+                        <legend>
+                            <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
+                                <label i18n="billing.claims.teritaryInsurance"></label>
+                                <input type="button" id="btnResetTerInsurance" value="CLEAR" class="btn">
+                            </h5>
+                        </legend>
+                    </div>
                 </div>
-            </div>
-            <div class="col-lg-6">
                 <div class="form-group row">
                     <label for="ddlExistTerIns" class="col-sm-3 col-form-label" i18n="billing.claims.existingInsurances"></label>
                     <div class="col-sm-4">
@@ -942,137 +942,135 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
-    <section id="tab_4" style="margin-top: 15px;">
-        <div class="col-lg-12">
-            <div class="form-group row">
-                <legend>
-                    <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
-                        <label i18n="billing.claims.additionalInfo"></label>
-                    </h5>
-                </legend>
-            </div>
-        </div>
-        <div class="col-lg-6">
-            <div class="form-group row">
-                <label class="col-sm-3 col-form-label "></label>
-                <div class="col-sm-5">
-                    <label class="col-form-label" i18n="billing.claims.patientConditionRelatedTo"></label>
-                </div>
-            </div>
-            <div class="form-group row">
-                <label class="col-sm-3 col-form-label "></label>
-                <div class="col-sm-3">
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="checkbox" id="chkEmployment" name="employment">
-                        <label class="form-check-label" for="chkEmployment" i18n="billing.claims.employment"></label>
+            <div class="col-lg-6" id="tab_4">
+                    <div class="col-lg-12">
+                        <div class="form-group row">
+                            <legend>
+                                <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
+                                    <label i18n="billing.claims.additionalInfo"></label>
+                                </h5>
+                            </legend>
+                        </div>
+                    </div>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label "></label>
+                    <div class="col-sm-5">
+                        <label class="col-form-label" i18n="billing.claims.patientConditionRelatedTo"></label>
                     </div>
                 </div>
-                <div class="col-sm-3">
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="checkbox" id="chkAutoAccident" name="autoAccident">
-                        <label class="form-check-label" for="chkAutoAccident" i18n="billing.claims.autoAccident"></label>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label "></label>
+                    <div class="col-sm-3">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkEmployment" name="employment">
+                            <label class="form-check-label" for="chkEmployment" i18n="billing.claims.employment"></label>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkAutoAccident" name="autoAccident">
+                            <label class="form-check-label" for="chkAutoAccident" i18n="billing.claims.autoAccident"></label>
+                        </div>
+                    </div>
+                    <div class="col-sm-3" style="padding-left: 3px;">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkOtherAccident" name="otherAccident">
+                            <label class="form-check-label" for="chkOtherAccident" i18n="billing.claims.otherAccident"></label>
+                        </div>
                     </div>
                 </div>
-                <div class="col-sm-3" style="padding-left: 3px;">
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="checkbox" id="chkOtherAccident" name="otherAccident">
-                        <label class="form-check-label" for="chkOtherAccident" i18n="billing.claims.otherAccident"></label>
+                <div class="form-group row" style="padding-left: 3px;">
+                    <label class="col-sm-3 col-form-label "></label>
+                    <div class="col-sm-5">
+                        <label class="col-form-label" i18n="billing.claims.illness"></label>
                     </div>
                 </div>
-            </div>
-            <div class="form-group row" style="padding-left: 3px;">
-                <label class="col-sm-3 col-form-label "></label>
-                <div class="col-sm-5">
-                    <label class="col-form-label" i18n="billing.claims.illness"></label>
-                </div>
-            </div>
-            <div class="form-group row">
-                <label for="txtDate" class="col-sm-3 col-form-label" i18n="billing.claims.date"></label>
-                <div class="col-sm-3 input-group" id="divInjuryDate">
-                    <input type="text" id="txtDate" class="form-control form-control-date">
-                    <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
-                </div>
-            </div>
-            <div class="form-group row">
-                <label for="txtOtherDate" class="col-sm-3 col-form-label" i18n="billing.claims.otherDate"></label>
-                <div class="col-sm-3 input-group" id="divOtherDate">
-                    <input type="text" id="txtOtherDate" class="form-control form-control-date">
-                    <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
-                </div>
-            </div>
-            <div class="form-group row" style="margin-top:10px;">
-                <label class="col-sm-3 col-form-label "></label>
-                <div class="col-sm-5">
-                    <label class="col-form-label" i18n="billing.claims.datesPatientUnableToWorkCurrentOccupation"></label>
-                </div>
-            </div>
-            <div class="form-group row">
-                <div class="col-sm-3">
-                    <label for="txtWCF" class="col-form-label" i18n="billing.claims.fromDate"></label>
-                </div>
-                <div class="col-sm-3 input-group" id="divWCF">
-                    <input type="text" id="txtWCF" class="form-control form-control-date">
-                    <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
-                </div>
-                <div class="col-sm-2">
-                    <label for="txtWCT" class="col-form-label" i18n="billing.claims.toDate"></label>
-                </div>
-                <div class="col-sm-3 input-group" id="divWCT">
-                    <input type="text" id="txtWCT" class="form-control form-control-date">
-                    <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
-                </div>
-            </div>
-            <div class="form-group row" style="margin-top:10px;">
-                <label class="col-sm-3 col-form-label "></label>
-                <div class="col-sm-5">
-                    <label class="col-form-label" i18n="billing.claims.hosipitalizationPatientRelatedToCurrentServices"></label>
-                </div>
-            </div>
-            <div class="form-group row">
-                <label for="txtHCF" class="col-sm-3 col-form-label" i18n="billing.claims.fromDate"></label>
-                <div class="col-sm-3 input-group" id="divHCF">
-                    <input type="text" id="txtHCF" class="form-control form-control-date">
-                    <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
-                </div>
-                <label for="txtHCT" class="col-sm-2 col-form-label" i18n="billing.claims.toDate"></label>
-                <div class="col-sm-3 input-group" id="divHCT">
-                    <input type="text" id="txtHCT" class="form-control form-control-date">
-                    <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
-                </div>
-            </div>
-            <div class="form-group row">
-                <label for="txtHCT" class="col-sm-3 col-form-label" i18n="billing.claims.claimNotes"></label>
-                <div class="col-sm-5">
-                    <textarea id="txtClaimNotes" name="claimNotes" class="form-control form-control-lg"></textarea>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="checkbox" id="chkOutSideLab" name="outSideLab">
-                        <label class="form-check-label" for="chkOutSideLab" i18n="billing.claims.outsideLab"></label>
+                <div class="form-group row">
+                    <label for="txtDate" class="col-sm-3 col-form-label" i18n="billing.claims.date"></label>
+                    <div class="col-sm-3 input-group" id="divInjuryDate">
+                        <input type="text" id="txtDate" class="form-control form-control-date">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
                     </div>
                 </div>
-            </div>
-            <div class="form-group row">
-                <label for="txtOriginalRef" class="col-sm-3 col-form-label" i18n="billing.claims.originalRef"></label>
-                <div class="col-sm-5">
-                    <input type="text" class="form-control" id="txtOriginalRef" placeholder="OutsideRef">
+                <div class="form-group row">
+                    <label for="txtOtherDate" class="col-sm-3 col-form-label" i18n="billing.claims.otherDate"></label>
+                    <div class="col-sm-3 input-group" id="divOtherDate">
+                        <input type="text" id="txtOtherDate" class="form-control form-control-date">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
+                    </div>
                 </div>
-            </div>
-            <div class="form-group row">
-                <label for="txtAuthorization" class="col-sm-3 col-form-label" i18n="billing.claims.authNo"></label>
-                <div class="col-sm-5">
-                    <input type="text" class="form-control" id="txtAuthorization" placeholder="Authorization No">
+                <div class="form-group row" style="margin-top:10px;">
+                    <label class="col-sm-3 col-form-label "></label>
+                    <div class="col-sm-5">
+                        <label class="col-form-label" i18n="billing.claims.datesPatientUnableToWorkCurrentOccupation"></label>
+                    </div>
                 </div>
-            </div>
-            <div class="form-group row">
-                <label for="ddlFrequencyCode" class="col-sm-3 col-form-label" i18n="billing.claims.frequencyCode"></label>
-                <div class="col-sm-5">
-                    <select class="form-control select-box" id="ddlFrequencyCode" style="height:32px;">
-                        <option value="" i18n="shared.buttons.select">Select</option>
-                        <option value="original" i18n="billing.claims.original"></option>
-                        <option value="corrected" i18n="billing.claims.corrected"></option>
-                        <option value="void" i18n="billing.claims.void"></option>
-                    </select>
+                <div class="form-group row">
+                    <div class="col-sm-3">
+                        <label for="txtWCF" class="col-form-label" i18n="billing.claims.fromDate"></label>
+                    </div>
+                    <div class="col-sm-3 input-group" id="divWCF">
+                        <input type="text" id="txtWCF" class="form-control form-control-date">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
+                    </div>
+                    <div class="col-sm-2">
+                        <label for="txtWCT" class="col-form-label" i18n="billing.claims.toDate"></label>
+                    </div>
+                    <div class="col-sm-3 input-group" id="divWCT">
+                        <input type="text" id="txtWCT" class="form-control form-control-date">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
+                    </div>
+                </div>
+                <div class="form-group row" style="margin-top:10px;">
+                    <label class="col-sm-3 col-form-label "></label>
+                    <div class="col-sm-5">
+                        <label class="col-form-label" i18n="billing.claims.hosipitalizationPatientRelatedToCurrentServices"></label>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtHCF" class="col-sm-3 col-form-label" i18n="billing.claims.fromDate"></label>
+                    <div class="col-sm-3 input-group" id="divHCF">
+                        <input type="text" id="txtHCF" class="form-control form-control-date">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
+                    </div>
+                    <label for="txtHCT" class="col-sm-2 col-form-label" i18n="billing.claims.toDate"></label>
+                    <div class="col-sm-3 input-group" id="divHCT">
+                        <input type="text" id="txtHCT" class="form-control form-control-date">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtHCT" class="col-sm-3 col-form-label" i18n="billing.claims.claimNotes"></label>
+                    <div class="col-sm-5">
+                        <textarea id="txtClaimNotes" name="claimNotes" class="form-control form-control-lg"></textarea>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkOutSideLab" name="outSideLab">
+                            <label class="form-check-label" for="chkOutSideLab" i18n="billing.claims.outsideLab"></label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtOriginalRef" class="col-sm-3 col-form-label" i18n="billing.claims.originalRef"></label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" id="txtOriginalRef" placeholder="OutsideRef">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtAuthorization" class="col-sm-3 col-form-label" i18n="billing.claims.authNo"></label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" id="txtAuthorization" placeholder="Authorization No">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlFrequencyCode" class="col-sm-3 col-form-label" i18n="billing.claims.frequencyCode"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlFrequencyCode" style="height:32px;">
+                            <option value="" i18n="shared.buttons.select">Select</option>
+                            <option value="original" i18n="billing.claims.original"></option>
+                            <option value="corrected" i18n="billing.claims.corrected"></option>
+                            <option value="void" i18n="billing.claims.void"></option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
