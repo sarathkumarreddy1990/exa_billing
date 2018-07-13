@@ -2143,7 +2143,8 @@ define(['jquery',
                 if (result) {
                     switch (coverageLevel) {
                         case 'primary':
-                            self.priInsID = result.insurance_provider_id
+                            self.primaryPatientInsuranceId = result.id;
+                            self.priInsID = result.insurance_provider_id;
                             self.priInsCode = result.insurance_code;
                             self.priInsName = result.insurance_name;
                             flag = 'Pri';
@@ -2158,7 +2159,8 @@ define(['jquery',
                             break;
 
                         case 'secondary':
-                            self.secInsID = result.insurance_provider_id
+                            self.secondaryPatientInsuranceId = result.id;
+                            self.secInsID = result.insurance_provider_id;
                             self.secInsCode = result.insurance_code;
                             self.SecInsName = result.insurance_name;
                             flag = 'Sec';
@@ -2173,7 +2175,8 @@ define(['jquery',
                             break;
 
                         case 'tertiary':
-                            self.terInsID = result.insurance_provider_id
+                            self.tertiaryPatientInsuranceId = result.id;
+                            self.terInsID = result.insurance_provider_id;
                             self.terInsCode = result.insurance_code;
                             self.terInsName = result.insurance_name;
                             flag = 'Ter';
@@ -2207,11 +2210,17 @@ define(['jquery',
                     $('#txt' + flag + 'MiddleName').val(result.subscriber_middlename);
                     $('#txt' + flag + 'SubLastName').val(result.subscriber_lastname);
                     $('#txt' + flag + 'SubSuffix').val(result.subscriber_name_suffix);
-                    $('#ddl' + flag + 'Gender').val(result.subscriber_gender);
+                    if(app.gender.indexOf(result.subscriber_gender) > 0 )
+                    {
+                        $('#ddl' + flag + 'Gender').val(result.subscriber_gender);
+                    }
                     $('#txt' + flag + 'SubPriAddr').val(result.subscriber_address_line1);
                     $('#txt' + flag + 'SubSecAddr').val(result.subscriber_address_line2);
                     $('#txt' + flag + 'City').val(result.subscriber_city);
-                    $('#ddl' + flag + 'State').val(result.subscriber_state);
+                    if(app.states.indexOf(result.subscriber_state) > 0 )
+                    {
+                        $('#ddl' + flag + 'State').val(result.subscriber_state);
+                    }
                     $('#txt' + flag + 'ZipCode').val(result.subscriber_zipcode);
                     if(result.coverage_level == "secondary" && result.medicare_insurance_type_code != null) {
                         $('#chkSecMedicarePayer').prop('checked',true);
@@ -2240,6 +2249,7 @@ define(['jquery',
                 else
                     billingMethod = 'direct_billing';
                 var primary_insurance_details = {
+                    claim_patient_insurance_id: self.primaryPatientInsuranceId || null,
                     claim_insurance_id: self.priClaimInsID ? parseInt(self.priClaimInsID) : null,
                     patient_id: self.cur_patient_id || null,
                     insurance_provider_id: self.priInsID ? parseInt(self.priInsID) : null,
@@ -2265,6 +2275,7 @@ define(['jquery',
                     is_deleted: self.priClaimInsID && self.priInsID == '' ? true : false
                 },
                 secondary_insurance_details = {
+                    claim_patient_insurance_id: self.secondaryPatientInsuranceId || null,
                     claim_insurance_id: self.secClaimInsID ? parseInt(self.secClaimInsID) : null,
                     patient_id: self.cur_patient_id || null,
                     insurance_provider_id: self.secInsID ? parseInt(self.secInsID) : null,
@@ -2290,6 +2301,7 @@ define(['jquery',
                     is_deleted: self.secClaimInsID && self.secInsID == '' ? true : false
                 },
                 teritiary_insurance_details = {
+                    claim_patient_insurance_id: self.tertiaryPatientInsuranceId || null,
                     claim_insurance_id: self.terClaimInsID ? parseInt(self.terClaimInsID) : null,
                     patient_id: self.cur_patient_id || null,
                     insurance_provider_id: self.terInsID ? parseInt(self.terInsID) : null,
