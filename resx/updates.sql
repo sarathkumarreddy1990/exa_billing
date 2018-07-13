@@ -1567,8 +1567,8 @@ BEGIN
 			, subscriber_state
 			, assign_benefits_to_patient
 			, subscriber_dob
-			, now() AS valid_from_date
-			, now() + interval '1 month' AS valid_to_date
+			, valid_from_date
+			, valid_to_date
 			, medicare_insurance_type_code
             , claim_patient_insurance_id
 		FROM
