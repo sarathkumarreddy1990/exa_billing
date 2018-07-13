@@ -15,6 +15,8 @@ define([
     'text!templates/claims/claim-patient.html',
     'text!templates/claims/age-summary.html',
     'text!templates/claims/claim-patient-log.html',
+    'text!templates/claims/claim-invoice.html',
+    'text!templates/claims/invoice-age-summary.html',
     'collections/claim-patient-log',
     'shared/permissions'
 ], function (
@@ -33,7 +35,9 @@ define([
     claimPatientList,
     claimPatientInquiryTemplate,
     agingSummaryHTML,
-    claimPatientLogHTML,
+    claimPatientLogHTML,    
+    claimInvoiceHTML,
+    claimInvoiceAgeHTML,
     claimPatientLogList,
     Permission
 ) {
@@ -46,7 +50,9 @@ define([
             claimPatientTemplate: _.template(claimPatientInquiryTemplate),
             paymentTemplate: _.template(paymentDetails),
             agingSummaryTemplate: _.template(agingSummaryHTML),
-            claimPatientLogTemplate: _.template(claimPatientLogHTML),
+            claimPatientLogTemplate: _.template(claimPatientLogHTML), 
+            claimInvoiceTemplate: _.template(claimInvoiceHTML),
+            invoiceAgingSummaryTemplate: _.template(claimInvoiceAgeHTML),
             payCmtGrid: '',
             claim_id: null,     
             events: {
@@ -276,8 +282,8 @@ define([
                     gridelementid: '#tblPatientClaimsGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['', 'Claim Number', 'Claim Date', 'Billing Fee', 'Total Insurance Payments', 'Total Patient Payments', 'Balance', 'Claim Status', 'Current responsibility'],
-                    i18nNames: ['', 'billing.fileInsurance.claimNo', 'billing.claims.claimDate', 'billing.COB.billingFee', 'billing.claims.totalInsurancePayments', 'billing.claims.totalPatientPayments', 'billing.claims.Balance', 'billing.claims.claimStatus', 'billing.claims.currentResponsibility'],
+                    colNames: ['', 'Claim Number', 'Claim Date', 'Billing Fee', 'Total Adjustment','Total Insurance Payments', 'Total Patient Payments', 'Balance', 'Claim Status', 'Current responsibility'],
+                    i18nNames: ['', 'billing.fileInsurance.claimNo', 'billing.claims.claimDate', 'billing.COB.billingFee','billing.fileInsurance.totalAdjustment', 'billing.claims.totalInsurancePayments', 'billing.claims.totalPatientPayments', 'billing.claims.Balance', 'billing.claims.claimStatus', 'billing.claims.currentResponsibility'],
                     colModel: [
                         { name: '', index: 'claim_id', key: true, hidden: true, search: false },
                         {
@@ -288,6 +294,9 @@ define([
                         },
                         {
                             name: 'billing_fee', search: false, width: 100
+                        },
+                        {
+                            name: 'ajdustments_applied_total', search: false, width: 100
                         },
                         {
                             name: 'total_insurance_payment', search: false, width: 150
@@ -335,6 +344,79 @@ define([
                     $("#tblPatientClaimsGrid").setGridHeight($(window).height()-600);
                 }, 200);
                 $('#divAgeSummary').html(self.agingSummaryTemplate());
+            },
+
+            showInvoiceGrid: function (claimID, patientId) {
+                var self = this;
+                $('#divInvoiceGrid').show();
+                this.invoiceTable = new customGrid();
+                this.invoiceTable.render({
+                    gridelementid: '#tblInvoiceGrid',
+                    custompager: new Pager(),
+                    emptyMessage: 'No Record found',
+                    colNames: ['', 'Invoice No', 'Date', 'Total Billing Fee', 'Total Payments', 'Total Adjustment',  'Balance',''],
+                    i18nNames: ['', 'billing.fileInsurance.invoiceNo', 'billing.claims.Date', 'billing.COB.billingFee','billing.claims.totalPayments', 'billing.fileInsurance.totalAdjustment',  'billing.claims.Balance',''],
+                    colModel: [
+                        { name: '', index: 'id', key: true, hidden: true, search: false },                      
+                        {
+                            name: 'invoice_no', search: true, width: 100
+                        },
+                        {
+                            name: 'claim_dt', search: true, formatter: self.dateFormatter, width: 150
+                        },
+                        {
+                            name: 'billing_fee', search: true, width: 150
+                        },
+                        {
+                            name: 'ajdustments_applied_total', search: true, width: 150
+                        },                       
+                        {
+                            name: 'total_patient_payment', search: true, width: 150
+                        },
+                        {
+                            name: 'claim_balance', search: true, width: 150
+                        },
+                        {
+                            name: 'edit', width: 50, sortable: false, search: false,
+                            formatter: function (cellvalue, options, rowObject) {
+                                return "<a href='javascript: void(0)' id =" + rowObject.id + ">REPRINT</a>";
+                            },
+                            cellattr: function () {
+                                return "style='text-align: center;text-decoration: underline;'";
+                            },
+                            customAction: function (rowID, e) {
+                            }
+                        }
+
+                    ],
+                    datastore: self.claimPatientList,
+                    container: self.el,
+                    cmTemplate: { sortable: false },
+                    customizeSort: false,
+                    sortname: "claims.id",
+                    sortorder: "desc",
+                    dblClickActionIndex: 1,
+                    disablesearch: false,
+                    disablesort: false,
+                    disablepaging: false,
+                    showcaption: false,
+                    disableadd: true,
+                    disablereload: true,
+                    customargs: {
+                        claimID: claimID,
+                        patientId: patientId,
+                        billProvId: 0
+                    },
+                    pager: '#gridPager_invoiceClaim',
+                    onaftergridbind: self.afterGridBind,
+                });
+
+
+                setTimeout(function () {
+                    $("#tblInvoiceGrid").setGridWidth($(".modal-body").width()-15);
+                    $("#tblInvoiceGrid").setGridHeight($(window).height()-600);
+                }, 200);
+                $('#divIvoiceAgeSummary').html(self.invoiceAgingSummaryTemplate());
             },
 
             showPatientClaimsLogGrid: function (claimID, patientId) {
@@ -869,6 +951,12 @@ define([
                 var self = this;
                 this.$el.html(this.claimPatientLogTemplate());
                 self.showPatientClaimsLogGrid(claimId, patientId);
+            },
+
+            invoiceInquiry: function (claimId, patientId) {
+                var self = this;
+                this.$el.html(this.claimInvoiceTemplate());
+                self.showInvoiceGrid(claimId, patientId);
             },
 
             printPaymentInvoice: function (e) {

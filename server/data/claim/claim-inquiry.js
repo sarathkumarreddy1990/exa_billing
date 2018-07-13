@@ -535,6 +535,7 @@ module.exports = {
                             WHEN 'patient' THEN patients.full_name        END) AS payer_name
                         , claim_dt
                         , claim_status.description as claim_status
+                        , (select adjustments_applied_total from billing.get_claim_payments(claims.id)) AS ajdustments_applied_total
                         , (select payment_patient_total from billing.get_claim_payments(claims.id)) AS total_patient_payment
                         , (select payment_insurance_total from billing.get_claim_payments(claims.id)) AS total_insurance_payment 
                         , (select charges_bill_fee_total from BILLING.get_claim_payments(claims.id)) as billing_fee
