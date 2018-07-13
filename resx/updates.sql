@@ -2603,6 +2603,14 @@ DECLARE
    
 BEGIN 
 	l_bill_fee_recalculation := TRUE;
+    SELECT 
+		claim_status_id INTO l_claim_status_id
+	FROM
+		billing.claims 
+	WHERE
+		id = p_claim_id
+	LIMIT 1;
+    
 	SELECT 
 		    cs.description INTO l_claim_status
 		FROM
