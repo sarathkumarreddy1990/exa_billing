@@ -410,7 +410,12 @@ define(['jquery',
                             self.initializeClaimEditForm();
 
                             /* Bind chargeLineItems events - started*/
+                            if(self.screenCode.indexOf('DCLM') > -1) {
+                                $('span[id^="spDeleteCharge"]').removeClass('removecharge');
+                                $('span[id^="spDeleteCharge"]').css('color','#DCDCDC');
+                            }
                             self.assignLineItemsEvents();
+                            
                             self.assignModifierEvent();
                             app.modifiers_in_order = true;
                             commonjs.enableModifiersOnbind('M'); // Modifier
@@ -951,6 +956,11 @@ define(['jquery',
                                 self.bindProblemsContent(diagnosisCodes, diagnosisCodesOrder);
 
                                 /* Bind chargeLineItems events - started*/
+                                if(self.screenCode.indexOf('DCLM') > -1) {
+                                    $('span[id^="spDeleteCharge"]').removeClass('removecharge');
+                                    $('span[id^="spDeleteCharge"]').css('color','#DCDCDC');
+                                }
+
                                 self.assignLineItemsEvents();
                                 self.assignModifierEvent();
                                 app.modifiers_in_order = true;
@@ -1486,8 +1496,9 @@ define(['jquery',
                         var units = (res.units > 0) ? parseFloat(res.units) : 1.0;
                         var fee = (res.globalfee > 0) ? parseFloat(res.globalfee) : 0.0;
                         if(self.isCptAlreadyExists(res.id,rowIndex)) {
-                            e.preventDefault();
-                            commonjs.showWarning("CPT Already Exists");
+                            if(confirm("Code already exists. Do you want to add")) {
+                                self.setCptValues(rowIndex, res, duration, units, fee, type);    
+                            } 
                         } else {
                             self.setCptValues(rowIndex, res, duration, units, fee, type);
                         }
@@ -2399,15 +2410,17 @@ define(['jquery',
             saveClaimDetails: function () {
                 var self = this, saveButton = $('#btnSaveClaim');
 
-                saveButton.attr('disabled', true);
-                commonjs.showLoading();
                 if (self.validateClaimData()) {
                     self.setClaimDetails();
 
-                    // save function
+                    commonjs.showLoading();
+                    saveButton.attr('disabled', true);
+                    
                     self.model.save({}, {
                         success: function (model, response) {
                             //if (response && response.length > 0) {
+                            commonjs.hideLoading();
+
                             if (response && response.message) {
                                 commonjs.showWarning(response.message);
                             } else {
@@ -2416,12 +2429,10 @@ define(['jquery',
                                 $("#btnStudiesRefresh").click();
                                 commonjs.hideDialog();
                             }
-                            commonjs.hideLoading();
                         },
                         error: function (model, response) {
                             commonjs.handleXhrError(model, response);
                             saveButton.attr('disabled', false);
-                            commonjs.hideLoading();
                         }
                     });
                 }
