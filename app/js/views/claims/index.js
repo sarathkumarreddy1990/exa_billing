@@ -1019,7 +1019,7 @@ define(['jquery',
                 var m = 1;
                 var data = function(id) {
                     var modifiers = app.modifiers.filter(function(item){
-                        return item['modifier' + id] == "true";
+                        return item['modifier' + id] == "true" || item['modifier' + id] == true; 
                     });
                     rowObj["modifiers" + id] = modifiers;
                     m++;
