@@ -1567,8 +1567,8 @@ BEGIN
 			, subscriber_state
 			, assign_benefits_to_patient
 			, subscriber_dob
-			, now() AS valid_from_date
-			, now() + interval '1 month' AS valid_to_date
+			, valid_from_date
+			, valid_to_date
 			, medicare_insurance_type_code
             , claim_patient_insurance_id
 		FROM
@@ -2158,8 +2158,7 @@ $BODY$
   LANGUAGE plpgsql IMMUTABLE;
 -- --------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION billing.get_charge_other_payment_adjustmet(
-    IN i_charge_id bigint,
-    IN i_payment_id bigint)
+    IN i_charge_id bigint)
   RETURNS TABLE(other_payment money, other_adjustment money) AS
 $BODY$
 BEGIN
@@ -2169,8 +2168,7 @@ BEGIN
             COALESCE(sum(amount) FILTER(where amount_type = 'adjustment'),0::money) as other_adjustment
         FROM billing.payment_applications 
         WHERE   
-            charge_id = i_charge_id
-        AND payment_id != i_payment_id;
+            charge_id = i_charge_id;
 END;
 $BODY$
 LANGUAGE plpgsql;
@@ -2603,6 +2601,14 @@ DECLARE
    
 BEGIN 
 	l_bill_fee_recalculation := TRUE;
+    SELECT 
+		claim_status_id INTO l_claim_status_id
+	FROM
+		billing.claims 
+	WHERE
+		id = p_claim_id
+	LIMIT 1;
+    
 	SELECT 
 		    cs.description INTO l_claim_status
 		FROM
