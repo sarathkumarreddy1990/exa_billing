@@ -4070,7 +4070,7 @@ var commonjs = {
             order_id = options.order_id,
             patient_id = options.patient_id;
 
-        var url = 'vieworder#patient/patientReport/all/' + btoa(patient_id) + '/' + btoa(order_id) + '/' + btoa(study_id);
+        var url = '/vieworder#patient/patientReport/all/' + btoa(patient_id) + '/' + btoa(order_id) + '/' + btoa(study_id);
         this.openWindow(url);
     },
 
@@ -5158,3 +5158,12 @@ function removeIframeHeader() {
     $('iframe#site_modal_iframe_container, iframe#ifSettings').contents().find('head').append('<style>header.header{display:none;}nav.sub-top-nav, nav#subSetupMenu {display: none;}</style>');
 }
 
+// $(document).ajaxComplete(function () {
+//     commonjs.hideLoading();
+// });
+
+$(document).ajaxSuccess(function (event, xhr, settings) {
+    if(settings.url.indexOf('billing/setup') > -1 && ['POST', 'PUT', 'DELETE'].indexOf(settings.type) > -1) {
+        layout.setupDataUpdated = true;
+    }
+});
