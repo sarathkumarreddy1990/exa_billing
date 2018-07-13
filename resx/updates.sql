@@ -2158,8 +2158,7 @@ $BODY$
   LANGUAGE plpgsql IMMUTABLE;
 -- --------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION billing.get_charge_other_payment_adjustmet(
-    IN i_charge_id bigint,
-    IN i_payment_id bigint)
+    IN i_charge_id bigint)
   RETURNS TABLE(other_payment money, other_adjustment money) AS
 $BODY$
 BEGIN
@@ -2169,8 +2168,7 @@ BEGIN
             COALESCE(sum(amount) FILTER(where amount_type = 'adjustment'),0::money) as other_adjustment
         FROM billing.payment_applications 
         WHERE   
-            charge_id = i_charge_id
-        AND payment_id != i_payment_id;
+            charge_id = i_charge_id;
 END;
 $BODY$
 LANGUAGE plpgsql;
