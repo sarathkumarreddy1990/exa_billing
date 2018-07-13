@@ -42,6 +42,10 @@ module.exports = {
         return data.getclaimPatient(params); 
     },
 
+    getInvoicePayments: (params) => {
+        return data.getInvoicePayments(params); 
+    },
+
     getclaimPatientLog: (params) => {
         return data.getclaimPatientLog(params); 
     }
