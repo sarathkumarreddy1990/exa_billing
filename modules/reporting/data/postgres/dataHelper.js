@@ -136,7 +136,7 @@ const api = {
                 return true;
             })
             .catch((err) => {
-                logger.logError('EXA Reporting - error while adding auditing record!', err);
+                logger.error('EXA Reporting - error while adding auditing record!', err);
                 return false;
             });
     },
@@ -185,7 +185,7 @@ const api = {
                     }
                     return resolve(providerGroupInfo);
                 })
-                .catch(error => logger.logError('EXA Reporting - Error on selecting provider group info!', error));
+                .catch(error => logger.error('EXA Reporting - Error on selecting provider group info!', error));
         });
     },
 
@@ -218,7 +218,7 @@ const api = {
                     }
                     return resolve(cptInfo);
                 })
-                .catch(error => logger.logError('EXA Reporting - Error on selecting cpt codes info!', error));
+                .catch(error => logger.error('EXA Reporting - Error on selecting cpt codes info!', error));
         });
     },
 
@@ -250,7 +250,7 @@ const api = {
                     }
                     return resolve(insuranceProvidersInfo);
                 })
-                .catch(error => logger.logError('EXA Reporting - Error on selecting insurance providers info!', error));
+                .catch(error => logger.error('EXA Reporting - Error on selecting insurance providers info!', error));
         });
     },
 
@@ -279,7 +279,7 @@ const api = {
                     }
                     return resolve(statusInfo);
                 })
-                .catch(error => logger.logError('EXA Reporting - Error on selecting study statuses info!', error));
+                .catch(error => logger.error('EXA Reporting - Error on selecting study statuses info!', error));
         });
     },
 
@@ -306,7 +306,7 @@ const api = {
                         });
                     }
                     return resolve(flagInfo);
-                }).catch(error => logger.logError('EXA Reporting - Error on selecting study flag info!', error));
+                }).catch(error => logger.error('EXA Reporting - Error on selecting study flag info!', error));
         });
     },
 
@@ -366,7 +366,7 @@ const api = {
                     }
                     return resolve(referringPhysicianInfo);
                 })
-                .catch(error => logger.logError('EXA Reporting - Error on selecting referring physicians info!', error));
+                .catch(error => logger.error('EXA Reporting - Error on selecting referring physicians info!', error));
         });
     },
 
@@ -406,7 +406,7 @@ const api = {
                     }
                     return resolve(patientInfo);
                 })
-                .catch(error => logger.logError('EXA Reporting - Error on selecting patients info!', error));
+                .catch(error => logger.error('EXA Reporting - Error on selecting patients info!', error));
         });
     },
 
@@ -421,8 +421,8 @@ const api = {
     getBillingProviderInfo: (companyId, billingProviderIds) => {
         return new Promise((resolve, reject) => {
             const sql = `
-                SELECT id, code, full_name
-                FROM billing_providers
+                SELECT id, code, name as full_name
+                FROM billing.providers
                 WHERE
                     company_id = $1
                 AND id = any($2)
@@ -446,7 +446,7 @@ const api = {
                     }
                     return resolve(providerInfo);
                 })
-                .catch(error => logger.logError('EXA Reporting - Error on selecting billing providers info!', error));
+                .catch(error => logger.error('EXA Reporting - Error on selecting billing providers info!', error));
         });
     },
 
@@ -486,7 +486,7 @@ const api = {
                         "selCoalesce": selCoalesce
                     });
                 })
-                .catch(error => logger.logError('EXA Reporting - Error on facilities info!', error));
+                .catch(error => logger.error('EXA Reporting - Error on facilities info!', error));
         });
     },
 
@@ -526,7 +526,7 @@ const api = {
                     }
                     return resolve(providerInfo);
                 })
-                .catch(error => logger.logError('EXA Reporting - Error on selecting providers info!', error));
+                .catch(error => logger.error('EXA Reporting - Error on selecting providers info!', error));
         });
     },
 
@@ -558,7 +558,7 @@ const api = {
                     }
                     return resolve(adjustmentCodeInfo);
                 })
-                .catch(error => logger.logError('EXA Reporting - Error on selecting adjustment_code info!', error));
+                .catch(error => logger.error('EXA Reporting - Error on selecting adjustment_code info!', error));
         });
     },
 
@@ -593,7 +593,7 @@ const api = {
                     }
                     return resolve(reportInfo);
                 })
-                .catch(error => logger.logError(`EXA Reporting - Error on selecting ${args.tableName} info!`, error));
+                .catch(error => logger.error(`EXA Reporting - Error on selecting ${args.tableName} info!`, error));
         });
     },
 
