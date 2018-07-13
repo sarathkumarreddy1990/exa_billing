@@ -58,6 +58,7 @@ module.exports = {
                                 SELECT json_agg(row_to_json(claim_default_details)) "claim_details" FROM
                                     (SELECT
                                         facility_id,
+
                                         order_info->'currentDate' AS current_illness_date,
                                         order_info->'similarIll' AS same_illness_first_date,
                                         order_info->'wTo' AS unable_to_work_to_date,
@@ -72,7 +73,6 @@ module.exports = {
                                         COALESCE(NULLIF(order_info->'oa',''), 'false')::boolean AS is_other_accident,
                                         COALESCE(NULLIF(order_info->'aa',''), 'false')::boolean AS is_auto_accident,
                                         COALESCE(NULLIF(order_info->'emp',''), 'false')::boolean AS is_employed,
-                                        order_info -> 'rendering_provider_id' AS rendering_provider_contact_id,
                                         order_info -> 'claim_status' AS claim_status,
                                         order_info->'billing_code' AS billing_code,
                                         order_info->'billing_class' AS billing_class,
@@ -86,7 +86,13 @@ module.exports = {
                                                 studies.order_id IN (SELECT order_id FROM public.studies s WHERE s.id = ${firstStudyId})
                                             ORDER BY studies.order_id DESC LIMIT 1 ) AS
                                         referring_pro_study_desc,
-                                        providers.full_name AS reading_phy_full_name,
+                                        studies_details.rendering_provider_contact_id,
+                                        studies_details.reading_phy_full_name,
+                                        fac_prov_cont.id as fac_rendering_provider_contact_id,
+                                        fac_prov.full_name as fac_reading_phy_full_name,
+                                        facility_info->'service_facility_id' as service_facility_id,
+                                        facility_info->'service_facility_name' as service_facility_name,
+                                        facility_info->'billing_provider_id' as fac_billing_provider_id,
                                         order_info -> 'ordering_facility_id' AS ordering_facility_id,
                                         order_info -> 'ordering_facility' AS ordering_facility_name,
                                         order_info -> 'pos' AS pos_type,
@@ -105,10 +111,21 @@ module.exports = {
                                         order_info -> 'billing_provider' AS billing_provider_id,
                                         order_info -> 'pos_type_code' AS pos_type_code
                                     FROM
-                                        orders
-                                    LEFT JOIN provider_contacts ON COALESCE (NULLIF (order_info -> 'rendering_provider_id',''),'0') = provider_contacts.id::text
-                                    LEFT JOIN providers ON providers.id = provider_contacts.provider_id
+                                        orders                                      
+                                        inner JOIN facilities ON  facilities.id= orders.facility_id
+                                        LEFT JOIN provider_contacts fac_prov_cont ON   facility_info->'rendering_provider_id'::text = fac_prov_cont.id::text
+                                        LEFT JOIN providers fac_prov ON fac_prov.id = fac_prov_cont.provider_id
+                                        JOIN LATERAL ( 
+                                            SELECT 
+                                                providers.full_name AS reading_phy_full_name,
+                                                reading_physician_id as rendering_provider_contact_id
+                                                FROM 
+                                                public.studies s LEFT JOIN provider_contacts ON   s.reading_physician_id = provider_contacts.id
+                                                LEFT JOIN providers ON providers.id = provider_contacts.provider_id
+                                                WHERE s.id = ${firstStudyId}
+                                        ) as studies_details ON TRUE   
                                     WHERE orders.id IN (SELECT order_id FROM public.studies s WHERE s.id = ${firstStudyId})
+
                                     ) AS claim_default_details
                             ) claims_info `;
 
@@ -182,6 +199,7 @@ module.exports = {
                             , ip.insurance_info->'ZipCode' AS ins_zip_code
                             , ip.insurance_info->'Address1' AS ins_pri_address
                             , ip.insurance_info->'partner_id' AS ins_partner_id
+                            , ip.insurance_info->'PhoneNo' AS ins_phone_no
                             , pi.coverage_level
                             , pi.subscriber_relationship_id   
                             , pi.valid_from_date
@@ -373,6 +391,7 @@ module.exports = {
                     , ipp.insurance_info->'Address1' AS p_address1
                     , ipp.insurance_info->'PayerID' AS p_payer_id
                     , ipp.insurance_info->'City' AS p_city
+                    , ipp.insurance_info->'PhoneNo' AS p_phone_no
                     , ipp.insurance_info->'State' AS p_state
                     , ipp.insurance_info->'ZipCode' AS p_zip
                     , ipp.insurance_name AS p_insurance_name
@@ -400,7 +419,8 @@ module.exports = {
                     , cpi.medicare_insurance_type_code AS p_medicare_insurance_type_code
                     , ips.insurance_info->'Address1' AS s_address1
                     , ips.insurance_info->'PayerID' AS s_payer_id
-                    , ips.insurance_info->'City' AS s_city
+                    , ips.insurance_info->'City' AS s_city                    
+                    , ips.insurance_info->'PhoneNo' AS s_phone_no
                     , ips.insurance_info->'State' AS s_state
                     , ips.insurance_info->'ZipCode' AS s_zip
                     , ips.insurance_name AS s_insurance_name
@@ -428,7 +448,8 @@ module.exports = {
                     , csi.medicare_insurance_type_code AS s_medicare_insurance_type_code
                     , ipt.insurance_info->'Address1' AS t_address1
                     , ipt.insurance_info->'PayerID' AS t_payer_id
-                    , ipt.insurance_info->'City' AS t_city
+                    , ipt.insurance_info->'City' AS t_city             
+                    , ipt.insurance_info->'PhoneNo' AS t_phone_no
                     , ipt.insurance_info->'State' AS t_state
                     , ipt.insurance_info->'ZipCode' AS t_zip
                     , ipt.insurance_name AS t_insurance_name

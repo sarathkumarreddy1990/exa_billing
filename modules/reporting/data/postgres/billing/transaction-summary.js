@@ -12,13 +12,15 @@ WITH transaction_summary_by_month as (
     SELECT
         Date_trunc('month', bp.accounting_dt) AS txn_month,
         sum(CASE when amount_type = 'payment' then bpa.amount else 0::money end ) as payment_amount,
-        sum(CASE when amount_type = 'adjustment' then bpa.amount else 0::money end ) as adjustment_amount
+        sum(CASE when amount_type = 'adjustment' and accounting_entry_type != 'refund_debit' then bpa.amount else 0::money end ) as adjustment_amount,
+        sum(CASE when amount_type = 'adjustment' and accounting_entry_type = 'refund_debit' then bpa.amount else 0::money end ) as refund_amount
     FROM billing.payments bp
     INNER JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
     INNER JOIN billing.charges bc on bc.id = bpa.charge_id
     INNER JOIN billing.claims bcl on bcl.id = bc.claim_id
     INNER JOIN facilities f on f.id = bcl.facility_id
     <% if (billingProID) { %> INNER JOIN billing.providers bbp ON bbp.id = bcl.billing_provider_id <% } %>
+    LEFT JOIN billing.adjustment_codes bac ON bac.id = bpa.adjustment_code_id
     WHERE 1 = 1    
     AND <%= accounting_dt %>
     <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
@@ -38,7 +40,8 @@ WITH transaction_summary_by_month as (
         coalesce(cs.charge,0::money)  AS "Charge",
         SUM(coalesce(ts.payment_amount,0::money)) AS "Payments",
         SUM(coalesce(adjustment_amount,0::money)) AS "Adjustments",
-        (coalesce(cs.charge, 0::money) - SUM ( coalesce(ts.payment_amount,0::money) +  coalesce(ts.adjustment_amount,0::money))) AS "Net Activity"
+        SUM(coalesce(refund_amount,0::money)) AS "Refund",
+        (coalesce(cs.charge, 0::money) - SUM ( coalesce(ts.payment_amount,0::money) +  coalesce(ts.adjustment_amount,0::money) + coalesce(ts.refund_amount,0::money))) AS "Net Activity"
     
     FROM transaction_summary_by_month ts
     FULL  JOIN charge_summary cs ON ts.txn_month = cs.txn_month
@@ -56,7 +59,8 @@ WITH transaction_summary_by_day as (
     SELECT
         Date_trunc('day', bp.accounting_dt) AS txn_month,
         sum(CASE when amount_type = 'payment' then bpa.amount else 0::money end ) as payment_amount,
-        sum(CASE when amount_type = 'adjustment' then bpa.amount else 0::money end ) as adjustment_amount
+        sum(CASE when amount_type = 'adjustment' and accounting_entry_type != 'refund_debit' then bpa.amount else 0::money end ) as adjustment_amount,
+        sum(CASE when amount_type = 'adjustment' and accounting_entry_type = 'refund_debit' then bpa.amount else 0::money end ) as refund_amount
     FROM billing.payments bp
     INNER JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
     INNER JOIN billing.charges bc on bc.id = bpa.charge_id
@@ -82,7 +86,8 @@ WITH transaction_summary_by_day as (
         coalesce(cs.charge,0::money)  AS "Charge",
         SUM(coalesce(ts.payment_amount,0::money)) AS "Payments",
         SUM(coalesce(adjustment_amount,0::money)) AS "Adjustments",
-        (coalesce(cs.charge, 0::money) - SUM ( coalesce(ts.payment_amount,0::money) +  coalesce(ts.adjustment_amount,0::money))) AS "Net Activity"
+        SUM(coalesce(refund_amount,0::money)) AS "Refund",
+        (coalesce(cs.charge, 0::money) - SUM ( coalesce(ts.payment_amount,0::money) +  coalesce(ts.adjustment_amount,0::money) + coalesce(ts.refund_amount,0::money))) AS "Net Activity"
     
     FROM transaction_summary_by_day ts
     FULL  JOIN charge_summary cs ON ts.txn_month = cs.txn_month

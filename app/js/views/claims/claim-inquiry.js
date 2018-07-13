@@ -426,20 +426,25 @@ define([
 
             showClaimCommentsGrid: function () {
                 var self = this;
-                var commentType = ["payment", "adjustment", "charge"]
+                var commentType = ["payment", "adjustment", "charge", 'refund'];
                 var payCmtGrid;
                 payCmtGrid = new customGrid();
                 payCmtGrid.render({
                     gridelementid: '#tblCIClaimComments',
                     custompager: self.pager,
                     emptyMessage: 'No Records Found',
-                    colNames: ['','', 'date', '', 'code', 'payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', ''],
+                    colNames: ['','', 'date', '', 'code', 'payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', '',''],
                     colModel: [
                         { name: 'id', hidden: true},
                         { name: 'row_id', hidden: true },
                         { name: 'commented_dt', width: 40, search: false, sortable: false, formatter: self.commentDateFormatter },
                         { name: 'code', hidden: true },
-                        { name: 'type', width: 40, search: false, sortable: false },
+                        { name: 'type', width: 40, search: false, sortable: false,
+                            cellattr: function (rowId, tv, rowdata) {
+                                if(rowdata && rowdata.code == 'manual')
+                                    return ' style="display:none;"';
+                            } 
+                        },
                         {
                             name: 'payment_id', width: 30, search: false, sortable: false,
                             customAction: function (rowID) {
@@ -452,18 +457,41 @@ define([
                                     return "<span class='icon-ic-raw-transctipt' rel='tooltip' title='View Pay details of this charge'></span>"
                                 else
                                     return rowObject.payment_id;
+                            },
+                            cellattr: function (rowId, tv, rowdata) {
+                                if(rowdata && rowdata.code == 'manual')
+                                    return 'style="display:none;" ';
                             }
                         },
-                        { name: 'comments', width: 50, search: false, sortable: false },
-                        { name: 'charge_pointer', width: 20, search: false, sortable: false, formatter: self.pointerFormatter },
-                        { name: 'charge_amount', width: 20, search: false, sortable: false },
+                        { name: 'comments', width: 50, search: false, sortable: false,
+                            cellattr: function (rowId, tv, rowdata) {
+                                if(rowdata && rowdata.code == 'manual')
+                                    return ' colspan=8 style="white-space : nowrap ';
+                            } 
+                        },
+                        { name: 'charge_pointer', width: 20, search: false, sortable: false, formatter: self.pointerFormatter,
+                            cellattr: function (rowId, tv, rowdata) {
+                                if(rowdata && rowdata.code == 'manual')
+                                    return 'style="display:none;" ';
+                            } 
+                        },
+                        { name: 'charge_amount', width: 20, search: false, sortable: false,
+                            cellattr: function (rowId, tv, rowdata) {
+                                if(rowdata && rowdata.code == 'manual')
+                                    return 'style="display:none;" ';
+                            } 
+                        },
                         { name: 'payment', width: 20, search: false, sortable: false, 
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.code && (rowObject.code == 'adjustment' || rowObject.payment == null || rowObject.code == null))
                                     return '';
                                 else
                                     return rowObject.payment;
-                            } 
+                            },
+                            cellattr: function (rowId, tv, rowdata) {
+                                if(rowdata && rowdata.code == 'manual')
+                                    return 'style="display:none;" ';
+                            }  
                         },
                         { name: 'adjustment', width: 30, search: false, sortable: false,
                             formatter: function(cellvalue, options, rowObject){
@@ -471,7 +499,11 @@ define([
                                     return '';
                                 else 
                                     return rowObject.adjustment
-                            } 
+                            },
+                            cellattr: function (rowId, tv, rowdata) {
+                                if(rowdata && rowdata.code == 'manual')
+                                    return 'style="display:none;" ';
+                            }  
                         },
                         {
                             name: 'view_payment', width: 20, sortable: false, search: false,
@@ -485,8 +517,13 @@ define([
                                     return "<span class='fa fa-eye' rel='tooltip' title='view payment details'></span>"
                                 else
                                     return "";
-                            }
+                            },
+                            cellattr: function (rowId, tv, rowdata) {
+                                if(rowdata && rowdata.code == 'manual')
+                                    return 'style="display:none;" ';
+                            } 
                         },
+                        {name: 'comment_space', width: 10, search: false, sortable: false },
                         {
                             name: 'del', width: 20, search: false, sortable: false,
                             className: 'icon-ic-delete',
@@ -595,7 +632,7 @@ define([
                 else {
                     commentId = 0;
                 }
-                $('#siteModalNested').find('#btnCICommentSave').unbind().click(function () {
+                $('#siteModalNested').find('#btnCICommentSave').off().click(function () {
                     var comment = $('#siteModalNested').find('#txtCIAddComment').val();
                     if (comment != '')
                         self.saveClaimComment(commentId, comment);
@@ -645,6 +682,7 @@ define([
 
             saveClaimComment: function (commentId, comment) {
                 var self = this;
+                $('#siteModalNested').find('#btnCICommentSave').prop('disabled', true)
                 if (commentId != 0) {
 
                     $.ajax({
@@ -657,6 +695,7 @@ define([
                         },
                         success: function (data, response) {
                             commonjs.showStatus('Record Saved Successfully');
+                            $('#siteModalNested').find('#btnCICommentSave').prop('disabled', false)
                             self.closeSaveComment();
                             self.showClaimCommentsGrid();
 
@@ -678,6 +717,7 @@ define([
                         },
                         success: function (data, response) {
                             commonjs.showStatus('Record Saved Successfully');
+                            $('#siteModalNested').find('#btnCICommentSave').prop('disabled', false)
                             self.closeSaveComment();
                             self.showClaimCommentsGrid();
                         },

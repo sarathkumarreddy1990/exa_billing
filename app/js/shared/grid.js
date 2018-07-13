@@ -578,17 +578,45 @@ define('grid', [
         self.batchClaim = function () {
             var $checkedInputs = $tblGrid.find('input').filter('[name=chkStudy]:checked');
             var selectedCount = $checkedInputs.length;
-            studyArray = [];
+            batchClaimArray = [];
             for (var r = 0; r < selectedCount; r++) {
                 var rowId = $checkedInputs[r].parentNode.parentNode.id;
                 studyStoreValue = getData(rowId, studyDataStore, gridID);
                 if (!studyStoreValue.study_cpt_id) {
-                    commonjs.showWarning("Please select charges record");
+                    commonjs.showWarning("Please select charges record for batch claim");
                     return false;
                 }
-                studyArray.push(rowId);
+                batchClaimArray.push({
+                    patient_id :studyStoreValue.patient_id,
+                    study_id :studyStoreValue.study_id
+                });
             }
-            alert(studyArray)
+            
+            if (batchClaimArray.length) {
+
+                var selectedIds = JSON.stringify(batchClaimArray)
+                commonjs.showLoading();
+
+                $.ajax({
+                    url: '/exa_modules/billing/claim_workbench/claims/batch',
+                    type: 'POST',
+                    data: {
+                        study_ids: selectedIds,
+                        company_id: app.companyID
+                    },
+                    success: function (data, response) {
+                        commonjs.showStatus('Batch Claim created successfully');
+                        $("#btnStudiesRefresh").click();
+                        commonjs.hideLoading();
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                        commonjs.hideLoading();
+                    }
+                });
+            }else{
+                commonjs.showWarning("Please select record for batch claim");
+            }
         },
 
         self.renderStudy = function (doExport) {
@@ -647,12 +675,12 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 (options.isClaimGrid ? '<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />' : ''),
-                '', '', '', '', '','','','','','','','','','','AssignedTo'
+                '', '', '', '', '','','','','','','','','','','','AssignedTo'
 
             ]);
 
             i18nName = i18nName.concat([
-                '', '', '', '', '', '','','','','','','','','','','billing.claims.assignedTo'
+                '', '', '', '', '', '','','','','','','','','','','','billing.claims.assignedTo'
             ]);
 
             colModel = colModel.concat([
@@ -825,6 +853,15 @@ define('grid', [
                 },
                 {
                     name: 'study_cpt_id',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true
+                },
+                {
+                    name: 'claim_status_code',
                     width: 20,
                     sortable: false,
                     resizable: false,

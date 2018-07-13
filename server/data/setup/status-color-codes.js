@@ -99,7 +99,7 @@ module.exports = {
         `;
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Created ${processType}(${colorCode})`
+            logDescription: `Add: Status Color Code(${colorCode}) created`
         });
     },
 
@@ -131,7 +131,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Updated ${processType}(${colorCode})`
+            logDescription: `Update: Status Color Code(${colorCode}) updated`
         });
     },
 

@@ -234,7 +234,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Created ${shortDescription}(${name})`
+            logDescription: `Add: New Billing Provider(${name}) created`
         });
     },
 
@@ -317,7 +317,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Updated ${shortDescription}(${name})`
+            logDescription: `Update: Billing Provider(${name}) updated`
         });
     },
 

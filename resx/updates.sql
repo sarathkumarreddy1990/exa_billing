@@ -2928,7 +2928,7 @@ DECLARE
 BEGIN
      
      IF payer_type is null THEN 
-	SELECT payer_type INTO p_payer_type FROM billing.claims where id = i_claim_id;
+	SELECT bc.payer_type INTO p_payer_type FROM billing.claims bc where id = i_claim_id;
      ELSE 
         p_payer_type := payer_type;
      END IF; 
@@ -3064,17 +3064,17 @@ BEGIN
 		),
 		claim_status_id = ( 
                                      CASE WHEN i_claim_status_code = 4 OR i_claim_status_code = 23 OR i_claim_status_code = 25
-                                        THEN ( SELECT COALESCE(id, claim_details.default_claim_status_id ) FROM billing.claim_status WHERE company_id = i_company_id AND code = 'DENIED' AND inactivated_dt IS NULL )
+                                        THEN ( SELECT COALESCE(id, claim_details.default_claim_status_id ) FROM billing.claim_status WHERE company_id = i_company_id AND code = 'D' AND inactivated_dt IS NULL )
                                            ELSE
                                             CASE 
                                                 WHEN claim_details.charges_bill_fee_total = claim_details.adjustments_applied_total AND claim_details.payments_applied_total = 0::money
-                                                    THEN ( SELECT COALESCE(id, claim_details.default_claim_status_id ) FROM billing.claim_status WHERE company_id = i_company_id AND code = 'DENIED' AND inactivated_dt IS NULL )
+                                                    THEN ( SELECT COALESCE(id, claim_details.default_claim_status_id ) FROM billing.claim_status WHERE company_id = i_company_id AND code = 'D' AND inactivated_dt IS NULL )
                                                 WHEN claim_details.claim_balance_total = 0::money
-                                                    THEN ( SELECT COALESCE(id, claim_details.default_claim_status_id ) FROM billing.claim_status WHERE company_id = i_company_id AND code = 'PAIDFULL' AND inactivated_dt IS NULL )
+                                                    THEN ( SELECT COALESCE(id, claim_details.default_claim_status_id ) FROM billing.claim_status WHERE company_id = i_company_id AND code = 'PIF' AND inactivated_dt IS NULL )
                                                 WHEN claim_details.claim_balance_total < 0::money
-                                                    THEN ( SELECT COALESCE(id, claim_details.default_claim_status_id ) FROM billing.claim_status WHERE company_id = i_company_id AND code = 'OVERPYMT' AND inactivated_dt IS NULL )
+                                                    THEN ( SELECT COALESCE(id, claim_details.default_claim_status_id ) FROM billing.claim_status WHERE company_id = i_company_id AND code = 'OP' AND inactivated_dt IS NULL )
                                                 WHEN claim_details.claim_balance_total > 0::money
-                                                    THEN ( SELECT COALESCE(id, claim_details.default_claim_status_id ) FROM billing.claim_status WHERE company_id = i_company_id AND code = 'PYMTPEN' AND inactivated_dt IS NULL )
+                                                    THEN ( SELECT COALESCE(id, claim_details.default_claim_status_id ) FROM billing.claim_status WHERE company_id = i_company_id AND code = 'PP' AND inactivated_dt IS NULL )
                                                 ELSE
                                                     claim_details.default_claim_status_id
                                            END
@@ -3092,8 +3092,6 @@ END;
 $BODY$
   LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
-
-
 CREATE OR REPLACE FUNCTION billing.update_claim_charge(
     i_claim_details json,
     i_insurances_details json,
@@ -3559,9 +3557,11 @@ BEGIN
 		) charges  WHERE id is null;
 
 
-	UPDATE billing.claims SET payer_type = (i_claim_details->>'payer_type')::TEXT WHERE id = (i_claim_details->>'claim_id')::bigint;
-
-	UPDATE billing.claims SET billing_method = billing.get_billing_method((i_claim_details->>'claim_id')::bigint,(i_claim_details->>'payer_type')::text) WHERE id = (i_claim_details->>'claim_id')::bigint;
+	UPDATE billing.claims 
+        SET 
+            payer_type = (i_claim_details->>'payer_type')::TEXT,
+            billing_method = billing.get_billing_method((i_claim_details->>'claim_id')::bigint,(i_claim_details->>'payer_type')::text)
+    WHERE id = (i_claim_details->>'claim_id')::bigint;
 
 
     RETURN p_result;
@@ -3588,6 +3588,245 @@ CREATE INDEX charges_studies_idx1 ON billing.charges_studies(study_id);
 CREATE INDEX charges_studies_idx2 ON billing.charges_studies(charge_id);
 CREATE INDEX payment_applications_idx1 ON billing.payment_applications(charge_id);
 -- --------------------------------------------------------------------------------------------------------------------
+-- Function: billing.get_batch_claim_details(bigint, bigint)
+
+-- DROP FUNCTION billing.get_batch_claim_details(bigint, bigint);
+
+CREATE OR REPLACE FUNCTION billing.get_batch_claim_details(IN i_study_id bigint, IN i_created_by bigint)
+  RETURNS TABLE(claim_icds json, charges json, insurances json, claims json) AS
+$BODY$
+BEGIN
+	RETURN QUERY
+	WITH study_details AS (
+		SELECT 
+			 s.patient_id
+			,s.facility_id
+			,s.company_id
+			,s.order_id
+			,s.id AS study_id
+			,f.facility_info->'billing_provider_id' AS billing_provider_id
+			,f.facility_info->'rendering_provider_id' AS rendering_provider_id
+			,f.facility_info->'service_facility_id' AS service_facility_id
+		FROM 
+			public.studies s
+			INNER JOIN public.facilities f ON f.id = s.facility_id
+		WHERE  s.id =  i_study_id
+	)
+	,claim_charges AS (
+
+		SELECT
+                null AS id
+                , null AS claim_id
+                , cpt_codes.id AS cpt_id
+                , COALESCE((string_to_array(regexp_replace(study_cpt_info->'diagCodes_pointer', '[^0-9,]', '', 'g'),',')::int[])[1],null) AS pointer1  
+                , COALESCE((string_to_array(regexp_replace(study_cpt_info->'diagCodes_pointer', '[^0-9,]', '', 'g'),',')::int[])[2],null) AS pointer2  
+                , COALESCE((string_to_array(regexp_replace(study_cpt_info->'diagCodes_pointer', '[^0-9,]', '', 'g'),',')::int[])[3],null) AS pointer3  
+                , COALESCE((string_to_array(regexp_replace(study_cpt_info->'diagCodes_pointer', '[^0-9,]', '', 'g'),',')::int[])[4],null) AS pointer4
+				, atp.modifier1_id
+                , atp.modifier2_id
+                , atp.modifier3_id
+                , atp.modifier4_id
+                , COALESCE(sc.study_cpt_info->'bill_fee','0')::NUMERIC AS bill_fee
+                , COALESCE(sc.study_cpt_info->'allowed_fee','0')::NUMERIC AS allowed_amount
+                , COALESCE(sc.study_cpt_info->'units','1.00')::NUMERIC AS units
+                , null AS created_by
+				, sc.authorization_info->'authorization_no' AS authorization_no
+				, COALESCE(s.study_dt,now()) AS charge_dt
+				, sc.study_id
+                , o.icd_code_ids_billing 
+                , o.id AS order_id
+                , o.patient_id
+                , i_created_by AS created_by
+        FROM public.study_cpt sc
+            INNER JOIN public.studies s ON s.id = sc.study_id
+            INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
+            INNER JOIN public.orders o on o.id = s.order_id
+            INNER JOIN appointment_types at ON at.id = s.appointment_type_id
+            INNER JOIN appointment_type_procedures atp ON atp.procedure_id = sc.cpt_code_id AND atp.appointment_type_id = s.appointment_type_id
+        WHERE study_id = i_study_id 
+        ORDER BY s.id DESC 
+ )
+, insurances AS (
+		SELECT
+			ins.* 
+		  FROM (
+			SELECT
+                pi.patient_id
+                , ip.id AS insurance_provider_id
+                , pi.subscriber_relationship_id   
+                , pi.subscriber_dob
+                , pi.coverage_level
+                , pi.policy_number
+                , pi.group_number
+			    , pi.subscriber_firstname
+                , pi.subscriber_lastname
+                , pi.subscriber_middlename
+                , pi.subscriber_name_suffix
+                , pi.subscriber_gender
+                , pi.subscriber_address_line1
+                , pi.subscriber_address_line2
+                , pi.subscriber_city
+                , pi.subscriber_state
+                , pi.subscriber_zipcode
+                , pi.assign_benefits_to_patient
+                , pi.medicare_insurance_type_code
+			    , pi.subscriber_employment_status_id  
+                , pi.valid_from_date
+                , pi.valid_to_date
+			    , ipd.billing_method
+			    , ROW_NUMBER() OVER (PARTITION BY pi.coverage_level ORDER BY pi.id ASC) AS rank
+            FROM 
+                public.patient_insurances pi
+            INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id 
+            LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
+            LEFT JOIN LATERAL ( 
+                SELECT 
+                    coverage_level,
+                    MIN(valid_to_date) as valid_to_date
+                FROM 
+                    public.patient_insurances 
+                WHERE 
+                    patient_id = ( SELECT COALESCE(NULLIF(patient_id,'0'),'0')::numeric FROM study_details ) AND valid_to_date >= (now())::date 
+                    GROUP BY coverage_level 
+            ) as expiry ON TRUE                           
+            WHERE 
+                pi.patient_id = ( SELECT COALESCE(NULLIF(patient_id,'0'),'0')::numeric FROM study_details ) AND expiry.valid_to_date = pi.valid_to_date AND expiry.coverage_level = pi.coverage_level 
+                ORDER BY pi.id ASC
+            ) ins
+            WHERE  ins.rank = 1
+ )
+,claims AS (
+		SELECT
+            orders.company_id
+            ,orders.facility_id
+            ,orders.patient_id
+          ,( SELECT
+              id
+              FROM billing.providers
+              WHERE id = COALESCE(NULLIF(order_info -> 'billing_provider',''),(SELECT COALESCE(NULLIF(billing_provider_id,''),'0')::text FROM study_details ) )::numeric 
+              AND company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) AND inactivated_dt IS NULL
+            ) AS billing_provider_id
+          ,( SELECT id FROM 
+              provider_groups 
+              WHERE id = COALESCE(NULLIF(order_info -> 'ordering_facility_id',''), (SELECT COALESCE(NULLIF(service_facility_id,''),'0')::text FROM study_details ) )::numeric  
+              AND provider_groups.has_deleted = false  AND (provider_groups.group_type = 'OF'  OR provider_groups.group_type IS NULL )
+              AND provider_groups.company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) AND is_active = TRUE
+            ) AS ordering_facility_id
+          ,( SELECT pc.id FROM 
+              public.providers p 
+              INNER JOIN provider_contacts pc ON pc.provider_id = p.id
+              WHERE pc.id = COALESCE(NULLIF(order_info -> 'rendering_provider_id',''), (SELECT COALESCE(NULLIF(rendering_provider_id,''),'0')::text FROM study_details ) )::numeric 
+              AND NOT p.has_deleted AND NOT pc.has_deleted AND p.is_active AND p.company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) AND p.provider_type = 'PR'
+            ) AS rendering_provider_contact_id
+          ,( SELECT pc.id FROM 
+              public.providers p 
+              INNER JOIN provider_contacts pc ON pc.provider_id = p.id
+              WHERE pc.id = COALESCE(NULLIF(referring_provider_ids [ 1 ],'0'),'0')::numeric 
+              AND NOT p.has_deleted AND NOT pc.has_deleted AND p.is_active AND p.company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) AND p.provider_type = 'RF'
+            ) AS referring_provider_contact_id
+          ,( SELECT id FROM 
+              public.places_of_service
+              WHERE code = COALESCE(NULLIF(order_info -> 'pos_type_code',''),'') AND company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) AND inactivated_dt IS NULL
+            ) AS place_of_service_id
+          ,( SELECT id FROM 
+              billing.claim_status
+              WHERE code = 'PV'  AND NOT is_system_status AND company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) AND inactivated_dt IS NULL
+            ) AS claim_status_id
+          ,( SELECT id FROM 
+              billing.billing_codes
+              WHERE id = COALESCE(NULLIF(order_info -> 'billing_code',''),'0')::numeric  AND company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) AND inactivated_dt IS NULL
+            ) AS billing_code_id
+          ,( SELECT id FROM 
+              billing.billing_classes
+              WHERE id = COALESCE(NULLIF(order_info -> 'billing_class',''),'0')::numeric  AND company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) AND inactivated_dt IS NULL
+            ) AS billing_class_id
+          ,i_created_by  AS created_by
+          ,null AS billing_notes
+          ,(SELECT COALESCE(charge_dt,NOW()) FROM claim_charges LIMIT 1)  AS claim_dt
+          ,NULLIF(COALESCE(order_info->'currentDate',''),'')::DATE AS current_illness_date
+          ,NULLIF(COALESCE(order_info->'similarIll',''),'')::DATE AS same_illness_first_date
+          ,NULLIF(COALESCE(order_info->'wTo',''),'')::DATE AS unable_to_work_to_date
+          ,NULLIF(COALESCE(order_info->'wFrom',''),'')::DATE AS unable_to_work_from_date
+          ,NULLIF(COALESCE(order_info->'hTo',''),'')::DATE AS hospitalization_to_date
+          ,NULLIF(COALESCE(order_info->'hFrom',''),'')::DATE AS hospitalization_from_date
+          ,order_info->'claim_notes' AS claim_notes
+          ,order_info->'original_ref' AS original_reference
+          ,order_info->'authorization_no' AS authorization_no
+          ,CASE 
+                WHEN COALESCE(NULLIF(order_info->'frequency_code',''),'0')::numeric = 8 THEN 'void'
+                WHEN COALESCE(NULLIF(order_info->'frequency_code',''),'0')::numeric = 7 THEN 'corrected'
+                WHEN COALESCE(NULLIF(order_info->'frequency_code',''),'0')::numeric = 7 THEN 'original'
+                ELSE NULL
+            END AS frequency
+          ,COALESCE(NULLIF(order_info->'oa',''), 'false')::boolean AS is_other_accident
+          ,COALESCE(NULLIF(order_info->'aa',''), 'false')::boolean AS is_auto_accident
+          ,COALESCE(NULLIF(order_info->'emp',''), 'false')::boolean AS is_employed
+          ,COALESCE(NULLIF(order_info->'outsideLab',''), 'false')::boolean AS service_by_outside_lab
+          ,null AS primary_patient_insurance_id
+          ,null AS secondary_patient_insurance_id
+          ,null AS tertiary_patient_insurance_id
+          ,( SELECT COALESCE(billing_method,'patient') FROM insurances WHERE coverage_level = 'primary' ) AS billing_method
+          ,( CASE 
+              WHEN ( SELECT count(1) FROM insurances WHERE coverage_level = 'primary' ) > 0 THEN 'primary_insurance'
+              ELSE 'patient'
+                END
+            ) as payer_type
+
+        FROM
+            orders
+        LEFT JOIN provider_contacts ON COALESCE (NULLIF (order_info -> 'rendering_provider_id',''),'0') = provider_contacts.id::text
+        LEFT JOIN providers ON providers.id = provider_contacts.provider_id
+        WHERE orders.id = ( SELECT COALESCE(NULLIF(order_id,'0'),'0')::numeric FROM study_details )
+)
+, billing_icds AS (
+	SELECT 
+		DISTINCT unnest(orders.icd_code_ids_billing) AS icd_ids
+	FROM orders
+	WHERE orders.id = ( SELECT COALESCE(NULLIF(order_id,'0'),'0')::numeric FROM study_details )
+)
+ 
+SELECT
+	( SELECT COALESCE(json_agg(row_to_json(claims_icds)),'[]') claim_icds
+		FROM (
+                SELECT
+                    null AS id ,
+                    null AS claim_id ,
+                    icd_ids AS icd_id
+                FROM billing_icds 
+            ) AS claims_icds
+         ) AS claims_icds
+	,( SELECT COALESCE(json_agg(row_to_json(charge)),'[]') charges
+		FROM (
+                SELECT
+                    *
+                FROM claim_charges 
+            ) AS charge
+         ) AS charges
+         ,( SELECT COALESCE(json_agg(row_to_json(insurance)),'[]') insurances
+		FROM (
+                SELECT
+                   *
+                FROM insurances 
+                ) AS insurance
+         ) AS insurances
+	,( SELECT COALESCE((row_to_json(claim)),'{}') claims
+		FROM (
+                SELECT
+                    *
+                FROM claims 
+            ) AS claim
+         ) AS claims;
+
+END
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100
+  ROWS 1000;
+ALTER FUNCTION billing.get_batch_claim_details(bigint, bigint)
+  OWNER TO postgres;
+
+
+-- --------------------------------------------------------------------------------------------------------------------
 -- MAKE SURE THIS COMMENT STAYS AT THE BOTTOM - ADD YOUR CHANGES ABOVE !!!!
 -- RULES:
 --  * When run multiple times, the entire script should have no "side effects"
@@ -3597,3 +3836,46 @@ RAISE NOTICE '--- END OF THE SCRIPT ---';
 END
 $$;
 -- ====================================================================================================================
+CREATE OR REPLACE FUNCTION billing.get_payer_claim_payments(IN bigint)
+  RETURNS TABLE(primary_paid_total money, primary_adj_total money, secondary_paid_total money, secondary_adj_total money) AS
+$BODY$
+
+WITH claim_details as (
+            SELECT 
+            p_pat_ins.insurance_provider_id  as p_pat_ins_id,
+            s_pat_ins.insurance_provider_id  as s_pat_ins_id,
+            t_pat_ins.insurance_provider_id  as t_pat_ins_id
+            FROM billing.claims
+            LEFT JOIN patient_insurances p_pat_ins ON p_pat_ins.id=primary_patient_insurance_id
+            LEFT JOIN patient_insurances s_pat_ins ON s_pat_ins.id=secondary_patient_insurance_id
+            LEFT JOIN patient_insurances t_pat_ins ON t_pat_ins.id=tertiary_patient_insurance_id
+            WHERE 
+            claims.id = $1
+            )
+        SELECT
+            coalesce(sum(pa.amount)   FILTER (WHERE  insurance_provider_id = (SELECT claim_details.p_pat_ins_id FROM claim_details)),0::money)    AS  primary_paid_total,
+            coalesce(sum(pa.adjustment)   FILTER (WHERE  insurance_provider_id = (SELECT claim_details.p_pat_ins_id FROM claim_details)),0::money)    AS  primary_adj_total,
+            coalesce(sum(pa.amount)   FILTER (WHERE  insurance_provider_id = (SELECT claim_details.s_pat_ins_id FROM claim_details)),0::money)    AS secondary_paid_total,
+                coalesce(sum(pa.adjustment)   FILTER (WHERE  insurance_provider_id = (SELECT claim_details.s_pat_ins_id FROM claim_details)),0::money)    AS secondary_adj_total
+                FROM
+                    billing.payments AS p
+                    INNER JOIN (
+                        SELECT
+                            distinct pa.payment_id,
+                    sum(pa.amount) FILTER (WHERE  amount_type='payment') as amount,
+                            sum(pa.amount) FILTER (WHERE  amount_type='adjustment') as adjustment
+                        FROM
+                            billing.charges AS c
+                            INNER JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
+                        WHERE
+                            c.claim_id = $1  GROUP BY  pa.payment_id
+                    ) AS pa ON p.id = pa.payment_id 
+$BODY$
+  LANGUAGE sql VOLATILE
+  COST 100
+  ROWS 1000;
+ALTER FUNCTION billing.get_payer_claim_payments(bigint)
+  OWNER TO postgres;
+
+-- ====================================================================================================================
+

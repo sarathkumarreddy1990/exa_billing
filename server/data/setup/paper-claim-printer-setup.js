@@ -120,7 +120,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Created ${printerName}`
+            logDescription: `Add: New Paper Claim Printer Setup(${printerName}) created`
         });
     },
 
@@ -156,7 +156,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Updated ${printerName}`
+            logDescription: `Update: Paper Claim Printer Setup(${printerName}) updated`
         });
     },
 
