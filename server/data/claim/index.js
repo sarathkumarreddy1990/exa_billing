@@ -595,10 +595,8 @@ module.exports = {
             (${JSON.stringify(claim_icds)})::json,
             (${JSON.stringify(auditDetails)})::json,
             (${JSON.stringify(charges)})::json) as result`;
-        
-
+            
         return await query(sqlQry);
-
     },
 
     getProviderInfo: async (billingProviderId, insuranceProviderId) => {
@@ -657,5 +655,18 @@ module.exports = {
 
         return await query(sql);
 
+    },
+
+    getExistingPayer: async (params) => {
+
+        let sqlQry = SQL `
+                SELECT 
+                    payer_type 
+                FROM 
+                    billing.claims
+                WHERE 
+                    id = ${params.id}`;
+
+        return await query(sqlQry);
     }
 };

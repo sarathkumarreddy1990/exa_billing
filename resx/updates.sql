@@ -1410,7 +1410,7 @@ CREATE OR REPLACE FUNCTION billing.create_charge(
     i_modifier4_id bigint,
     i_bill_fee money,
     i_allowed_amount money,
-    i_units bigint,
+    i_units numeric,
     i_created_by bigint,
     i_authorization_no text,
     i_charge_dt timestamp with time zone,
@@ -1567,8 +1567,8 @@ BEGIN
 			, subscriber_state
 			, assign_benefits_to_patient
 			, subscriber_dob
-			, now() AS valid_from_date
-			, now() + interval '1 month' AS valid_to_date
+			, valid_from_date
+			, valid_to_date
 			, medicare_insurance_type_code
             , claim_patient_insurance_id
 		FROM
@@ -1810,7 +1810,7 @@ BEGIN
 					, modifier4_id bigint
 					, bill_fee money
 					, allowed_amount money
-					, units bigint
+					, units numeric
 					, created_by bigint
 					, authorization_no text
 					, charge_dt timestamptz
@@ -2603,6 +2603,14 @@ DECLARE
    
 BEGIN 
 	l_bill_fee_recalculation := TRUE;
+    SELECT 
+		claim_status_id INTO l_claim_status_id
+	FROM
+		billing.claims 
+	WHERE
+		id = p_claim_id
+	LIMIT 1;
+    
 	SELECT 
 		    cs.description INTO l_claim_status
 		FROM

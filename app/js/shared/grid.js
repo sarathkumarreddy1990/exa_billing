@@ -499,17 +499,17 @@ define('grid', [
                         if ($('#anc_view_reports').hasClass('disabled')) {
                             return false;
                         }
-
+                        var session = app.sessionID ? btoa(app.sessionID) : "demo_session";
                         var queryStrVal = [
                             'study_id=' + study_id,
                             'host_name=' + location.origin,
                             'user_id=' + app.userID,
                             'company_id=' + app.companyID,
                             'client_ip=' + location.hostname,
-                            'session=' + btoa(app.sessionID),
+                            'session=' + session,
                             'screen_name=approved_report'
                         ];
-
+                        queryStrVal = queryStrVal.join('&');
                         commonjs.showDialog({
                             header: 'Approved Reports',
                             i18nHeader: 'setup.rightClickMenu.approvedReports',

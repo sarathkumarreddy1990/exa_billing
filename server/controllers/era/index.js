@@ -49,7 +49,7 @@ module.exports = {
         return eraResponseJson;
     },
 
-    getRawEobResponse: async function(fileName) {
+    getRawEobResponse: async function (fileName) {
         const eraRequestText = await readFile(fileName, 'utf8');
         const templateName = await ediConnect.getDefaultEraTemplate();
 
@@ -299,19 +299,19 @@ module.exports = {
         payerDetails.paymentId = null;
         payerDetails.company_id = payerDetails.company_id;
         payerDetails.user_id = payerDetails.created_by;
-        payerDetails.facility_id = null;
+        payerDetails.facility_id = params.facility_id;
         payerDetails.patient_id = null;
         payerDetails.insurance_provider_id = payerDetails.payer_id;
         payerDetails.provider_group_id = null;
         payerDetails.provider_contact_id = null;
         payerDetails.payment_reason_id = null;
         payerDetails.amount = 0;
-        payerDetails.accounting_date = 'now()';
+        payerDetails.accounting_date = financialInfo.date || 'now()';
         payerDetails.invoice_no = '';
         payerDetails.display_id = null;  // alternate_payment_id
         payerDetails.payer_type = 'insurance';
         payerDetails.notes = notes;
-        payerDetails.payment_mode = 'check';
+        payerDetails.payment_mode = 'eft';
         payerDetails.credit_card_name = null;
         payerDetails.credit_card_number = reassociation.referenceIdent || null; // card_number
         payerDetails.clientIp = params.clientIp;
@@ -375,15 +375,15 @@ module.exports = {
     getProcessedEraFileDetails: async function (params) {
         let eraResponse = await data.getProcessedFileData(params);
 
-        if(eraResponse.rows && eraResponse.rows[0].file_name) {
+        if (eraResponse.rows && eraResponse.rows[0].file_name) {
             const filePath = path.join(eraResponse.rows[0].root_directory, eraResponse.rows[0].file_path, eraResponse.rows[0].file_name);
 
             try {
                 const eraResponseJson = await this.getRawEobResponse(filePath);
-                eraResponse.rows[0].rawResponse = eraResponseJson; 
-            } catch(err) {
+                eraResponse.rows[0].rawResponse = eraResponseJson;
+            } catch (err) {
                 logger.error(err);
-                eraResponse.rows[0].rawResponse = {};                 
+                eraResponse.rows[0].rawResponse = { err };
             }
         }
 
