@@ -1,7 +1,6 @@
 {
     "billing": {
         "fileInsurance": {
-            "serviceFacility": "Service Facility",
             "dateOfInjury": "Date of Injury",
             "followupUser": "Follow-up User",
             "followUpDate": "Follow-up Date",
@@ -459,6 +458,9 @@
             "draft": "DRAFT",
             "transcribed": "TRANSCRIBED",
             "approved": "APPROVED"
+        },
+        "payToProvider":{
+            "payToProvider": "Pay-to-Provider"
         }
     }    
 }
