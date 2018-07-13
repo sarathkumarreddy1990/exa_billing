@@ -178,7 +178,10 @@ define(['jquery',
                 self.priDOB = commonjs.bindDateTimePicker('divPriDOB', { format: 'L' });
                 self.priDOB.date();     
                 self.secDOB = commonjs.bindDateTimePicker('divSecDOB', { format: 'L' });
-                self.secDOB.date();  
+                self.secDOB.date(); 
+                self.terDOB = commonjs.bindDateTimePicker('divTerDOB', { format: 'L' });
+                self.terDOB.date();
+                 
             },
 
             checkInsuranceEligibility: function (e) {

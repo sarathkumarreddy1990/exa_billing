@@ -192,7 +192,8 @@
             "adjustmentTotal": "Adjustment Total",
             "allActivity" : "All Activity",
             "activityByDate": "Activity By Date",
-            "comment": "Include All Comments"
+            "comment": "Include All Comments",
+            "unappliedPay": "Unapplied Payments"
         },
         "refund": {
             "scheduleDate": "Schedule Date",
