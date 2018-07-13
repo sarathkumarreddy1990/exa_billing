@@ -410,7 +410,12 @@ define(['jquery',
                             self.initializeClaimEditForm();
 
                             /* Bind chargeLineItems events - started*/
+                            if(self.screenCode.indexOf('DCLM') > -1) {
+                                $('span[id^="spDeleteCharge"]').removeClass('removecharge');
+                                $('span[id^="spDeleteCharge"]').css('color','#DCDCDC');
+                            }
                             self.assignLineItemsEvents();
+                            
                             self.assignModifierEvent();
                             app.modifiers_in_order = true;
                             commonjs.enableModifiersOnbind('M'); // Modifier
@@ -568,7 +573,7 @@ define(['jquery',
                 document.querySelector('#txtWCT').value = claim_data.unable_to_work_to_date ? moment(claim_data.unable_to_work_to_date).format('L') : '';
                 document.querySelector('#txtOtherDate').value = claim_data.same_illness_first_date ? moment(claim_data.same_illness_first_date).format('L') : '';
                 document.querySelector('#txtDate').value = claim_data.current_illness_date ? moment(claim_data.current_illness_date).format('L') : '';
-                document.querySelector('#txtClaimDate').value = claim_data.claim_dt ? moment(claim_data.claim_dt).format('L') : '';
+
 
                 $('input[name="outSideLab"]').prop('checked', claim_data.service_by_outside_lab);
                 $('input[name="employment"]').prop('checked', claim_data.is_employed);
@@ -631,6 +636,7 @@ define(['jquery',
                     $('#ddlClaimStatus').val(claim_data.claim_status_id || '');
                     $('#ddlFrequencyCode').val(claim_data.frequency || '')
                     $('#ddlPOSType').val(claim_data.place_of_service_id || '');
+                    document.querySelector('#txtClaimDate').value = claim_data.claim_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.claim_dt).format('L') : '';
                 } else {
                     $('#ddlResponsible').val('PPP');
                     $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
@@ -644,7 +650,7 @@ define(['jquery',
                     }
                     var currentDate = new Date();
                     var defaultStudyDate = moment(currentDate).format('L');
-                    var lineItemStudyDate = self.studyDate && self.studyDate != '' ? self.convertToTimeZone(claim_data.facility_id, moment(self.studyDate)).format('L') : '';
+                    var lineItemStudyDate = self.studyDate && self.studyDate != '' ? self.convertToTimeZone(claim_data.facility_id, self.studyDate).format('L') : '';
                     $('#txtClaimDate').val(self.studyDate ? lineItemStudyDate : defaultStudyDate);
                 }
                 /* Common Details end */
@@ -950,6 +956,11 @@ define(['jquery',
                                 self.bindProblemsContent(diagnosisCodes, diagnosisCodesOrder);
 
                                 /* Bind chargeLineItems events - started*/
+                                if(self.screenCode.indexOf('DCLM') > -1) {
+                                    $('span[id^="spDeleteCharge"]').removeClass('removecharge');
+                                    $('span[id^="spDeleteCharge"]').css('color','#DCDCDC');
+                                }
+
                                 self.assignLineItemsEvents();
                                 self.assignModifierEvent();
                                 app.modifiers_in_order = true;
@@ -1485,8 +1496,9 @@ define(['jquery',
                         var units = (res.units > 0) ? parseFloat(res.units) : 1.0;
                         var fee = (res.globalfee > 0) ? parseFloat(res.globalfee) : 0.0;
                         if(self.isCptAlreadyExists(res.id,rowIndex)) {
-                            e.preventDefault();
-                            commonjs.showWarning("CPT Already Exists");
+                            if(confirm("Code already exists. Do you want to add")) {
+                                self.setCptValues(rowIndex, res, duration, units, fee, type);    
+                            } 
                         } else {
                             self.setCptValues(rowIndex, res, duration, units, fee, type);
                         }
@@ -2248,8 +2260,8 @@ define(['jquery',
                     subscriber_zipcode: $('#txtPriZipCode').val() != '' ? $('#txtPriZipCode').val() : null,
                     assign_benefits_to_patient: $('#chkPriAcptAsmt').prop("checked"),
                     medicare_insurance_type_code: null,
-                    valid_from_date: $('#txtPriStartDate').val() != '' ? $('#txtPriStartDate').val() : moment().subtract(21, 'years').format('YYYY-MM-DD'),
-                    valid_to_date: $('#txtPriExpDate').val() != '' ? $('#txtPriExpDate').val() : moment().format('YYYY-MM-DD'),
+                    valid_from_date: $('#txtPriStartDate').val() != '' ? $('#txtPriStartDate').val() : null,
+                    valid_to_date: $('#txtPriExpDate').val() != '' ? $('#txtPriExpDate').val() :null,
                     is_deleted: self.priClaimInsID && self.priInsID == '' ? true : false
                 },
                 secondary_insurance_details = {
@@ -2273,8 +2285,8 @@ define(['jquery',
                     assign_benefits_to_patient: $('#chkSecAcptAsmt').prop("checked"),
                     subscriber_dob: $('#txtSecDOB').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtSecDOB').val()).format('YYYY-MM-DD')) : null,
                     medicare_insurance_type_code: $('#selectMedicalPayer option:selected').val() != '' ? parseInt($('#selectMedicalPayer option:selected').val()) : null,
-                    valid_from_date: $('#txtSecStartDate').val() != '' ? $('#txtSecStartDate').val() : moment().subtract(21, 'years').format('YYYY-MM-DD'),
-                    valid_to_date: $('#txtSecExpDate').val() != '' ? $('#txtSecExpDate').val() : moment().format('YYYY-MM-DD'),
+                    valid_from_date: $('#txtSecStartDate').val() != '' ? $('#txtSecStartDate').val() : null,
+                    valid_to_date: $('#txtSecExpDate').val() != '' ? $('#txtSecExpDate').val() : null,
                     is_deleted: self.secClaimInsID && self.secInsID == '' ? true : false
                 },
                 teritiary_insurance_details = {
@@ -2298,8 +2310,8 @@ define(['jquery',
                     assign_benefits_to_patient: $('#chkTerAcptAsmt').prop("checked"),
                     subscriber_dob: $('#txtTerDOB').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtTerDOB').val()).format('YYYY-MM-DD')) : null,
                     medicare_insurance_type_code: null,
-                    valid_from_date: $('#txtTerStartDate').val() != '' ? $('#txtTerStartDate').val() : moment().subtract(21, 'years').format('YYYY-MM-DD'),
-                    valid_to_date: $('#txtTerExpDate').val() != '' ? $('#txtTerExpDate').val() : moment().format('YYYY-MM-DD'),
+                    valid_from_date: $('#txtTerStartDate').val() != '' ? $('#txtTerStartDate').val() : null,
+                    valid_to_date: $('#txtTerExpDate').val() != '' ? $('#txtTerExpDate').val() : null,
                     is_deleted: self.terClaimInsID && self.terInsID == '' ? true : false
                 }
                 if (self.is_primary_available || self.priClaimInsID)
