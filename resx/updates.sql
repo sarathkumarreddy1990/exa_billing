@@ -2540,11 +2540,12 @@ DECLARE
 BEGIN 
 	l_bill_fee_recalculation := TRUE;
 	SELECT 
-		    cs.description INTO STRICT l_claim_status
+		    cs.description INTO l_claim_status
 		FROM
-		    billing.claim_status 
+		    billing.claim_status cs
 		WHERE 
-	            id = l_claim_status_id;
+	            id = l_claim_status_id
+        LIMIT 1;
 	        
 	     IF l_claim_status = 'Pending Validation' THEN
 			IF (p_payer_type = 'patient' AND (p_existing_payer_type = 'ordering_facility' OR p_existing_payer_type = 'referring_provider' OR p_existing_payer_type = 'facility' OR p_existing_payer_type = 'primary_insurance' OR p_existing_payer_type = 'secondary_insurance' OR p_existing_payer_type = 'tertiary_insurance')) THEN
