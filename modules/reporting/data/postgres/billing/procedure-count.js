@@ -27,7 +27,7 @@ const procedureCountDataSetQueryTemplate = _.template(`
             ROLLUP(ch.cpt_id)
     )
     SELECT 
-          cpt.display_code									AS "code"
+          cpt.display_code									AS "Code"
         , COALESCE(cpt.display_description, 'Grand Total') 	AS "Description"
         , total_charge_billfee 			                    AS "Billing Fee"
         , total_charge_units                                AS "Units"
@@ -36,7 +36,7 @@ const procedureCountDataSetQueryTemplate = _.template(`
         procedure_count
     LEFT JOIN public.cpt_codes cpt ON cpt.id = procedure_count.cpt_id    
     ORDER BY 
-        code
+    "Code"
 
 
 `);

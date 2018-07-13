@@ -83,7 +83,7 @@ const summaryQueryTemplate = _.template(`
                     END         
                     END  AS "Payer Type", 
                 <% } %>        
-                    SUM(payment_applied)    AS "Total Payment applied",
+                    SUM(payment_applied)    AS "Total Payment Applied",
                     SUM(adjustment) AS "Total Adjustment",
                     SUM(total_payment) AS "Total Payment Amount"
             FROM 
@@ -124,7 +124,7 @@ const detailQueryTemplate = _.template(`
                      INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active                        
                   <% } %>
                <%  } %>
-            WHERE 1=1 
+            WHERE 1=1   
             AND <%= claimDate %>
             <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
             <% if(billingProID) { %> AND <% print(billingProID); } %>
@@ -134,8 +134,8 @@ const detailQueryTemplate = _.template(`
                 SELECT
                     to_char(p.accounting_dt, 'MM/DD/YYYY')   AS "Accounting Date",
                     f.facility_name  AS "Facility Name",
-                    pd.payment_id AS "Payment Id",
-         	        pd.claim_id AS "Claim  Id",
+                    pd.payment_id AS "Payment ID",
+         	        pd.claim_id AS "Claim  ID",
          	        get_full_name(pp.last_name, pp.first_name, pp.middle_name, pp.prefix_name, pp.suffix_name) AS "Patient Name",
          	        pp.account_no "Account #" ,
          	        to_char(c.claim_dt, 'MM/DD/YYYY') "Claim Date",
@@ -169,7 +169,7 @@ const detailQueryTemplate = _.template(`
                         WHEN
                          p.payer_type = 'ordering_provider' then pr.last_name ||','|| pr.first_name
          	            END  AS "Payer Name",
-         	        p.mode "Payment AS Mode",
+         	        p.mode "Payment Mode",
          	        p.card_number AS "Check #",
          	        payment_totals.payments_applied_total AS "Applied Amount",
          	        p.amount "Payment Amount",

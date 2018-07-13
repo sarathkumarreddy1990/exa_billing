@@ -42,24 +42,24 @@ WITH payerMixDetails AS (
         facility_name ASC
     )
     SELECT
-        display_code AS "CPT CODE",
-        insurance_code AS "INSURANCE CODE",
-        insurance_name AS "INSURANCE NAME",
-        COALESCE(facility_name,' ─ ─ Total ─ ─ ') AS "FACILITY NAME",
-        claim_date AS "CLAIM DATE",
-        bill_fee AS "BILL FEE",
-        claim_count AS "CLAIM COUNT"
+        display_code AS "CPT Code",
+        insurance_code AS "Insurance Code",
+        insurance_name AS "Insurance Name",
+        COALESCE(facility_name,' ─ ─ Total ─ ─ ') AS "Facility Name",
+        claim_date AS "Claim Date",
+        bill_fee AS "Bill Fee",
+        claim_count AS "Claim Count"
     FROM
          payerMixDetails
     UNION ALL
     SELECT
-        null::TEXT AS "CPT CODE",
-        null::TEXT AS "INSURANCE CODE",
-        null::TEXT AS "INSURANCE NAME",
-        '─ GRAND TOTAL ─'::TEXT AS "FACILITY NAME",
-        null::TEXT AS "CLAIM DATE",
-        SUM(bill_fee) AS "BILL FEE",
-        SUM(claim_count) AS "CLAIM COUNT"
+        null::TEXT AS "CPT Code",
+        null::TEXT AS "Insurance Code",
+        null::TEXT AS "Insurance Name",
+        '─ GRAND TOTAL ─'::TEXT AS "Facility Name",
+        null::TEXT AS "Claim Date",
+        SUM(bill_fee) AS "Bill Fee",
+        SUM(claim_count) AS "Claim Count"
     FROM
          payerMixDetails
 `);

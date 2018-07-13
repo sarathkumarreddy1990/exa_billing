@@ -26,8 +26,8 @@ WITH referring_provider_count as
     GROUP BY pp.full_name
 )
 SELECT 
-       COALESCE(provider_name,'Total')  AS "PROVIDER NAME",
-       SUM(orderCount) "CLAIM COUNT"
+       COALESCE(provider_name,'Total')  AS "Provider Name",
+       SUM(orderCount) "Claim Count"
 FROM
      referring_provider_count
 GROUP BY 
