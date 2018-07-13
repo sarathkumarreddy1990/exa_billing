@@ -49,7 +49,7 @@ module.exports = {
         return eraResponseJson;
     },
 
-    getRawEobResponse: async function(fileName) {
+    getRawEobResponse: async function (fileName) {
         const eraRequestText = await readFile(fileName, 'utf8');
         const templateName = await ediConnect.getDefaultEraTemplate();
 
@@ -375,15 +375,15 @@ module.exports = {
     getProcessedEraFileDetails: async function (params) {
         let eraResponse = await data.getProcessedFileData(params);
 
-        if(eraResponse.rows && eraResponse.rows[0].file_name) {
+        if (eraResponse.rows && eraResponse.rows[0].file_name) {
             const filePath = path.join(eraResponse.rows[0].root_directory, eraResponse.rows[0].file_path, eraResponse.rows[0].file_name);
 
             try {
                 const eraResponseJson = await this.getRawEobResponse(filePath);
-                eraResponse.rows[0].rawResponse = eraResponseJson; 
-            } catch(err) {
+                eraResponse.rows[0].rawResponse = eraResponseJson;
+            } catch (err) {
                 logger.error(err);
-                eraResponse.rows[0].rawResponse = {};                 
+                eraResponse.rows[0].rawResponse = { err };
             }
         }
 
