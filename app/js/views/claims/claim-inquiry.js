@@ -349,7 +349,7 @@ define([
                 $('#divAgeSummary').html(self.agingSummaryTemplate());
             },
 
-            showInvoiceGrid: function (claimID, patientId) {
+            showInvoiceGrid: function (claimID, patientId,payer_type) {
                 var self = this;
                 $('#divInvoiceGrid').show();
                 this.invoiceTable = new customGrid();
@@ -408,7 +408,7 @@ define([
                     customargs: {
                         claimID: claimID,
                         patientId: patientId,
-                        billProvId: 0
+                        payerType: payer_type
                     },
                     pager: '#gridPager_invoiceClaim',
                     onaftergridbind: self.afterGridBind,
@@ -956,10 +956,10 @@ define([
                 self.showPatientClaimsLogGrid(claimId, patientId);
             },
 
-            invoiceInquiry: function (claimId, patientId) {
+            invoiceInquiry: function (claimId, patientId, payer_type) {
                 var self = this;
                 this.$el.html(this.claimInvoiceTemplate());
-                self.showInvoiceGrid(claimId, patientId);
+                self.showInvoiceGrid(claimId, patientId, payer_type);
             },
 
             printPaymentInvoice: function (e) {

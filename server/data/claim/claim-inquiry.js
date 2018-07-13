@@ -580,7 +580,8 @@ module.exports = {
             sortOrder,
             sortField,
             pageNo,
-            pageSize } = params;
+            pageSize,
+            payerType } = params;
 
         let sql = SQL`WITH invoice_payment_details AS(
                             SELECT 
@@ -592,7 +593,8 @@ module.exports = {
                                 , claim_totals.claim_balance_total AS balance
                             FROM billing.claims bc
                             INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
-                            WHERE invoice_no is not null)
+                            WHERE bc.invoice_no is not null
+                            AND bc.payer_type = ${payerType})
                             SELECT
                                   ROW_NUMBER () OVER (ORDER BY invoice_no) AS id
                                 , invoice_no As invoice_no
