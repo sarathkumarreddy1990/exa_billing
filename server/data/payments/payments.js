@@ -807,7 +807,7 @@ module.exports = {
             payer_id
         } = params;
 
-        let whereQuery = payer_type == 'patient' ? ` WHERE bc.patient_id = ${payer_id} ` : ` WHERE bc.invoice_no = ${invoice_no} `;
+        let whereQuery = payer_type == 'patient' ? ` WHERE bc.patient_id = ${payer_id} ` : ` WHERE bc.invoice_no = ${invoice_no}::text `;
 
         const sql =SQL`WITH 
                     claims_details AS (
@@ -881,7 +881,7 @@ module.exports = {
             payer_id
         } = params;
 
-        let whereQuery = payer_type == 'patient' ? ` WHERE bc.patient_id = ${payer_id} ` : ` WHERE bc.invoice_no = ${invoice_no} `;
+        let whereQuery = payer_type == 'patient' ? ` WHERE bc.patient_id = ${payer_id} ` : ` WHERE bc.invoice_no = ${invoice_no}::text `;
 
         const sql = SQL`
             SELECT 
