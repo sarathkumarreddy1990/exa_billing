@@ -12,6 +12,7 @@ define([
     'views/reports/payment-invoice',
     'text!templates/claims/claimInquiryPayment.html',
     'collections/claim-patient-inquiry',
+    'collections/claim-invoice',
     'text!templates/claims/claim-patient.html',
     'text!templates/claims/age-summary.html',
     'text!templates/claims/claim-patient-log.html',
@@ -33,6 +34,7 @@ define([
     paymentInvoice,
     paymentDetails,
     claimPatientList,
+    claimInvoiceList,
     claimPatientInquiryTemplate,
     agingSummaryHTML,
     claimPatientLogHTML,    
@@ -66,6 +68,7 @@ define([
                 this.pager = new Pager();
                 this.claimCommentsList = new claimCommentsList();
                 this.claimPatientList = new claimPatientList();
+                this.claimInvoiceList = new claimInvoiceList();
                 this.claimPatientLogList = new claimPatientLogList();
                 if(app.userInfo.user_type != 'SU'){
                     var rights = (new Permission()).init();
@@ -362,19 +365,19 @@ define([
                             name: 'invoice_no', search: true, width: 100
                         },
                         {
-                            name: 'claim_dt', search: true, formatter: self.dateFormatter, width: 150
+                            name: 'invoice_date', search: true, formatter: self.dateFormatter, width: 150
                         },
                         {
-                            name: 'billing_fee', search: true, width: 150
+                            name: 'invoice_bill_fee', search: true, width: 150
                         },
                         {
-                            name: 'ajdustments_applied_total', search: true, width: 150
+                            name: 'invoice_payment', search: true, width: 150
                         },                       
                         {
-                            name: 'total_patient_payment', search: true, width: 150
+                            name: 'invoice_adjustment', search: true, width: 150
                         },
                         {
-                            name: 'claim_balance', search: true, width: 150
+                            name: 'invoice_balance', search: true, width: 150
                         },
                         {
                             name: 'edit', width: 50, sortable: false, search: false,
@@ -389,11 +392,11 @@ define([
                         }
 
                     ],
-                    datastore: self.claimPatientList,
+                    datastore: self.claimInvoiceList,
                     container: self.el,
                     cmTemplate: { sortable: false },
                     customizeSort: false,
-                    sortname: "claims.id",
+                    sortname: "invoice_no",
                     sortorder: "desc",
                     dblClickActionIndex: 1,
                     disablesearch: false,
