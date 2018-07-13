@@ -976,10 +976,6 @@ var commonjs = {
                 if (url) {
                     $modalContainer.find('iframe').remove();
                 }
-
-                if (parent.editStudyID > 0 && app.transcriptionLock) {
-                    commonjs.lockUnlockTranscription({ study_id: parent.editStudyID, lockType: "unlock", user_id: app.userID });
-                }
             }
 
             if (options.onHide && typeof options.onHide === 'function') {
@@ -2188,9 +2184,6 @@ var commonjs = {
         $('.page-header').hide();
         switch (commonjs.currentModule) {
             case 'Home':
-            case 'Order':
-                commonjs.hideOrderMenu();
-                break;
             case 'Setup':
                 commonjs.hideSetupMenu();
                 break;
@@ -2356,27 +2349,22 @@ var commonjs = {
             case 'Claims':
                 commonjs.resizeHomeScreen();
                 break;
-            case 'Order':
-                commonjs.setpatientFrameheight();
-                break;
-            case 'Main Module':
-                siteSettingsGridResize();
-                break;
         }
-        commonjs.resizeIconMenu();
-        if (currentModule !== 'Main Module') {
-            $('div.ui-jqgrid > div.ui-jqgrid-view > div.ui-jqgrid-bdiv > div > table.ui-jqgrid-btable').each(function (index) {
-                if (!$(this).parents('table.ui-jqgrid-btable').length) {
-                    var obj = commonjs.getGridMeasures(jq_isWidthResize, jq_isHeightResize, jq_userWidth, jq_userHeight, jq_offsetWidth, jq_offsetheight);
-                    //$(this).jqGrid('setGridWidth', obj.width);
-                    if (($(this).attr('id') && $(this).attr('id').indexOf('tblGridOD') == 0) || ($(this).attr('id') && $(this).attr('id').indexOf('tblGridPS') == 0)) // for home page pre-orders and qc grids having buttons under grid
-                        $(this).jqGrid('setGridHeight', obj.height - 20);
-                    else
-                        $(this).jqGrid('setGridHeight', obj.height);
-                }
-            });
 
-        }
+        commonjs.resizeIconMenu();
+
+        $('div.ui-jqgrid > div.ui-jqgrid-view > div.ui-jqgrid-bdiv > div > table.ui-jqgrid-btable').each(function (index) {
+            if (!$(this).parents('table.ui-jqgrid-btable').length) {
+                var obj = commonjs.getGridMeasures(jq_isWidthResize, jq_isHeightResize, jq_userWidth, jq_userHeight, jq_offsetWidth, jq_offsetheight);
+                
+                //$(this).jqGrid('setGridWidth', obj.width);
+                if (($(this).attr('id') && $(this).attr('id').indexOf('tblGridOD') == 0) || ($(this).attr('id') && $(this).attr('id').indexOf('tblGridPS') == 0)) // for home page pre-orders and qc grids having buttons under grid
+                    $(this).jqGrid('setGridHeight', obj.height - 20);
+                else
+                    $(this).jqGrid('setGridHeight', obj.height);
+            }
+        });
+
         if (grid = $('.ui-jqgrid-btable:visible')) {
             grid.each(function (index) {
                 gridId = $(this).attr('id');
@@ -2504,15 +2492,6 @@ var commonjs = {
                 case 'Patient':
                     height = $(window).height() - ($('header.header').outerHeight() + $('#patientDocHeader').outerHeight() + 200);
                     break;
-                case 'Main Module':
-                    height = $(window).height() - ($('header.header').outerHeight() + 150);
-                    // SMH 2015.7.26
-                    // Added to account for the height of the tabs on edit company
-                    height = ($('#editCompanyTabs').length > 0) ? height - $('#editCompanyTabs > .nav-tabs').outerHeight() : height;
-                    break;
-                case 'Order':
-                    height = $(window).height() - (50 + 40 + 120) < 100 ? $(window).height() : $(window).height() - (50 + 40 + 120);
-                    break;
                 case 'EOB':
                     height = $(window).height() - 225;
             }
@@ -2529,55 +2508,6 @@ var commonjs = {
         if ($('.formParent').length > 0) {
             $('#divPatientSearchResults').height($('.formParent').height() - ($('.page-details-panel').height() + $('header.header').height() + $('#provideInfo').height() + $('#searchForm').height() + 25));
             //$('#divPatientSearchResults').width($('.formParent').width() - 30);
-        }
-    },
-
-    setorderFrameheight: function () {
-        if (!orderFrameVisited) {
-            if ($('#ordermenu_ul')[0])
-                $('#ordermenu_ul').css({ 'min-height': ($('#ordermenu_ul')[0].clientHeight) + 'px' });
-            orderFrameVisited = true;
-        }
-        $('#orderSideMenu').height($('#divOrderFrame').height() + 5);
-        // $('#orderSideMenu').height($('div#body_container').height() - 51);
-        $('#orderSideMenu .nav-tabs').css('min-height', $('#divOrderFrame').height());
-    },
-
-    activatelink: function (settingsTitle) {
-        var i18nAttr = this.getMenui18nName(settingsTitle);
-        if (settingsTitle != "") {
-            settingsTitle += "\n<span class='caret' data-original-title='' title=''></span>";
-            $("#activeMenu").html(settingsTitle);
-            $("#activeMenu").attr('i18n', i18nAttr);
-        }
-    },
-
-    getMenui18nName: function (screenName) {
-        switch (screenName.toUpperCase()) {
-            case 'OFFICE':
-                return 'menuTitles.setup.office';
-            case 'PROVIDERS':
-                return 'menuTitles.setup.providers';
-            case 'SCHEDULING & CODES':
-                return 'menuTitles.setup.schCodes';
-            case 'DICOM':
-                return 'menuTitles.setup.dicom';
-            case 'BILLING':
-                return 'menuTitles.masterPageMenu.billing';
-            case 'MEANINGFUL USE':
-                return 'menuTitles.masterPageMenu.meaningfulUse';
-            case 'USER MANAGEMENT':
-                return 'menuTitles.setup.userMgmt';
-            case 'MOBILE RAD':
-                return 'menuTitles.setup.mobRad';
-            case 'GENERAL':
-                return 'menuTitles.setup.general';
-            case 'HL7':
-                return 'menuTitles.setup.hl7';
-            case 'LOG':
-                return 'menuTitles.setup.log';
-            case 'STRUCTURED REPORTING':
-                return 'menuTitles.setup.cardiology';
         }
     },
 
@@ -2753,22 +2683,6 @@ var commonjs = {
                 break;
         }
         return { status: current_status, colorCode: color };
-    },
-
-    loadStatusCodes: function () {
-        // if (!commonjs.isHomePageVisited) {
-        $.ajax({
-            url: '/getStatusCode',
-            type: "GET",
-            data: {},
-            success: function (data, response) {
-                commonjs.setupStatusCodes(data.response);
-            },
-            error: function (err, response) {
-                commonjs.handleXhrError(err);
-            }
-        });
-        //  }
     },
 
     changeCss: function () {
@@ -3300,20 +3214,8 @@ var commonjs = {
             return gridData;
         };
 
-        var appSettingTrigger = function (result, type) {
-            var root = window.parent || window;
-            var cjs = root.commonjs;
-            if (result && result.appsettings) {
-                cjs.setAppSettings(result.appsettings, type);
-            }
-            else {
-                //location.href = '/login';
-                cjs.redirectToLoginPage();
-            }
-        };
-
         commonjs.socket.on('office_trigger', function (result) {
-            appSettingTrigger(result, 'facility');
+            //appSettingTrigger(result, 'facility');
         });
 
         var dispatchData = function (data) {
@@ -3488,463 +3390,6 @@ var commonjs = {
         return !!arg && Object.prototype.toString.call(arg).match(/(\w+)\]/)[1];
     },
 
-    setAppSettings: function (appsettings, screen) {
-        var appsettingsobj = appsettings;
-        if (!app) {
-            app = { userInfo: {}, settings: {} };
-
-        }
-        switch (screen) {
-            case 'facility':
-                app.facilities = (appsettingsobj.facility.length > 0) ? appsettingsobj.facility : [];
-                app.userfacilities = [];
-                var users = appsettingsobj.users;
-                var userFacilityIds = app.userInfo && app.userInfo.facilities
-                    ? app.userInfo.facilities
-                    : users.facilities;
-                var defaultUserFacilityId = app.default_facility_id || users.default_facility_id;
-                if (userFacilityIds) {
-                    $.each(app.facilities, function (f, facility) {
-
-                        if (userFacilityIds.indexOf(facility.id) > -1) {
-                            app.userfacilities.push(facility);
-                        }
-                        if (facility.id == defaultUserFacilityId) {
-                            app.default_facility = facility;
-                        }
-                    });
-                }
-                break;
-            case 'userdevices':
-                app.userdevices = appsettingsobj.userdevices;
-                var defaultDevice = $.grep(app.userdevices, function (device) {
-                    return device.is_default == true;
-                });
-                if (defaultDevice.length > 0) {
-                    app.default_device_id = defaultDevice[0].id;
-                }
-                else {
-                    app.default_device_id = 0;
-                }
-                break;
-            case 'modality':
-                app.modalities = (appsettingsobj.modalities.length > 0) ? appsettingsobj.modalities : [];
-                break;
-            case 'modalityroom':
-                app.modalityRooms = (appsettingsobj.modalityrooms.length > 0) ? appsettingsobj.modalityrooms : [];
-                app.setupModalityRooms(app.modalityRooms);
-                break;
-            case 'vehicle':
-                app.vehicles = (appsettingsobj.vehicle.length > 0) ? appsettingsobj.vehicle : [];
-                break;
-            case 'application_entity':
-                app.application_entities = (appsettingsobj.application_entities.length > 0) ? appsettingsobj.application_entities : [];
-                break;
-            case 'appgadget':
-                app.appGadgets = (appsettingsobj.appGadgets.length > 0) ? appsettingsobj.appGadgets : [];
-                break;
-            case 'filestore':
-                app.filestores = (appsettingsobj && appsettingsobj.filestore && appsettingsobj.filestore.length > 0) ? appsettingsobj.filestore : [];
-                break;
-            case 'assignedStudies':
-                app.assignedStudies = (appsettingsobj && appsettingsobj.assignedStudies && appsettingsobj.assignedStudies.length > 0) ? appsettingsobj.assignedStudies : [];
-                break;
-            case 'all':
-                app.settings.notificationTemplates = appsettingsobj.notificationTemplates;
-                app.settings.readOnlyExtTools = appsettingsobj.readOnlyExtTools;
-                app.settings.updoxAcctID = appsettingsobj.updoxAcctID;
-                app.settings.updoxEnabled = appsettingsobj.updoxEnabled;
-                app.settings.updoxURL = appsettingsobj.updoxURL || '';
-                app.settings.eraInboxPath = appsettingsobj.eraInboxPath || '';
-                app.settings.updoxAPIURL = appsettingsobj.updoxAPIURL || '';
-                app.settings.updoxReminders = appsettingsobj.updoxReminders;
-                app.settings.viewerTitlebarText = appsettingsobj.viewerTitlebarText;
-                var patientflags = [];
-                for (var key in commonjs.patientFlags) {
-                    patientflags.push({ 'code': key, 'description': commonjs.patientFlags[key] });
-                }
-                if (!appsettingsobj.patient_portal) {
-                    var users = appsettingsobj.users;
-                    app.default_facility_id = users.default_facility_id;
-                    app.facilities = appsettingsobj.facility.length > 0 ? appsettingsobj.facility : [];
-                    app.userfacilities = [];
-                    if (users.facilities) {
-                        $.each(app.facilities, function (f, facility) {
-                            $.each(users.facilities, function (uf, userfacility) {
-                                if (facility.id == userfacility) {
-                                    app.userfacilities.push(facility);
-                                }
-                                if (facility.id == users.default_facility_id) {
-                                    app.default_facility = facility;
-                                }
-                            });
-                        });
-                    }
-                    app.thirdParty = appsettingsobj.thirdParty;
-                    app.settings.updoxAcctID = appsettingsobj.updoxAcctID;
-                    app.settings.updoxEnabled = appsettingsobj.updoxEnabled;
-                    app.settings.updoxURL = appsettingsobj.updoxURL || '';
-                    app.settings.updoxAPIURL = appsettingsobj.updoxAPIURL || '';
-                    app.settings.ikonopediaInitialized = appsettingsobj.ikonopediaID > 0;
-                    app.settings.ikonopediaID = appsettingsobj.ikonopediaID;
-                    app.settings.isApptTypeDescriptionIgnored = appsettingsobj.isApptTypeDescriptionIgnored;
-                    app.settings.ikonopediaAPIURL = appsettingsobj.ikonopediaAPIURL;
-                    app.settings.ikonopediaAPIArgs = appsettingsobj.ikonopediaAPIArgs;
-                    app.settings.ikonopediaPass = appsettingsobj.ikonopediaPass;
-                    var appGadgets = appsettingsobj.appGadgets;
-                    app.assignedStudies = appsettingsobj.assignedStudies;
-                    app.appGadgets = (appGadgets && appGadgets.length > 0) ? appGadgets : [];
-                    app.providercontacts = (appsettingsobj && appsettingsobj.providercontacts.length > 0) ? appsettingsobj.providercontacts : [];
-                    app.providercontact_ids = commonjs.getProviderContactIDs(app.providercontacts);
-                    var userroles = appsettingsobj.userroles;
-                    app.userdevices = appsettingsobj.userdevices;
-
-                    var patientLocation = ['ER', 'IP', 'OP'];
-                    app.sessionID = appsettingsobj.sessionID;
-                    app.localCacheAeTitle = 'DICOM_SCP';
-                    app.userID = users.id;
-                    app.providerID = (users.provider_id > 0) ? users.provider_id : 0;
-                    app.provider_type = (users.provider_type) ? users.provider_type : '';
-                    app.refproviderID = (app.providerID > 0 && app.provider_type.toUpperCase() == 'RF') ? app.providerID : 0;
-                    app.provider_name = (users.provider_name) ? users.provider_name : "";
-                    app.userInfo.user_settings = users.user_settings;
-                    app.userInfo.userName = users.username;
-                    app.userInfo.userFullName = users.last_name + ', ' + users.first_name;
-                    app.userInfo.user_type = (commonjs.checkNotEmpty(users.user_type)) ? users.user_type : app.userInfo.user_type;
-                    app.userInfo.first_name = users.first_name;
-                    app.userInfo.last_name = users.last_name;
-                    app.userInfo.middle_initial = users.middle_initial;
-                    app.userInfo.suffix = users.suffix;
-                    app.userInfo.facilities = users.facilities;
-                    app.userInfo.groupCode = users.group_code;
-                    app.userInfo.linked_ordfacilities = users.linked_ordfacilities && users.linked_ordfacilities.length > 0 ? users.linked_ordfacilities : [];
-                    app.userInfo.pg_group_info = users.pg_group_info && users.pg_group_info.length > 0 ? users.pg_group_info : [];
-                    app.groupInfo = users.group_info;
-                    app.userInfo.user_group_id = users.user_group_id;
-                    app.userInfo.password_changed_dt = users.password_changed_dt;
-                    var userdocumenttypes = app.userdocumenttypes = users.document_types ? users.document_types : [];
-                    app.enableSwitchUser = (users.enableSwitchUser) ? true : false;
-                    app.showQcSwitch = appsettingsobj.showQcSwitch || false;
-                    app.linkedOrdFacilities = (appsettingsobj.linkedOrdFacilities && appsettingsobj.linkedOrdFacilities.length > 0) ? appsettingsobj.linkedOrdFacilities : null;
-                    app.insProviderTypes = (appsettingsobj.adjCodes && appsettingsobj.adjCodes.length > 0) ? appsettingsobj.adjCodes : [];
-                    app.readingDoctorLevel = (appsettingsobj.readingDoctorLevel && appsettingsobj.readingDoctorLevel.length > 0) ? appsettingsobj.readingDoctorLevel : null;
-                    if (app.userInfo.user_type == 'SU' || app.enableSwitchUser) {
-                        if (app.userInfo.user_type != 'SU') {
-                            $('#li_adminsettings').hide();
-                            commonjs.setReferringProviderScreens();
-                        } else {
-                            $('#li_adminsettings').show();
-                        }
-                        app.userInfo.user_type = 'SU';
-                        $('#li_selectuser').show();
-
-                    } else {
-                        commonjs.setReferringProviderScreens();
-                    }
-
-                    app.changePassword = false;
-                    if (app.userInfo && app.userInfo.user_settings) {
-                        var temp = commonjs.hstoreParse(app.userInfo.user_settings);
-                        app.userInfo.dragon360 = false;
-
-                        // See if user needs to change their password
-                        if (temp.userMustChangePassword && temp.userMustChangePassword == 'true') {
-                            app.changePassword = true;
-                        }
-
-                        // Move dragon360 out of the hstore for easier access
-                        if (temp.dragon360 && temp.dragon360 == 'true') {
-                            app.userInfo.dragon360 = true;
-                        }
-                        temp = undefined;
-                    }
-
-                    $('#spadmin').text(app.userInfo.userFullName);
-
-                    app.ordFacilities = (appsettingsobj.ordFacilities.length > 0) ? appsettingsobj.ordFacilities : [];
-                    app.studyFilter = (appsettingsobj.studyFilter.length > 0) ? appsettingsobj.studyFilter : [];
-                    app.modalities = (appsettingsobj.modalities.length > 0) ? appsettingsobj.modalities : [];
-                    app.modalityRooms = (appsettingsobj.modalityrooms.length > 0) ? appsettingsobj.modalityrooms : [];
-                    if (app.setupModalityRooms) app.setupModalityRooms(app.modalityRooms);
-
-                    app.customOrderStatus = [];
-                    app.customStudyStatus = [];
-                    if (Array.isArray(appsettingsobj.customStatuses)) {
-                        appsettingsobj.customStatuses.forEach(function (status) {
-                            if (status.order_related === true) {
-                                app.customOrderStatus.push(status);
-                            }
-                            else {
-                                app.customStudyStatus.push(status);
-                            }
-                        });
-                    }
-
-                    app.vehicles = (appsettingsobj.vehicle && appsettingsobj.vehicle.length > 0) ? appsettingsobj.vehicle : [];
-                    app.settings.patientflags = (patientflags && patientflags.length > 0) ? patientflags : [];
-                    app.localCacheAeTitle = null;
-
-                    app.settings.studyflag = [];
-                    $.each(appsettingsobj.study_flags, function (index, flagData) {
-                        app.settings.studyflag.push(flagData.description);
-                    });
-                    app.settings.patientLocation = (patientLocation && patientLocation.length > 0) ? patientLocation : [];
-                    app.usersettings = typeof appsettingsobj.usersettings === "object" && appsettingsobj.usersettings || {
-                        id: 1,
-                        field_orders: [1, 2, 3, 4],
-                        grid_options: [
-                            { name: "Modality", width: 150 },
-
-                            { name: "Patient", width: 200 },
-
-                            { name: "Accession #", width: 200 },
-
-                            { name: "Status", width: 150 }
-                        ],
-                        sort_column: "Accession #",
-                        sort_order: "Desc",
-                        wl_sort_field: "accession_no",
-                        study_fields: ["Modality", "Patient", "Accession #", "Status"]
-                    };
-                    function change_theme(theme) {
-                        app.currentTheme = theme;
-                        commonjs.refreshUserSettings();
-                        jQuery.ajax({
-                            url: "/updateUserTheme",
-                            type: "PUT",
-                            data: {
-                                "theme": theme
-                            },
-                            success: function (data, textStatus, jqXHR) {
-
-                            },
-                            error: function (err) {
-                                commonjs.showError('messages.errors.cannotchangetheme');
-                            }
-                        });
-                    };
-                    var btn_theme_changer = $('.btn-theme-changer'),
-                        tc_icon = btn_theme_changer.find('i'),
-                        tc_label_dark = btn_theme_changer.find('.tc-label-dark'),
-                        tc_label_bright = btn_theme_changer.find('.tc-label-bright');
-
-                    btn_theme_changer.off().on('click', function (e) {
-                        e.preventDefault();
-                        var obj = $(this);
-
-                        if (obj.hasClass("active")) {
-                            obj.removeClass("active");
-
-                            tc_label_dark.hide();
-                            tc_label_bright.fadeIn();
-                            tc_icon.animate({
-                                left: '88'
-                            }, function () {
-                                change_theme("default");
-                            });
-                        } else {
-                            obj.addClass("active");
-
-                            tc_label_bright.hide();
-                            tc_label_dark.fadeIn();
-                            tc_icon.animate({
-                                left: '2'
-                            }, function () {
-                                change_theme("dark");
-                            });
-
-                        }
-
-                        return false;
-                    });
-                    var usersettings = commonjs.hstoreParse(users.user_settings);
-                    var usersettingsapp = commonjs.hstoreParse(app.usersettings.other_settings);
-                    app.usersettings.showAllDocuments = usersettingsapp.showAllDocuments === 'true' || usersettingsapp.showAllDocuments === true;
-                    app.usersettings.printOrderInfo = {
-                        include_barcodes: usersettingsapp.include_barcodes === 'true',
-                        include_notes: usersettingsapp.include_notes === 'true',
-                        include_disclaimer: usersettingsapp.include_disclaimer === 'true'
-                    };
-                    app.showpriors = usersettingsapp.ShowPriors == 'true';
-                    app.showserial = usersettingsapp.ShowSerial == 'true';
-                    app.useDragon = usersettingsapp.UseDragon === 'On';
-                    app.exaTransDelay = usersettingsapp.ExaTransDelay === 'On';
-                    app.exaTransFontName = usersettingsapp.ExaTransFontName;
-                    app.exaTransFontSize = usersettingsapp.ExaTransFontSize ? parseInt(usersettingsapp.ExaTransFontSize) : "";
-                    app.show_pending_studies = usersettingsapp.show_pending_studies == 'true';
-                    if (app.refproviderID > 0) {
-                        app.show_pending_studies = false;
-                    }
-                    // set the schedule book default time increment
-                    app.defaultTimeIncrement = usersettingsapp.DefaultTimeIncrement ? parseInt(usersettingsapp.DefaultTimeIncrement) : 15;
-                    app.show_comp_pend_list = usersettingsapp.show_completed_pending_list == 'true';
-                    app.show_orders_tab = usersettingsapp.show_orders_tab == 'true';
-                    app.openOrderOnCreate = usersettingsapp.openOrderOnCreate === 'true';
-                    app.show_summary_tab = usersettingsapp.show_summary_tab == 'true';
-                    app.showdeletedstudies = (usersettingsapp.showDeleteStudies == 'true');
-                    app.showdeletedpendingstudies = usersettingsapp.showDeletePendingStudies == 'true';
-                    app.defaultTab = usersettingsapp.defaultTab ? usersettingsapp.defaultTab : "";
-                    app.dblClkBhvr = usersettingsapp.dblClkBhvr ? usersettingsapp.dblClkBhvr : "";
-                    app.dblClkSCHBhvr = usersettingsapp.dblClkSCHBhvr ? usersettingsapp.dblClkSCHBhvr : "";
-                    app.currentDirection = (usersettings.direction) ? usersettings.direction : 'ltr';
-                    app.currentSearchTab = (usersettings.defaultTab) ? usersettings.defaultTab : 'name';
-                    app.bandwidth = (usersettings.bandwidth) ? usersettings.bandwidth : '';
-                    var defaultDevice = $.grep(app.userdevices, function (device) {
-                        return device.is_default == true;
-                    });
-                    if (defaultDevice.length > 0) {
-                        app.default_device_id = defaultDevice[0].id;
-                    }
-                    else {
-                        app.default_device_id = 0;
-                    }
-                    app.navPinned = usersettings.navPinned == 'true';
-                    app.hideWorklistIcons = usersettings.hideWorklistIcons == 'true';
-                    app.schBookAsNewTab = usersettings.schBookAsNewTab == 'true';
-                    app.autoOpenDevice = usersettings.autoOpenDevice == 'true';
-                    app.lettersTobeSearched = users.lettersTobeSearched;
-                    app.sessionTimeout = users.sessionTimeout;
-                    app.allowEmergencyAccess = usersettings.allowEmergencyAccess ? usersettings.allowEmergencyAccess == 'true' : false;
-                    app.enableEmergencyAccess = usersettings.allowEmergencyAccess ? usersettings.allowEmergencyAccess == 'true' : false;
-                    app.socketIO_Url = commonjs.getHostUrl();
-                    app.autoRefreshInterval = users.autoRefreshInterval;
-                    app.enableSocketIO = users.enableSocketIO;
-                    app.currentTheme = usersettings.theme;
-                    app.gridFields = users.gridFields;
-                    app.gridSettings = users.gridSettings;
-                    if (app.currentTheme == "dark") {
-                        btn_theme_changer.addClass("active");
-
-                        tc_label_bright.hide();
-                        tc_label_dark.show();
-                    }
-                    app.currentCulture = usersettings.culture;
-                    app.currentrowsToDisplay = usersettings.rowsToDisplay;
-                    app.latestVersion = users.latestVersion;
-                    app.productName = users.productName;
-                    app.transcriptionServerUrl = users.transcriptionServerUrl;
-                    app.insPokitdok = users.insPokitdok;
-                    app.exatrans = users.exatrans;
-                    app.license = users.license;
-                    app.cardiomodule = users.cardiomodule;
-                    app.d360OrgToken = users.d360OrgToken;
-                    var completerole = new Array();
-                    var appuserRoles = [];
-                    if (userroles.length > 0) {
-                        userroles.forEach(function (currentrole) {
-                            completerole = completerole.concat(currentrole.permissions);
-                            appuserRoles.push(currentrole);
-                        });
-                    }
-                    var uniqueNames = [];
-                    $.each(completerole, function (i, el) {
-                        if ($.inArray(el, uniqueNames) === -1) uniqueNames.push(el);
-                    });
-
-                    app.screenCodes = uniqueNames;
-                    app.schedule_mode = usersettings.schedule_mode || 'R';
-                    app.usersettings.searchByAssociatedPatients = usersettings.searchByAssociatedPatients === "true" || usersettings.searchByAssociatedPatients === true;
-                    app.permissions = appsettingsobj.permissions;
-                    app.userRoles = appuserRoles;
-                    settingsReceived = true;
-                }
-                else {
-                    var scan_document__types = appsettingsobj.company.scan_document_types ? appsettingsobj.company.scan_document_types.scan_document_type : [];
-                    var company = appsettingsobj.company;
-
-                    var patientLocation = ['ER', 'IP', 'OP'];
-                    var states = (company.app_states && company.app_states.length > 0) ? company.app_states.sort() : [];
-                    var sites = appsettingsobj.sites;
-                    var patients = appsettingsobj.patients;
-                    app.patient_name = patients.full_name;
-                    $('#spPatientAdmin').text(patients.full_name);
-                    app.patient_id = patients.id;
-                    app.login_type = appsettingsobj.pp_patients && appsettingsobj.pp_patients.rep_login_id ? 'Rep' : 'Patient';
-                    app.rep_patient_info = appsettingsobj.pp_patients ? appsettingsobj.pp_patients : appsettingsobj.patients;
-                    app.siteID = sites.id;
-                    app.company_code = (company.company_code) ? company.company_code : '';
-                    app.enableLDAP = (company.enable_ldap) ? true : false;
-                    app.currentCompanyID = app.companyID = (company.id) ? company.id : 0;
-                    app.currentCompanyCode = app.company_code = (company.company_code) ? company.company_code : '';
-                    app.facilities = (appsettingsobj.facility.length > 0) ? appsettingsobj.facility : [];
-                    app.filestores = (appsettingsobj && appsettingsobj.filestore && appsettingsobj.filestore.length > 0) ? appsettingsobj.filestore : [];
-                    app.modalities = (appsettingsobj.modalities.length > 0) ? appsettingsobj.modalities : [];
-                    app.modalityRooms = (appsettingsobj.modalityrooms.length > 0) ? appsettingsobj.modalityrooms : [];
-                    app.setupModalityRooms(app.modalityRooms);
-                    app.application_entities = (appsettingsobj.application_entities.length > 0) ? appsettingsobj.application_entities : [];
-                    app.states = (states.length > 0) ? states.sort() : [];
-                    var sys_config = commonjs.hstoreParse(company.sys_config);
-                    var mrn_info = commonjs.hstoreParse(company.mrn_info);
-                    app.can_edit = mrn_info.can_edit;
-                    app.prefix = mrn_info.prefix == "" ? "" : mrn_info.prefix;
-                    app.suffix = mrn_info.suffix == "" ? "" : mrn_info.suffix;
-                    app.mrn_type = mrn_info.mrn_type == "" ? "" : mrn_info.mrn_type;
-
-                    app.default_facility_id = appsettingsobj.patients.facility_id;
-                    app.aeinstitutionfilter = (company.ae_institution_filter && company.ae_institution_filter.length > 0) ? company.ae_institution_filter : [];
-                    app.settings.userTitles = (typeof sys_config.sys_user_titles == "string") ? sys_config.sys_user_titles.split(',') : [];
-                    app.settings.maritalStatus = (typeof sys_config.sys_marital_status == "string") ? sys_config.sys_marital_status.split(',') : [];
-                    app.settings.bodyParts = (typeof sys_config.sys_body_parts == "string") ? sys_config.sys_body_parts.split(',') : [];
-                    app.settings.empStatus = (typeof sys_config.sys_emp_status == "string") ? sys_config.sys_emp_status.split(',') : [];
-                    app.settings.credentials = (typeof sys_config.sys_credentials == "string") ? sys_config.sys_credentials.split(',') : [];
-                    app.settings.racialIdentity = (typeof sys_config.sys_racial_identity == "string") ? sys_config.sys_racial_identity.split(',') : [];
-                    app.settings.ethnicity = (typeof sys_config.sys_ethnicity == "string") ? sys_config.sys_ethnicity.split(',') : [];
-                    app.settings.transportation = (typeof sys_config.sys_transportation == "string") ? sys_config.sys_transportation.split(',') : [];
-                    app.settings.priorities = (typeof sys_config.sys_priorities == "string") ? sys_config.sys_priorities.split(',') : [];
-                    app.settings.cancelReasons = (company.app_cancel_reasons && company.app_cancel_reasons.length > 0) ? company.app_cancel_reasons : [];
-                    app.settings.scanDocumentTypes = scan_document__types;
-                    app.settings.languages = (typeof sys_config.sys_languages == "string") ? sys_config.sys_languages.split(',') : [];
-                    app.settings.administration_site = (typeof sys_config.sys_administration_site == "string") ? sys_config.sys_administration_site.split(',') : [];
-                    var speciallist = (typeof sys_config.sys_specialities == "string") ? sys_config.sys_specialities.split(',') : [];
-                    app.settings.specialities = speciallist.length > 0 ? speciallist.sort() : [];
-                    app.settings.patientAlerts = (company.app_patient_alerts && company.app_patient_alerts.length > 0) ? company.app_patient_alerts : [];
-
-                    app.settings.veterinaryGender = (typeof sys_config.sys_veterinary == "string") ? sys_config.sys_veterinary.split(',') : [];
-                    app.settings.gender = (typeof sys_config.sys_gender == "string") ? sys_config.sys_gender.split(',') : [];
-                    app.settings.sources = (typeof sys_config.sys_sources == "string") ? sys_config.sys_sources.split(',') : [];
-                    app.settings.orientation = (typeof sys_config.sys_orientation == "string") ? sys_config.sys_orientation.split(',') : [];
-                    app.settings.relationships = (typeof sys_config.sys_relationships == "string") ? sys_config.sys_relationships.split(',') : [];
-                    app.settings.patientflags = (patientflags && patientflags.length > 0) ? patientflags : [];
-
-                    app.settings.patientLocation = (patientLocation && patientLocation.length > 0) ? patientLocation : [];
-                    app.themes = (sites.themes && sites.themes.length > 0) ? sites.themes : [];
-                    app.dicom_service_config = (sites.dicom_service_config) ? sites.dicom_service_config : null;
-                    app.image_service_config = (sites.image_service_config) ? sites.image_service_config : null;
-
-                    app.cultures = (sites.i18n_config && sites.i18n_config.length > 0) ? sites.i18n_config : [];
-                    app.transfer_syntaxes = (sites.transfer_syntaxes && sites.transfer_syntaxes.length > 0) ? sites.transfer_syntaxes : [];
-                    app.types_of_service = (sites.types_of_service && sites.types_of_service.length > 0) ? sites.types_of_service : [];
-                    app.modifiers = (sites.modifiers && sites.modifiers.length > 0) ? sites.modifiers : [];
-                    app.route_info = (sites.immunization_route_info && sites.immunization_route_info.length > 0) ? sites.immunization_route_info : [];
-                    app.info_source = (sites.immunization_info_source && sites.immunization_info_source.length > 0) ? sites.immunization_info_source : [];
-                    settingsReceived = true;
-                }
-
-                break;
-        }
-        /*ADDED FOR MU TEST
-         */
-        if (app.allowEmergencyAccess) {
-            app.userInfo.user_type = 'SU';
-        }
-        if (app.enableEmergencyAccess) {
-            $('body').append('<div style="width:100%;height:10px;position:fixed;top:0px;left:0px;z-index:10000;background-color:#FB0000;"></div>');
-        }
-
-        app.appVersion = appsettingsobj.appVersion;
-        //}
-    },
-
-    setReferringProviderScreens: function () {
-        if (app.refproviderID > 0) {
-            $('#li_selectuser').hide();
-            $('#li_adminsettings').hide();
-            $('#nav_main_setup').hide();
-            $('#nav_main_billing').hide();
-            app.show_pending_studies = false;
-        }
-    },
-
     getHostUrl: function () {
         return location.protocol + '//' + location.host;
     },
@@ -3969,17 +3414,6 @@ var commonjs = {
             return jsonString;
         }
         return [];
-    },
-
-    processStudyInfo: function (studyID, modality, callback) {
-        window.studyModality = modality;
-        callback();
-        //        var options = commonjs.getModalityOptions(modality);
-        //        var winInfo = prefetchViewer.getWindowToDisplay();
-        //        // code to be written here if studyprefetch going from worklist
-        //        commonjs.prefetchStudies(studyID, function (response) {
-        //            //if (callback) callback(response);
-        //        }, {layoutFormat: (options && options.layout && options.layout.screen_layout) || '2*2', wndCount: (winInfo && winInfo.totalWnd) || 1});
     },
 
     validateIP: function (ip) {
@@ -4400,42 +3834,11 @@ var commonjs = {
         }
     },
 
-    sortByAcquisitionTime: function (array) {
-        var aLength = array.length;
-        var aTempLength = aLength;
-        var AcquisitionTime = '_0008,002a';
-        for (var i = 0; i < aLength; i++) {
-            var sIndex = 0, temp;
-            for (var j = 0; j < aTempLength; j++) {
-                if (parseFloat(array[sIndex]["images"][0][AcquisitionTime]) > parseFloat(array[j]["images"][0][AcquisitionTime])) {
-                    sIndex = j;
-                }
-            }
-            temp = array[sIndex];
-            array.splice(sIndex, 1);
-            array.push(temp);
-            aTempLength--;
-        }
-        return array;
-    },
-
     checkNotEmpty: function (str) {
         if (!str) {
             return false;
         }
         return $.trim(str) != '';
-    },
-
-    clamp: function (val, min, max) {
-        if (isNaN(val) === false && isNaN(min) === false && isNaN(max) === false) {
-            if (parseInt(val) < min) {
-                return parseInt(min);
-            }
-            if (parseInt(val) > max) {
-                return parseInt(max);
-            }
-        }
-        return parseInt(val);
     },
 
     initializeScreen: function (args, isManual) {
@@ -4538,9 +3941,6 @@ var commonjs = {
         commonjs.validateControls();
         commonjs.isMaskValidate();
         commonjs.setupCityStateZipInputs();
-        if (parent.editStudyID && parent.editStudyID > 0 && app.transcriptionLock) {
-            commonjs.lockUnlockTranscription({ study_id: parent.editStudyID, lockType: "unlock", user_id: app.userID });
-        }
     },
 
     licenseCheck: function () {
@@ -4605,14 +4005,11 @@ var commonjs = {
     getRightClickMenu: function (elementID, i18n, isSubMenu, elementName, isULMenu) {
         if (isULMenu) {
             return '<li class="dropdown-submenu" id=li_' + elementID + '><a tabindex="-1" href="javascript: void(0)" i18n=' + i18n + ' class="dropdown-item">' + elementName + '</a><ul id=' + elementID + ' style="float:right;" class="dropdown-menu"></ul></li>';
-        }
-        else if (isSubMenu) {
+        } else if (isSubMenu) {
             return '<li><a class="dropdown-item" id=' + elementID + '  href="javascript: void(0)" >' + elementName + '</a></li>'
-        }
-        else {
+        } else {
             return '<li><a id=' + elementID + ' href="javascript: void(0)" i18n=' + i18n + ' class="dropdown-item">' + elementName + '</a></li>';
         }
-
     },
 
     getColorCodeForStatus: function (facility_id, code, screenName) {
@@ -4912,26 +4309,6 @@ var commonjs = {
         });
     },
 
-    setFocusToSave: function (e, formID) {
-        $('#' + formID).submit();
-    },
-
-    showFacilityPage: function () {
-        commonjs.showLoading();
-        $.ajax({
-            url: '/updateSessionValues',
-            type: "PUT",
-            data: {},
-            success: function (model, response) {
-                commonjs.hideLoading();
-                location.href = '/exa#home/studies/all';
-            },
-            error: function (model, response) {
-                commonjs.handleXhrError(model, response);
-            }
-        });
-    },
-
     homeGridProgressBar: function (rowID, colName, progressBar) {
         if (homeOpentab && colName && rowID) {
             var rowObj, patientName, currentTab;
@@ -5051,33 +4428,6 @@ var commonjs = {
         }
 
         return r;
-    },
-
-    getProviderContactIDs: function (providercontacts) {
-        var providercontact_ids = [];
-        if (providercontacts.length == 0) {
-            return providercontact_ids;
-        }
-        $.each(providercontacts, function (index, obj) {
-            providercontact_ids.push(obj.id);
-        });
-        return providercontact_ids;
-    },
-
-    lockUnlockTranscription: function (options) {
-        var self = this;
-        app.transcriptionLock = false;
-        $.ajax({
-            url: '/lockUnlockTranscription',
-            type: "PUT",
-            data: options,
-            success: function (data, textStatus, jqXHR) {
-                //                parent.editStudyID = 0;
-            },
-            error: function (model, response) {
-                commonjs.handleXhrError(model, response);
-            }
-        });
     },
 
     lockStudy: function (lock_args, callback) {
@@ -5423,48 +4773,6 @@ var commonjs = {
         }
     },
 
-    'keyCodes': {
-        '9': '    ',
-        '13': 'enter',
-        '32': ' ',
-        '48': '0',
-        '49': '1',
-        '50': '2',
-        '51': '3',
-        '52': '4',
-        '53': '5',
-        '54': '6',
-        '55': '7',
-        '56': '8',
-        '57': '9',
-        '65': 'a',
-        '66': 'b',
-        '67': 'c',
-        '68': 'd',
-        '69': 'e',
-        '70': 'f',
-        '71': 'g',
-        '72': 'h',
-        '73': 'i',
-        '74': 'j',
-        '75': 'k',
-        '76': 'l',
-        '77': 'm',
-        '78': 'n',
-        '79': 'o',
-        '80': 'p',
-        '81': 'q',
-        '82': 'r',
-        '83': 's',
-        '84': 't',
-        '85': 'u',
-        '86': 'v',
-        '87': 'w',
-        '88': 'x',
-        '89': 'y',
-        '90': 'z'
-    },
-
     /**
      * Formats an array of json objects for use as a value for JqGrid dropdown filters
      * @param {Object} options
@@ -5719,7 +5027,6 @@ var facilityModules = {
     patient: 'Patient',
     schedule: 'Schedule Book',
     home: 'Home',
-    order: 'Order',
     report: 'Report',
     billing: 'billing',
     dashboard: 'Dashboard',
@@ -5837,53 +5144,6 @@ if (typeof String.prototype.startsWith != 'function') {
     }
 })();
 
-
-function getDisplayCoordinates() {
-    return document.getElementById('pluginPrefetcher').getDisplays();
-}
-
-function studyFilterModel() {
-    commonjs.showDialog({
-        header: 'Study Filter',
-        i18nHeader: 'shared.screens.setup.studyFilter',
-        width: '75%',
-        height: '75%',
-        url: '/vieworder#setup/studyFilters/all/model'
-    });
-}
-
-function userSettingsModel() {
-    commonjs.showDialog({
-        header: 'User Settings',
-        i18nHeader: 'home.common.userSettings',
-        width: '75%',
-        height: '80%',
-        url: '/vieworder#setup/userSettings/all/model'
-    });
-}
-
-function showAllTabsList() {
-    $('#ulTabCollection').css({
-        'top': e.pageY - 50,
-        'left': e.pageX,
-        'position': 'absolute',
-        'border': '1px solid black',
-        'padding': '5px'
-    });
-}
-
-function setTitle(name) {
-    $('.title-panel h2').html(name);
-}
-
-function hideTatStat() {
-    $('.header-color-marks').hide();
-}
-
-function hideTopNav() {
-    $('.top-nav').hide();
-}
-
 function CreateCheckBox(label, id, i18nLabel) {
     return $('<div>').addClass('form-check form-check-inline').append($('<input>').attr({
         type: 'checkbox',
@@ -5892,85 +5152,6 @@ function CreateCheckBox(label, id, i18nLabel) {
         value: label,
         checked: false
     }).addClass('form-check-input')).append($('<label>').attr({ for: id, 'i18n': i18nLabel, 'value': label }).addClass('form-check-label').text(label));
-}
-
-function toggleSearchRow() {
-    $('#ic-searchRowHide').toggleClass("icon-ic-zoom-out icon-ic-zoom-in");
-    $('.ui-search-toolbar').toggleClass("collapsed");
-    $('.ui-search-toolbar').toggle();
-    commonjs.docResize();
-}
-
-function toggleWorkListIcons() {
-    $('td:nth-child(24),td:nth-child(26), td:nth-child(27),  td:nth-child(29),  td:nth-child(30),  td:nth-child(31),  td:nth-child(32)').toggle();
-}
-function siteSettingsGridResize() {
-    if ($('#editCompanyTabs').length === 0) {
-        var height = commonjs.setupMenuHeight() - ($('#siteSettingsTopbar').height() + $('#siteInputForm').height() + 3);
-        $('#divSettingsSideLI').height(height);
-    }
-    $('div.ui-jqgrid > div.ui-jqgrid-view > div.ui-jqgrid-bdiv > div > table.ui-jqgrid-btable').each(function (index) {
-        var obj = commonjs.getGridMeasures(jq_isWidthResize, jq_isHeightResize, jq_userWidth, jq_userHeight, jq_offsetWidth, jq_offsetheight);
-        $(this).jqGrid('setGridHeight', obj.height);
-    });
-}
-function toggleIconMenu() {
-    if ($('nav.viztek-nav').hasClass('open')) {
-        $('#viztekIconNav').hide();
-        $('#body_content').removeClass('col-xs-12 col-md-12 col-lg-12');
-        $('#body_content').removeClass('iconMenuOpen_body_content');
-        $('nav.viztek-nav').removeClass('open');
-        $('.main-nav').css("overflow-x", "visible");
-    } else {
-        $('#profile_panel').hide('fade');
-        $('#viztekIconNav').show();
-        $('#body_content').addClass('col-xs-12 col-md-12 col-lg-12');
-        $('#body_content').addClass('iconMenuOpen_body_content');
-        $('nav.viztek-nav').addClass('open');
-        $('#profile_panel').unbind('mouseleave');
-        $('.main-nav').css("overflow-x", "hidden");
-        $('html').unbind('click');
-    }
-    commonjs.docResize();
-}
-//function setPatientHeight(){
-//$('#divPatientFrame').height($(window).outerHeight()-($('.topbar').outerHeight() + $('.header').outerHeight() + $('.page-details-panel').outerHeight() + $('.top-nav').outerHeight()));
-//$('#divPatientSideMenu').height($(window).outerHeight()-($('.topbar').outerHeight() + $('.header').outerHeight() + $('.page-details-panel').outerHeight() + $('.top-nav').outerHeight()));
-
-//}
-function togglePatientMenu() {
-    $('#patientNav').toggle();
-    $('#patientMenuDivide').toggleClass('icon-ic-circle-down icon-ic-circle-up')
-    commonjs.docResize();
-}
-
-
-function showBillingMenu() {
-    $('#mainNav').hide('fast', function () {
-        $('#billingNav').show('fast');
-    });
-}
-function showReportMenu() {
-    $('#mainNav').hide('fast', function () {
-        $('#reportNav').show('fast');
-    });
-}
-function showScheduleMenu() {
-    $('#mainNav').hide('fast', function () {
-        $('#scheduleNav').show('fast');
-    });
-}
-function menuBack() {
-    $('.subMainNavMenu').hide('fast', function () {
-        $('.fly-out-menu').hide();
-        $('#mainNav').show('fast');
-    });
-}
-function showToolsMenu() {
-    $('#mainNav').hide('fast', function () {
-        $('#toolsNav').show('fast');
-    });
-
 }
 
 function removeIframeHeader() {
