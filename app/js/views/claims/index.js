@@ -2398,15 +2398,17 @@ define(['jquery',
             saveClaimDetails: function () {
                 var self = this, saveButton = $('#btnSaveClaim');
 
-                saveButton.attr('disabled', true);
-                commonjs.showLoading();
                 if (self.validateClaimData()) {
                     self.setClaimDetails();
 
-                    // save function
+                    commonjs.showLoading();
+                    saveButton.attr('disabled', true);
+                    
                     self.model.save({}, {
                         success: function (model, response) {
                             //if (response && response.length > 0) {
+                            commonjs.hideLoading();
+
                             if (response && response.message) {
                                 commonjs.showWarning(response.message);
                             } else {
@@ -2415,12 +2417,10 @@ define(['jquery',
                                 $("#btnStudiesRefresh").click();
                                 commonjs.hideDialog();
                             }
-                            commonjs.hideLoading();
                         },
                         error: function (model, response) {
                             commonjs.handleXhrError(model, response);
                             saveButton.attr('disabled', false);
-                            commonjs.hideLoading();
                         }
                     });
                 }
