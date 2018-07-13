@@ -150,8 +150,8 @@ define(['jquery',
                 if(self.screenCode.indexOf('CLVA') > -1) // this is for validate button rights
                     $('#btnValidateClaim').attr('disabled', true)   
                     
-                self.initializeDateTimePickers();                    
-
+                self.initializeDateTimePickers();
+                
             },
 
             initializeDateTimePickers: function () {
@@ -289,7 +289,7 @@ define(['jquery',
                 $('#imgLoading').show();
                 
 
-                commonjs.showLoading('Connecting Pokitdok. please wait');
+                commonjs.showLoading('Connecting pokitdok. please wait');
                 $('#divPokidokResponse').empty();
                 $.ajax({
                     url: '/exa_modules/billing/claims/claim/eligibility',
@@ -2907,6 +2907,8 @@ define(['jquery',
                                 'patient_id': data.patient_id,
                                 'order_id': result && result.order_id ? result.order_id : 0
                             });
+
+                            $('#modal_div_container').scrollTop(0); 
                         });
                     } else {
                         commonjs.showWarning('No more order found')
@@ -2926,23 +2928,27 @@ define(['jquery',
                 var $header_container = $('#headerContainer');
                 var $root = $('#modal_div_container');
                 tab_menu_link.click(function (e) {
-                    //--Todo: navigation
+                    var currId = $(this).attr('href').split('_')[1];
+                    tab_menu_item.removeClass('active');                    
+                    $(e.target).closest('li').addClass('active');
 
-                    // var val = $($(this).attr('href')).offset().top;
-                    // var offset = $header_container.height() - 20
-                    // $root.animate({
-                    //     scrollTop: val - offset
-                    // }, 500)
-                    // tab_menu_item.removeClass('active');
-                    // $(this).parent().addClass('active');
-                    // var width_tab_menu_item = $(this).parent().width();
-                    // var _el_position = $(this).parent().position().left;
-                    // $('ul#tab_menu li.active_item').animate({
-                    //     left: _el_position,
-                    //     width: width_tab_menu_item + 40
-                    // }, 300);
+                    var _height = 0;
+                    for (var i = 1; i < currId; i++) {
+                        _height += parseInt($('#tab_' + i).height() + 15);
+                    }
+                    if (currId == 4)
+                        _height -= parseInt($('#divTeritaryInsurances').height() + 15);
+
+                    $root.animate({
+                        scrollTop: _height
+                    }, 100);
+
+                    if ($('#tab_' + currId).find('input[type=text],textarea, select').filter(':input:enabled:visible:first'))
+                        $('#tab_' + currId).find('input[type=text],textarea, select').filter(':input:enabled:visible:first').focus();
+                    e.preventDefault ? event.preventDefault() : event.returnValue = false;
                 });
 
+                $('#modal_div_container').scrollTop(0); 
             },
 
             applySearch: _.debounce(function (e) {
