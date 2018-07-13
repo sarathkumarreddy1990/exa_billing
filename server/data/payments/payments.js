@@ -48,7 +48,7 @@ module.exports = {
         }
 
         if (payment_id) {
-            whereQuery.push(` payments.id =${payment_id}`);
+            whereQuery.push(`payments.id::text = '${payment_id}'::text`);
         }
 
         if (display_id) {

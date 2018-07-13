@@ -33,7 +33,7 @@ module.exports = {
         }
 
         if (claim_id) {
-            whereQuery.push(` bc.id = '${claim_id}'`);
+            whereQuery.push(`bc.id::text = '${claim_id}'::text`);
         }
 
         if (full_name) {
@@ -285,7 +285,7 @@ module.exports = {
         }
 
         if (claim_id) {
-            whereQuery.push(` bc.id = ${claim_id} `);
+            whereQuery.push(`bc.id::text = '${claim_id}'::text`);
         }
 
         if (display_description) {
