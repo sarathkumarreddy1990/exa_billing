@@ -178,6 +178,25 @@
             "confirmed": "CONFIRMED",
             "rescheduled": "RESCHEDULED",
             "scheduled": "SCHEDULED"
+        },
+        "warning": {
+            "selectservicetype": "Select service type",
+            "selectbenefitondate": "Select benefit on date",
+            "npinumbernotpresent": "NPI number is not present",
+            "federaltaxidnotpresent": "Federal tax id is not present",
+            "eligibilitycheckdisabled": "Eligibility check disabled",
+            "problemAlreadyExists": "Problem already exists",
+            "icdLimitExists": "ICD limit exceeds",
+            "selectfacility": "Select facility",
+            "selectbillingProvider": "Select billing provider",
+            "priInsValidation": "Primary Insurance Validation",
+            "priMissingValidation": "primary missing validation",
+            "secInsValidation": "Secondary Insurance Validation",
+            "secMissingValidation": "Secondary missing validation",
+            "terInsValidation": "Tertiary Insurance Validation",
+            "chargeValidation": "Charge Validation",
+            "missingClaimStatus": "Missing Claim Status",
+            "missingResponsible": "Missing Responsible"
         }
     }
 }
