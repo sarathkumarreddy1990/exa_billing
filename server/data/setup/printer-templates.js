@@ -124,7 +124,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Created ${name}`
+            logDescription: `Add: New Printer Template(${name}) created`
         });
     },
 
@@ -173,16 +173,15 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Updated ${name}`
+            logDescription: `Update: Printer Template(${name}) updated`
         });
     },
 
     delete: async (params) => {
         const {
-                id,
-                name,
-                templateType
-            } = params;
+            id,
+            name
+        } = params;
 
         const sql = SQL`DELETE FROM 
                             billing.printer_templates 

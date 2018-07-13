@@ -4,6 +4,9 @@
 
 ## How do I get set up? ##
 
+### Add new connection string in web.json
+* ``` "dbConnectionBilling": "tcp://[user]:[pwd]@192.168.1.1:5434/[db_name]" ```
+
 ### Install dependencies
 * ``` npm run install-node_modules ```
 

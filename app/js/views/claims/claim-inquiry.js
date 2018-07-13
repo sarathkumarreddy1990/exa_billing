@@ -12,9 +12,12 @@ define([
     'views/reports/payment-invoice',
     'text!templates/claims/claimInquiryPayment.html',
     'collections/claim-patient-inquiry',
+    'collections/claim-invoice',
     'text!templates/claims/claim-patient.html',
     'text!templates/claims/age-summary.html',
     'text!templates/claims/claim-patient-log.html',
+    'text!templates/claims/claim-invoice.html',
+    'text!templates/claims/invoice-age-summary.html',
     'collections/claim-patient-log',
     'shared/permissions'
 ], function (
@@ -31,9 +34,12 @@ define([
     paymentInvoice,
     paymentDetails,
     claimPatientList,
+    claimInvoiceList,
     claimPatientInquiryTemplate,
     agingSummaryHTML,
-    claimPatientLogHTML,
+    claimPatientLogHTML,    
+    claimInvoiceHTML,
+    claimInvoiceAgeHTML,
     claimPatientLogList,
     Permission
 ) {
@@ -46,7 +52,9 @@ define([
             claimPatientTemplate: _.template(claimPatientInquiryTemplate),
             paymentTemplate: _.template(paymentDetails),
             agingSummaryTemplate: _.template(agingSummaryHTML),
-            claimPatientLogTemplate: _.template(claimPatientLogHTML),
+            claimPatientLogTemplate: _.template(claimPatientLogHTML), 
+            claimInvoiceTemplate: _.template(claimInvoiceHTML),
+            invoiceAgingSummaryTemplate: _.template(claimInvoiceAgeHTML),
             payCmtGrid: '',
             claim_id: null,     
             events: {
@@ -60,6 +68,7 @@ define([
                 this.pager = new Pager();
                 this.claimCommentsList = new claimCommentsList();
                 this.claimPatientList = new claimPatientList();
+                this.claimInvoiceList = new claimInvoiceList();
                 this.claimPatientLogList = new claimPatientLogList();
                 if(app.userInfo.user_type != 'SU'){
                     var rights = (new Permission()).init();
@@ -276,8 +285,8 @@ define([
                     gridelementid: '#tblPatientClaimsGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['', 'Claim Number', 'Claim Date', 'Billing Fee', 'Total Insurance Payments', 'Total Patient Payments', 'Balance', 'Claim Status', 'Current responsibility'],
-                    i18nNames: ['', 'billing.fileInsurance.claimNo', 'billing.claims.claimDate', 'billing.COB.billingFee', 'billing.claims.totalInsurancePayments', 'billing.claims.totalPatientPayments', 'billing.claims.Balance', 'billing.claims.claimStatus', 'billing.claims.currentResponsibility'],
+                    colNames: ['', 'Claim Number', 'Claim Date', 'Billing Fee', 'Total Adjustment','Total Insurance Payments', 'Total Patient Payments', 'Balance', 'Claim Status', 'Current responsibility'],
+                    i18nNames: ['', 'billing.fileInsurance.claimNo', 'billing.claims.claimDate', 'billing.COB.billingFee','billing.fileInsurance.totalAdjustment', 'billing.claims.totalInsurancePayments', 'billing.claims.totalPatientPayments', 'billing.claims.Balance', 'billing.claims.claimStatus', 'billing.claims.currentResponsibility'],
                     colModel: [
                         { name: '', index: 'claim_id', key: true, hidden: true, search: false },
                         {
@@ -288,6 +297,9 @@ define([
                         },
                         {
                             name: 'billing_fee', search: false, width: 100
+                        },
+                        {
+                            name: 'ajdustments_applied_total', search: false, width: 100
                         },
                         {
                             name: 'total_insurance_payment', search: false, width: 150
@@ -335,6 +347,79 @@ define([
                     $("#tblPatientClaimsGrid").setGridHeight($(window).height()-600);
                 }, 200);
                 $('#divAgeSummary').html(self.agingSummaryTemplate());
+            },
+
+            showInvoiceGrid: function (claimID, patientId) {
+                var self = this;
+                $('#divInvoiceGrid').show();
+                this.invoiceTable = new customGrid();
+                this.invoiceTable.render({
+                    gridelementid: '#tblInvoiceGrid',
+                    custompager: new Pager(),
+                    emptyMessage: 'No Record found',
+                    colNames: ['', 'Invoice No', 'Date', 'Total Billing Fee', 'Total Payments', 'Total Adjustment',  'Balance',''],
+                    i18nNames: ['', 'billing.fileInsurance.invoiceNo', 'billing.claims.Date', 'billing.COB.billingFee','billing.claims.totalPayments', 'billing.fileInsurance.totalAdjustment',  'billing.claims.Balance',''],
+                    colModel: [
+                        { name: '', index: 'id', key: true, hidden: true, search: false },                      
+                        {
+                            name: 'invoice_no', search: true, width: 100
+                        },
+                        {
+                            name: 'invoice_date', search: true, formatter: self.dateFormatter, width: 150
+                        },
+                        {
+                            name: 'invoice_bill_fee', search: true, width: 150
+                        },
+                        {
+                            name: 'invoice_payment', search: true, width: 150
+                        },                       
+                        {
+                            name: 'invoice_adjustment', search: true, width: 150
+                        },
+                        {
+                            name: 'invoice_balance', search: true, width: 150
+                        },
+                        {
+                            name: 'edit', width: 50, sortable: false, search: false,
+                            formatter: function (cellvalue, options, rowObject) {
+                                return "<a href='javascript: void(0)' id =" + rowObject.id + ">REPRINT</a>";
+                            },
+                            cellattr: function () {
+                                return "style='text-align: center;text-decoration: underline;'";
+                            },
+                            customAction: function (rowID, e) {
+                            }
+                        }
+
+                    ],
+                    datastore: self.claimInvoiceList,
+                    container: self.el,
+                    cmTemplate: { sortable: false },
+                    customizeSort: false,
+                    sortname: "invoice_no",
+                    sortorder: "desc",
+                    dblClickActionIndex: 1,
+                    disablesearch: false,
+                    disablesort: false,
+                    disablepaging: false,
+                    showcaption: false,
+                    disableadd: true,
+                    disablereload: true,
+                    customargs: {
+                        claimID: claimID,
+                        patientId: patientId,
+                        billProvId: 0
+                    },
+                    pager: '#gridPager_invoiceClaim',
+                    onaftergridbind: self.afterGridBind,
+                });
+
+
+                setTimeout(function () {
+                    $("#tblInvoiceGrid").setGridWidth($(".modal-body").width()-15);
+                    $("#tblInvoiceGrid").setGridHeight($(window).height()-600);
+                }, 200);
+                $('#divIvoiceAgeSummary').html(self.invoiceAgingSummaryTemplate());
             },
 
             showPatientClaimsLogGrid: function (claimID, patientId) {
@@ -426,20 +511,25 @@ define([
 
             showClaimCommentsGrid: function () {
                 var self = this;
-                var commentType = ["payment", "adjustment", "charge"]
+                var commentType = ["payment", "adjustment", "charge", 'refund'];
                 var payCmtGrid;
                 payCmtGrid = new customGrid();
                 payCmtGrid.render({
                     gridelementid: '#tblCIClaimComments',
                     custompager: self.pager,
                     emptyMessage: 'No Records Found',
-                    colNames: ['','', 'date', '', 'code', 'payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', ''],
+                    colNames: ['','', 'date', '', 'code', 'payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', '',''],
                     colModel: [
                         { name: 'id', hidden: true},
                         { name: 'row_id', hidden: true },
                         { name: 'commented_dt', width: 40, search: false, sortable: false, formatter: self.commentDateFormatter },
                         { name: 'code', hidden: true },
-                        { name: 'type', width: 40, search: false, sortable: false },
+                        { name: 'type', width: 40, search: false, sortable: false,
+                            cellattr: function (rowId, tv, rowdata) {
+                                if(rowdata && rowdata.code == 'manual')
+                                    return ' style="display:none;"';
+                            } 
+                        },
                         {
                             name: 'payment_id', width: 30, search: false, sortable: false,
                             customAction: function (rowID) {
@@ -452,18 +542,41 @@ define([
                                     return "<span class='icon-ic-raw-transctipt' rel='tooltip' title='View Pay details of this charge'></span>"
                                 else
                                     return rowObject.payment_id;
+                            },
+                            cellattr: function (rowId, tv, rowdata) {
+                                if(rowdata && rowdata.code == 'manual')
+                                    return 'style="display:none;" ';
                             }
                         },
-                        { name: 'comments', width: 50, search: false, sortable: false },
-                        { name: 'charge_pointer', width: 20, search: false, sortable: false, formatter: self.pointerFormatter },
-                        { name: 'charge_amount', width: 20, search: false, sortable: false },
+                        { name: 'comments', width: 50, search: false, sortable: false,
+                            cellattr: function (rowId, tv, rowdata) {
+                                if(rowdata && rowdata.code == 'manual')
+                                    return ' colspan=8 style="white-space : nowrap ';
+                            } 
+                        },
+                        { name: 'charge_pointer', width: 20, search: false, sortable: false, formatter: self.pointerFormatter,
+                            cellattr: function (rowId, tv, rowdata) {
+                                if(rowdata && rowdata.code == 'manual')
+                                    return 'style="display:none;" ';
+                            } 
+                        },
+                        { name: 'charge_amount', width: 20, search: false, sortable: false,
+                            cellattr: function (rowId, tv, rowdata) {
+                                if(rowdata && rowdata.code == 'manual')
+                                    return 'style="display:none;" ';
+                            } 
+                        },
                         { name: 'payment', width: 20, search: false, sortable: false, 
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.code && (rowObject.code == 'adjustment' || rowObject.payment == null || rowObject.code == null))
                                     return '';
                                 else
                                     return rowObject.payment;
-                            } 
+                            },
+                            cellattr: function (rowId, tv, rowdata) {
+                                if(rowdata && rowdata.code == 'manual')
+                                    return 'style="display:none;" ';
+                            }  
                         },
                         { name: 'adjustment', width: 30, search: false, sortable: false,
                             formatter: function(cellvalue, options, rowObject){
@@ -471,7 +584,11 @@ define([
                                     return '';
                                 else 
                                     return rowObject.adjustment
-                            } 
+                            },
+                            cellattr: function (rowId, tv, rowdata) {
+                                if(rowdata && rowdata.code == 'manual')
+                                    return 'style="display:none;" ';
+                            }  
                         },
                         {
                             name: 'view_payment', width: 20, sortable: false, search: false,
@@ -485,8 +602,13 @@ define([
                                     return "<span class='fa fa-eye' rel='tooltip' title='view payment details'></span>"
                                 else
                                     return "";
-                            }
+                            },
+                            cellattr: function (rowId, tv, rowdata) {
+                                if(rowdata && rowdata.code == 'manual')
+                                    return 'style="display:none;" ';
+                            } 
                         },
+                        {name: 'comment_space', width: 10, search: false, sortable: false },
                         {
                             name: 'del', width: 20, search: false, sortable: false,
                             className: 'icon-ic-delete',
@@ -595,7 +717,7 @@ define([
                 else {
                     commentId = 0;
                 }
-                $('#siteModalNested').find('#btnCICommentSave').unbind().click(function () {
+                $('#siteModalNested').find('#btnCICommentSave').off().click(function () {
                     var comment = $('#siteModalNested').find('#txtCIAddComment').val();
                     if (comment != '')
                         self.saveClaimComment(commentId, comment);
@@ -645,6 +767,7 @@ define([
 
             saveClaimComment: function (commentId, comment) {
                 var self = this;
+                $('#siteModalNested').find('#btnCICommentSave').prop('disabled', true)
                 if (commentId != 0) {
 
                     $.ajax({
@@ -657,6 +780,7 @@ define([
                         },
                         success: function (data, response) {
                             commonjs.showStatus('Record Saved Successfully');
+                            $('#siteModalNested').find('#btnCICommentSave').prop('disabled', false)
                             self.closeSaveComment();
                             self.showClaimCommentsGrid();
 
@@ -678,6 +802,7 @@ define([
                         },
                         success: function (data, response) {
                             commonjs.showStatus('Record Saved Successfully');
+                            $('#siteModalNested').find('#btnCICommentSave').prop('disabled', false)
                             self.closeSaveComment();
                             self.showClaimCommentsGrid();
                         },
@@ -738,6 +863,12 @@ define([
 
             patientInquiryForm: function (claimId, patientId) {
                 var self = this;
+                commonjs.showDialog({
+                    'header': 'Patient Claim',
+                    'width': '85%',
+                    'height': '75%',
+                    'needShrink': true
+                });
                 setTimeout(function () {
                     var billingProviderList = app.billing_providers,reportBy
                         ddlBillingProvider = $('#ddlBillingProvider');
@@ -815,7 +946,7 @@ define([
                     selectedBillingProList = $('#ddlBillingProvider option:selected').val() ? [$('#ddlBillingProvider option:selected').val()] : [];
 
                     reportBy  ? self.generatePatientActivity(claimId, patientId, reportBy,null,null, selectedBillingProList) : self.generatePatientActivity(claimId, patientId, reportBy, fromDate, toDate, selectedBillingProList)
-
+                    $('#modal_div_container').removeAttr('style');
                 });
             },
 
@@ -823,6 +954,12 @@ define([
                 var self = this;
                 this.$el.html(this.claimPatientLogTemplate());
                 self.showPatientClaimsLogGrid(claimId, patientId);
+            },
+
+            invoiceInquiry: function (claimId, patientId) {
+                var self = this;
+                this.$el.html(this.claimInvoiceTemplate());
+                self.showInvoiceGrid(claimId, patientId);
             },
 
             printPaymentInvoice: function (e) {

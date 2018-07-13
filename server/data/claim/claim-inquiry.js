@@ -138,8 +138,8 @@ module.exports = {
         let sql = SQL`WITH agg AS (SELECT
                           cc.id AS id
                         , COALESCE(null, '') AS payment_id
-                        , CASE WHEN type ='auto' THEN null WHEN type = 'manual' THEN null ELSE type END AS type
                         , type AS code
+                        , null AS type
                         , note AS comments
                         , created_dt::date as commented_dt
                         , is_internal 
@@ -154,8 +154,8 @@ module.exports = {
                     SELECT  
                           ch.id AS id
                         , COALESCE(null, '') AS payment_id
-                        , cpt.display_code AS code
-                        , 'charge' AS type
+                        , 'charge' AS code
+                        , cpt.display_code AS  type
                         , cpt.short_description AS comments
                         , ch.charge_dt::date as commented_dt
                         , false AS is_internal
@@ -171,7 +171,17 @@ module.exports = {
                           bp.id AS id
                         , bp.id::text AS payment_id
                         , pa.amount_type as code
-                        , pa.amount_type as type
+                        ,  CASE WHEN pa.amount_type = 'adjustment' THEN 'Adjustment' WHEN  amount_type = 'payment' THEN
+                            CASE WHEN bp.payer_type = 'patient' THEN
+                                    'Patient'
+                            WHEN bp.payer_type = 'insurance' THEN
+                                    'Insurance'
+                            WHEN bp.payer_type = 'ordering_facility' THEN
+                                    'Ordering Facility'
+                            WHEN bp.payer_type = 'ordering_provider' THEN
+                                    'Provider'
+                            END 
+                            END  as type
                         , CASE WHEN bp.payer_type = 'patient' THEN
                                     pp.full_name
                             WHEN bp.payer_type = 'insurance' THEN
@@ -186,7 +196,7 @@ module.exports = {
                         , null AS charge_amount
                         , '{}'::text[] AS charge_pointer
                         , SUM(CASE WHEN pa.amount_type = 'payment' THEN pa.amount ELSE 0.00::money END)::text payment
-                        , SUM(CASE WHEN pa.amount_type = 'adjustment' THEN pa.amount  ELSE 0.00::money END)::text adjustment  
+                        , SUM(CASE WHEN (pa.amount_type = 'adjustment' AND (accounting_entry_type != 'refund_debit' OR adjustment_code_id IS NULL)) THEN pa.amount  ELSE 0.00::money END)::text adjustment  
                     FROM billing.payments bp
                     INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
                     INNER JOIN billing.charges ch on ch.id = pa.charge_id 
@@ -195,6 +205,7 @@ module.exports = {
                     LEFT JOIN public.provider_groups  pg on pg.id = bp.provider_group_id
                     LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
                     LEFT JOIN public.providers p on p.id = pc.provider_id
+                    LEFT JOIN billing.adjustment_codes adj ON adj.id = pa.adjustment_code_id
                     WHERE 
                         ch.claim_id = ${claim_id}  
                         AND CASE WHEN pa.amount_type = 'adjustment' THEN pa.amount != 0.00::money ELSE 1=1  END 
@@ -202,6 +213,28 @@ module.exports = {
                         bp.id ,  
                         pa.amount_type,
                         comments
+                    UNION ALL
+                    SELECT
+                          bp.id AS id
+                        , bp.id::text AS payment_id
+                        , 'refund' AS code
+                        , 'Refund'  AS type
+                        , adj.description AS comments
+                        , bp.accounting_dt::date AS commented_dt
+                        , false AS is_internal
+                        , null AS charge_amount
+                        , '{}'::text[] AS charge_pointer
+                        , null AS payment  
+                        , SUM( pa.amount )::text AS adjustment  
+                    FROM billing.payments bp
+                    INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
+                    INNER JOIN billing.charges ch on ch.id = pa.charge_id 
+                    LEFT JOIN billing.adjustment_codes adj ON adj.id = pa.adjustment_code_id
+                    WHERE adj.accounting_entry_type = 'refund_debit'  AND ch.claim_id = 5528 
+                    GROUP BY
+                        bp.id
+                        , pa.amount_type
+                        , adj.description 
                 )
                 SELECT
                       id AS row_id
@@ -224,8 +257,9 @@ module.exports = {
                                 WHEN 'auto' THEN 2
                                 WHEN 'payment' THEN 3
                                 WHEN 'adjustment' THEN 4
-                                WHEN 'co_insurance' THEN 5
-                                WHEN 'deductible' THEN 6 END 
+                                WHEN 'refund' THEN 5
+                                WHEN 'co_insurance' THEN 6
+                                WHEN 'deductible' THEN 7 END 
                     ) AS id
                 FROM agg
                 ORDER BY 
@@ -235,8 +269,9 @@ module.exports = {
                         WHEN 'auto' THEN 2
                         WHEN 'payment' THEN 3
                         WHEN 'adjustment' THEN 4
-                        WHEN 'co_insurance' THEN 5
-                        WHEN 'deductible' THEN 6 END `;
+                        WHEN 'refund' THEN 5
+                        WHEN 'co_insurance' THEN 6
+                        WHEN 'deductible' THEN 7 END `;
 
         return await query(sql);
     },
@@ -368,7 +403,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Created ${note}(${claim_id})`
+            logDescription: `Add: Claim Inquiry(${claim_id}) created`
         });
     },
 
@@ -500,6 +535,7 @@ module.exports = {
                             WHEN 'patient' THEN patients.full_name        END) AS payer_name
                         , claim_dt
                         , claim_status.description as claim_status
+                        , (select adjustments_applied_total from billing.get_claim_payments(claims.id)) AS ajdustments_applied_total
                         , (select payment_patient_total from billing.get_claim_payments(claims.id)) AS total_patient_payment
                         , (select payment_insurance_total from billing.get_claim_payments(claims.id)) AS total_insurance_payment 
                         , (select charges_bill_fee_total from BILLING.get_claim_payments(claims.id)) as billing_fee
@@ -527,6 +563,47 @@ module.exports = {
         if(billProvWhereQuery){
             sql.append(billProvWhereQuery);
         }          
+
+        sql.append(SQL` ORDER BY  `)
+            .append(sortField)
+            .append(' ')
+            .append(sortOrder)
+            .append(SQL` LIMIT ${pageSize}`)
+            .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+
+        return await query(sql);
+    },
+
+    getInvoicePayments: async function (params) {
+        params.sortOrder = params.sortOrder || ' ASC';
+        let {
+            sortOrder,
+            sortField,
+            pageNo,
+            pageSize } = params;
+
+        let sql = SQL`WITH invoice_payment_details AS(
+                            SELECT 
+                                  bc.invoice_no
+                                , bc.submitted_dt::date AS date
+                                , claim_totals.charges_bill_fee_total AS bill_fee
+                                , claim_totals.payments_applied_total AS payment
+                                , claim_totals.adjustments_applied_total AS adjustment
+                                , claim_totals.claim_balance_total AS balance
+                            FROM billing.claims bc
+                            INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
+                            WHERE invoice_no is not null)
+                            SELECT
+                                  ROW_NUMBER () OVER (ORDER BY invoice_no) AS id
+                                , invoice_no As invoice_no
+                                , max(date) AS invoice_date
+                                , sum(bill_fee) AS invoice_bill_fee
+                                , sum(payment) AS invoice_payment
+                                , sum(adjustment) AS invoice_adjustment
+                                , sum(balance) AS invoice_balance
+                                , COUNT(1) OVER (range unbounded preceding) AS total_records
+                            FROM invoice_payment_details
+                            GROUP BY invoice_no `;
 
         sql.append(SQL` ORDER BY  `)
             .append(sortField)

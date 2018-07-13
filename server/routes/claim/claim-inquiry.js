@@ -54,6 +54,11 @@ router.get('/claim_patient', async (req, res) => {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/claim_invoice', async (req, res) => {
+    const data = await inquiryController.getInvoicePayments(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
 router.get('/claim_patient_log', async (req, res) => {
     const data = await inquiryController.getclaimPatientLog(req.query);
     httpHandler.sendRows(req, res, data);

@@ -125,6 +125,10 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             commonjs.convertToFacilityTimeZone(rowObject.facility_id, cellvalue).format('L LT z') :
             '';
         };
+        var claimDateFormatter = function ( cellvalue, options, rowObject ) {
+            return commonjs.checkNotEmpty(cellvalue) ?
+            commonjs.convertToFacilityTimeZone(rowObject.facility_id, cellvalue).format('L') : '';
+        };
         var queuseStatusFormatter = function (cellvalue, options, rowObject) {
             if (!cellvalue) return '-';
             return app.settings.report_queue_status[_.findIndex(app.settings.report_queue_status, {code: cellvalue})] && app.settings.report_queue_status[_.findIndex(app.settings.report_queue_status, {code: cellvalue})].description;
@@ -148,8 +152,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_info": {
                         "name": "claim_dt",
                         "searchFlag": "datetime",
-                        "formatter": dateFormatter,
-                        "width": 200
+                        "formatter": claimDateFormatter,
+                        "width": 100
                     }
                 },
                 "Patient Name": {

@@ -320,6 +320,7 @@ const api = {
             'claims.id as claim_id',
             'claims.claim_dt',
             'claim_status.description as claim_status',
+            'claim_status.code as claim_status_code',
             'patients.full_name as patient_name',
             'patients.account_no',
             'patients.birth_date::text as birth_date',

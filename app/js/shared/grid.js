@@ -143,7 +143,8 @@ define('grid', [
                     patient_dob: _storeEle.birth_date,
                     accession_no: _storeEle.accession_no,
                     billed_status:_storeEle.billed_status,
-                    claim_id:_storeEle.claim_id
+                    claim_id:_storeEle.claim_id,
+                    invoice_no:_storeEle.invoice_no
                 };
                 if (_storeEle.billed_status == 'billed') {
                     isbilled_status = true;
@@ -191,7 +192,7 @@ define('grid', [
                                 url: '/exa_modules/billing/claim_workbench/claims/update',
                                 type: 'PUT',
                                 data: {
-                                    claimIds: [studyIds],
+                                    claimIds: studyArray,
                                     claim_status_id:claimStatus.id,
                                     process:"Claim Status"
                                 },
@@ -221,7 +222,7 @@ define('grid', [
                                 url: '/exa_modules/billing/claim_workbench/claims/update',
                                 type: 'PUT',
                                 data: {
-                                    claimIds:  [studyIds],
+                                    claimIds:  studyArray,
                                     billing_code_id:billing_code.id,
                                     process:"Billing Code"
                                 },
@@ -251,7 +252,7 @@ define('grid', [
                                     url: '/exa_modules/billing/claim_workbench/claims/update',
                                     type: 'PUT',
                                     data: {
-                                        claimIds:  [studyIds],
+                                        claimIds:studyArray,
                                         billing_class_id:billing_class.id,
                                         process:"Billing Class"
                                     },
@@ -418,15 +419,28 @@ define('grid', [
                     if ($('#anc_patient_claim_inquiry').hasClass('disabled')) {
                         return false;
                     }
-
-                     commonjs.showDialog({
-                    'header': 'Patient Claim',
-                    'width': '85%',
-                    'height': '75%',
-                    'needShrink': true
-                });
+                   
                 self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
                 self.claimInquiryView.patientInquiryForm(studyIds,selectedStudies[0].patient_id);
+                });
+
+
+                var liInvoiceInquiry = commonjs.getRightClickMenu('anc_invoice_inquiry','setup.rightClickMenu.directBillingInquiry',false,'Direct Billing Inquiry',false);
+                if(studyArray.length == 1)
+                    $divObj.append(liInvoiceInquiry);
+                self.checkRights('anc_invoice_inquiry');
+                $('#anc_invoice_inquiry').click(function () {
+                    if ($('#anc_invoice_inquiry').hasClass('disabled')) {
+                        return false;
+                    }
+                    commonjs.showDialog({
+                        'header': 'Invoice',
+                        'width': '95%',
+                        'height': '80%',
+                        'needShrink': true
+                    });   
+                self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
+                self.claimInquiryView.invoiceInquiry(studyIds,selectedStudies[0].patient_id); //selectedStudies[0].invoice_no
                 });
 
                 var liPatientClaimLog = commonjs.getRightClickMenu('anc_patient_claim_log','setup.rightClickMenu.patientClaimLog',false,'Patient Claim Log',false);
@@ -438,12 +452,12 @@ define('grid', [
                         return false;
                     }
 
-                     commonjs.showDialog({
-                    'header': 'Patient Claim Log',
-                    'width': '95%',
-                    'height': '80%',
-                    'needShrink': true
-                });
+                    commonjs.showDialog({
+                        'header': 'Patient Claim Log',
+                        'width': '95%',
+                        'height': '80%',
+                        'needShrink': true
+                    });
                 self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
                 self.claimInquiryView.patientInquiryLog(studyIds,selectedStudies[0].patient_id);
                 });
@@ -485,17 +499,17 @@ define('grid', [
                         if ($('#anc_view_reports').hasClass('disabled')) {
                             return false;
                         }
-
+                        var session = app.sessionID ? btoa(app.sessionID) : "demo_session";
                         var queryStrVal = [
                             'study_id=' + study_id,
                             'host_name=' + location.origin,
                             'user_id=' + app.userID,
                             'company_id=' + app.companyID,
                             'client_ip=' + location.hostname,
-                            'session=' + btoa(app.sessionID),
+                            'session=' + session,
                             'screen_name=approved_report'
                         ];
-
+                        queryStrVal = queryStrVal.join('&');
                         commonjs.showDialog({
                             header: 'Approved Reports',
                             i18nHeader: 'setup.rightClickMenu.approvedReports',
@@ -584,17 +598,45 @@ define('grid', [
         self.batchClaim = function () {
             var $checkedInputs = $tblGrid.find('input').filter('[name=chkStudy]:checked');
             var selectedCount = $checkedInputs.length;
-            studyArray = [];
+            batchClaimArray = [];
             for (var r = 0; r < selectedCount; r++) {
                 var rowId = $checkedInputs[r].parentNode.parentNode.id;
                 studyStoreValue = getData(rowId, studyDataStore, gridID);
                 if (!studyStoreValue.study_cpt_id) {
-                    commonjs.showWarning("Please select charges record");
+                    commonjs.showWarning("Please select charges record for batch claim");
                     return false;
                 }
-                studyArray.push(rowId);
+                batchClaimArray.push({
+                    patient_id :studyStoreValue.patient_id,
+                    study_id :studyStoreValue.study_id
+                });
             }
-            alert(studyArray)
+            
+            if (batchClaimArray.length) {
+
+                var selectedIds = JSON.stringify(batchClaimArray)
+                commonjs.showLoading();
+
+                $.ajax({
+                    url: '/exa_modules/billing/claim_workbench/claims/batch',
+                    type: 'POST',
+                    data: {
+                        study_ids: selectedIds,
+                        company_id: app.companyID
+                    },
+                    success: function (data, response) {
+                        commonjs.showStatus('Batch Claim created successfully');
+                        $("#btnStudiesRefresh").click();
+                        commonjs.hideLoading();
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                        commonjs.hideLoading();
+                    }
+                });
+            }else{
+                commonjs.showWarning("Please select record for batch claim");
+            }
         },
 
         self.renderStudy = function (doExport) {
@@ -653,12 +695,12 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 (options.isClaimGrid ? '<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />' : ''),
-                '', '', '', '', '','','','','','','','','','','AssignedTo'
+                '', '', '', '', '','','','','','','','','','','','','AssignedTo'
 
             ]);
 
             i18nName = i18nName.concat([
-                '', '', '', '', '', '','','','','','','','','','','billing.claims.assignedTo'
+                '', '', '', '', '', '','','','','','','','','','','','','billing.claims.assignedTo'
             ]);
 
             colModel = colModel.concat([
@@ -831,6 +873,24 @@ define('grid', [
                 },
                 {
                     name: 'study_cpt_id',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true
+                },
+                {
+                    name: 'claim_status_code',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true
+                },
+                {
+                    name: 'invoice_no',
                     width: 20,
                     sortable: false,
                     resizable: false,

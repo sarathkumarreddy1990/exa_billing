@@ -150,8 +150,8 @@ define(['jquery',
                 if(self.screenCode.indexOf('CLVA') > -1) // this is for validate button rights
                     $('#btnValidateClaim').attr('disabled', true)   
                     
-                self.initializeDateTimePickers();                    
-
+                self.initializeDateTimePickers();
+                
             },
 
             initializeDateTimePickers: function () {
@@ -289,7 +289,7 @@ define(['jquery',
                 $('#imgLoading').show();
                 
 
-                commonjs.showLoading('Connecting Pokitdok. please wait');
+                commonjs.showLoading('Connecting pokitdok. please wait');
                 $('#divPokidokResponse').empty();
                 $.ajax({
                     url: '/exa_modules/billing/claims/claim/eligibility',
@@ -306,9 +306,14 @@ define(['jquery',
                             return;
                         }
                         else if (!data.errors && response.insPokitdok == true) {
-                            $('#divPokidokResponse').html($(self.InsurancePokitdokTemplateForm({'InsuranceData': response.data, 'InsuranceDatavalue': response.meta})));
-                            commonjs.showNestedDialog({ header: 'Pokitdok Response', width: '80%', height: '70%', html: $('#divPokidokResponse').html() });
+                            commonjs.showNestedDialog({ header: 'Pokitdok Response', width: '80%', height: '70%', html: $(self.InsurancePokitdokTemplateForm({'InsuranceData': response.data, 'InsuranceDatavalue': response.meta})) });
                         }
+
+                        $('#divCoPayDetails').height('400px');
+
+                        $.each($('#divPokitdok table td'), function (index, obj) {
+                            $(obj).attr('title', $(obj).text().replace(/[*$-]/,'').trim());
+                        });
 
                         $("#btnClosePokidokPopup").unbind().click(function (e) {
                             $('#divPokidokResponse').hide();
@@ -378,12 +383,14 @@ define(['jquery',
                             self.terClaimInsID = claimDetails.tertiary_patient_insurance_id || null;
                             self.claim_row_version = claimDetails.claim_row_version || null;
 
+                            self.facilityId = claimDetails.facility_id; // claim facility_date
+                            self.studyDate = self.cur_study_date; // Assign claim data as studyDate variable to newly adding charges
                             /* Bind claim charge Details*/
                             $('#tBodyCharge').empty();
                             claimDetails.claim_charges = claimDetails.claim_charges || [];
                             self.claimChargeList = [];
                             $.each(claimDetails.claim_charges, function (index, obj) {
-                                obj.charge_dt = commonjs.checkNotEmpty(obj.charge_dt) ? commonjs.convertToFacilityTimeZone(claimDetails.facility_id, obj.charge_dt).format('L LT z') : '';
+                                obj.charge_dt = commonjs.checkNotEmpty(obj.charge_dt) ? commonjs.convertToFacilityTimeZone(claimDetails.facility_id, obj.charge_dt).format('L') : '';
                                 obj.facility_id = claimDetails.facility_id;
                                 obj.data_row_id = index;
                                 self.bindModifiersData(obj);
@@ -403,7 +410,12 @@ define(['jquery',
                             self.initializeClaimEditForm();
 
                             /* Bind chargeLineItems events - started*/
+                            if(self.screenCode.indexOf('DCLM') > -1) {
+                                $('span[id^="spDeleteCharge"]').removeClass('removecharge');
+                                $('span[id^="spDeleteCharge"]').css('color','#DCDCDC');
+                            }
                             self.assignLineItemsEvents();
+                            
                             self.assignModifierEvent();
                             app.modifiers_in_order = true;
                             commonjs.enableModifiersOnbind('M'); // Modifier
@@ -413,7 +425,7 @@ define(['jquery',
                             /* Bind chargeLineItems events - Ended */
 
                             /* Header Details */
-                            $(parent.document).find('#spanModalHeader').html('Edit: <STRONG>' + claimDetails.patient_full_name + '</STRONG> (Acc#:' + claimDetails.patient_account_no + '), <i>' + claimDetails.patient_dob + '</i>  ');
+                            $(parent.document).find('#spanModalHeader').html('Edit : <STRONG>' + claimDetails.patient_full_name + '</STRONG> (Acc#:' + claimDetails.patient_account_no + ') ' + moment(claimDetails.patient_dob).format('L') + '');
                             $.each(self.claimChargeList, function (index, data) {
                                 /* Bind charge table data*/
                                 self.createCptCodesUI(index);
@@ -535,18 +547,18 @@ define(['jquery',
 
                 /* Claim section start*/
 
-                var renderingProvider = claim_data.reading_phy_full_name || self.usermessage.selectStudyReadPhysician;
+                var renderingProvider = claim_data.reading_phy_full_name || claim_data.fac_reading_phy_full_name || self.usermessage.selectStudyReadPhysician;
                 var referringProvider = claim_data.ref_prov_full_name || self.usermessage.selectStudyRefProvider;
-                var orderingFacility = claim_data.ordering_facility_name || self.usermessage.selectOrdFacility;
+                var orderingFacility = claim_data.ordering_facility_name || claim_data.service_facility_name || self.usermessage.selectOrdFacility;
 
-                self.ACSelect.readPhy.contact_id = claim_data.rendering_provider_contact_id || null;
+                self.ACSelect.readPhy.contact_id = claim_data.rendering_provider_contact_id || claim_data.fac_rendering_provider_contact_id || null;
                 self.ACSelect.refPhy.contact_id = claim_data.referring_provider_contact_id || null;
                 self.ACSelect.refPhy.Code = claim_data.ref_prov_code || null;
                 self.ACSelect.refPhy.Desc = referringProvider;
-                self.group_id = claim_data.ordering_facility_id ? parseInt(claim_data.ordering_facility_id) : null;
+                self.group_id = claim_data.ordering_facility_id ? parseInt(claim_data.ordering_facility_id || claim_data.service_facility_id) : null;
                 self.group_name = orderingFacility;
 
-                $('#ddlBillingProvider').val(claim_data.billing_provider_id || '');
+                $('#ddlBillingProvider').val(claim_data.billing_provider_id ||claim_data.fac_billing_provider_id || '');
                 $('#ddlFacility').val(claim_data.facility_id || '');
                 $('#select2-ddlRenderingProvider-container').html(renderingProvider);
                 $('#select2-ddlReferringProvider-container').html(referringProvider);
@@ -555,13 +567,13 @@ define(['jquery',
                 /* Claim section end */
                 /* Additional info start*/
 
-                document.querySelector('#txtHCT').value = claim_data.hospitalization_to_date ? moment(claim_data.hospitalization_to_date).format('MM/DD/YYYY') : '';
-                document.querySelector('#txtHCF').value = claim_data.hospitalization_from_date ? moment(claim_data.hospitalization_from_date).format('MM/DD/YYYY') : '';
-                document.querySelector('#txtWCF').value = claim_data.unable_to_work_from_date ? moment(claim_data.unable_to_work_from_date).format('MM/DD/YYYY') : '';
-                document.querySelector('#txtWCT').value = claim_data.unable_to_work_to_date ? moment(claim_data.unable_to_work_to_date).format('MM/DD/YYYY') : '';
-                document.querySelector('#txtOtherDate').value = claim_data.same_illness_first_date ? moment(claim_data.same_illness_first_date).format('MM/DD/YYYY') : '';
-                document.querySelector('#txtDate').value = claim_data.current_illness_date ? moment(claim_data.current_illness_date).format('MM/DD/YYYY') : '';
-                document.querySelector('#txtClaimDate').value = claim_data.claim_dt ? moment(claim_data.claim_dt).format('MM/DD/YYYY') : '';
+                document.querySelector('#txtHCT').value = claim_data.hospitalization_to_date ? moment(claim_data.hospitalization_to_date).format('L') : '';
+                document.querySelector('#txtHCF').value = claim_data.hospitalization_from_date ? moment(claim_data.hospitalization_from_date).format('L') : '';
+                document.querySelector('#txtWCF').value = claim_data.unable_to_work_from_date ? moment(claim_data.unable_to_work_from_date).format('L') : '';
+                document.querySelector('#txtWCT').value = claim_data.unable_to_work_to_date ? moment(claim_data.unable_to_work_to_date).format('L') : '';
+                document.querySelector('#txtOtherDate').value = claim_data.same_illness_first_date ? moment(claim_data.same_illness_first_date).format('L') : '';
+                document.querySelector('#txtDate').value = claim_data.current_illness_date ? moment(claim_data.current_illness_date).format('L') : '';
+
 
                 $('input[name="outSideLab"]').prop('checked', claim_data.service_by_outside_lab);
                 $('input[name="employment"]').prop('checked', claim_data.is_employed);
@@ -624,6 +636,7 @@ define(['jquery',
                     $('#ddlClaimStatus').val(claim_data.claim_status_id || '');
                     $('#ddlFrequencyCode').val(claim_data.frequency || '')
                     $('#ddlPOSType').val(claim_data.place_of_service_id || '');
+                    document.querySelector('#txtClaimDate').value = claim_data.claim_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.claim_dt).format('L') : '';
                 } else {
                     $('#ddlResponsible').val('PPP');
                     $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
@@ -636,8 +649,8 @@ define(['jquery',
                         $('#ddlPOSType').val($('option[data-code = ' + claim_data.pos_type_code.trim() + ']').val());
                     }
                     var currentDate = new Date();
-                    var defaultStudyDate = moment(currentDate).format('MM/DD/YYYY');
-                    var lineItemStudyDate = self.studyDate && self.studyDate != '' ? self.convertToTimeZone(claim_data.facility_id, moment(self.studyDate)).format('MM/DD/YYYY') : '';
+                    var defaultStudyDate = moment(currentDate).format('L');
+                    var lineItemStudyDate = self.studyDate && self.studyDate != '' ? self.convertToTimeZone(claim_data.facility_id, self.studyDate).format('L') : '';
                     $('#txtClaimDate').val(self.studyDate ? lineItemStudyDate : defaultStudyDate);
                 }
                 /* Common Details end */
@@ -656,10 +669,9 @@ define(['jquery',
                     $('#select2-ddlPriInsurance-container').html(claimData.p_insurance_name);
                     $('#chkPriAcptAsmt').prop('checked', claimData.p_assign_benefits_to_patient);
                     $('#lblPriInsPriAddr').html(claimData.p_address1);
-                    var pri_csz = claimData.p_city || '' + (commonjs.checkNotEmpty(claimData.p_state) ? ',' + claimData.p_state : "") + (commonjs.checkNotEmpty(claimData.p_zip) ? ',' + claimData.p_zip : "");
+                    var pri_csz = $.grep([claimData.p_city, claimData.p_state, claimData.p_zip], Boolean).join(", ");
                     $('#lblPriInsCityStateZip').html(pri_csz);
-                    $('#lblPriInsCityStateZip').show()
-                    $('#lblPriInsPriAddr').show()
+                    $('#lblPriPhoenNo').html(claimData.p_phone_no);
                     $('#txtPriPolicyNo').val(claimData.p_policy_number);
                     $('#txtPriGroupNo').val(claimData.p_group_number);
                     $("#ddlPriRelationShip").val(claimData.p_subscriber_relationship_id);
@@ -675,9 +687,9 @@ define(['jquery',
                     $('#txtPriCity').val(claimData.p_subscriber_city);
                     $('#ddlPriState').val(claimData.p_subscriber_state);
                     $('#txtPriZipCode').val(claimData.p_subscriber_zipcode);
-                    document.querySelector('#txtPriDOB').value = claimData.p_subscriber_dob ? moment(claimData.p_subscriber_dob).format('MM/DD/YYYY') : '';
-                    document.querySelector('#txtPriStartDate').value = claimData.p_valid_from_date ? moment(claimData.p_valid_from_date).format('MM/DD/YYYY') : '';
-                    document.querySelector('#txtPriExpDate').value = claimData.p_valid_to_date ? moment(claimData.p_valid_to_date).format('MM/DD/YYYY') : '';
+                    document.querySelector('#txtPriDOB').value = claimData.p_subscriber_dob ? moment(claimData.p_subscriber_dob).format('L') : '';
+                    document.querySelector('#txtPriStartDate').value = claimData.p_valid_from_date ? moment(claimData.p_valid_from_date).format('L') : '';
+                    document.querySelector('#txtPriExpDate').value = claimData.p_valid_to_date ? moment(claimData.p_valid_to_date).format('L') : '';
 
                     // append to ResponsibleList
                     self.updateResponsibleList({
@@ -697,10 +709,9 @@ define(['jquery',
                     $('#selectMedicalPayer').toggle(claimData.s_medicare_insurance_type_code ? true : false);
                     $('#selectMedicalPayer').val(claimData.s_medicare_insurance_type_code);
                     $('#lblSecInsPriAddr').html(claimData.s_address1);
-                    var sec_csz = claimData.s_city || '' + (commonjs.checkNotEmpty(claimData.s_state) ? ',' + claimData.s_state : "") + (commonjs.checkNotEmpty(claimData.s_zip) ? ',' + claimData.s_zip : "");
+                    var sec_csz = $.grep([claimData.s_city, claimData.s_state, claimData.s_zip], Boolean).join(", ");
                     $('#lblSecInsCityStateZip').html(sec_csz);
-                    $('#lblSecInsCityStateZip').show();
-                    $('#lblSecInsPriAddr').show();
+                    $('#lblSecPhoenNo').html(claimData.s_phone_no);
                     $('#txtSecPolicyNo').val(claimData.s_policy_number);
                     $('#txtSecGroupNo').val(claimData.s_group_number);
                     $("#ddlSecRelationShip").val(claimData.s_subscriber_relationship_id);
@@ -716,9 +727,9 @@ define(['jquery',
                     $('#txtSecCity').val(claimData.s_subscriber_city);
                     $('#ddlSecState').val(claimData.s_subscriber_state);
                     $('#txtSecZipCode').val(claimData.s_subscriber_zipcode);
-                    document.querySelector('#txtSecDOB').value = claimData.s_subscriber_dob ? moment(claimData.s_subscriber_dob).format('MM/DD/YYYY') : '';
-                    document.querySelector('#txtSecStartDate').value = claimData.s_valid_from_date ? moment(claimData.s_valid_from_date).format('MM/DD/YYYY') : '';
-                    document.querySelector('#txtSecExpDate').value = claimData.s_valid_to_date ? moment(claimData.s_valid_to_date).format('MM/DD/YYYY') : '';
+                    document.querySelector('#txtSecDOB').value = claimData.s_subscriber_dob ? moment(claimData.s_subscriber_dob).format('L') : '';
+                    document.querySelector('#txtSecStartDate').value = claimData.s_valid_from_date ? moment(claimData.s_valid_from_date).format('L') : '';
+                    document.querySelector('#txtSecExpDate').value = claimData.s_valid_to_date ? moment(claimData.s_valid_to_date).format('L') : '';
 
                     // append to ResponsibleList
                     self.updateResponsibleList({
@@ -734,11 +745,10 @@ define(['jquery',
                     self.terInsName = claimData.t_insurance_name;
                     $('#select2-ddlTerInsurance-container').html(claimData.t_insurance_name);
                     $('#chkTerAcptAsmt').prop('checked', claimData.t_assign_benefits_to_patient);
-                    $('#lblTerInsPriAddr').html(claimData.t_address1);
-                    var ter_csz = claimData.t_city || '' + (commonjs.checkNotEmpty(claimData.t_state) ? ',' + claimData.t_state : "") + (commonjs.checkNotEmpty(claimData.t_zip) ? ',' + claimData.t_zip : "");
+                    $('#lblTerInsPriAddr').html(claimData.t_address1);                    
+                    var ter_csz = $.grep([claimData.t_city, claimData.t_state, claimData.t_zip], Boolean).join(", ");
                     $('#lblTerInsCityStateZip').html(ter_csz);
-                    $('#lblTerInsCityStateZip').show()
-                    $('#lblTerInsPriAddr').show();
+                    $('#lblTerPhoenNo').html(claimData.t_phone_no);
                     $('#txtTerPolicyNo').val(claimData.t_policy_number);
                     $('#txtTerGroupNo').val(claimData.t_group_number);
                     $("#ddlTerRelationShip").val(claimData.t_subscriber_relationship_id);
@@ -754,9 +764,9 @@ define(['jquery',
                     $('#txtTerCity').val(claimData.t_subscriber_city);
                     $('#ddlTerState').val(claimData.t_subscriber_state);
                     $('#txtTerZipCode').val(claimData.t_subscriber_zipcode);
-                    document.querySelector('#txtTerDOB').value = claimData.t_subscriber_dob ? moment(claimData.t_subscriber_dob).format('MM/DD/YYYY') : '';
-                    document.querySelector('#txtTerStartDate').value = claimData.t_valid_from_date ? moment(claimData.t_valid_from_date).format('MM/DD/YYYY') : '';
-                    document.querySelector('#txtTerExpDate').value = claimData.t_valid_to_date ? moment(claimData.t_valid_to_date).format('MM/DD/YYYY') : '';
+                    document.querySelector('#txtTerDOB').value = claimData.t_subscriber_dob ? moment(claimData.t_subscriber_dob).format('L') : '';
+                    document.querySelector('#txtTerStartDate').value = claimData.t_valid_from_date ? moment(claimData.t_valid_from_date).format('L') : '';
+                    document.querySelector('#txtTerExpDate').value = claimData.t_valid_to_date ? moment(claimData.t_valid_to_date).format('L') : '';
 
                     // append to ResponsibleList
                     self.updateResponsibleList({
@@ -781,7 +791,7 @@ define(['jquery',
                 self.pri_accession_no = primaryStudyDetails.accession_no || null;
                 self.cur_study_id = primaryStudyDetails.study_id || null;
                 self.isEdit = self.claim_Id ? true : false;
-
+                self.facilityId = primaryStudyDetails.facility_id;
                 if (!this.rendered)
                     this.render('claim');
 
@@ -904,7 +914,8 @@ define(['jquery',
                             if (model && model.length > 0) {
                                 $('#tBodyCharge').empty();
                                 var modelDetails = model[0];
-                                self.studyDate = modelDetails && modelDetails.charges && modelDetails.charges.length && modelDetails.charges[0].study_dt ? modelDetails.charges[0].study_dt : '' ;
+                                self.studyDate = modelDetails && modelDetails.charges && modelDetails.charges.length && modelDetails.charges[0].study_dt ? modelDetails.charges[0].study_dt : self.cur_study_date ;
+                                self.facilityId = modelDetails && modelDetails.charges && modelDetails.charges.length && modelDetails.charges[0].facility_id ? modelDetails.charges[0].facility_id : self.facilityId ;
                                 var diagnosisCodes = [];
                                 var diagnosisCodesOrder = [];
                                 _.each(modelDetails.charges, function (item) {
@@ -945,6 +956,11 @@ define(['jquery',
                                 self.bindProblemsContent(diagnosisCodes, diagnosisCodesOrder);
 
                                 /* Bind chargeLineItems events - started*/
+                                if(self.screenCode.indexOf('DCLM') > -1) {
+                                    $('span[id^="spDeleteCharge"]').removeClass('removecharge');
+                                    $('span[id^="spDeleteCharge"]').css('color','#DCDCDC');
+                                }
+
                                 self.assignLineItemsEvents();
                                 self.assignModifierEvent();
                                 app.modifiers_in_order = true;
@@ -954,8 +970,7 @@ define(['jquery',
                                 commonjs.isMaskValidate();
                                 /* Bind chargeLineItems events - Ended */
 
-                                if (modelDetails && modelDetails.charges && modelDetails.charges.length)
-                                    $("#txtClaimDate").attr("disabled", "disabled"); 
+                                $("#txtClaimDate").attr("disabled", "disabled"); 
                             }                            
                         },
                         error: function (model, response) {
@@ -1015,7 +1030,7 @@ define(['jquery',
                 var m = 1;
                 var data = function(id) {
                     var modifiers = app.modifiers.filter(function(item){
-                        return item['modifier' + id] == "true";
+                        return item['modifier' + id] == "true" || item['modifier' + id] == true; 
                     });
                     rowObj["modifiers" + id] = modifiers;
                     m++;
@@ -1030,7 +1045,7 @@ define(['jquery',
             addLineItems: function (data, index, isDefault) {
                 var self = this;
 
-                data.claim_dt = (commonjs.checkNotEmpty(self.cur_study_date) ? self.cur_study_date : '');
+                data.charge_dt = commonjs.checkNotEmpty(self.studyDate) ? commonjs.convertToFacilityTimeZone(self.facilityId, self.studyDate).format('L') : '--';
                 self.bindModifiersData(data);
                 var chargeTableRow = self.chargerowtemplate({ row: data });
                 $('#tBodyCharge').append(chargeTableRow);
@@ -1481,8 +1496,9 @@ define(['jquery',
                         var units = (res.units > 0) ? parseFloat(res.units) : 1.0;
                         var fee = (res.globalfee > 0) ? parseFloat(res.globalfee) : 0.0;
                         if(self.isCptAlreadyExists(res.id,rowIndex)) {
-                            e.preventDefault();
-                            commonjs.showWarning("CPT Already Exists");
+                            if(confirm("Code already exists. Do you want to add")) {
+                                self.setCptValues(rowIndex, res, duration, units, fee, type);    
+                            } 
                         } else {
                             self.setCptValues(rowIndex, res, duration, units, fee, type);
                         }
@@ -2048,16 +2064,11 @@ define(['jquery',
                 var insuranceInfo = res.insurance_info || null;
                 var csz = insuranceInfo.City + (commonjs.checkNotEmpty(insuranceInfo.State) ? ',' + insuranceInfo.State : "") + (commonjs.checkNotEmpty(insuranceInfo.ZipCode) ? ',' + insuranceInfo.ZipCode : "");
 
-                if (insuranceInfo && insuranceInfo.Address1 != '')
-                    $('#lbl' + level + 'InsPriAddr').html(insuranceInfo.Address1);
-                else
-                    $('#lbl' + level + 'InsPriAddr').hide();
+                $('#lbl' + level + 'InsPriAddr').html(insuranceInfo.Address1);
 
-                if (csz != '')
-                    $('#lbl' + level + 'InsCityStateZip').html(csz);
-                else
-                    $('#lbl' + level + 'InsCityStateZip').hide();
+                $('#lbl' + level + 'InsCityStateZip').html(csz);
 
+                $('#lbl' + level + 'PhoenNo').html(insuranceInfo.PhoneNo);
             },
 
             bindServiceType: function () {
@@ -2132,7 +2143,8 @@ define(['jquery',
                 if (result) {
                     switch (coverageLevel) {
                         case 'primary':
-                            self.priInsID = result.insurance_provider_id
+                            self.primaryPatientInsuranceId = result.id;
+                            self.priInsID = result.insurance_provider_id;
                             self.priInsCode = result.insurance_code;
                             self.priInsName = result.insurance_name;
                             flag = 'Pri';
@@ -2147,7 +2159,8 @@ define(['jquery',
                             break;
 
                         case 'secondary':
-                            self.secInsID = result.insurance_provider_id
+                            self.secondaryPatientInsuranceId = result.id;
+                            self.secInsID = result.insurance_provider_id;
                             self.secInsCode = result.insurance_code;
                             self.SecInsName = result.insurance_name;
                             flag = 'Sec';
@@ -2162,7 +2175,8 @@ define(['jquery',
                             break;
 
                         case 'tertiary':
-                            self.terInsID = result.insurance_provider_id
+                            self.tertiaryPatientInsuranceId = result.id;
+                            self.terInsID = result.insurance_provider_id;
                             self.terInsCode = result.insurance_code;
                             self.terInsName = result.insurance_name;
                             flag = 'Ter';
@@ -2178,16 +2192,15 @@ define(['jquery',
                     }
 
 
-                    document.querySelector('#txt' + flag + 'StartDate').value = result.valid_from_date ? moment(result.valid_from_date).format('MM/DD/YYYY') : '';
-                    document.querySelector('#txt' + flag + 'ExpDate').value = result.valid_to_date ? moment(result.valid_to_date).format('MM/DD/YYYY') : '';
-                    document.querySelector('#txt' + flag + 'DOB').value = result.subscriber_dob ? moment(result.subscriber_dob).format('MM/DD/YYYY') : '';
+                    document.querySelector('#txt' + flag + 'StartDate').value = result.valid_from_date ? moment(result.valid_from_date).format('L') : '';
+                    document.querySelector('#txt' + flag + 'ExpDate').value = result.valid_to_date ? moment(result.valid_to_date).format('L') : '';
+                    document.querySelector('#txt' + flag + 'DOB').value = result.subscriber_dob ? moment(result.subscriber_dob).format('L') : '';
                     $('#select2-ddl' + flag + 'Insurance-container').html(result.insurance_name);
                     $('#chk' + flag + 'AcptAsmt').prop('checked', true);                    
                     $('#lbl' + flag + 'InsPriAddr').html(result.ins_pri_address);
                     var csz = result.ins_city + (commonjs.checkNotEmpty(result.ins_state) ? ',' + result.ins_state : "") + (commonjs.checkNotEmpty(result.ins_zip_code) ? ',' + result.ins_zip_code : "");
                     $('#lbl' + flag + 'InsCityStateZip').html(csz);
-                    $('#lbl' + flag + 'InsPriAddr').show()
-                    $('#lbl' + flag + 'InsCityStateZip').show()
+                    $('#lbl' + flag + 'PhoenNo').html(result.ins_phone_no ? result.ins_phone_no: '');
                     $('#txt' + flag + 'PolicyNo').val(result.policy_number);
                     $('#txt' + flag + 'GroupNo').val(result.group_number);
                     $('#ddl' + flag + 'RelationShip').val(result.subscriber_relationship_id);
@@ -2197,11 +2210,17 @@ define(['jquery',
                     $('#txt' + flag + 'MiddleName').val(result.subscriber_middlename);
                     $('#txt' + flag + 'SubLastName').val(result.subscriber_lastname);
                     $('#txt' + flag + 'SubSuffix').val(result.subscriber_name_suffix);
-                    $('#ddl' + flag + 'Gender').val(result.subscriber_gender);
+                    if(app.gender.indexOf(result.subscriber_gender) > 0 )
+                    {
+                        $('#ddl' + flag + 'Gender').val(result.subscriber_gender);
+                    }
                     $('#txt' + flag + 'SubPriAddr').val(result.subscriber_address_line1);
                     $('#txt' + flag + 'SubSecAddr').val(result.subscriber_address_line2);
                     $('#txt' + flag + 'City').val(result.subscriber_city);
-                    $('#ddl' + flag + 'State').val(result.subscriber_state);
+                    if(app.states.indexOf(result.subscriber_state) > 0 )
+                    {
+                        $('#ddl' + flag + 'State').val(result.subscriber_state);
+                    }
                     $('#txt' + flag + 'ZipCode').val(result.subscriber_zipcode);
                     if(result.coverage_level == "secondary" && result.medicare_insurance_type_code != null) {
                         $('#chkSecMedicarePayer').prop('checked',true);
@@ -2230,6 +2249,7 @@ define(['jquery',
                 else
                     billingMethod = 'direct_billing';
                 var primary_insurance_details = {
+                    claim_patient_insurance_id: self.primaryPatientInsuranceId || null,
                     claim_insurance_id: self.priClaimInsID ? parseInt(self.priClaimInsID) : null,
                     patient_id: self.cur_patient_id || null,
                     insurance_provider_id: self.priInsID ? parseInt(self.priInsID) : null,
@@ -2250,11 +2270,12 @@ define(['jquery',
                     subscriber_zipcode: $('#txtPriZipCode').val() != '' ? $('#txtPriZipCode').val() : null,
                     assign_benefits_to_patient: $('#chkPriAcptAsmt').prop("checked"),
                     medicare_insurance_type_code: null,
-                    valid_from_date: $('#txtPriStartDate').val() != '' ? $('#txtPriStartDate').val() : moment().subtract(21, 'years').format('YYYY-MM-DD'),
-                    valid_to_date: $('#txtPriExpDate').val() != '' ? $('#txtPriExpDate').val() : moment().format('YYYY-MM-DD'),
+                    valid_from_date: $('#txtPriStartDate').val() != '' ? $('#txtPriStartDate').val() : null,
+                    valid_to_date: $('#txtPriExpDate').val() != '' ? $('#txtPriExpDate').val() :null,
                     is_deleted: self.priClaimInsID && self.priInsID == '' ? true : false
                 },
                 secondary_insurance_details = {
+                    claim_patient_insurance_id: self.secondaryPatientInsuranceId || null,
                     claim_insurance_id: self.secClaimInsID ? parseInt(self.secClaimInsID) : null,
                     patient_id: self.cur_patient_id || null,
                     insurance_provider_id: self.secInsID ? parseInt(self.secInsID) : null,
@@ -2275,11 +2296,12 @@ define(['jquery',
                     assign_benefits_to_patient: $('#chkSecAcptAsmt').prop("checked"),
                     subscriber_dob: $('#txtSecDOB').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtSecDOB').val()).format('YYYY-MM-DD')) : null,
                     medicare_insurance_type_code: $('#selectMedicalPayer option:selected').val() != '' ? parseInt($('#selectMedicalPayer option:selected').val()) : null,
-                    valid_from_date: $('#txtSecStartDate').val() != '' ? $('#txtSecStartDate').val() : moment().subtract(21, 'years').format('YYYY-MM-DD'),
-                    valid_to_date: $('#txtSecExpDate').val() != '' ? $('#txtSecExpDate').val() : moment().format('YYYY-MM-DD'),
+                    valid_from_date: $('#txtSecStartDate').val() != '' ? $('#txtSecStartDate').val() : null,
+                    valid_to_date: $('#txtSecExpDate').val() != '' ? $('#txtSecExpDate').val() : null,
                     is_deleted: self.secClaimInsID && self.secInsID == '' ? true : false
                 },
                 teritiary_insurance_details = {
+                    claim_patient_insurance_id: self.tertiaryPatientInsuranceId || null,
                     claim_insurance_id: self.terClaimInsID ? parseInt(self.terClaimInsID) : null,
                     patient_id: self.cur_patient_id || null,
                     insurance_provider_id: self.terInsID ? parseInt(self.terInsID) : null,
@@ -2300,8 +2322,8 @@ define(['jquery',
                     assign_benefits_to_patient: $('#chkTerAcptAsmt').prop("checked"),
                     subscriber_dob: $('#txtTerDOB').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtTerDOB').val()).format('YYYY-MM-DD')) : null,
                     medicare_insurance_type_code: null,
-                    valid_from_date: $('#txtTerStartDate').val() != '' ? $('#txtTerStartDate').val() : moment().subtract(21, 'years').format('YYYY-MM-DD'),
-                    valid_to_date: $('#txtTerExpDate').val() != '' ? $('#txtTerExpDate').val() : moment().format('YYYY-MM-DD'),
+                    valid_from_date: $('#txtTerStartDate').val() != '' ? $('#txtTerStartDate').val() : null,
+                    valid_to_date: $('#txtTerExpDate').val() != '' ? $('#txtTerExpDate').val() : null,
                     is_deleted: self.terClaimInsID && self.terInsID == '' ? true : false
                 }
                 if (self.is_primary_available || self.priClaimInsID)
@@ -2323,7 +2345,7 @@ define(['jquery',
                     billing_code_id: $('#ddlBillingCode option:selected').val() != '' ? parseInt($('#ddlBillingCode option:selected').val()) : null,
                     billing_class_id: $('#ddlBillingClass option:selected').val() != '' ? parseInt($('#ddlBillingClass option:selected').val()) : null,
                     created_by: app.userID,
-                    claim_dt: $('#txtClaimDate').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtClaimDate').val())).format('YYYY-MM-DD hh:mm a') : null,
+                    claim_dt: self.cur_study_date ? self.cur_study_date : null,
                     current_illness_date: $('#txtDate').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtDate').val()).format('YYYY-MM-DD')) : null,
                     same_illness_first_date: $('#txtOtherDate').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtOtherDate').val()).format('YYYY-MM-DD')) : null,
                     unable_to_work_from_date: $('#txtWCF').val() != '' ? self.convertToTimeZone(facility_id, moment($('#txtWCF').val()).format('YYYY-MM-DD')) : null,
@@ -2400,14 +2422,17 @@ define(['jquery',
             saveClaimDetails: function () {
                 var self = this, saveButton = $('#btnSaveClaim');
 
-                saveButton.attr('disabled', true);
                 if (self.validateClaimData()) {
                     self.setClaimDetails();
 
-                    // save function
+                    commonjs.showLoading();
+                    saveButton.attr('disabled', true);
+                    
                     self.model.save({}, {
                         success: function (model, response) {
                             //if (response && response.length > 0) {
+                            commonjs.hideLoading();
+
                             if (response && response.message) {
                                 commonjs.showWarning(response.message);
                             } else {
@@ -2415,7 +2440,7 @@ define(['jquery',
                                 $("#btnClaimsRefresh").click();
                                 $("#btnStudiesRefresh").click();
                                 commonjs.hideDialog();
-                            }                            
+                            }
                         },
                         error: function (model, response) {
                             commonjs.handleXhrError(model, response);
@@ -2646,7 +2671,7 @@ define(['jquery',
                                 self.city = contactInfo.c1City;
                                 self.state = contactInfo.c1State;
                                 self.zipCode = contactInfo.c1Zip;
-                                document.querySelector('#txt' + _targetFlag + 'DOB').value = response.birth_date ? moment(response.birth_date).format('MM/DD/YYYY') : '';
+                                document.querySelector('#txt' + _targetFlag + 'DOB').value = response.birth_date ? moment(response.birth_date).format('L') : '';
                                 self.homePhone = contactInfo.c1HomePhone;
                                 self.workPhone = contactInfo.c1WorkPhone;
                                 self.empStatus = contactInfo.empStatus;
@@ -2748,8 +2773,7 @@ define(['jquery',
                     $('#chk' + flag + 'AcptAsmt').prop('checked', false);
                     $('#lbl' + flag + 'InsPriAddr').html('');
                     $('#lbl' + flag + 'InsCityStateZip').html('');
-                    $('#lbl' + flag + 'InsCityStateZip').show()
-                    $('#lbl' + flag + 'InsPriAddr').show()
+                    $('#lbl' + flag + 'PhoenNo').html('');
                     $('#txt' + flag + 'PolicyNo').val('');
                     $('#txt' + flag + 'GroupNo').val('');
                     $('#ddl' + flag + 'PlanName').val('');
@@ -2856,7 +2880,7 @@ define(['jquery',
                         }
                     },
                     error: function (err, response) {
-                        $("#btnValidateOrder").attr("disabled", false);
+                        $("#btnValidateClaim").attr("disabled", false);
                         commonjs.handleXhrError(err, response);
                     }
                 })
@@ -2883,6 +2907,8 @@ define(['jquery',
                                 'patient_id': data.patient_id,
                                 'order_id': result && result.order_id ? result.order_id : 0
                             });
+
+                            $('#modal_div_container').scrollTop(0); 
                         });
                     } else {
                         commonjs.showWarning('No more order found')
@@ -2902,23 +2928,27 @@ define(['jquery',
                 var $header_container = $('#headerContainer');
                 var $root = $('#modal_div_container');
                 tab_menu_link.click(function (e) {
-                    //--Todo: navigation
+                    var currId = $(this).attr('href').split('_')[1];
+                    tab_menu_item.removeClass('active');                    
+                    $(e.target).closest('li').addClass('active');
 
-                    // var val = $($(this).attr('href')).offset().top;
-                    // var offset = $header_container.height() - 20
-                    // $root.animate({
-                    //     scrollTop: val - offset
-                    // }, 500)
-                    // tab_menu_item.removeClass('active');
-                    // $(this).parent().addClass('active');
-                    // var width_tab_menu_item = $(this).parent().width();
-                    // var _el_position = $(this).parent().position().left;
-                    // $('ul#tab_menu li.active_item').animate({
-                    //     left: _el_position,
-                    //     width: width_tab_menu_item + 40
-                    // }, 300);
+                    var _height = 0;
+                    for (var i = 1; i < currId; i++) {
+                        _height += parseInt($('#tab_' + i).height() + 15);
+                    }
+                    if (currId == 4)
+                        _height -= parseInt($('#divTeritaryInsurances').height() + 15);
+
+                    $root.animate({
+                        scrollTop: _height
+                    }, 100);
+
+                    if ($('#tab_' + currId).find('input[type=text],textarea, select').filter(':input:enabled:visible:first'))
+                        $('#tab_' + currId).find('input[type=text],textarea, select').filter(':input:enabled:visible:first').focus();
+                    e.preventDefault ? event.preventDefault() : event.returnValue = false;
                 });
 
+                $('#modal_div_container').scrollTop(0); 
             },
 
             applySearch: _.debounce(function (e) {

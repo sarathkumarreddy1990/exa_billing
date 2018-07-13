@@ -98,7 +98,7 @@ const api = {
                     console.timeEnd(`${repInfo} s5___jsreport`);
                     if (err) {
                         //return next(err);
-                        //logger.logError(`${reqId}EXA Reporting - jsreport client error while rendering report!`, err);
+                        //logger.error(`${reqId}EXA Reporting - jsreport client error while rendering report!`, err);
                         return responseHandler.sendError(req, res);
                     }
                     // adjust response header for downloadable content
@@ -120,7 +120,7 @@ const api = {
                 });
             })
             .catch((err) => {
-             //   logger.logError(`${reqId}EXA Reporting - error while processing report!`, err);
+             //   logger.error(`${reqId}EXA Reporting - error while processing report!`, err);
               //  console.trace();
                 //res.writeHead(500, { 'content-type': 'text/plain' });
                 //res.end('An error occurred');

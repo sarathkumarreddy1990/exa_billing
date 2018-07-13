@@ -78,4 +78,9 @@ router.put('/follow_ups', async function(req, res){
     httpHandler.sendRows(req, res, data);
 });
 
+router.post('/claims/batch', async function(req, res){
+    const data = await claimWorkbenchController.createBatchClaims(req.body);
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;
