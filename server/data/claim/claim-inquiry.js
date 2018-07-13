@@ -574,6 +574,47 @@ module.exports = {
         return await query(sql);
     },
 
+    getInvoicePayments: async function (params) {
+        params.sortOrder = params.sortOrder || ' ASC';
+        let {
+            sortOrder,
+            sortField,
+            pageNo,
+            pageSize } = params;
+
+        let sql = SQL`WITH invoice_payment_details AS(
+                            SELECT 
+                                  bc.invoice_no
+                                , bc.submitted_dt::date AS date
+                                , claim_totals.charges_bill_fee_total AS bill_fee
+                                , claim_totals.payments_applied_total AS payment
+                                , claim_totals.adjustments_applied_total AS adjustment
+                                , claim_totals.claim_balance_total AS balance
+                            FROM billing.claims bc
+                            INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
+                            WHERE invoice_no is not null)
+                            SELECT
+                                  ROW_NUMBER () OVER (ORDER BY invoice_no) AS id
+                                , invoice_no As invoice_no
+                                , max(date) AS invoice_date
+                                , sum(bill_fee) AS invoice_bill_fee
+                                , sum(payment) AS invoice_payment
+                                , sum(adjustment) AS invoice_adjustment
+                                , sum(balance) AS invoice_balance
+                                , COUNT(1) OVER (range unbounded preceding) AS total_records
+                            FROM invoice_payment_details
+                            GROUP BY invoice_no `;
+
+        sql.append(SQL` ORDER BY  `)
+            .append(sortField)
+            .append(' ')
+            .append(sortOrder)
+            .append(SQL` LIMIT ${pageSize}`)
+            .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+
+        return await query(sql);
+    },
+
     getclaimPatientLog: async function (params) {
         let whereQuery = [];
         params.sortOrder = params.sortOrder || ' ASC';        
