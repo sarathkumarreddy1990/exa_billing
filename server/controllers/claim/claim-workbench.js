@@ -88,7 +88,7 @@ module.exports = {
             };
 
             ediResponse = await ediConnect.generateEdi(result.rows[0].header.edi_template_name, ediRequestJson);
-            params.claim_status = 'PYMTPEN';
+            params.claim_status = 'PP';
             params.type = 'auto';
             params.success_claimID = params.claimIds;  
             params.isClaim=true;
@@ -115,7 +115,11 @@ module.exports = {
             let insSubsValidationFields = [];
             let insSubsInvalidFields = '';
 
-            if(currentClaim.billing_method != 'patient_payment'){
+            if (!currentClaim.billing_method) {
+                errorMessages.push('Cannot validate without billing method..');
+            }
+
+            if(currentClaim.billing_method && currentClaim.billing_method != 'patient_payment'){
                 currentClaim.payer_name = currentClaim.payer_info.payer_name;
                 currentClaim.payer_address1 = currentClaim.payer_info.payer_address1;
                 currentClaim.payer_city = currentClaim.payer_info.payer_city;
@@ -224,5 +228,20 @@ module.exports = {
 
     updateFollowUp: async function (params) {
         return await data.updateFollowUp(params);
+    },
+
+    createBatchClaims: async function (params) {
+        let auditDetails = {
+            company_id: params.company_id,
+            screen_name: params.screenName,
+            module_name: params.screenName,
+            entity_name: params.screenName,
+            client_ip: params.clientIp,
+            user_id: parseInt(params.userId)
+        };
+        params.auditDetails = auditDetails;
+        params.created_by = parseInt(params.userId);
+
+        return await data.createBatchClaims(params);
     }
 };

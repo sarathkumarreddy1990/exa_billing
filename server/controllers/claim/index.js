@@ -45,47 +45,15 @@ module.exports = {
 
         let claimData = await data.getClaimVersion(params);
 
-        if (claimData && claimData.rows.length > 0) {
+        if ((claimData && claimData.rows.length > 0) && (params.claim_row_version != claimData.rows[0].claim_row_version)) {
 
-            if (params.claim_row_version != claimData.rows[0].claim_row_version) {
-
-                return {
-                    'message': 'This claim has been already updated by some other user. please refresh the page and try again'
-                };
-            }
+            return {
+                'message': 'This claim has been already updated by some other user. please refresh the page and try again'
+            };
         }
 
-        let existingPayers = await data.getExistingPayer(params);
-
-        if(existingPayers && existingPayers.rows.length) {
-            params.claims.existing_payer_type = existingPayers.rows[0].payer_type;
-        }
-
-        update_charges(params);
-
-        async function update_charges(objects) {
-
-            const charge_arr = [];
-
-            await data.update(params);
-
-            for (const obj1 of objects.charges) {
-
-                if (!obj1.id) {
-
-                    if (!obj1.study_id) {
-                        charge_arr.push(data.saveChargesOnly(obj1));
-                    } else {
-                        charge_arr.push(data.saveCharges(obj1));
-                    }
-
-                }
-
-            }
-
-            return await Promise.all(charge_arr);
-        }
-
+        return await data.update(params);
+        
     },
     getData: async (params) => { return await data.getClaimData(params); },
 

@@ -1,5 +1,5 @@
 const SearchFilter = require('./claim-search-filters');
-const { SQL, query, queryWithAudit } = require('../index');
+const { SQL, query } = require('../index');
 
 module.exports = {
 
@@ -33,9 +33,14 @@ module.exports = {
             claim_status_id,
             billing_code_id,
             billing_class_id,
+            screenName,
+            clientIp,
             claimIds,
+            companyId, 
+            userId      
         } = params;
-
+        
+        params.logDescriptions='Updated ' + params.process + '  for claims ' ;
         params.moduleName = 'claims';
 
         let updateData;
@@ -48,18 +53,33 @@ module.exports = {
             updateData = SQL`billing_class_id = ${billing_class_id}`;
         }
 
-        let sql = SQL`UPDATE
+        let sql = SQL`with update_cte as (UPDATE
                              billing.claims 
                         SET                          
                     `;
 
         sql.append(updateData);
-        sql.append(SQL`WHERE  id in (${claimIds}) RETURNING id, '{}'::jsonb old_values`);
+        sql.append(SQL`WHERE  id = ANY(${claimIds}) RETURNING id, '{}'::jsonb old_values)`);
 
-        return await queryWithAudit(sql, {
-            ...params,
-            logDescription: 'Updated Claim ' + params.process + ' for claims (' + params.claimIds + ')'
-        });
+        sql.append(SQL`SELECT billing.create_audit(
+                                  ${companyId}
+                                , ${screenName}
+                                , id
+                                , ${screenName}
+                                , ${params.moduleName}
+                                , ${params.logDescriptions} || id
+                                , ${clientIp}
+                                , json_build_object(
+                                    'old_values', COALESCE(old_values, '{}'),
+                                    'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_cte LIMIT 1 ) temp_row)
+                                    )::jsonb
+                                , ${userId}
+                                ) AS id 
+                                FROM update_cte
+                                WHERE id IS NOT NULL
+                            `);
+
+        return await query(sql);
     },
 
     /// TODO: bad fn name -- need to rename
@@ -70,7 +90,7 @@ module.exports = {
 								id
 							FROM 
 								billing.claim_status
-							WHERE code  = 'SUBPEN'
+							WHERE code  = 'PS'
 						)	
 						UPDATE 
 							billing.claims bc
@@ -260,6 +280,41 @@ module.exports = {
             ) 
             SELECT * FROM update_followup UNION SELECT * FROM insert_followup `;
         }
+
+        return await query(sql);
+    },
+
+    createBatchClaims: async function (params) {
+        let {
+            study_ids,
+            auditDetails
+        } = params;
+
+        const sql = SQL`
+                    WITH batch_claim_details AS (
+                        SELECT 
+		                    patient_id, study_id 
+	                    FROM
+	                        json_to_recordset(${study_ids}) AS study_ids 
+		                    ( 
+		                        patient_id bigint,
+		                        study_id bigint
+                            )
+                    ), details AS (
+                        SELECT bcd.study_id, d.* 
+                        FROM 
+                           batch_claim_details bcd 
+                        LEFT JOIN LATERAL (select * from billing.get_batch_claim_details(bcd.study_id, ${params.created_by})) d ON true
+                      )
+                      SELECT 
+                        billing.create_claim_charge(
+                            details.claims, 
+                            details.insurances, 
+                            details.claim_icds, 
+                            (${JSON.stringify(auditDetails)})::json, 
+                            details.charges)  
+                      FROM details
+                        `;
 
         return await query(sql);
     }

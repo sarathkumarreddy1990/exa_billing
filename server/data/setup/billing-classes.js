@@ -87,7 +87,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Created ${description}(${code})`
+            logDescription: `Add: New Billing Class(${code}) created`
         });
     },
 
@@ -120,12 +120,12 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Updated ${description}(${code})`
+            logDescription: `Update: Billing Class(${code}) updated`
         });
     },
 
     delete: async (params) => {
-    const {
+        const {
             id,
             code,
             description
