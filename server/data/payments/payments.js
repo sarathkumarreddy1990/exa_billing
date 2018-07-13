@@ -36,7 +36,9 @@ module.exports = {
             toDate,
             filterByDateType,
             paymentStatus,
-            isGetTotal
+            isGetTotal,
+            from,
+            patientID
         } = params;
 
         if (fromDate && toDate) {
@@ -101,6 +103,10 @@ module.exports = {
 
         if (facility_name) {
             whereQuery.push(`facility_name  ILIKE '%${facility_name}%' `);
+        }
+
+        if(from == 'patient_claim') {
+            whereQuery.push(` patient_id = ${patientID} AND ( SELECT payment_status from billing.get_payment_totals(payments.id)) = 'unapplied' `) ;
         }
 
         let joinQuery = ` INNER JOIN public.users ON users.id = payments.created_by
