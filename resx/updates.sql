@@ -1410,7 +1410,7 @@ CREATE OR REPLACE FUNCTION billing.create_charge(
     i_modifier4_id bigint,
     i_bill_fee money,
     i_allowed_amount money,
-    i_units bigint,
+    i_units numeric,
     i_created_by bigint,
     i_authorization_no text,
     i_charge_dt timestamp with time zone,
@@ -1746,7 +1746,7 @@ BEGIN
 					, modifier4_id bigint
 					, bill_fee money
 					, allowed_amount money
-					, units bigint
+					, units numeric
 					, created_by bigint
 					, authorization_no text
 					, charge_dt timestamptz
