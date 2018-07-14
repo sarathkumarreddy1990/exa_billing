@@ -39,7 +39,7 @@ GROUP BY
 )
 SELECT
     agg.patient  AS "Patient Name",
-    agg.claim_id ,
+    agg.claim_id AS "Claim ID",
     agg.status AS "Status",
     agg.account_number AS "Account #",
     agg.encounter_date As "Accounting Date",
@@ -58,7 +58,7 @@ SELECT
 FROM
 	agg
 ORDER BY
-	claim_id
+"Claim ID"
 `);
 
 const api = {

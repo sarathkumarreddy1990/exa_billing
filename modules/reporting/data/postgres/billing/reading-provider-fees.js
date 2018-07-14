@@ -52,7 +52,7 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
             WHEN rpf.display_code !='' THEN
                 COALESCE(rpf.group_name, '- No Group Assigned -' )
             ELSE '' 
-            END AS "Group_name"
+            END AS "Group Name"
         , COALESCE(rpf.display_code, '─ TOTAL ─'::TEXT ) AS "CPT Code"
         , COALESCE(rpf.display_description,'---') AS "Description" 
         , claim_dt AS "Claim Date"
