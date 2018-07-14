@@ -288,6 +288,52 @@ module.exports = {
         return await query(sql);
     },
 
+    applyPaymentApplication: async function(audit_details, params){
+        let {
+            file_id,
+            created_by,
+            code
+        } = params;
+
+        const sql = SQL`
+                    WITH unapplied_charges AS (
+                        SELECT claim_details.payment_id,
+                            json_build_object('charge_id',ch.id,'payment',0,'adjustment',0,'cas_details','[]')
+                        FROM
+                            billing.charges ch
+                        INNER JOIN billing.claims AS c ON ch.claim_id = c.id
+                        INNER JOIN (
+                            SELECT
+                                distinct ch.id as charge_id
+                                ,ch.claim_id
+                                ,efp.payment_id
+                            FROM
+                                billing.charges AS ch
+                            INNER JOIN billing.payment_applications AS pa ON pa.charge_id = ch.id
+                            INNER JOIN billing.payments AS p ON pa.payment_id  = p.id
+                            INNER JOIN billing.edi_file_payments AS efp ON pa.payment_id = efp.payment_id 
+                            WHERE 
+                                efp.edi_file_id = ${file_id}  AND mode = 'eft' 
+                        ) AS claim_details ON claim_details.claim_id = c.id
+                        WHERE claim_details.charge_id != ch.id
+                    )
+                    ,insert_payment_adjustment AS (
+                        SELECT
+                            billing.create_payment_applications(
+                                uc.payment_id
+                                ,( SELECT id FROM billing.adjustment_codes WHERE code = ${code} ORDER BY id ASC LIMIT 1 )
+                                ,${created_by}
+                                ,json_build_array(uc.json_build_object)::jsonb
+                                ,(${audit_details})::json
+                            )
+                        FROM
+                            unapplied_charges uc
+                    )
+                    SELECT * FROM insert_payment_adjustment `;
+
+        return await query(sql);
+    },
+
     isProcessed: async function (file_md5, company_id) {
         const sql = `
         

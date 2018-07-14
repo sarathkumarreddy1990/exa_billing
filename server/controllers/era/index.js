@@ -355,6 +355,11 @@ module.exports = {
 
         let processedClaims = await data.createPaymentApplication(lineItemsAndClaimLists, paymentDetails);
 
+        /**
+         *  again we call to create payment application for unapplied charges form ERA claims
+         */
+        await data.applyPaymentApplication(lineItemsAndClaimLists.audit_details, paymentDetails);
+
         await data.updateERAFileStatus(paymentDetails);
 
         return processedClaims;
