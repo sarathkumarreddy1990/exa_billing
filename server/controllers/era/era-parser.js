@@ -191,6 +191,7 @@ module.exports = {
                             claim_status_code: value.claimStatusCode || 0,
                             cas_details: cas_obj,
                             charge_id: charge_id,
+                            service_date: val.serviceDate && val.serviceDate.serviceDate || null,
                             patient_fname : value.patientName.firstName || '',
                             patient_lname : value.patientName.lastName || '',
                             patient_mname : value.patientName.middleName || '',
