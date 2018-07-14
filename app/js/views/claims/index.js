@@ -2438,19 +2438,19 @@ define(['jquery',
                             if (response && response.message) {
                                 commonjs.showWarning(response.message);
                             } else {
-                                commonjs.showStatus("messages.status.successfullyCompleted");
 
-                                var claimRefreshInterval = setInterval(function () {
-                                    clearInterval(claimRefreshInterval);
+                                var claimRefreshInterval = setTimeout(function () {
+                                    clearTimeout(claimRefreshInterval);
 
+                                    commonjs.showStatus("messages.status.successfullyCompleted");
                                     $("#btnClaimsRefresh").click();
                                     $("#btnStudiesRefresh").click();
-                                }, 100);
-
-                                var claimHideInterval = setInterval(function () {
-                                    clearInterval(claimHideInterval);
-                                    commonjs.hideDialog();
                                 }, 200);
+
+                                var claimHideInterval = setTimeout(function () {
+                                    clearTimeout(claimHideInterval);
+                                    commonjs.hideDialog();
+                                }, 100);
                             }
                         },
                         error: function (model, response) {
@@ -2472,18 +2472,19 @@ define(['jquery',
                 /* Claims section */
                 if (!$('#txtClaimDate').val()) {
                     commonjs.showWarning("Please select claim date");
+                    $('#txtClaimDate').focus();
                     return false;
                 }
 
                 if (!$('#ddlFacility').val()) {
-
                     commonjs.showWarning("shared.warning.selectfacility");
+                    $('#ddlFacility').focus();
                     return false;
                 }
 
                 if (!$('#ddlBillingProvider').val()) {
-
                     commonjs.showWarning("shared.warning.selectbillingProvider");
+                    $('#ddlBillingProvider').focus();
                     return false;
                 }
 
@@ -2539,6 +2540,7 @@ define(['jquery',
                     }
                     if ($('#ddlPriInsurance').val() == '') {
                         commonjs.showWarning("Please select primary insurance");
+                        $('#ddlPriInsurance').focus();
                         return false;
                     }
                     else
@@ -2618,10 +2620,12 @@ define(['jquery',
                 /*Billing summary Section*/
                 if (!$('#ddlClaimStatus').val()) {
                     commonjs.showWarning("shared.warning.missingClaimStatus");
+                    $('#ddlClaimStatus').focus();
                     return false;
                 }
                 if (!$('#ddlResponsible').val()) {
                     commonjs.showWarning("shared.warning.missingResponsible");
+                    $('#ddlResponsible').focus();
                     return false;
                 }
 
@@ -2935,9 +2939,8 @@ define(['jquery',
 
                 var tab_menu_link = $('ul#tab_menu li a');
                 var tab_menu_item = $('ul#tab_menu li');
-                var width_tab_menu_item = tab_menu_item.width();
-                var $header_container = $('#headerContainer');
                 var $root = $('#modal_div_container');
+
                 tab_menu_link.click(function (e) {
                     var currId = $(this).attr('href').split('_')[1];
                     tab_menu_item.removeClass('active');                    

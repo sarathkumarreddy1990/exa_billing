@@ -292,13 +292,13 @@ define(['jquery',
 
             paymentDateFormatter: function (cellvalue, options, rowObject) {
                 var colValue;
-                colValue = (commonjs.checkNotEmpty(rowObject.payment_dt) ? commonjs.getFormattedUtcDate(rowObject.payment_dt) : '');
+                colValue = (commonjs.checkNotEmpty(rowObject.payment_dt) ? commonjs.convertToFacilityTimeZone(rowObject.facility_id, rowObject.payment_dt).format('L')  : '');
                 return colValue;
             },
 
             paymentAccountingDateFormatter: function (cellvalue, options, rowObject) {
                 var colValue;
-                colValue = (commonjs.checkNotEmpty(rowObject.accounting_dt) ? commonjs.getFormattedUtcDate(rowObject.accounting_dt) : '');
+                colValue = (commonjs.checkNotEmpty(rowObject.accounting_dt) ?commonjs.convertToFacilityTimeZone(rowObject.facility_id, rowObject.accounting_dt).format('L') : '');
                 return colValue;
             },
 
@@ -451,6 +451,7 @@ define(['jquery',
                         gridObj.refresh();
                     });
                     colElement.on("cancel.daterangepicker", function (ev, drp) {
+                        gridObj.refresh();
                     });
                 });
             }

@@ -541,7 +541,7 @@ define([
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.type && rowObject.code == 'charge')
-                                    return "<span class='icon-ic-raw-transctipt' rel='tooltip' title='View Pay details of this charge'></span>"
+                                    return "<i class='icon-ic-raw-transctipt' title='View Pay details of this charge'></i>"
                                 else
                                     return rowObject.payment_id;
                             },
@@ -601,7 +601,7 @@ define([
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.type && rowObject.code == 'payment')
-                                    return "<span class='fa fa-eye' rel='tooltip' title='view payment details'></span>"
+                                    return "<i class='fa fa-eye' title='view payment details'></i>"
                                 else
                                     return "";
                             },
@@ -622,7 +622,7 @@ define([
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.code && commentType.indexOf(rowObject.code) == -1)
-                                    return "<span class='icon-ic-delete' rel='tooltip' title='Click here to delete'></span>"
+                                    return "<i class='icon-ic-delete' title='Delete'></i>"
                                 else
                                     return "";
                             }
@@ -636,7 +636,7 @@ define([
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.code && rowObject.code != null && commentType.indexOf(rowObject.code) == -1)
-                                    return "<span class='icon-ic-edit' title='Edit'></span>"
+                                    return "<i class='icon-ic-edit' title='Edit'></i>"
                                 else
                                     return "";
                             }
