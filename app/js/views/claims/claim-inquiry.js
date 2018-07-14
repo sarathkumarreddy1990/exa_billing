@@ -409,7 +409,6 @@ define([
                     disablereload: true,
                     customargs: {
                         claimID: claimID,
-                        patientId: patientId,
                         payerType: payer_type
                     },
                     pager: '#gridPager_invoiceClaim',
@@ -421,7 +420,33 @@ define([
                     $("#tblInvoiceGrid").setGridWidth($(".modal-body").width()-15);
                     $("#tblInvoiceGrid").setGridHeight($(window).height()-600);
                 }, 200);
+
                 $('#divIvoiceAgeSummary').html(self.invoiceAgingSummaryTemplate());
+                
+                $.ajax({
+                    url: "/exa_modules/billing/claims/claim_inquiry/claim_invoice/age",
+                    type: 'GET',
+                    data: {
+                        claimID: claimID,
+                        payerType: payer_type
+                    },
+                    success: function (data, response) {
+                        console.log(data)
+                        if(data && data.length){
+                            $('#tdPtCurrent').text(data[0].current_balance || '$0.00')
+                            $('#tdPtAge30').text(data[0].to30 || '$0.00')
+                            $('#tdPtAge60').text(data[0].to60 || '$0.00')
+                            $('#tdPtAge90').text(data[0].to90 || '$0.00')
+                            $('#tdPtAge120').text(data[0].to120 || '$0.00')
+                            $('#tdPtAgeTotal').text(data[0].sum || '$0.00') 
+                        }
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                })
+
+                
             },
 
             showPatientClaimsLogGrid: function (claimID, patientId) {
@@ -712,7 +737,6 @@ define([
                     height: '20%',
                     html: $('#divCIFormComment').html()
                 });
-
                 if (from == 'edit') {
                     $('#siteModalNested').find('#txtCIAddComment').val(comment);
                 }
@@ -969,6 +993,7 @@ define([
                 var self = this;
                 this.$el.html(this.claimInvoiceTemplate());
                 self.showInvoiceGrid(claimId, patientId, payer_type);
+
             },
 
             printPaymentInvoice: function (e) {
@@ -1015,7 +1040,7 @@ define([
                                 height: '30%',
                                 html: $('#divCIpaymentDetails').html()
                             });
-                            
+                            $('#modal_div_container_nested').css('overflow-x: auto');
                         }
                         else {
                             commonjs.showStatus('No Payment to Show');

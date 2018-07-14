@@ -46,6 +46,10 @@ module.exports = {
         return data.getInvoicePayments(params); 
     },
 
+    getInvoicePaymentsAge: (params) => {
+        return data.getInvoicePaymentsAge(params); 
+    },
+
     getclaimPatientLog: (params) => {
         return data.getclaimPatientLog(params); 
     }
