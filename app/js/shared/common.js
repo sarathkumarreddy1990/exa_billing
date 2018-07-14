@@ -4607,11 +4607,11 @@ var commonjs = {
             var modifier = element.getAttribute('data-type');
             var id = element.getAttribute('data-value');
             if (isFrom == 'M')
-                var modifierElement = 'ddlModifier';
+                var modifierElement = 'txtModifier';
             else
                 var modifierElement = 'ddlPointer';
 
-            var dataType = isFrom == 'M' ? 'modifier' : isFrom; // M -- modifier , P -- Pointer
+            var dataType =  isFrom; // M -- modifier , P -- Pointer
             if (($(element).val() == "") || $(element).hasClass('invalidModifier')) {
                 if (modifier == (dataType + "1") && $('#' + modifierElement + '2_' + id).val() == "" && $('#' + modifierElement + '3_' + id).val() == "" && $('#' + modifierElement + '4_' + id).val() == "") {
                     $('#' + modifierElement + '2_' + id).prop('disabled', true);

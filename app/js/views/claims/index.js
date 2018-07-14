@@ -418,8 +418,6 @@ define(['jquery',
                             
                             self.assignModifierEvent();
                             app.modifiers_in_order = true;
-                            commonjs.enableModifiersOnbind('M'); // Modifier
-                            commonjs.enableModifiersOnbind('P'); // Diagnostic Pointer
                             commonjs.validateControls();
                             commonjs.isMaskValidate();
                             /* Bind chargeLineItems events - Ended */
@@ -445,10 +443,10 @@ define(['jquery',
                                 self.bindCPTSelectionEvents('#divCptCode_' + index);
                                 self.bindCPTSelectionEvents('#divCptDescription_' + index);
 
-                                $('#ddlModifier1_' + index).val(data.modifier1_id ? data.modifier1_id : "");
-                                $('#ddlModifier2_' + index).val(data.modifier2_id ? data.modifier2_id : "");
-                                $('#ddlModifier3_' + index).val(data.modifier3_id ? data.modifier3_id : "");
-                                $('#ddlModifier4_' + index).val(data.modifier1_id ? data.modifier4_id : "");
+                                $('#txtModifier1_' + index).val(data.modifier1_id ? self.getModifierCode(data.modifier1_id) : "").attr('data-id',data.modifier1_id);
+                                $('#txtModifier2_' + index).val(data.modifier2_id ? self.getModifierCode(data.modifier2_id) : "").attr('data-id',data.modifier2_id);
+                                $('#txtModifier3_' + index).val(data.modifier3_id ? self.getModifierCode(data.modifier3_id) : "").attr('data-id',data.modifier3_id);
+                                $('#txtModifier4_' + index).val(data.modifier1_id ? self.getModifierCode(data.modifier4_id) : "").attr('data-id',data.modifier4_id);
                             });
                            
                             if (isFrom && isFrom == 'studies')
@@ -476,6 +474,9 @@ define(['jquery',
                                 });
                                 self.addDiagCodes(false);
                             });
+
+                            commonjs.enableModifiersOnbind('M'); // Modifier
+                            commonjs.enableModifiersOnbind('P'); // Diagnostic Pointer
 
                             // clear icd details after bind
                             self.ICDID = self.icd_code = self.icd_description = '';
@@ -522,6 +523,17 @@ define(['jquery',
                         commonjs.handleXhrError(model, response);
                     }
                 });
+            },
+
+            getModifierCode : function(id) {
+                var code = ""; 
+                var modifierData = app.modifiers.filter(function(modifiers) {
+                     return modifiers.id == id;
+                });
+                if(modifierData && modifierData.length > 0) {
+                    code = modifierData[0].code;
+                }
+                return code;
             },
 
             createCptCodesUI: function(rowIndex) {
@@ -1076,12 +1088,12 @@ define(['jquery',
                     if (isDefault) {
                         var _pointer = data.icd_pointers && data.icd_pointers[m - 1] ? data.icd_pointers[m - 1] : '';
                         $('#ddlPointer' + m + '_' + index).val(_pointer);
-                        $('#ddlModifier' + m + '_' + index).val(data['m' + m])
+                        $('#txtModifier' + m + '_' + index).val(data['m' + m])
                         //self.bindModifiersData('ddlModifier' + m + '_' + index, arr);
                     }else{
                         $('#ddlPointer' + m + '_' + index).val(data['pointer' + m]);
                         // ToDo:: Once modifiers dropdown added have to bind
-                        $('#ddlModifier' + m + '_' + index).val(data['modifier' + m +'_id']); 
+                        $('#txtModifier' + m + '_' + index).val(data['modifier' + m +'_id']); 
                     }
 
                 }
@@ -1155,18 +1167,25 @@ define(['jquery',
                     .on("keyup", function (e) {
                         var _isFrom = $(e.target).hasClass('diagCodes') ? 'P' : 'M';
                         self.checkInputModifiersValues(e, _isFrom);
-                        commonjs.activateInputModifiers(_isFrom, e.target);
-
                     })
                     .on("change", function (e) {
                         var _isFrom = $(e.target).hasClass('diagCodes') ? 'P' : 'M';
-                        self.checkInputModifiersValues(e, _isFrom);
-                        commonjs.activateInputModifiers(_isFrom, e.target);
+                        self.checkInputModifiersValues(e, _isFrom,null,'change');
                     })
                     .on("blur", function (e) {
                         var _isFrom = $(e.target).hasClass('diagCodes') ? 'P' : 'M';
-                        self.checkInputModifiersValues(e, _isFrom);
-                        commonjs.activateInputModifiers(_isFrom, e.target);
+                        self.checkInputModifiersValues(e, _isFrom, null,'blur');
+                        var content = $(e.target).val();
+                        if(_isFrom == 'M') {
+                            var validContent = app.modifiers.filter(function(modifier) {
+                                return modifier.code == content;
+                            });
+                            if(validContent && validContent.length > 0) {
+                                $(e.target).attr('data-id', validContent[0].id);
+                            } else {
+                                $(e.target).attr('data-id',null);
+                            }
+                        }
                     });
 
                 $('.units').on("blur", function (e) {
@@ -1182,7 +1201,7 @@ define(['jquery',
                 });
             },
 
-            checkInputModifiersValues: function (e, isFrom, isEdit) {
+            checkInputModifiersValues: function (e, isFrom, isEdit, evType) {
                 var self = this;
                 if (isFrom == 'P') { // Diagnostic Pointer
 
@@ -1236,17 +1255,20 @@ define(['jquery',
 
                         });
                     }
+                    commonjs.activateInputModifiers(isFrom, e.target);
                 }
                 else if (isFrom == 'M') { // Modifiers
 
                     var dataContent = $(e.target).val();
                     var modifierLevel = $(e.target).attr('data-type');
                     modifierLevel = modifierLevel.replace('M','modifier');
+                    var existData = [];
                     if (dataContent != '') {
                         var existData = jQuery.grep(app.modifiers, function (value) {
-                            return (value.id == dataContent && (value[modifierLevel] == true || value[modifierLevel] == 'true'));
+                            return (value.code.indexOf(dataContent) > -1 && (value[modifierLevel] == true || value[modifierLevel] == 'true'));
                         });
-                        if (existData.length > 0) {
+
+                        if (existData.length > 0 && dataContent && dataContent.length == 2) {
                             $(e.target).css('border-color', '')
                             $(e.target).removeClass('invalidModifier')
                         }
@@ -1259,9 +1281,44 @@ define(['jquery',
                         $(e.target).css('border-color', '')
                         $(e.target).removeClass('invalidModifier');
                         $(e.target).removeClass("invalidCpt");
+                        $('#divModifierList').remove();
                     }
+                    commonjs.activateInputModifiers(isFrom, e.target);
+                    if(existData.length > 0 && !evType) {
+                            self.createModifierDropDown(e, existData);
+                        } else {
+                             $('#divModifierList').remove();
+                        }
                 }
 
+            },
+
+            createModifierDropDown: function(e, existData) {
+                $('#divModifierList').remove();
+                $(e.target).parent().append($('<div/>' , {id:'divModifierList'}));
+                var divModifierList = $('#divModifierList');
+                divModifierList.empty();
+                var modifierEl = $('<div/>').addClass('dropdown-menu');
+                divModifierList.append(modifierEl);
+                for(var i = 0; i < existData.length; i++) {
+                     modifierEl
+                        .append($('<div/>').addClass('dropdown-item').hover(function() {
+                            $(this).css({'background-color':'#337ab7'});
+                        },function(){
+                            $(this).css({'background-color':'transparent'});
+                        })
+                        .mousedown(function(event) {
+                            $(e.target).val($(this).html());
+                            $('#divModifierList').remove();
+                        })
+                        .html(existData[i].code));             
+                }
+                $(e.target).css('border-color', '')
+                $(e.target).removeClass('invalidModifier')
+                var top = $(e.target).offset().top + $(e.target).outerHeight();
+                var left = $(e.target).offset().left
+                divModifierList.css({'position':'relative', 'display':'block'});    
+                modifierEl.css({'display':'block','z-index':'10001'});
             },
 
             assignLineItemsEvents: function () {
@@ -2385,10 +2442,10 @@ define(['jquery',
                         pointer2: $('#ddlPointer2_' + id).val() || null,
                         pointer3: $('#ddlPointer3_' + id).val() || null,
                         pointer4: $('#ddlPointer4_' + id).val() || null,
-                        modifier1_id: ($('#ddlModifier1_' + id).val() && parseInt($('#ddlModifier1_' + id).val())) || null,
-                        modifier2_id: ($('#ddlModifier2_' + id).val() && parseInt($('#ddlModifier2_' + id).val())) || null,
-                        modifier3_id: ($('#ddlModifier3_' + id).val() && parseInt($('#ddlModifier3_' + id).val())) || null,
-                        modifier4_id: ($('#ddlModifier4_' + id).val() && parseInt($('#ddlModifier4_' + id).val())) || null,
+                        modifier1_id: $('#txtModifier1_' + id).attr('data-id') ? parseInt($('#txtModifier1_' + id).attr('data-id')) : null,
+                        modifier2_id: $('#txtModifier2_' + id).attr('data-id') ? parseInt($('#txtModifier2_' + id).attr('data-id')) : null,
+                        modifier3_id: $('#txtModifier3_' + id).attr('data-id') ? parseInt($('#txtModifier3_' + id).attr('data-id')) : null,
+                        modifier4_id: $('#txtModifier4_' + id).attr('data-id') ? parseInt($('#txtModifier4_' + id).attr('data-id')) : null,
                         bill_fee: parseFloat($('#txtBillFee_' + id).val()) || 0.00,
                         allowed_amount: parseFloat($('#txtAllowedFee_' + id).val()) || 0.00,
                         units: parseFloat($('#txtUnits_' + id).val()),
