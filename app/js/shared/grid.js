@@ -144,7 +144,8 @@ define('grid', [
                     accession_no: _storeEle.accession_no,
                     billed_status:_storeEle.billed_status,
                     claim_id:_storeEle.claim_id,
-                    invoice_no:_storeEle.invoice_no
+                    invoice_no:_storeEle.invoice_no,
+                    payer_type:_storeEle.payer_type
                 };
                 if (_storeEle.billed_status == 'billed') {
                     isbilled_status = true;
@@ -434,13 +435,13 @@ define('grid', [
                         return false;
                     }
                     commonjs.showDialog({
-                        'header': 'Invoice',
+                        'header': 'Invoices',
                         'width': '95%',
                         'height': '80%',
                         'needShrink': true
                     });   
                 self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
-                self.claimInquiryView.invoiceInquiry(studyIds,selectedStudies[0].patient_id); //selectedStudies[0].invoice_no
+                self.claimInquiryView.invoiceInquiry(studyIds,selectedStudies[0].patient_id,selectedStudies[0].payer_type); //selectedStudies[0].invoice_no
                 });
 
                 var liPatientClaimLog = commonjs.getRightClickMenu('anc_patient_claim_log','setup.rightClickMenu.patientClaimLog',false,'Patient Claim Log',false);
