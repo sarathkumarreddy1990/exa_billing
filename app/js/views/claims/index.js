@@ -2472,18 +2472,19 @@ define(['jquery',
                 /* Claims section */
                 if (!$('#txtClaimDate').val()) {
                     commonjs.showWarning("Please select claim date");
+                    $('#txtClaimDate').focus();
                     return false;
                 }
 
                 if (!$('#ddlFacility').val()) {
-
                     commonjs.showWarning("shared.warning.selectfacility");
+                    $('#ddlFacility').focus();
                     return false;
                 }
 
                 if (!$('#ddlBillingProvider').val()) {
-
                     commonjs.showWarning("shared.warning.selectbillingProvider");
+                    $('#ddlBillingProvider').focus();
                     return false;
                 }
 
@@ -2539,6 +2540,7 @@ define(['jquery',
                     }
                     if ($('#ddlPriInsurance').val() == '') {
                         commonjs.showWarning("Please select primary insurance");
+                        $('#ddlPriInsurance').focus();
                         return false;
                     }
                     else
@@ -2618,10 +2620,12 @@ define(['jquery',
                 /*Billing summary Section*/
                 if (!$('#ddlClaimStatus').val()) {
                     commonjs.showWarning("shared.warning.missingClaimStatus");
+                    $('#ddlClaimStatus').focus();
                     return false;
                 }
                 if (!$('#ddlResponsible').val()) {
                     commonjs.showWarning("shared.warning.missingResponsible");
+                    $('#ddlResponsible').focus();
                     return false;
                 }
 
