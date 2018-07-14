@@ -227,7 +227,8 @@ module.exports = {
                 , cte_modifiers AS(
                                      SELECT Json_agg(Row_to_json(modifiers)) modifiers
                                     FROM  (
-                                        SELECT modifier_amount,
+                                        SELECT id,
+                                        modifier_amount,
                                         override_amount,
                                         code,
                                         description,
