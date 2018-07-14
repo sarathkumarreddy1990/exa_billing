@@ -209,29 +209,34 @@ var layout = {
             $(layout.screenLinkIds[currentScreen]).addClass('active');
         }
 
-        $('#aNavTitlebar').text(layout.moduleHeaders[module]);
+        var screenTitle = layout.moduleHeaders[module] ? layout.moduleHeaders[module].toUpperCase() : 'BILLING';
+        $('#aNavTitlebar').text(screenTitle);
         $('#aNavTitlebar').attr("href", location.href);
 
-        this.refreshAppSettings(module, currentScreen);
+        $('.daterangepicker').remove();
+        this.triggerSettingsRefresh(module, currentScreen);
 
         document.title = layout.moduleHeaders[module] + ' - EXA Billing';
     },
 
-    refreshAppSettings: function (module, currentScreen) {
+    triggerSettingsRefresh: function (module, currentScreen) {
         if (['Studies', 'Claims', 'Payments'].indexOf(module) > -1 && this.setupDataUpdated) {
             this.setupDataUpdated = false;
-
-            new window.AppServer(function () {
-                console.log('App settings re-initialized..')
-            });
+            this.refreshAppSettings();
         }
     },
 
-    highlightMainMenu: function (currentModule) {
+    refreshAppSettings: function (showStatus) {
+
+        new window.AppServer(function () {
+            console.log('App settings re-initialized..');
+            if (showStatus) {
+                commonjs.showStatus('Settings refreshed.');
+            }
+        });
     },
 
-    highlightMainMenu_Customer: function (currentScreen) {
-
+    highlightMainMenu: function (currentModule) {
     },
 
     initializeI18n: function () {
