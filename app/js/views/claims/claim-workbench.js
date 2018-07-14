@@ -195,10 +195,13 @@ define(['jquery',
             events: {
                 "click #btnClearAllStudy": "clearAllSelectedRows",
                 "click #btnSelectAllStudy": "selectAllRows",
-                "click #btnInsuranceClaim": "createClaims",
-                "click #btnPaperClaimFormat": "createClaims",
-                "click #btnPaperClaimFull": "createClaims",
-                "click #btnPaperClaimOriginal": "createClaims",
+                "click #btnElectronicClaim": "createClaims",
+                "click #btnPaperClaimBW": "createClaims",
+                "click #btnPaperClaimRed": "createClaims",
+                "click #btnInvoiceServiceDate": "createClaims",
+                "click #btnInvoicePatientName": "createClaims",
+                "click #btnPatientPayemnt": "createClaims",
+                "click #btnClaimFormat": "createClaims",
                 "click #btnValidateOrder": "validateClaim",
                 "click #btnClaimRefreshAll": "refreshAllClaims",
                 "click #btnValidateExport": "exportExcel",
@@ -257,7 +260,7 @@ define(['jquery',
                     gadget: '',
                     customStudyStatus: []
                 }));
-                $("#btnPaperClaimFormat").text('Paper Claims('+(localStorage.getItem('default_paperclaim_format')||'ORIGINAL')+')')
+               // $("#btnPaperClaimFormat").text('Paper Claims('+(localStorage.getItem('default_paperclaim_format')||'ORIGINAL')+')')
 
                 if (queryString && !queryString.target && commonjs.getParameterByName(queryString).admin && commonjs.getParameterByName(queryString).admin == 1) {
                     self.isAdmin = true;
@@ -387,14 +390,35 @@ define(['jquery',
             },
             createClaims:function (e) {
                 var self=this;
-                if(e.target){
-                    var  paperClaimFormat=$(e.target).attr('data-value');
-                    if(paperClaimFormat){
-                        localStorage.setItem('default_paperclaim_format',paperClaimFormat);
-                        $("#btnPaperClaimFormat").text('Paper Claims('+(localStorage.getItem('default_paperclaim_format')||'ORIGINAL')+')')
-                    }                  
+                var billingMethodFormat ='';
+                if (e.target) {
+                    if ($(e.target).closest('li') && $(e.target).closest('li').hasClass('disabled')) {
+                        return false;
+                    }
+                    var claimFormat = $(e.target).attr('data-value');
+                    billingMethodFormat = $(e.target).attr('data-method');
+                    if (claimFormat) {
+
+                        if(billingMethodFormat=='paper_claim'){
+                            localStorage.setItem('default_paperclaim_format',  $(e.target).attr('data-format'));
+                            localStorage.setItem('default_paperclaim',  $(e.target).attr('data-value'));
+                            $("#btnClaimFormat").attr('data-format',  $(e.target).attr('data-format'));
+                        
+                        }     
+                        
+                        if(billingMethodFormat=='direct_billing'){
+                            localStorage.setItem('default_directbilling_format',  $(e.target).attr('data-format'));
+                            localStorage.setItem('default_directbilling',  $(e.target).attr('data-value'));
+                            $("#btnClaimFormat").attr('data-format',  $(e.target).attr('data-format'));              
+                        }                        
+
+
+                        $("#btnClaimFormat").attr('data-method', billingMethodFormat);
+
+                        $("#btnClaimFormat").text(claimFormat)
+                    }
                 }
-                
+
                 var filterID = commonjs.currentStudyFilter;
                 var filter = commonjs.loadedStudyFilters.get(filterID);
 
@@ -410,6 +434,15 @@ define(['jquery',
                     }
 
                     var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'billing_method');
+                   
+                    if (e.target) {
+                                    if (billingMethodFormat != billingMethod) {
+                            commonjs.showWarning('Please select valid claims method');
+                            return false;
+                        }
+                    }
+
+                   
                     if (existingBillingMethod == '') existingBillingMethod = billingMethod
                     if (existingBillingMethod != billingMethod) {
                         commonjs.showWarning('Please select claims with same type of billing method');
@@ -441,7 +474,7 @@ define(['jquery',
 
 
                 if (claimIds && claimIds.length == 0) {
-                    commonjs.showWarning('Please select claims with same type of billing method and electronic billing method');
+                    commonjs.showWarning('Please select claims with same type of billing method ');
                     return false;
                 }
 
@@ -1434,7 +1467,7 @@ define(['jquery',
                 $loading.show();
                 commonjs.showLoading();
                 $("#btnInsuranceClaim").show();
-                $("#btnPaperClaim").hide();
+                $("#btnPaperClaim").show();
                 jQuery.ajax({
                     url: "/exa_modules/billing/user_settings",
                     type: "GET",
@@ -1531,7 +1564,7 @@ define(['jquery',
                     $("#btnPaperClaim").hide();
                     $("#btnValidateExport").hide();
                 }else{
-                    $("#btnInsuranceClaim").show();
+                    $("#btnPaperClaim").show();
                     $("#btnValidateOrder").show();
                     $("#btnValidateExport").show();
                 }
