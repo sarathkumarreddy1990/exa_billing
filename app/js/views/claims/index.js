@@ -225,27 +225,27 @@ define(['jquery',
 
                
                 if (!$('#ddlServiceType'+ins+' :selected').length) {
-                    commonjs.showWarning('messages.warning.shared.selectservicetype');
+                    commonjs.showWarning('shared.warning.selectservicetype');
                     return;
                 }
 
                 if (!$('#txtBenefitOnDate' + ins).val()) {
-                    commonjs.showWarning('messages.warning.patient.selectbenefitondate');
+                    commonjs.showWarning('shared.warning.selectbenefitondate');
                     return;
                 }
 
                 if (!self.npiNo) {
-                    commonjs.showWarning('messages.warning.patient.npinumbernotpresent');
+                    commonjs.showWarning('shared.warning.npinumbernotpresent');
                     return;
                 }
 
                 if (!self.federalTaxId) {
-                    commonjs.showWarning('messages.warning.patient.federaltaxidnotpresent');
+                    commonjs.showWarning('shared.warning.federaltaxidnotpresent');
                     return;
                 }
 
                 if (!self.enableInsuranceEligibility) {
-                    commonjs.showWarning('messages.warning.patient.eleigibilitycheckdisabled');
+                    commonjs.showWarning('shared.warning.eligibilitycheckdisabled');
                     return;
                 } 
 
@@ -1712,7 +1712,7 @@ define(['jquery',
                 if (self.icd_code != '' && self.ICDID != '') {
                     if (curDiagnosis.length < 12) {
                         if (curDiagnosis.indexOf(String(self.ICDID)) > -1) {
-                            commonjs.showWarning("messages.warning.claims.problemAlreadyExists");
+                            commonjs.showWarning("shared.warning.problemAlreadyExists");
                             return false;
                         }
 
@@ -1787,7 +1787,7 @@ define(['jquery',
                         self.icd_description = '';
                     }
                     else {
-                        commonjs.showWarning("messages.warning.claims.icdLimitExists");
+                        commonjs.showWarning("shared.warning.icdLimitExists");
                         $('#select2-ddlMultipleDiagCodes-container').html('');
                         self.icd_code = '';
                         self.ICDID  ='';
@@ -2438,19 +2438,19 @@ define(['jquery',
                             if (response && response.message) {
                                 commonjs.showWarning(response.message);
                             } else {
-                                commonjs.showStatus("messages.status.successfullyCompleted");
 
-                                var claimRefreshInterval = setInterval(function () {
-                                    clearInterval(claimRefreshInterval);
+                                var claimRefreshInterval = setTimeout(function () {
+                                    clearTimeout(claimRefreshInterval);
 
+                                    commonjs.showStatus("messages.status.successfullyCompleted");
                                     $("#btnClaimsRefresh").click();
                                     $("#btnStudiesRefresh").click();
-                                }, 100);
-
-                                var claimHideInterval = setInterval(function () {
-                                    clearInterval(claimHideInterval);
-                                    commonjs.hideDialog();
                                 }, 200);
+
+                                var claimHideInterval = setTimeout(function () {
+                                    clearTimeout(claimHideInterval);
+                                    commonjs.hideDialog();
+                                }, 100);
                             }
                         },
                         error: function (model, response) {
@@ -2472,18 +2472,19 @@ define(['jquery',
                 /* Claims section */
                 if (!$('#txtClaimDate').val()) {
                     commonjs.showWarning("Please select claim date");
+                    $('#txtClaimDate').focus();
                     return false;
                 }
 
                 if (!$('#ddlFacility').val()) {
-
-                    commonjs.showWarning("messages.warning.claims.selectfacility");
+                    commonjs.showWarning("shared.warning.selectfacility");
+                    $('#ddlFacility').focus();
                     return false;
                 }
 
                 if (!$('#ddlBillingProvider').val()) {
-
-                    commonjs.showWarning("messages.warning.claims.selectbillingProvider");
+                    commonjs.showWarning("shared.warning.selectbillingProvider");
+                    $('#ddlBillingProvider').focus();
                     return false;
                 }
 
@@ -2534,11 +2535,12 @@ define(['jquery',
                 if (self.priInsID || !mandatory_fields.primaryfields.every(checkEmpty)) {
 
                     if (mandatory_fields.primaryfields.indexOf('') > -1 || mandatory_fields.primaryfields.indexOf(null) > -1) {
-                        commonjs.showWarning("messages.warning.claims.priInsValidation");
+                        commonjs.showWarning("shared.warning.priInsValidation");
                         return false;
                     }
                     if ($('#ddlPriInsurance').val() == '') {
                         commonjs.showWarning("Please select primary insurance");
+                        $('#ddlPriInsurance').focus();
                         return false;
                     }
                     else
@@ -2547,14 +2549,14 @@ define(['jquery',
                 if (self.secInsID || !mandatory_fields.secondaryfields.every(checkEmpty)) {
                     if (!self.priInsID) {
 
-                        commonjs.showWarning("messages.warning.claims.priMissingValidation");
+                        commonjs.showWarning("shared.warning.priMissingValidation");
                         return false;
                     }
                     else {
 
                         if (mandatory_fields.secondaryfields.indexOf('') > -1 || mandatory_fields.secondaryfields.indexOf(null) > -1) {
 
-                            commonjs.showWarning("messages.warning.claims.secInsValidation");
+                            commonjs.showWarning("shared.warning.secInsValidation");
                             return false;
                         }
                         if ($('#s2id_txtSecInsurance a span').html() == 'Search Carrier' || $('#s2id_txtSecInsurance a span').html() == '') {
@@ -2569,14 +2571,14 @@ define(['jquery',
                 if (self.terInsID || !mandatory_fields.tertiaryfields.every(checkEmpty)) {
                     if (!self.secInsID) {
 
-                        commonjs.showWarning("messages.warning.claims.secMissingValidation");
+                        commonjs.showWarning("shared.warning.secMissingValidation");
                         return false;
                     }
                     else {
 
                         if (mandatory_fields.tertiaryfields.indexOf('') > -1 || mandatory_fields.tertiaryfields.indexOf(null) > -1) {
 
-                            commonjs.showWarning("messages.warning.claims.terInsValidation");
+                            commonjs.showWarning("shared.warning.terInsValidation");
                             return false;
                         }
                         if ($('#s2id_txtTerInsurance a span').html() == 'Search Carrier' || $('#s2id_txtTerInsurance a span').html() == '') {
@@ -2592,7 +2594,7 @@ define(['jquery',
                 /* Charge section */
 
                 if (!$('#tBodyCharge tr').length) {
-                    commonjs.showWarning("messages.warning.claims.chargeValidation", 'largewarning');
+                    commonjs.showWarning("shared.warning.chargeValidation", 'largewarning');
                     return false;
                 }
                 if ($('.cptcode').hasClass('cptIsExists')) {
@@ -2617,11 +2619,13 @@ define(['jquery',
 
                 /*Billing summary Section*/
                 if (!$('#ddlClaimStatus').val()) {
-                    commonjs.showWarning("messages.warning.claims.missingClaimStatus");
+                    commonjs.showWarning("shared.warning.missingClaimStatus");
+                    $('#ddlClaimStatus').focus();
                     return false;
                 }
                 if (!$('#ddlResponsible').val()) {
-                    commonjs.showWarning("messages.warning.claims.missingResponsible");
+                    commonjs.showWarning("shared.warning.missingResponsible");
+                    $('#ddlResponsible').focus();
                     return false;
                 }
 
@@ -2935,9 +2939,8 @@ define(['jquery',
 
                 var tab_menu_link = $('ul#tab_menu li a');
                 var tab_menu_item = $('ul#tab_menu li');
-                var width_tab_menu_item = tab_menu_item.width();
-                var $header_container = $('#headerContainer');
                 var $root = $('#modal_div_container');
+
                 tab_menu_link.click(function (e) {
                     var currId = $(this).attr('href').split('_')[1];
                     tab_menu_item.removeClass('active');                    

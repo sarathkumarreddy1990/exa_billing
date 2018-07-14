@@ -28,6 +28,7 @@ define(['jquery',
             commonjs.bindDateTimePicker("divFollowUpDateBilling", { format: 'L', minDate: moment().startOf('day') });
             $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr for select2 search text can't editable
             this.bindEvents(claimIDs);
+            $('#modal_div_container').removeAttr('style');
         },
 
         bindEvents: function (claimIDs) {

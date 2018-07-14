@@ -170,6 +170,7 @@ module.exports = {
                                 ,original_reference text
                                 ,cas_details jsonb
                                 ,claim_status_code bigint
+                                ,service_date date
                              )
                             ),
                            matched_claims AS (
@@ -178,6 +179,7 @@ module.exports = {
                                     application_details.claim_status_code,
                                     application_details.payment,
                                     application_details.original_reference,
+                                    application_details.service_date,
                                     json_build_object(
                                         'charge_id',charges.id,
                                         'payment',application_details.payment,
@@ -201,6 +203,7 @@ module.exports = {
                                           WHEN ( application_details.charge_id  = 0 AND application_details.cpt_code !='' ) THEN cpt_codes.display_code = application_details.cpt_code
                                         END
                                     )
+                                    AND ch.charge_dt::date = application_details.service_date
                                     ORDER BY id ASC LIMIT 1
                                 ) AS charges ON true
                                 WHERE 

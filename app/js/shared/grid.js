@@ -412,7 +412,7 @@ define('grid', [
                 });
 
 
-                var liPatientClaimInquiry = commonjs.getRightClickMenu('anc_patient_claim_inquiry','setup.rightClickMenu.patientClaim',false,'Patient Claim',false);
+                var liPatientClaimInquiry = commonjs.getRightClickMenu('anc_patient_claim_inquiry','setup.rightClickMenu.patientClaim',false,'Patients Claim',false);
                 if(studyArray.length == 1)
                     $divObj.append(liPatientClaimInquiry);
                 self.checkRights('anc_patient_claim_inquiry');
@@ -605,6 +605,10 @@ define('grid', [
                 studyStoreValue = getData(rowId, studyDataStore, gridID);
                 if (!studyStoreValue.study_cpt_id) {
                     commonjs.showWarning("Please select charges record for batch claim");
+                    return false;
+                }
+                if (studyStoreValue.billed_status == 'billed') {
+                    commonjs.showWarning("Please select Unbilled record for batch claim");
                     return false;
                 }
                 batchClaimArray.push({
