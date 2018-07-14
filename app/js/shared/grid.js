@@ -606,6 +606,10 @@ define('grid', [
                     commonjs.showWarning("Please select charges record for batch claim");
                     return false;
                 }
+                if (studyStoreValue.billed_status == 'billed') {
+                    commonjs.showWarning("Please select Unbilled record for batch claim");
+                    return false;
+                }
                 batchClaimArray.push({
                     patient_id :studyStoreValue.patient_id,
                     study_id :studyStoreValue.study_id
