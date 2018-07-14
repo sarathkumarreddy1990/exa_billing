@@ -1,4 +1,5 @@
 const data = require('../../data/era/index');
+const remarkCodes = require('../../resx/edi/era-remark-codes');
 const _ = require('lodash');
 const commentsDetails = [
     {
@@ -239,6 +240,20 @@ module.exports = {
                         });
                     }
 
+                    if (value.outpatientAdjudicationInformation && Object.keys(value.outpatientAdjudicationInformation).length) {
+                        
+                        _.each(Object.keys(value.outpatientAdjudicationInformation), function (key) {
+                            let note = _.find(remarkCodes, (desc, k) => { if (k === value.outpatientAdjudicationInformation[key]) { return desc; } });
+
+                            if (note) {
+                                claimComments.push({
+                                    claim_number: value.claimNumber,
+                                    note: value.outpatientAdjudicationInformation[key] +': '+ note,
+                                    type: 'auto'
+                                });
+                            }
+                        });
+                    }
                 }
             });
 
