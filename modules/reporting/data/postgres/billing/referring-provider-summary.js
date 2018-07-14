@@ -32,11 +32,11 @@ WITH referringProviderSummary as (
         pp.full_name ASC
  )
     SELECT 
-        provider_code AS "PROVIDER CODE",
-        provider_name AS "PROVIDER NAME",
-        orderCount AS "COUNT" ,
-        BillingFee AS "BILL FEE", 
-        AllowedFee AS "ALLOWED FEE"
+        provider_code AS "Provider Code",
+        provider_name AS "Provider Name",
+        orderCount AS "Count" ,
+        BillingFee AS "Bill Fee", 
+        AllowedFee AS "Allowed Fee"
     FROM
          referringProviderSummary
 `);

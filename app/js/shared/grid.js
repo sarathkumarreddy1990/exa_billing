@@ -144,7 +144,8 @@ define('grid', [
                     accession_no: _storeEle.accession_no,
                     billed_status:_storeEle.billed_status,
                     claim_id:_storeEle.claim_id,
-                    invoice_no:_storeEle.invoice_no
+                    invoice_no:_storeEle.invoice_no,
+                    payer_type:_storeEle.payer_type
                 };
                 if (_storeEle.billed_status == 'billed') {
                     isbilled_status = true;
@@ -411,7 +412,7 @@ define('grid', [
                 });
 
 
-                var liPatientClaimInquiry = commonjs.getRightClickMenu('anc_patient_claim_inquiry','setup.rightClickMenu.patientClaims',false,'Patient Claims',false);
+                var liPatientClaimInquiry = commonjs.getRightClickMenu('anc_patient_claim_inquiry','setup.rightClickMenu.patientClaim',false,'Patients Claim',false);
                 if(studyArray.length == 1)
                     $divObj.append(liPatientClaimInquiry);
                 self.checkRights('anc_patient_claim_inquiry');
@@ -421,7 +422,7 @@ define('grid', [
                     }
                    
                 self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
-                self.claimInquiryView.patientInquiryForm(studyIds,selectedStudies[0].patient_id);
+                self.claimInquiryView.patientInquiryForm(studyIds,selectedStudies[0].patient_id, selectedStudies[0].patient_name);
                 });
 
 
@@ -434,13 +435,13 @@ define('grid', [
                         return false;
                     }
                     commonjs.showDialog({
-                        'header': 'Invoice',
+                        'header': 'Invoices',
                         'width': '95%',
                         'height': '80%',
                         'needShrink': true
                     });   
                 self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
-                self.claimInquiryView.invoiceInquiry(studyIds,selectedStudies[0].patient_id); //selectedStudies[0].invoice_no
+                self.claimInquiryView.invoiceInquiry(studyIds,selectedStudies[0].patient_id,selectedStudies[0].payer_type); //selectedStudies[0].invoice_no
                 });
 
                 var liPatientClaimLog = commonjs.getRightClickMenu('anc_patient_claim_log','setup.rightClickMenu.patientClaimLog',false,'Patient Claim Log',false);
@@ -499,17 +500,17 @@ define('grid', [
                         if ($('#anc_view_reports').hasClass('disabled')) {
                             return false;
                         }
-
+                        var session = app.sessionID ? btoa(app.sessionID) : "demo_session";
                         var queryStrVal = [
                             'study_id=' + study_id,
                             'host_name=' + location.origin,
                             'user_id=' + app.userID,
                             'company_id=' + app.companyID,
                             'client_ip=' + location.hostname,
-                            'session=' + btoa(app.sessionID),
+                            'session=' + session,
                             'screen_name=approved_report'
                         ];
-
+                        queryStrVal = queryStrVal.join('&');
                         commonjs.showDialog({
                             header: 'Approved Reports',
                             i18nHeader: 'setup.rightClickMenu.approvedReports',
@@ -604,6 +605,10 @@ define('grid', [
                 studyStoreValue = getData(rowId, studyDataStore, gridID);
                 if (!studyStoreValue.study_cpt_id) {
                     commonjs.showWarning("Please select charges record for batch claim");
+                    return false;
+                }
+                if (studyStoreValue.billed_status == 'billed') {
+                    commonjs.showWarning("Please select Unbilled record for batch claim");
                     return false;
                 }
                 batchClaimArray.push({

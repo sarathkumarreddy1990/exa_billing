@@ -40,7 +40,7 @@ WITH paymentsByInsCompany as (
     bp.id    
 )
     SELECT 
-        payment_id AS "Payment Id",
+        payment_id AS "Payment ID",
         insurance_name AS "Insurance Name",      
         amount AS "Amount",
         payment_applied_amount AS "Applied",

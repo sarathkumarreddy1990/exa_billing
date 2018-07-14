@@ -183,6 +183,8 @@ if (require && require.config) {
             window.commonjs = commonjs;
             window._get = _get;
 
+            window.AppServer = Appserver;
+
             Backbone.emulateHTTP = false;
 
             new Appserver(function () {

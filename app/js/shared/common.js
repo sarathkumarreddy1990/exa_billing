@@ -1935,6 +1935,7 @@ var commonjs = {
         }, {
                 type: type,
                 z_index: 1061,
+				offset: 5,
                 delay: 1000,
                 placement: {
                     align: 'center',
@@ -2345,6 +2346,13 @@ var commonjs = {
     docResize: function (e) {
         var currentModule = commonjs.currentModule;
         switch (currentModule) {
+            case 'report':
+                var navHeight = $(window).height() - ($('body>nav').outerHeight() + 50);
+                if ($('.exa-left-nav')) {
+                    $('.exa-left-nav').height(navHeight);
+                }
+                break;
+
             case 'Home':
             case 'Claims':
                 commonjs.resizeHomeScreen();
@@ -2362,6 +2370,10 @@ var commonjs = {
                     $(this).jqGrid('setGridHeight', obj.height - 20);
                 else
                     $(this).jqGrid('setGridHeight', obj.height);
+
+                if($('.exa-left-nav')) {
+                    $('.exa-left-nav').height(obj.navHeight);
+                }
             }
         });
 
@@ -2386,12 +2398,14 @@ var commonjs = {
          }*/
 
     },
+
     resizeIconMenu: function () {
         var icon_panel = $('#viztekIconNav');
         var _d_height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight || 0;
         icon_panel.css('height', _d_height);
         //$('#viztekIconNav').css('height','100%');
     },
+
     resizeHomeScreen: function (retryCount) {
         var tabWidth = 100;
         var $tabs = $('#claimsTabs li').length ? $('#claimsTabs') : $('#studyTabs');
@@ -2455,6 +2469,7 @@ var commonjs = {
 
     getGridMeasures: function (isWidthResize, isHeightResize, userWidth, userHeight, offsetWidth, offsetHeight) {
         var width, height;
+
         if (isHeightResize && (typeof userHeight !== 'number' || userHeight > 0)) {
             if (typeof userHeight == 'number') {
                 height = userHeight;
@@ -2499,8 +2514,10 @@ var commonjs = {
 
         //width = width - (offsetWidth ? parseInt(offsetWidth) : 0);
         height = height - (offsetHeight ? parseInt(offsetHeight) : 0);
+        var navHeight = $(window).height() - ($('body>nav').outerHeight() + 50);
+
         //return {width: width, height: height};
-        return { height: height };
+        return { height: height, navHeight: navHeight };
 
     },
 
@@ -4070,7 +4087,7 @@ var commonjs = {
             order_id = options.order_id,
             patient_id = options.patient_id;
 
-        var url = 'vieworder#patient/patientReport/all/' + btoa(patient_id) + '/' + btoa(order_id) + '/' + btoa(study_id);
+        var url = '/vieworder#patient/patientReport/all/' + btoa(patient_id) + '/' + btoa(order_id) + '/' + btoa(study_id);
         this.openWindow(url);
     },
 
@@ -5158,3 +5175,12 @@ function removeIframeHeader() {
     $('iframe#site_modal_iframe_container, iframe#ifSettings').contents().find('head').append('<style>header.header{display:none;}nav.sub-top-nav, nav#subSetupMenu {display: none;}</style>');
 }
 
+// $(document).ajaxComplete(function () {
+//     commonjs.hideLoading();
+// });
+
+$(document).ajaxSuccess(function (event, xhr, settings) {
+    if(settings.url.indexOf('billing/setup') > -1 && ['POST', 'PUT', 'DELETE'].indexOf(settings.type) > -1) {
+        layout.setupDataUpdated = true;
+    }
+});

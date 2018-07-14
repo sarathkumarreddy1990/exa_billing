@@ -1410,7 +1410,7 @@ CREATE OR REPLACE FUNCTION billing.create_charge(
     i_modifier4_id bigint,
     i_bill_fee money,
     i_allowed_amount money,
-    i_units bigint,
+    i_units numeric,
     i_created_by bigint,
     i_authorization_no text,
     i_charge_dt timestamp with time zone,
@@ -1546,8 +1546,8 @@ BEGIN
     p_user_id := (i_audit_details ->> 'user_id')::BIGINT;
     p_company_id := (i_audit_details ->> 'company_id')::BIGINT;
 
-	WITH save_patient_insurances AS (
-		INSERT INTO public.patient_insurances (
+	WITH  patient_insurances_details AS(
+		SELECT
 			  patient_id
 			, insurance_provider_id
 			, subscriber_zipcode
@@ -1569,30 +1569,8 @@ BEGIN
 			, subscriber_dob
 			, valid_from_date
 			, valid_to_date
-			, medicare_insurance_type_code)
-		SELECT
-			  patient_id
-			, insurance_provider_id
-			, subscriber_zipcode
-			, subscriber_relationship_id
-			, coverage_level
-			, policy_number
-			, group_number
-			, subscriber_employment_status_id
-			, subscriber_firstname
-			, subscriber_lastname
-			, subscriber_middlename
-			, subscriber_name_suffix
-			, subscriber_gender
-			, subscriber_address_line1
-			, subscriber_address_line2
-			, subscriber_city
-			, subscriber_state
-			, assign_benefits_to_patient
-			, subscriber_dob
-			, now()
-			, now() + interval '1 month'
 			, medicare_insurance_type_code
+            , claim_patient_insurance_id
 		FROM
 		    json_to_recordset(i_insurances_details) AS insurances (
 			  patient_id bigint
@@ -1616,8 +1594,94 @@ BEGIN
 			, subscriber_dob date
 			, valid_from_date date
 			, valid_to_date date
-			, medicare_insurance_type_code bigint)
-			RETURNING id,coverage_level),
+			, medicare_insurance_type_code bigint
+            , claim_patient_insurance_id bigint)
+    ),
+    save_patient_insurances AS (
+		INSERT INTO public.patient_insurances (
+			  patient_id
+			, insurance_provider_id
+			, subscriber_zipcode
+			, subscriber_relationship_id
+			, coverage_level
+			, policy_number
+			, group_number
+			, subscriber_employment_status_id
+			, subscriber_firstname
+			, subscriber_lastname
+			, subscriber_middlename
+			, subscriber_name_suffix
+			, subscriber_gender
+			, subscriber_address_line1
+			, subscriber_address_line2
+			, subscriber_city
+			, subscriber_state
+			, assign_benefits_to_patient
+			, subscriber_dob
+			, valid_from_date
+			, valid_to_date
+			, medicare_insurance_type_code)
+        SELECT 
+              patient_id
+			, insurance_provider_id
+			, subscriber_zipcode
+			, subscriber_relationship_id
+			, coverage_level
+			, policy_number
+			, group_number
+			, subscriber_employment_status_id
+			, subscriber_firstname
+			, subscriber_lastname
+			, subscriber_middlename
+			, subscriber_name_suffix
+			, subscriber_gender
+			, subscriber_address_line1
+			, subscriber_address_line2
+			, subscriber_city
+			, subscriber_state
+			, assign_benefits_to_patient
+			, subscriber_dob
+			, valid_from_date
+			, valid_to_date
+			, medicare_insurance_type_code
+        FROM patient_insurances_details pid
+        WHERE claim_patient_insurance_id IS NULL
+		RETURNING id,coverage_level),
+    update_insurance AS (
+            UPDATE
+                public.patient_insurances  ppi
+            SET
+                  insurance_provider_id = ins.insurance_provider_id
+                , subscriber_zipcode = ins.subscriber_zipcode
+                , subscriber_relationship_id = ins.subscriber_relationship_id
+                , coverage_level = ins.coverage_level
+                , policy_number = ins.policy_number
+                , group_number = ins.group_number
+                , subscriber_employment_status_id = ins.subscriber_employment_status_id
+                , subscriber_firstname = ins.subscriber_firstname
+                , subscriber_lastname = ins.subscriber_lastname
+                , subscriber_middlename = ins.subscriber_middlename
+                , subscriber_name_suffix = ins.subscriber_name_suffix
+                , subscriber_gender = ins.subscriber_gender
+                , subscriber_address_line1 = ins.subscriber_address_line1
+                , subscriber_address_line2 = ins.subscriber_address_line2
+                , subscriber_city = ins.subscriber_city
+                , subscriber_state = ins.subscriber_state
+                , assign_benefits_to_patient = ins.assign_benefits_to_patient
+                , subscriber_dob = ins.subscriber_dob
+                , medicare_insurance_type_code = ins.medicare_insurance_type_code
+            FROM
+                patient_insurances_details ins
+            WHERE
+                ppi.id = ins.claim_patient_insurance_id 
+                AND ins.claim_patient_insurance_id IS NOT NULL
+            RETURNING ppi.id,ppi.coverage_level
+    ),
+    patient_insurance_coverage_details AS(
+        SELECT id,coverage_level FROM save_patient_insurances spi
+        UNION ALL
+        SELECT id,coverage_level FROM update_insurance ui
+    ),
 	save_claim AS (
 		INSERT INTO billing.claims (
 			  company_id
@@ -1682,9 +1746,9 @@ BEGIN
 			, i_claim_details ->> 'payer_type'
 			, (i_claim_details ->> 'claim_status_id')::BIGINT
 			, (i_claim_details ->> 'rendering_provider_contact_id')::BIGINT
-			, (SELECT id FROM save_patient_insurances WHERE coverage_level = 'primary')
-			, (SELECT id FROM save_patient_insurances WHERE coverage_level = 'secondary')
-			, (SELECT id FROM save_patient_insurances WHERE coverage_level = 'tertiary')
+			, (SELECT id FROM patient_insurance_coverage_details WHERE coverage_level = 'primary')
+			, (SELECT id FROM patient_insurance_coverage_details WHERE coverage_level = 'secondary')
+			, (SELECT id FROM patient_insurance_coverage_details WHERE coverage_level = 'tertiary')
 			, (i_claim_details ->> 'ordering_facility_id')::BIGINT
 			, (i_claim_details ->> 'referring_provider_contact_id')::BIGINT)
 		RETURNING  *, '{}'::jsonb old_values),
@@ -1746,7 +1810,7 @@ BEGIN
 					, modifier4_id bigint
 					, bill_fee money
 					, allowed_amount money
-					, units bigint
+					, units numeric
 					, created_by bigint
 					, authorization_no text
 					, charge_dt timestamptz
@@ -2094,8 +2158,7 @@ $BODY$
   LANGUAGE plpgsql IMMUTABLE;
 -- --------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION billing.get_charge_other_payment_adjustmet(
-    IN i_charge_id bigint,
-    IN i_payment_id bigint)
+    IN i_charge_id bigint)
   RETURNS TABLE(other_payment money, other_adjustment money) AS
 $BODY$
 BEGIN
@@ -2105,8 +2168,7 @@ BEGIN
             COALESCE(sum(amount) FILTER(where amount_type = 'adjustment'),0::money) as other_adjustment
         FROM billing.payment_applications 
         WHERE   
-            charge_id = i_charge_id
-        AND payment_id != i_payment_id;
+            charge_id = i_charge_id;
 END;
 $BODY$
 LANGUAGE plpgsql;
@@ -2539,6 +2601,14 @@ DECLARE
    
 BEGIN 
 	l_bill_fee_recalculation := TRUE;
+    SELECT 
+		claim_status_id INTO l_claim_status_id
+	FROM
+		billing.claims 
+	WHERE
+		id = p_claim_id
+	LIMIT 1;
+    
 	SELECT 
 		    cs.description INTO l_claim_status
 		FROM
@@ -3252,7 +3322,7 @@ BEGIN
 		FROM save_insurance sc),
         update_insurance AS (
                     UPDATE
-                        patient_insurances
+                        public.patient_insurances
                     SET
                       insurance_provider_id = ins.insurance_provider_id
                     , subscriber_zipcode = ins.subscriber_zipcode

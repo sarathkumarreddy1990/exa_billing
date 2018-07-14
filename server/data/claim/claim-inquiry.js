@@ -574,6 +574,177 @@ module.exports = {
         return await query(sql);
     },
 
+    getInvoiceDetails : function(payerType)
+    {
+        let joinCondition = '';
+        let selectDetails = '';
+        let joinQuery = '';
+        let whereQuery = '';
+
+        if(payerType == 'ordering_facility')
+        {
+            selectDetails = ' bc.ordering_facility_id AS ordering_facility_id ';
+            joinCondition = 'INNER JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id';
+            joinQuery = 'INNER JOIN get_payer_details gpd ON gpd.ordering_facility_id = bc.ordering_facility_id';
+        }
+        else if(payerType == 'referring_provider')
+        {
+            selectDetails = ' bc.referring_provider_contact_id AS referring_provider_contact_id ';
+            joinCondition = 'INNER JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id';
+            joinQuery = 'INNER JOIN get_payer_details gpd ON gpd.referring_provider_contact_id = bc.referring_provider_contact_id';
+        }
+        else if (payerType == 'primary_insurance') {
+            selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id ';
+            joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bc.primary_patient_insurance_id';
+
+            joinQuery = ` INNER 	JOIN LATERAL (
+                SELECT 	id 
+                FROM	public.patient_insurances ppi
+                INNER 	JOIN	get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id 
+            ) ppi 	ON TRUE  `;
+
+            whereQuery = ` WHERE 	bc.invoice_no is not null
+                            AND bc.payer_type = ANY(ARRAY['primary_insurance', 'secondary_insurance', 'tertiary_insurance'])
+                            AND (bc.primary_patient_insurance_id = ppi.id or bc.secondary_patient_insurance_id = ppi.id or bc.tertiary_patient_insurance_id = ppi.id)`;
+
+        }
+        else if(payerType == 'secondary_insurance')
+        {
+            selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id ';
+            joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bc.secondary_patient_insurance_id';
+
+            joinQuery = ` INNER 	JOIN LATERAL (
+                SELECT 	id 
+                FROM	public.patient_insurances ppi
+                INNER 	JOIN	get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id 
+            ) ppi 	ON TRUE  `;
+
+            whereQuery = ` WHERE 	bc.invoice_no is not null
+                            AND bc.payer_type = ANY(ARRAY['primary_insurance', 'secondary_insurance', 'tertiary_insurance'])
+                            AND (bc.primary_patient_insurance_id = ppi.id or bc.secondary_patient_insurance_id = ppi.id or bc.tertiary_patient_insurance_id = ppi.id)`;
+            
+        }
+        else if(payerType == 'tertiary_insurance')
+        {
+            selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id ';
+            joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bc.tertiary_patient_insurance_id';
+
+            joinQuery = ` INNER 	JOIN LATERAL (
+                SELECT 	id 
+                FROM	public.patient_insurances ppi
+                INNER 	JOIN	get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id 
+            ) ppi 	ON TRUE  `;
+
+            whereQuery = ` WHERE 	bc.invoice_no is not null
+                            AND bc.payer_type = ANY(ARRAY['primary_insurance', 'secondary_insurance', 'tertiary_insurance'])
+                            AND (bc.primary_patient_insurance_id = ppi.id or bc.secondary_patient_insurance_id = ppi.id or bc.tertiary_patient_insurance_id = ppi.id)`;
+            
+        }
+
+        return {
+            joinCondition,
+            selectDetails,
+            joinQuery,
+            whereQuery
+        };
+
+    },
+
+    getInvoicePayments: async function (params) {
+        params.sortOrder = params.sortOrder || ' ASC';
+        let {
+            sortOrder,
+            sortField,
+            pageNo,
+            pageSize,
+            payerType,
+            claimID } = params;
+        
+
+        let {
+            joinCondition,
+            selectDetails,
+            joinQuery,
+            whereQuery
+        } = await this.getInvoiceDetails(payerType) ;
+
+        return await query(`WITH  get_payer_details AS(
+                                SELECT 
+                                    ${selectDetails}
+                                FROM billing.claims bc
+                                ${joinCondition}
+                                WHERE bc.invoice_no is not null
+                                AND bc.payer_type = '${payerType}'
+                                AND bc.id = ${claimID}
+                            ),
+                            invoice_payment_details AS(
+                            SELECT 
+                                  bc.invoice_no
+                                , bc.submitted_dt::date AS date
+                                , claim_totals.charges_bill_fee_total AS bill_fee
+                                , claim_totals.payments_applied_total AS payment
+                                , claim_totals.adjustments_applied_total AS adjustment
+                                , claim_totals.claim_balance_total AS balance
+                            FROM billing.claims bc
+                            ${joinQuery}
+                            INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
+                            ${whereQuery})
+                            SELECT
+                                  ROW_NUMBER () OVER (ORDER BY invoice_no) AS id
+                                , invoice_no As invoice_no
+                                , max(date) AS invoice_date
+                                , sum(bill_fee) AS invoice_bill_fee
+                                , sum(payment) AS invoice_payment
+                                , sum(adjustment) AS invoice_adjustment
+                                , sum(balance) AS invoice_balance
+                                , COUNT(1) OVER (range unbounded preceding) AS total_records
+                            FROM invoice_payment_details
+                            GROUP BY invoice_no
+                            ORDER BY ${sortField}  ${sortOrder}   LIMIT ${pageSize}
+                            OFFSET ${((pageNo * pageSize) - pageSize)}`);
+
+    },
+
+    getInvoicePaymentsAge: async function (params) {
+
+        let {payerType, claimID } = params;
+        
+        let {
+            joinCondition,
+            selectDetails,
+            joinQuery,
+            whereQuery
+        } = await this.getInvoiceDetails(payerType) ;
+
+        return await query(`WITH  get_payer_details AS(
+                                SELECT 
+                                    ${selectDetails}
+                                FROM billing.claims bc
+                                ${joinCondition}
+                                WHERE bc.invoice_no is not null
+                                AND bc.payer_type = '${payerType}'
+                                AND bc.id = ${claimID}
+                            ),
+                            invoice_payment_details AS(
+                            SELECT 
+                                COALESCE(max(date_part('day', (now() - bc.submitted_dt))),0) AS age
+                                , claim_totals.claim_balance_total AS balance
+                            FROM billing.claims bc
+                            ${joinQuery}
+                            INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
+                            ${whereQuery}
+                            group by submitted_dt,claim_totals.claim_balance_total)
+                            SELECT
+                                COALESCE(sum(balance) FILTER(WHERE ipd.age <= 0 ) , 0::money) AS current_balance,
+                                COALESCE(sum(balance) FILTER(WHERE ipd.age > 0 and ipd.age <= 30 ) , 0::money) AS to30,
+                                COALESCE(sum(balance) FILTER(WHERE ipd.age > 30 and ipd.age <= 60) , 0::money) AS to60,
+                                COALESCE(sum(balance) FILTER(WHERE ipd.age > 60 and ipd.age <= 90 ) , 0::money) AS to90,
+                                COALESCE(sum(balance) FILTER(WHERE ipd.age > 90 and ipd.age <= 120 ) , 0::money) AS to120,
+                                sum(balance)
+                            FROM invoice_payment_details ipd`);
+
+    },
+
     getclaimPatientLog: async function (params) {
         let whereQuery = [];
         params.sortOrder = params.sortOrder || ' ASC';        
