@@ -333,7 +333,7 @@ define(['jquery',
                             return {
                                 results: data,
                                 pagination: {
-                                    more: (params.page * 30) < data[0].total_records
+                                    more: data && data.length ? (params.page * 30) < data[0].total_records : 0
                                 }
                             };
                         },
@@ -396,7 +396,7 @@ define(['jquery',
                             return {
                                 results: data,
                                 pagination: {
-                                    more: (params.page * 30) < data[0].total_records
+                                    more: data && data.length ? (params.page * 30) < data[0].total_records : 0
                                 }
                             };
                         },
@@ -450,7 +450,7 @@ define(['jquery',
                             return {
                                 results: data,
                                 pagination: {
-                                    more: (params.page * 30) < data[0].total_records
+                                    more: data && data.length ? (params.page * 30) < data[0].total_records : 0
                                 }
                             };
                         },
@@ -504,7 +504,7 @@ define(['jquery',
                             return {
                                 results: data,
                                 pagination: {
-                                    more: (params.page * 30) < data[0].total_records
+                                    more: data && data.length ? (params.page * 30) < data[0].total_records : 0
                                 }
                             };
                         },
@@ -611,10 +611,20 @@ define(['jquery',
                     var e = $.Event('keyup');
                     $('#mrn').val(response.account_no).focus().trigger(e);
                     $('#spnPatInfo').text(response.patient_name + ' (' + response.account_no + ') ');
-                    this.showPendingPaymentsGrid(this.payment_id, response.payer_type, response.patient_id, response.patient_id);
+                    this.showPendingPaymentsGrid(this.payment_id, response.payer_type, response.patient_id, response.patient_id);    
                 }
+
+                if (response.payer_type === "patient")
+                    self.payer_id = response.patient_id;
+                else if (response.payer_type === "ordering_facility")
+                    self.payer_id = response.provider_group_id;
+                else if (response.payer_type === "insurance")
+                    self.payer_id = response.insurance_provider_id;
+                else if (response.payer_type === "ordering_provider")
+                    self.payer_id = response.provider_contact_id;
+
                 $('#liPendingPaymentsPat a').click();
-                self.showPendingPaymentsGridInvoice(paymentID, response.payer_type, response.patient_id || response.provider_contact_id || response.provider_group_id || response.insurance_provider_id);
+                self.showPendingPaymentsGridInvoice(paymentID, response.payer_type, self.payer_id);
                 $('#txtAmount').val(response.amount.substr(1));
                 $('#lblApplied').html(response.applied.substr(1));
                 $('#lblBalance').html(response.available_balance);
@@ -630,7 +640,7 @@ define(['jquery',
                 self.payer_type = response.payer_type;
                 self.payment_id = paymentID;
                 self.patient_id = response.patient_id;
-                self.payer_id = response.patient_id || response.provider_contact_id || response.provider_group_id || response.insurance_provider_id;
+                // self.payer_id = response.patient_id || response.provider_contact_id || response.provider_group_id || response.insurance_provider_id;
                 self.provider_id = response.provider_contact_id;
                 self.provider_group_id = response.provider_group_id;
                 self.insurance_provider_id = response.insurance_provider_id;
@@ -771,6 +781,7 @@ define(['jquery',
             savePayment: function () {
                 var self = this;
                 if (self.validatepayments()) {
+                    $('#btnPaymentSave').attr('disabled', true);
                     commonjs.showLoading('Loading..')
                     var applied = 0;
                     var balance = 0;
@@ -814,6 +825,7 @@ define(['jquery',
                                     else {
                                         commonjs.showWarning('This payment has been already updated by some other user. please refresh the page and try again.');
                                     }
+                                    $('#btnPaymentSave').removeAttr('disabled');
                                     commonjs.hideLoading();
                                 }
                                 else
@@ -2141,9 +2153,9 @@ define(['jquery',
                     case "check":
                     case "EFT":
                         $("#txtCheque").removeAttr("disabled");
-                        if (!isBind) {
-                            $("#txtCheque").focus();
-                        }
+                        // if (!isBind) {
+                        //     $("#txtCheque").focus();
+                        // }
                         $("#txtCardName").attr("disabled", "disabled");
                         $("#paymentExpiryMonth").attr("disabled", "disabled");
                         $("#paymentExpiryYear").attr("disabled", "disabled");
@@ -2151,9 +2163,9 @@ define(['jquery',
                         $("#txtCVN").attr("disabled", "disabled");
                         break;
                     case "card":
-                        if (!isBind) {
-                            $("#txtCheque").focus();
-                        }
+                        // if (!isBind) {
+                        //     $("#txtCheque").focus();
+                        // }
                         $("#txtCheque").removeAttr("disabled");
                         $("#txtCardName").removeAttr("disabled");
                         $("#paymentExpiryMonth").removeAttr("disabled");

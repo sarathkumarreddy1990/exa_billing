@@ -50,7 +50,7 @@ module.exports = {
         }
 
         if (payment_id) {
-            whereQuery.push(` payments.id =${payment_id}`);
+            whereQuery.push(`payments.id::text = '${payment_id}'::text`);
         }
 
         if (display_id) {
@@ -302,9 +302,9 @@ module.exports = {
                                 , ${provider_contact_id}
                                 , ${payment_reason_id}
                                 , ${amount}
-                                , ${accounting_date}
-                                , ${user_id}
-                                , now()
+                                , timezone(public.get_facility_tz(${facility_id}), ${accounting_date}::TIMESTAMP)
+                                , ${user_id}                     
+                                , timezone(get_facility_tz(${facility_id}), now()::timestamp)
                                 , ${invoice_no}
                                 , ${display_id}
                                 , ${payer_type}
@@ -321,7 +321,7 @@ module.exports = {
                                 , provider_group_id = ${provider_group_id}
                                 , provider_contact_id = ${provider_contact_id}
                                 , amount = ${amount}::money
-                                , accounting_dt = ${accounting_date}
+                                , accounting_dt = timezone(public.get_facility_tz(${facility_id}), ${accounting_date}::TIMESTAMP)
                                 , invoice_no = ${invoice_no}
                                 , alternate_payment_id = ${display_id}
                                 , payer_type = ${payer_type}
