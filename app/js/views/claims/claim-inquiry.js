@@ -19,7 +19,8 @@ define([
     'text!templates/claims/claim-invoice.html',
     'text!templates/claims/invoice-age-summary.html',
     'collections/claim-patient-log',
-    'shared/permissions'
+    'shared/permissions',
+    'views/app/unapplied-payment'
 ], function (
     $,
     _,
@@ -41,7 +42,8 @@ define([
     claimInvoiceHTML,
     claimInvoiceAgeHTML,
     claimPatientLogList,
-    Permission
+    Permission,
+    unappliedPaymentView
 ) {
         var paperClaim = new PaperClaim(true);
 
@@ -349,7 +351,7 @@ define([
                 $('#divAgeSummary').html(self.agingSummaryTemplate());
             },
 
-            showInvoiceGrid: function (claimID, patientId) {
+            showInvoiceGrid: function (claimID, patientId,payer_type) {
                 var self = this;
                 $('#divInvoiceGrid').show();
                 this.invoiceTable = new customGrid();
@@ -407,8 +409,7 @@ define([
                     disablereload: true,
                     customargs: {
                         claimID: claimID,
-                        patientId: patientId,
-                        billProvId: 0
+                        payerType: payer_type
                     },
                     pager: '#gridPager_invoiceClaim',
                     onaftergridbind: self.afterGridBind,
@@ -419,7 +420,33 @@ define([
                     $("#tblInvoiceGrid").setGridWidth($(".modal-body").width()-15);
                     $("#tblInvoiceGrid").setGridHeight($(window).height()-600);
                 }, 200);
+
                 $('#divIvoiceAgeSummary').html(self.invoiceAgingSummaryTemplate());
+
+                $.ajax({
+                    url: "/exa_modules/billing/claims/claim_inquiry/claim_invoice/age",
+                    type: 'GET',
+                    data: {
+                        claimID: claimID,
+                        payerType: payer_type
+                    },
+                    success: function (data, response) {
+                        console.log(data)
+                        if(data && data.length){
+                            $('#tdPtCurrent').text(data[0].current_balance || '$0.00')
+                            $('#tdPtAge30').text(data[0].to30 || '$0.00')
+                            $('#tdPtAge60').text(data[0].to60 || '$0.00')
+                            $('#tdPtAge90').text(data[0].to90 || '$0.00')
+                            $('#tdPtAge120').text(data[0].to120 || '$0.00')
+                            $('#tdPtAgeTotal').text(data[0].sum || '$0.00') 
+                        }
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                })
+
+                
             },
 
             showPatientClaimsLogGrid: function (claimID, patientId) {
@@ -539,7 +566,7 @@ define([
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.type && rowObject.code == 'charge')
-                                    return "<span class='icon-ic-raw-transctipt' rel='tooltip' title='View Pay details of this charge'></span>"
+                                    return "<i class='icon-ic-raw-transctipt' title='View Pay details of this charge'></i>"
                                 else
                                     return rowObject.payment_id;
                             },
@@ -599,7 +626,7 @@ define([
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.type && rowObject.code == 'payment')
-                                    return "<span class='fa fa-eye' rel='tooltip' title='view payment details'></span>"
+                                    return "<i class='fa fa-eye' title='view payment details'></i>"
                                 else
                                     return "";
                             },
@@ -620,7 +647,7 @@ define([
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.code && commentType.indexOf(rowObject.code) == -1)
-                                    return "<span class='icon-ic-delete' rel='tooltip' title='Click here to delete'></span>"
+                                    return "<i class='icon-ic-delete' title='Delete'></i>"
                                 else
                                     return "";
                             }
@@ -634,7 +661,7 @@ define([
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.code && rowObject.code != null && commentType.indexOf(rowObject.code) == -1)
-                                    return "<span class='icon-ic-edit' rel='tooltip' title='Click here to edit'></span>"
+                                    return "<i class='icon-ic-edit' title='Edit'></i>"
                                 else
                                     return "";
                             }
@@ -710,7 +737,6 @@ define([
                     height: '20%',
                     html: $('#divCIFormComment').html()
                 });
-
                 if (from == 'edit') {
                     $('#siteModalNested').find('#txtCIAddComment').val(comment);
                 }
@@ -861,7 +887,7 @@ define([
                 return pointer;
             },
 
-            patientInquiryForm: function (claimId, patientId) {
+            patientInquiryForm: function (claimId, patientId, patientName) {
                 var self = this;
                 commonjs.showDialog({
                     'header': 'Patient Claim',
@@ -886,6 +912,8 @@ define([
 
 
                 this.$el.html(this.claimPatientTemplate());
+                 var headerName = 'Patient Claim: ' + patientName ;
+                 $(parent.document).find('#spanModalHeader').html(headerName)
                 this.fromDate =  commonjs.bindDateTimePicker("divFDate", { format: 'L' }); 
                 this.fromDate.date(); 
                 this.toDate =  commonjs.bindDateTimePicker("divTDate", { format: 'L' }); 
@@ -899,6 +927,11 @@ define([
                 $('#ddlBillingProvider').on().change(function () {
                     self.changePatientIngrid(claimId, patientId);
                 });
+
+                $('#paymentSearch').off().click(function () {
+                    self.showUnAppliedPayments(patientId);
+                })
+
                 $('#btnPatientActivity').on().click(function () {
 
                     if ($('#txtDate').val() > $('#txtOtherDate').val()) {
@@ -956,10 +989,11 @@ define([
                 self.showPatientClaimsLogGrid(claimId, patientId);
             },
 
-            invoiceInquiry: function (claimId, patientId) {
+            invoiceInquiry: function (claimId, patientId, payer_type) {
                 var self = this;
                 this.$el.html(this.claimInvoiceTemplate());
-                self.showInvoiceGrid(claimId, patientId);
+                self.showInvoiceGrid(claimId, patientId, payer_type);
+
             },
 
             printPaymentInvoice: function (e) {
@@ -1006,7 +1040,7 @@ define([
                                 height: '30%',
                                 html: $('#divCIpaymentDetails').html()
                             });
-                            
+
                         }
                         else {
                             commonjs.showStatus('No Payment to Show');
@@ -1128,7 +1162,12 @@ define([
                 var selectedProv = $("#ddlBillingProvider option:selected").val() ? $("#ddlBillingProvider option:selected").val(): 0;
 
                 self.showPatientClaimsGrid(claimID, patientID, selectedProv);
+            },
+
+            showUnAppliedPayments: function(patientID) {
+                var self = this;
+                self.unappliedPaymentView = new unappliedPaymentView({el: $('#modal_div_container_nested')}); 
+                self.unappliedPaymentView.render(patientID);
             }
     });
-
-    });
+});

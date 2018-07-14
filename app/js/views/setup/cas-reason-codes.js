@@ -57,7 +57,7 @@ define([
                             className: 'icon-ic-edit',
                             route: '#setup/cas_reason_codes/edit/',
                             formatter: function (e, model, data) {
-                                return "<i class='icon-ic-edit' title='Click here to edit'></i>";
+                                return "<i class='icon-ic-edit' title='Edit'></i>";
                             }
                         },
                         {

@@ -115,24 +115,24 @@ FROM claim_details cd
      ,modifiers,created_on,get_full_name(u.last_name,u.first_name,u.middle_initial,null,u.suffix)
 )
 SELECT
-    claim_id,
-    patient_name,
-    account_no,
-    to_char(claim_date,'MM/DD/YYYY') AS claim_date,
-    referring_physician,
-    reading_physician,
-    ordering_facility,
-    facility_code,
-    TYPE,
-    payment_id,
-    to_char(payment_date,'MM/DD/YYYY') AS payment_date,
-    to_char(accounting_date,'MM/DD/YYYY') AS accounting_date,
-    code,
-    description,
-    modifiers,
-    amount,
-    to_char(created_on,'MM/DD/YYYY') AS created_on,
-    created_by
+    claim_id as "Claim#",
+    patient_name as "Patient Name",
+    account_no as "Account#",
+    to_char(claim_date,'MM/DD/YYYY') AS "Claim Date",
+    referring_physician as "Referring Physician",
+    reading_physician as "Reading Physician",
+    ordering_facility as "Ordering Facility",
+    facility_code as "Facility Code" ,
+    TYPE as "Type",
+    payment_id as "Payment ID",
+    to_char(payment_date,'MM/DD/YYYY') AS "Payment Date",
+    to_char(accounting_date,'MM/DD/YYYY') AS "Accounting Date",
+    code as "CPT Code",
+    description as "Description",
+    modifiers as "Modifiers",
+    amount as "Amount",
+    to_char(created_on,'MM/DD/YYYY') AS "Created On",
+    created_by as "Created By"
 FROM
     charge_details
 UNION ALL
@@ -158,10 +158,10 @@ SELECT
 FROM
     payment_details
 ORDER BY
-     claim_id,
-     account_no,
-     payment_id,
-     code 
+"Claim#",
+"Account#",
+"Payment ID",
+"CPT Code"
 DESC
 `);
 

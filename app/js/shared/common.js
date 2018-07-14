@@ -1935,6 +1935,7 @@ var commonjs = {
         }, {
                 type: type,
                 z_index: 1061,
+				offset: 5,
                 delay: 1000,
                 placement: {
                     align: 'center',
@@ -2345,6 +2346,13 @@ var commonjs = {
     docResize: function (e) {
         var currentModule = commonjs.currentModule;
         switch (currentModule) {
+            case 'report':
+                var navHeight = $(window).height() - ($('body>nav').outerHeight() + 50);
+                if ($('.exa-left-nav')) {
+                    $('.exa-left-nav').height(navHeight);
+                }
+                break;
+
             case 'Home':
             case 'Claims':
                 commonjs.resizeHomeScreen();
