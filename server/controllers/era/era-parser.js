@@ -74,11 +74,23 @@ module.exports = {
                         */
                         let PatientResponsibility = _.filter(val.serviceAdjustment, { groupCode: 'PR' });
 
-                        if (Object.keys(PatientResponsibility).length) {
+                        if(PatientResponsibility && PatientResponsibility.length){
+                            PatientResponsibility = PatientResponsibility[0] ? PatientResponsibility[0] : '{}';
+                        }
 
-                            co_pay += PatientResponsibility && PatientResponsibility[0] && PatientResponsibility[0].monetaryAmount1 ? parseFloat(PatientResponsibility[0].monetaryAmount1) : 0;
-                            deductible += PatientResponsibility && PatientResponsibility[0] && PatientResponsibility[0].monetaryAmount3 ? parseFloat(PatientResponsibility[0].monetaryAmount3) : 0;
-                            co_insurance += PatientResponsibility && PatientResponsibility[0] && PatientResponsibility[0].monetaryAmount2 ? parseFloat(PatientResponsibility[0].monetaryAmount2) : 0;
+                        for (let m = 1; m <= 7; m++) {
+
+                            if (PatientResponsibility && PatientResponsibility['reasonCode' + m] && PatientResponsibility['reasonCode' + m] == '1') {
+                                deductible += PatientResponsibility['monetaryAmount' + m] ? parseFloat(PatientResponsibility['monetaryAmount' + m]) : 0;
+                            }
+
+                            if (PatientResponsibility && PatientResponsibility['reasonCode' + m] && PatientResponsibility['reasonCode' + m] == '2') {
+                                co_insurance += PatientResponsibility['monetaryAmount' + m] ? parseFloat(PatientResponsibility['monetaryAmount' + m]) : 0;
+                            }
+
+                            if (PatientResponsibility && PatientResponsibility['reasonCode' + m] && PatientResponsibility['reasonCode' + m] == '3') {
+                                co_pay += PatientResponsibility['monetaryAmount' + m] ? parseFloat(PatientResponsibility['monetaryAmount' + m]) : 0;
+                            }
                         }
 
                         let serviceAdjustment = _.reject(val.serviceAdjustment, { groupCode: 'PR' });
@@ -203,7 +215,7 @@ module.exports = {
 
                         claimComments.push({
                             claim_number: value.claimNumber,
-                            note: 'Co-Pay of ' + co_pay + ' is due',
+                            note: 'Co-Pay of ' + parseFloat(co_pay) + ' is due',
                             type: 'co_pay'
                         });
                     }
@@ -212,7 +224,7 @@ module.exports = {
 
                         claimComments.push({
                             claim_number: value.claimNumber,
-                            note: 'Co-Insurance of ' + co_insurance + ' is due',
+                            note: 'Co-Insurance of ' + parseFloat(co_insurance) + ' is due',
                             type: 'co_insurance'
                         });
                     }
@@ -221,7 +233,7 @@ module.exports = {
 
                         claimComments.push({
                             claim_number: value.claimNumber,
-                            note: 'Deductible of ' + deductible + ' is due',
+                            note: 'Deductible of ' + parseFloat(deductible) + ' is due',
                             type: 'deductible'
                         });
                     }
