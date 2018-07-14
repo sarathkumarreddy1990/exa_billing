@@ -2924,9 +2924,8 @@ define(['jquery',
 
                 var tab_menu_link = $('ul#tab_menu li a');
                 var tab_menu_item = $('ul#tab_menu li');
-                var width_tab_menu_item = tab_menu_item.width();
-                var $header_container = $('#headerContainer');
                 var $root = $('#modal_div_container');
+
                 tab_menu_link.click(function (e) {
                     var currId = $(this).attr('href').split('_')[1];
                     tab_menu_item.removeClass('active');                    
