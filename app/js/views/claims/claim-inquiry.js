@@ -890,7 +890,7 @@ define([
             patientInquiryForm: function (claimId, patientId, patientName) {
                 var self = this;
                 commonjs.showDialog({
-                    'header': 'Patient Claim',
+                    'header': 'Patient Claims',
                     'width': '85%',
                     'height': '75%',
                     'needShrink': true

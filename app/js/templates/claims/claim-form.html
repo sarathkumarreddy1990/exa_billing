@@ -142,6 +142,7 @@
 
 <main class="container-fluid woClaimRelated" id="mainContainer">
     <section id="tab_1">
+        <!-- <div id="divModifierList" style="display:none;"></div> -->
         <div class="panel" style="margin-top: 30px;">
             <div class="row">
                 <div class="col-xs-12">
@@ -219,46 +220,17 @@
                                                 </td>
 
                                                 <td>
-                                                    <select id="ddlModifier1_<%= row.data_row_id %>" class="form-control inputModifiers typeahead modifiers" data-type="M1" data-value="<%= row.data_row_id %>">
-                                                        <option value="">Select</option>
-                                                        <% _.each(row.modifiers1, function(modifier) { %>
-                                                            <option value='<%= modifier.id %>'>
-                                                                <%=modifier.code%>
-                                                            </option>
-                                                            <% }); %>
-                                                    </select>
+                                                    <input type="text" id="txtModifier1_<%= row.data_row_id %>" class="form-control inputModifiers modifiers" data-type="M1" data-value="<%= row.data_row_id %>">
                                                 </td>
                                                 <td>
-                                                    <select id="ddlModifier2_<%= row.data_row_id %>" class="form-control inputModifiers typeahead modifiers" data-type="M2" data-value="<%= row.data_row_id %>">
-                                                        <option value="">Select</option>
-                                                        <% _.each(row.modifiers2, function(modifier) { %>
-                                                            <option value='<%= modifier.id %>'>
-                                                                <%=modifier.code%>
-                                                            </option>
-                                                            <% }); %>
-                                                    </select>
+                                                    <input type="text" id="txtModifier2_<%= row.data_row_id %>" class="form-control inputModifiers modifiers" data-type="M2" data-value="<%= row.data_row_id %>">
                                                 </td>
                                                 <td>
-                                                    <select id="ddlModifier3_<%= row.data_row_id %>" class="form-control inputModifiers typeahead modifiers" data-type="M3" data-value="<%= row.data_row_id %>">
-                                                        <option value="">Select</option>
-                                                        <% _.each(row.modifiers3, function(modifier) { %>
-                                                            <option value='<%= modifier.id %>'>
-                                                                <%=modifier.code%>
-                                                            </option>
-                                                            <% }); %>
-                                                    </select>
+                                                    <input type="text" id="txtModifier3_<%= row.data_row_id %>" class="form-control inputModifiers modifiers" data-type="M3" data-value="<%= row.data_row_id %>">
                                                 </td>
                                                 <td>
-                                                    <select id="ddlModifier4_<%= row.data_row_id %>" class="form-control inputModifiers typeahead modifiers" data-type="M4" data-value="<%= row.data_row_id %>">
-                                                        <option value="">Select</option>
-                                                        <% _.each(row.modifiers4, function(modifier) { %>
-                                                            <option value='<%= modifier.id %>'>
-                                                                <%=modifier.code%>
-                                                            </option>
-                                                            <% }); %>
-                                                    </select>
+                                                    <input type="text" id="txtModifier4_<%= row.data_row_id %>" class="form-control inputModifiers modifiers" data-type="M4" data-value="<%= row.data_row_id %>">
                                                 </td>
-                                            
                                                 <td>
                                                     <input value="<%= row.units ? row.units : 1.000 %>"  id="txtUnits_<%= row.data_row_id %>" type="text" class="form-control maskUnits units floatbox" style="width: 75px">
                                                 </td>
