@@ -422,7 +422,7 @@ define([
                 }, 200);
 
                 $('#divIvoiceAgeSummary').html(self.invoiceAgingSummaryTemplate());
-                
+
                 $.ajax({
                     url: "/exa_modules/billing/claims/claim_inquiry/claim_invoice/age",
                     type: 'GET',
@@ -1040,7 +1040,7 @@ define([
                                 height: '30%',
                                 html: $('#divCIpaymentDetails').html()
                             });
-                            $('#modal_div_container_nested').css('overflow-x: auto');
+
                         }
                         else {
                             commonjs.showStatus('No Payment to Show');

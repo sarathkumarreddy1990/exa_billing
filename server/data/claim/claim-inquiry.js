@@ -574,16 +574,8 @@ module.exports = {
         return await query(sql);
     },
 
-    getInvoicePayments: async function (params) {
-        params.sortOrder = params.sortOrder || ' ASC';
-        let {
-            sortOrder,
-            sortField,
-            pageNo,
-            pageSize,
-            payerType,
-            claimID } = params;
-        
+    getInvoiceDetails : function(payerType)
+    {
         let joinCondition = '';
         let selectDetails = '';
         let joinQuery = '';
@@ -648,6 +640,33 @@ module.exports = {
                             AND (bc.primary_patient_insurance_id = ppi.id or bc.secondary_patient_insurance_id = ppi.id or bc.tertiary_patient_insurance_id = ppi.id)`;
             
         }
+
+        return {
+            joinCondition,
+            selectDetails,
+            joinQuery,
+            whereQuery
+        };
+
+    },
+
+    getInvoicePayments: async function (params) {
+        params.sortOrder = params.sortOrder || ' ASC';
+        let {
+            sortOrder,
+            sortField,
+            pageNo,
+            pageSize,
+            payerType,
+            claimID } = params;
+        
+
+        let {
+            joinCondition,
+            selectDetails,
+            joinQuery,
+            whereQuery
+        } = await this.getInvoiceDetails(payerType) ;
 
         return await query(`WITH  get_payer_details AS(
                                 SELECT 
@@ -690,70 +709,12 @@ module.exports = {
 
         let {payerType, claimID } = params;
         
-        let joinCondition = '';
-        let selectDetails = '';
-        let joinQuery = '';
-        let whereQuery = '';
-
-        if(payerType == 'ordering_facility')
-        {
-            selectDetails = ' bc.ordering_facility_id AS ordering_facility_id ';
-            joinCondition = 'INNER JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id';
-            joinQuery = 'INNER JOIN get_payer_details gpd ON gpd.ordering_facility_id = bc.ordering_facility_id';
-        }
-        else if(payerType == 'referring_provider')
-        {
-            selectDetails = ' bc.referring_provider_contact_id AS referring_provider_contact_id ';
-            joinCondition = 'INNER JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id';
-            joinQuery = 'INNER JOIN get_payer_details gpd ON gpd.referring_provider_contact_id = bc.referring_provider_contact_id';
-        }
-        else if (payerType == 'primary_insurance') {
-            selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id ';
-            joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bc.primary_patient_insurance_id';
-
-            joinQuery = ` INNER 	JOIN LATERAL (
-                SELECT 	id 
-                FROM	public.patient_insurances ppi
-                INNER 	JOIN	get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id 
-            ) ppi 	ON TRUE  `;
-
-            whereQuery = ` WHERE 	bc.invoice_no is not null
-                            AND bc.payer_type = ANY(ARRAY['primary_insurance', 'secondary_insurance', 'tertiary_insurance'])
-                            AND (bc.primary_patient_insurance_id = ppi.id or bc.secondary_patient_insurance_id = ppi.id or bc.tertiary_patient_insurance_id = ppi.id)`;
-
-        }
-        else if(payerType == 'secondary_insurance')
-        {
-            selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id ';
-            joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bc.secondary_patient_insurance_id';
-
-            joinQuery = ` INNER 	JOIN LATERAL (
-                SELECT 	id 
-                FROM	public.patient_insurances ppi
-                INNER 	JOIN	get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id 
-            ) ppi 	ON TRUE  `;
-
-            whereQuery = ` WHERE 	bc.invoice_no is not null
-                            AND bc.payer_type = ANY(ARRAY['primary_insurance', 'secondary_insurance', 'tertiary_insurance'])
-                            AND (bc.primary_patient_insurance_id = ppi.id or bc.secondary_patient_insurance_id = ppi.id or bc.tertiary_patient_insurance_id = ppi.id)`;
-            
-        }
-        else if(payerType == 'tertiary_insurance')
-        {
-            selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id ';
-            joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bc.tertiary_patient_insurance_id';
-            
-            joinQuery = ` INNER 	JOIN LATERAL (
-                SELECT 	id 
-                FROM	public.patient_insurances ppi
-                INNER 	JOIN	get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id 
-            ) ppi 	ON TRUE  `;
-
-            whereQuery = ` WHERE 	bc.invoice_no is not null
-                            AND bc.payer_type = ANY(ARRAY['primary_insurance', 'secondary_insurance', 'tertiary_insurance'])
-                            AND (bc.primary_patient_insurance_id = ppi.id or bc.secondary_patient_insurance_id = ppi.id or bc.tertiary_patient_insurance_id = ppi.id)`;
-            
-        }
+        let {
+            joinCondition,
+            selectDetails,
+            joinQuery,
+            whereQuery
+        } = await this.getInvoiceDetails(payerType) ;
 
         return await query(`WITH  get_payer_details AS(
                                 SELECT 

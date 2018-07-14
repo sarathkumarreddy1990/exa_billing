@@ -435,7 +435,7 @@ define('grid', [
                         return false;
                     }
                     commonjs.showDialog({
-                        'header': 'Invoice',
+                        'header': 'Invoices',
                         'width': '95%',
                         'height': '80%',
                         'needShrink': true
