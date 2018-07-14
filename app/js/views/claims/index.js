@@ -2438,19 +2438,19 @@ define(['jquery',
                             if (response && response.message) {
                                 commonjs.showWarning(response.message);
                             } else {
-                                commonjs.showStatus("messages.status.successfullyCompleted");
 
-                                var claimRefreshInterval = setInterval(function () {
-                                    clearInterval(claimRefreshInterval);
+                                var claimRefreshInterval = setTimeout(function () {
+                                    clearTimeout(claimRefreshInterval);
 
+                                    commonjs.showStatus("messages.status.successfullyCompleted");
                                     $("#btnClaimsRefresh").click();
                                     $("#btnStudiesRefresh").click();
-                                }, 100);
-
-                                var claimHideInterval = setInterval(function () {
-                                    clearInterval(claimHideInterval);
-                                    commonjs.hideDialog();
                                 }, 200);
+
+                                var claimHideInterval = setTimeout(function () {
+                                    clearTimeout(claimHideInterval);
+                                    commonjs.hideDialog();
+                                }, 100);
                             }
                         },
                         error: function (model, response) {
