@@ -91,7 +91,7 @@ define(['jquery',
                             className: 'icon-ic-edit',
                             route: '#setup/printer_templates/edit/',
                             formatter: function (e, model, data) {
-                                return "<i class='icon-ic-edit' title='Click here to edit'></i>"
+                                return "<i class='icon-ic-edit' title='Edit'></i>"
                             }
                         },
                         {

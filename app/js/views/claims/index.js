@@ -178,7 +178,10 @@ define(['jquery',
                 self.priDOB = commonjs.bindDateTimePicker('divPriDOB', { format: 'L' });
                 self.priDOB.date();     
                 self.secDOB = commonjs.bindDateTimePicker('divSecDOB', { format: 'L' });
-                self.secDOB.date();  
+                self.secDOB.date(); 
+                self.terDOB = commonjs.bindDateTimePicker('divTerDOB', { format: 'L' });
+                self.terDOB.date();
+                 
             },
 
             checkInsuranceEligibility: function (e) {
@@ -222,27 +225,27 @@ define(['jquery',
 
                
                 if (!$('#ddlServiceType'+ins+' :selected').length) {
-                    commonjs.showWarning('messages.warning.shared.selectservicetype');
+                    commonjs.showWarning('shared.warning.selectservicetype');
                     return;
                 }
 
                 if (!$('#txtBenefitOnDate' + ins).val()) {
-                    commonjs.showWarning('messages.warning.patient.selectbenefitondate');
+                    commonjs.showWarning('shared.warning.selectbenefitondate');
                     return;
                 }
 
                 if (!self.npiNo) {
-                    commonjs.showWarning('messages.warning.patient.npinumbernotpresent');
+                    commonjs.showWarning('shared.warning.npinumbernotpresent');
                     return;
                 }
 
                 if (!self.federalTaxId) {
-                    commonjs.showWarning('messages.warning.patient.federaltaxidnotpresent');
+                    commonjs.showWarning('shared.warning.federaltaxidnotpresent');
                     return;
                 }
 
                 if (!self.enableInsuranceEligibility) {
-                    commonjs.showWarning('messages.warning.patient.eleigibilitycheckdisabled');
+                    commonjs.showWarning('shared.warning.eligibilitycheckdisabled');
                     return;
                 } 
 
@@ -1709,7 +1712,7 @@ define(['jquery',
                 if (self.icd_code != '' && self.ICDID != '') {
                     if (curDiagnosis.length < 12) {
                         if (curDiagnosis.indexOf(String(self.ICDID)) > -1) {
-                            commonjs.showWarning("messages.warning.claims.problemAlreadyExists");
+                            commonjs.showWarning("shared.warning.problemAlreadyExists");
                             return false;
                         }
 
@@ -1784,7 +1787,7 @@ define(['jquery',
                         self.icd_description = '';
                     }
                     else {
-                        commonjs.showWarning("messages.warning.claims.icdLimitExists");
+                        commonjs.showWarning("shared.warning.icdLimitExists");
                         $('#select2-ddlMultipleDiagCodes-container').html('');
                         self.icd_code = '';
                         self.ICDID  ='';
@@ -2430,16 +2433,24 @@ define(['jquery',
                     
                     self.model.save({}, {
                         success: function (model, response) {
-                            //if (response && response.length > 0) {
                             commonjs.hideLoading();
 
                             if (response && response.message) {
                                 commonjs.showWarning(response.message);
                             } else {
                                 commonjs.showStatus("messages.status.successfullyCompleted");
-                                $("#btnClaimsRefresh").click();
-                                $("#btnStudiesRefresh").click();
-                                commonjs.hideDialog();
+
+                                var claimRefreshInterval = setInterval(function () {
+                                    clearInterval(claimRefreshInterval);
+
+                                    $("#btnClaimsRefresh").click();
+                                    $("#btnStudiesRefresh").click();
+                                }, 100);
+
+                                var claimHideInterval = setInterval(function () {
+                                    clearInterval(claimHideInterval);
+                                    commonjs.hideDialog();
+                                }, 200);
                             }
                         },
                         error: function (model, response) {
@@ -2466,13 +2477,13 @@ define(['jquery',
 
                 if (!$('#ddlFacility').val()) {
 
-                    commonjs.showWarning("messages.warning.claims.selectfacility");
+                    commonjs.showWarning("shared.warning.selectfacility");
                     return false;
                 }
 
                 if (!$('#ddlBillingProvider').val()) {
 
-                    commonjs.showWarning("messages.warning.claims.selectbillingProvider");
+                    commonjs.showWarning("shared.warning.selectbillingProvider");
                     return false;
                 }
 
@@ -2523,7 +2534,7 @@ define(['jquery',
                 if (self.priInsID || !mandatory_fields.primaryfields.every(checkEmpty)) {
 
                     if (mandatory_fields.primaryfields.indexOf('') > -1 || mandatory_fields.primaryfields.indexOf(null) > -1) {
-                        commonjs.showWarning("messages.warning.claims.priInsValidation");
+                        commonjs.showWarning("shared.warning.priInsValidation");
                         return false;
                     }
                     if ($('#ddlPriInsurance').val() == '') {
@@ -2536,14 +2547,14 @@ define(['jquery',
                 if (self.secInsID || !mandatory_fields.secondaryfields.every(checkEmpty)) {
                     if (!self.priInsID) {
 
-                        commonjs.showWarning("messages.warning.claims.priMissingValidation");
+                        commonjs.showWarning("shared.warning.priMissingValidation");
                         return false;
                     }
                     else {
 
                         if (mandatory_fields.secondaryfields.indexOf('') > -1 || mandatory_fields.secondaryfields.indexOf(null) > -1) {
 
-                            commonjs.showWarning("messages.warning.claims.secInsValidation");
+                            commonjs.showWarning("shared.warning.secInsValidation");
                             return false;
                         }
                         if ($('#s2id_txtSecInsurance a span').html() == 'Search Carrier' || $('#s2id_txtSecInsurance a span').html() == '') {
@@ -2558,14 +2569,14 @@ define(['jquery',
                 if (self.terInsID || !mandatory_fields.tertiaryfields.every(checkEmpty)) {
                     if (!self.secInsID) {
 
-                        commonjs.showWarning("messages.warning.claims.secMissingValidation");
+                        commonjs.showWarning("shared.warning.secMissingValidation");
                         return false;
                     }
                     else {
 
                         if (mandatory_fields.tertiaryfields.indexOf('') > -1 || mandatory_fields.tertiaryfields.indexOf(null) > -1) {
 
-                            commonjs.showWarning("messages.warning.claims.terInsValidation");
+                            commonjs.showWarning("shared.warning.terInsValidation");
                             return false;
                         }
                         if ($('#s2id_txtTerInsurance a span').html() == 'Search Carrier' || $('#s2id_txtTerInsurance a span').html() == '') {
@@ -2581,7 +2592,7 @@ define(['jquery',
                 /* Charge section */
 
                 if (!$('#tBodyCharge tr').length) {
-                    commonjs.showWarning("messages.warning.claims.chargeValidation", 'largewarning');
+                    commonjs.showWarning("shared.warning.chargeValidation", 'largewarning');
                     return false;
                 }
                 if ($('.cptcode').hasClass('cptIsExists')) {
@@ -2606,11 +2617,11 @@ define(['jquery',
 
                 /*Billing summary Section*/
                 if (!$('#ddlClaimStatus').val()) {
-                    commonjs.showWarning("messages.warning.claims.missingClaimStatus");
+                    commonjs.showWarning("shared.warning.missingClaimStatus");
                     return false;
                 }
                 if (!$('#ddlResponsible').val()) {
-                    commonjs.showWarning("messages.warning.claims.missingResponsible");
+                    commonjs.showWarning("shared.warning.missingResponsible");
                     return false;
                 }
 

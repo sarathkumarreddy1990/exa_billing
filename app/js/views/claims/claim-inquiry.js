@@ -19,7 +19,8 @@ define([
     'text!templates/claims/claim-invoice.html',
     'text!templates/claims/invoice-age-summary.html',
     'collections/claim-patient-log',
-    'shared/permissions'
+    'shared/permissions',
+    'views/app/unapplied-payment'
 ], function (
     $,
     _,
@@ -41,7 +42,8 @@ define([
     claimInvoiceHTML,
     claimInvoiceAgeHTML,
     claimPatientLogList,
-    Permission
+    Permission,
+    unappliedPaymentView
 ) {
         var paperClaim = new PaperClaim(true);
 
@@ -634,7 +636,7 @@ define([
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.code && rowObject.code != null && commentType.indexOf(rowObject.code) == -1)
-                                    return "<span class='icon-ic-edit' rel='tooltip' title='Click here to edit'></span>"
+                                    return "<span class='icon-ic-edit' title='Edit'></span>"
                                 else
                                     return "";
                             }
@@ -861,7 +863,7 @@ define([
                 return pointer;
             },
 
-            patientInquiryForm: function (claimId, patientId) {
+            patientInquiryForm: function (claimId, patientId, patientName) {
                 var self = this;
                 commonjs.showDialog({
                     'header': 'Patient Claim',
@@ -886,6 +888,8 @@ define([
 
 
                 this.$el.html(this.claimPatientTemplate());
+                 var headerName = 'Patient Claim: ' + patientName ;
+                 $(parent.document).find('#spanModalHeader').html(headerName)
                 this.fromDate =  commonjs.bindDateTimePicker("divFDate", { format: 'L' }); 
                 this.fromDate.date(); 
                 this.toDate =  commonjs.bindDateTimePicker("divTDate", { format: 'L' }); 
@@ -899,6 +903,11 @@ define([
                 $('#ddlBillingProvider').on().change(function () {
                     self.changePatientIngrid(claimId, patientId);
                 });
+
+                $('#paymentSearch').off().click(function () {
+                    self.showUnAppliedPayments(patientId);
+                })
+
                 $('#btnPatientActivity').on().click(function () {
 
                     if ($('#txtDate').val() > $('#txtOtherDate').val()) {
@@ -1128,7 +1137,12 @@ define([
                 var selectedProv = $("#ddlBillingProvider option:selected").val() ? $("#ddlBillingProvider option:selected").val(): 0;
 
                 self.showPatientClaimsGrid(claimID, patientID, selectedProv);
+            },
+
+            showUnAppliedPayments: function(patientID) {
+                var self = this;
+                self.unappliedPaymentView = new unappliedPaymentView({el: $('#modal_div_container_nested')}); 
+                self.unappliedPaymentView.render(patientID);
             }
     });
-
-    });
+});
