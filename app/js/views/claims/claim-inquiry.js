@@ -622,7 +622,7 @@ define([
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.code && commentType.indexOf(rowObject.code) == -1)
-                                    return "<span class='icon-ic-delete' rel='tooltip' title='Click here to delete'></span>"
+                                    return "<span class='icon-ic-delete'></span>"
                                 else
                                     return "";
                             }
@@ -636,7 +636,7 @@ define([
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.code && rowObject.code != null && commentType.indexOf(rowObject.code) == -1)
-                                    return "<span class='icon-ic-edit' title='Edit'></span>"
+                                    return "<span class='icon-ic-edit'></span>"
                                 else
                                     return "";
                             }
