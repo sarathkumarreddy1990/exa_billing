@@ -1268,7 +1268,7 @@ define(['jquery',
                     var existData = [];
                     if (dataContent != '') {
                         var existData = jQuery.grep(app.modifiers, function (value) {
-                            return (value.code.indexOf(dataContent) > -1 && (value[modifierLevel] == true || value[modifierLevel] == 'true'));
+                            return (value.code.toLowerCase().indexOf(dataContent.toLowerCase()) > -1 && (value[modifierLevel] == true || value[modifierLevel] == 'true'));
                         });
 
                         if (existData.length > 0 && dataContent && dataContent.length == 2) {
