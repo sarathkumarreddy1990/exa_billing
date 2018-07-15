@@ -51,6 +51,7 @@ module.exports = {
                 'message': 'This claim has been already updated by some other user. please refresh the page and try again'
             };
         }
+        
         let existingPayers = await data.getExistingPayer(params);
 
         if (existingPayers && existingPayers.rows.length) {
