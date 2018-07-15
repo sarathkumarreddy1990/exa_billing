@@ -153,6 +153,8 @@ module.exports = {
             , audit_details
         } = params;
 
+        let conditionalJoin = paymentDetails.isFrom && paymentDetails.isFrom == 'EOB' ? ` AND ch.charge_dt::date = application_details.service_date ` : ` `;
+
         const sql =SQL` WITH application_details AS (
                              SELECT 
                                   *
@@ -202,9 +204,11 @@ module.exports = {
                                           WHEN ( application_details.charge_id != 0 ) THEN application_details.charge_id = ch.id
                                           WHEN ( application_details.charge_id  = 0 AND application_details.cpt_code !='' ) THEN cpt_codes.display_code = application_details.cpt_code
                                         END
-                                    )
-                                    AND ch.charge_dt::date = application_details.service_date
-                                    ORDER BY id ASC LIMIT 1
+                                    ) `;
+
+        sql.append(conditionalJoin);
+
+        sql.append(SQL` ORDER BY id ASC LIMIT 1
                                 ) AS charges ON true
                                 WHERE 
 			                    	(   CASE 
@@ -283,7 +287,7 @@ module.exports = {
                                             
                                                 ) AS insert_payment_adjustment
                                      ) AS insert_payment_adjustment
-                            `;
+                            `);
         
         return await query(sql);
     },
