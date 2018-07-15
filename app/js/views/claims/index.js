@@ -1091,12 +1091,12 @@ define(['jquery',
                     if (isDefault) {
                         var _pointer = data.icd_pointers && data.icd_pointers[m - 1] ? data.icd_pointers[m - 1] : '';
                         $('#ddlPointer' + m + '_' + index).val(_pointer);
-                        $('#txtModifier' + m + '_' + index).val(data['m' + m])
+                        $('#txtModifier' + m + '_' + index).val(data['m' + m] ? self.getModifierCode(data['m' + m]) : "").attr('data-id', data['m' + m]);
                         //self.bindModifiersData('ddlModifier' + m + '_' + index, arr);
                     }else{
                         $('#ddlPointer' + m + '_' + index).val(data['pointer' + m]);
                         // ToDo:: Once modifiers dropdown added have to bind
-                        $('#txtModifier' + m + '_' + index).val(data['modifier' + m +'_id']); 
+                        $('#txtModifier' + m + '_' + index).val(data['modifier' + m +'_id'] ? self.getModifierCode(data['modifier' + m +'_id']) : null).attr('data-id',data['modifier' + m +'_id']);
                     }
 
                 }
