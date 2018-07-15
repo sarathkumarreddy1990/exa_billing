@@ -57,18 +57,25 @@
     .dropdown-menu li a{
         color:black;
     }
+
+    .claimMenu {
+        width:200px!important;
+        padding-left:5px!important;
+        text-align: left!important;
+    }
+
 </style>
 
 <div class="controls" style="float:left;">
 </div>
 <nav class="top-nav">
-    <div id="divTabsContainer" style="float:left;">
+    <div id="divTabsContainer" class="col-xs-6 col-md-6 col-lg-6"  style="float:left;">
         <div>
             <ul id="studyTabs" class="nav tn-menu"></ul>
             <ul id="claimsTabs" class="nav tn-menu"></ul>
         </div>
     </div>
-    <div style="float:right;" id="divTabActions">
+    <div style="float:right;" class="col-xs-6 col-md-6 col-lg-6" id="divTabActions">
         <form class="small_dd tn-menu">
             <ul class="tn-menu-right">
                 <li class="studyBtnPadding">
@@ -106,35 +113,39 @@
                         <i title="Settings" id="mySettings" class="icon-ic-actions"></i>
                     </a>
                 </li>
-                <li style="margin-right: 25px;">
+                <li>
                     <a>
                         <i title="Filters" id="btnStudyFilter" class="icon-ic-filter"></i>
                     </a>
                 </li>
-                <li class="worklist-menu-right">
-                    <input type="button" value="Claim" id="btnInsuranceClaim" class="btn btn-primary"  i18n="billing.fileInsurance.claim">
-                    <div class="btn-group small_dd"  id="btnPaperClaim" style="display:none;">
-                        <button type="button" class="btn btn-primary" id="btnPaperClaimFormat">PaperClaims(ORIGINAL)</button>
-                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
-                          <span class="caret"></span>
-                        </button>
-                        <ul class="dropdown-menu" role="menu" >
-                          <li><a  data-value='FULL' id="btnPaperClaimFull">PaperClaims(FULL)</a></li>
-                          <li><a  data-value="ORIGINAL" id="btnPaperClaimOriginal">PaperClaims(ORIGINAL)</a></li>
-                        </ul>
-                      </div>
+                <li style="margin-right: 15px;">
+                    <a>
+                        <i title="Export" id="btnValidateExport" class="fa fa-download"></i>
+                    </a>
                 </li>
                 <li class="worklist-menu-right">
-                    <input type="button" value="Validate" id="btnValidateOrder" class="btn btn-primary" i18n="shared.buttons.validate">
+                        <input type="button" value="Validate" id="btnValidateOrder" class="btn btn-primary" i18n="shared.buttons.validate">
                 </li>
+                <li class="worklist-menu-right">
+                        <!-- <input type="button" value="Claim" id="btnInsuranceClaim" class="btn btn-primary"  i18n="billing.fileInsurance.claim"> -->
+                        <div class="btn-group small_dd"  id="btnInsuranceClaim">
+                            <button type="button" class="btn btn-primary" data-method='electronic_billing' id="btnClaimFormat" style="width:200px;">Electronic Claim (EDI)</button>
+                            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                              <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu" role="menu" >
+                                    <li id="liEC"><a class="claimMenu" id="btnElectronicClaim" data-method="electronic_billing" data-value='Electronic Claim (EDI)'>Electronic Claim (EDI)</a></li>
+                                    <li id="liPCBW"><a class="claimMenu" id="btnPaperClaimBW" data-format='FULL'   data-method="paper_claim" data-value='Paper Claim (B & W)'>Paper Claim (B & W)</a></li>
+                                    <li id="liPCRED"><a class="claimMenu" id="btnPaperClaimRed" data-format='ORIGINAL'  data-method="paper_claim" data-value='Paper Claim (RED)'>Paper Claim (RED)</a></li>
+                                    <li id="liINSD"><a class="claimMenu" id="btnInvoiceServiceDate"  data-format='SERVICEDATE' data-method="direct_billing" data-value='Invoice (Service Date)'>Invoice (Service Date)</a></li>
+                                    <li  id="liINPN"><a class="claimMenu" id="btnInvoicePatientName" data-format='PATIENTNAME' data-method="direct_billing" data-value='Invoice (Patient Name)'>Invoice (Patient Name)</a></li>
+                                    <li id="liPP"><a class="claimMenu" id="btnPatientPayemnt" data-method="patient_payment" data-value='Patient Payment' >Patient Payment</a></li>
+                            </ul>
+                        </div>
+                </li>                
                 <li class="worklist-menu-right createNewClaim">
                     <input type="button" id="btnCreateNew" class="btn btn-primary" i18n="shared.buttons.createNewClaim">
-                </li>               
-                <li class="worklist-menu-right">
-                    <button type="button" class="btn btn-primary" id="btnValidateExport" i18n="shared.buttons.export" i18n="report.reportFilter.exportToExel" data-rformat="xlsx">
-                        <i class="fa fa-file-excel-o"></i>
-                    </button>
-                </li>
+                </li>   
                 <li class="worklist-menu-right batchClaim">
                     <input type="button" id="btnbatchClaim" class="btn btn-primary" i18n="shared.buttons.batchClaim">
                 </li>
