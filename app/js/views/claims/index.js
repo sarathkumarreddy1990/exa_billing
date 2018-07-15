@@ -670,6 +670,9 @@ define(['jquery',
                 }
                 /* Common Details end */
                
+                //upate total billfee and balance
+                $(".allowedFee").blur();
+                $(".diagCodes").blur();
 
             },
 
