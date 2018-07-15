@@ -4,6 +4,14 @@ module.exports = {
 
     getInvoiceData: async function (params) {
         params.claimIds = params.claimIds.split(',');
+        params.sortBy = params.sortBy || 'bc.id';
+
+        if(params.sortBy === 'patient_name') {
+            params.sortBy = 'pp.last_name';
+        } else if(params.sortBy === 'service_date') {
+            params.sortBy = 'bc.claim_dt';
+        }
+
         let sql = SQL`
 			WITH claim_details AS(
                 SELECT 
@@ -24,7 +32,7 @@ module.exports = {
                     '' AS payment_details,
                     f.facility_name,
                     bc.id as claim_no,
-                    get_full_name(pp.last_name,pp.last_name) as patient_name,
+                    get_full_name(pp.last_name, pp.first_name) as patient_name,
                     pp.birth_date,
                     CASE WHEN payer_type = 'primary_insurance' THEN json_build_object('name',pip.insurance_name,'address',pip.insurance_info->'Address1','address2',pip.insurance_info->'Address2','city',pip.insurance_info->'City','state',pip.insurance_info->'State','zip_code',pip.insurance_info->'ZipCode','phone_no',pip.insurance_info->'PhoneNo')
                     WHEN payer_type = 'secondary_insurance' THEN json_build_object('name',pip.insurance_name,'address',pip.insurance_info->'Address1', 'address2',pip.insurance_info->'Address2','city',pip.insurance_info->'City','state',pip.insurance_info->'State','zip_code',pip.insurance_info->'ZipCode','phone_no',pip.insurance_info->'PhoneNo')
@@ -46,7 +54,9 @@ module.exports = {
                 LEFT JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id
                 LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
                 LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
-                WHERE bc.id = ANY(${params.claimIds})),
+                WHERE bc.id = ANY(${params.claimIds})
+                ORDER BY ${params.sortBy}
+            ),
 			charge_details as(
                 SELECT
                     bch.claim_id as claim_no,

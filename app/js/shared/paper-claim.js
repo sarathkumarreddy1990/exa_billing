@@ -122,7 +122,8 @@ define([
                     data: {
                         claimIds: claimIDs.toString(),
                         payerType: options.payerType || '',
-                        payerId: options.payerId || ''
+                        payerId: options.payerId || '',
+                        sortBy: options.sortBy || ''
                     }, success: function (data, response) {
                         callback(null, data);
                     }, error: function (err, response) {

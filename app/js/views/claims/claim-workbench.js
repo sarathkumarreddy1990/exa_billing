@@ -428,21 +428,20 @@ define(['jquery',
                     var rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;
                    
                     var claimStatus = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'claim_status_code');
-                    if (claimStatus == "PV") {
-                        commonjs.showWarning('Please validate claims');
-                        return false;
-                    }
+                    // if (claimStatus == "PV") {
+                    //     commonjs.showWarning('Please validate claims');
+                    //     return false;
+                    // }
 
                     var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'billing_method');
-                   
+
                     if (e.target) {
-                                    if (billingMethodFormat != billingMethod) {
+                        if (billingMethodFormat != billingMethod) {
                             commonjs.showWarning('Please select valid claims method');
                             return false;
                         }
                     }
-
-                   
+                    
                     if (existingBillingMethod == '') existingBillingMethod = billingMethod
                     if (existingBillingMethod != billingMethod) {
                         commonjs.showWarning('Please select claims with same type of billing method');
@@ -492,8 +491,20 @@ define(['jquery',
                     return;
                 }
 
+                var sortBy = '';
+                if (e.target) {
+                    if (e.target.innerHTML.indexOf('Patient Name') > -1) {
+                        sortBy = 'patient_name';
+                    } else if (e.target.innerHTML.indexOf('Service Date') > -1) {
+                        sortBy = 'service_date';
+                    }
+                }
+
                 if(existingBillingMethod === 'direct_billing') {
-                    paperClaim.print('direct_invoice', claimIds);
+                    paperClaim.print('direct_invoice', claimIds, {
+                        sortBy: sortBy
+                    });
+
                     return;
                 }
 
