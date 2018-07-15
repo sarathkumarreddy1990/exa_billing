@@ -670,6 +670,9 @@ define(['jquery',
                 }
                 /* Common Details end */
                
+                //upate total billfee and balance
+                $(".allowedFee").blur();
+                $(".diagCodes").blur();
 
             },
 
@@ -1091,12 +1094,12 @@ define(['jquery',
                     if (isDefault) {
                         var _pointer = data.icd_pointers && data.icd_pointers[m - 1] ? data.icd_pointers[m - 1] : '';
                         $('#ddlPointer' + m + '_' + index).val(_pointer);
-                        $('#txtModifier' + m + '_' + index).val(data['m' + m])
+                        $('#txtModifier' + m + '_' + index).val(data['m' + m] ? self.getModifierCode(data['m' + m]) : "").attr('data-id', data['m' + m]);
                         //self.bindModifiersData('ddlModifier' + m + '_' + index, arr);
                     }else{
                         $('#ddlPointer' + m + '_' + index).val(data['pointer' + m]);
                         // ToDo:: Once modifiers dropdown added have to bind
-                        $('#txtModifier' + m + '_' + index).val(data['modifier' + m +'_id']); 
+                        $('#txtModifier' + m + '_' + index).val(data['modifier' + m +'_id'] ? self.getModifierCode(data['modifier' + m +'_id']) : null).attr('data-id',data['modifier' + m +'_id']);
                     }
 
                 }
@@ -2551,7 +2554,7 @@ define(['jquery',
                         $('#txtPriPolicyNo').val().trim(),
                         $('#txtPriSubFirstName').val().trim(),
                         $('#txtPriSubLastName').val().trim(),
-                        $('#ddlPriGender option:selected').val().trim() || '',
+                        $('#ddlPriGender').val() ? $('#ddlPriGender').val().trim() : '',
                         $('#txtPriSubPriAddr').val().trim(),
                         $('#ddlPriRelationShip option:selected').val().trim() || '',
                         $('#txtPriDOB').val().trim().trim(),
@@ -2563,7 +2566,7 @@ define(['jquery',
                         $('#txtSecPolicyNo').val().trim(),
                         $('#txtSecSubFirstName').val().trim(),
                         $('#txtSecSubLastName').val().trim(),
-                        $('#ddlSecGender option:selected').val().trim() || '',
+                        $('#ddlSecGender').val() ? $('#ddlSecGender').val().trim() : '',
                         $('#txtSecSubPriAddr').val().trim(),
                         $('#ddlSecRelationShip option:selected').val().trim() || '',
                         $('#txtSecDOB').val().trim(),
@@ -2575,7 +2578,7 @@ define(['jquery',
                         $('#txtTerPolicyNo').val().trim(),
                         $('#txtTerSubFirstName').val().trim(),
                         $('#txtTerSubLastName').val().trim(),
-                        $('#ddlTerGender option:selected').val().trim() || '',
+                        $('#ddlTerGender').val() ? $('#ddlTerGender').val().trim() : '',
                         $('#txtTerSubPriAddr').val().trim(),
                         $('#ddlTerRelationShip option:selected').val().trim() || '',
                         $('#txtTerDOB').val().trim(),
