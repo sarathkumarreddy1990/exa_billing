@@ -3006,6 +3006,13 @@ BEGIN
 		DELETE FROM billing.payments bp
 		WHERE bp.id = i_payment_id
 		RETURNING *, '{}'::jsonb old_values ),
+    get_claim_ids AS(
+        SELECT distinct bch.claim_id AS claim_id FROM  billing.charges bch 
+        INNER JOIN purge_payment_applications ppa ON bch.id = ppa.charge_id
+    ),
+    change_claim_responsible_party AS(
+        SELECT billing.change_responsible_party(claim_id,0,p_company_id,null) FROM get_claim_ids
+    ),
 	purge_payment_audit AS(
 	SELECT billing.create_audit(			  
 		  p_company_id
@@ -3023,7 +3030,9 @@ BEGIN
 		) AS audit_id
 		FROM purge_payment pc
 		WHERE pc.id IS NOT NULL)
-	SELECT ppa.audit_id INTO p_result FROM purge_payment_audit ppa;
+	SELECT ppa.audit_id INTO p_result FROM purge_payment_audit ppa,change_claim_responsible_party;
+
+
 
 	RETURN true;
 
