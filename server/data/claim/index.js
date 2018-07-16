@@ -57,8 +57,7 @@ module.exports = {
                             ,(
                                 SELECT json_agg(row_to_json(claim_default_details)) "claim_details" FROM
                                     (SELECT
-                                        facility_id,
-
+                                        orders.facility_id,
                                         order_info->'currentDate' AS current_illness_date,
                                         order_info->'similarIll' AS same_illness_first_date,
                                         order_info->'wTo' AS unable_to_work_to_date,
@@ -109,10 +108,15 @@ module.exports = {
                                                 LIMIT 1
                                                 ) AS claim_status,
                                         order_info -> 'billing_provider' AS billing_provider_id,
-                                        order_info -> 'pos_type_code' AS pos_type_code
+                                        order_info -> 'pos_type_code' AS pos_type_code,
+                                        p.full_name AS patient_name,
+                                        p.account_no AS patient_account_no,
+                                        p.birth_date AS patient_dob,
+                                        p.gender AS patient_gender
                                     FROM
                                         orders                                      
-                                        inner JOIN facilities ON  facilities.id= orders.facility_id
+                                        INNER JOIN facilities ON  facilities.id= orders.facility_id
+                                        INNER JOIN patients p ON p.id= orders.patient_id
                                         LEFT JOIN provider_contacts fac_prov_cont ON   facility_info->'rendering_provider_id'::text = fac_prov_cont.id::text
                                         LEFT JOIN providers fac_prov ON fac_prov.id = fac_prov_cont.provider_id
                                         JOIN LATERAL ( 
@@ -377,6 +381,7 @@ module.exports = {
                     , p.account_no AS patient_account_no
                     , p.birth_date::text AS patient_dob
                     , p.full_name AS patient_full_name
+                    , p.gender AS patient_gender
                     , ref_pr.full_name AS ref_prov_full_name
                     , ref_pr.provider_code AS ref_prov_code
                     , ref_pr.provider_info->'NPI' AS referring_prov_npi_no

@@ -67,20 +67,13 @@ define(['jquery',
                 this.options = options;
                 this.model = new newClaimModel();
                 this.patInsModel = new modelPatientInsurance();
-                var planName = [
-                    { value: '', 'text': 'Select' },
-                    { value: 'Health', 'text': 'Health' },
-                    { value: 'Retried', 'text': 'Retried' },
-                    { value: 'Education', 'text': 'Education' }
-                ];
+               
                 var modelCollection = Backbone.Collection.extend({
                     model: Backbone.Model.extend({})
                 });
                 this.facilities = new modelCollection(commonjs.bindArray(app.facilities, true, true));
                 this.states = new modelCollection(commonjs.bindArray(app.states[0].app_states, true));
                 this.genders = new modelCollection(commonjs.bindArray(app.gender, true));
-                this.empStatus = new modelCollection(app.employment_status);
-                this.planList = new modelCollection(planName);
                 this.claimStatusList = new modelCollection(app.claim_status);
                 this.billingCodesList = new modelCollection(app.billing_codes);
                 this.billingClassList = new modelCollection(app.billing_classes);
@@ -113,9 +106,7 @@ define(['jquery',
                         patient_name: self.cur_patient_name,
                         account_no: self.cur_patient_acc_no,
                         dob: self.cur_patient_dob,
-                        planname: self.planList.toJSON(),
                         facilities: self.facilities.toJSON(),
-                        empStatus: self.empStatus.toJSON(),
                         genders: self.genders.toJSON(),
                         states: self.states.toJSON(),
                         claimStatusList: self.claimStatusList.toJSON(),
@@ -426,7 +417,7 @@ define(['jquery',
                             /* Bind chargeLineItems events - Ended */
 
                             /* Header Details */
-                            $(parent.document).find('#spanModalHeader').html('Edit : <STRONG>' + claimDetails.patient_full_name + '</STRONG> (Acc#:' + claimDetails.patient_account_no + ') ' + moment(claimDetails.patient_dob).format('L') + '');
+                            $(parent.document).find('#spanModalHeader').html('Edit : <STRONG>' + claimDetails.patient_full_name + '</STRONG> (Acc#:' + claimDetails.patient_account_no + '), ' + moment(claimDetails.patient_dob).format('L') + ', ' + claimDetails.patient_gender);
                             $.each(self.claimChargeList, function (index, data) {
                                 /* Bind charge table data*/
                                 self.createCptCodesUI(index);
@@ -813,7 +804,6 @@ define(['jquery',
                 if (!this.rendered)
                     this.render('claim');
 
-                $(parent.document).find('#spanModalHeader').html('Claim Creation : <STRONG>' + primaryStudyDetails.patient_name + '</STRONG> (Acc#:' + primaryStudyDetails.account_no + '), <i>' + self.cur_patient_dob + '</i>  ');
                 self.getLineItemsAndBind(selectedStudyIds);
                 if(options && options == 'patientSearch'){
                     self.bindDetails();
@@ -936,6 +926,9 @@ define(['jquery',
                                 self.facilityId = modelDetails && modelDetails.charges && modelDetails.charges.length && modelDetails.charges[0].facility_id ? modelDetails.charges[0].facility_id : self.facilityId ;
                                 var diagnosisCodes = [];
                                 var diagnosisCodesOrder = [];
+                                var _defaultDetails = modelDetails.claim_details && modelDetails.claim_details.length > 0 ? modelDetails.claim_details[0] : {};
+                                $(parent.document).find('#spanModalHeader').html('Claim Creation : <STRONG>' + _defaultDetails.patient_name + '</STRONG> (Acc#:' + _defaultDetails.patient_account_no + '), <i>' + _defaultDetails.patient_dob + '</i>,  ' + _defaultDetails.patient_gender);
+
                                 _.each(modelDetails.charges, function (item) {
                                     var index = $('#tBodyCharge').find('tr').length;
                                     item.data_row_id = index;
@@ -966,7 +959,7 @@ define(['jquery',
                                     }
                                     
                                 });
-                                var _defaultDetails = modelDetails.claim_details && modelDetails.claim_details.length > 0 ? modelDetails.claim_details[0] : {};
+
                                 setTimeout(function () {
                                     self.bindDefaultClaimDetails(_defaultDetails);
                                 }, 200);
@@ -2503,14 +2496,21 @@ define(['jquery',
                                     clearTimeout(claimRefreshInterval);
 
                                     commonjs.showStatus("messages.status.successfullyCompleted");
+                                    console.log(self.claim_Id);
                                     $("#btnClaimsRefresh").click();
                                     $("#btnStudiesRefresh").click();
                                 }, 200);
-
+                                
+                                var time = self.isEdit ? 800 : 100;
                                 var claimHideInterval = setTimeout(function () {
                                     clearTimeout(claimHideInterval);
-                                    commonjs.hideDialog();
-                                }, 100);
+                                    if(self.isEdit){
+                                        saveButton.attr('disabled', false);
+                                        $('#chktblClaimGridAll_Claims_' + self.claim_Id).prop('checked', true);
+                                    }else{
+                                        commonjs.hideDialog();
+                                    }
+                                }, time);
                             }
                         },
                         error: function (model, response) {
@@ -2749,7 +2749,6 @@ define(['jquery',
                                 document.querySelector('#txt' + _targetFlag + 'DOB').value = response.birth_date ? moment(response.birth_date).format('L') : '';
                                 self.homePhone = contactInfo.c1HomePhone;
                                 self.workPhone = contactInfo.c1WorkPhone;
-                                self.empStatus = contactInfo.empStatus;
                                 subscriberFlag = true;
                                 self.bindSubscriber(_targetFlag);
                             }
@@ -2784,8 +2783,6 @@ define(['jquery',
                     $('#ddl' + flag + 'State').val(self.state);
                     $('#txt' + flag + 'ZipCode').val(self.zipCode);
                 }
-                $('#ddl' + flag + 'EmpStatus').val(self.empStatus);
-
                 if (relationalShip.toLowerCase() == "self") {
                     $('#txt' + flag + 'SubFirstName').val(self.firstName);
                     $('#txt' + flag + 'SubLastName').val(self.lastName);
@@ -2851,8 +2848,6 @@ define(['jquery',
                     $('#lbl' + flag + 'PhoenNo').html('');
                     $('#txt' + flag + 'PolicyNo').val('');
                     $('#txt' + flag + 'GroupNo').val('');
-                    $('#ddl' + flag + 'PlanName').val('');
-                    $('#ddl' + flag + 'EmpStatus').val('');
                     $('#ddl' + flag + 'RelationShip').val('');
                     $('#txt' + flag + 'SubFirstName').val('');
                     $('#txt' + flag + 'SubMiName').val('');
