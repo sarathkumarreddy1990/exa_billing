@@ -239,13 +239,13 @@
                                                     <span id="editBillFee_<%= row.data_row_id %>" class="editBillFee icon-ic-edit" style="margin-left: 4px;cursor:pointer;" title="Edit" ></span>
                                                 </td>
                                                 <td>
-                                                    <input disabled value="<%= row.total_bill_fee ? row.total_bill_fee : 0.00 %>" id="txtTotalBillFee_<%= row.data_row_id %>" type="text" class="totalbill form-control floatbox" style="text-align: right;">
+                                                    <input disabled value="<%= row.total_bill_fee ? row.total_bill_fee : 0.00 %>" id="txtTotalBillFee_<%= row.data_row_id %>" type="text" class="totalbill form-control floatbox text-right">
                                                 </td>
                                                 <td>
                                                     <input disabled value="<%= row.allowed_fee ? row.allowed_fee : 0.00 %>" id="txtAllowedFee_<%= row.data_row_id %>" type="text" class="maskFee allowedFee form-control floatbox">
                                                 </td>
                                                 <td>
-                                                    <input disabled value="<%= row.total_allowed_fee ? row.total_allowed_fee : 0.00 %>" id="txtTotalAllowedFee_<%= row.data_row_id %>" type="text" class="totalallowed form-control floatbox" style="text-align: right;">
+                                                    <input disabled value="<%= row.total_allowed_fee ? row.total_allowed_fee : 0.00 %>" id="txtTotalAllowedFee_<%= row.data_row_id %>" type="text" class="totalallowed form-control floatbox text-right">
                                                 </td>
                                                 <td>
                                                     <input id="txtAuthInfo_<%= row.data_row_id %>" type="text" class="form-control " value="<%= row.authorization_no %>">
@@ -267,14 +267,14 @@
                                         </td>
                                         <td colspan="3" style="text-align: right;border: 0">
                                             <span id="spTotalBillFee">Total Bill Fee</span>:
-                                            <span style="font-weight: bold;" id="spTotalBillFeeValue"></span>
+                                            <span class="font-weight-bold" id="spTotalBillFeeValue"></span>
                                         </td>
                                         <td style="border: 0">
                                             <!-- <span style="font-weight: bold;" id="spTotalBillFeeValue"></span> -->
                                         </td>
                                         <td style="text-align: right;border: 0">
                                             <span id="spTotalAllowedFee">Total Allowed</span>:
-                                            <span style="font-weight: bold;" id="spTotalAllowedFeeValue"></span>
+                                            <span class="font-weight-bold" id="spTotalAllowedFeeValue"></span>
                                         </td>
                                         <td style="text-align: left;border: 0" colspan="3">
                                             <!-- <span style="font-weight: bold;" id="spTotalAllowedFeeValue"></span> -->
