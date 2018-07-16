@@ -828,7 +828,7 @@ define(['jquery',
                                         self.render(self.payment_id);
                                     }
                                     else {
-                                        commonjs.showWarning('This payment has been already updated by some other user. please refresh the page and try again.');
+                                        commonjs.showWarning('This payment has been already updated by some other user - please refresh the page and try again.');
                                     }
                                     $('#btnPaymentSave').removeAttr('disabled');
                                     commonjs.hideLoading();

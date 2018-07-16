@@ -2497,6 +2497,7 @@ define(['jquery',
 
                             if (response && response.message) {
                                 commonjs.showWarning(response.message);
+                                saveButton.attr('disabled', false);
                             } else {
 
                                 var claimRefreshInterval = setTimeout(function () {
@@ -2951,7 +2952,7 @@ define(['jquery',
                             if (!data.invalidClaim_data.length)
                                 commonjs.showStatus(commonjs.geti18NString("messages.status.validatedSuccessfully"));
                             else
-                                commonjs.showNestedDialog({ header: 'Validation Results', i18nHeader: 'menuTitles.order.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });  
+                                commonjs.showNestedDialog({ header: 'Validation Results', i18nHeader: 'billing.claims.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });  
                         }
                     },
                     error: function (err, response) {
