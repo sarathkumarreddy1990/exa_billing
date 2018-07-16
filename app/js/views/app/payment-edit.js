@@ -1745,7 +1745,7 @@ define(['jquery',
                             commonjs.showStatus('Payment has been applied successfully');
                             targetObj.removeAttr('disabled');
                             commonjs.hideLoading();
-                            if (!objIsPayInFull && paymentStatus != 'applied') {
+                            if (paymentStatus != 'applied') {
                                 self.casSegmentsSelected = [];
                                 self.closeAppliedPendingPayments(e, paymentId);
                                 commonjs.hideDialog();
