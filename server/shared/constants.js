@@ -189,6 +189,7 @@ module.exports = {
         'claim_study': 'ECLM',
         'follow_ups': 'ECLM',
         'claim_patient': 'PCLM',
-        'payment_applications': 'APAY'
+        'payment_applications': 'APAY',
+        'invoice_claims': 'CLIM'
     }
 };
