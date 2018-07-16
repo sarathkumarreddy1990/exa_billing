@@ -522,18 +522,11 @@ define(['jquery',
                     }
                 }
                 
-
                 if(existingBillingMethod === 'patient_payment') {
-                    if(uniquePayerType && uniquePayerType.length && uniquePayerType.length > 1) {
-                        self.printInvoiceClaim('patient_invoice', claimIds, sortBy)
-                        return;
-                    }
-                    else {
                         paperClaim.print('patient_invoice', claimIds, {
                             sortBy: sortBy
                         });
-                        return;
-                    }
+                        return; 
                 }
 
                 self.ediResultTemplate = _.template(ediResultHTML);
@@ -593,6 +586,7 @@ define(['jquery',
                     }
                 });
             },
+
             printInvoiceClaim: function (invoice_type, claimIds, sortBy) {
                 var self = this;
                 var printerClaimids = [];
