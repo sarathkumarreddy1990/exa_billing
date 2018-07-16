@@ -1410,7 +1410,7 @@ CREATE OR REPLACE FUNCTION billing.create_charge(
     i_modifier4_id bigint,
     i_bill_fee money,
     i_allowed_amount money,
-    i_units bigint,
+    i_units numeric,
     i_created_by bigint,
     i_authorization_no text,
     i_charge_dt timestamp with time zone,
@@ -1487,6 +1487,33 @@ BEGIN
 			, i_pointer4
 			, i_authorization_no
 		) RETURNING *, '{}'::jsonb old_values), 
+        save_apply_payment AS (
+        INSERT INTO billing.payment_applications (
+              payment_id
+            , applied_dt
+            , charge_id
+            , amount
+            , amount_type
+            , created_by
+            )
+        SELECT
+              payment_id
+        	, applied_dt
+            , (SELECT id FROM save_charges)
+            , 0.00
+            , 'payment'
+            ,  i_created_by
+        FROM billing.charges ch
+        INNER JOIN billing.payment_applications pa ON pa.charge_id = ch.id
+        WHERE ch.claim_id = i_claim_id AND pa.amount_type = 'payment'
+        AND EXISTS (SELECT 
+                            pa.id AS payment_count
+                        FROM
+                            billing.charges ch
+                        INNER JOIN billing.payment_applications pa ON pa.charge_id = ch.id
+                        WHERE ch.claim_id = i_claim_id)
+         GROUP BY applied_dt, payment_id
+        ),
 	save_charge_study AS (
 		INSERT INTO billing.charges_studies
 			( charge_id
@@ -1567,8 +1594,8 @@ BEGIN
 			, subscriber_state
 			, assign_benefits_to_patient
 			, subscriber_dob
-			, now() AS valid_from_date
-			, now() + interval '1 month' AS valid_to_date
+			, valid_from_date
+			, valid_to_date
 			, medicare_insurance_type_code
             , claim_patient_insurance_id
 		FROM
@@ -1810,7 +1837,7 @@ BEGIN
 					, modifier4_id bigint
 					, bill_fee money
 					, allowed_amount money
-					, units bigint
+					, units numeric
 					, created_by bigint
 					, authorization_no text
 					, charge_dt timestamptz
@@ -2158,8 +2185,7 @@ $BODY$
   LANGUAGE plpgsql IMMUTABLE;
 -- --------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION billing.get_charge_other_payment_adjustmet(
-    IN i_charge_id bigint,
-    IN i_payment_id bigint)
+    IN i_charge_id bigint)
   RETURNS TABLE(other_payment money, other_adjustment money) AS
 $BODY$
 BEGIN
@@ -2169,8 +2195,7 @@ BEGIN
             COALESCE(sum(amount) FILTER(where amount_type = 'adjustment'),0::money) as other_adjustment
         FROM billing.payment_applications 
         WHERE   
-            charge_id = i_charge_id
-        AND payment_id != i_payment_id;
+            charge_id = i_charge_id;
 END;
 $BODY$
 LANGUAGE plpgsql;
@@ -2603,6 +2628,14 @@ DECLARE
    
 BEGIN 
 	l_bill_fee_recalculation := TRUE;
+    SELECT 
+		claim_status_id INTO l_claim_status_id
+	FROM
+		billing.claims 
+	WHERE
+		id = p_claim_id
+	LIMIT 1;
+    
 	SELECT 
 		    cs.description INTO l_claim_status
 		FROM

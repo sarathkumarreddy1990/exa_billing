@@ -107,7 +107,7 @@
             "refund": "Refund",
             "balance": "Balance",
             "receivedAmount": "Received Amount",
-            "paymentmode": "Payment As mode",
+            "paymentmode": "Payment As Mode",
             "cash": "Cash",
             "cheque": "Check",
             "card": "Card",
@@ -192,7 +192,8 @@
             "adjustmentTotal": "Adjustment Total",
             "allActivity" : "All Activity",
             "activityByDate": "Activity By Date",
-            "comment": "Include All Comments"
+            "comment": "Include All Comments",
+            "unappliedPay": "Unapplied Payments"
         },
         "refund": {
             "scheduleDate": "Schedule Date",
@@ -306,9 +307,6 @@
             "selectClaimStatus":"Please select claim status",
             "selectResponsible":"Please select responsible"
         },
-        "charges": {
-            "charges": "Charges"
-        },
         "claims" : {
             "claims" : "Claims",
             "claimDate" : "Claim Date",
@@ -392,26 +390,7 @@
             "120days": "120 Days",
             "summary": "Summary",
             "current": "Current"
-        },
-        "setup": {
-            "office": "Office",
-            "providers": "Providers",
-            "schCodes": "Scheduling & Codes",
-            "dicom": "Dicom",
-            "userMgmt": "User Management",
-            "mobRad": "Mobile Rad",
-            "general": "General",
-            "hl7": "HL7",
-            "log": "Log",
-            "cardiology": "Structured Reporting"
-        },
-        "masterPageMenu": {
-            "billing": "Billing",
-            "meaningfulUse": "Meaningful Use"
-        },
-        "order": {
-            "validationResults": "Validation Results"
-        },        
+        }, 
         "patientInsurance": {
             "coverage": "Coverage",
             "outofpocket": " Out-Of-Pocket",
@@ -423,44 +402,14 @@
             "field": "Field",
             "failedReason": "Failed Reason"
         },
-        "studies": {
-            "current": "Current",
-            "summary": "Summary",
-            "30days": "30 Days",
-            "60days": "60 Days",
-            "90days": "90 Days",
-            "120days": "120 Days",
-            "total": "Total"
-        },
         "inbox": {
             "showing": "Showing",
             "of": "of"
         },
         "worklist": {
             "appointmentStatus": "Appointment Status",
-            "scheduled": "SCHEDULED",
-            "rescheduled": "RESCHEDULED",
-            "confirmed": "CONFIRMED",
-            "checkedin": "CHECKEDIN",
-            "checkedout": "CHECKEDOUT",
-            "cancelled": "CANCELED",
-            "aborted": "ABORTED",
-            "noshows": "NOSHOWS",
-            "precheckin": "PRECHECKIN",
             "studyProgress": "Study Progress - Tech.",
-            "start": "START",
-            "end": "END",
-            "radStatus": "Rad Status",
-            "incomplete": "INCOMPLETE",
-            "unread": "UNREAD",
-            "read": "READ",
-            "dictated": "DICTATED",
-            "draft": "DRAFT",
-            "transcribed": "TRANSCRIBED",
-            "approved": "APPROVED"
-        },
-        "payToProvider":{
-            "payToProvider": "Pay-to-Provider"
+            "radStatus": "Rad Status"
         }
     }    
 }

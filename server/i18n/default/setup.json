@@ -247,7 +247,7 @@
             "billingGrp": "Billing Provider",
             "billing_pro_addressLine1": "Billing Provider-AddressLine1",
             "billing_pro_city": "Billing Provider-City",
-            "billing_pro_firstName": "Billing Provider-FirstName",
+            "billing_pro_firstName": "Billing Provider Name",
             "billing_pro_npiNo": "Billing Provider-NpiNo",
             "billing_pro_state": "Billing Provider-State",
             "billing_pro_zip": "Billing Provider-Zip",

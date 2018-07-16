@@ -178,7 +178,10 @@ define(['jquery',
                 self.priDOB = commonjs.bindDateTimePicker('divPriDOB', { format: 'L' });
                 self.priDOB.date();     
                 self.secDOB = commonjs.bindDateTimePicker('divSecDOB', { format: 'L' });
-                self.secDOB.date();  
+                self.secDOB.date(); 
+                self.terDOB = commonjs.bindDateTimePicker('divTerDOB', { format: 'L' });
+                self.terDOB.date();
+                 
             },
 
             checkInsuranceEligibility: function (e) {
@@ -222,27 +225,27 @@ define(['jquery',
 
                
                 if (!$('#ddlServiceType'+ins+' :selected').length) {
-                    commonjs.showWarning('messages.warning.shared.selectservicetype');
+                    commonjs.showWarning('shared.warning.selectservicetype');
                     return;
                 }
 
                 if (!$('#txtBenefitOnDate' + ins).val()) {
-                    commonjs.showWarning('messages.warning.patient.selectbenefitondate');
+                    commonjs.showWarning('shared.warning.selectbenefitondate');
                     return;
                 }
 
                 if (!self.npiNo) {
-                    commonjs.showWarning('messages.warning.patient.npinumbernotpresent');
+                    commonjs.showWarning('shared.warning.npinumbernotpresent');
                     return;
                 }
 
                 if (!self.federalTaxId) {
-                    commonjs.showWarning('messages.warning.patient.federaltaxidnotpresent');
+                    commonjs.showWarning('shared.warning.federaltaxidnotpresent');
                     return;
                 }
 
                 if (!self.enableInsuranceEligibility) {
-                    commonjs.showWarning('messages.warning.patient.eleigibilitycheckdisabled');
+                    commonjs.showWarning('shared.warning.eligibilitycheckdisabled');
                     return;
                 } 
 
@@ -418,8 +421,6 @@ define(['jquery',
                             
                             self.assignModifierEvent();
                             app.modifiers_in_order = true;
-                            commonjs.enableModifiersOnbind('M'); // Modifier
-                            commonjs.enableModifiersOnbind('P'); // Diagnostic Pointer
                             commonjs.validateControls();
                             commonjs.isMaskValidate();
                             /* Bind chargeLineItems events - Ended */
@@ -445,10 +446,10 @@ define(['jquery',
                                 self.bindCPTSelectionEvents('#divCptCode_' + index);
                                 self.bindCPTSelectionEvents('#divCptDescription_' + index);
 
-                                $('#ddlModifier1_' + index).val(data.modifier1_id ? data.modifier1_id : "");
-                                $('#ddlModifier2_' + index).val(data.modifier2_id ? data.modifier2_id : "");
-                                $('#ddlModifier3_' + index).val(data.modifier3_id ? data.modifier3_id : "");
-                                $('#ddlModifier4_' + index).val(data.modifier1_id ? data.modifier4_id : "");
+                                $('#txtModifier1_' + index).val(data.modifier1_id ? self.getModifierCode(data.modifier1_id) : "").attr('data-id',data.modifier1_id);
+                                $('#txtModifier2_' + index).val(data.modifier2_id ? self.getModifierCode(data.modifier2_id) : "").attr('data-id',data.modifier2_id);
+                                $('#txtModifier3_' + index).val(data.modifier3_id ? self.getModifierCode(data.modifier3_id) : "").attr('data-id',data.modifier3_id);
+                                $('#txtModifier4_' + index).val(data.modifier1_id ? self.getModifierCode(data.modifier4_id) : "").attr('data-id',data.modifier4_id);
                             });
                            
                             if (isFrom && isFrom == 'studies')
@@ -476,6 +477,9 @@ define(['jquery',
                                 });
                                 self.addDiagCodes(false);
                             });
+
+                            commonjs.enableModifiersOnbind('M'); // Modifier
+                            commonjs.enableModifiersOnbind('P'); // Diagnostic Pointer
 
                             // clear icd details after bind
                             self.ICDID = self.icd_code = self.icd_description = '';
@@ -522,6 +526,17 @@ define(['jquery',
                         commonjs.handleXhrError(model, response);
                     }
                 });
+            },
+
+            getModifierCode : function(id) {
+                var code = ""; 
+                var modifierData = app.modifiers.filter(function(modifiers) {
+                     return modifiers.id == id;
+                });
+                if(modifierData && modifierData.length > 0) {
+                    code = modifierData[0].code;
+                }
+                return code;
             },
 
             createCptCodesUI: function(rowIndex) {
@@ -655,6 +670,9 @@ define(['jquery',
                 }
                 /* Common Details end */
                
+                //upate total billfee and balance
+                $(".allowedFee").blur();
+                $(".diagCodes").blur();
 
             },
 
@@ -1076,12 +1094,12 @@ define(['jquery',
                     if (isDefault) {
                         var _pointer = data.icd_pointers && data.icd_pointers[m - 1] ? data.icd_pointers[m - 1] : '';
                         $('#ddlPointer' + m + '_' + index).val(_pointer);
-                        $('#ddlModifier' + m + '_' + index).val(data['m' + m])
+                        $('#txtModifier' + m + '_' + index).val(data['m' + m] ? self.getModifierCode(data['m' + m]) : "").attr('data-id', data['m' + m]);
                         //self.bindModifiersData('ddlModifier' + m + '_' + index, arr);
                     }else{
                         $('#ddlPointer' + m + '_' + index).val(data['pointer' + m]);
                         // ToDo:: Once modifiers dropdown added have to bind
-                        $('#ddlModifier' + m + '_' + index).val(data['modifier' + m +'_id']); 
+                        $('#txtModifier' + m + '_' + index).val(data['modifier' + m +'_id'] ? self.getModifierCode(data['modifier' + m +'_id']) : null).attr('data-id',data['modifier' + m +'_id']);
                     }
 
                 }
@@ -1155,18 +1173,25 @@ define(['jquery',
                     .on("keyup", function (e) {
                         var _isFrom = $(e.target).hasClass('diagCodes') ? 'P' : 'M';
                         self.checkInputModifiersValues(e, _isFrom);
-                        commonjs.activateInputModifiers(_isFrom, e.target);
-
                     })
                     .on("change", function (e) {
                         var _isFrom = $(e.target).hasClass('diagCodes') ? 'P' : 'M';
-                        self.checkInputModifiersValues(e, _isFrom);
-                        commonjs.activateInputModifiers(_isFrom, e.target);
+                        self.checkInputModifiersValues(e, _isFrom,null,'change');
                     })
                     .on("blur", function (e) {
                         var _isFrom = $(e.target).hasClass('diagCodes') ? 'P' : 'M';
-                        self.checkInputModifiersValues(e, _isFrom);
-                        commonjs.activateInputModifiers(_isFrom, e.target);
+                        self.checkInputModifiersValues(e, _isFrom, null,'blur');
+                        var content = $(e.target).val();
+                        if(_isFrom == 'M') {
+                            var validContent = app.modifiers.filter(function(modifier) {
+                                return modifier.code == content;
+                            });
+                            if(validContent && validContent.length > 0) {
+                                $(e.target).attr('data-id', validContent[0].id);
+                            } else {
+                                $(e.target).attr('data-id',null);
+                            }
+                        }
                     });
 
                 $('.units').on("blur", function (e) {
@@ -1182,7 +1207,7 @@ define(['jquery',
                 });
             },
 
-            checkInputModifiersValues: function (e, isFrom, isEdit) {
+            checkInputModifiersValues: function (e, isFrom, isEdit, evType) {
                 var self = this;
                 if (isFrom == 'P') { // Diagnostic Pointer
 
@@ -1236,17 +1261,20 @@ define(['jquery',
 
                         });
                     }
+                    commonjs.activateInputModifiers(isFrom, e.target);
                 }
                 else if (isFrom == 'M') { // Modifiers
 
                     var dataContent = $(e.target).val();
                     var modifierLevel = $(e.target).attr('data-type');
                     modifierLevel = modifierLevel.replace('M','modifier');
+                    var existData = [];
                     if (dataContent != '') {
                         var existData = jQuery.grep(app.modifiers, function (value) {
-                            return (value.id == dataContent && (value[modifierLevel] == true || value[modifierLevel] == 'true'));
+                            return (value.code.toLowerCase().indexOf(dataContent.toLowerCase()) > -1 && (value[modifierLevel] == true || value[modifierLevel] == 'true'));
                         });
-                        if (existData.length > 0) {
+
+                        if (existData.length > 0 && dataContent && dataContent.length == 2) {
                             $(e.target).css('border-color', '')
                             $(e.target).removeClass('invalidModifier')
                         }
@@ -1259,9 +1287,44 @@ define(['jquery',
                         $(e.target).css('border-color', '')
                         $(e.target).removeClass('invalidModifier');
                         $(e.target).removeClass("invalidCpt");
+                        $('#divModifierList').remove();
                     }
+                    commonjs.activateInputModifiers(isFrom, e.target);
+                    if(existData.length > 0 && !evType) {
+                            self.createModifierDropDown(e, existData);
+                        } else {
+                             $('#divModifierList').remove();
+                        }
                 }
 
+            },
+
+            createModifierDropDown: function(e, existData) {
+                $('#divModifierList').remove();
+                $(e.target).parent().append($('<div/>' , {id:'divModifierList'}));
+                var divModifierList = $('#divModifierList');
+                divModifierList.empty();
+                var modifierEl = $('<div/>').addClass('dropdown-menu');
+                divModifierList.append(modifierEl);
+                for(var i = 0; i < existData.length; i++) {
+                     modifierEl
+                        .append($('<div/>').addClass('dropdown-item').hover(function() {
+                            $(this).css({'background-color':'#337ab7'});
+                        },function(){
+                            $(this).css({'background-color':'transparent'});
+                        })
+                        .mousedown(function(event) {
+                            $(e.target).val($(this).html());
+                            $('#divModifierList').remove();
+                        })
+                        .html(existData[i].code));             
+                }
+                $(e.target).css('border-color', '')
+                $(e.target).removeClass('invalidModifier')
+                var top = $(e.target).offset().top + $(e.target).outerHeight();
+                var left = $(e.target).offset().left
+                divModifierList.css({'position':'relative', 'display':'block'});    
+                modifierEl.css({'display':'block','z-index':'10001'});
             },
 
             assignLineItemsEvents: function () {
@@ -1709,7 +1772,7 @@ define(['jquery',
                 if (self.icd_code != '' && self.ICDID != '') {
                     if (curDiagnosis.length < 12) {
                         if (curDiagnosis.indexOf(String(self.ICDID)) > -1) {
-                            commonjs.showWarning("messages.warning.claims.problemAlreadyExists");
+                            commonjs.showWarning("shared.warning.problemAlreadyExists");
                             return false;
                         }
 
@@ -1784,7 +1847,7 @@ define(['jquery',
                         self.icd_description = '';
                     }
                     else {
-                        commonjs.showWarning("messages.warning.claims.icdLimitExists");
+                        commonjs.showWarning("shared.warning.icdLimitExists");
                         $('#select2-ddlMultipleDiagCodes-container').html('');
                         self.icd_code = '';
                         self.ICDID  ='';
@@ -2385,10 +2448,10 @@ define(['jquery',
                         pointer2: $('#ddlPointer2_' + id).val() || null,
                         pointer3: $('#ddlPointer3_' + id).val() || null,
                         pointer4: $('#ddlPointer4_' + id).val() || null,
-                        modifier1_id: ($('#ddlModifier1_' + id).val() && parseInt($('#ddlModifier1_' + id).val())) || null,
-                        modifier2_id: ($('#ddlModifier2_' + id).val() && parseInt($('#ddlModifier2_' + id).val())) || null,
-                        modifier3_id: ($('#ddlModifier3_' + id).val() && parseInt($('#ddlModifier3_' + id).val())) || null,
-                        modifier4_id: ($('#ddlModifier4_' + id).val() && parseInt($('#ddlModifier4_' + id).val())) || null,
+                        modifier1_id: $('#txtModifier1_' + id).attr('data-id') ? parseInt($('#txtModifier1_' + id).attr('data-id')) : null,
+                        modifier2_id: $('#txtModifier2_' + id).attr('data-id') ? parseInt($('#txtModifier2_' + id).attr('data-id')) : null,
+                        modifier3_id: $('#txtModifier3_' + id).attr('data-id') ? parseInt($('#txtModifier3_' + id).attr('data-id')) : null,
+                        modifier4_id: $('#txtModifier4_' + id).attr('data-id') ? parseInt($('#txtModifier4_' + id).attr('data-id')) : null,
                         bill_fee: parseFloat($('#txtBillFee_' + id).val()) || 0.00,
                         allowed_amount: parseFloat($('#txtAllowedFee_' + id).val()) || 0.00,
                         units: parseFloat($('#txtUnits_' + id).val()),
@@ -2430,16 +2493,24 @@ define(['jquery',
                     
                     self.model.save({}, {
                         success: function (model, response) {
-                            //if (response && response.length > 0) {
                             commonjs.hideLoading();
 
                             if (response && response.message) {
                                 commonjs.showWarning(response.message);
                             } else {
-                                commonjs.showStatus("messages.status.successfullyCompleted");
-                                $("#btnClaimsRefresh").click();
-                                $("#btnStudiesRefresh").click();
-                                commonjs.hideDialog();
+
+                                var claimRefreshInterval = setTimeout(function () {
+                                    clearTimeout(claimRefreshInterval);
+
+                                    commonjs.showStatus("messages.status.successfullyCompleted");
+                                    $("#btnClaimsRefresh").click();
+                                    $("#btnStudiesRefresh").click();
+                                }, 200);
+
+                                var claimHideInterval = setTimeout(function () {
+                                    clearTimeout(claimHideInterval);
+                                    commonjs.hideDialog();
+                                }, 100);
                             }
                         },
                         error: function (model, response) {
@@ -2461,18 +2532,19 @@ define(['jquery',
                 /* Claims section */
                 if (!$('#txtClaimDate').val()) {
                     commonjs.showWarning("Please select claim date");
+                    $('#txtClaimDate').focus();
                     return false;
                 }
 
                 if (!$('#ddlFacility').val()) {
-
-                    commonjs.showWarning("messages.warning.claims.selectfacility");
+                    commonjs.showWarning("shared.warning.selectfacility");
+                    $('#ddlFacility').focus();
                     return false;
                 }
 
                 if (!$('#ddlBillingProvider').val()) {
-
-                    commonjs.showWarning("messages.warning.claims.selectbillingProvider");
+                    commonjs.showWarning("shared.warning.selectbillingProvider");
+                    $('#ddlBillingProvider').focus();
                     return false;
                 }
 
@@ -2482,7 +2554,7 @@ define(['jquery',
                         $('#txtPriPolicyNo').val().trim(),
                         $('#txtPriSubFirstName').val().trim(),
                         $('#txtPriSubLastName').val().trim(),
-                        $('#ddlPriGender option:selected').val().trim() || '',
+                        $('#ddlPriGender').val() ? $('#ddlPriGender').val().trim() : '',
                         $('#txtPriSubPriAddr').val().trim(),
                         $('#ddlPriRelationShip option:selected').val().trim() || '',
                         $('#txtPriDOB').val().trim().trim(),
@@ -2494,7 +2566,7 @@ define(['jquery',
                         $('#txtSecPolicyNo').val().trim(),
                         $('#txtSecSubFirstName').val().trim(),
                         $('#txtSecSubLastName').val().trim(),
-                        $('#ddlSecGender option:selected').val().trim() || '',
+                        $('#ddlSecGender').val() ? $('#ddlSecGender').val().trim() : '',
                         $('#txtSecSubPriAddr').val().trim(),
                         $('#ddlSecRelationShip option:selected').val().trim() || '',
                         $('#txtSecDOB').val().trim(),
@@ -2506,7 +2578,7 @@ define(['jquery',
                         $('#txtTerPolicyNo').val().trim(),
                         $('#txtTerSubFirstName').val().trim(),
                         $('#txtTerSubLastName').val().trim(),
-                        $('#ddlTerGender option:selected').val().trim() || '',
+                        $('#ddlTerGender').val() ? $('#ddlTerGender').val().trim() : '',
                         $('#txtTerSubPriAddr').val().trim(),
                         $('#ddlTerRelationShip option:selected').val().trim() || '',
                         $('#txtTerDOB').val().trim(),
@@ -2523,11 +2595,12 @@ define(['jquery',
                 if (self.priInsID || !mandatory_fields.primaryfields.every(checkEmpty)) {
 
                     if (mandatory_fields.primaryfields.indexOf('') > -1 || mandatory_fields.primaryfields.indexOf(null) > -1) {
-                        commonjs.showWarning("messages.warning.claims.priInsValidation");
+                        commonjs.showWarning("shared.warning.priInsValidation");
                         return false;
                     }
                     if ($('#ddlPriInsurance').val() == '') {
                         commonjs.showWarning("Please select primary insurance");
+                        $('#ddlPriInsurance').focus();
                         return false;
                     }
                     else
@@ -2536,14 +2609,14 @@ define(['jquery',
                 if (self.secInsID || !mandatory_fields.secondaryfields.every(checkEmpty)) {
                     if (!self.priInsID) {
 
-                        commonjs.showWarning("messages.warning.claims.priMissingValidation");
+                        commonjs.showWarning("shared.warning.priMissingValidation");
                         return false;
                     }
                     else {
 
                         if (mandatory_fields.secondaryfields.indexOf('') > -1 || mandatory_fields.secondaryfields.indexOf(null) > -1) {
 
-                            commonjs.showWarning("messages.warning.claims.secInsValidation");
+                            commonjs.showWarning("shared.warning.secInsValidation");
                             return false;
                         }
                         if ($('#s2id_txtSecInsurance a span').html() == 'Search Carrier' || $('#s2id_txtSecInsurance a span').html() == '') {
@@ -2558,14 +2631,14 @@ define(['jquery',
                 if (self.terInsID || !mandatory_fields.tertiaryfields.every(checkEmpty)) {
                     if (!self.secInsID) {
 
-                        commonjs.showWarning("messages.warning.claims.secMissingValidation");
+                        commonjs.showWarning("shared.warning.secMissingValidation");
                         return false;
                     }
                     else {
 
                         if (mandatory_fields.tertiaryfields.indexOf('') > -1 || mandatory_fields.tertiaryfields.indexOf(null) > -1) {
 
-                            commonjs.showWarning("messages.warning.claims.terInsValidation");
+                            commonjs.showWarning("shared.warning.terInsValidation");
                             return false;
                         }
                         if ($('#s2id_txtTerInsurance a span').html() == 'Search Carrier' || $('#s2id_txtTerInsurance a span').html() == '') {
@@ -2581,7 +2654,7 @@ define(['jquery',
                 /* Charge section */
 
                 if (!$('#tBodyCharge tr').length) {
-                    commonjs.showWarning("messages.warning.claims.chargeValidation", 'largewarning');
+                    commonjs.showWarning("shared.warning.chargeValidation", 'largewarning');
                     return false;
                 }
                 if ($('.cptcode').hasClass('cptIsExists')) {
@@ -2606,11 +2679,13 @@ define(['jquery',
 
                 /*Billing summary Section*/
                 if (!$('#ddlClaimStatus').val()) {
-                    commonjs.showWarning("messages.warning.claims.missingClaimStatus");
+                    commonjs.showWarning("shared.warning.missingClaimStatus");
+                    $('#ddlClaimStatus').focus();
                     return false;
                 }
                 if (!$('#ddlResponsible').val()) {
-                    commonjs.showWarning("messages.warning.claims.missingResponsible");
+                    commonjs.showWarning("shared.warning.missingResponsible");
+                    $('#ddlResponsible').focus();
                     return false;
                 }
 
@@ -2876,7 +2951,7 @@ define(['jquery',
                             if (!data.invalidClaim_data.length)
                                 commonjs.showStatus(commonjs.geti18NString("messages.status.validatedSuccessfully"));
                             else
-                                commonjs.showNestedDialog({ header: 'Validation Results', i18nHeader: 'billing.order.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });  
+                                commonjs.showNestedDialog({ header: 'Validation Results', i18nHeader: 'billing.claims.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });  
                         }
                     },
                     error: function (err, response) {
@@ -2899,7 +2974,7 @@ define(['jquery',
                         var rowId = nextRowData.attr('id');
                         $(e.target).prop('disabled', true);
                         var data = $($tblGrid, parent.document).getRowData(rowId);
-                        commonjs.getClaimStudy(rowId).then(function (result) {
+                        commonjs.getClaimStudy(rowId, function (result) {
                             self.rendered = false;
                             self.showEditClaimForm(rowId, null, {
                                 'study_id': result && result.study_id ? result.study_id : 0,
@@ -2924,9 +2999,8 @@ define(['jquery',
 
                 var tab_menu_link = $('ul#tab_menu li a');
                 var tab_menu_item = $('ul#tab_menu li');
-                var width_tab_menu_item = tab_menu_item.width();
-                var $header_container = $('#headerContainer');
                 var $root = $('#modal_div_container');
+
                 tab_menu_link.click(function (e) {
                     var currId = $(this).attr('href').split('_')[1];
                     tab_menu_item.removeClass('active');                    

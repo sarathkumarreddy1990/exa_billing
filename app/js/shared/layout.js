@@ -6,6 +6,7 @@ var layout = {
     lastScreen: null,
 
     initialized: false,
+    setupDataUpdated: false,
 
     moduleLinkIds: {
         'Payments': '#aPayments',
@@ -57,23 +58,23 @@ var layout = {
         'Modality Summary': '#aModalitySummary',
         'Monthly Recap': '#aMonthlyRecap',
         'Patient Statement': '#aPatientStatement',
-        'Payer Mix': '#aPayerMix',       
-        'Payment' : '#aPaymentDetails',       
+        'Payer Mix': '#aPayerMix',
+        'Payment': '#aPaymentDetails',
         'Patients By Insurance Company': '#aPatientsByInsCompany',
-        'Aged AR Summary':'#aAgedARSummary',
-        'Aged AR Details':'#aAgedARDetails',
-        'Procedure Count':'#aProcedureCount',
-        'Reading Provider Fees':'#aReadingProviderFees',
-        'Referring Provider Summary':'#aRefProSummary',
-        'Referring Provider Count':'#aRefProCount',
+        'Aged AR Summary': '#aAgedARSummary',
+        'Aged AR Details': '#aAgedARDetails',
+        'Procedure Count': '#aProcedureCount',
+        'Reading Provider Fees': '#aReadingProviderFees',
+        'Referring Provider Summary': '#aRefProSummary',
+        'Referring Provider Count': '#aRefProCount',
         'Procedure Analysis By Insurance': '#aProcedureAnlaysis',
         'Payments By Ins Company': '#aPaymentsByInsurance',
         'Transaction Summary': '#aTransactionSummary',
         'Audit Log': '#aAuditLog',
         'User Log': '#aUserLog',
         'EDI Templates': '#aEDITemplate',
-        'Paper Claim Templates': '#aPaperClaimTemplate',      
-        'Printer Templates' : '#aPrinterTemplate'
+        'Paper Claim Templates': '#aPaperClaimTemplate',
+        'Printer Templates': '#aPrinterTemplate'
         /// To be added
     },
 
@@ -157,6 +158,7 @@ var layout = {
                 window.location.href = '#config/company/edit/' + app.company_code;
             });
         }
+
         commonjs.hideLoading();
     },
 
@@ -207,17 +209,34 @@ var layout = {
             $(layout.screenLinkIds[currentScreen]).addClass('active');
         }
 
-        $('#aNavTitlebar').text(layout.moduleHeaders[module]);
-        $('#aNavTitlebar').attr("href", location.href)
+        var screenTitle = layout.moduleHeaders[module] ? layout.moduleHeaders[module].toUpperCase() : 'BILLING';
+        $('#aNavTitlebar').text(screenTitle);
+        $('#aNavTitlebar').attr("href", location.href);
+
+        $('.daterangepicker').remove();
+        this.triggerSettingsRefresh(module, currentScreen);
 
         document.title = layout.moduleHeaders[module] + ' - EXA Billing';
     },
 
-    highlightMainMenu: function (currentModule) {
+    triggerSettingsRefresh: function (module, currentScreen) {
+        if (['Studies', 'Claims', 'Payments'].indexOf(module) > -1 && this.setupDataUpdated) {
+            this.setupDataUpdated = false;
+            this.refreshAppSettings();
+        }
     },
 
-    highlightMainMenu_Customer: function (currentScreen) {
+    refreshAppSettings: function (showStatus) {
 
+        new window.AppServer(function () {
+            console.log('App settings re-initialized..');
+            if (showStatus) {
+                commonjs.showStatus('Settings refreshed.');
+            }
+        });
+    },
+
+    highlightMainMenu: function (currentModule) {
     },
 
     initializeI18n: function () {

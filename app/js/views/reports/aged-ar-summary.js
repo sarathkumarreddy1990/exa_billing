@@ -75,7 +75,7 @@ define([
                 UI.bindBillingProvider();
                 $('#ddlFacilityFilter').multiselect({
                     maxHeight: 200,
-                    buttonWidth: '300px',
+                    buttonWidth: '250px',
                     width: '300px',
                     enableFiltering: true,
                     includeSelectAllOption: true,

@@ -194,7 +194,8 @@ define([
                         status: currentStatus || gridData.current_status,
                         file_id: file_id || null,
                         payer_details: payerDetails,
-                        company_id: app.companyID
+                        company_id: app.companyID,
+                        facility_id: app.facilityID
                     },
                     success: function (model, response) {
 
@@ -217,6 +218,7 @@ define([
                             else if (model && model.rows && model.rows.length) {
                                 commonjs.hideDialog();
                                 self.reloadERAFilesLocal();
+                                $('.modal-dialog .btn-secondary, .modal-dialog  .close').removeClass('eraClose');
                             } else if (model && model.type && model.type == 'none') {
                                 model.file_store_id = gridData.file_store_id;
                                 self.showProgressDialog(file_id, model, 'initialize');
@@ -242,6 +244,7 @@ define([
 
                     commonjs.hideLoading();
                     commonjs.showDialog({ header: 'EOB', width: '45%', height: '60%', html: self.eraProgressTemplate() });
+                    $('.modal-dialog .btn-secondary, .modal-dialog  .close').addClass('eraClose');
                     $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr for select2 search text can't editable
                     self.setAutoComplete();
 
@@ -269,8 +272,9 @@ define([
                     }
                 });
 
-                $('.modal-dialog .btn-secondary, .modal-dialog  .close').off().click(function (e) {
+                $('.eraClose').off().click(function (e) {
                     self.reloadERAFilesLocal();
+                    $('.modal-dialog .btn-secondary, .modal-dialog  .close').removeClass('eraClose');
                 });
 
             },

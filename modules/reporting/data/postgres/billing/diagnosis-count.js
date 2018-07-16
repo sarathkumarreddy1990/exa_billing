@@ -38,10 +38,10 @@ WITH diagnosisCount as (
         , icd_code_count
   )
   SELECT 
-        code AS "ICD CODE",
-        facility_name AS "FAC. NAME",
-        description AS "DESCRIPTION",
-        icd_code_count  AS "COUNT"
+        code AS "ICD Code",
+        facility_name AS "Facility Name",
+        description AS "Description",
+        icd_code_count  AS "Count"
   FROM
         diagnosisCount
 `);

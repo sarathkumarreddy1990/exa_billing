@@ -1935,6 +1935,7 @@ var commonjs = {
         }, {
                 type: type,
                 z_index: 1061,
+				offset: 5,
                 delay: 1000,
                 placement: {
                     align: 'center',
@@ -2345,6 +2346,13 @@ var commonjs = {
     docResize: function (e) {
         var currentModule = commonjs.currentModule;
         switch (currentModule) {
+            case 'report':
+                var navHeight = $(window).height() - ($('body>nav').outerHeight() + 50);
+                if ($('.exa-left-nav')) {
+                    $('.exa-left-nav').height(navHeight);
+                }
+                break;
+
             case 'Home':
             case 'Claims':
                 commonjs.resizeHomeScreen();
@@ -2362,6 +2370,10 @@ var commonjs = {
                     $(this).jqGrid('setGridHeight', obj.height - 20);
                 else
                     $(this).jqGrid('setGridHeight', obj.height);
+
+                if($('.exa-left-nav')) {
+                    $('.exa-left-nav').height(obj.navHeight);
+                }
             }
         });
 
@@ -2386,12 +2398,14 @@ var commonjs = {
          }*/
 
     },
+
     resizeIconMenu: function () {
         var icon_panel = $('#viztekIconNav');
         var _d_height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight || 0;
         icon_panel.css('height', _d_height);
         //$('#viztekIconNav').css('height','100%');
     },
+
     resizeHomeScreen: function (retryCount) {
         var tabWidth = 100;
         var $tabs = $('#claimsTabs li').length ? $('#claimsTabs') : $('#studyTabs');
@@ -2455,6 +2469,7 @@ var commonjs = {
 
     getGridMeasures: function (isWidthResize, isHeightResize, userWidth, userHeight, offsetWidth, offsetHeight) {
         var width, height;
+
         if (isHeightResize && (typeof userHeight !== 'number' || userHeight > 0)) {
             if (typeof userHeight == 'number') {
                 height = userHeight;
@@ -2499,8 +2514,10 @@ var commonjs = {
 
         //width = width - (offsetWidth ? parseInt(offsetWidth) : 0);
         height = height - (offsetHeight ? parseInt(offsetHeight) : 0);
+        var navHeight = $(window).height() - ($('body>nav').outerHeight() + 50);
+
         //return {width: width, height: height};
-        return { height: height };
+        return { height: height, navHeight: navHeight };
 
     },
 
@@ -2508,55 +2525,6 @@ var commonjs = {
         if ($('.formParent').length > 0) {
             $('#divPatientSearchResults').height($('.formParent').height() - ($('.page-details-panel').height() + $('header.header').height() + $('#provideInfo').height() + $('#searchForm').height() + 25));
             //$('#divPatientSearchResults').width($('.formParent').width() - 30);
-        }
-    },
-
-    setorderFrameheight: function () {
-        if (!orderFrameVisited) {
-            if ($('#ordermenu_ul')[0])
-                $('#ordermenu_ul').css({ 'min-height': ($('#ordermenu_ul')[0].clientHeight) + 'px' });
-            orderFrameVisited = true;
-        }
-        $('#orderSideMenu').height($('#divOrderFrame').height() + 5);
-        // $('#orderSideMenu').height($('div#body_container').height() - 51);
-        $('#orderSideMenu .nav-tabs').css('min-height', $('#divOrderFrame').height());
-    },
-
-    activatelink: function (settingsTitle) {
-        var i18nAttr = this.getMenui18nName(settingsTitle);
-        if (settingsTitle != "") {
-            settingsTitle += "\n<span class='caret' data-original-title='' title=''></span>";
-            $("#activeMenu").html(settingsTitle);
-            $("#activeMenu").attr('i18n', i18nAttr);
-        }
-    },
-
-    getMenui18nName: function (screenName) {
-        switch (screenName.toUpperCase()) {
-            case 'OFFICE':
-                return 'billing.setup.office';
-            case 'PROVIDERS':
-                return 'billing.setup.providers';
-            case 'SCHEDULING & CODES':
-                return 'billing.setup.schCodes';
-            case 'DICOM':
-                return 'billing.setup.dicom';
-            case 'BILLING':
-                return 'billing.masterPageMenu.billing';
-            case 'MEANINGFUL USE':
-                return 'billing.masterPageMenu.meaningfulUse';
-            case 'USER MANAGEMENT':
-                return 'billing.setup.userMgmt';
-            case 'MOBILE RAD':
-                return 'billing.setup.mobRad';
-            case 'GENERAL':
-                return 'billing.setup.general';
-            case 'HL7':
-                return 'billing.setup.hl7';
-            case 'LOG':
-                return 'billing.setup.log';
-            case 'STRUCTURED REPORTING':
-                return 'billing.setup.cardiology';
         }
     },
 
@@ -2813,7 +2781,7 @@ var commonjs = {
             case "secondary_insurance":
                 payer = "Secondary Insurance";
                 break;
-            case "teritary_insurance":
+            case "tertiary_insurance":
                 payer = "Tertiary Insurance";
                 break;
             default:
@@ -4090,27 +4058,26 @@ var commonjs = {
         return [];
     },
 
-    getClaimStudy: function (claim_id) {
-        return new Promise(function (resolve, reject) {
-            var result = {
-                'study_id': 0,
-                'order_id': 0
-            };
-            $.ajax({
-                url: '/exa_modules/billing/claim_workbench/claim_study?claim_id=' + claim_id,
-                type: 'GET',
-                success: function (data, response) {
-                    if (data && data.length > 0) {
-                        result.study_id = data[0].study_id;
-                        result.order_id = data[0].order_id;
-                    }
-                    resolve(result);
-                },
-                error: function (err, response) {
-                    commonjs.handleXhrError(err, response);
-                    reject();
+    getClaimStudy: function (claim_id, callback) {
+        var result = {
+            'study_id': 0,
+            'order_id': 0
+        };
+
+        $.ajax({
+            url: '/exa_modules/billing/claim_workbench/claim_study?claim_id=' + claim_id,
+            type: 'GET',
+            success: function (data, response) {
+                if (data && data.length > 0) {
+                    result.study_id = data[0].study_id;
+                    result.order_id = data[0].order_id;
                 }
-            });
+
+                callback(result);
+            },
+            error: function (err, response) {
+                commonjs.handleXhrError(err, response);
+            }
         });
     },
 
@@ -4119,7 +4086,7 @@ var commonjs = {
             order_id = options.order_id,
             patient_id = options.patient_id;
 
-        var url = 'vieworder#patient/patientReport/all/' + btoa(patient_id) + '/' + btoa(order_id) + '/' + btoa(study_id);
+        var url = '/vieworder#patient/patientReport/all/' + btoa(patient_id) + '/' + btoa(order_id) + '/' + btoa(study_id);
         this.openWindow(url);
     },
 
@@ -4647,11 +4614,11 @@ var commonjs = {
             var modifier = element.getAttribute('data-type');
             var id = element.getAttribute('data-value');
             if (isFrom == 'M')
-                var modifierElement = 'ddlModifier';
+                var modifierElement = 'txtModifier';
             else
                 var modifierElement = 'ddlPointer';
 
-            var dataType = isFrom == 'M' ? 'modifier' : isFrom; // M -- modifier , P -- Pointer
+            var dataType =  isFrom; // M -- modifier , P -- Pointer
             if (($(element).val() == "") || $(element).hasClass('invalidModifier')) {
                 if (modifier == (dataType + "1") && $('#' + modifierElement + '2_' + id).val() == "" && $('#' + modifierElement + '3_' + id).val() == "" && $('#' + modifierElement + '4_' + id).val() == "") {
                     $('#' + modifierElement + '2_' + id).prop('disabled', true);
@@ -5207,3 +5174,12 @@ function removeIframeHeader() {
     $('iframe#site_modal_iframe_container, iframe#ifSettings').contents().find('head').append('<style>header.header{display:none;}nav.sub-top-nav, nav#subSetupMenu {display: none;}</style>');
 }
 
+// $(document).ajaxComplete(function () {
+//     commonjs.hideLoading();
+// });
+
+$(document).ajaxSuccess(function (event, xhr, settings) {
+    if(settings.url.indexOf('billing/setup') > -1 && ['POST', 'PUT', 'DELETE'].indexOf(settings.type) > -1) {
+        layout.setupDataUpdated = true;
+    }
+});

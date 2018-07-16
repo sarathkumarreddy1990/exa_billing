@@ -51,10 +51,17 @@ module.exports = {
                 'message': 'This claim has been already updated by some other user. please refresh the page and try again'
             };
         }
+        
+        let existingPayers = await data.getExistingPayer(params);
+
+        if (existingPayers && existingPayers.rows.length) {
+            params.claims.existing_payer_type = existingPayers.rows[0].payer_type;
+        }
 
         return await data.update(params);
         
     },
+    
     getData: async (params) => { return await data.getClaimData(params); },
 
     /// TODO: have to include benefitOnDate & relationshipCode

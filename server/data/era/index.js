@@ -153,6 +153,8 @@ module.exports = {
             , audit_details
         } = params;
 
+        let conditionalJoin = paymentDetails.isFrom && paymentDetails.isFrom == 'EOB' ? ` AND ch.charge_dt::date = application_details.service_date ` : ` `;
+
         const sql =SQL` WITH application_details AS (
                              SELECT 
                                   *
@@ -170,6 +172,7 @@ module.exports = {
                                 ,original_reference text
                                 ,cas_details jsonb
                                 ,claim_status_code bigint
+                                ,service_date date
                              )
                             ),
                            matched_claims AS (
@@ -178,6 +181,7 @@ module.exports = {
                                     application_details.claim_status_code,
                                     application_details.payment,
                                     application_details.original_reference,
+                                    application_details.service_date,
                                     json_build_object(
                                         'charge_id',charges.id,
                                         'payment',application_details.payment,
@@ -200,8 +204,11 @@ module.exports = {
                                           WHEN ( application_details.charge_id != 0 ) THEN application_details.charge_id = ch.id
                                           WHEN ( application_details.charge_id  = 0 AND application_details.cpt_code !='' ) THEN cpt_codes.display_code = application_details.cpt_code
                                         END
-                                    )
-                                    ORDER BY id ASC LIMIT 1
+                                    ) `;
+
+        sql.append(conditionalJoin);
+
+        sql.append(SQL` ORDER BY id ASC LIMIT 1
                                 ) AS charges ON true
                                 WHERE 
 			                    	(   CASE 
@@ -280,8 +287,54 @@ module.exports = {
                                             
                                                 ) AS insert_payment_adjustment
                                      ) AS insert_payment_adjustment
-                            `;
+                            `);
         
+        return await query(sql);
+    },
+
+    applyPaymentApplication: async function(audit_details, params){
+        let {
+            file_id,
+            created_by,
+            code
+        } = params;
+
+        const sql = SQL`
+                    WITH unapplied_charges AS (
+                        SELECT claim_details.payment_id,
+                            json_build_object('charge_id',ch.id,'payment',0,'adjustment',0,'cas_details','[]')
+                        FROM
+                            billing.charges ch
+                        INNER JOIN billing.claims AS c ON ch.claim_id = c.id
+                        INNER JOIN (
+                            SELECT
+                                distinct ch.id as charge_id
+                                ,ch.claim_id
+                                ,efp.payment_id
+                            FROM
+                                billing.charges AS ch
+                            INNER JOIN billing.payment_applications AS pa ON pa.charge_id = ch.id
+                            INNER JOIN billing.payments AS p ON pa.payment_id  = p.id
+                            INNER JOIN billing.edi_file_payments AS efp ON pa.payment_id = efp.payment_id 
+                            WHERE 
+                                efp.edi_file_id = ${file_id}  AND mode = 'eft' 
+                        ) AS claim_details ON claim_details.claim_id = c.id
+                        WHERE claim_details.charge_id != ch.id
+                    )
+                    ,insert_payment_adjustment AS (
+                        SELECT
+                            billing.create_payment_applications(
+                                uc.payment_id
+                                ,( SELECT id FROM billing.adjustment_codes WHERE code = ${code} ORDER BY id ASC LIMIT 1 )
+                                ,${created_by}
+                                ,json_build_array(uc.json_build_object)::jsonb
+                                ,(${audit_details})::json
+                            )
+                        FROM
+                            unapplied_charges uc
+                    )
+                    SELECT * FROM insert_payment_adjustment `;
+
         return await query(sql);
     },
 

@@ -57,7 +57,7 @@
                                     <label id="paymentDate" for="auditFromDate" class="control-label">
                                         Payment Date :&nbsp
                                         <b>
-                                            <%= ins.payment_dt ? moment(ins.payment_dt).format('L') : '' %>
+                                            <%= ins.payment_dt ? ins.payment_dt : '' %>
                                         </b>
                                     </label>
                                 </div>
