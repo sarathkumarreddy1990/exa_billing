@@ -1743,10 +1743,13 @@ define(['jquery',
                         },
                         success: function (model, response) {
                             commonjs.showStatus('Payment has been applied successfully');
-                            self.casSegmentsSelected = [];
                             targetObj.removeAttr('disabled');
-                            self.closeAppliedPendingPayments(e, paymentId);
-                            commonjs.hideDialog();
+                            commonjs.hideLoading();
+                            if (paymentStatus != 'applied') {
+                                self.casSegmentsSelected = [];
+                                self.closeAppliedPendingPayments(e, paymentId);
+                                commonjs.hideDialog();
+                            }
                         },
                         error: function (err, response) {
                             targetObj.removeAttr('disabled');
