@@ -1610,7 +1610,7 @@ define([
             studyFilterSideMenuResize: function () {
                 var ul = $('#ulStudyFilterSideMenu');
                 var h = ul.outerHeight(true) - ul.height();
-                var docHeight = commonjs.setupMenuHeight() - ($('#ulStudyFilterSideMenu').offset().top - h / 2);
+                var docHeight = $('#ulStudyFilterSideMenu').offset().top - h / 2;
                 ul.height(docHeight);
                 $('#divStudyFilterSide').height(docHeight);
             },
