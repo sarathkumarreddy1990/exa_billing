@@ -54,7 +54,7 @@ const pgData = {
             let response = await pool.query(queryObj);
             return response;
         } catch (err) {
-            //logger.error(err);
+            logger.error(err);
             return err;
         }
     },
@@ -106,6 +106,42 @@ const pgData = {
                 SELECT  *
                 FROM    audit_cte
             `);
+
+        return await pgData.query(sql);
+    },
+
+    createAudit: async function (args) {
+        let {
+            userId,
+            entityName,
+            entityKey,
+            screenName,
+            moduleName,
+            logDescription,
+            clientIp,
+            companyId,
+            oldData,
+            newData
+        } = args;
+
+        let changes = {
+            old_values: oldData || {},
+            new_values: newData || {}
+        };
+
+        let sql = SQL`
+                SELECT * FROM billing.create_audit(
+                        ${companyId},
+                        ${entityName || screenName},
+                        ${entityKey || 1},
+                        ${screenName},
+                        ${moduleName},
+                        ${logDescription},
+                        ${clientIp || '127.0.0.1'},
+                        ${JSON.stringify(changes)}::jsonb,
+                        ${userId || 0}
+                    )
+            `;
 
         return await pgData.query(sql);
     },

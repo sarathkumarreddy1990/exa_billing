@@ -198,7 +198,7 @@
         "refund": {
             "scheduleDate": "Schedule Date",
             "patientName": "Patient Name",
-            "accountNo": "Account No",
+            "accountNo": "Account #",
             "billFee": "Bill Fee",
             "allowedFee": "Allowed Fee",
             "patientPaid": "Patient Paid",
@@ -218,7 +218,7 @@
             "refundResponsible": "Responsible :",
             "scheduleDate": "Schedule Date :",
             "patientName": "Patient Name :",
-            "accountNo": "Account No :",
+            "accountNo": "Account # :",
             "billingAmount": "Billing Amount :",
             "allowed": "Allowed :",
             "patientPaid": "Patient Paid :",
@@ -390,6 +390,26 @@
             "120days": "120 Days",
             "summary": "Summary",
             "current": "Current"
+        }, 
+        "patientInsurance": {
+            "coverage": "Coverage",
+            "outofpocket": " Out-Of-Pocket",
+            "coInsurance": "Coinsurance",
+            "coPay": "Co-Pay",
+            "limitations": " Limitations",
+            "requestdetails": "Request Details",
+            "pharmacy": "Pharmacy",
+            "field": "Field",
+            "failedReason": "Failed Reason"
+        },
+        "inbox": {
+            "showing": "Showing",
+            "of": "of"
+        },
+        "worklist": {
+            "appointmentStatus": "Appointment Status",
+            "studyProgress": "Study Progress - Tech.",
+            "radStatus": "Rad Status"
         }
-    }
+    }    
 }

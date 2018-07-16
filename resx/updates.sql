@@ -2654,6 +2654,8 @@ BEGIN
 			ELSIF ((p_payer_type = 'secondary_insurance' OR p_payer_type = 'tertiary_insurance') AND p_existing_payer_type = 'primary_insurance') THEN
 				l_bill_fee_recalculation = FALSE;
 			END IF;
+        ELSE 
+			l_bill_fee_recalculation = FALSE;
 		END IF;
 
 		IF p_payer_type = p_existing_payer_type THEN

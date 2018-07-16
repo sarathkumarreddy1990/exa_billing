@@ -1,14 +1,22 @@
+<style>
+    .pat-info {
+        color: #0c5460;
+        background-color: #d1ecf1;
+        border-color: #bee5eb;
+        padding: 11px;
+    }
+</style>
 <div id="divPendingPaymentsContainer">
     <div class="tabbable" style="margin-top:20px;margin-bottom: 10px;">
         <ul id="claimsTabs" class="nav tn-menu tn-menu-a">
             <li id="liPendingPayments" class="nav-item">
-                <a href="#divPendingPayments" data-container="All_Claims" class="nav-link active show" data-toggle="tab" i18n="billing.payments.pendingPayments">Pending</a>
+                <a href="#divPendingPayments" id="aPeningPayments" data-container="All_Claims" class="nav-link active show" data-toggle="tab" i18n="billing.payments.pendingPayments">Pending</a>
             </li>
             <li id="liPendingPaymentsPat" class="nav-item">
-                <a href="#divPendingPaymentsPat" data-container="All_Claims" class="nav-link" data-toggle="tab" i18n="billing.payments.pendingPaymentsPat">Pending</a>
+                <a href="#divPendingPaymentsPat" id="aPeningPaymentsWithAccInv" data-container="All_Claims" class="nav-link" data-toggle="tab" i18n="billing.payments.pendingPaymentsPat">Pending</a>
             </li>
             <li id="liAppliedPayments" class="nav-item">
-                <a href="#divApplidPayments" data-container="Follow_up_queue" i18n="billing.payments.appliedPayments" class="nav-link" data-toggle="tab">Applied</a>
+                <a href="#divApplidPayments" id="aAppliedPayments" data-container="Follow_up_queue" i18n="billing.payments.appliedPayments" class="nav-link" data-toggle="tab">Applied</a>
             </li>
         </ul>
         <div class="tab-content">
@@ -29,17 +37,16 @@
             </div>
             <div class="tab-pane" id="divPendingPaymentsPat" style="margin-top: 10px;">
                 <div id="divPendingRecords" style="display: none;">
-                    <div align="right"><div class="alert alert-info" role="alert">
+                    <div align="right" style="height: 50px;">
+                        <div class="col-xs-12 pat-info" role="alert">
                         <span id='commonMsg' style="float: left;font-size: large;"> </span>
                         <span id="spnPatInfo" style="font-weight: bold;float: left;margin-left: 5px;font-size: large;"></span>
                         <input type="button" value="Refresh" id="btnPaymentPendingRefresh" i18n="shared.buttons.refresh" class="btn pendRefresh"
                             autocomplete="off">
                             <input type="button" value="Back to Search" id="btnBackToPatient" i18n="billing.payments.backToSearch" class="btn" autocomplete="off">
                         </div>
-                        <!-- <inputtype="button" value="Refresh" id="btnPaymentPendingRefresh" i18n="shared.buttons.refresh" class="btn pendRefresh">
-                                        <input type="button" value="Refresh" id="btnBackToPatient" i18n="billing.payments.backToSearch" class="btn" style="display: none;"> -->
                     </div>
-                    <div class='Grid' id='divGrid_pendPayments'>
+                    <div class='Grid' id='divGrid_pendPayments' style="margin-top: 10px;">
                         <table id="tblpendPaymentsGrid"></table>
                         <div id="gridPager_pendPayments"></div>
                     </div>

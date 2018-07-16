@@ -83,4 +83,11 @@ router.post('/claims/batch', async function(req, res){
     httpHandler.sendRows(req, res, data);
 });
 
+
+router.post('/update_claim_status', async function (req, res) {
+    const data = await claimWorkbenchController.updateStatus(req.body);
+    httpHandler.sendRows(req, res, data);
+});
+
+
 module.exports = router;
