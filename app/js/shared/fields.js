@@ -1444,6 +1444,75 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "hidden": false
                 },
                 "field_code": "mudatacaptured"
+            },
+            "Eligibility": {
+                "id": 57,
+                "field_name": "Eligibility",
+                "i18n_name": "setup.ediRequestTemplate.eligibility",
+                "field_info": {
+                    "custom_name": "Eligibility",
+                    "name": "eligibility_verified",
+                    "width": 90,
+                    "formatter": function ( cellvalue, options, rowObject ) {
+                        /**
+                         * First see if automated eligibility check already
+                         * returned something we can use
+                         */
+                        var eligibilityDate = rowObject.eligibility_dt;
+                        var verifiedDate = rowObject.manually_verified_dt;
+
+
+                        if (options.format === 'csv') {
+                            if ( eligibilityDate && !verifiedDate || moment(eligibilityDate).isAfter(verifiedDate) ) {
+                                if ( cellvalue === false ) {
+                                    return "Verified using automated system - inactive coverage";
+                                }
+                                return "Verified using automated system";
+                            }
+                            else if ( verifiedDate ) {
+                                /**
+                                 * For when a user manually verified eligibility
+                                 */
+                                return  'Changed (manually) by ' + rowObject.manually_verified_by + ' on ' + dateFormatter(verifiedDate, options, rowObject);
+
+                            }
+                            return "Unverified";
+                        }
+
+                        else {
+                            if ( eligibilityDate && !verifiedDate || moment(eligibilityDate).isAfter(verifiedDate) ) {
+                                if ( cellvalue === false ) {
+                                    return '<i class="fa fa-square-o" style="color: #FF9000" aria-hidden="true" title="Verified using automated system - inactive coverage" />';
+                                }
+                                return '<i class="fa fa-check-square-o" style="color: green" aria-hidden="true" title="Verified using automated system" />';
+                            }
+                            else if ( verifiedDate ) {
+                                /**
+                                 * For when a user manually verified eligibility
+                                 */
+                                var verifiedBy = rowObject.manually_verified_by;
+                                var titleText = 'Changed (manually) by ' + verifiedBy + ' on ' + dateFormatter(verifiedDate, options, rowObject);
+                                if ( cellvalue === false ) {
+                                    return '<i class="fa fa-square-o" style="color: #FF9000" aria-hidden="true" title="' + titleText + '" />';
+                                }
+                                return '<i class="fa fa-check-square-o" style="color: green" aria-hidden="true" title="' + titleText + '" />';
+                            }
+                            /**
+                             * Default appearance
+                             */
+                            return '<i class="fa fa-square-o" style="color: #FF9000" aria-hidden="true" title="Unverified" />';
+                        }
+                    },
+                    "stype": "select",
+                    "searchoptions": {
+                        "value": verifiedValue,
+                        "tempvalue": verifiedValue
+                    },
+                    "customAction": function ( rowID, e, that ) {
+                        event.stopPropagation();
+                    }
+                },
+                "field_code": "eligibility_verified"
             },           
             "Provider Alerts": {
                 "id": 58,
