@@ -574,12 +574,14 @@ module.exports = {
         return await query(sql);
     },
 
-    getInvoiceDetails : function(payerType)
+    getInvoiceDetails: function (payerType, params)
     {
         let joinCondition = '';
         let selectDetails = '';
         let joinQuery = '';
         let whereQuery = '';
+        let havingQuery = '';
+              
 
         if(payerType == 'ordering_facility')
         {
@@ -603,8 +605,7 @@ module.exports = {
                 INNER 	JOIN	get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id 
             ) ppi 	ON TRUE  `;
 
-            whereQuery = ` WHERE 	bc.invoice_no is not null
-                            AND bc.payer_type = ANY(ARRAY['primary_insurance', 'secondary_insurance', 'tertiary_insurance'])
+            whereQuery = `  AND bc.payer_type = ANY(ARRAY['primary_insurance', 'secondary_insurance', 'tertiary_insurance'])
                             AND (bc.primary_patient_insurance_id = ppi.id or bc.secondary_patient_insurance_id = ppi.id or bc.tertiary_patient_insurance_id = ppi.id)`;
 
         }
@@ -619,8 +620,7 @@ module.exports = {
                 INNER 	JOIN	get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id 
             ) ppi 	ON TRUE  `;
 
-            whereQuery = ` WHERE 	bc.invoice_no is not null
-                            AND bc.payer_type = ANY(ARRAY['primary_insurance', 'secondary_insurance', 'tertiary_insurance'])
+            whereQuery = `  AND bc.payer_type = ANY(ARRAY['primary_insurance', 'secondary_insurance', 'tertiary_insurance'])
                             AND (bc.primary_patient_insurance_id = ppi.id or bc.secondary_patient_insurance_id = ppi.id or bc.tertiary_patient_insurance_id = ppi.id)`;
             
         }
@@ -635,17 +635,53 @@ module.exports = {
                 INNER 	JOIN	get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id 
             ) ppi 	ON TRUE  `;
 
-            whereQuery = ` WHERE 	bc.invoice_no is not null
-                            AND bc.payer_type = ANY(ARRAY['primary_insurance', 'secondary_insurance', 'tertiary_insurance'])
+            whereQuery = `  AND bc.payer_type = ANY(ARRAY['primary_insurance', 'secondary_insurance', 'tertiary_insurance'])
                             AND (bc.primary_patient_insurance_id = ppi.id or bc.secondary_patient_insurance_id = ppi.id or bc.tertiary_patient_insurance_id = ppi.id)`;
             
         }
+
+        if(params.invoice_adjustment || params.invoice_bill_fee || params.invoice_balance || params.invoice_payment)
+        {
+            havingQuery += ' HAVING true '; 
+        }
+
+        if(params.invoice_no)
+        {
+            whereQuery += ` AND bc.invoice_no = (${params.invoice_no})::text`; 
+        }
+
+        if(params.invoice_date)
+        {
+            havingQuery += ` AND max(date) = ${params.invoice_date}`; 
+        }
+        
+        if(params.invoice_adjustment)
+        {
+            havingQuery += ` AND  sum(adjustment) = (${params.invoice_adjustment})::money`; 
+        }
+
+        if(params.invoice_bill_fee)
+        {
+            havingQuery += ` AND  sum(bill_fee) = (${params.invoice_bill_fee})::money`; 
+        }
+
+        if(params.invoice_balance)
+        {
+            havingQuery += ` AND  sum(balance) = (${params.invoice_balance})::money`; 
+        }
+
+        if(params.invoice_payment)
+        {
+            havingQuery += ` AND sum(payment) = (${params.invoice_payment})::money`; 
+        }
+
 
         return {
             joinCondition,
             selectDetails,
             joinQuery,
-            whereQuery
+            whereQuery,
+            havingQuery
         };
 
     },
@@ -665,8 +701,11 @@ module.exports = {
             joinCondition,
             selectDetails,
             joinQuery,
-            whereQuery
-        } = await this.getInvoiceDetails(payerType) ;
+            whereQuery,
+            havingQuery
+        } = await this.getInvoiceDetails(payerType, params);
+
+
 
         return await query(`WITH  get_payer_details AS(
                                 SELECT 
@@ -688,6 +727,7 @@ module.exports = {
                             FROM billing.claims bc
                             ${joinQuery}
                             INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
+                            WHERE 	bc.invoice_no is not null
                             ${whereQuery})
                             SELECT
                                   ROW_NUMBER () OVER (ORDER BY invoice_no) AS id
@@ -700,6 +740,7 @@ module.exports = {
                                 , COUNT(1) OVER (range unbounded preceding) AS total_records
                             FROM invoice_payment_details
                             GROUP BY invoice_no
+                            ${havingQuery}
                             ORDER BY ${sortField}  ${sortOrder}   LIMIT ${pageSize}
                             OFFSET ${((pageNo * pageSize) - pageSize)}`);
 
@@ -713,8 +754,9 @@ module.exports = {
             joinCondition,
             selectDetails,
             joinQuery,
-            whereQuery
-        } = await this.getInvoiceDetails(payerType) ;
+            whereQuery,
+            havingQuery
+        } = await this.getInvoiceDetails(payerType, params) ;
 
         return await query(`WITH  get_payer_details AS(
                                 SELECT 
@@ -732,6 +774,7 @@ module.exports = {
                             FROM billing.claims bc
                             ${joinQuery}
                             INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
+                            WHERE 	bc.invoice_no is not null
                             ${whereQuery}
                             group by submitted_dt,claim_totals.claim_balance_total)
                             SELECT
@@ -741,7 +784,8 @@ module.exports = {
                                 COALESCE(sum(balance) FILTER(WHERE ipd.age > 60 and ipd.age <= 90 ) , 0::money) AS to90,
                                 COALESCE(sum(balance) FILTER(WHERE ipd.age > 90 and ipd.age <= 120 ) , 0::money) AS to120,
                                 sum(balance)
-                            FROM invoice_payment_details ipd`);
+                            FROM invoice_payment_details ipd
+                            ${havingQuery}`);
 
     },
 
