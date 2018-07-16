@@ -428,10 +428,11 @@ define(['jquery',
                     var rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;
                    
                     var claimStatus = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'claim_status_code');
-                    // if (claimStatus == "PV") {
-                    //     commonjs.showWarning('Please validate claims');
-                    //     return false;
-                    // }
+
+                    if (claimStatus == "PV") {
+                        commonjs.showWarning('Please validate claims');
+                        return false;
+                    }
 
                     var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'billing_method');
 
@@ -1657,8 +1658,10 @@ define(['jquery',
                         if (data) {
                             commonjs.hideLoading();
 
-                            if (!data.invalidClaim_data.length)
+                            if (!data.invalidClaim_data.length){
                                 commonjs.showStatus(commonjs.geti18NString("messages.status.validatedSuccessfully"));
+                                $("#btnClaimsRefresh").click();
+                            }
                             else
                                 commonjs.showDialog({ header: 'Validation Results', i18nHeader: 'billing.claims.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });  
                         }

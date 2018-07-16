@@ -36,11 +36,11 @@ module.exports = {
             screenName,
             clientIp,
             claimIds,
-            companyId, 
-            userId      
+            companyId,
+            userId
         } = params;
-        
-        params.logDescriptions='Updated ' + params.process + '  for claims ' ;
+
+        params.logDescriptions = 'Updated ' + params.process + '  for claims ';
         params.moduleName = 'claims';
 
         let updateData;
@@ -83,7 +83,7 @@ module.exports = {
     },
 
     /// TODO: bad fn name -- need to rename
-    movetoPendingSub: async (params) => {        
+    movetoPendingSub: async (params) => {
         let sql = SQL`WITH getStatus AS 
 						(
 							SELECT 
@@ -101,8 +101,8 @@ module.exports = {
         return await query(sql);
     },
 
-    changeClaimStatus: async (params) => { 
-          
+    changeClaimStatus: async (params) => {
+
         //let success_claimID = params.success_claimID.split(',');
 
         let getClaimsDetails = SQL` ,getClaimsDetails as (                
@@ -132,10 +132,10 @@ module.exports = {
                 LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.provider_id
 
                 WHERE claims.id=${params.success_claimID[0]} ) 
-        `; 
+        `;
 
-        let insertClaimComments=
-         SQL` , claim_details AS (
+        let insertClaimComments =
+            SQL` , claim_details AS (
             SELECT 
                   "claim_id",
                  "note"  
@@ -154,8 +154,8 @@ module.exports = {
                     created_by, 
                     created_dt 
                 )              
-                `;  
-        let getclaimdetails =SQL`  SELECT
+                `;
+        let getpaymentComments = SQL`  SELECT
                         claim_id,
                         ${params.type},
                         note || ( SELECT payer_name FROM getClaimsDetails),
@@ -164,14 +164,14 @@ module.exports = {
                     FROM 
                     claim_details )`;
 
-        let getEDIclaimdetails =SQL`SELECT
+        let getEDIpaymentComments = SQL`SELECT
                                         claim_id,
                                         ${params.type},
                                         note,
                                         ${params.userId},   
                                         now()
                                         FROM 
-                                    claim_details )`;      
+                                    claim_details )`;
         let sql = SQL`WITH getStatus AS 
 						(
 							SELECT 
@@ -181,7 +181,7 @@ module.exports = {
 							WHERE code  = ${params.claim_status}
                         )`;
 
-        if(params.templateType){
+        if (params.templateType) {
             sql.append(getClaimsDetails);
         }
 
@@ -189,35 +189,35 @@ module.exports = {
             sql.append(insertClaimComments);
 
             if (params.templateType) {
-                sql.append(getclaimdetails);
-            }else{
-                sql.append(getEDIclaimdetails);
+                sql.append(getpaymentComments);
+            } else {
+                sql.append(getEDIpaymentComments);
             }
-        }  
+        }
 
-        let updateData =SQL`UPDATE 
+        let updateData = SQL`UPDATE 
 							billing.claims bc
                         SET claim_status_id = (SELECT id FROM getStatus),
                             invoice_no = (SELECT billing.get_invoice_no(${params.success_claimID}))
 						WHERE bc.id = ANY(${params.success_claimID})
                         RETURNING bc.id`;
 
-        let updateEDIData =SQL`UPDATE 
+        let updateEDIData = SQL`UPDATE 
                             billing.claims bc
                         SET claim_status_id = (SELECT id FROM getStatus)                        
                         WHERE bc.id = ANY(${params.success_claimID})
                         RETURNING bc.id`;
 
-        
+
         if (params.templateType && params.templateType != 'patient_invoice') {
             sql.append(updateData);
         } else {
             sql.append(updateEDIData);
         }
-       
+
         return await query(sql);
     },
-	
+
     getClaimStudy: async (params) => {
 
         let {
@@ -271,10 +271,10 @@ module.exports = {
                             c.id = ${params.id}`;
 
         return await query(sql);
-           
+
     },
 
-    updateBillingPayers: async function(params) {
+    updateBillingPayers: async function (params) {
         const sql = SQL`
                         SELECT
                         billing.change_payer_type(${params.id},${params.payer_type})

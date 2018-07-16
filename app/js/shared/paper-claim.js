@@ -96,7 +96,7 @@ define([
                             if (showNestedDialog) {
                                 showDialog = commonjs.showNestedDialog;
                             }
-                        self.updateClaimStatus(claimIDs, templateType, function (err, claimData) {
+                        self.updateClaimStatus(processedIDs, templateType, function (err, claimData) {
                             showDialog({
                                 header: self.pdfDetails[templateType].header,
                                 width: '90%',
