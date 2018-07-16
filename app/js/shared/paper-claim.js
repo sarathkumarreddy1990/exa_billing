@@ -71,6 +71,9 @@ define([
                             return commonjs.showWarning('Unable to process..');
                         }
 
+                        claimIDs = claimIDs.map(Number);
+                        processedIDs = processedIDs.map(Number);
+
                         discardedIDs = _.difference(claimIDs, processedIDs);
                         if (discardedIDs.length > 0) {
                             commonjs.showWarning('Unable to process few claims - ' + discardedIDs.toString());
@@ -96,7 +99,7 @@ define([
                             if (showNestedDialog) {
                                 showDialog = commonjs.showNestedDialog;
                             }
-
+                        self.updateClaimStatus(processedIDs, templateType, function (err, claimData) {
                             showDialog({
                                 header: self.pdfDetails[templateType].header,
                                 width: '90%',
@@ -109,6 +112,7 @@ define([
                             // anchor.href = window.URL.createObjectURL(res.data.pdfBlob);
                             // anchor.download = 'myFileName.pdf';
                             // anchor.click();
+                          });
                         };
 
                         pdfWorker.postMessage(docDefinition);
@@ -170,6 +174,24 @@ define([
                         claimIds: claimIDs.toString(),
                         templateType: templateType
                     }, success: function (data, response) {
+                        callback(null, data.length > 0 ? data[0] : {});
+                    }, error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                        callback(err);
+                    }
+                });
+            };
+
+            this.updateClaimStatus = function (claimIDs, templateType, callback) {
+
+                $.ajax({
+                    url: '/exa_modules/billing/claim_workbench/update_claim_status',
+                    type: 'post',
+                    data: {
+                        claimIds: claimIDs.toString(),
+                        templateType: templateType
+                    }, success: function (data, response) {
+                        $("#btnClaimsRefresh").click();
                         callback(null, data.length > 0 ? data[0] : {});
                     }, error: function (err, response) {
                         commonjs.handleXhrError(err, response);

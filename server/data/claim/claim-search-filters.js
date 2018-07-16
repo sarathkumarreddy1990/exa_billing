@@ -355,7 +355,8 @@ const api = {
             'billing_classes.description as billing_class',
             'claims.claim_notes',
             'patients.gender',
-            'patients.id as patient_id'
+            'patients.id as patient_id',
+            'invoice_no'
         ];
         return stdcolumns;
     },
