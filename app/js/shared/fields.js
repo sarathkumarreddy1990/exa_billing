@@ -1009,20 +1009,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "sortable": true
                 },
                 "field_code": "vehicle_name"
-            },
-            "Claim Status": {
-                "id": 34,
-                "field_name": "Claim Status",
-                "i18n_name": "billing.fileInsurance.claimStatus",
-                "field_info": {
-                    "custom_name": "Claim Status",
-                    "name": "claim_status",
-                    "width": 100,
-                    "search": true,
-                    "sortable": true
-                },
-                "field_code": "claim_status"
-            },
+            },           
             "Responsible": {
                 "id": 35,
                 "field_name": "Responsible",
@@ -1143,31 +1130,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "defaultValue": ""
                 },
                 "field_code": "check_indate"
-            },
-            "Billing Code": {
-                "id": 43,
-                "field_name": "Billing Code",
-                "i18n_name": "billing.fileInsurance.billingCode",
-                "field_info": {
-                    "custom_name": "Billing Code",
-                    "name": "billing_code",
-                    "width": 200,
-                    "defaultValue": ""
-                },
-                "field_code": "billing_code"
-            },
-            "Billing Class": {
-                "id": 44,
-                "field_name": "Billing Class",
-                "i18n_name": "billing.fileInsurance.billingClass",
-                "field_info": {
-                    "custom_name": "Billing Class",
-                    "name": "billing_class",
-                    "width": 200,
-                    "defaultValue": ""
-                },
-                "field_code": "billing_class"
-            },
+            },            
             "Status Changed Date": {
                 "id": 45,
                 "field_name": "Status Changed Date",
