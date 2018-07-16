@@ -28,5 +28,8 @@ module.exports = {
     },
     getUserRoles: function (params) {
         return data.getUserRoles(params);
+    },
+    getInsurancePayerTypes: function (params) {
+        return data.getInsurancePayerTypes(params);
     }
 };

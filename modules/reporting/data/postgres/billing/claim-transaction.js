@@ -35,6 +35,7 @@ WITH details AS(
     LEFT JOIN public.providers pr ON  pr.id = ppc.provider_id
      INNER JOIN public.facilities f ON f.id = bc.facility_id
     <% if (billingProID) { %> INNER JOIN billing.providers bpp ON bp.id = bc.billing_provider_id <% } %>
+    <% if (insGroups) { %> LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id <% } %>
         WHERE 1 = 1
         AND <%=companyId%>       
    
@@ -323,13 +324,13 @@ const api = {
 
         if (reportParams.insuranceIds && reportParams.insuranceIds.length > 0) {
             params.push(reportParams.insuranceIds);
-            filters.insuranceIds = queryBuilder.whereIn(`ppi.id`, [params.length]);
+            filters.insuranceIds = queryBuilder.whereIn(`pip.id`, [params.length]);
         }
 
 
         if (reportParams.insuranceGroupList && reportParams.insuranceGroupList.length > 0) {
             params.push(reportParams.insuranceGroupList);
-            filters.insGroups = queryBuilder.whereIn(`pip.insurance_info->'providerType'`, [params.length]);
+            filters.insGroups = queryBuilder.whereIn(`pippt.id`, [params.length]);
         }
 
         if (reportParams.cptCodeLists && reportParams.cptCodeLists.length > 0) {

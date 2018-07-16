@@ -1095,13 +1095,12 @@ define(['jquery',
                             });
                             table.renderStudy();
 
-                            $('#btnValidateExport').on().click(function (e) {    
-                                commonjs.showWarning('Waiting for download ....')
-                                var $loading = $(document.getElementById('divPageLoading'));
-                                $loading.show();
-                                commonjs.showLoading();                                          
-                                table.renderStudy(true);  
-                                $('#btnValidateExport').prop('disabled', true);                                        
+                            $('#btnValidateExport').on().click(function (e) {
+                                commonjs.showStatus('Excel is Export ...')
+                                table.renderStudy(true);                                  
+                                $('#btnValidateExport').css('display','none');    
+                                commonjs.hideLoading();
+
                             });
                         };
 

@@ -297,6 +297,33 @@ module.exports = {
             .append(SQL` OFFSET ${((params.page * params.pageSize) - params.pageSize)}`);
 
         return await query(user_role_sql);
-    }
+    },
+
+    getInsurancePayerTypes: async function (params) {
+
+        let payer_q = ` AND (description ILIKE '%${params.q}%' OR code ILIKE '%${params.q}%' ) `;
+
+        const sqlInsurancePayerType = SQL`
+            SELECT
+                id
+                , code
+                , description              
+                ,company_id
+                ,(SELECT COUNT(1) FROM insurance_provider_payer_types  ) AS total_records            
+            FROM insurance_provider_payer_types    
+            WHERE
+            inactivated_dt IS  NULL `;
+
+        if (params.q != '') {
+            sqlInsurancePayerType.append(payer_q);
+        }
+
+        sqlInsurancePayerType.append(SQL`ORDER BY  ${params.sortField}`)
+             .append(SQL` `)
+            .append(params.sortOrder)
+          
+
+        return await query(sqlInsurancePayerType);
+    },
 
 };

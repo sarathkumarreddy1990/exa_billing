@@ -10,7 +10,7 @@ const _ = require('lodash')
 const claimActivityDataSetQueryTemplate = _.template(`
 WITH agg_claim AS(
     SELECT 
-         pippt.code AS provider_type
+         pippt.description AS provider_type
 	    , f.facility_name as facility_name
     	, f.id as facility_id
         , bc.id AS claim_id
