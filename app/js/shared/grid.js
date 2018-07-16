@@ -412,7 +412,7 @@ define('grid', [
                 });
 
 
-                var liPatientClaimInquiry = commonjs.getRightClickMenu('anc_patient_claim_inquiry','setup.rightClickMenu.patientClaim',false,'Patients Claim',false);
+                var liPatientClaimInquiry = commonjs.getRightClickMenu('anc_patient_claim_inquiry','setup.rightClickMenu.patientClaims',false,'Patient Claims',false);
                 if(studyArray.length == 1)
                     $divObj.append(liPatientClaimInquiry);
                 self.checkRights('anc_patient_claim_inquiry');
