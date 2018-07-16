@@ -72,7 +72,7 @@ define([
                                 'li_ul_change_claim_status', 'li_ul_change_billing_code', 'li_ul_change_billing_class', 'li_ul_change_payer_type'],
                     'APAY': 'divPendingPay',
                     'DPAY': 'btnPaymentDelete',
-                    'DCLM': 'anc_delete_claim',
+                    'DCLM': 'anc_delete_claim', // This rights used for Delete Charge also
                     'PCLM': 'anc_patient_claim_inquiry'
                 };
                 accessDeniedScreens = _.difference(billingScreenCodes, app.screens);
