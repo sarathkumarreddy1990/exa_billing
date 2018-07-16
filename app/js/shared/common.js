@@ -928,8 +928,9 @@ var commonjs = {
                 ifr.style.width = '100%';
 
                 $modalBody.append($(ifr));
-                $modalBody.css({ 'padding': '0px' })
             }
+
+            $modalBody.css({ 'padding': '0px' })
 
             dataContainer = $('#' + iframeContainerId);
             dataContainer.attr('src', options.url);
@@ -2391,29 +2392,6 @@ var commonjs = {
 
         var divTabsContainerWidth = divUseableSpace - headerIconsWidth;
         $divTabsContainer.css({ width: divTabsContainerWidth });
-
-        //set gadget Width on window Resize
-        var _ww = $(window).width() - 50,
-            _gw = 566,
-            _rw = _ww % _gw,
-            _cols = _ww / _gw,
-            _isDecrease = true;
-        while (_rw > 50) {
-            if (_isDecrease)
-                _gw -= 20;
-            else
-                _gw += 20;
-            _rw = _ww % _gw;
-            if (_gw < 520) {
-                _isDecrease = false;
-            }
-            if (_gw >= 650)
-                break;
-        }
-        $('#divGadgetSummaryNew .widget.item').css('width', (_gw - 26) + 'px');
-        $('#column1 .masonry-wrap').css('width', ($(window).width() - 50 + 'px'));
-        // $('#column1').masonry();
-
     },
 
     getGridMeasures: function (isWidthResize, isHeightResize, userWidth, userHeight, offsetWidth, offsetHeight) {
