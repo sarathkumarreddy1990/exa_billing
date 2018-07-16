@@ -305,6 +305,11 @@ const colModel = [
         searchColumns: ['(SELECT claim_id FROM billing.charges_studies inner JOIN billing.charges ON charges.id= charges_studies.charge_id  WHERE study_id = studies.id LIMIT 1) '],
         searchFlag: '='
     },
+    {
+        name: 'eligibility_verified',
+        searchColumns: [`(eligibility.verified OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)`]
+        , searchFlag: 'bool_null'
+    }
 ];
 
 const api = {
@@ -477,7 +482,9 @@ const api = {
             case 'billed_status': return `(SELECT  CASE WHEN (SELECT 1 FROM billing.charges_studies inner JOIN billing.charges ON charges.id= 
                                                 charges_studies.charge_id  WHERE study_id = studies.id LIMIT 1) >0 THEN 'billed'
                                                 ELSE 'unbilled' END)`;
-            case 'study_cpt_id': return 'study_cpt.study_cpt_id';
+            case 'study_cpt_id': return 'study_cpt.study_cpt_id';          
+            case "eligibility_verified": return `(COALESCE(eligibility.verified, false) OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)`;
+
         }
 
         return args;
@@ -530,7 +537,7 @@ const api = {
     },
     getWLQueryJoin: function (columns) {
         let tables = columns instanceof Object && columns || api.getTables(columns);
-        let imp_orders = tables.vehicles || tables.users || tables.providers || tables.adj1 || tables.adj2 || tables.adj3  || tables.auth;
+        let imp_orders = tables.vehicles || tables.users || tables.providers || tables.adj1 || tables.adj2 || tables.adj3  || tables.auth || tables.eligibility;
         let imp_provider_contacts = tables.imagedelivery || tables.providers_ref;
         let imp_facilities = tables.tat;
         let r = '';
@@ -617,6 +624,26 @@ const api = {
                     ) AS image_delivery
                 ) AS imagedelivery ON TRUE
                 `;
+        }
+
+        if (tables.eligibility){        
+            r += `
+                LEFT JOIN LATERAL (
+                    SELECT
+                        COALESCE(
+                            eligibility_response->'data'->'coverage'->>'active',
+                            'false'
+                        )::boolean       AS verified,
+                        eligibility_dt   AS dt
+                    FROM
+                        eligibility_log
+                    WHERE
+                        eligibility_log.patient_id = studies.patient_id
+                    ORDER BY
+                        eligibility_log.id DESC
+                    LIMIT 1
+                ) eligibility ON TRUE `;
+
         }
 
         if (tables.study_status){ r += ` LEFT JOIN study_status ON (
@@ -792,7 +819,9 @@ const api = {
                         studies.stat_level AS stat_level,
                         order_info->'patientRoom' AS patient_room,
                         insurance_providers.provider_types AS ins_provider_type `,
-            'orders.insurance_providers',
+            'orders.insurance_providers',          
+            `(COALESCE(eligibility.verified, false) OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)   AS eligibility_verified`,
+            `eligibility.dt AS eligibility_dt`
         ];
 
         return stdcolumns.concat(
