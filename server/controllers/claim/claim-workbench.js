@@ -90,13 +90,53 @@ module.exports = {
             ediResponse = await ediConnect.generateEdi(result.rows[0].header.edi_template_name, ediRequestJson);
             params.claim_status = 'PP';
             params.type = 'auto';
-            params.success_claimID = params.claimIds;  
+            params.success_claimID = params.claimIds.split(',');
             params.isClaim=true;
             params.claimDetails=JSON.stringify(claimDetails);
             await data.changeClaimStatus(params);
         }
 
         return ediResponse;
+    },
+
+    updateStatus:async function (params) {
+        params.claim_status = 'PP';
+        params.type = 'auto';
+        params.isClaim =true;
+        let claimIds = params.claimIds.split(',');
+        params.success_claimID = claimIds; 
+        let claimDetails = [];
+        let notes='';
+
+        switch (params.templateType) {
+            case 'direct_invoice':
+                notes = 'Invoice claim to ';
+                break;
+            case 'paper_claim_original':
+                notes = 'Paper claim (RED) to ';
+                break;
+            case 'paper_claim_full':
+                notes = 'Paper claim (B&W) to ';
+                break;
+            case 'patient_invoice':
+                notes = 'Patient Payment  to ';
+                break;
+        }
+
+        _.map(claimIds, function (obj) {
+
+            claimDetails.push(
+                {
+                    claim_id: obj,
+                    note: notes
+                    
+                }
+            );
+
+        });
+
+        params.claimDetails = JSON.stringify(claimDetails);
+        await data.changeClaimStatus(params);
     },
 
     validateClaim: async function (params) {

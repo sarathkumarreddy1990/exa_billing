@@ -308,6 +308,7 @@ module.exports = {
 										subscriber_city as "city",
 										subscriber_state as "state",
 										subscriber_zipcode as "zipCode",
+										assign_benefits_to_patient as "acceptAssignment",
 										subscriber_dob as "dob",
 										(  CASE subscriber_gender 
 											WHEN 'Male' THEN 'M'						
@@ -511,7 +512,8 @@ module.exports = {
 					subscriber_address_line2 as "addressLine2",
 					subscriber_city as "city",
 					subscriber_state as "state",
-					subscriber_zipcode as "zipCode"
+					subscriber_zipcode as "zipCode",
+					assign_benefits_to_patient as "acceptAssignment"
 					FROM   patient_insurances 
 									WHERE  patient_insurances.id = 
 						(  CASE payer_type 

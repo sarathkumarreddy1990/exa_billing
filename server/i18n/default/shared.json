@@ -12,6 +12,7 @@
         "buttons": {
             "useExisting": "Use existing",
             "createNewClaim": "New Claim",
+            "batchClaim": "Batch Claim",
             "convertDirectly": "Convert directly",
             "fax": "Fax",
             "faxSelected": "Fax selected",
