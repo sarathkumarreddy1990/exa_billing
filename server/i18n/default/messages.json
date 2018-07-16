@@ -31,7 +31,7 @@
             },
           "setup": {
             "selectitemstodelete": "Select Message To Delete",
-            "entertextandselect": "Enter Teaxt and Select",
+            "entertextandselect": "Enter Text and Select",
             "enter": "Enter",
             "entertotime": "Enter ToTime",
             "enterfromtime": "Enter FromTime",
