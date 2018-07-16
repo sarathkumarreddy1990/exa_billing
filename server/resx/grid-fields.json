@@ -1010,6 +1010,19 @@
         "field_code": "mudatacaptured"
       },
       {
+        "id": 57,
+        "field_name": "Eligibility",
+        "i18n_name": "setup.userSettings.eligibility",
+        "field_info": {
+          "custom_name": "Eligibility",
+          "name": "eligibility_verified",
+          "width": 90,
+          "stype": "select",
+          "hidden": false
+        },
+        "field_code": "eligibility_verified"
+      },
+      {
         "id": 58,
         "field_name": "Provider Alerts",
         "i18n_name": "setup.userSettings.providerAlerts",
