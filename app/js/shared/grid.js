@@ -1246,8 +1246,11 @@ define('grid', [
                 rowattr: rowattr
             });
             if (doExport) {
-                commonjs.showLoading();         
+                console.log('dfadsf', grid.getGridParam("postData")._search)
+                var searchFilterFlag = grid.getGridParam("postData")._search;
+                console.log('ssssssssss', studyStore)
                 var colHeader = studyFields.colName;
+
                 $.ajax({
                     'url': '/exa_modules/billing/claim_workbench',
                     type: 'GET',
@@ -1260,7 +1263,7 @@ define('grid', [
                         }
                     },
                     success: function (data, response) {
-                        var responseJSON = data;
+                        var responseJSON = searchFilterFlag ? studyStore : data;
                         var ReportTitle = 'Claims';
                         var ShowLabel = 'Claim List';
                         var paymentExcelData = typeof responseJSON != 'object' ? JSON.parse(responseJSON) : responseJSON;
@@ -1290,7 +1293,7 @@ define('grid', [
                                 row += result == "Payer Type" ? 'Payer Type' + ',' : '';
                                 row += result == "Billing Class" ? 'Billing Class' + ',' : '';
                                 row += result == "Billing Code" ? 'Billing Code' + ',' : '';
-                              
+
                             });
                         }
                         row = row.slice(0, -1);
@@ -1298,18 +1301,18 @@ define('grid', [
 
                         for (var i = 0; i < paymentExcelData.length; i++) {
                             var row = "";
-                            var paymentResult = paymentExcelData[i];
+                            var paymentResult = searchFilterFlag ? paymentExcelData.models[i].attributes : paymentExcelData[i];
                             var claimDate = moment(paymentResult.claim_dt).format('L');
                             var patientName = paymentResult.patient_name || " ";
                             var clearingHouse = paymentResult.clearing_house || " ";
                             var billingClass = paymentResult.billing_class || " ";
-                            var billingCode = paymentResult.billing_code || " "; 
-                            var balanceAmount = paymentResult.claim_balance || "$0.00"; 
+                            var billingCode = paymentResult.billing_code || " ";
+                            var balanceAmount = paymentResult.claim_balance || "$0.00";
                             var policyNumber = paymentResult.policy_number || " ";
                             var groupNumber = paymentResult.group_number || " ";
                             var renderingProviders = paymentResult.rendering_provider || " ";
                             var referingProviders = paymentResult.referring_providers || " ";
-                            var placeOfService =  paymentResult.place_of_service || " ";
+                            var placeOfService = paymentResult.place_of_service || " ";
                             var followUpDate = paymentResult.followup_date || " ";
                             var invoiceNumber = paymentResult.invoice_no || " ";
                             var notes = paymentResult.claim_notes || " ";
@@ -1327,17 +1330,17 @@ define('grid', [
                                     row += result == "Claim Status" ? '"' + paymentResult.claim_status + '",' : '',
                                     row += result == "Date Of Birth" ? '"' + paymentResult.birth_date + '",' : '',
                                     row += result == "Invoice" ? '"' + invoiceNumber + '",' : '',
-                                    row += result == "Follow-up Date" ?   followUpDate + ',' : '',
+                                    row += result == "Follow-up Date" ? followUpDate + ',' : '',
                                     row += result == "Place OF Service" ? '"' + placeOfService + '",' : '',
                                     row += result == "Balance" ? '"' + balanceAmount + '",' : '',
                                     row += result == "Referring Providers" ? '"' + referingProviders + '",' : '',
                                     row += result == "Rendering Providers" ? '"' + renderingProviders + '",' : '',
                                     row += result == "SSN" ? '"' + paymentResult.patient_ssn + '",' : '',
-                                    row += result == "Group Number" ? '"' + groupNumber  + '",' : '',
+                                    row += result == "Group Number" ? '"' + groupNumber + '",' : '',
                                     row += result == "Payer Type" ? '"' + paymentResult.payer_type + '",' : '',
                                     row += result == "Billing Class" ? '"' + billingClass + '",' : '',
-                                    row += result == "Billing Code" ? '"' + billingCode + '",' : ''                                                                                              
-                                  
+                                    row += result == "Billing Code" ? '"' + billingCode + '",' : ''
+
                             });
 
                             CSV += row + '\r\n';
@@ -1357,11 +1360,11 @@ define('grid', [
                         document.body.appendChild(link);
                         link.click();
                         document.body.removeChild(link);
-                        $('#btnValidateExport').prop('disabled', false); 
+                        $('#btnValidateExport').css('display', 'inline');
                     },
                     error: function (err) {
                         commonjs.handleXhrError(err);
-                        $('#btnValidateExport').prop('disabled', false); 
+                        $('#btnValidateExport').css('display', 'inline');
                     }
                 });
                 return true;

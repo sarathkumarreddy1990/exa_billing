@@ -283,5 +283,9 @@ module.exports = {
         params.created_by = parseInt(params.userId);
 
         return await data.createBatchClaims(params);
+    },
+
+    getClaimDataInvoice: async function (params) {
+        return await data.getClaimDataInvoice(params);
     }
 };
