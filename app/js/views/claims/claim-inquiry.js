@@ -912,7 +912,7 @@ define([
 
 
                 this.$el.html(this.claimPatientTemplate());
-                 var headerName = 'Patient Claim: ' + patientName ;
+                 var headerName = 'Patient Claims: ' + patientName ;
                  $(parent.document).find('#spanModalHeader').html(headerName)
                 this.fromDate =  commonjs.bindDateTimePicker("divFDate", { format: 'L' }); 
                 this.fromDate.date(); 

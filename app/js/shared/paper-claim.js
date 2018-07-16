@@ -188,6 +188,7 @@ define([
                         claimIds: claimIDs.toString(),
                         templateType: templateType
                     }, success: function (data, response) {
+                        $("#btnClaimsRefresh").click();
                         callback(null, data.length > 0 ? data[0] : {});
                     }, error: function (err, response) {
                         commonjs.handleXhrError(err, response);

@@ -562,6 +562,7 @@ define(['jquery',
 
                                 document.body.removeChild(element);
                             });
+                            $("#btnClaimsRefresh").click();
                         }
                     },
                     error: function (err) {
