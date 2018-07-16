@@ -68,7 +68,7 @@ define([
                             if (showNestedDialog) {
                                 showDialog = commonjs.showNestedDialog;
                             }
-
+                        self.updateClaimStatus(claimIDs, templateType, function (err, claimData) {
                             showDialog({
                                 header: self.pdfDetails[templateType].header,
                                 width: '95%',
@@ -81,6 +81,7 @@ define([
                             // anchor.href = window.URL.createObjectURL(res.data.pdfBlob);
                             // anchor.download = 'myFileName.pdf';
                             // anchor.click();
+                          });
                         };
 
                         pdfWorker.postMessage(docDefinition);
@@ -136,6 +137,23 @@ define([
 
                 $.ajax({
                     url: '/exa_modules/billing/claim_workbench/printer_template',
+                    type: 'post',
+                    data: {
+                        claimIds: claimIDs.toString(),
+                        templateType: templateType
+                    }, success: function (data, response) {
+                        callback(null, data.length > 0 ? data[0] : {});
+                    }, error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                        callback(err);
+                    }
+                });
+            };
+
+            this.updateClaimStatus = function (claimIDs, templateType, callback) {
+
+                $.ajax({
+                    url: '/exa_modules/billing/claim_workbench/update_claim_status',
                     type: 'post',
                     data: {
                         claimIds: claimIDs.toString(),
