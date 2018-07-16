@@ -251,9 +251,9 @@ define([
                         var payerType = $(target).attr('data-payer-type');
 
                         if (target.className.indexOf('btn-paper-claim-original') > -1) {
-                            self.showPaperClaim('paper_claim_original', claimID, rowid, payerType);
+                            self.showPaperClaim('paper_claim_original', [claimID], rowid, payerType);
                         } else if (target.className.indexOf('btn-paper-claim-full') > -1) {
-                            self.showPaperClaim('paper_claim_full', claimID, rowid, payerType);
+                            self.showPaperClaim('paper_claim_full', [claimID], rowid, payerType);
                         }
                     },
                 });
