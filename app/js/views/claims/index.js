@@ -2276,8 +2276,8 @@ define(['jquery',
                     $('#txt' + flag + 'SubPriAddr').val(result.subscriber_address_line1);
                     $('#txt' + flag + 'SubSecAddr').val(result.subscriber_address_line2);
                     $('#txt' + flag + 'City').val(result.subscriber_city);
-                    if(app.states.indexOf(result.subscriber_state) > 0 )
-                    {
+                    var states = app.states && app.states.length && app.states[0].app_states;
+                    if (states && states.indexOf(result.subscriber_state) > 0) {
                         $('#ddl' + flag + 'State').val(result.subscriber_state);
                     }
                     $('#txt' + flag + 'ZipCode').val(result.subscriber_zipcode);
