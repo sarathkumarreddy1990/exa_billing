@@ -421,7 +421,10 @@ define([
                     $("#tblInvoiceGrid").setGridHeight($(window).height()-600);
                 }, 200);
 
+                commonjs.initializeScreen({ header: { screen: 'Claim Invoice', ext: 'Claim Invoice' } });
                 $('#divIvoiceAgeSummary').html(self.invoiceAgingSummaryTemplate());
+
+
 
                 $.ajax({
                     url: "/exa_modules/billing/claims/claim_inquiry/claim_invoice/age",
@@ -444,9 +447,12 @@ define([
                     error: function (err, response) {
                         commonjs.handleXhrError(err, response);
                     }
-                })
+                });
 
-                
+                $('.inquiryReload').click(function(){
+                    self.showInvoiceGrid.refreshAll();
+                });
+
             },
 
             showPatientClaimsLogGrid: function (claimID, patientId) {
