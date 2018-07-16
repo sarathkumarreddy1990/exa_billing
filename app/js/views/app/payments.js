@@ -214,7 +214,7 @@ define(['jquery',
                             exclude: ',#jqgh_tblpaymentsGrid_edit'
                         },
                         pager: '#gridPager_payments',
-                        sortname: "id",
+                        sortname: "payment_id",
                         sortorder: "desc",
                         caption: "Payments",
                         datastore: self.paymentsList,
@@ -278,15 +278,18 @@ define(['jquery',
                                 commonjs.handleXhrError(err);
                             }
                         });
-                        commonjs.docResize();
                     });
                 }
                 else {
                     this.paymentTable.refresh();
                 }
+                commonjs.docResize();
             },
 
             editPayment: function (rowId) {
+                commonjs.paymentFilterFields = $('#divGrid_payments .ui-search-toolbar th div input, select').map(function () {
+                    return $(this).attr('id') + '~' + $(this).val();
+                });
                 Backbone.history.navigate('#billing/payments/edit/' + rowId, true);
             },
 
