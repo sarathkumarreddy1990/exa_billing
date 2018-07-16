@@ -288,7 +288,7 @@ module.exports = {
 
         if (params.q != '') {
             user_role_sql.append(users_role_q);
-        }                            
+        }
 
         user_role_sql.append(SQL`ORDER BY  ${params.sortField}`)
             .append(SQL` `)
@@ -319,9 +319,8 @@ module.exports = {
         }
 
         sqlInsurancePayerType.append(SQL`ORDER BY  ${params.sortField}`)
-             .append(SQL` `)
-            .append(params.sortOrder)
-          
+            .append(SQL` `)
+            .append(params.sortOrder);
 
         return await query(sqlInsurancePayerType);
     },
