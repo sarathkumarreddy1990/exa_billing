@@ -48,10 +48,10 @@ module.exports = {
         if ((claimData && claimData.rows.length > 0) && (params.claim_row_version != claimData.rows[0].claim_row_version)) {
 
             return {
-                'message': 'This claim has been already updated by some other user. please refresh the page and try again'
+                'message': 'This claim has been already updated by some other user - please refresh the page and try again'
             };
         }
-        
+
         let existingPayers = await data.getExistingPayer(params);
 
         if (existingPayers && existingPayers.rows.length) {

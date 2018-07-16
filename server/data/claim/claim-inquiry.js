@@ -168,7 +168,7 @@ module.exports = {
                     WHERE ch.claim_id = ${claim_id}
                     UNION ALL
                     SELECT
-                          bp.id AS id
+                          max(pa.id) AS id
                         , bp.id::text AS payment_id
                         , pa.amount_type as code
                         ,  CASE WHEN pa.amount_type = 'adjustment' THEN 'Adjustment' WHEN  amount_type = 'payment' THEN
@@ -196,7 +196,7 @@ module.exports = {
                         , null AS charge_amount
                         , '{}'::text[] AS charge_pointer
                         , SUM(CASE WHEN pa.amount_type = 'payment' THEN pa.amount ELSE 0.00::money END)::text payment
-                        , SUM(CASE WHEN (pa.amount_type = 'adjustment' AND (accounting_entry_type != 'refund_debit' OR adjustment_code_id IS NULL)) THEN pa.amount  ELSE 0.00::money END)::text adjustment  
+                        , SUM(CASE WHEN pa.amount_type = 'adjustment'  THEN pa.amount  ELSE 0.00::money END)::text adjustment  
                     FROM billing.payments bp
                     INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
                     INNER JOIN billing.charges ch on ch.id = pa.charge_id 
@@ -209,7 +209,9 @@ module.exports = {
                     WHERE 
                         ch.claim_id = ${claim_id}  
                         AND CASE WHEN pa.amount_type = 'adjustment' THEN pa.amount != 0.00::money ELSE 1=1  END 
+                        AND (accounting_entry_type != 'refund_debit' OR adjustment_code_id IS NULL)
                     GROUP BY 
+                        pa.applied_dt,
                         bp.id ,  
                         pa.amount_type,
                         comments
@@ -230,7 +232,7 @@ module.exports = {
                     INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
                     INNER JOIN billing.charges ch on ch.id = pa.charge_id 
                     LEFT JOIN billing.adjustment_codes adj ON adj.id = pa.adjustment_code_id
-                    WHERE adj.accounting_entry_type = 'refund_debit'  AND ch.claim_id = 5528 
+                    WHERE adj.accounting_entry_type = 'refund_debit'  AND ch.claim_id = ${claim_id}  
                     GROUP BY
                         bp.id
                         , pa.amount_type
@@ -439,19 +441,20 @@ module.exports = {
     viewPaymentDetails: async(params) => {
         let {
             claim_id,
-            payment_id
+            payment_id,
+            pay_application_id
         } = params;
 
         let sql = `SELECT
                           pa.payment_id
                         , ch.id AS charge_id
-                        , ch.bill_fee
-                        , ch.allowed_amount
+                        , (ch.bill_fee * ch.units)::NUMERIC AS bill_fee
+                        , (ch.allowed_amount * ch.units)::NUMERIC AS allowed_amount
                         , cas.cas_details
                         , pa.payment_amount AS payment
                         , pa.adjustment_amount AS adjustment
                         , cpt.display_code AS cpt_code
-                    FROM (SELECT charge_id, id, payment_amount, adjustment_amount, payment_applied_dt, payment_id, payment_application_adjustment_id from billing.get_payment_applications(${payment_id}) ) AS pa
+                    FROM (SELECT charge_id, id, payment_amount, adjustment_amount, payment_applied_dt, payment_id, payment_application_adjustment_id from billing.get_payment_applications(${payment_id}, ${pay_application_id}) ) AS pa
                     INNER JOIN billing.charges ch on ch.id = pa.charge_id 
                     INNER JOIN public.cpt_codes cpt ON cpt.id = ch.cpt_id
                     LEFT JOIN LATERAL (
@@ -504,7 +507,7 @@ module.exports = {
                                 ) as cas
                     ) cas on true 
                     WHERE	pa.charge_id = ${charge_id}
-                        AND pa.payment_application_id is null  
+                        AND pa.amount_type = 'payment'  
                     ORDER BY pa.applied_dt ASC `;
                     
         return await query(sql);

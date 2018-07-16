@@ -92,7 +92,7 @@ define(['jquery',
                 'click #btnPrintReceipt': 'paymentPrintReceiptPDF',
                 'click #btnPaymentPendingRefreshOnly': 'refreshInvociePendingPayment',
                 'click #btnPaymentApplyAll': 'checkAllPendingPayments',
-                'keypress #claimId, #invoiceNo' : 'searchInvoiceOrClaim'
+                'keypress #claimId, #invoiceNo': 'searchInvoiceOrClaim'
             },
 
             initialize: function (options) {
@@ -357,9 +357,9 @@ define(['jquery',
                     return markup;
                 }
                 function formatRepoSelection(res) {
-                    if (res && res.id)
-                        self.bindInsuranceDetails(res);
-                    return res.insurance_name;
+                    if (res && res.id) 
+                            self.bindInsuranceDetails(res);
+                        return res.insurance_name;
                 }
                 $('#select2-txtautoPayerPIP-container').html('Select Insurance');
             },
@@ -624,7 +624,7 @@ define(['jquery',
                     self.payer_id = response.provider_contact_id;
 
                 $('#liPendingPaymentsPat a').click();
-                self.showPendingPaymentsGridInvoice(paymentID, response.payer_type, self.payer_id);
+                // self.showPendingPaymentsGridInvoice(paymentID, response.payer_type, self.payer_id);
                 $('#txtAmount').val(response.amount.substr(1));
                 $('#lblApplied').html(response.applied.substr(1));
                 $('#lblBalance').html(response.available_balance);
@@ -645,10 +645,14 @@ define(['jquery',
                 self.provider_group_id = response.provider_group_id;
                 self.insurance_provider_id = response.insurance_provider_id;
 
-                self.showAppliedByPaymentsGrid(paymentID, response.payer_type, self.payer_id);
+                // self.showAppliedByPaymentsGrid(paymentID, response.payer_type, self.payer_id);
                 if (!self.casCodesLoaded)
                     self.setCasGroupCodesAndReasonCodes();
                 self.payment_row_version = response.payment_row_version;
+                $('#claimsTabs a').on('click', function (e) {
+                    self.loadSelectedGrid(e, paymentID, response.payer_type, self.payer_id); 
+                });
+
                 $('#selectPayerType').focus();
             },
 
@@ -818,12 +822,13 @@ define(['jquery',
                                 if (self.payment_id) {
                                     self.gridFirstLoaded = false;
                                     self.pendingGridLoaderd = false;
+                                    self.tabClicked = '';
                                     if (response && response.length) {
                                         commonjs.showStatus('Payment has been updated successfully');
                                         self.render(self.payment_id);
                                     }
                                     else {
-                                        commonjs.showWarning('This payment has been already updated by some other user. please refresh the page and try again.');
+                                        commonjs.showWarning('This payment has been already updated by some other user - please refresh the page and try again.');
                                     }
                                     $('#btnPaymentSave').removeAttr('disabled');
                                     commonjs.hideLoading();
@@ -917,6 +922,7 @@ define(['jquery',
                 setTimeout(function () {
                     $('#tblpendPaymentsGridOnly').jqGrid('setGridHeight', '300px');
                     $('#tblpendPaymentsGridOnly').jqGrid('setGridWidth', $(window).width() - 20);
+                    commonjs.processPostRender();
                 }, 500);
             },
 
@@ -2329,6 +2335,7 @@ define(['jquery',
                             self.getAppliedBalance(self.payment_id);
                             $('#btnPaymentPendingRefresh').click();
                             $('#btnAppliedPayRefresh').click();
+                            commonjs.showStatus('Payment has been applied auccessfully');
                         }
                     },
                     error: function (err, response) {
@@ -2368,6 +2375,21 @@ define(['jquery',
                         commonjs.handleXhrError(err, response);
                     }
                 });
+            },
+
+            loadSelectedGrid: function (e, paymentID, payer_type, payer_id) {
+                var self = this;
+                var id = $(e.target || e.srcElement).closest('a').attr('id');
+                if (id == self.tabClicked)
+                    return false;
+
+                if (id === 'aPeningPayments' && (!$('#tblpendPaymentsGridOnly').children().length)) {
+                    self.showPendingPaymentsGridInvoice(paymentID, payer_type, payer_id);
+                }
+                else if (id === 'aAppliedPayments' && (!$('#tblAppliedPaymentsGrid').children().length)) {
+                    self.showAppliedByPaymentsGrid(paymentID, payer_type, payer_id);
+                }
+                self.tabClicked = id;
             }
 
         });

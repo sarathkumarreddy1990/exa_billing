@@ -36,11 +36,11 @@ module.exports = {
             screenName,
             clientIp,
             claimIds,
-            companyId, 
-            userId      
+            companyId,
+            userId
         } = params;
-        
-        params.logDescriptions='Updated ' + params.process + '  for claims ' ;
+
+        params.logDescriptions = 'Updated ' + params.process + '  for claims ';
         params.moduleName = 'claims';
 
         let updateData;
@@ -101,10 +101,41 @@ module.exports = {
         return await query(sql);
     },
 
-    changeClaimStatus: async (params) => {   
+    changeClaimStatus: async (params) => {
 
-        let insertClaimComments=
-         SQL` , claim_details AS (
+        //let success_claimID = params.success_claimID.split(',');
+
+        let getClaimsDetails = SQL` ,getClaimsDetails as (                
+                SELECT claims.id,payer_type, (  CASE payer_type 
+                    WHEN 'primary_insurance' THEN insurance_providers.insurance_name
+                    WHEN 'secondary_insurance' THEN insurance_providers.insurance_name
+                    WHEN 'teritary_insurance' THEN insurance_providers.insurance_name
+                    WHEN 'ordering_facility' THEN provider_groups.group_name
+                    WHEN 'referring_provider' THEN ref_provider.full_name
+                    WHEN 'rendering_provider' THEN render_provider.full_name
+                    WHEN 'patient' THEN patients.full_name        END)   || '(' ||  payer_type  ||')' as payer_name 
+                FROM billing.claims 
+
+                LEFT JOIN patient_insurances ON patient_insurances.id = 
+                        (  CASE payer_type 
+                        WHEN 'primary_insurance' THEN primary_patient_insurance_id
+                        WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
+                        WHEN 'teritary_insurance' THEN tertiary_patient_insurance_id
+                        END)
+
+                INNER JOIN patients ON claims.patient_id = patients.id 
+                LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id
+                LEFT JOIN provider_contacts  ON provider_contacts.id=claims.referring_provider_contact_id 
+                LEFT JOIN providers as ref_provider ON ref_provider.id=provider_contacts.provider_id
+                LEFT JOIN provider_groups ON claims.ordering_facility_id = provider_groups.id 
+                LEFT JOIN provider_contacts as rendering_pro_contact ON rendering_pro_contact.id=claims.rendering_provider_contact_id
+                LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.provider_id
+
+                WHERE claims.id=${params.success_claimID[0]} ) 
+        `;
+
+        let insertClaimComments =
+            SQL` , claim_details AS (
             SELECT 
                   "claim_id",
                  "note"  
@@ -122,18 +153,25 @@ module.exports = {
                     note , 
                     created_by, 
                     created_dt 
-                )
-                SELECT
-                claim_id,
-                ${params.type},
-                note,
-               ${params.userId},   
-                now()
-          FROM 
-          claim_details )
+                )              
                 `;
-              
+        let getpaymentComments = SQL`  SELECT
+                        claim_id,
+                        ${params.type},
+                        note || ( SELECT payer_name FROM getClaimsDetails),
+                        ${params.userId},   
+                        now()
+                    FROM 
+                    claim_details )`;
 
+        let getEDIpaymentComments = SQL`SELECT
+                                        claim_id,
+                                        ${params.type},
+                                        note,
+                                        ${params.userId},   
+                                        now()
+                                        FROM 
+                                    claim_details )`;
         let sql = SQL`WITH getStatus AS 
 						(
 							SELECT 
@@ -143,21 +181,43 @@ module.exports = {
 							WHERE code  = ${params.claim_status}
                         )`;
 
+        if (params.templateType) {
+            sql.append(getClaimsDetails);
+        }
+
         if (params.isClaim) {
             sql.append(insertClaimComments);
-        }        
 
-        let updateData =SQL`UPDATE 
+            if (params.templateType) {
+                sql.append(getpaymentComments);
+            } else {
+                sql.append(getEDIpaymentComments);
+            }
+        }
+
+        let updateData = SQL`UPDATE 
 							billing.claims bc
-						SET claim_status_id = (SELECT id FROM getStatus)
+                        SET claim_status_id = (SELECT id FROM getStatus),
+                            invoice_no = (SELECT billing.get_invoice_no(${params.success_claimID}))
 						WHERE bc.id = ANY(${params.success_claimID})
                         RETURNING bc.id`;
 
-        sql.append(updateData);                
-       
+        let updateEDIData = SQL`UPDATE 
+                            billing.claims bc
+                        SET claim_status_id = (SELECT id FROM getStatus)                        
+                        WHERE bc.id = ANY(${params.success_claimID})
+                        RETURNING bc.id`;
+
+
+        if (params.templateType && params.templateType != 'patient_invoice') {
+            sql.append(updateData);
+        } else {
+            sql.append(updateEDIData);
+        }
+
         return await query(sql);
     },
-	
+
     getClaimStudy: async (params) => {
 
         let {
@@ -211,10 +271,10 @@ module.exports = {
                             c.id = ${params.id}`;
 
         return await query(sql);
-           
+
     },
 
-    updateBillingPayers: async function(params) {
+    updateBillingPayers: async function (params) {
         const sql = SQL`
                         SELECT
                         billing.change_payer_type(${params.id},${params.payer_type})

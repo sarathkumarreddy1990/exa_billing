@@ -628,7 +628,7 @@ define([
                             customAction: function (rowID) {
                                 var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
                                 $("#tBodyCIPayment").empty();
-                                self.getDetailsOfPay(gridData.payment_id);
+                                self.getDetailsOfPay(gridData.payment_id, gridData.row_id); //row_id = pay_application id
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.type && rowObject.code == 'payment')
@@ -918,7 +918,7 @@ define([
 
 
                 this.$el.html(this.claimPatientTemplate());
-                 var headerName = 'Patient Claim: ' + patientName ;
+                 var headerName = 'Patient Claims: ' + patientName ;
                  $(parent.document).find('#spanModalHeader').html(headerName)
                 this.fromDate =  commonjs.bindDateTimePicker("divFDate", { format: 'L' }); 
                 this.fromDate.date(); 
@@ -1058,7 +1058,7 @@ define([
                 });
             },
 
-            getDetailsOfPay: function (pay_id) {
+            getDetailsOfPay: function (pay_id, application_id) {
                 var self = this;
 
                 $.ajax({
@@ -1066,7 +1066,8 @@ define([
                     type: 'GET',
                     data: {
                         'claim_id': self.claim_id,
-                        'payment_id': pay_id
+                        'payment_id': pay_id,
+                        'pay_application_id': application_id
                     },
                     success: function (data, response) {
                         $("#tBodyCIPayment").empty();
