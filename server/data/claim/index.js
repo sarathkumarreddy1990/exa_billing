@@ -172,13 +172,14 @@ module.exports = {
                                 coverage_level,
                                 MIN(valid_to_date) as valid_to_date
                             FROM 
-                                public.patient_insurances 
-                            WHERE 
-                                patient_id = ${params.patient_id} AND valid_to_date >= (${params.claim_date})::date 
-                                GROUP BY coverage_level 
-                        ) as expiry ON TRUE                           
-                        WHERE 
-                            pi.patient_id = ${params.patient_id}  AND expiry.valid_to_date = pi.valid_to_date AND expiry.coverage_level = pi.coverage_level 
+                                public.patient_insurances
+                            WHERE
+                                patient_id = ${params.patient_id} AND (valid_to_date >= (${params.claim_date})::date  OR valid_to_date IS NULL)
+                                AND (valid_from_date <= (${params.claim_date})::date OR valid_from_date IS NULL)
+                                GROUP BY coverage_level
+                        ) as expiry ON TRUE
+                        WHERE
+                            pi.patient_id = ${params.patient_id}  AND (expiry.valid_to_date = pi.valid_to_date OR expiry.valid_to_date IS NULL) AND expiry.coverage_level = pi.coverage_level
                             ORDER BY id ASC
                 ),
                 existing_insurance as (

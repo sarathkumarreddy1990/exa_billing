@@ -295,13 +295,13 @@ define(['jquery',
 
             paymentDateFormatter: function (cellvalue, options, rowObject) {
                 var colValue;
-                colValue = (commonjs.checkNotEmpty(rowObject.payment_dt) ? commonjs.convertToFacilityTimeZone(rowObject.facility_id, rowObject.payment_dt).format('L')  : '');
+                colValue = (commonjs.checkNotEmpty(rowObject.payment_dt) ? commonjs.convertToFacilityTimeZone(rowObject.facility_id, rowObject.payment_dt).format('L') : '');
                 return colValue;
             },
 
             paymentAccountingDateFormatter: function (cellvalue, options, rowObject) {
                 var colValue;
-                colValue = (commonjs.checkNotEmpty(rowObject.accounting_dt) ?commonjs.convertToFacilityTimeZone(rowObject.facility_id, rowObject.accounting_dt).format('L') : '');
+                colValue = (commonjs.checkNotEmpty(rowObject.accounting_dt) ? commonjs.convertToFacilityTimeZone(rowObject.facility_id, rowObject.accounting_dt).format('L') : '');
                 return colValue;
             },
 
@@ -344,18 +344,20 @@ define(['jquery',
                 val = val.replace(/"/g, '""');
                 return '"' + val + '"';
             },
-
             exportExcel: function () {
+                var self = this;
+                var searchFilterFlag = grid.getGridParam("postData")._search;
                 $('#btnGenerateExcel').prop('disabled', true);
-                commonjs.showStatus('Exporting Excel ...');
+                commonjs.showLoading('Exporting Excel ...')
                 $.ajax({
                     url: "/exa_modules/billing/payments/payments_list",
                     type: 'GET',
                     data: {
-                        paymentReportFlag: true
+                        paymentReportFlag: searchFilterFlag ? false : true,
+                        paymentStatus: $("#ulPaymentStatus").val()
                     },
                     success: function (data, response) {
-                        var responseJSON = data;
+                        var responseJSON = searchFilterFlag ? self.paymentsList : data;
                         var ReportTitle = 'Payments';
                         var ShowLabel = 'Payment List';
                         var paymentExcelData = typeof responseJSON != 'object' ? JSON.parse(responseJSON) : responseJSON;
@@ -382,12 +384,12 @@ define(['jquery',
 
                         for (var i = 0; i < paymentExcelData.length; i++) {
                             var row = "";
-                            var paymentResult = paymentExcelData[i];
+                            var paymentResult = searchFilterFlag ? paymentExcelData.models[i].attributes : paymentExcelData[i];
                             var paymentDate = moment(paymentResult.payment_dt).format('L');
                             var accountingDate = moment(paymentResult.accounting_dt).format('L');
                             var refPaymentId = paymentResult.alternate_payment_id || " ";
                             var facilityName = paymentResult.facility_name || " ";
-                               row += '"' + paymentResult.id + '",',
+                            row += '"' + paymentResult.id + '",',
                                 row += '"' + refPaymentId + '",',
                                 row += '"' + paymentDate + '",',
                                 row += '"' + accountingDate + '",',
@@ -419,6 +421,7 @@ define(['jquery',
                         link.click();
                         document.body.removeChild(link);
                         $('#btnGenerateExcel').prop('disabled', false);
+                        commonjs.hideLoading();
                     },
                     error: function (err) {
                         commonjs.handleXhrError(err);

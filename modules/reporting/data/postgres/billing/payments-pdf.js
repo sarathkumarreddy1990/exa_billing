@@ -19,7 +19,7 @@ WITH paymentsPDF as (
     bp.alternate_payment_id,
     bp.facility_id,
     bp.payment_dt,
-    bp.accounting_dt,
+    to_char(bp.accounting_dt, 'MM/DD/YYYY') as accounting_dt,
     bp.payer_type,
     bp.invoice_no,
     bp.amount AS amount,
@@ -35,7 +35,8 @@ bp.card_number AS cheque_card_number,
          WHEN payer_type = 'ordering_facility' THEN ppg.group_name
          WHEN payer_type = 'ordering_provider' THEN get_full_name(ppr.first_name,ppr.last_name)
     END payer_name,
-    pf.facility_name as facility_name
+    pf.facility_name as facility_name,
+    to_char(bp.payment_dt,'MM/DD/YYYY') as payment_date
 FROM billing.payments bp
 INNER JOIN public.users pu ON pu.id = bp.created_by
 LEFT JOIN public.patients pp ON pp.id = bp.patient_id
@@ -51,9 +52,11 @@ LEFT JOIN public.facilities pf ON pf.id = bp.facility_id
     patient_full_name AS "Patient Name",
     account_no AS "MRN #", 
      notes AS "Note",    
-    cheque_card_number AS "CHK/CC#",   
-    SUM(amount) AS "Payment",
-    status AS "Payment Status"
+    cheque_card_number AS "CHK/CC#",
+    payment_date AS "Payment Date",
+    accounting_dt  AS "Accounting Date",
+    COALESCE(status, 'TOTAL') AS "Payment Status" ,  
+    SUM(amount) AS "Payment"
   FROM
         paymentsPDF
      WHERE  1=1 
@@ -68,9 +71,27 @@ LEFT JOIN public.facilities pf ON pf.id = bp.facility_id
               patient_full_name, 
               account_no,              
               cheque_card_number,
+              payment_date,
+              accounting_dt ,
               notes,
               status)
            )
+
+           UNION ALL
+
+           SELECT
+           NULL AS "Facility Name",
+           NULL AS "Payment ID",    
+           NULL AS "Patient Name",
+           NULL AS "MRN #", 
+           NULL AS "Note",    
+           NULL AS "CHK/CC#",
+           NULL AS "Payment Date",
+           NULL AS "Accounting Date",   
+           'GRAND TOTAL'::TEXT AS "Payment Status" , 
+         SUM(amount) AS "Payment"
+         FROM
+               paymentsPDF         
 
 `);
 

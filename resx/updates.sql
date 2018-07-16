@@ -2468,6 +2468,12 @@ $BODY$
 		            RETURN 0::MONEY;
 	            END IF;
             END IF;
+
+            ------- If cpt not available in fee schedule allowed fee same as bill fee
+            IF l_professional_fee IS NULL AND p_category = 'allowed' AND (l_payer_type = 'primary_insurance' OR l_payer_type = 'secondary_insurance' OR l_payer_type = 'tertiary_insurance') THEN 
+		        RETURN billing.get_computed_bill_fee(p_claim_id, p_cpt_id, p_modifier1, p_modifier2, p_modifier3, p_modifier4, 'billing', p_payer_type);
+	        END IF;
+            
             -- Step- 2 -- Get the Fees from Fee_schedule_cpts based on the derived scheduled id
             SELECT
                 professional_fee,
@@ -3669,29 +3675,43 @@ END;
 $BODY$
   LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
--- Alter script For new Table changes 
--- --------------------------------------------------------------------------------------------------------------------
-ALTER TABLE billing.claim_status ADD COLUMN IF NOT EXISTS display_order BIGINT;
-ALTER TABLE billing.edi_clearinghouses ADD COLUMN IF NOT EXISTS edi_template_name TEXT;
-ALTER TABLE billing.edi_files ADD COLUMN IF NOT EXISTS uploaded_file_name TEXT;
-ALTER TABLE billing.grid_filters ADD COLUMN IF NOT EXISTS inactivated_dt TIMESTAMPTZ;
-DROP TABLE IF EXISTS billing.insurance_provider_clearinghouses;
-DROP TABLE IF EXISTS billing.paper_claim_printer_setup;
-ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS paper_claim_full_template_id BIGINT;
-ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS paper_claim_original_template_id BIGINT;
-ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS direct_invoice_template_id BIGINT;
-ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS patient_invoice_template_id BIGINT;
-ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS grid_field_settings JSON;
-ALTER TABLE billing.grid_filters ADD CONSTRAINT IF NOT EXISTS grid_filters_filter_name_uc UNIQUE(filter_type, filter_name);
--- --------------------------------------------------------------------------------------------------------------------
-CREATE INDEX charges_studies_idx1 ON billing.charges_studies(study_id);
-CREATE INDEX charges_studies_idx2 ON billing.charges_studies(charge_id);
-CREATE INDEX payment_applications_idx1 ON billing.payment_applications(charge_id);
--- --------------------------------------------------------------------------------------------------------------------
--- Function: billing.get_batch_claim_details(bigint, bigint)
+CREATE OR REPLACE FUNCTION billing.get_payer_claim_payments(IN bigint)
+  RETURNS TABLE(primary_paid_total money, primary_adj_total money, secondary_paid_total money, secondary_adj_total money) AS
+$BODY$
 
--- DROP FUNCTION billing.get_batch_claim_details(bigint, bigint);
-
+WITH claim_details as (
+            SELECT 
+            p_pat_ins.insurance_provider_id  as p_pat_ins_id,
+            s_pat_ins.insurance_provider_id  as s_pat_ins_id,
+            t_pat_ins.insurance_provider_id  as t_pat_ins_id
+            FROM billing.claims
+            LEFT JOIN patient_insurances p_pat_ins ON p_pat_ins.id=primary_patient_insurance_id
+            LEFT JOIN patient_insurances s_pat_ins ON s_pat_ins.id=secondary_patient_insurance_id
+            LEFT JOIN patient_insurances t_pat_ins ON t_pat_ins.id=tertiary_patient_insurance_id
+            WHERE 
+            claims.id = $1
+            )
+        SELECT
+            coalesce(sum(pa.amount)   FILTER (WHERE  insurance_provider_id = (SELECT claim_details.p_pat_ins_id FROM claim_details)),0::money)    AS  primary_paid_total,
+            coalesce(sum(pa.adjustment)   FILTER (WHERE  insurance_provider_id = (SELECT claim_details.p_pat_ins_id FROM claim_details)),0::money)    AS  primary_adj_total,
+            coalesce(sum(pa.amount)   FILTER (WHERE  insurance_provider_id = (SELECT claim_details.s_pat_ins_id FROM claim_details)),0::money)    AS secondary_paid_total,
+                coalesce(sum(pa.adjustment)   FILTER (WHERE  insurance_provider_id = (SELECT claim_details.s_pat_ins_id FROM claim_details)),0::money)    AS secondary_adj_total
+                FROM
+                    billing.payments AS p
+                    INNER JOIN (
+                        SELECT
+                            distinct pa.payment_id,
+                    sum(pa.amount) FILTER (WHERE  amount_type='payment') as amount,
+                            sum(pa.amount) FILTER (WHERE  amount_type='adjustment') as adjustment
+                        FROM
+                            billing.charges AS c
+                            INNER JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
+                        WHERE
+                            c.claim_id = $1  GROUP BY  pa.payment_id
+                    ) AS pa ON p.id = pa.payment_id 
+$BODY$
+  LANGUAGE sql;
+-- --------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION billing.get_batch_claim_details(IN i_study_id bigint, IN i_created_by bigint)
   RETURNS TABLE(claim_icds json, charges json, insurances json, claims json) AS
 $BODY$
@@ -3919,13 +3939,26 @@ SELECT
 
 END
 $BODY$
-  LANGUAGE plpgsql VOLATILE
-  COST 100
-  ROWS 1000;
-ALTER FUNCTION billing.get_batch_claim_details(bigint, bigint)
-  OWNER TO postgres;
-
-
+  LANGUAGE plpgsql;
+-- --------------------------------------------------------------------------------------------------------------------
+-- Alter script For new Table changes 
+-- --------------------------------------------------------------------------------------------------------------------
+ALTER TABLE billing.claim_status ADD COLUMN IF NOT EXISTS display_order BIGINT;
+ALTER TABLE billing.edi_clearinghouses ADD COLUMN IF NOT EXISTS edi_template_name TEXT;
+ALTER TABLE billing.edi_files ADD COLUMN IF NOT EXISTS uploaded_file_name TEXT;
+ALTER TABLE billing.grid_filters ADD COLUMN IF NOT EXISTS inactivated_dt TIMESTAMPTZ;
+DROP TABLE IF EXISTS billing.insurance_provider_clearinghouses;
+DROP TABLE IF EXISTS billing.paper_claim_printer_setup;
+ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS paper_claim_full_template_id BIGINT;
+ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS paper_claim_original_template_id BIGINT;
+ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS direct_invoice_template_id BIGINT;
+ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS patient_invoice_template_id BIGINT;
+ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS grid_field_settings JSON;
+ALTER TABLE billing.grid_filters ADD CONSTRAINT IF NOT EXISTS grid_filters_filter_name_uc UNIQUE(filter_type, filter_name);
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE INDEX charges_studies_idx1 ON billing.charges_studies(study_id);
+CREATE INDEX charges_studies_idx2 ON billing.charges_studies(charge_id);
+CREATE INDEX payment_applications_idx1 ON billing.payment_applications(charge_id);
 -- --------------------------------------------------------------------------------------------------------------------
 -- MAKE SURE THIS COMMENT STAYS AT THE BOTTOM - ADD YOUR CHANGES ABOVE !!!!
 -- RULES:
@@ -3936,46 +3969,3 @@ RAISE NOTICE '--- END OF THE SCRIPT ---';
 END
 $$;
 -- ====================================================================================================================
-CREATE OR REPLACE FUNCTION billing.get_payer_claim_payments(IN bigint)
-  RETURNS TABLE(primary_paid_total money, primary_adj_total money, secondary_paid_total money, secondary_adj_total money) AS
-$BODY$
-
-WITH claim_details as (
-            SELECT 
-            p_pat_ins.insurance_provider_id  as p_pat_ins_id,
-            s_pat_ins.insurance_provider_id  as s_pat_ins_id,
-            t_pat_ins.insurance_provider_id  as t_pat_ins_id
-            FROM billing.claims
-            LEFT JOIN patient_insurances p_pat_ins ON p_pat_ins.id=primary_patient_insurance_id
-            LEFT JOIN patient_insurances s_pat_ins ON s_pat_ins.id=secondary_patient_insurance_id
-            LEFT JOIN patient_insurances t_pat_ins ON t_pat_ins.id=tertiary_patient_insurance_id
-            WHERE 
-            claims.id = $1
-            )
-        SELECT
-            coalesce(sum(pa.amount)   FILTER (WHERE  insurance_provider_id = (SELECT claim_details.p_pat_ins_id FROM claim_details)),0::money)    AS  primary_paid_total,
-            coalesce(sum(pa.adjustment)   FILTER (WHERE  insurance_provider_id = (SELECT claim_details.p_pat_ins_id FROM claim_details)),0::money)    AS  primary_adj_total,
-            coalesce(sum(pa.amount)   FILTER (WHERE  insurance_provider_id = (SELECT claim_details.s_pat_ins_id FROM claim_details)),0::money)    AS secondary_paid_total,
-                coalesce(sum(pa.adjustment)   FILTER (WHERE  insurance_provider_id = (SELECT claim_details.s_pat_ins_id FROM claim_details)),0::money)    AS secondary_adj_total
-                FROM
-                    billing.payments AS p
-                    INNER JOIN (
-                        SELECT
-                            distinct pa.payment_id,
-                    sum(pa.amount) FILTER (WHERE  amount_type='payment') as amount,
-                            sum(pa.amount) FILTER (WHERE  amount_type='adjustment') as adjustment
-                        FROM
-                            billing.charges AS c
-                            INNER JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
-                        WHERE
-                            c.claim_id = $1  GROUP BY  pa.payment_id
-                    ) AS pa ON p.id = pa.payment_id 
-$BODY$
-  LANGUAGE sql VOLATILE
-  COST 100
-  ROWS 1000;
-ALTER FUNCTION billing.get_payer_claim_payments(bigint)
-  OWNER TO postgres;
-
--- ====================================================================================================================
-

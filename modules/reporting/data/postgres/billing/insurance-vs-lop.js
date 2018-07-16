@@ -122,7 +122,7 @@ WITH study_cte AS (
        ELSE modality_code 
       END AS "Modality",
       CASE WHEN modality_code IS NOT NULL AND claim_dt IS NULL THEN 'Modality Totals'
-           WHEN modality_code IS NULL AND claim_dt IS NULL THEN 'Grand Totals'
+           WHEN modality_code IS NULL AND claim_dt IS NULL THEN 'Grand Total'
            ELSE claim_dt
       END AS "Date",
       insurance AS "Insurance",
