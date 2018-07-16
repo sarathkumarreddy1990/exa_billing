@@ -40,8 +40,8 @@ module.exports = {
                                 , display_description
                                 , additional_info
                                 , sc.cpt_code_id AS cpt_id
-                                , ARRAY( SELECT icd_codes.id||'~'|| code ||'~'|| icd_codes.description FROM public.icd_codes WHERE id = ANY(o.icd_code_ids_billing) ) as icd_codes_billing
-				                , o.icd_code_ids_billing as icd_codes_billing_order 
+                               -- , ARRAY( SELECT icd_codes.id||'~'|| code ||'~'|| icd_codes.description FROM public.icd_codes WHERE id = ANY(o.icd_code_ids_billing) ) as icd_codes_billing
+				               -- , o.icd_code_ids_billing  as icd_codes_billing_order 
                             FROM public.study_cpt sc
                             INNER JOIN public.studies s ON s.id = sc.study_id
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
@@ -95,18 +95,7 @@ module.exports = {
                                         order_info -> 'ordering_facility_id' AS ordering_facility_id,
                                         order_info -> 'ordering_facility' AS ordering_facility_name,
                                         order_info -> 'pos' AS pos_type,
-                                        orders.order_status AS order_status, (
-                                            SELECT
-                                                claim_status
-                                            FROM
-                                                claims
-                                            WHERE
-                                                order_id = orders.id
-                                                AND (claims.has_expired != 'true' OR has_expired IS NULL)
-                                                ORDER BY
-                                                id DESC
-                                                LIMIT 1
-                                                ) AS claim_status,
+                                        orders.order_status AS order_status,
                                         order_info -> 'billing_provider' AS billing_provider_id,
                                         order_info -> 'pos_type_code' AS pos_type_code,
                                         p.full_name AS patient_name,
@@ -640,24 +629,54 @@ module.exports = {
 
         let { id } = params;
 
-        const sql = SQL`SELECT
-                             studies.id
-                            ,studies.patient_id
-                            ,studies.modality_id
-                            ,studies.facility_id
-                            ,accession_no
-                            ,study_description
-                            ,study_status
-                            ,study_dt
-                            ,facilities.facility_name
-                            
-                        FROM studies
+        const sql = SQL`
+        SELECT * FROM (
+            SELECT json_agg(row_to_json(charge)) "charges" 
+                    FROM (
+                            SELECT
+                                 studies.id
+                                ,studies.patient_id
+                                ,studies.modality_id
+                                ,studies.facility_id
+                                ,accession_no
+                                ,study_description
+                                ,study_status
+                                ,study_dt
+                                ,facilities.facility_name
+                            FROM studies
                             LEFT JOIN orders ON orders.id=studies.order_id
                             INNER JOIN facilities ON studies.facility_id=facilities.id
-                        WHERE  
+                            WHERE  
                             studies.has_deleted=False AND studies.patient_id = ${id}
                             AND NOT EXISTS ( SELECT 1 FROM billing.charges_studies WHERE study_id = studies.id )
-                        ORDER BY id ASC `;
+                            ORDER BY id ASC
+                    ) AS charge
+            ) charge_details
+            ,(
+                SELECT (row_to_json(patient_default_details)) "patient_details" 
+                    FROM
+                        (
+                        SELECT 
+                            p.id AS patient_id
+                            ,p.full_name AS patient_name
+				            ,p.birth_date AS patient_dob
+				            ,p.gender AS patient_gender
+				            ,p.account_no AS patient_account_no
+                            ,f.id AS facility_id
+                            ,COALESCE(f.facility_info->'billing_provider_id','0')::numeric AS billing_provider_id
+                            ,COALESCE(f.facility_info->'service_facility_id','0')::numeric AS service_facility_id
+                            ,COALESCE(f.facility_info->'rendering_provider_id','0')::numeric AS rendering_provider_id 
+                            ,facility_info->'service_facility_name' as service_facility_name
+                            ,fac_prov_cont.id AS rendering_provider_contact_id
+                            ,fac_prov.full_name AS rendering_provider_full_name
+                        FROM
+                            patients p
+                        INNER JOIN facilities f ON f.id = p.facility_id
+                        LEFT JOIN provider_contacts fac_prov_cont ON f.facility_info->'rendering_provider_id'::text = fac_prov_cont.id::text
+                        LEFT JOIN providers fac_prov ON fac_prov.id = fac_prov_cont.provider_id
+                        WHERE p.id = ${id}
+                    ) AS patient_default_details
+            ) patient_info `;
 
         return await query(sql);
 
