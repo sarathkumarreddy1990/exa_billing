@@ -606,6 +606,8 @@ define(['jquery',
 
                                 $(".spnInvoicePrint").click(function (e) {
                                     var ele = (e.target.id).split('_');
+                                    printerClaimids = [];
+
                                     _.each(ele, function (claimid, index) {
                                         if (claimid != 'spnInvoicePrint') {
                                             printerClaimids.push(parseInt(claimid));
