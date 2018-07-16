@@ -1552,7 +1552,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 "id": 65,
                 "field_code": "billed_status",
                 "field_name": "Billed Status",
-                "i18n_name": "shared.fields.billedStatus",
+                "i18n_name": "setup.userSettings.billedstatus",
                 "field_info": {
                     "name": "billed_status",
                     "width": 100,
