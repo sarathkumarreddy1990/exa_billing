@@ -717,20 +717,7 @@
           "sortable": true
         },
         "field_code": "vehicle_name"
-      },
-      {
-        "id": 34,
-        "field_name": "Claim Status",
-        "i18n_name": "setup.userSettings.claimStatus",
-        "field_info": {
-          "custom_name": "Claim Status",
-          "name": "claim_status",
-          "width": 100,
-          "search": true,
-          "sortable": true
-        },
-        "field_code": "claim_status"
-      },
+      },     
       {
         "id": 35,
         "field_name": "Responsible",
@@ -834,31 +821,7 @@
           "defaultValue": ""
         },
         "field_code": "check_indate"
-      },
-      {
-        "id": 43,
-        "field_name": "Billing Code",
-        "i18n_name": "setup.userSettings.billingCode",
-        "field_info": {
-          "custom_name": "Billing Code",
-          "name": "billing_code",
-          "width": 200,
-          "defaultValue": ""
-        },
-        "field_code": "billing_code"
-      },
-      {
-        "id": 44,
-        "field_name": "Billing Class",
-        "i18n_name": "setup.userSettings.billingClass",
-        "field_info": {
-          "custom_name": "Billing Class",
-          "name": "billing_class",
-          "width": 200,
-          "defaultValue": ""
-        },
-        "field_code": "billing_class"
-      },
+      },     
       {
         "id": 45,
         "field_name": "Status Changed Date",
@@ -1008,6 +971,19 @@
           "hidden": false
         },
         "field_code": "mudatacaptured"
+      },
+      {
+        "id": 57,
+        "field_name": "Eligibility",
+        "i18n_name": "setup.userSettings.eligibility",
+        "field_info": {
+          "custom_name": "Eligibility",
+          "name": "eligibility_verified",
+          "width": 90,
+          "stype": "select",
+          "hidden": false
+        },
+        "field_code": "eligibility_verified"
       },
       {
         "id": 58,
