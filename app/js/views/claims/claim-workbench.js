@@ -1152,7 +1152,7 @@ define(['jquery',
                             table.renderStudy();
 
                             $('#btnValidateExport').one().click(function (e) {
-                                commonjs.showLoading('Excel is Export ...')
+                                commonjs.showLoading('Export is In Process ...')
                                 table.renderStudy(true);                                  
                                 $('#btnValidateExport').css('display','none');    
                                 commonjs.hideLoading();
