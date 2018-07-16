@@ -71,6 +71,9 @@ define([
                             return commonjs.showWarning('Unable to process..');
                         }
 
+                        claimIDs = claimIDs.map(Number);
+                        processedIDs = processedIDs.map(Number);
+
                         discardedIDs = _.difference(claimIDs, processedIDs);
                         if (discardedIDs.length > 0) {
                             commonjs.showWarning('Unable to process few claims - ' + discardedIDs.toString());

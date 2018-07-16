@@ -544,19 +544,20 @@ module.exports = {
                     , (
                         SELECT json_agg(row_to_json(claim_fee_details)) AS claim_fee_details
                         FROM (
-                            SELECT
-			                    (SELECT charges_bill_fee_total::numeric from billing.get_claim_totals(bc.id)) AS bill_fee
-				                ,COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient' and bpa.amount_type = 'payment'),0::money)::numeric AS patient_paid
-				                ,COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient' and bpa.amount_type = 'payment'),0::money)::numeric AS others_paid
-			                    ,(SELECT adjustments_applied_total::numeric from billing.get_claim_totals(bc.id)) AS adjustment
-			                    ,(SELECT payments_applied_total::numeric from billing.get_claim_totals(bc.id)) AS payment
-			                    ,(SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id))::numeric AS balance
-				            FROM billing.claims bc
-				                INNER JOIN billing.charges bch ON bch.claim_id = bc.id 
-				                LEFT JOIN billing.payment_applications bpa ON bpa.charge_id  =  bch.id 
-				                LEFT JOIN billing.payments bp ON bp.id = bpa.payment_id 
-				            WHERE bc.id = c.id
-			                GROUP BY bc.id
+                            SELECT 
+                                  COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient' AND amount_type = 'payment'),0::money)::numeric AS patient_paid
+                                , COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient' AND amount_type = 'payment'),0::money)::numeric AS others_paid
+                                , SUM(CASE WHEN (amount_type = 'adjustment' AND (accounting_entry_type != 'refund_debit' OR adjustment_code_id IS NULL)) THEN bpa.amount ELSE 0::money END)::numeric AS adjustment
+                                , SUM(CASE WHEN accounting_entry_type = 'refund_debit' THEN bpa.amount ELSE 0::money END)::numeric AS refund_amount
+                                , (SELECT SUM(claim_balance_total) FROM billing.get_claim_totals(c.id))::numeric AS balance
+                                , (SELECT charges_bill_fee_total from billing.get_claim_totals(c.id))::numeric AS bill_fee
+                            FROM billing.claims bc
+                            INNER JOIN billing.charges ch ON ch.claim_id = bc.id
+                            LEFT JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id 
+                            LEFT JOIN billing.payments bp ON bp.id = bpa.payment_id
+                            LEFT JOIN billing.adjustment_codes adj ON adj.id = bpa.adjustment_code_id
+                         WHERE 
+                            bc.id = c.id
                       ) claim_fee_details) AS claim_fee_details
                     FROM
                         billing.claims c

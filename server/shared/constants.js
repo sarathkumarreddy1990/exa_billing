@@ -188,6 +188,7 @@ module.exports = {
         'process-file': 'ERAI',
         'claim_study': 'ECLM',
         'follow_ups': 'ECLM',
-        'claim_patient': 'PCLM'
+        'claim_patient': 'PCLM',
+        'payment_applications': 'APAY'
     }
 };

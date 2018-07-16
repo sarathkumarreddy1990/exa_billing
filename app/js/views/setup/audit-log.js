@@ -168,7 +168,7 @@ define([
                         commonjs.showDialog({
                             'header': 'Log Details',
                             'width': '50%',
-                            'height': '80%',
+                            'height': '70%',
                             'needShrink': true,
                             'html': self.auditLogDetailsTemplate
                         });
@@ -179,9 +179,9 @@ define([
                             for (element in response.changes.old_values) {
                                 if (element.toLowerCase() != 'id' && element.toLowerCase() != 'template_content') {
                                     var html = "<tr>" +
-                                        "<td style='width: 20%;border:1px solid #dee2e6;'>" + element + "</td>" +
-                                        "<td style='width: 40%;border:1px solid #dee2e6;'>" + response.changes.old_values[element] + "</td>" +
-                                        "<td style='width: 40%;border:1px solid #dee2e6;'>" + response.changes.new_values[element] + "</td>" +
+                                        "<td>" + element + "</td>" +
+                                        "<td>" + response.changes.old_values[element] + "</td>" +
+                                        "<td>" + response.changes.new_values[element] + "</td>" +
                                         "</tr>";
                                     $("#chngTblBdy").append(html);
                                 }

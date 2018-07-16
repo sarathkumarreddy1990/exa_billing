@@ -608,13 +608,13 @@ define(['jquery',
                 
                 var claim_fee_details = claim_data.claim_fee_details && claim_data.claim_fee_details.length ? claim_data.claim_fee_details[0] : {};
                 
-                $('#spBillFee').text(commonjs.roundFee(claim_fee_details.bill_fee || ''));
-                $('#spBalance').text(commonjs.roundFee(claim_fee_details.balance || ''));
-                //$('#spAllowed').text(commonjs.roundFee(claim_fee_details || ''));
-                $('#spPatientPaid').text(commonjs.roundFee(claim_fee_details.patient_paid || ''));
-                $('#spOthersPaid').text(commonjs.roundFee(claim_fee_details.others_paid || ''));
-                $('#spAdjustment').text(commonjs.roundFee(claim_fee_details.adjustment || ''));
-                //$('#spRefund').text(commonjs.roundFee(claim_fee_details.refund || ''));                
+                $('#spBillFee').text(commonjs.roundFee(claim_fee_details.bill_fee || 0.00));
+                $('#spBalance').text(commonjs.roundFee(claim_fee_details.balance || 0.00));
+                $('#spAllowed').text(commonjs.roundFee(claim_fee_details.allowed || 0.00));
+                $('#spPatientPaid').text(commonjs.roundFee(claim_fee_details.patient_paid || 0.00));
+                $('#spOthersPaid').text(commonjs.roundFee(claim_fee_details.others_paid || 0.00));
+                $('#spAdjustment').text(commonjs.roundFee(claim_fee_details.adjustment || 0.00));
+                $('#spRefund').text(commonjs.roundFee(claim_fee_details.refund_amount || 0.00));                
 
                 /* Billing summary end */
 
@@ -1458,10 +1458,6 @@ define(['jquery',
                 $('#spBalance').text(commonjs.roundFee(total_bill_fee));
                 $('#spTotalAllowedFeeValue').text(commonjs.roundFee(total_allowed));
                 $('#spAllowed').text(commonjs.roundFee(total_allowed));
-                $('#spPatientPaid').text(commonjs.roundFee(patient_paid));
-                $('#spOthersPaid').text(commonjs.roundFee(others_paid));
-                $('#spAdjustment').text(commonjs.roundFee(adjustemnt_amout));
-                $('#spRefund').text(commonjs.roundFee(refund));
             },
 
             updateResponsibleList: function (payer_details) {
@@ -2952,7 +2948,7 @@ define(['jquery',
                             if (!data.invalidClaim_data.length)
                                 commonjs.showStatus(commonjs.geti18NString("messages.status.validatedSuccessfully"));
                             else
-                                commonjs.showNestedDialog({ header: 'Validation Results', i18nHeader: 'menuTitles.order.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });  
+                                commonjs.showNestedDialog({ header: 'Validation Results', i18nHeader: 'billing.claims.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });  
                         }
                     },
                     error: function (err, response) {
