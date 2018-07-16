@@ -1481,7 +1481,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Image delivery": {
                 "id": 60,
                 "field_name": "Image delivery",
-                "i18n_name": "setup.providers.imageDelivery",
+                "i18n_name": "setup.userSettings.imageDelivery",
                 "field_info": {
                     "custom_name": "Image delivery",
                     "name": "image_delivery",
@@ -1551,8 +1551,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Billed Status": {
                 "id": 65,
                 "field_code": "billed_status",
-                "field_name": "Billed Statsu",
-                "i18n_name": "shared.fields.billedStatus",
+                "field_name": "Billed Status",
+                "i18n_name": "setup.userSettings.billedstatus",
                 "field_info": {
                     "name": "billed_status",
                     "width": 100,
