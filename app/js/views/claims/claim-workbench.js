@@ -426,7 +426,7 @@ define(['jquery',
                 var filterID = commonjs.currentStudyFilter;
                 var filter = commonjs.loadedStudyFilters.get(filterID);
 
-                var claimIds =[],existingBillingMethod='',existingClearingHouse='',existingEdiTemplate='', selectedbillingMethod=[], selectedpayerType = [];      
+                var claimIds =[],existingBillingMethod='',existingClearingHouse='',existingEdiTemplate='', selectedpayerType = [];      
 
                 for (var i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
                     var rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;
