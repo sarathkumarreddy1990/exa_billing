@@ -1481,7 +1481,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Image delivery": {
                 "id": 60,
                 "field_name": "Image delivery",
-                "i18n_name": "setup.providers.imageDelivery",
+                "i18n_name": "setup.userSettings.imageDelivery",
                 "field_info": {
                     "custom_name": "Image delivery",
                     "name": "image_delivery",

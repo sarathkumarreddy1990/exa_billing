@@ -474,9 +474,6 @@
             "definition":"Template Definition",
             "pageHeight": "Page Height",
             "pageWidth": "Page Width"
-        }, 
-        "providers": {
-            "imageDelivery": "Image Delivery"
         }
     }
 }
