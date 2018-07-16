@@ -69,15 +69,14 @@ define([
                 'change #ddlReferringPhysicianOption': 'onOptionChangeSelect',
                 'change #ddlCPTCodeOption': 'onOptionChangeSelectCPT',
                 'click #btnViewReport': 'onReportViewClick',
-                'click #btnViewReportNewTab': 'onReportViewClick',
+                'click #btnViewReportNewTabClaimTransaction': 'onReportViewClick',
                 'click #btnPdfReport': 'onReportViewClick',
                 'click #btnExcelReport': 'onReportViewClick',
                 'click #btnCsvReport': 'onReportViewClick',
                 'click #btnXmlReport': 'onReportViewClick',
                 "click #chkAllClaims": "selectAllClaims",
                 "click #chkAllInsGroup": "selectAllInsGroup",
-                "change .insGrpChk": "chkInsGroup",
-                "click #chkAllBillingPro": "selectAllBillingProviders",
+                "change .insGrpChk": "chkInsGroup",               
                 "click #chkAllFacility": "selectAllFacility",
                 "click #showCheckboxesClaim": "showCheckboxesClaim",
                 "click #showInsGroupCheckboxes": "showInsuranceGroupList",
@@ -153,21 +152,18 @@ define([
                 $('#chkServiceDateBill').attr('checked', true); // For service Date
 
                 // facilityFilter multi select boxes
-                $('#ddlFacilityFilter, #ddlClaimSelectBoxes, #ddlInsuranceOption, #ddlUsersOption , #ddlOrderBySelection, #ddlReferringPhysicianOption').multiselect({
+                $('#ddlFacilityFilter,  #ddlInsuranceOption, #ddlUsersOption , #ddlOrderBySelection, #ddlReferringPhysicianOption').multiselect({
                     maxHeight: 200,
                     buttonWidth: '250px',
                     enableFiltering: true,
                     includeSelectAllOption: true,
                     enableCaseInsensitiveFiltering: true
                 });
-                // // facilityFilter multi select boxes
+               
                 $('#ddlClaimSelectBoxes').multiselect({
                     maxHeight: 170,
-                    buttonWidth: '170px',
-                    includeSelectAllOption: true
-                });
-                // BillingProvider multi select boxes
-                $('#ddlBillingProvider').empty();
+                    buttonWidth: '200px'                  
+                });            
             },
 
             // Date Range Binding
@@ -214,7 +210,7 @@ define([
                     btnClicked = btnClicked.parent(); // in case FA icon 'inside'' button was clicked...
                 }
                 var rFormat = btnClicked ? btnClicked.attr('data-rformat') : null;
-                var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnViewReportNewTab' : false;
+                var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnViewReportNewTabClaimTransaction' : false;
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = openInNewTab && rFormat === 'html';
 
@@ -274,12 +270,7 @@ define([
                    // commonjs.showWarning('Please Select Service / Pay / Bill Created Date');
                     return;
                 }
-
-                // claim Selection Validation
-                if ($('#ddlClaimSelectBoxes').length < 0) {
-                    commonjs.showWarning('Please Select Claim Selection');
-                    return;
-                }
+               
                 return true;
             },
 
@@ -311,12 +302,9 @@ define([
 
                     insuranceIds: this.viewModel.insuranceIds,
                     insuranceOption: this.viewModel.insuranceOption ? this.viewModel.insuranceOption : '',
+                    'insuranceGroupList': this.viewModel.insuranceGroupList,
 
-                    insuranceGroupList: this.viewModel.insuranceGroupList,
-                    insGroupOption: this.viewModel.insGroupOption ? this.viewModel.insGroupOption : '',
-
-                    allInsuranceGroup: this.viewModel.allInsGrpSelection ? this.viewModel.allInsGrpSelection : '',
-                    insuranceGroupList: this.selectedInsGrpList ? this.selectedInsGrpList : '',
+                    allInsuranceGroup: this.viewModel.allInsGrpSelection ? this.viewModel.allInsGrpSelection : '',                    
 
                     userIds: this.viewModel.userIds ? this.viewModel.userIds : '',
                     referringProIds: this.viewModel.refPhyId ? this.viewModel.refPhyId : '',
@@ -450,10 +438,8 @@ define([
                 this.viewModel.allFacilities = false;
                 $('#facilityDiv').hide();
                 $('#billingProviderDiv').hide();
-                //  $('#ddlBillingProvider').multiselect("deselectAll", false).multiselect("refresh");
-                //   $('#ddlFacilityFilter').multiselect("deselectAll", false).multiselect("refresh");
-
             },
+
             // Billing Provider Changes -- worked
             onBillingProviderChange: function () {
                 $('#billingProDropdown').show();
@@ -463,6 +449,7 @@ define([
                 $('#ddlFacilityFilter').multiselect("deselectAll", false).multiselect("refresh");
                 this.viewModel.allFacilities = false;
             },
+            
             // Facility Changes -- worked
             onFacilityChange: function () {
                 $('#billingProDropdown').hide();
@@ -481,7 +468,7 @@ define([
                 selected.each(function () {
                     claimSelections.push($(this).val());
                 });
-                this.selectedClaimList = claimSelections
+                this.selectedClaimList = claimSelections;             
                 // this.viewModel.allClaimSelection = this.selectedClaimList && this.selectedClaimList.length === $('#ddlClaimSelectBoxes option').length;
 
             },
@@ -495,6 +482,7 @@ define([
                 this.selectedFacilityList = facilities
                 this.viewModel.allFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlFacilityFilter option").length;
             },
+
             // multi select billing provider - worked
             getBillingProvider: function (e) {
                 var billing_pro = []
@@ -505,6 +493,7 @@ define([
                 this.selectedBillingProList = billing_pro;
                 this.viewModel.allBillingProvider = this.selectedBillingProList && this.selectedBillingProList.length === $("#ddlBillingProvider option").length;
             },
+
 
             // multi select insurance provider
             chkInsGroup: function (e) {

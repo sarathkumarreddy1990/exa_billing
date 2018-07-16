@@ -170,7 +170,7 @@ define([
                             }
 
                             if (patient_details && patient_details.length > 0) {
-                                var patient_details = 'Claim Inquiry: ' + patient_details[0].patient_name + ' (Acc#:' + patient_details[0].account_no + ')' + ',  ' + patient_details[0].birth_date + ',  ' + patient_details[0].gender;
+                                var patient_details = 'Claim Inquiry: ' + patient_details[0].patient_name + ' (Acc#:' + patient_details[0].account_no + ')' + ',  ' + moment(patient_details[0].birth_date).format('L') + ',  ' + patient_details[0].gender;
                                 $(parent.document).find('#spanModalHeader').html(patient_details)
                             }
 

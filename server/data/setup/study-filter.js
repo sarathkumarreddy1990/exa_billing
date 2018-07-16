@@ -7,6 +7,8 @@ module.exports = {
 
         args.userId = args.userId ? args.userId : 1;
         let inactivated_dt = args.isActive ? null : 'now()'; //is_active
+        let auditMsgUpdate = args.filterType == 'claims' ? `Update : Claim Updated ` : `Update : StudyFilter Updated `;
+        let auditMsgIns = args.filterType == 'claims' ? `Update : Claim Added ` : `Update : StudyFilter Added `;
 
         let insert_update_study_filter = SQL` WITH update_grid_filter AS
         ( UPDATE
@@ -62,7 +64,7 @@ module.exports = {
                 id,
                 ${args.screenName},
                 ${args.moduleName},
-               'Study Filter Created ' || id ,
+                ${auditMsgUpdate} || ${args.filterName} || id,
                 ${args.clientIp || '127.0.0.1'},
                 json_build_object(
                     'old_values', (SELECT COALESCE(old_values, '{}') FROM insert_grid_filter),
@@ -79,7 +81,7 @@ module.exports = {
                 id,
                 ${args.screenName},
                 ${args.moduleName},
-                'Study Filter Updated ' || id ,
+                ${auditMsgUpdate} || (${args.filterName}) || id,
                 ${args.clientIp || '127.0.0.1'},
                 json_build_object(
                     'old_values', (SELECT COALESCE(old_values, '{}') FROM update_grid_filter),
