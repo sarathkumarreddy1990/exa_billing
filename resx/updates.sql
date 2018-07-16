@@ -1487,6 +1487,33 @@ BEGIN
 			, i_pointer4
 			, i_authorization_no
 		) RETURNING *, '{}'::jsonb old_values), 
+        save_apply_payment AS (
+        INSERT INTO billing.payment_applications (
+              payment_id
+            , applied_dt
+            , charge_id
+            , amount
+            , amount_type
+            , created_by
+            )
+        SELECT
+              payment_id
+        	, applied_dt
+            , (SELECT id FROM save_charges)
+            , 0.00
+            , 'payment'
+            ,  i_created_by
+        FROM billing.charges ch
+        INNER JOIN billing.payment_applications pa ON pa.charge_id = ch.id
+        WHERE ch.claim_id = i_claim_id AND pa.amount_type = 'payment'
+        AND EXISTS (SELECT 
+                            pa.id AS payment_count
+                        FROM
+                            billing.charges ch
+                        INNER JOIN billing.payment_applications pa ON pa.charge_id = ch.id
+                        WHERE ch.claim_id = i_claim_id)
+         GROUP BY applied_dt, payment_id
+        ),
 	save_charge_study AS (
 		INSERT INTO billing.charges_studies
 			( charge_id
@@ -2627,6 +2654,8 @@ BEGIN
 			ELSIF ((p_payer_type = 'secondary_insurance' OR p_payer_type = 'tertiary_insurance') AND p_existing_payer_type = 'primary_insurance') THEN
 				l_bill_fee_recalculation = FALSE;
 			END IF;
+        ELSE 
+			l_bill_fee_recalculation = FALSE;
 		END IF;
 
 		IF p_payer_type = p_existing_payer_type THEN

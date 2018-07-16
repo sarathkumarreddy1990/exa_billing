@@ -175,7 +175,7 @@ define('grid', [
                 $divObj.append(liClaimStatus);
                 self.checkSubMenuRights('li_ul_change_claim_status');
                 var liArray = [];
-                commonjs.getClaimStudy(selectedStudies[0].study_id).then(function (result) {
+                commonjs.getClaimStudy(selectedStudies[0].study_id, function (result) {
                     if (result) {
                         study_id = result.study_id;
                         order_id = result.order_id;
@@ -1066,7 +1066,7 @@ define('grid', [
                     }
                     if (options.isClaimGrid || (gridData.claim_id && gridData.claim_id != '')) {
                         self.claimView = new claimsView();
-                        commonjs.getClaimStudy(rowID).then(function (result) {
+                        commonjs.getClaimStudy(rowID, function (result) {
                             if (result) {
                                 study_id = result.study_id;
                                 order_id = result.order_id;
@@ -1104,7 +1104,7 @@ define('grid', [
                 disablepaging: true,
                 disableadd: true,
                 showcaption: false,
-                offsetHeight: '10',
+                offsetHeight: '0',
                 customizeSort: true,
                 sortable: {
                     exclude: [
