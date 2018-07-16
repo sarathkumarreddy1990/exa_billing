@@ -2497,6 +2497,7 @@ define(['jquery',
 
                             if (response && response.message) {
                                 commonjs.showWarning(response.message);
+                                saveButton.attr('disabled', false);
                             } else {
 
                                 var claimRefreshInterval = setTimeout(function () {

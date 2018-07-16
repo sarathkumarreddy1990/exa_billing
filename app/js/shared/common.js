@@ -2443,7 +2443,7 @@ var commonjs = {
                 default:
                     height = commonjs.getWindowHeight() - (topnavHieght + 145);
                     break;
-                    
+
                 case 'Payments':
                     height = commonjs.getWindowHeight() - ($('#divPaymentFilter').height() + 155);
                     break;
