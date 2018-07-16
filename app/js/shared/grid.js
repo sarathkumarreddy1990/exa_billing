@@ -1104,7 +1104,7 @@ define('grid', [
                 disablepaging: true,
                 disableadd: true,
                 showcaption: false,
-                offsetHeight: '10',
+                offsetHeight: '0',
                 customizeSort: true,
                 sortable: {
                     exclude: [
