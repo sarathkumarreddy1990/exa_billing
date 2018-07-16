@@ -299,7 +299,7 @@ module.exports = {
         return await query(user_role_sql);
     },
 
-    getInsurancePayerTypes: async function (params) {
+    insurance_payer_types: async function (params) {
 
         let payer_q = ` AND (description ILIKE '%${params.q}%' OR code ILIKE '%${params.q}%' ) `;
 

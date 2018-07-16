@@ -1095,8 +1095,8 @@ define(['jquery',
                             });
                             table.renderStudy();
 
-                            $('#btnValidateExport').on().click(function (e) {
-                                commonjs.showStatus('Excel is Export ...')
+                            $('#btnValidateExport').one().click(function (e) {
+                                commonjs.showLoading('Excel is Export ...')
                                 table.renderStudy(true);                                  
                                 $('#btnValidateExport').css('display','none');    
                                 commonjs.hideLoading();
