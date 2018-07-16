@@ -2974,7 +2974,7 @@ define(['jquery',
                         var rowId = nextRowData.attr('id');
                         $(e.target).prop('disabled', true);
                         var data = $($tblGrid, parent.document).getRowData(rowId);
-                        commonjs.getClaimStudy(rowId).then(function (result) {
+                        commonjs.getClaimStudy(rowId, function (result) {
                             self.rendered = false;
                             self.showEditClaimForm(rowId, null, {
                                 'study_id': result && result.study_id ? result.study_id : 0,
