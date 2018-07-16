@@ -99,20 +99,21 @@ define([
                             if (showNestedDialog) {
                                 showDialog = commonjs.showNestedDialog;
                             }
-                        self.updateClaimStatus(processedIDs, templateType, function (err, claimData) {
-                            showDialog({
-                                header: self.pdfDetails[templateType].header,
-                                width: '90%',
-                                height: '75%',
-                                url: res.data.pdfBlob
-                            });
+                            
+                            self.updateClaimStatus(processedIDs, templateType, function (err, claimData) {
+                                showDialog({
+                                    header: self.pdfDetails[templateType].header,
+                                    width: '90%',
+                                    height: '75%',
+                                    url: res.data.pdfBlob
+                                });
 
-                            // const anchor = document.createElement('a');
-                            // document.body.appendChild(anchor);
-                            // anchor.href = window.URL.createObjectURL(res.data.pdfBlob);
-                            // anchor.download = 'myFileName.pdf';
-                            // anchor.click();
-                          });
+                                // const anchor = document.createElement('a');
+                                // document.body.appendChild(anchor);
+                                // anchor.href = window.URL.createObjectURL(res.data.pdfBlob);
+                                // anchor.download = 'myFileName.pdf';
+                                // anchor.click();
+                            });
                         };
 
                         pdfWorker.postMessage(docDefinition);
