@@ -2468,6 +2468,12 @@ $BODY$
 		            RETURN 0::MONEY;
 	            END IF;
             END IF;
+
+            ------- If cpt not available in fee schedule allowed fee same as bill fee
+            IF l_professional_fee IS NULL AND p_category = 'allowed' AND (l_payer_type = 'primary_insurance' OR l_payer_type = 'secondary_insurance' OR l_payer_type = 'tertiary_insurance') THEN 
+		        RETURN billing.get_computed_bill_fee(p_claim_id, p_cpt_id, p_modifier1, p_modifier2, p_modifier3, p_modifier4, 'billing', p_payer_type);
+	        END IF;
+            
             -- Step- 2 -- Get the Fees from Fee_schedule_cpts based on the derived scheduled id
             SELECT
                 professional_fee,
