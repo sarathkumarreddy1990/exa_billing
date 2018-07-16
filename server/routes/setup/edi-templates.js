@@ -15,7 +15,7 @@ router.get('/:flag/:name', async function (req, res) {
 });
 
 router.post('/:flag/:name', async function (req, res) {
-    const data = await ediController.createTemplate(req.params);
+    const data = await ediController.createTemplate(req.params, req.audit);
     httpHandler.send(req, res, data);
 });
 
@@ -25,7 +25,7 @@ router.put('/:flag/:name', async function (req, res) {
 });
 
 router.delete('/:flag/:name', async function (req, res) {
-    const data = await ediController.deleteTemplate(req.params);
+    const data = await ediController.deleteTemplate(req.params, req.audit);
     httpHandler.send(req, res, data);
 });
 
