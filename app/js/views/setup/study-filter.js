@@ -505,6 +505,7 @@ define([
 
                     /* Bind add button for ordering facilities - SMH */
                     $('#btnAddOrdFacility').unbind('click').click(function () {
+                        if($('#select2-ddlOrdFacility-container').text() === '') return;
                         if ($('#s2id_txtListOrdFacility > a.select2-default').length > 0) {
                             return false;
                         }
