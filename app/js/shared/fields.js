@@ -50,7 +50,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
 
         // filter inactive and no show study facilities
         var facilities = [];
-        var facilityValue = commonjs.makeValue(app.facilities, ":All;", "id", "facility_name");
+        var facilityValue = commonjs.makeValue(commonjs.getCurrentUsersFacilitiesFromAppSettings(), ":All;", "id", "facility_name");
         var bodyPartValue = commonjs.makeValue(commonjs.bindArray(app.bodyParts, false), ":All;");
         var insProviderTypeValue = commonjs.makeValue(app.insProviderTypes, ":All;", "description", "description");
         var billingCodeValue = commonjs.makeValue(app.billing_codes, ":All;", "id", "description");

@@ -1778,7 +1778,7 @@ var commonjs = {
         if (!app.userInfo) {
             throw new Error('App settings is missing userInfo!');
         }
-        return app.userInfo.user_type === 'SU' ? app.facilities : app.userfacilities
+        return app.userInfo.user_type === 'SU' ? app.facilities : app.userFacilities
     },
 
     getModalityRoomFromAppSettings: function (modalityRoomId) {
@@ -4787,7 +4787,7 @@ var commonjs = {
     getActiveFacilities: function (showStudiesFlag) {
         facilities = app.userInfo.user_type === "SU"
             ? app.facilities
-            : app.userfacilities;
+            : app.userFacilities;
         if (showStudiesFlag) {
             return facilities.reduce(function (facilitiesAcc, facility) {
                 var parsedFacility = Object.assign({}, facility, { facility_info: commonjs.hstoreParse(facility.facility_info) });
