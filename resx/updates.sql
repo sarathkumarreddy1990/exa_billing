@@ -3776,8 +3776,8 @@ BEGIN
             INNER JOIN public.studies s ON s.id = sc.study_id
             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
             INNER JOIN public.orders o on o.id = s.order_id
-            INNER JOIN appointment_types at ON at.id = s.appointment_type_id
-            INNER JOIN appointment_type_procedures atp ON atp.procedure_id = sc.cpt_code_id AND atp.appointment_type_id = s.appointment_type_id
+            LEFT JOIN appointment_types at ON at.id = s.appointment_type_id
+            LEFT JOIN appointment_type_procedures atp ON atp.procedure_id = sc.cpt_code_id AND atp.appointment_type_id = s.appointment_type_id
         WHERE study_id = i_study_id 
         ORDER BY s.id DESC 
  )
@@ -3821,43 +3821,75 @@ BEGIN
                 FROM 
                     public.patient_insurances 
                 WHERE 
-                    patient_id = ( SELECT COALESCE(NULLIF(patient_id,'0'),'0')::numeric FROM study_details ) AND valid_to_date >= (now())::date 
+                    patient_id = ( SELECT COALESCE(NULLIF(patient_id,'0'),'0')::numeric FROM study_details ) AND valid_to_date >= COALESCE((SELECT charge_dt FROM claim_charges LIMIT 1) , now())::date
                     GROUP BY coverage_level 
             ) as expiry ON TRUE                           
             WHERE 
-                pi.patient_id = ( SELECT COALESCE(NULLIF(patient_id,'0'),'0')::numeric FROM study_details ) AND expiry.valid_to_date = pi.valid_to_date AND expiry.coverage_level = pi.coverage_level 
+                pi.patient_id = ( SELECT COALESCE(NULLIF(patient_id,'0'),'0')::numeric FROM study_details )  AND expiry.valid_to_date = pi.valid_to_date AND expiry.coverage_level = pi.coverage_level 
                 ORDER BY pi.id ASC
             ) ins
             WHERE  ins.rank = 1
  )
+, billing_provider AS (			  
+                    SELECT
+					   p.id
+                    FROM billing.providers p
+                    INNER JOIN study_details sd ON sd.company_id = p.company_id
+                    INNER JOIN orders o ON o.id = sd.order_id
+                    WHERE p.id = COALESCE(NULLIF(order_info -> 'billing_provider',''), COALESCE(NULLIF(sd.billing_provider_id,''),'0') )::numeric 
+)
+, ordering_facility AS ( 
+                    SELECT
+					   pg.id 
+                    FROM 
+                       provider_groups pg
+                    INNER JOIN study_details sd ON sd.company_id = pg.company_id
+                    INNER JOIN orders o ON o.id = sd.order_id
+                    WHERE pg.id = COALESCE(NULLIF(order_info -> 'ordering_facility_id',''), COALESCE(NULLIF(sd.service_facility_id,''),'0') )::numeric  
+                    AND pg.has_deleted = false  AND (pg.group_type = 'OF'  OR pg.group_type IS NULL )
+)
+, rendering_provider AS ( 		   
+                    SELECT
+					   pc.id 
+                    FROM 
+						providers p
+                    INNER JOIN provider_contacts pc ON pc.provider_id = p.id
+                    INNER JOIN study_details sd ON sd.company_id = p.company_id
+                    INNER JOIN orders o ON o.id = sd.order_id
+                    WHERE pc.id = COALESCE(NULLIF(order_info -> 'rendering_provider_id',''),  COALESCE(NULLIF(sd.rendering_provider_id,''),'0') )::numeric  
+                    AND NOT p.has_deleted AND NOT pc.has_deleted  AND p.provider_type = 'PR' 
+)  
+, referring_provider AS ( 		   
+                    SELECT
+					   pc.id 
+                    FROM 
+                       providers p
+                    INNER JOIN provider_contacts pc ON pc.provider_id = p.id
+                    INNER JOIN study_details sd ON sd.company_id = p.company_id
+                    INNER JOIN orders o ON o.id = sd.order_id
+                    WHERE pc.id = COALESCE(NULLIF(o.referring_provider_ids [ 1 ],'0'),'0')::numeric 
+                    AND NOT p.has_deleted AND NOT pc.has_deleted  AND p.provider_type = 'RF' 
+)  
 ,claims AS (
 		SELECT
             orders.company_id
             ,orders.facility_id
             ,orders.patient_id
-          ,( SELECT
-              id
-              FROM billing.providers
-              WHERE id = COALESCE(NULLIF(order_info -> 'billing_provider',''),(SELECT COALESCE(NULLIF(billing_provider_id,''),'0')::text FROM study_details ) )::numeric 
-              AND company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) 
+           ,( CASE  WHEN (SELECT id FROM billing_provider) IS NOT NULL THEN (SELECT billing_provider_id FROM study_details)
+               ELSE NULL 
+               END   
             ) AS billing_provider_id
-          ,( SELECT id FROM 
-              provider_groups 
-              WHERE id = COALESCE(NULLIF(order_info -> 'ordering_facility_id',''), (SELECT COALESCE(NULLIF(service_facility_id,''),'0')::text FROM study_details ) )::numeric  
-              AND provider_groups.has_deleted = false  AND (provider_groups.group_type = 'OF'  OR provider_groups.group_type IS NULL )
-              AND provider_groups.company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) 
+            ,( CASE  WHEN (SELECT id FROM ordering_facility) IS NOT NULL THEN (SELECT service_facility_id FROM study_details)
+                ELSE NULL 
+                END   
             ) AS ordering_facility_id
-          ,( SELECT pc.id FROM 
-              public.providers p 
-              INNER JOIN provider_contacts pc ON pc.provider_id = p.id
-              WHERE pc.id = COALESCE(NULLIF(order_info -> 'rendering_provider_id',''), (SELECT COALESCE(NULLIF(rendering_provider_id,''),'0')::text FROM study_details ) )::numeric 
-              AND NOT p.has_deleted AND NOT pc.has_deleted AND p.company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) AND p.provider_type = 'PR'
+            ,( CASE  WHEN (SELECT id FROM rendering_provider) IS NOT NULL THEN (SELECT rendering_provider_id FROM study_details)
+                ELSE NULL 
+                END   
             ) AS rendering_provider_contact_id
-          ,( SELECT pc.id FROM 
-              public.providers p 
-              INNER JOIN provider_contacts pc ON pc.provider_id = p.id
-              WHERE pc.id = COALESCE(NULLIF(referring_provider_ids [ 1 ],'0'),'0')::numeric 
-              AND NOT p.has_deleted AND NOT pc.has_deleted AND p.company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) AND p.provider_type = 'RF'
+            ,( CASE  WHEN (SELECT id FROM referring_provider) IS NOT NULL THEN (SELECT id FROM referring_provider)
+                ELSE NULL 
+                END   
             ) AS referring_provider_contact_id
           ,( SELECT id FROM 
               public.places_of_service
@@ -3877,7 +3909,10 @@ BEGIN
             ) AS billing_class_id
           ,i_created_by  AS created_by
           ,null AS billing_notes
-          ,(SELECT COALESCE(charge_dt,NOW()) FROM claim_charges LIMIT 1)  AS claim_dt
+          ,( CASE  WHEN (SELECT charge_dt FROM claim_charges LIMIT 1) IS NOT NULL THEN (SELECT charge_dt FROM claim_charges LIMIT 1)
+            ELSE now() 
+            END   
+           ) AS claim_dt
           ,NULLIF(COALESCE(order_info->'currentDate',''),'')::DATE AS current_illness_date
           ,NULLIF(COALESCE(order_info->'similarIll',''),'')::DATE AS same_illness_first_date
           ,NULLIF(COALESCE(order_info->'wTo',''),'')::DATE AS unable_to_work_to_date
@@ -3913,23 +3948,27 @@ BEGIN
         LEFT JOIN providers ON providers.id = provider_contacts.provider_id
         WHERE orders.id = ( SELECT COALESCE(NULLIF(order_id,'0'),'0')::numeric FROM study_details )
 )
-, billing_icds AS (
+ , billing_icds AS (
 	SELECT 
-		DISTINCT unnest(orders.icd_code_ids_billing) AS icd_ids
-	FROM orders
-	WHERE orders.id = ( SELECT COALESCE(NULLIF(order_id,'0'),'0')::numeric FROM study_details )
-)
+        DISTINCT icd_codes.id as icd_id
+	FROM public.icd_codes 
+        INNER JOIN patient_icds pi ON pi.icd_id = icd_codes.id
+        INNER JOIN public.orders o on o.id = pi.order_id
+        INNER JOIN public.studies s ON s.order_id = o.id
+        WHERE s.id = i_study_id 
+        AND s.has_deleted = FALSE
+ )
  
 SELECT
 	( SELECT COALESCE(json_agg(row_to_json(claims_icds)),'[]') claim_icds
 		FROM (
-                SELECT
-                    null AS id ,
-                    null AS claim_id ,
-                    icd_ids AS icd_id
-                FROM billing_icds 
-            ) AS claims_icds
-         ) AS claims_icds
+			SELECT 
+				null AS id ,
+				null AS claim_id ,
+				icd_id
+				FROM billing_icds
+                      ) AS claims_icds
+    ) AS claims_icds
 	,( SELECT COALESCE(json_agg(row_to_json(charge)),'[]') charges
 		FROM (
                 SELECT
