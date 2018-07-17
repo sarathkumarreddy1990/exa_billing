@@ -114,6 +114,12 @@ define(['jquery',
                             }
                         }
                     ],
+                    afterInsertRow: function (rowid, rowdata) {
+                        if (!rowdata.is_active) {
+                            var $row = $('#tblInsuranceX12MappingGrid').find('#' + rowid);
+                            $row.css('text-decoration', 'line-through');
+                        }
+                    },
                     datastore: self.insuranceX12MappingList,
                     container:self.el,
                     customizeSort: true,
