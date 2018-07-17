@@ -849,7 +849,7 @@ module.exports = {
                                         AND audit.entity_name = 'payment_applications' ) ) 
                     INNER JOIN users 
                             ON users.id = audit.created_by 
-                    WHERE  bc.patient_id=${patientId}  AND audit.entity_name='claims'
+                    WHERE  bc.patient_id=${patientId} 
                     `;
 
         if (whereQuery.length) {
