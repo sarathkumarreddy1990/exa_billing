@@ -1208,11 +1208,8 @@ function customGrid ( datastore, gridID ) {
                 SearchFlag:filterObj.pager.get('searchFlag')
             },
             success: function (data, textStatus, jqXHR) {
-                if (data && data.result) {
-                    if (self.options.pagerFlag && self.options.pagerFlag == 'ordering_facility_pager')
-                        filterObj.pager.set({"TotalRecords": data.result.total_records});
-                    else
-                        filterObj.pager.set({"TotalRecords": data.result[0].total_records});
+                if (data && data.length) {
+                    filterObj.pager.set({ "TotalRecords": data[0].total_records });
                     filterObj.setPagerInfos();
 
                     filterObj.pager.set({"LastPageNo": Math.ceil(filterObj.pager.get('TotalRecords') / filterObj.pager.get('PageSize'))});

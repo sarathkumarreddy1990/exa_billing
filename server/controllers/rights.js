@@ -5,7 +5,7 @@ const _ = require('lodash');
 module.exports = {
 
     checkRights: function (args) {
-        const defaultAPIs =   ['/exa_modules/billing/app_settings', '/exa_modules/billing/user_settings', '/exa_modules/billing/setup/study_filters'];
+        const defaultAPIs =   ['/exa_modules/billing/app_settings', '/exa_modules/billing/user_settings', '/exa_modules/billing/setup/study_filters', '/exa_modules/billing/study_filters'];
         let {
             screens,
             userType,

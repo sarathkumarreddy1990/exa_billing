@@ -1437,12 +1437,16 @@ define(['jquery',
                     total_bill_fee = total_bill_fee + parseFloat(thisTotalBillFee);
                     total_allowed = total_allowed + parseFloat(thisTotalAllowed);
                 });
-
+                var patient_paid = parseFloat($('#spPatientPaid').text());
+                var others_paid = parseFloat($('#spOthersPaid').text());
+                var refund_amount = parseFloat($('#spRefund').text()); 
+                var adjustment_amount = parseFloat($('#spAdjustment').text()); 
                 $('#spTotalBillFeeValue').text(commonjs.roundFee(total_bill_fee));
                 $('#spBillFee').text(commonjs.roundFee(total_bill_fee));
-                $('#spBalance').text(commonjs.roundFee(total_bill_fee));
                 $('#spTotalAllowedFeeValue').text(commonjs.roundFee(total_allowed));
                 $('#spAllowed').text(commonjs.roundFee(total_allowed));
+                var balance = total_bill_fee - (patient_paid + others_paid + adjustment_amount + refund_amount);
+                $('#spBalance').text(commonjs.roundFee(balance));
             },
 
             updateResponsibleList: function (payer_details) {
