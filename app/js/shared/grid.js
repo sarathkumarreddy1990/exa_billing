@@ -734,7 +734,7 @@ define('grid', [
                     resizable: false,
                     search: false,
                     isIconCol: true,
-                    formatter: function (cellvalue, options, rowObject) {
+                    formatter: function (cellvalue, option, rowObject) {
                         if(['ABRT','CAN','NOS'].indexOf(rowObject.study_status)>-1||rowObject.has_deleted)
                             return "";
                         else  return '<input type="checkbox" name="chkStudy" id="chk'+gridID.slice(1)+'_' + (options.isClaimGrid?rowObject.id:rowObject.study_id )+ '" />'

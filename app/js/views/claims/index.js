@@ -924,9 +924,9 @@ define(['jquery',
                                 var modelDetails = model[0];
                                 self.studyDate = modelDetails && modelDetails.charges && modelDetails.charges.length && modelDetails.charges[0].study_dt ? modelDetails.charges[0].study_dt : self.cur_study_date ;
                                 self.facilityId = modelDetails && modelDetails.charges && modelDetails.charges.length && modelDetails.charges[0].facility_id ? modelDetails.charges[0].facility_id : self.facilityId ;
-                                var diagnosisCodes = [];
-                                var diagnosisCodesOrder = [];
                                 var _defaultDetails = modelDetails.claim_details && modelDetails.claim_details.length > 0 ? modelDetails.claim_details[0] : {};
+                                var _diagnosisProblems = modelDetails.problems && modelDetails.problems.length > 0 ? modelDetails.problems : [];
+                                var diagnosisCodes = [];
                                 $(parent.document).find('#spanModalHeader').html('Claim Creation : <STRONG>' + _defaultDetails.patient_name + '</STRONG> (Acc#:' + _defaultDetails.patient_account_no + '), <i>' + _defaultDetails.patient_dob + '</i>,  ' + _defaultDetails.patient_gender);
 
                                 _.each(modelDetails.charges, function (item) {
@@ -942,29 +942,21 @@ define(['jquery',
                                         study_id: item.study_id, 
                                         data_row_id: index
                                     });
-
-                                    if (item.icd_codes_billing) {
-                                        _.each(item.icd_codes_billing, function (code) {
-                                            if (_.findIndex(diagnosisCodes, { id: code.split('~')[0] }) == -1) {
-                                                diagnosisCodes.push({ id: code.split('~')[0], code: code.split('~')[1] , description: code.split('~')[2] })
-                                            }
-                                        })
-                                    }
-                                    if (item.icd_codes_billing_order) {
-                                        _.each(item.icd_codes_billing_order, function (codeId) {
-                                            if (diagnosisCodesOrder.indexOf(codeId) == -1) {
-                                                diagnosisCodesOrder.push(codeId);
-                                            }
-                                        })
-                                    }
-                                    
                                 });
 
+                                _.each(_diagnosisProblems, function (item) {
+
+                                    if (_.findIndex(diagnosisCodes, { id: item.id }) == -1) {
+                                        diagnosisCodes.push({ id: item.id, code: item.code , description: item.description });
+                                    }
+
+                                });
+                               
                                 setTimeout(function () {
                                     self.bindDefaultClaimDetails(_defaultDetails);
                                 }, 200);
                                 
-                                self.bindProblemsContent(diagnosisCodes, diagnosisCodesOrder);
+                                self.bindProblemsContent(diagnosisCodes);
 
                                 /* Bind chargeLineItems events - started*/
                                 if(self.screenCode.indexOf('DCLM') > -1) {
@@ -2890,26 +2882,10 @@ define(['jquery',
 
             },
 
-            bindProblemsContent: function (problem, problemIndex) {
-                var self = this, sortedProblems;
+            bindProblemsContent: function (problems) {
+                var self = this;
 
-                // Inner function for sort diagnosis codes based on insertion
-                var sortDiagnosisCodesByIndex = function (icdCode, icdOrder) {
-
-                    var indexObject = _.reduce(icdCode, function (result, currentObject) {
-                        result[currentObject.id] = currentObject;
-                        return result;
-                    }, {});
-
-                    var sortedResult = _.map(icdOrder, function (currentID) {
-                        return indexObject[currentID]
-                    });
-
-                    return sortedResult;
-                }
-                sortedProblems = sortDiagnosisCodesByIndex(problem, problemIndex);
-
-                _.each(sortedProblems, function (icdObj, index) {
+                _.each(problems, function (icdObj, index) {
 
                     // limited DiagnosisCodes upto 12
                     if (index < 12) {
@@ -2971,6 +2947,7 @@ define(['jquery',
                         var data = $($tblGrid, parent.document).getRowData(rowId);
                         commonjs.getClaimStudy(rowId, function (result) {
                             self.rendered = false;
+                            self.clearDependentVariables();
                             self.showEditClaimForm(rowId, null, {
                                 'study_id': result && result.study_id ? result.study_id : 0,
                                 'patient_name': data.patient_name,
@@ -3497,6 +3474,19 @@ define(['jquery',
                     $("#ddlTerRelationShip option:contains('Selected')").attr('selected', 'Selected');
                     $('#showTerSelf').show();
                 } 
+            },
+
+            clearDependentVariables: function () {
+                var self = this;
+                self.priInsID = '';
+                self.priInsName = '';
+                self.is_primary_available = false;
+                self.secInsID = '';
+                self.secInsName = '';
+                self.is_secondary_available = false;
+                self.terInsID = '';
+                self.terInsName = '';
+                self.is_tertiary_available = false;
             }
 
         });
