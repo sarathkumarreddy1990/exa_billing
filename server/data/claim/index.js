@@ -49,7 +49,6 @@ module.exports = {
                             INNER JOIN appointment_types at ON at.id = s.appointment_type_id
                             INNER JOIN appointment_type_procedures atp ON atp.procedure_id = sc.cpt_code_id AND atp.appointment_type_id = s.appointment_type_id
                             WHERE
-                            
                                 study_id = ANY(${studyIds}) AND sc.has_deleted = FALSE
                             ORDER BY s.accession_no DESC
                             ) AS charge
@@ -120,7 +119,23 @@ module.exports = {
                                     WHERE orders.id IN (SELECT order_id FROM public.studies s WHERE s.id = ${firstStudyId})
 
                                     ) AS claim_default_details
-                            ) claims_info `;
+                            ) claims_info 
+                            ,(
+                                SELECT (row_to_json(claim_problems)) "claim_problems" 
+                                    FROM
+                                        (
+                                        SELECT 
+                                            DISTINCT icd_codes.id
+                                            ,icd_codes.id||'~'|| code ||'~'|| icd_codes.description  AS problems
+                                            ,order_no
+                                        FROM public.icd_codes 
+                                        INNER JOIN patient_icds pi ON pi.icd_id = icd_codes.id
+                                        INNER JOIN public.orders o on o.id = pi.order_id
+                                        INNER JOIN public.studies s ON s.order_id = o.id
+                                        WHERE s.id = ANY(${studyIds}) AND s.has_deleted = FALSE
+                                        ORDER BY pi.id
+                                    ) AS claim_problems
+                            ) problems`;
 
         return await query(sql);
     },
