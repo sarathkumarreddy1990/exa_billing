@@ -833,6 +833,33 @@ var commonjs = {
         return docServerUrl;
     },
 
+    showAbout: function() {
+        var self = this;
+
+        if(this.AboutTemplate && _) {
+            $.ajax({
+                url: '/exa_modules/billing/about',
+                type: "GET",
+                dataType: 'json',
+                success: function (versionInfo, response) {
+                    commonjs.hideLoading();
+
+                    try {
+                        var about = _.template(self.AboutTemplate);
+                        var previewHtml = about({ data: versionInfo });
+
+                        commonjs.showDialog({ header: 'About', width: '30%', height: '30%', html: previewHtml }, true);
+                    } catch (err) {
+                        console.log(err);
+                    }
+                },
+                error: function (err, response) {
+                    //commonjs.handleXhrError(err, response);
+                }
+            })
+        }
+    },
+
     showDialog: function (options) {
         options.modalContainerId = '#siteModal';
         options.spanHeaderId = '#spanModalHeader';

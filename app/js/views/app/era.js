@@ -412,7 +412,7 @@ define([
                     error: function (err, response) {
                         commonjs.handleXhrError(err, response);
                     }
-                })
+                });
             },
 
             showPayments: function (fileId, fileName) {
