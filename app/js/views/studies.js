@@ -360,11 +360,11 @@ define(['jquery',
                 var self = this;
                 commonjs.showLoading('Fetching data..');
 
-                if (commonjs.loadedStudyFilters.size > 0) {
-                    commonjs.loadedStudyFilters.forEach(function (gridObj) {
-                        gridObj.customGridTable.jqGrid('GridUnload');
-                    });
-                }
+                // if (commonjs.loadedStudyFilters.size > 0) {
+                //     commonjs.loadedStudyFilters.forEach(function (gridObj) {
+                //         gridObj.customGridTable.jqGrid('GridUnload');
+                //     });
+                // }
                 commonjs.setFilter(null, null);
 
                 $('#divTabsContainer').show();
@@ -537,7 +537,6 @@ define(['jquery',
                             }
 
                             self.setTabContents(dataContainerValue, false, isDicomSearch, isRisOrderSearch, showEncOnly);
-
                             if (showEncOnly) {
                                 self.toggleTabContents(5);
                             }
@@ -928,7 +927,7 @@ define(['jquery',
                                 '$container': self.$el,
                                 'updateStudiesPager': updateStudiesPager
                             });
-                            table.renderStudy();
+                            table.renderStudy();                        
                             
                             $("#btnbatchClaim").click(function (e) {
                                 table.batchClaim();
