@@ -1152,6 +1152,7 @@ CREATE OR REPLACE FUNCTION billing.get_claim_totals(bigint)
         , payments_applied_total        money
         , adjustments_applied_count     bigint
         , adjustments_applied_total     money
+        , refund_amount                 money
         , claim_balance_total           money
     ) AS
 $BODY$
@@ -1189,15 +1190,17 @@ $BODY$
             ) AS pa ON p.id = pa.payment_id
     )
     , applications AS (
-        SELECT
+         SELECT
               count(pa.amount) FILTER (WHERE pa.amount_type = 'payment')    AS payments_applied_count
             , coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)    AS payments_applied_total
             , count(pa.amount) FILTER (WHERE pa.amount_type = 'adjustment') AS adjustments_applied_count
-            , coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment'),0::money) AS ajdustments_applied_total
+            , coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment'  AND (adj.accounting_entry_type != 'refund_debit' OR pa.adjustment_code_id IS NULL)),0::money) AS ajdustments_applied_total
+            , coalesce(sum(pa.amount)   FILTER (WHERE adj.accounting_entry_type = 'refund_debit'),0::money) AS refund_amount
         FROM
             billing.charges AS c
             INNER JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
             INNER JOIN billing.payments AS p ON pa.payment_id = p.id
+	        LEFT JOIN billing.adjustment_codes adj ON adj.id = pa.adjustment_code_id
         WHERE
             c.claim_id = $1
     )
@@ -1207,7 +1210,8 @@ $BODY$
         , applications.*
         , charges.charges_bill_fee_total - (
             applications.payments_applied_total +
-            applications.ajdustments_applied_total
+            applications.ajdustments_applied_total +
+            applications.refund_amount
         ) AS claim_balance_total
     FROM
           charges
