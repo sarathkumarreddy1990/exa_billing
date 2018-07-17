@@ -116,7 +116,7 @@ module.exports = {
                             ) 
                             ,claim_problems AS (
                                         SELECT 
-                                            DISTINCT icd_codes.id
+                                            icd_codes.id
                                             ,code
                                             ,icd_codes.description
                                             ,order_no

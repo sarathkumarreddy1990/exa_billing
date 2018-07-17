@@ -2901,7 +2901,7 @@ define(['jquery',
                         self.ICDID = icdObj.id;
                         self.icd_code = icdObj.code;
                         self.icd_description = icdObj.description;
-                        self.addDiagCodes(false);
+                        self.addDiagCodes(true);
                     }
                 });
             },
