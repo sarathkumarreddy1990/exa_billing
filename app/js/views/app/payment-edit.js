@@ -918,6 +918,9 @@ define(['jquery',
                         paymentID: paymentID,
                         payerId: payerId,
                         payerType: payerType
+                    },
+                    onaftergridbind: function (model, gridObj) {
+                        self.setMoneyMask();
                     }
                 });
 
@@ -1016,6 +1019,9 @@ define(['jquery',
                         beforeRequest: function () {
                             self.setCustomArgs(paymentID, payerId, payerType, patientId, claimIdToSearch, invoiceNoToSearch);
                         },
+                        onaftergridbind: function (model, gridObj) {
+                            self.setMoneyMask();
+                        }
                     });
 
                     setTimeout(function () {
@@ -1147,6 +1153,7 @@ define(['jquery',
                     },
                     onaftergridbind: function (model, gridObj) {
                         self.afterAppliedGridBind(model, gridObj, self);
+                        self.setMoneyMask();
                     }
                 });
 
@@ -1748,11 +1755,11 @@ define(['jquery',
                             commonjs.showStatus('Payment has been applied successfully');
                             targetObj.removeAttr('disabled');
                             commonjs.hideLoading();
-                            if (paymentStatus != 'applied') {
-                                self.casSegmentsSelected = [];
-                                self.closeAppliedPendingPayments(e, paymentId);
-                                commonjs.hideDialog();
-                            }
+                            // if (paymentStatus != 'applied') {
+                            self.casSegmentsSelected = [];
+                            self.closeAppliedPendingPayments(e, paymentId);
+                            commonjs.hideDialog();
+                            // }
                         },
                         error: function (err, response) {
                             targetObj.removeAttr('disabled');
@@ -2396,6 +2403,12 @@ define(['jquery',
                     self.showAppliedByPaymentsGrid(paymentID, payer_type, payer_id);
                 }
                 self.tabClicked = id;
+            },
+
+            setMoneyMask: function (obj1, obj2) {
+                $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar input[name=billing_fee],[name=balance],[name=bill_fee],[name=adjustment],[name=this_adjustment],[name=payment]").addClass('floatbox');
+                $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar input[name=claim_id]").addClass('integerbox');
+                commonjs.validateControls();
             }
 
         });
