@@ -140,6 +140,9 @@ define(['jquery',
 
                 if(self.screenCode.indexOf('CLVA') > -1) // this is for validate button rights
                     $('#btnValidateClaim').attr('disabled', true)   
+                
+                if(self.screenCode.indexOf('PATR') > -1) 
+                    $('#btPatientDocuemnt').attr('disabled', true)   
                     
                 self.initializeDateTimePickers();
                 

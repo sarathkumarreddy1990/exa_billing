@@ -55,7 +55,7 @@ module.exports = {
 									, 'payer_zip_code', p_ip.insurance_info->'ZipCode'
 									, 'claimClearingHouse', p_edi_clearinghouse.receiver_name
 									, 'edi_request_templates_id',  p_edi_clearinghouse.edi_template_name
-									, 'claim_req_type', p_ip.insurance_info->'claim_req_type_prov')
+									)
 								WHEN bc.payer_type = 'secondary_insurance' THEN
 									json_build_object('payer_name',  s_ip.insurance_name 
 									, 'payer_address1', s_ip.insurance_info->'Address1' 
@@ -64,14 +64,13 @@ module.exports = {
 									, 'payer_zip_code', s_ip.insurance_info->'ZipCode'
 									, 'claimClearingHouse',  s_edi_clearinghouse.receiver_name
 									, 'edi_request_templates_id',  s_edi_clearinghouse.edi_template_name
-									, 'claim_req_type', s_ip.insurance_info->'claim_req_type_prov')
+									)
 								WHEN bc.payer_type = 'tertiary_insurance' THEN
 									json_build_object( 'payer_name', t_ip.insurance_name 
 									, 'payer_address1', t_ip.insurance_info->'Address1' 
 									, 'payer_city', t_ip.insurance_info->'City' 
 									, 'payer_state', t_ip.insurance_info->'State' 
-									, 'payer_zip_code', t_ip.insurance_info->'ZipCode'
-									, 'claim_req_type', t_ip.insurance_info->'claim_req_type_prov'
+									, 'payer_zip_code', t_ip.insurance_info->'ZipCode'									
 									, 'claimClearingHouse', t_edi_clearinghouse.receiver_name
 									, 'edi_request_templates_id', t_edi_clearinghouse.edi_template_name)
 								WHEN bc.payer_type = 'ordering_facility' THEN	
@@ -225,7 +224,7 @@ module.exports = {
 						communication_info->'usageIndicator' as "usageIndicator",
 						to_char(now(), 'YYYYMMDD')  as "fgDate",
 						to_char(now(), 'HH24MI')  as "fgTime",
-						communication_info->'groupControlNo' as "groupControlNo",
+						claims.id as "groupControlNo",
 						communication_info->'responsibleAgencyCode' as "responsibleAgencyCode",
 						communication_info->'verRelIndIdCode' as "verReleaseIDCode",
 						'837' as "tsIDCode",

@@ -248,7 +248,7 @@ define(['jquery',
                         onaftergridbind: function (model, gridObj) {
                             if (model && model.length) {
                                 self.bindDateRangeOnSearchBox(gridObj);
-                                self.setPhoneMask();
+                                self.setMoneyMask();
                                 self.getTotalAmount();
                             }    
                             else {
@@ -313,7 +313,8 @@ define(['jquery',
                 });
             },
 
-            setPhoneMask: function (obj1, obj2) {
+            setMoneyMask: function (obj1, obj2) {
+                $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar input[name=available_balance],[name=applied],[name=amount],[name=adjustment_amount]").addClass('floatbox');
                 $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar input[name=payment_id]").addClass('integerbox');
                 commonjs.validateControls();
             },

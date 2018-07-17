@@ -267,7 +267,7 @@ var commonjs = {
         }
         else {
             if (typeof filter !== 'undefined') {
-                filter.customGridTable.jqGrid('GridUnload');
+               // filter.customGridTable.jqGrid('GridUnload');
                 cjs.loadedStudyFilters = filters.delete(id);
                 return true;
             }
@@ -831,6 +831,33 @@ var commonjs = {
             return docServerUrl.replace('https://', 'https@');
         }
         return docServerUrl;
+    },
+
+    showAbout: function() {
+        var self = this;
+
+        if(this.AboutTemplate && _) {
+            $.ajax({
+                url: '/exa_modules/billing/about',
+                type: "GET",
+                dataType: 'json',
+                success: function (versionInfo, response) {
+                    commonjs.hideLoading();
+
+                    try {
+                        var about = _.template(self.AboutTemplate);
+                        var previewHtml = about({ data: versionInfo });
+
+                        commonjs.showDialog({ header: 'About', width: '30%', height: '30%', html: previewHtml }, true);
+                    } catch (err) {
+                        console.log(err);
+                    }
+                },
+                error: function (err, response) {
+                    //commonjs.handleXhrError(err, response);
+                }
+            })
+        }
     },
 
     showDialog: function (options) {
