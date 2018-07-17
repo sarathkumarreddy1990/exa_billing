@@ -122,7 +122,7 @@ const colModel = [
     },   
     {
         name: 'claim_balance',
-        searchColumns: ['(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from BILLING.get_claim_totals(claims.id)) '],
+        searchColumns: ['(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) from BILLING.get_claim_totals(claims.id)) '],
         searchFlag: 'money'
     },
     {
@@ -225,7 +225,7 @@ const api = {
 	            WHEN 'patient' THEN patients.full_name        END) 
                     `;
             case 'clearing_house': return 'edi_clearinghouses.name';
-            case 'claim_balance': return '(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM BILLING.get_claim_totals(claims.id))';
+            case 'claim_balance': return '(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) FROM BILLING.get_claim_totals(claims.id))';
             case 'billing_code': return 'billing_codes.description';
             case 'billing_class': return 'billing_classes.description';
             case 'gender': return 'patients.gender';
@@ -350,7 +350,7 @@ const api = {
             WHEN 'referring_provider' THEN ref_provider.full_name
             WHEN 'rendering_provider' THEN render_provider.full_name
             WHEN 'patient' THEN patients.full_name        END) as payer_name`,
-            '(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from BILLING.get_claim_totals(claims.id)) as claim_balance',
+            '(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) from BILLING.get_claim_totals(claims.id)) as claim_balance',
             'billing_codes.description as billing_code',
             'billing_classes.description as billing_class',
             'claims.claim_notes',
