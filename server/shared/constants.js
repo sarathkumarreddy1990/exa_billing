@@ -178,8 +178,6 @@ module.exports = {
         'claim': 'ECLM',
         'billing_payers': 'ECLM',
         'service_facilities': 'ECLM',
-        'transcription': 'ECLM',
-        'vieworder': 'ECLM', // view doc Rmenu
         'claim_charge': 'ECLM', //delete Claim Rmenu 
         'era_list': 'ERAI',
         'upload': 'ERAI',
