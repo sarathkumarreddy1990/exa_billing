@@ -127,12 +127,20 @@ define(['jquery',
 
             refreshPayments: function () {
                 var self = this;
+                $("#divAmountTotal").html(' <i class="fa fa-spinner loading-spinner"></i>');
+                $("#divAppliedTotal").html(' <i class="fa fa-spinner loading-spinner"></i>');
+                $("#divAdjTotal").html(' <i class="fa fa-spinner loading-spinner"></i>');
                 self.pager.set({ "PageNo": 1 });
                 self.paymentTable.refreshAll();
             },
 
             searchPayments: function () {
-                var self = this;
+                var self = this;                
+                $("#divAmountTotal").html(' <i class="fa fa-spinner loading-spinner"></i>');
+                $("#divAppliedTotal").html(' <i class="fa fa-spinner loading-spinner"></i>');
+                $("#divAdjTotal").html(' <i class="fa fa-spinner loading-spinner"></i>');
+
+                self.pager.set({ "PageNo": 1 });
                 self.paymentTable.options.customargs = {
                     paymentStatus: $("#ulPaymentStatus").val()
                 };
@@ -140,12 +148,25 @@ define(['jquery',
                 self.paymentTable.refresh();
             },
 
-            showGrid: function (opener) {
+            showGrid: function (filterApplied) {
                 if (!this.rendered)
                     this.render(opener);
 
                 var self = this;
 
+                //Listing all payments
+                if (!filterApplied) {
+                    commonjs.paymentStatus = [];
+                    commonjs.paymentFilterFields = [];
+                    self.gridLoaded = false;
+                    $("#ulPaymentStatus").val('');
+                    $("#ulPaymentStatus").multiselect("refresh");
+                }
+                //If any status filtered previously
+                else if (commonjs.paymentStatus && commonjs.paymentStatus.length) {
+                    $("#ulPaymentStatus").val(commonjs.paymentStatus);
+                    $("#ulPaymentStatus").multiselect("refresh");
+                }
                 // Grid Filter Dropdowns
                 var payerTypeValue = commonjs.buildGridSelectFilter({
                     arrayOfObjects: this.payer_type,
@@ -225,7 +246,16 @@ define(['jquery',
                             self.editPayment(rowID);
                         },
                         onaftergridbind: function (model, gridObj) {
-                            self.bindDateRangeOnSearchBox(gridObj);
+                            if (model && model.length) {
+                                self.bindDateRangeOnSearchBox(gridObj);
+                                self.setMoneyMask();
+                                self.getTotalAmount();
+                            }    
+                            else {
+                                $("#divAmountTotal").html('');
+                                $("#divAppliedTotal").html('');
+                                $("#divAdjTotal").html('');
+                            }
                         },
                         disablesearch: false,
                         disablesort: false,
@@ -243,42 +273,12 @@ define(['jquery',
                                 if (statusColor)
                                     $("#" + rowid).css({ 'background-color': statusColor.color_code });
                             }
-                        }
+                        },
+                        delayedPagerUpdate: true,
+                        pagerApiUrl: '/exa_modules/billing/payments/count'
                     });
 
                     this.gridLoaded = true;
-
-                    $("#tblpaymentsGrid").bind("jqGridAfterGridComplete", function (e) {
-                        clearTimeout(self.amountTimer);
-                        self.amountTimer = setTimeout(self.calculateAmountTotal, 25);
-                        clearTimeout(self.adjustmentTimer);
-                        self.adjustmentTimer = setTimeout(self.calculateAdjustmentTotal, 25);
-                        clearTimeout(self.appliedTimer);
-                        self.appliedTimer = setTimeout(self.calculateAppliedTotal, 25);
-                        var dataSet = {
-                            paymentStatus: $("#ulPaymentStatus").val(),
-                            filterData: JSON.stringify(self.pager.get("FilterData")),
-                            filterCol: JSON.stringify(self.pager.get("FilterCol")),
-                            sortField: self.pager.get("SortField"),
-                            sortOrder: self.pager.get("SortOrder"),
-                        };
-
-                        jQuery.ajax({
-                            url: "/exa_modules/billing/payments/total_amount",
-                            type: "GET",
-                            data: dataSet,
-                            success: function (data, textStatus, jqXHR) {
-                                if (data && data.length) {
-                                    $("#divAmountTotal").html(data[0].total_amount);
-                                    $("#divAppliedTotal").html(data[0].total_applied);
-                                    $("#divAdjTotal").html(data[0].total_adjustment);
-                                }
-                            },
-                            error: function (err) {
-                                commonjs.handleXhrError(err);
-                            }
-                        });
-                    });
                 }
                 else {
                     this.paymentTable.refresh();
@@ -286,9 +286,44 @@ define(['jquery',
                 commonjs.docResize();
             },
 
+            getTotalAmount: function () {
+                var self = this;
+                var dataSet = {
+                    paymentStatus: $("#ulPaymentStatus").val(),
+                    filterData: JSON.stringify(self.pager.get("FilterData")),
+                    filterCol: JSON.stringify(self.pager.get("FilterCol")),
+                    sortField: self.pager.get("SortField"),
+                    sortOrder: self.pager.get("SortOrder"),
+                };
+
+                jQuery.ajax({
+                    url: "/exa_modules/billing/payments/total_amount",
+                    type: "GET",
+                    data: dataSet,
+                    success: function (data, textStatus, jqXHR) {
+                        if (data && data.length) {
+                            $("#divAmountTotal").html(data[0].total_amount);
+                            $("#divAppliedTotal").html(data[0].total_applied);
+                            $("#divAdjTotal").html(data[0].total_adjustment);
+                        }
+                    },
+                    error: function (err) {
+                        commonjs.handleXhrError(err);
+                    }
+                });
+            },
+
+            setMoneyMask: function (obj1, obj2) {
+                $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar input[name=available_balance],[name=applied],[name=amount],[name=adjustment_amount]").addClass('floatbox');
+                $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar input[name=payment_id]").addClass('integerbox');
+                commonjs.validateControls();
+            },
+
             editPayment: function (rowId) {
+                commonjs.paymentStatus = $('#ulPaymentStatus').val();
                 commonjs.paymentFilterFields = $('#divGrid_payments .ui-search-toolbar th div input, select').map(function () {
-                    return $(this).attr('id') + '~' + $(this).val();
+                    if (!$(this).is('#ulPaymentStatus'))
+                        return $(this).attr('id') + '~' + $(this).val();
                 });
                 Backbone.history.navigate('#billing/payments/edit/' + rowId, true);
             },

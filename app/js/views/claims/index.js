@@ -140,6 +140,9 @@ define(['jquery',
 
                 if(self.screenCode.indexOf('CLVA') > -1) // this is for validate button rights
                     $('#btnValidateClaim').attr('disabled', true)   
+                
+                if(self.screenCode.indexOf('PATR') > -1) 
+                    $('#btPatientDocuemnt').attr('disabled', true)   
                     
                 self.initializeDateTimePickers();
                 
@@ -905,6 +908,8 @@ define(['jquery',
                     self.setTerRelationShipSelf(e);
                     self.changeRelationalShip(e);
                 });
+                
+                $('#modal_div_container').animate({scrollTop: 0}, 100);
             },
             getLineItemsAndBind: function (selectedStudyIds) {
                 var self = this;
@@ -1440,11 +1445,12 @@ define(['jquery',
                 var patient_paid = parseFloat($('#spPatientPaid').text());
                 var others_paid = parseFloat($('#spOthersPaid').text());
                 var refund_amount = parseFloat($('#spRefund').text()); 
+                var adjustment_amount = parseFloat($('#spAdjustment').text()); 
                 $('#spTotalBillFeeValue').text(commonjs.roundFee(total_bill_fee));
                 $('#spBillFee').text(commonjs.roundFee(total_bill_fee));
                 $('#spTotalAllowedFeeValue').text(commonjs.roundFee(total_allowed));
                 $('#spAllowed').text(commonjs.roundFee(total_allowed));
-                var balance = total_bill_fee - (patient_paid + others_paid + refund_amount);
+                var balance = total_bill_fee - (patient_paid + others_paid + adjustment_amount + refund_amount);
                 $('#spBalance').text(commonjs.roundFee(balance));
             },
 
@@ -2257,15 +2263,14 @@ define(['jquery',
                     $('#txt' + flag + 'MiddleName').val(result.subscriber_middlename);
                     $('#txt' + flag + 'SubLastName').val(result.subscriber_lastname);
                     $('#txt' + flag + 'SubSuffix').val(result.subscriber_name_suffix);
-                    if(app.gender.indexOf(result.subscriber_gender) > 0 )
-                    {
+                    if (app.gender.indexOf(result.subscriber_gender) > -1) {
                         $('#ddl' + flag + 'Gender').val(result.subscriber_gender);
                     }
                     $('#txt' + flag + 'SubPriAddr').val(result.subscriber_address_line1);
                     $('#txt' + flag + 'SubSecAddr').val(result.subscriber_address_line2);
                     $('#txt' + flag + 'City').val(result.subscriber_city);
                     var states = app.states && app.states.length && app.states[0].app_states;
-                    if (states && states.indexOf(result.subscriber_state) > 0) {
+                    if (states && states.indexOf(result.subscriber_state) > -1) {
                         $('#ddl' + flag + 'State').val(result.subscriber_state);
                     }
                     $('#txt' + flag + 'ZipCode').val(result.subscriber_zipcode);
@@ -2975,8 +2980,8 @@ define(['jquery',
 
                 tab_menu_link.click(function (e) {
                     var currId = $(this).attr('href').split('_')[1];
-                    tab_menu_item.removeClass('active');                    
-                    $(e.target).closest('li').addClass('active');
+                    tab_menu_item.removeClass('active');
+                    e && $(e.target).closest('li').addClass('active');
 
                     var _height = 0;
                     for (var i = 1; i < currId; i++) {
@@ -2991,7 +2996,7 @@ define(['jquery',
 
                     if ($('#tab_' + currId).find('input[type=text],textarea, select').filter(':input:enabled:visible:first'))
                         $('#tab_' + currId).find('input[type=text],textarea, select').filter(':input:enabled:visible:first').focus();
-                    e.preventDefault ? event.preventDefault() : event.returnValue = false;
+                    e && e.preventDefault ? e.preventDefault() : e.returnValue = false;
                 });
 
                 $('#modal_div_container').scrollTop(0); 

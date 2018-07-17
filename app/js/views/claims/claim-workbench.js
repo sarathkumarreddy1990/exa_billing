@@ -633,11 +633,11 @@ define(['jquery',
                 var self = this;
                 commonjs.showLoading('Fetching data..');
 
-                if (commonjs.loadedStudyFilters.size > 0) {
-                    commonjs.loadedStudyFilters.forEach(function (gridObj) {
-                        gridObj.customGridTable.jqGrid('GridUnload');
-                    });
-                }
+                // if (commonjs.loadedStudyFilters.size > 0) {
+                //     commonjs.loadedStudyFilters.forEach(function (gridObj) {
+                //         gridObj.customGridTable.jqGrid('GridUnload');
+                //     });
+                // }
                 commonjs.setFilter(null, null);
                 $('#divTabsContainer').show();
 
@@ -1149,7 +1149,8 @@ define(['jquery',
                                 'container': self.el,
                                 '$container': self.$el,
                                 'updateStudiesPager':updateStudiesPager,
-                                'isClaimGrid': true
+                                'isClaimGrid': true,
+                                'context': this
                             });
                             table.renderStudy();
 
@@ -1560,7 +1561,7 @@ define(['jquery',
                             filter.options.showEncOnly = showEncOnly;
                             $('input:checkbox[name=showDicom]').prop('checked', isDicomSearch);
                             $('input:checkbox[name=showRis]').prop('checked', isRisOrderSearch);
-                            filter.customGridTable.jqGrid('GridUnload');
+                           // filter.customGridTable.jqGrid('GridUnload');
                             commonjs.setFilter(null, null);
                             self.setTabContents(fid, isprior, isDicomSearch, isRisOrderSearch, showEncOnly);
                         }

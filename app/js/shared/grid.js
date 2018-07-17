@@ -542,20 +542,18 @@ define('grid', [
                     $('#anc_view_reports').addClass('disabled')
                 }
 
-                if(this.homeOpentab != 'Follow_up_queue'){
-                    var liFollowUp = commonjs.getRightClickMenu('anc_add_followup', 'setup.rightClickMenu.addFollowUP', false, 'Follow-up', false);
-                    $divObj.append(liFollowUp);
-                    self.checkRights('anc_add_followup');
-                    $('#anc_add_followup').click(function () {
-                        if ($('#anc_add_followup').hasClass('disabled')) {
-                            return false;
-                        }
-                        self.followUpView = new followUpView();
-                        self.followUpView.render(studyIds);
-                    });
-                }
+                var liFollowUp = commonjs.getRightClickMenu('anc_add_followup', 'setup.rightClickMenu.addFollowUP', false, 'Follow-up', false);
+                $divObj.append(liFollowUp);
+                self.checkRights('anc_add_followup');
+                $('#anc_add_followup').click(function () {
+                    if ($('#anc_add_followup').hasClass('disabled')) {
+                        return false;
+                    }
+                    self.followUpView = new followUpView();
+                    self.followUpView.render(studyIds);
+                });
 
-                if (this.homeOpentab == 'Follow_up_queue') {
+                if (options.context.homeOpentab == 'Follow_up_queue') {
                     var liResetFollowUp = commonjs.getRightClickMenu('anc_reset_followup', 'setup.rightClickMenu.resetFollowUp', false, 'Cancel Follow-up', false);
                     $divObj.append(liResetFollowUp);
                     self.checkRights('anc_reset_followup');
@@ -1245,6 +1243,7 @@ define('grid', [
                 },
                 rowattr: rowattr
             });
+            commonjs.processPostRender();    
             if (doExport) {
                 console.log('dfadsf', grid.getGridParam("postData")._search)
                 var searchFilterFlag = grid.getGridParam("postData")._search;

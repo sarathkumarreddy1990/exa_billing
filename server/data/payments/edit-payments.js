@@ -75,7 +75,7 @@ module.exports = {
                     pp.account_no,
                     array_agg(pcc.display_code) AS display_description,
                     (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) AS billing_fee,
-                    (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) AS balance,
+                    (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) FROM billing.get_claim_totals(bc.id)) AS balance,
                     COUNT(1) OVER (range unbounded preceding) AS total_records
                 FROM billing.claims bc
                 INNER JOIN public.patients pp on pp.id = bc.patient_id 
@@ -122,7 +122,7 @@ module.exports = {
                         pp.account_no,
                         array_agg(pcc.display_code) AS display_description,
                         (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) AS billing_fee,
-                        (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) AS balance,
+                        (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) FROM billing.get_claim_totals(bc.id)) AS balance,
                         COUNT(1) OVER (range unbounded preceding) AS total_records
                     FROM billing.claims bc
                     INNER JOIN public.patients pp on pp.id = bc.patient_id 
@@ -202,7 +202,7 @@ module.exports = {
                     pp.account_no,
                     array_agg(pcc.display_code) AS display_description,
                     (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) AS billing_fee,
-                    (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) AS balance,
+                    (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) FROM billing.get_claim_totals(bc.id)) AS balance,
                     COUNT(1) OVER (range unbounded preceding) AS total_records
                 FROM billing.claims bc
                 INNER JOIN public.patients pp on pp.id = bc.patient_id 
@@ -261,7 +261,8 @@ module.exports = {
             bill_fee,
             patient_paid,
             others_paid,
-            adjustment,     
+            adjustment,    
+            this_adjustment,
             balance,        
             display_description,        
             sortOrder,
@@ -300,6 +301,10 @@ module.exports = {
         if (payment) {
             havingQuery.push(`  COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'payment'),0::money) = '${payment}'::money`);
         }
+        
+        if (this_adjustment) {
+            havingQuery.push(` COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'adjustment'), 0::money) = '${this_adjustment}'::money`);
+        }
 
         if (patient_paid) {    
             whereQuery.push(` (SELECT patient_paid FROM billing.get_claim_patient_other_payment(bc.id)) = '${patient_paid}'::money`);
@@ -310,11 +315,11 @@ module.exports = {
         }
 
         if (adjustment) {    
-            whereQuery.push( `(SELECT adjustments_applied_total from billing.get_claim_totals(bc.id)) = (${adjustment})::money`);
+            havingQuery.push( `((SELECT adjustments_applied_total from billing.get_claim_totals(bc.id)) - COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'adjustment'),0::money)) = (${adjustment})::money`);
         }
 
         if (balance) {
-            whereQuery.push(`((SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from billing.get_claim_totals(bc.id)) = (${balance})::money)`);
+            whereQuery.push(`((SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) from billing.get_claim_totals(bc.id)) = (${balance})::money)`);
         }
 
         const sql = SQL `SELECT 
@@ -339,7 +344,7 @@ module.exports = {
             COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'adjustment'),0::money) as this_adjustment,
             COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'payment'),0::money) as payment,
             (SELECT claim_cpt_description from billing.get_claim_totals(bc.id)) as display_description,
-            (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from billing.get_claim_totals(bc.id)) as balance,
+            (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) from billing.get_claim_totals(bc.id)) as balance,
             COUNT(1) OVER (range unbounded preceding) AS total_records
         FROM billing.payments bp
         INNER JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
