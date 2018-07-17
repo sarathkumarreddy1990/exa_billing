@@ -15,7 +15,7 @@ define([
                 var accessDeniedRightClickIDs = [];
                 var billingScreenCodes = ['ADJC', 'BICO', 'BICL', 'CLST', 'BIPR', 'PRCQ', 'BILM', 'PARE', 'CASG', 'CASR', 'STCC', 'BIVA', 'PCA', 'EDRT', 'INSM', 'CLHO', 'BULG', 'BALG',
                     'AGAR', 'AARD', 'CHRG', 'CLAY', 'CLIN', 'CLTR', 'CRBE', 'DSPS', 'DICN', 'IVSL', 'MOSU', 'MNRC', 'PATS', 'PYMX', 'PAYT', 'PAIC', 'PBIC', 'PABI', 'PRCN', 'RPFR', 'REPC', 'REPS', 'TSUM','PACT',
-                    'CLIM', 'HSTY', 'ECLM', 'CLMI', 'MASO', 'CLVA', 'ERAI', 'PAYM', 'SFIL', 'APAY', 'DPAY', 'DCLM', 'PCLM']
+                    'CLIM', 'HSTY', 'ECLM', 'CLMI', 'MASO', 'CLVA', 'ERAI', 'PAYM', 'SFIL', 'APAY', 'DPAY', 'DCLM', 'PCLM', 'PATR'];
 
                 mappingObject = {
                     'ADJC': 'aAdjustmentCodes',
@@ -68,8 +68,9 @@ define([
                     'ERAI': 'aEob',
                     'PAYM': 'aPayments',
                     'SFIL': 'btnStudyFilter',
-                    'ECLM': ['anc_edit_claim', 'anc_split_claim', 'anc_view_documents', 'anc_view_reports', 'anc_add_followup', 'anc_patient_claim_log', 
+                    'ECLM': ['anc_edit_claim', 'anc_split_claim', 'anc_add_followup', 'anc_patient_claim_log', 
                                 'li_ul_change_claim_status', 'li_ul_change_billing_code', 'li_ul_change_billing_class', 'li_ul_change_payer_type'],
+                    'PATR': ['anc_view_documents', 'anc_view_reports'],
                     'APAY': 'divPendingPay',
                     'DPAY': 'btnPaymentDelete',
                     'DCLM': 'anc_delete_claim', // This rights used for Delete Charge also
