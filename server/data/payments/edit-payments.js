@@ -268,7 +268,8 @@ module.exports = {
             sortField,
             pageNo,
             pageSize,
-            payment
+            payment,
+            payerType
         } = params;
 
            
@@ -324,9 +325,18 @@ module.exports = {
             bc.claim_dt,
             max(bpa.id) as payment_application_id,
             (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) as bill_fee,
-            (SELECT patient_paid FROM billing.get_claim_patient_other_payment(bc.id)) as patient_paid,
-            (SELECT others_paid FROM billing.get_claim_patient_other_payment(bc.id)) as others_paid,
-            (SELECT adjustments_applied_total from billing.get_claim_totals(bc.id)) as adjustment,
+            CASE WHEN 'patient' = ${payerType} THEN 
+                ((SELECT patient_paid FROM billing.get_claim_patient_other_payment(bc.id)) -  COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'payment'),0::money) )
+            ELSE 
+                (SELECT patient_paid FROM billing.get_claim_patient_other_payment(bc.id))
+             END as patient_paid,
+            CASE WHEN 'patient' != ${payerType} THEN 
+                ((SELECT others_paid FROM billing.get_claim_patient_other_payment(bc.id)) -  COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'payment'),0::money) )
+            ELSE 
+                (SELECT others_paid FROM billing.get_claim_patient_other_payment(bc.id))
+             END as others_paid,
+            ((SELECT adjustments_applied_total from billing.get_claim_totals(bc.id)) - COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'adjustment'),0::money)) as adjustment,
+            COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'adjustment'),0::money) as this_adjustment,
             COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'payment'),0::money) as payment,
             (SELECT claim_cpt_description from billing.get_claim_totals(bc.id)) as display_description,
             (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from billing.get_claim_totals(bc.id)) as balance,

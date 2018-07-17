@@ -165,7 +165,7 @@ define([
             bindInsuranceProviderAutocomplete: function (userMessage, btnAdd, ulList) {
                 $("#txtInsuranceProviderName").select2({
                     ajax: {
-                        url: "/exa_modules/billing/autoCompleteRouter/getInsurancePayerTypes",
+                        url: "/exa_modules/billing/autoCompleteRouter/insurance_payer_types",
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {

@@ -367,7 +367,7 @@ const api = {
         `;
     },
 
-    getSortFields: function (args, screenName) {
+    getSortFields: function (args, screenName, report_queue_status_query) {
         //console.log('getSortFields: ', args, screenName);
         switch (args) {
             case 'study_id': return 'studies.id';
@@ -478,7 +478,7 @@ const api = {
             case 'order_type': return 'orders.order_type';
             case 'cpt_codes': return 'studies.cpt_codes';
             case 'mu_last_updated': return 'orders.mu_last_updated';
-            case 'report_queue_status': return 'report_queue_status_query';
+            case 'report_queue_status': return report_queue_status_query;
             case 'account_no': return 'patients.account_no';
             case 'modality_room_id': return 'orders.modality_room_id';
             case 'institution': return 'studies.institution';

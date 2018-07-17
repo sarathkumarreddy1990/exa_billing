@@ -606,6 +606,8 @@ define(['jquery',
 
                                 $(".spnInvoicePrint").click(function (e) {
                                     var ele = (e.target.id).split('_');
+                                    printerClaimids = [];
+
                                     _.each(ele, function (claimid, index) {
                                         if (claimid != 'spnInvoicePrint') {
                                             printerClaimids.push(parseInt(claimid));
@@ -1149,8 +1151,8 @@ define(['jquery',
                             });
                             table.renderStudy();
 
-                            $('#btnValidateExport').on().click(function (e) {
-                                commonjs.showStatus('Excel is Export ...')
+                            $('#btnValidateExport').one().click(function (e) {
+                                commonjs.showLoading('Export is In Process ...')
                                 table.renderStudy(true);                                  
                                 $('#btnValidateExport').css('display','none');    
                                 commonjs.hideLoading();

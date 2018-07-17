@@ -67,13 +67,67 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 break;
             }
         }
-
+        app.report_queue_status = [
+            {
+                "code": "QU",
+                "description": "Queued"
+            },
+            {
+                "code": "PR",
+                "description": "Progress"
+            },
+            {
+                "code": "SE",
+                "description": "Sending"
+            },
+            {
+                "code": "ST",
+                "description": "Sent"
+            },
+            {
+                "code": "CA",
+                "description": "Canceled"
+            },
+            {
+                "code": "RS",
+                "description": "Resend"
+            },
+            {
+                "code": "FA",
+                "description": "Failed"
+            },
+            {
+                "code": "IV",
+                "description": "Invalid"
+            },
+            {
+                "code": "PQ",
+                "description": "Print - Queued"
+            },
+            {
+                "code": "PD",
+                "description": "Printed"
+            },
+            {
+                "code": "UP",
+                "description": "[Updox] Sent - Pending"
+            },
+            {
+                "code": "US",
+                "description": "[Updox] Sent - Succeeded"
+            },
+            {
+                "code": "UF",
+                "description": "[Updox] Sent - Failed"
+            }
+        ];
+        
         var studyFlagValue = commonjs.makeValue(studyFlagArray, !isNoneExist ?
                                                        ":All;None:None;" :
                                                        ":All;","id", "description");
 
         var modalityRoomValue = commonjs.makeValue(app.modalityRooms, ":All;", "id", "modality_room_name");
-        var reportQueueValue = commonjs.makeValue(app.settings.report_queue_status, ":All;", "code", "description");
+        var reportQueueValue = commonjs.makeValue(app.report_queue_status, ":All;", "code", "description");       
 
         var imageDeliveryOptions = [{
             'type': 'delivery_cd',
@@ -125,13 +179,15 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             commonjs.convertToFacilityTimeZone(rowObject.facility_id, cellvalue).format('L LT z') :
             '';
         };
+      
+
         var claimDateFormatter = function ( cellvalue, options, rowObject ) {
             return commonjs.checkNotEmpty(cellvalue) ?
             commonjs.convertToFacilityTimeZone(rowObject.facility_id, cellvalue).format('L') : '';
         };
         var queuseStatusFormatter = function (cellvalue, options, rowObject) {
             if (!cellvalue) return '-';
-            return app.settings.report_queue_status[_.findIndex(app.settings.report_queue_status, {code: cellvalue})] && app.settings.report_queue_status[_.findIndex(app.settings.report_queue_status, {code: cellvalue})].description;
+            return app.report_queue_status[_.findIndex(app.report_queue_status, {code: cellvalue})] && app.report_queue_status[_.findIndex(app.report_queue_status, {code: cellvalue})].description;
         };
         var getStatus = function ( data ) {
             var status = data.study_status ;
