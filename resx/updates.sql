@@ -3879,22 +3879,43 @@ BEGIN
             orders.company_id
             ,orders.facility_id
             ,orders.patient_id
-           ,( CASE  WHEN (SELECT id FROM billing_provider) IS NOT NULL THEN (SELECT billing_provider_id FROM study_details)
-               ELSE NULL 
-               END   
-            ) AS billing_provider_id
-            ,( CASE  WHEN (SELECT id FROM ordering_facility) IS NOT NULL THEN (SELECT service_facility_id FROM study_details)
+            ,( CASE  WHEN (SELECT id FROM billing_provider) IS NOT NULL 
+                THEN (
+                    CASE 
+                    WHEN ((SELECT billing_provider_id FROM study_details) IS NOT NULL  AND (SELECT billing_provider_id FROM study_details) !='') 
+                    THEN (SELECT billing_provider_id FROM study_details)
+                    ELSE NULL
+                    END
+                    )
                 ELSE NULL 
                 END   
-            ) AS ordering_facility_id
-            ,( CASE  WHEN (SELECT id FROM rendering_provider) IS NOT NULL THEN (SELECT rendering_provider_id FROM study_details)
+            )::numeric AS billing_provider_id
+            ,( CASE  WHEN (SELECT id FROM ordering_facility) IS NOT NULL 
+                THEN (
+                    CASE 
+                    WHEN ((SELECT service_facility_id FROM study_details) IS NOT NULL AND (SELECT service_facility_id FROM study_details) !='')
+                    THEN (SELECT service_facility_id FROM study_details)
+                    ELSE NULL
+                    END
+                    )
                 ELSE NULL 
                 END   
-            ) AS rendering_provider_contact_id
+            )::numeric AS ordering_facility_id
+            ,( CASE  WHEN (SELECT id FROM rendering_provider) IS NOT NULL 
+                THEN (
+                    CASE  
+                    WHEN ( (SELECT rendering_provider_id FROM study_details) IS NOT NULL  AND (SELECT rendering_provider_id FROM study_details) !='' )
+                    THEN (SELECT rendering_provider_id FROM study_details)
+                    ELSE NULL
+                    END
+                    )
+                ELSE NULL 
+                END
+            )::numeric AS rendering_provider_contact_id
             ,( CASE  WHEN (SELECT id FROM referring_provider) IS NOT NULL THEN (SELECT id FROM referring_provider)
                 ELSE NULL 
                 END   
-            ) AS referring_provider_contact_id
+            )::numeric AS referring_provider_contact_id
           ,( SELECT id FROM 
               public.places_of_service
               WHERE code = COALESCE(NULLIF(order_info -> 'pos_type_code',''),'') AND company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) 
