@@ -188,8 +188,10 @@ define(['jquery',
                 self.showPaymentsGrid(paymentId);
                 commonjs.processPostRender();
                 commonjs.validateControls();
-                if(self.screenCode.indexOf('APAY') > -1) // for screen rights
+                if(self.screenCode.indexOf('APAY') > -1) {// for screen rights
                     $('#divPendingPay').addClass('maskPendingPay');
+                    $('#btnPaymentApplyAll').attr('disabled', true);
+                }
                 if(self.screenCode.indexOf('DPAY') > -1)
                     $('#btnPaymentDelete').attr('disabled', true)
             },
