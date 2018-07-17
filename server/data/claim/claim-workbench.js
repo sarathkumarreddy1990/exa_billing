@@ -1,5 +1,5 @@
 const SearchFilter = require('./claim-search-filters');
-const { SQL, query } = require('../index');
+const { SQL, query, queryWithAudit } = require('../index');
 
 module.exports = {
 
@@ -275,12 +275,17 @@ module.exports = {
     },
 
     updateBillingPayers: async function (params) {
+        params.screenName = params.entityName = params.moduleName = 'claims';        
         const sql = SQL`
-                        SELECT
-                        billing.change_payer_type(${params.id},${params.payer_type})
+                        SELECT id,
+                        billing.change_payer_type(claims.id,${params.payer_type})
+                        ,'{}'::jsonb old_values from billing.claims WHERE id=${params.id}
                         `;
 
-        return await query(sql);
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: `Change claim payer type (${params.payer_type}) for claims(${params.id})`
+        });
     },
 
     updateFollowUp: async (params) => {

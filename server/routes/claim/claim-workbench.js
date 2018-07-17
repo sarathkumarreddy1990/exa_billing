@@ -69,7 +69,7 @@ router.get('/billing_payers', async function(req, res){
 });
 
 router.put('/billing_payers', async function (req, res) {
-    const data = await claimWorkbenchController.updateBillingPayers(req.query);
+    const data = await claimWorkbenchController.updateBillingPayers(req.body);
     httpHandler.sendRows(req, res, data);
 });
 
