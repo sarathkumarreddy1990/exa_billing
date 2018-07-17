@@ -261,7 +261,8 @@ module.exports = {
             bill_fee,
             patient_paid,
             others_paid,
-            adjustment,     
+            adjustment,    
+            this_adjustment,
             balance,        
             display_description,        
             sortOrder,
@@ -300,6 +301,10 @@ module.exports = {
         if (payment) {
             havingQuery.push(`  COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'payment'),0::money) = '${payment}'::money`);
         }
+        
+        if (this_adjustment) {
+            havingQuery.push(` COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'adjustment'), 0::money) = '${this_adjustment}'::money`);
+        }
 
         if (patient_paid) {    
             whereQuery.push(` (SELECT patient_paid FROM billing.get_claim_patient_other_payment(bc.id)) = '${patient_paid}'::money`);
@@ -310,7 +315,7 @@ module.exports = {
         }
 
         if (adjustment) {    
-            whereQuery.push( `(SELECT adjustments_applied_total from billing.get_claim_totals(bc.id)) = (${adjustment})::money`);
+            havingQuery.push( `((SELECT adjustments_applied_total from billing.get_claim_totals(bc.id)) - COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'adjustment'),0::money)) = (${adjustment})::money`);
         }
 
         if (balance) {

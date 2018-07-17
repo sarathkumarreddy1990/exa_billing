@@ -38,7 +38,8 @@ module.exports = {
             paymentStatus,
             isGetTotal,
             from,
-            patientID
+            patientID,
+            countFlag
         } = params;
 
         if (fromDate && toDate) {
@@ -115,54 +116,83 @@ module.exports = {
         LEFT JOIN public.provider_contacts ON provider_contacts.id = payments.provider_contact_id
         LEFT JOIN public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
         LEFT JOIN public.insurance_providers  ON insurance_providers.id = payments.insurance_provider_id
+        LEFT JOIN LATERAL (select * from billing.get_payment_totals(payments.id)) payment_totals  ON true
         LEFT JOIN public.facilities ON facilities.id = payments.facility_id `;
 
         let sql = '';
 
         if (isGetTotal) {
-            sql = SQL` SELECT SUM(amount) as total_amount,
-                        SUM((select payments_applied_total from billing.get_payment_totals(payments.id))::money) as total_applied,
-                        SUM((select adjustments_applied_total from billing.get_payment_totals(payments.id))::money) as total_adjustment
-                        FROM billing.payments `;
-        } else {
-            sql = SQL`SELECT
-                          payments.id
-                        , payments.id as payment_id
-                        , payments.facility_id
-                        , patient_id
-                        , insurance_provider_id
-                        , payments.provider_group_id
-                        , provider_contact_id
-                        , payment_reason_id
-                        , amount MONEY
-                        , accounting_dt::text
-                        , payment_dt::text
-                        , alternate_payment_id AS display_id
-                        , (  CASE payer_type 
-                                WHEN 'insurance' THEN insurance_providers.insurance_name
-	                            WHEN 'ordering_facility' THEN provider_groups.group_name
-	                            WHEN 'ordering_provider' THEN ref_provider.full_name
-	                            WHEN 'patient' THEN patients.full_name        END) AS payer_name
-                        , payment_dt
-                        , invoice_no
-                        , alternate_payment_id
-                        , payer_type
-                        , payments.notes
-                        , mode AS payment_mode
-                        , card_name
-                        , card_number
-                        , patients.full_name as patient_name
-                        , get_full_name(users.last_name, users.first_name) as user_full_name
-                        , facilities.facility_name
-                        , amount
-                        , (select payment_balance_total from billing.get_payment_totals(payments.id)) AS available_balance
-                        , (select payments_applied_total from billing.get_payment_totals(payments.id)) AS applied       
-                        , (select adjustments_applied_total from billing.get_payment_totals(payments.id)) AS adjustment_amount
-                        , (select payment_status from billing.get_payment_totals(payments.id)) AS current_status
-                        , COUNT(1) OVER (range unbounded preceding) AS total_records
-                    FROM billing.payments`;
+            sql = SQL` 
+                SELECT SUM(amount) AS total_amount,
+                    SUM(payment_totals.payments_applied_total) AS total_applied       
+                    ,SUM(payment_totals.adjustments_applied_total) AS total_adjustment
+                FROM billing.payments
+                    LEFT JOIN LATERAL 
+                    (SELECT * FROM billing.get_payment_totals(payments.id)) payment_totals ON true
+            `;
 
+            if (whereQuery.length) {
+                sql.append(SQL` WHERE `)
+                    .append(whereQuery.join(' AND '));
+            }
+            
+            return await query(sql);
         }
+        else if (countFlag == 'true') {
+            sql = SQL`  SELECT
+                        COUNT(1) AS total_records
+                        FROM billing.payments INNER JOIN public.users ON users.id = payments.created_by
+                        LEFT JOIN public.patients ON patients.id = payments.patient_id
+                        LEFT JOIN public.provider_groups ON provider_groups.id = payments.provider_group_id
+                        LEFT JOIN public.provider_contacts ON provider_contacts.id = payments.provider_contact_id
+                        LEFT JOIN public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
+                        LEFT JOIN public.insurance_providers  ON insurance_providers.id = payments.insurance_provider_id
+                        LEFT JOIN public.facilities ON facilities.id = payments.facility_id`;
+            
+            if (whereQuery.length) {
+                sql.append(SQL` WHERE `)
+                    .append(whereQuery.join(' AND '));
+            }
+
+            return await query(sql);
+        }
+
+        sql = SQL`SELECT
+                        payments.id
+                    , payments.id as payment_id
+                    , payments.facility_id
+                    , patient_id
+                    , insurance_provider_id
+                    , payments.provider_group_id
+                    , provider_contact_id
+                    , payment_reason_id
+                    , amount MONEY
+                    , accounting_dt::text
+                    , payment_dt::text
+                    , alternate_payment_id AS display_id
+                    , (  CASE payer_type 
+                            WHEN 'insurance' THEN insurance_providers.insurance_name
+                            WHEN 'ordering_facility' THEN provider_groups.group_name
+                            WHEN 'ordering_provider' THEN ref_provider.full_name
+                            WHEN 'patient' THEN patients.full_name        END) AS payer_name
+                    , payment_dt
+                    , invoice_no
+                    , alternate_payment_id
+                    , payer_type
+                    , payments.notes
+                    , mode AS payment_mode
+                    , card_name
+                    , card_number
+                    , patients.full_name as patient_name
+                    , get_full_name(users.last_name, users.first_name) as user_full_name
+                    , facilities.facility_name
+                    , amount
+                    
+                    , payment_totals.payment_balance_total AS available_balance
+                    , payment_totals.payments_applied_total AS applied       
+                    , payment_totals.adjustments_applied_total AS adjustment_amount
+                    , payment_totals.payment_status AS current_status
+                FROM billing.payments`;
 
         sql.append(joinQuery);
 

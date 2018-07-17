@@ -146,6 +146,11 @@ define(['jquery',
 
                 var self = this;
 
+                //If any status filtered previously
+                if (commonjs.paymentStatus && commonjs.paymentStatus.length) {
+                    $("#ulPaymentStatus").val(commonjs.paymentStatus);
+                    $("#ulPaymentStatus").multiselect("refresh");
+                }
                 // Grid Filter Dropdowns
                 var payerTypeValue = commonjs.buildGridSelectFilter({
                     arrayOfObjects: this.payer_type,
@@ -226,6 +231,7 @@ define(['jquery',
                         },
                         onaftergridbind: function (model, gridObj) {
                             self.bindDateRangeOnSearchBox(gridObj);
+                            self.setPhoneMask();
                         },
                         disablesearch: false,
                         disablesort: false,
@@ -243,7 +249,9 @@ define(['jquery',
                                 if (statusColor)
                                     $("#" + rowid).css({ 'background-color': statusColor.color_code });
                             }
-                        }
+                        },
+                        delayedPagerUpdate: true,
+                        pagerApiUrl: '/exa_modules/billing/payments/count'
                     });
 
                     this.gridLoaded = true;
@@ -286,9 +294,16 @@ define(['jquery',
                 commonjs.docResize();
             },
 
+            setPhoneMask: function (obj1, obj2) {
+                $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar input[name=payment_id]").addClass('integerbox');
+                commonjs.validateControls();
+            },
+
             editPayment: function (rowId) {
+                commonjs.paymentStatus = $('#ulPaymentStatus').val();
                 commonjs.paymentFilterFields = $('#divGrid_payments .ui-search-toolbar th div input, select').map(function () {
-                    return $(this).attr('id') + '~' + $(this).val();
+                    if (!$(this).is('#ulPaymentStatus'))
+                        return $(this).attr('id') + '~' + $(this).val();
                 });
                 Backbone.history.navigate('#billing/payments/edit/' + rowId, true);
             },

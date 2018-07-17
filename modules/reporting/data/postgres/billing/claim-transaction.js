@@ -52,8 +52,8 @@ WITH details AS(
         <% if(referringProIds) { %>AND <% print(referringProIds);} %>
     
         <%
-        if(insPaid) { %> AND ( bp.payer_type = 'patient')   <% }
-        else if(patPaid) { %> AND ( bp.payer_type = 'insurance') <% }
+        if(patPaid) { %> AND ( bp.payer_type = 'patient')   <% }
+        else if(insPaid) { %> AND ( bp.payer_type = 'insurance') <% }
         else if(unPaid)  { %> AND ( bp.id is null ) <% }
         else if(insPaid && patPaid )  { %> AND ( bp.payer_type = 'patient' ) OR ( bp.payer_type = 'insurance' ) <% }
         else if(patPaid &&  unPaid)  { %> AND ( bp.payer_type = 'patient' OR bp.id is null ) <% }

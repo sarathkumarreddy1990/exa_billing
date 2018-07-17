@@ -137,6 +137,7 @@ define([
                     },
                     onaftergridbind: function (model, gridObj) {
                         self.afterEraGridBind(model, gridObj, self);
+                        self.setPhoneMask();
                     },
                     ondblClickRow: function (rowID) {
                         var gridData = $('#tblEOBFileList').jqGrid('getRowData', rowID);
@@ -157,6 +158,11 @@ define([
                     $('#tblEOBFileList #' + fileUploadedObj.innerHTML).dblclick();
                     fileUploadedObj.innerHTML = '';
                 }
+            },
+            
+            setPhoneMask: function (obj1, obj2) {
+                $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar input[name=id]").addClass('integerbox');
+                commonjs.validateControls();
             },
 
             fileUpdatedDateFormatter: function (cellvalue, options, rowObject) {
@@ -360,6 +366,13 @@ define([
                 }
                 else if (fileStoreExist && fileStoreExist.innerHTML == 'FILE_STORE_NOT_EXISTS') {
                     commonjs.showWarning('File store not yet configured');
+                    fileDuplicateObj.innerHTML = '';
+                    fileUploadedObj.innerHTML = '';
+                    fileStoreExist.innerHTML = '';
+                    return false;
+                }
+                else if (fileStoreExist && fileStoreExist.innerHTML != '') {
+                    commonjs.showWarning(fileStoreExist.innerHTML);
                     fileDuplicateObj.innerHTML = '';
                     fileUploadedObj.innerHTML = '';
                     fileStoreExist.innerHTML = '';

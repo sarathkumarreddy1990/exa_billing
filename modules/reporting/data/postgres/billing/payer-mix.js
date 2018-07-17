@@ -62,6 +62,7 @@ WITH payerMixDetails AS (
         SUM(claim_count) AS "Claim Count"
     FROM
          payerMixDetails
+    WHERE  facility_name is not null
 `);
 
 const api = {
