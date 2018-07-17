@@ -90,4 +90,9 @@ router.post('/update_claim_status', async function (req, res) {
 });
 
 
+router.get('/invoice_claims', async function (req, res) {
+    const data = await claimWorkbenchController.getClaimDataInvoice(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;

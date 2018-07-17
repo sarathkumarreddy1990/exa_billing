@@ -67,20 +67,13 @@ define(['jquery',
                 this.options = options;
                 this.model = new newClaimModel();
                 this.patInsModel = new modelPatientInsurance();
-                var planName = [
-                    { value: '', 'text': 'Select' },
-                    { value: 'Health', 'text': 'Health' },
-                    { value: 'Retried', 'text': 'Retried' },
-                    { value: 'Education', 'text': 'Education' }
-                ];
+               
                 var modelCollection = Backbone.Collection.extend({
                     model: Backbone.Model.extend({})
                 });
                 this.facilities = new modelCollection(commonjs.bindArray(app.facilities, true, true));
                 this.states = new modelCollection(commonjs.bindArray(app.states[0].app_states, true));
                 this.genders = new modelCollection(commonjs.bindArray(app.gender, true));
-                this.empStatus = new modelCollection(app.employment_status);
-                this.planList = new modelCollection(planName);
                 this.claimStatusList = new modelCollection(app.claim_status);
                 this.billingCodesList = new modelCollection(app.billing_codes);
                 this.billingClassList = new modelCollection(app.billing_classes);
@@ -113,9 +106,7 @@ define(['jquery',
                         patient_name: self.cur_patient_name,
                         account_no: self.cur_patient_acc_no,
                         dob: self.cur_patient_dob,
-                        planname: self.planList.toJSON(),
                         facilities: self.facilities.toJSON(),
-                        empStatus: self.empStatus.toJSON(),
                         genders: self.genders.toJSON(),
                         states: self.states.toJSON(),
                         claimStatusList: self.claimStatusList.toJSON(),
@@ -426,7 +417,7 @@ define(['jquery',
                             /* Bind chargeLineItems events - Ended */
 
                             /* Header Details */
-                            $(parent.document).find('#spanModalHeader').html('Edit : <STRONG>' + claimDetails.patient_full_name + '</STRONG> (Acc#:' + claimDetails.patient_account_no + ') ' + moment(claimDetails.patient_dob).format('L') + '');
+                            $(parent.document).find('#spanModalHeader').html('Edit : <STRONG>' + claimDetails.patient_full_name + '</STRONG> (Acc#:' + claimDetails.patient_account_no + '), ' + moment(claimDetails.patient_dob).format('L') + ', ' + claimDetails.patient_gender);
                             $.each(self.claimChargeList, function (index, data) {
                                 /* Bind charge table data*/
                                 self.createCptCodesUI(index);
@@ -813,7 +804,6 @@ define(['jquery',
                 if (!this.rendered)
                     this.render('claim');
 
-                $(parent.document).find('#spanModalHeader').html('Claim Creation : <STRONG>' + primaryStudyDetails.patient_name + '</STRONG> (Acc#:' + primaryStudyDetails.account_no + '), <i>' + self.cur_patient_dob + '</i>  ');
                 self.getLineItemsAndBind(selectedStudyIds);
                 if(options && options == 'patientSearch'){
                     self.bindDetails();
@@ -934,8 +924,11 @@ define(['jquery',
                                 var modelDetails = model[0];
                                 self.studyDate = modelDetails && modelDetails.charges && modelDetails.charges.length && modelDetails.charges[0].study_dt ? modelDetails.charges[0].study_dt : self.cur_study_date ;
                                 self.facilityId = modelDetails && modelDetails.charges && modelDetails.charges.length && modelDetails.charges[0].facility_id ? modelDetails.charges[0].facility_id : self.facilityId ;
+                                var _defaultDetails = modelDetails.claim_details && modelDetails.claim_details.length > 0 ? modelDetails.claim_details[0] : {};
+                                var _diagnosisProblems = modelDetails.problems && modelDetails.problems.length > 0 ? modelDetails.problems : [];
                                 var diagnosisCodes = [];
-                                var diagnosisCodesOrder = [];
+                                $(parent.document).find('#spanModalHeader').html('Claim Creation : <STRONG>' + _defaultDetails.patient_name + '</STRONG> (Acc#:' + _defaultDetails.patient_account_no + '), <i>' + _defaultDetails.patient_dob + '</i>,  ' + _defaultDetails.patient_gender);
+
                                 _.each(modelDetails.charges, function (item) {
                                     var index = $('#tBodyCharge').find('tr').length;
                                     item.data_row_id = index;
@@ -949,29 +942,21 @@ define(['jquery',
                                         study_id: item.study_id, 
                                         data_row_id: index
                                     });
-
-                                    if (item.icd_codes_billing) {
-                                        _.each(item.icd_codes_billing, function (code) {
-                                            if (_.findIndex(diagnosisCodes, { id: code.split('~')[0] }) == -1) {
-                                                diagnosisCodes.push({ id: code.split('~')[0], code: code.split('~')[1] , description: code.split('~')[2] })
-                                            }
-                                        })
-                                    }
-                                    if (item.icd_codes_billing_order) {
-                                        _.each(item.icd_codes_billing_order, function (codeId) {
-                                            if (diagnosisCodesOrder.indexOf(codeId) == -1) {
-                                                diagnosisCodesOrder.push(codeId);
-                                            }
-                                        })
-                                    }
-                                    
                                 });
-                                var _defaultDetails = modelDetails.claim_details && modelDetails.claim_details.length > 0 ? modelDetails.claim_details[0] : {};
+
+                                _.each(_diagnosisProblems, function (item) {
+
+                                    if (_.findIndex(diagnosisCodes, { id: item.id }) == -1) {
+                                        diagnosisCodes.push({ id: item.id, code: item.code , description: item.description });
+                                    }
+
+                                });
+                               
                                 setTimeout(function () {
                                     self.bindDefaultClaimDetails(_defaultDetails);
                                 }, 200);
                                 
-                                self.bindProblemsContent(diagnosisCodes, diagnosisCodesOrder);
+                                self.bindProblemsContent(diagnosisCodes);
 
                                 /* Bind chargeLineItems events - started*/
                                 if(self.screenCode.indexOf('DCLM') > -1) {
@@ -1452,12 +1437,16 @@ define(['jquery',
                     total_bill_fee = total_bill_fee + parseFloat(thisTotalBillFee);
                     total_allowed = total_allowed + parseFloat(thisTotalAllowed);
                 });
-
+                var patient_paid = parseFloat($('#spPatientPaid').text());
+                var others_paid = parseFloat($('#spOthersPaid').text());
+                var refund_amount = parseFloat($('#spRefund').text()); 
+                var adjustment_amount = parseFloat($('#spAdjustment').text()); 
                 $('#spTotalBillFeeValue').text(commonjs.roundFee(total_bill_fee));
                 $('#spBillFee').text(commonjs.roundFee(total_bill_fee));
-                $('#spBalance').text(commonjs.roundFee(total_bill_fee));
                 $('#spTotalAllowedFeeValue').text(commonjs.roundFee(total_allowed));
                 $('#spAllowed').text(commonjs.roundFee(total_allowed));
+                var balance = total_bill_fee - (patient_paid + others_paid + adjustment_amount + refund_amount);
+                $('#spBalance').text(commonjs.roundFee(balance));
             },
 
             updateResponsibleList: function (payer_details) {
@@ -2276,8 +2265,8 @@ define(['jquery',
                     $('#txt' + flag + 'SubPriAddr').val(result.subscriber_address_line1);
                     $('#txt' + flag + 'SubSecAddr').val(result.subscriber_address_line2);
                     $('#txt' + flag + 'City').val(result.subscriber_city);
-                    if(app.states.indexOf(result.subscriber_state) > 0 )
-                    {
+                    var states = app.states && app.states.length && app.states[0].app_states;
+                    if (states && states.indexOf(result.subscriber_state) > 0) {
                         $('#ddl' + flag + 'State').val(result.subscriber_state);
                     }
                     $('#txt' + flag + 'ZipCode').val(result.subscriber_zipcode);
@@ -2500,14 +2489,21 @@ define(['jquery',
                                     clearTimeout(claimRefreshInterval);
 
                                     commonjs.showStatus("messages.status.successfullyCompleted");
+                                    console.log(self.claim_Id);
                                     $("#btnClaimsRefresh").click();
                                     $("#btnStudiesRefresh").click();
                                 }, 200);
-
+                                
+                                var time = self.isEdit ? 800 : 100;
                                 var claimHideInterval = setTimeout(function () {
                                     clearTimeout(claimHideInterval);
-                                    commonjs.hideDialog();
-                                }, 100);
+                                    if(self.isEdit){
+                                        saveButton.attr('disabled', false);
+                                        $('#chktblClaimGridAll_Claims_' + self.claim_Id).prop('checked', true);
+                                    }else{
+                                        commonjs.hideDialog();
+                                    }
+                                }, time);
                             }
                         },
                         error: function (model, response) {
@@ -2746,7 +2742,6 @@ define(['jquery',
                                 document.querySelector('#txt' + _targetFlag + 'DOB').value = response.birth_date ? moment(response.birth_date).format('L') : '';
                                 self.homePhone = contactInfo.c1HomePhone;
                                 self.workPhone = contactInfo.c1WorkPhone;
-                                self.empStatus = contactInfo.empStatus;
                                 subscriberFlag = true;
                                 self.bindSubscriber(_targetFlag);
                             }
@@ -2781,8 +2776,6 @@ define(['jquery',
                     $('#ddl' + flag + 'State').val(self.state);
                     $('#txt' + flag + 'ZipCode').val(self.zipCode);
                 }
-                $('#ddl' + flag + 'EmpStatus').val(self.empStatus);
-
                 if (relationalShip.toLowerCase() == "self") {
                     $('#txt' + flag + 'SubFirstName').val(self.firstName);
                     $('#txt' + flag + 'SubLastName').val(self.lastName);
@@ -2848,8 +2841,6 @@ define(['jquery',
                     $('#lbl' + flag + 'PhoenNo').html('');
                     $('#txt' + flag + 'PolicyNo').val('');
                     $('#txt' + flag + 'GroupNo').val('');
-                    $('#ddl' + flag + 'PlanName').val('');
-                    $('#ddl' + flag + 'EmpStatus').val('');
                     $('#ddl' + flag + 'RelationShip').val('');
                     $('#txt' + flag + 'SubFirstName').val('');
                     $('#txt' + flag + 'SubMiName').val('');
@@ -2892,26 +2883,10 @@ define(['jquery',
 
             },
 
-            bindProblemsContent: function (problem, problemIndex) {
-                var self = this, sortedProblems;
+            bindProblemsContent: function (problems) {
+                var self = this;
 
-                // Inner function for sort diagnosis codes based on insertion
-                var sortDiagnosisCodesByIndex = function (icdCode, icdOrder) {
-
-                    var indexObject = _.reduce(icdCode, function (result, currentObject) {
-                        result[currentObject.id] = currentObject;
-                        return result;
-                    }, {});
-
-                    var sortedResult = _.map(icdOrder, function (currentID) {
-                        return indexObject[currentID]
-                    });
-
-                    return sortedResult;
-                }
-                sortedProblems = sortDiagnosisCodesByIndex(problem, problemIndex);
-
-                _.each(sortedProblems, function (icdObj, index) {
+                _.each(problems, function (icdObj, index) {
 
                     // limited DiagnosisCodes upto 12
                     if (index < 12) {
@@ -2973,6 +2948,7 @@ define(['jquery',
                         var data = $($tblGrid, parent.document).getRowData(rowId);
                         commonjs.getClaimStudy(rowId, function (result) {
                             self.rendered = false;
+                            self.clearDependentVariables();
                             self.showEditClaimForm(rowId, null, {
                                 'study_id': result && result.study_id ? result.study_id : 0,
                                 'patient_name': data.patient_name,
@@ -3302,9 +3278,6 @@ define(['jquery',
                 var self = this;
                 var patientId = (tagName == 'P') ? (e.target || e.srcElement).parentElement.id.split('_')[2] : (e.target || e.srcElement).id.split('_')[2];
                 var $studyDetails = $(e.target || e.srcElement).closest('.selectionpatient').find('.studyDetails');
-                var patient_name = $(e.target || e.srcElement).closest('.selectionpatient').data('name');
-                var account_no = $(e.target || e.srcElement).closest('.selectionpatient').data('value');
-                var patient_dob = $(e.target || e.srcElement).closest('.selectionpatient').data('patient_dob');
                 var facility_id = $(e.target || e.srcElement).closest('.selectionpatient').data('facility_id');
                 self.cur_patient_id = patientId || 0;
 
@@ -3322,8 +3295,11 @@ define(['jquery',
                             company_id: app.companyID
                         },
                         success: function (data) {
-                            if (data && data.length) {
-                                _.each(data, function (study) {
+                            var charges = data && data.length && data[0].charges ? data[0].charges : [];
+                            var patient_details = data && data.length && data[0].patient_details ? data[0].patient_details : {};
+                            
+                            if (charges && charges.length) {
+                                _.each(charges, function (study) {
                                     study.study_description = study.study_description ? study.study_description : '--';
                                     study.accession_no = study.accession_no ? study.accession_no : '--';
                                     var study_date = study.study_dt ? commonjs.convertToFacilityTimeZone(app.facilityID, moment(study.study_dt)).format('L LT z') : '--'
@@ -3357,9 +3333,10 @@ define(['jquery',
                                                     patient_id: patientId,
                                                     facility_id: facility_id,
                                                     study_date: study_dt,
-                                                    patient_name: patient_name,
-                                                    account_no: account_no,
-                                                    patient_dob: patient_dob,
+                                                    patient_name: patient_details.patient_name || '',
+                                                    account_no: patient_details.patient_account_no || '',
+                                                    patient_dob: patient_details.patient_dob || '',
+                                                    patient_gender: patient_details.patient_gender || '',
                                                     accession_no: accession_no,
                                                 };
                                                 selectedStudies.push(study);
@@ -3383,14 +3360,14 @@ define(['jquery',
 
                                     }
                                     else {
-                                        self.claimWOStudy(patient_name, account_no, patient_dob);
+                                        self.claimWOStudy(patient_details);
                                     }
 
                                 });
                             } else {
 
                                 if (confirm("Selected patient don't have study. Are you sure to process without study? ")) {
-                                    self.claimWOStudy(patient_name, account_no, patient_dob);
+                                    self.claimWOStudy(patient_details);
                                 }
 
                             }
@@ -3403,7 +3380,7 @@ define(['jquery',
                 }
                 
             },
-            claimWOStudy:function(patient_name, account_no, patient_dob){
+            claimWOStudy:function(patient_details){
                 var self = this;
 
                 // Claim w/o charge code  -- start
@@ -3419,7 +3396,7 @@ define(['jquery',
                 // Set Default details
                 self.updateResponsibleList({
                     payer_type: 'PPP',
-                    payer_name: patient_name + '( Patient )',
+                    payer_name: patient_details.patient_name + '( Patient )',
                     payer_id: self.cur_patient_id
                 });
                 
@@ -3429,12 +3406,24 @@ define(['jquery',
 
                 self.cur_study_date = commonjs.convertToFacilityTimeZone(app.facilityID, moment()).format('L LT z')
                 document.querySelector('#txtClaimDate').value = moment().format('YYYY-MM-DD');
-                
+
+                // Bind Patient Default details
+                var renderingProvider = patient_details.rendering_provider_full_name || self.usermessage.selectStudyReadPhysician;
+                var service_facility_name = patient_details.service_facility_name || self.usermessage.selectOrdFacility;
+                self.ACSelect.readPhy.contact_id = patient_details.rendering_provider_contact_id || patient_details.rendering_provider_contact_id || null;
+                self.group_id = patient_details.service_facility_id ? parseInt(patient_details.service_facility_id) : null;
+                self.group_name = service_facility_name;
+
+                $('#ddlBillingProvider').val(patient_details.billing_provider_id || '');
+                $('#ddlFacility').val(patient_details.facility_id || '');
+                $('#select2-ddlRenderingProvider-container').html(renderingProvider);
+                $('#select2-ddlOrdFacility-container').html(service_facility_name);
+
                 // Claim w/o charge code  -- end
 
                 setTimeout(function () {
                     $('#divPageLoading').hide();
-                    $(parent.document).find('#spanModalHeader').html('Claim Creation : <STRONG>' + patient_name + '</STRONG> (Acc#:' + account_no + '), <i>' + patient_dob + '</i>  ');
+                    $(parent.document).find('#spanModalHeader').html('Claim Creation : <STRONG>' + patient_details.patient_name + '</STRONG> (Acc#:' + patient_details.patient_account_no + '), <i>' + patient_details.patient_dob + '</i>, '+ patient_details.patient_gender);
                     $('#divPatient').hide();
                     $('.woClaimRelated').show();
                 }, 200);
@@ -3486,6 +3475,19 @@ define(['jquery',
                     $("#ddlTerRelationShip option:contains('Selected')").attr('selected', 'Selected');
                     $('#showTerSelf').show();
                 } 
+            },
+
+            clearDependentVariables: function () {
+                var self = this;
+                self.priInsID = '';
+                self.priInsName = '';
+                self.is_primary_available = false;
+                self.secInsID = '';
+                self.secInsName = '';
+                self.is_secondary_available = false;
+                self.terInsID = '';
+                self.terInsName = '';
+                self.is_tertiary_available = false;
             }
 
         });

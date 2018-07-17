@@ -67,13 +67,67 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 break;
             }
         }
-
+        app.report_queue_status = [
+            {
+                "code": "QU",
+                "description": "Queued"
+            },
+            {
+                "code": "PR",
+                "description": "Progress"
+            },
+            {
+                "code": "SE",
+                "description": "Sending"
+            },
+            {
+                "code": "ST",
+                "description": "Sent"
+            },
+            {
+                "code": "CA",
+                "description": "Canceled"
+            },
+            {
+                "code": "RS",
+                "description": "Resend"
+            },
+            {
+                "code": "FA",
+                "description": "Failed"
+            },
+            {
+                "code": "IV",
+                "description": "Invalid"
+            },
+            {
+                "code": "PQ",
+                "description": "Print - Queued"
+            },
+            {
+                "code": "PD",
+                "description": "Printed"
+            },
+            {
+                "code": "UP",
+                "description": "[Updox] Sent - Pending"
+            },
+            {
+                "code": "US",
+                "description": "[Updox] Sent - Succeeded"
+            },
+            {
+                "code": "UF",
+                "description": "[Updox] Sent - Failed"
+            }
+        ];
+        
         var studyFlagValue = commonjs.makeValue(studyFlagArray, !isNoneExist ?
                                                        ":All;None:None;" :
                                                        ":All;","id", "description");
 
         var modalityRoomValue = commonjs.makeValue(app.modalityRooms, ":All;", "id", "modality_room_name");
-        var reportQueueValue = commonjs.makeValue(app.settings.report_queue_status, ":All;", "code", "description");
+        var reportQueueValue = commonjs.makeValue(app.report_queue_status, ":All;", "code", "description");       
 
         var imageDeliveryOptions = [{
             'type': 'delivery_cd',
@@ -125,13 +179,15 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             commonjs.convertToFacilityTimeZone(rowObject.facility_id, cellvalue).format('L LT z') :
             '';
         };
+      
+
         var claimDateFormatter = function ( cellvalue, options, rowObject ) {
             return commonjs.checkNotEmpty(cellvalue) ?
             commonjs.convertToFacilityTimeZone(rowObject.facility_id, cellvalue).format('L') : '';
         };
         var queuseStatusFormatter = function (cellvalue, options, rowObject) {
             if (!cellvalue) return '-';
-            return app.settings.report_queue_status[_.findIndex(app.settings.report_queue_status, {code: cellvalue})] && app.settings.report_queue_status[_.findIndex(app.settings.report_queue_status, {code: cellvalue})].description;
+            return app.report_queue_status[_.findIndex(app.report_queue_status, {code: cellvalue})] && app.report_queue_status[_.findIndex(app.report_queue_status, {code: cellvalue})].description;
         };
         var getStatus = function ( data ) {
             var status = data.study_status ;
@@ -1009,20 +1065,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "sortable": true
                 },
                 "field_code": "vehicle_name"
-            },
-            "Claim Status": {
-                "id": 34,
-                "field_name": "Claim Status",
-                "i18n_name": "billing.fileInsurance.claimStatus",
-                "field_info": {
-                    "custom_name": "Claim Status",
-                    "name": "claim_status",
-                    "width": 100,
-                    "search": true,
-                    "sortable": true
-                },
-                "field_code": "claim_status"
-            },
+            },           
             "Responsible": {
                 "id": 35,
                 "field_name": "Responsible",
@@ -1143,31 +1186,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "defaultValue": ""
                 },
                 "field_code": "check_indate"
-            },
-            "Billing Code": {
-                "id": 43,
-                "field_name": "Billing Code",
-                "i18n_name": "billing.fileInsurance.billingCode",
-                "field_info": {
-                    "custom_name": "Billing Code",
-                    "name": "billing_code",
-                    "width": 200,
-                    "defaultValue": ""
-                },
-                "field_code": "billing_code"
-            },
-            "Billing Class": {
-                "id": 44,
-                "field_name": "Billing Class",
-                "i18n_name": "billing.fileInsurance.billingClass",
-                "field_info": {
-                    "custom_name": "Billing Class",
-                    "name": "billing_class",
-                    "width": 200,
-                    "defaultValue": ""
-                },
-                "field_code": "billing_class"
-            },
+            },            
             "Status Changed Date": {
                 "id": 45,
                 "field_name": "Status Changed Date",
@@ -1444,6 +1463,75 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "hidden": false
                 },
                 "field_code": "mudatacaptured"
+            },
+            "Eligibility": {
+                "id": 57,
+                "field_name": "Eligibility",
+                "i18n_name": "setup.ediRequestTemplate.eligibility",
+                "field_info": {
+                    "custom_name": "Eligibility",
+                    "name": "eligibility_verified",
+                    "width": 90,
+                    "formatter": function ( cellvalue, options, rowObject ) {
+                        /**
+                         * First see if automated eligibility check already
+                         * returned something we can use
+                         */
+                        var eligibilityDate = rowObject.eligibility_dt;
+                        var verifiedDate = rowObject.manually_verified_dt;
+
+
+                        if (options.format === 'csv') {
+                            if ( eligibilityDate && !verifiedDate || moment(eligibilityDate).isAfter(verifiedDate) ) {
+                                if ( cellvalue === false ) {
+                                    return "Verified using automated system - inactive coverage";
+                                }
+                                return "Verified using automated system";
+                            }
+                            else if ( verifiedDate ) {
+                                /**
+                                 * For when a user manually verified eligibility
+                                 */
+                                return  'Changed (manually) by ' + rowObject.manually_verified_by + ' on ' + dateFormatter(verifiedDate, options, rowObject);
+
+                            }
+                            return "Unverified";
+                        }
+
+                        else {
+                            if ( eligibilityDate && !verifiedDate || moment(eligibilityDate).isAfter(verifiedDate) ) {
+                                if ( cellvalue === false ) {
+                                    return '<i class="fa fa-square-o" style="color: #FF9000" aria-hidden="true" title="Verified using automated system - inactive coverage" />';
+                                }
+                                return '<i class="fa fa-check-square-o" style="color: green" aria-hidden="true" title="Verified using automated system" />';
+                            }
+                            else if ( verifiedDate ) {
+                                /**
+                                 * For when a user manually verified eligibility
+                                 */
+                                var verifiedBy = rowObject.manually_verified_by;
+                                var titleText = 'Changed (manually) by ' + verifiedBy + ' on ' + dateFormatter(verifiedDate, options, rowObject);
+                                if ( cellvalue === false ) {
+                                    return '<i class="fa fa-square-o" style="color: #FF9000" aria-hidden="true" title="' + titleText + '" />';
+                                }
+                                return '<i class="fa fa-check-square-o" style="color: green" aria-hidden="true" title="' + titleText + '" />';
+                            }
+                            /**
+                             * Default appearance
+                             */
+                            return '<i class="fa fa-square-o" style="color: #FF9000" aria-hidden="true" title="Unverified" />';
+                        }
+                    },
+                    "stype": "select",
+                    "searchoptions": {
+                        "value": verifiedValue,
+                        "tempvalue": verifiedValue
+                    },
+                    "customAction": function ( rowID, e, that ) {
+                        event.stopPropagation();
+                    }
+                },
+                "field_code": "eligibility_verified"
             },           
             "Provider Alerts": {
                 "id": 58,

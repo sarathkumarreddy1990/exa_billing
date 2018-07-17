@@ -13,6 +13,7 @@ define(['jquery',
     'shared/fields',
     'text!templates/claims/ediResult.html',
     'text!templates/claims/claim-validation.html',
+    'text!templates/claims/invoice-claim.html'
 ],
     function ($,
               Immutable,
@@ -28,9 +29,11 @@ define(['jquery',
               ClaimsGrid,
               ListFields,
               ediResultHTML,
-              claimValidation) {
+              claimValidation,
+              invoiceClaim) {
 
         var paperClaim = new PaperClaim();
+        var paperClaimNested = new PaperClaim(true);
 
         var MergeQueueBase = Immutable.Record({
             'filterIndexSet': Immutable.OrderedSet(),
@@ -256,6 +259,7 @@ define(['jquery',
                 self.template = _.template(ClaimHTML);
                 self.indexTemplate = _.template(IndexHTML);
                 self.claimValidation = _.template(claimValidation);
+                self.invoiceClaim = _.template(invoiceClaim);
                 self.$el.html(self.indexTemplate({
                     gadget: '',
                     customStudyStatus: []
@@ -422,7 +426,7 @@ define(['jquery',
                 var filterID = commonjs.currentStudyFilter;
                 var filter = commonjs.loadedStudyFilters.get(filterID);
 
-                var claimIds =[],existingBillingMethod='',existingClearingHouse='',existingEdiTemplate='';       
+                var claimIds =[],existingBillingMethod='',existingClearingHouse='',existingEdiTemplate='', selectedpayerType = [];      
 
                 for (var i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
                     var rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;
@@ -459,6 +463,9 @@ define(['jquery',
                     } else {
                         existingClearingHouse = clearingHouse;
                     }
+
+                    var payerType = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'payer_type'); 
+                    selectedpayerType.push(payerType)
 
                     // var ediTemplate = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'edi_template');
                     // if (existingEdiTemplate == '') existingEdiTemplate = ediTemplate;
@@ -500,18 +507,26 @@ define(['jquery',
                         sortBy = 'service_date';
                     }
                 }
-
+                var uniquePayerType = $.unique(selectedpayerType);
+                
                 if(existingBillingMethod === 'direct_billing') {
-                    paperClaim.print('direct_invoice', claimIds, {
-                        sortBy: sortBy
-                    });
-
-                    return;
+                    if(uniquePayerType && uniquePayerType.length && uniquePayerType.length > 1) {
+                        self.printInvoiceClaim('direct_invoice', claimIds, sortBy)
+                        return;
+                    }
+                    else {
+                        paperClaim.print('direct_invoice', claimIds, {
+                            sortBy: sortBy
+                        });
+                        return;
+                    }
                 }
-
+                
                 if(existingBillingMethod === 'patient_payment') {
-                    paperClaim.print('patient_invoice', claimIds);
-                    return;
+                        paperClaim.print('patient_invoice', claimIds, {
+                            sortBy: sortBy
+                        });
+                        return; 
                 }
 
                 self.ediResultTemplate = _.template(ediResultHTML);
@@ -571,6 +586,49 @@ define(['jquery',
                     }
                 });
             },
+
+            printInvoiceClaim: function (invoice_type, claimIds, sortBy) {
+                var self = this;
+                var printerClaimids = [];
+
+                $.ajax({
+                    url: '/exa_modules/billing/claim_workbench/invoice_claims',
+                    type: 'GET',
+                    data: {
+                        claimIDs: claimIds 
+                    },
+                    success: function(data, response){
+                        if (data) {
+                            commonjs.hideLoading();
+
+                            if (data && data.length) {
+                                commonjs.showDialog({ header: 'Invoice Claim', i18nHeader: 'billing.fileInsurance.invoiceClaim', width: '60%', height: '40%', html: self.invoiceClaim({ response_data: data }) });  
+
+                                $(".spnInvoicePrint").click(function (e) {
+                                    $(e.target).removeClass("icon-ic-print");
+                                    $(e.target).text("Printed").css({ fontSize: "14px" })
+                                    var ele = (e.target.id).split('_');
+                                    printerClaimids = [];
+
+                                    _.each(ele, function (claimid, index) {
+                                        if (claimid != 'spnInvoicePrint') {
+                                            printerClaimids.push(parseInt(claimid));
+                                        }
+                                    });
+
+                                    paperClaimNested.print(invoice_type, printerClaimids, {
+                                        sortBy: sortBy
+                                    });
+                                });  
+                            }                                                                                                            
+                        }
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
+            },
+
             setFiltertabs: function (filters) {
                 var self = this;
                 commonjs.showLoading('Fetching data..');
@@ -1095,13 +1153,12 @@ define(['jquery',
                             });
                             table.renderStudy();
 
-                            $('#btnValidateExport').on().click(function (e) {    
-                                commonjs.showWarning('Waiting for download ....')
-                                var $loading = $(document.getElementById('divPageLoading'));
-                                $loading.show();
-                                commonjs.showLoading();                                          
-                                table.renderStudy(true);  
-                                $('#btnValidateExport').prop('disabled', true);                                        
+                            $('#btnValidateExport').one().click(function (e) {
+                                commonjs.showLoading('Export is In Process ...')
+                                table.renderStudy(true);                                  
+                                $('#btnValidateExport').css('display','none');    
+                                commonjs.hideLoading();
+
                             });
                         };
 

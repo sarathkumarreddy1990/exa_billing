@@ -122,6 +122,10 @@ define(['jquery',
                         },
                         {
                             name: 'process_type',
+                            formatter: function (cellvalue) {
+                                return commonjs.checkNotEmpty(cellvalue) ?
+                                        self.getProcessType(cellvalue) : '';
+                            },
                         },
                         {
                             name: 'process_status',
@@ -176,6 +180,22 @@ define(['jquery',
             showForm: function (id) {
                 var self = this;
                 this.renderForm(id);
+            },
+
+            getProcessType: function (processType) {
+                var processTypeValue = "";
+                switch (processType) {
+                    case "claim":
+                        processTypeValue = "Claim";
+                        break;
+                    case "payment":
+                        processTypeValue = "Payment";
+                        break;
+                    case "study":
+                        processTypeValue = "Study";
+                        break;
+                }
+                return processTypeValue;
             },
 
             renderForm: function(id) {

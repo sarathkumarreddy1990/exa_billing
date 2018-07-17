@@ -20,15 +20,35 @@ const createDir = function (fileStorePath, filePath) {
 
     logger.info(`File store: ${fileStorePath}, ${filePath}`);
 
+
+    let dirExists = fs.existsSync(dirPath);
+
+    if (!dirExists) {
+        logger.info(`Directory not found -  ${dirPath}`);
+        return {
+            status: false,
+            message: 'Directory not found in file store'
+        };
+    }
+
     if (fileStorePath) {
         if (!fs.exists(dirPath)) {
             mkdirp(dirPath);
-        } else {
-            throw new Error('Directory not found');
+            return { status: true };
         }
-    } else {
-        throw new Error('Directory not found in file store');
+
+        logger.info(`Directory not found -  ${dirPath}`);
+        return {
+            status: false,
+            message: 'Directory not found in file store'
+        };
     }
+
+    logger.info(`Directory not found -  ${dirPath}`);
+    return {
+        status: false,
+        message: 'Directory not found in file store'
+    };
 };
 
 module.exports = {
@@ -100,7 +120,13 @@ module.exports = {
         if (isPreviewMode) {
             logger.info('ERA Preview MODE');
             fileRootPath = `trash\\${currentTime.getFullYear()}\\${currentTime.getMonth()}`;
-            createDir(fileStorePath, fileRootPath);
+            const dirResponse = createDir(fileStorePath, fileRootPath);
+
+            if (!dirResponse.status) {
+                return {
+                    file_store_status: dirResponse.message
+                };
+            }
 
             let diskFileName = params.session.id + '__' + fileName;
 
@@ -118,7 +144,14 @@ module.exports = {
         }
 
         logger.info('ERA Process MODE');
-        createDir(fileStorePath, fileRootPath);
+
+        const dirResponse =  createDir(fileStorePath, fileRootPath);
+
+        if (!dirResponse.status) {
+            return {
+                file_store_status: dirResponse.message
+            };
+        }
 
         if (fileExist != false) {
             logger.info(`ERA Duplicate file: ${fileMd5}`);

@@ -2570,13 +2570,16 @@ BEGIN
 		pa_adjustment.applied_dt as adjustment_applied_dt,
 		pa_adjustment.id as payment_application_adjustment_id 
 	FROM	billing.payment_applications pa
-	LEFT JOIN LATERAL (
-		SELECT 	* 
-		FROM	billing.payment_applications  
-		WHERE	payment_application_id = pa.id
-	) pa_adjustment ON true
+		LEFT JOIN LATERAL (
+			SELECT 	*
+			FROM	billing.payment_applications bpa
+			WHERE	bpa.payment_id = pa.payment_id
+				AND bpa.charge_id = pa.charge_id
+				AND bpa.applied_dt = pa.applied_dt
+				AND bpa.amount_type = 'adjustment'
+		) pa_adjustment ON true
 	WHERE	pa.payment_id = i_payment_id 
-		AND pa.payment_application_id is null;
+		AND pa.amount_type = 'payment';
 
 END
 $BODY$
@@ -2598,20 +2601,23 @@ BEGIN
 		coalesce(pa_adjustment.amount,0::money) as adjustment_amount,
 		pa.created_by as payment_created_by,
 		pa_adjustment.created_by as adjustment_created_by,
-		pa.applied_dt as payment_applied_dt,
-		pa_adjustment.applied_dt as adjustment_applied_dt,
+		pa_batch.applied_dt as payment_applied_dt,
+		pa_batch.applied_dt as adjustment_applied_dt,
 		pa_adjustment.id as payment_application_adjustment_id 
 	FROM	billing.payment_applications pa
-	LEFT JOIN LATERAL (
-		SELECT 	* 
-		FROM	billing.payment_applications  
-		WHERE	payment_application_id = pa.id
-	) pa_adjustment ON true
 	LEFT JOIN LATERAL (
 		SELECT 	applied_dt 
 		FROM	billing.payment_applications bpa
 		WHERE	bpa.id = i_application_id
 	) pa_batch ON true
+	LEFT JOIN LATERAL (
+		SELECT 	* 
+		FROM	billing.payment_applications bpa
+		WHERE	bpa.payment_id = pa.payment_id 
+			AND bpa.amount_type = 'adjustment'
+			AND bpa.charge_id = pa.charge_id
+			AND bpa.applied_dt = pa.applied_dt
+	) pa_adjustment ON true
 	WHERE	pa.payment_id = i_payment_id 
 		AND pa.applied_dt = pa_batch.applied_dt
 		AND pa.amount_type = 'payment';
@@ -3000,6 +3006,13 @@ BEGIN
 		DELETE FROM billing.payments bp
 		WHERE bp.id = i_payment_id
 		RETURNING *, '{}'::jsonb old_values ),
+    get_claim_ids AS(
+        SELECT distinct bch.claim_id AS claim_id FROM  billing.charges bch 
+        INNER JOIN purge_payment_applications ppa ON bch.id = ppa.charge_id
+    ),
+    change_claim_responsible_party AS(
+        SELECT billing.change_responsible_party(claim_id,0,p_company_id,null) FROM get_claim_ids
+    ),
 	purge_payment_audit AS(
 	SELECT billing.create_audit(			  
 		  p_company_id
@@ -3017,7 +3030,9 @@ BEGIN
 		) AS audit_id
 		FROM purge_payment pc
 		WHERE pc.id IS NOT NULL)
-	SELECT ppa.audit_id INTO p_result FROM purge_payment_audit ppa;
+	SELECT ppa.audit_id INTO p_result FROM purge_payment_audit ppa,change_claim_responsible_party;
+
+
 
 	RETURN true;
 

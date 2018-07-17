@@ -17,9 +17,8 @@ module.exports = {
 
         const firstStudyId = studyIds.length > 0 ? studyIds[0] : null;
 
-        let sql = SQL`SELECT * FROM (
-            SELECT json_agg(row_to_json(charge)) "charges" 
-                      FROM (SELECT
+        let sql = SQL`WITH claim_charges AS (
+                            SELECT
                                   sc.id AS study_cpt_id
                                 , s.study_dt
                                 , s.facility_id
@@ -40,8 +39,6 @@ module.exports = {
                                 , display_description
                                 , additional_info
                                 , sc.cpt_code_id AS cpt_id
-                                , ARRAY( SELECT icd_codes.id||'~'|| code ||'~'|| icd_codes.description FROM public.icd_codes WHERE id = ANY(o.icd_code_ids_billing) ) as icd_codes_billing
-				                , o.icd_code_ids_billing as icd_codes_billing_order 
                             FROM public.study_cpt sc
                             INNER JOIN public.studies s ON s.id = sc.study_id
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
@@ -49,16 +46,13 @@ module.exports = {
                             INNER JOIN appointment_types at ON at.id = s.appointment_type_id
                             INNER JOIN appointment_type_procedures atp ON atp.procedure_id = sc.cpt_code_id AND atp.appointment_type_id = s.appointment_type_id
                             WHERE
-                            
                                 study_id = ANY(${studyIds}) AND sc.has_deleted = FALSE
                             ORDER BY s.accession_no DESC
-                            ) AS charge
-                        ) charge_details
-                            ,(
-                                SELECT json_agg(row_to_json(claim_default_details)) "claim_details" FROM
-                                    (SELECT
-                                        facility_id,
-
+                            
+                        ) 
+                        ,claim_details AS (
+                                    SELECT
+                                        orders.facility_id,
                                         order_info->'currentDate' AS current_illness_date,
                                         order_info->'similarIll' AS same_illness_first_date,
                                         order_info->'wTo' AS unable_to_work_to_date,
@@ -96,23 +90,17 @@ module.exports = {
                                         order_info -> 'ordering_facility_id' AS ordering_facility_id,
                                         order_info -> 'ordering_facility' AS ordering_facility_name,
                                         order_info -> 'pos' AS pos_type,
-                                        orders.order_status AS order_status, (
-                                            SELECT
-                                                claim_status
-                                            FROM
-                                                claims
-                                            WHERE
-                                                order_id = orders.id
-                                                AND (claims.has_expired != 'true' OR has_expired IS NULL)
-                                                ORDER BY
-                                                id DESC
-                                                LIMIT 1
-                                                ) AS claim_status,
+                                        orders.order_status AS order_status,
                                         order_info -> 'billing_provider' AS billing_provider_id,
-                                        order_info -> 'pos_type_code' AS pos_type_code
+                                        order_info -> 'pos_type_code' AS pos_type_code,
+                                        p.full_name AS patient_name,
+                                        p.account_no AS patient_account_no,
+                                        p.birth_date AS patient_dob,
+                                        p.gender AS patient_gender
                                     FROM
                                         orders                                      
-                                        inner JOIN facilities ON  facilities.id= orders.facility_id
+                                        INNER JOIN facilities ON  facilities.id= orders.facility_id
+                                        INNER JOIN patients p ON p.id= orders.patient_id
                                         LEFT JOIN provider_contacts fac_prov_cont ON   facility_info->'rendering_provider_id'::text = fac_prov_cont.id::text
                                         LEFT JOIN providers fac_prov ON fac_prov.id = fac_prov_cont.provider_id
                                         JOIN LATERAL ( 
@@ -125,9 +113,42 @@ module.exports = {
                                                 WHERE s.id = ${firstStudyId}
                                         ) as studies_details ON TRUE   
                                     WHERE orders.id IN (SELECT order_id FROM public.studies s WHERE s.id = ${firstStudyId})
-
-                                    ) AS claim_default_details
-                            ) claims_info `;
+                            ) 
+                            ,claim_problems AS (
+                                        SELECT 
+                                            DISTINCT icd_codes.id
+                                            ,code
+                                            ,icd_codes.description
+                                            ,order_no
+                                        FROM public.icd_codes 
+                                        INNER JOIN patient_icds pi ON pi.icd_id = icd_codes.id
+                                        INNER JOIN public.orders o on o.id = pi.order_id
+                                        INNER JOIN public.studies s ON s.order_id = o.id
+                                        WHERE s.id = ANY(${studyIds})
+                                        AND s.has_deleted = FALSE
+                                        ORDER BY order_no
+                            )
+                            SELECT  ( SELECT COALESCE(json_agg(row_to_json(charge)),'[]') charges
+		                                FROM (
+                                                SELECT
+		                                	    *
+                                                FROM claim_charges 
+                                            ) AS charge
+                                    ) AS charges
+                                    ,( SELECT COALESCE(json_agg(row_to_json(claims)),'[]') claim_details
+		                                FROM (
+                                                SELECT
+		                                	    *
+                                                FROM claim_details 
+                                            ) AS claims
+                                    ) AS claim_details
+	                                ,( SELECT COALESCE(json_agg(row_to_json(claim_problems)),'[]') problems
+		                                FROM (
+                                                SELECT
+			                                    *   
+                                                FROM claim_problems 
+                                            ) AS claim_problems
+                                    ) AS problems `;
 
         return await query(sql);
     },
@@ -179,13 +200,14 @@ module.exports = {
                                 coverage_level,
                                 MIN(valid_to_date) as valid_to_date
                             FROM 
-                                public.patient_insurances 
-                            WHERE 
-                                patient_id = ${params.patient_id} AND valid_to_date >= (${params.claim_date})::date 
-                                GROUP BY coverage_level 
-                        ) as expiry ON TRUE                           
-                        WHERE 
-                            pi.patient_id = ${params.patient_id}  AND expiry.valid_to_date = pi.valid_to_date AND expiry.coverage_level = pi.coverage_level 
+                                public.patient_insurances
+                            WHERE
+                                patient_id = ${params.patient_id} AND (valid_to_date >= (${params.claim_date})::date  OR valid_to_date IS NULL)
+                                AND (valid_from_date <= (${params.claim_date})::date OR valid_from_date IS NULL)
+                                GROUP BY coverage_level
+                        ) as expiry ON TRUE
+                        WHERE
+                            pi.patient_id = ${params.patient_id}  AND (expiry.valid_to_date = pi.valid_to_date OR expiry.valid_to_date IS NULL) AND expiry.coverage_level = pi.coverage_level
                             ORDER BY id ASC
                 ),
                 existing_insurance as (
@@ -377,6 +399,7 @@ module.exports = {
                     , p.account_no AS patient_account_no
                     , p.birth_date::text AS patient_dob
                     , p.full_name AS patient_full_name
+                    , p.gender AS patient_gender
                     , ref_pr.full_name AS ref_prov_full_name
                     , ref_pr.provider_code AS ref_prov_code
                     , ref_pr.provider_info->'NPI' AS referring_prov_npi_no
@@ -635,24 +658,54 @@ module.exports = {
 
         let { id } = params;
 
-        const sql = SQL`SELECT
-                             studies.id
-                            ,studies.patient_id
-                            ,studies.modality_id
-                            ,studies.facility_id
-                            ,accession_no
-                            ,study_description
-                            ,study_status
-                            ,study_dt
-                            ,facilities.facility_name
-                            
-                        FROM studies
+        const sql = SQL`
+        SELECT * FROM (
+            SELECT json_agg(row_to_json(charge)) "charges" 
+                    FROM (
+                            SELECT
+                                 studies.id
+                                ,studies.patient_id
+                                ,studies.modality_id
+                                ,studies.facility_id
+                                ,accession_no
+                                ,study_description
+                                ,study_status
+                                ,study_dt
+                                ,facilities.facility_name
+                            FROM studies
                             LEFT JOIN orders ON orders.id=studies.order_id
                             INNER JOIN facilities ON studies.facility_id=facilities.id
-                        WHERE  
+                            WHERE  
                             studies.has_deleted=False AND studies.patient_id = ${id}
                             AND NOT EXISTS ( SELECT 1 FROM billing.charges_studies WHERE study_id = studies.id )
-                        ORDER BY id ASC `;
+                            ORDER BY id ASC
+                    ) AS charge
+            ) charge_details
+            ,(
+                SELECT (row_to_json(patient_default_details)) "patient_details" 
+                    FROM
+                        (
+                        SELECT 
+                            p.id AS patient_id
+                            ,p.full_name AS patient_name
+				            ,p.birth_date AS patient_dob
+				            ,p.gender AS patient_gender
+				            ,p.account_no AS patient_account_no
+                            ,f.id AS facility_id
+                            ,COALESCE(f.facility_info->'billing_provider_id','0')::numeric AS billing_provider_id
+                            ,COALESCE(f.facility_info->'service_facility_id','0')::numeric AS service_facility_id
+                            ,COALESCE(f.facility_info->'rendering_provider_id','0')::numeric AS rendering_provider_id 
+                            ,facility_info->'service_facility_name' as service_facility_name
+                            ,fac_prov_cont.id AS rendering_provider_contact_id
+                            ,fac_prov.full_name AS rendering_provider_full_name
+                        FROM
+                            patients p
+                        INNER JOIN facilities f ON f.id = p.facility_id
+                        LEFT JOIN provider_contacts fac_prov_cont ON f.facility_info->'rendering_provider_id'::text = fac_prov_cont.id::text
+                        LEFT JOIN providers fac_prov ON fac_prov.id = fac_prov_cont.provider_id
+                        WHERE p.id = ${id}
+                    ) AS patient_default_details
+            ) patient_info `;
 
         return await query(sql);
 

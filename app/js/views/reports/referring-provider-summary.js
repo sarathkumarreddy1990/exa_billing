@@ -34,7 +34,7 @@ define([
             defaultyFacilityId: null,
             events: {
                 'click #btnViewReport': 'onReportViewClick',
-                'click #btnViewReportNewTab': 'onReportViewClick',
+                'click #btnViewReportNewTabRefProSummary': 'onReportViewClick',
                 'click #btnPdfReport': 'onReportViewClick',
                 'click #btnExcelReport': 'onReportViewClick',
                 'click #btnCsvReport': 'onReportViewClick',
@@ -102,7 +102,7 @@ define([
                     btnClicked = btnClicked.parent(); // in case FA icon 'inside'' button was clicked...
                 }
                 var rFormat = btnClicked ? btnClicked.attr('data-rformat') : null;
-                var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnViewReportNewTab' : false;
+                var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnViewReportNewTabRefProSummary' : false;
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = openInNewTab && rFormat === 'html';
                 if (this.hasValidViewModel()) {

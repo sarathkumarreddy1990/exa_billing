@@ -39,7 +39,7 @@ define(['jquery',
             });
 
             if (app.userInfo && app.userInfo.user_settings && app.userInfo.user_settings) {
-                if (app.userInfo.user_settings.assignClaimsToFollowUpQueue && app.userInfo.user_settings.assignClaimsToFollowUpQueue == 'true') {
+                if (app.userInfo.user_type='SU' || (app.userInfo.user_settings.assignClaimsToFollowUpQueue && app.userInfo.user_settings.assignClaimsToFollowUpQueue == 'true')) {
                     $('#followUpUsersList').show();
                     self.setUserAutoComplete();
                 }

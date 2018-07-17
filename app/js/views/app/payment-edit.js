@@ -188,8 +188,10 @@ define(['jquery',
                 self.showPaymentsGrid(paymentId);
                 commonjs.processPostRender();
                 commonjs.validateControls();
-                if(self.screenCode.indexOf('APAY') > -1) // for screen rights
+                if(self.screenCode.indexOf('APAY') > -1) {// for screen rights
                     $('#divPendingPay').addClass('maskPendingPay');
+                    $('#btnPaymentApplyAll').attr('disabled', true);
+                }
                 if(self.screenCode.indexOf('DPAY') > -1)
                     $('#btnPaymentDelete').attr('disabled', true)
             },
@@ -225,6 +227,8 @@ define(['jquery',
                     $('#btnPaymentRefClick').hide();
                     $('#selectPayerType').focus();
                     commonjs.hideLoading();
+                    commonjs.paymentStatus = [];
+                    commonjs.paymentFilterFields = [];
                 }
                 else {
                     this.model.set({ id: paymentID });
@@ -1075,8 +1079,8 @@ define(['jquery',
                     gridelementid: '#tblAppliedPaymentsGrid',
                     custompager: this.appliedPager,
                     emptyMessage: 'No Record found',
-                    colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                    i18nNames: ['', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.payments.billFee', 'billing.payments.patientPaid', 'billing.payments.payerPaid', 'billing.payments.adjustment', 'billing.payments.thisPayment', 'billing.payments.balance', 'billing.payments.cptCodes', 'patient_id', 'facility_id', ''],
+                    colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    i18nNames: ['', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.payments.billFee', 'billing.payments.patientPaid', 'billing.payments.payerPaid', 'billing.payments.adjustment', 'billing.payments.thisAdj', 'billing.payments.thisPayment', 'billing.payments.balance', 'billing.payments.cptCodes', 'patient_id', 'facility_id', ''],
                     colModel: [
                         {
                             name: 'edit', width: 20, sortable: false, search: false,
@@ -1106,9 +1110,10 @@ define(['jquery',
                         { name: 'invoice_no', searchFlag: '%', width: 100 },
                         { name: 'full_name', searchFlag: '%', searchColumn: ['pp.full_name'], width: 200 },
                         { name: 'bill_fee', searchFlag: 'hstore', searchColumn: ['order_info->bill_fee'], formatter: self.appliedBillFeeFormatter, width: 100 },
-                        { name: 'patient_paid', searchFlag: 'hstore', searchColumn: ['more_info->patient_paid'], formatter: self.appliedPatPaidFormatter, width: 100 },
-                        { name: 'others_paid', searchFlag: 'hstore', searchColumn: ['more_info->payer_paid'], formatter: self.appliedPayerPaidFormatter, width: 100 },
+                        { name: 'patient_paid',  sortable: false, search: false, searchFlag: 'hstore', searchColumn: ['more_info->patient_paid'], formatter: self.appliedPatPaidFormatter, width: 100 },
+                        { name: 'others_paid', sortable: false,  searchFlag: 'hstore', search: false, searchColumn: ['more_info->payer_paid'], formatter: self.appliedPayerPaidFormatter, width: 100 },
                         { name: 'adjustment', searchFlag: 'hstore', searchColumn: ['order_info->adjustment'], formatter: self.appliedAdjustmentFormatter, width: 100 },
+                        { name: 'this_adjustment', formatter: self.appliedAdjustmentFormatter, width: 100 },
                         { name: 'payment', searchFlag: 'money', formatter: self.paymentApplied, width: 100 },
                         { name: 'balance', searchFlag: 'hstore', searchColumn: ['order_info->balance'], formatter: self.appliedBalanceFormatter, width: 100 },
                         { name: 'display_description', searchFlag: '%', width: 200 },
@@ -1743,10 +1748,13 @@ define(['jquery',
                         },
                         success: function (model, response) {
                             commonjs.showStatus('Payment has been applied successfully');
-                            self.casSegmentsSelected = [];
                             targetObj.removeAttr('disabled');
-                            self.closeAppliedPendingPayments(e, paymentId);
-                            commonjs.hideDialog();
+                            commonjs.hideLoading();
+                            if (paymentStatus != 'applied') {
+                                self.casSegmentsSelected = [];
+                                self.closeAppliedPendingPayments(e, paymentId);
+                                commonjs.hideDialog();
+                            }
                         },
                         error: function (err, response) {
                             targetObj.removeAttr('disabled');

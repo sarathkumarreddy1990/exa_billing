@@ -66,46 +66,58 @@ define('grid', [
             return chooseScreen(id, data, event, gridID);
         };
 
-        var validateClaimSelection = function(row_id, enabled, _element, store){
+        var validateClaimSelection = function (row_id, enabled, _element, store) {
 
             var isPatientMatch, isStudyDateMatch, isStudyIdMatch;
-            var _storeEle = getData(row_id, store, gridID);
-            var study = {
-                study_id: row_id,
-                patient_id: _storeEle.patient_id,
-                facility_id: _storeEle.facility_id,
-                study_date: _storeEle.study_dt
-            };
+            var $checkedInputs = $tblGrid.find('input').filter('[name=chkStudy]:checked');
+            var selectedCount = $checkedInputs.length;
+            selectedStudyArray = [];
+
+            for (var r = 0; r < selectedCount; r++) {
+                var rowId = $checkedInputs[r].parentNode.parentNode.id;
+                _storeEle = getData(rowId, store, gridID);
+                var study = {
+                    study_id: rowId,
+                    patient_id: _storeEle.patient_id,
+                    facility_id: _storeEle.facility_id,
+                    study_date: commonjs.convertToFacilityTimeZone(_storeEle.facility_id, _storeEle.study_dt).format('MM/DD/YYYY')
+                };
+                selectedStudyArray.push(study);
+            }
+
             if (enabled) {
                 if (selectedStudyArray.length) {
-                    isStudyIdMatch = _.filter(selectedStudyArray, function(d) { return d.study_id == row_id;});
-                    isPatientMatch = _.filter(selectedStudyArray, function(d) { return d.patient_id == _storeEle.patient_id;});
-                    isStudyDateMatch = _.filter(selectedStudyArray, function(d) { 
-                        return (commonjs.convertToFacilityTimeZone(_storeEle.facility_id, d.study_date).format('MM/DD/YYYY'))  == commonjs.convertToFacilityTimeZone(_storeEle.facility_id, _storeEle.study_dt).format('MM/DD/YYYY');});
-                    isFacilityMatch = _.filter(selectedStudyArray, function(d) { return d.facility_id == _storeEle.facility_id;});
-                    if (!isPatientMatch.length) {
+
+                    var patientGroup = _.groupBy(selectedStudyArray, 'patient_id');
+                    isPatientMatch = Object.keys(patientGroup).length;
+                    var facilityGroup = _.groupBy(selectedStudyArray, 'facility_id');
+                    isFacilityMatch = Object.keys(facilityGroup).length;
+                    var studyDtGroup = _.groupBy(selectedStudyArray, 'study_date');
+                    isStudyDateMatch = Object.keys(studyDtGroup).length;
+                    var $divObj = $("#studyRightMenu");    
+
+                    if (isPatientMatch > 1) {
                         commonjs.showWarning('messages.warning.claims.samePatientValidate');
-                        $(_element).attr('checked', false);
-                        return;
+                        $divObj.empty();   
+                        $divObj.css('display','none')      
+                        return false;
                     }
-                    if (!isStudyDateMatch.length) {
+                    if (isStudyDateMatch > 1) {
                         commonjs.showWarning('messages.warning.claims.sameStudyDtValidate');
-                        $(_element).attr('checked', false);
-                        return;
+                        $divObj.empty();    
+                        $divObj.css('display','none') 
+                        return false;
                     }
-                    if (!isFacilityMatch.length) {
+                    if (isFacilityMatch > 1) {
                         commonjs.showWarning('messages.warning.claims.sameFacilityValidate');
-                        $(_element).attr('checked', false);
-                        return;
+                        $divObj.empty(); 
+                        $divObj.css('display','none')    
+                        return false;
                     }
-                    else if(!isStudyIdMatch.length)
-                        selectedStudyArray.push(study);
-                }
-                else
-                    selectedStudyArray.push(study);
+
+                    return true;
+                } selectedStudyArray.push(study);
             }
-            else
-                selectedStudyArray = _.reject(selectedStudyArray, function(d) { return d.study_id == row_id;});
         };
 
         var openCreateClaim = function (rowID, event, isClaimGrid, store) {
@@ -159,6 +171,12 @@ define('grid', [
 
             if (isbilled_status && isUnbilled_status) {
                 commonjs.showWarning("Please select same unbilled status or single billed status");
+                $divObj.hide();
+                return false;
+            }
+
+            if (isbilled_status && selectedStudies.length > 1) {
+                commonjs.showWarning("Please select single billed status");
                 $divObj.hide();
                 return false;
             }
@@ -604,7 +622,7 @@ define('grid', [
                 var rowId = $checkedInputs[r].parentNode.parentNode.id;
                 studyStoreValue = getData(rowId, studyDataStore, gridID);
                 if (!studyStoreValue.study_cpt_id) {
-                    commonjs.showWarning("Please select charges record for batch claim");
+                    commonjs.showWarning("Please select charges record for batch claim ");
                     return false;
                 }
                 if (studyStoreValue.billed_status == 'billed') {
@@ -700,12 +718,12 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 (options.isClaimGrid ? '<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />' : ''),
-                '', '', '', '', '','','','','','','','','','','','','AssignedTo'
+                '', '', '', '', '','','','','','','','','','','','','','AssignedTo'
 
             ]);
 
             i18nName = i18nName.concat([
-                '', '', '', '', '', '','','','','','','','','','','','','billing.claims.assignedTo'
+                '', '', '', '', '', '','','','','','','','','','','','','','billing.claims.assignedTo'
             ]);
 
             colModel = colModel.concat([
@@ -716,10 +734,10 @@ define('grid', [
                     resizable: false,
                     search: false,
                     isIconCol: true,
-                    formatter: function (cellvalue, options, rowObject) {
+                    formatter: function (cellvalue, option, rowObject) {
                         if(['ABRT','CAN','NOS'].indexOf(rowObject.study_status)>-1||rowObject.has_deleted)
                             return "";
-                        else  return '<input type="checkbox" name="chkStudy" id="chk'+gridID.slice(1)+'_' + (options.isClaimGrid?rowObject.id:rowObject.id )+ '" />'
+                        else  return '<input type="checkbox" name="chkStudy" id="chk'+gridID.slice(1)+'_' + (options.isClaimGrid?rowObject.id:rowObject.study_id )+ '" />'
                         
                     },
                     customAction: function (rowID, e, that) {
@@ -779,6 +797,15 @@ define('grid', [
                 },
                 {
                     name: 'account_no',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true
+                },
+                {
+                    name: 'study_id',
                     width: 20,
                     sortable: false,
                     resizable: false,
@@ -1127,16 +1154,19 @@ define('grid', [
 
                 onRightClickRow: function (rowID, iRow, iCell, event, options) {
                     var gridData = $('#' + event.currentTarget.id).jqGrid('getRowData', rowID);
-                    if (['Aborted', 'Cancelled', 'No Shows'].indexOf(gridData.study_status) >-1 || gridData.has_deleted=="Yes") {
+                    if (['Aborted', 'Cancelled','Canceled', 'No Shows'].indexOf(gridData.study_status) >-1 || gridData.has_deleted=="Yes") {
                         event.stopPropagation();
                     } else if (disableRightClick()) {
                         var _selectEle = $(event.currentTarget).find('#' + rowID).find('input:checkbox');
                         _selectEle.attr('checked', true);
 
                         if (!options.isClaimGrid && !gridData.claim_id) {
-                            validateClaimSelection(rowID, true, _selectEle, studyStore);
+                            if(validateClaimSelection(rowID, true, _selectEle, studyStore))
+                                openCreateClaim(rowID, event, options.isClaimGrid, studyStore);
+                        }else{
+                            openCreateClaim(rowID, event, options.isClaimGrid, studyStore);
                         }
-                        openCreateClaim(rowID, event, options.isClaimGrid, studyStore);
+                       
                     }
                     else {
                         event.stopPropagation();
@@ -1164,7 +1194,7 @@ define('grid', [
 
                     var i=(e.target || e.srcElement).parentNode.cellIndex;
 
-                    if ( i > 0 ) {
+                    if ( i > 0) {
                         options.colModel[i].customAction(rowID, e, self);
                     }
                 },
@@ -1216,8 +1246,11 @@ define('grid', [
                 rowattr: rowattr
             });
             if (doExport) {
-                commonjs.showLoading();         
+                console.log('dfadsf', grid.getGridParam("postData")._search)
+                var searchFilterFlag = grid.getGridParam("postData")._search;
+                console.log('ssssssssss', studyStore)
                 var colHeader = studyFields.colName;
+
                 $.ajax({
                     'url': '/exa_modules/billing/claim_workbench',
                     type: 'GET',
@@ -1230,7 +1263,7 @@ define('grid', [
                         }
                     },
                     success: function (data, response) {
-                        var responseJSON = data;
+                        var responseJSON = searchFilterFlag ? studyStore : data;
                         var ReportTitle = 'Claims';
                         var ShowLabel = 'Claim List';
                         var paymentExcelData = typeof responseJSON != 'object' ? JSON.parse(responseJSON) : responseJSON;
@@ -1260,7 +1293,7 @@ define('grid', [
                                 row += result == "Payer Type" ? 'Payer Type' + ',' : '';
                                 row += result == "Billing Class" ? 'Billing Class' + ',' : '';
                                 row += result == "Billing Code" ? 'Billing Code' + ',' : '';
-                              
+
                             });
                         }
                         row = row.slice(0, -1);
@@ -1268,18 +1301,18 @@ define('grid', [
 
                         for (var i = 0; i < paymentExcelData.length; i++) {
                             var row = "";
-                            var paymentResult = paymentExcelData[i];
+                            var paymentResult = searchFilterFlag ? paymentExcelData.models[i].attributes : paymentExcelData[i];
                             var claimDate = moment(paymentResult.claim_dt).format('L');
                             var patientName = paymentResult.patient_name || " ";
                             var clearingHouse = paymentResult.clearing_house || " ";
                             var billingClass = paymentResult.billing_class || " ";
-                            var billingCode = paymentResult.billing_code || " "; 
-                            var balanceAmount = paymentResult.claim_balance || "$0.00"; 
+                            var billingCode = paymentResult.billing_code || " ";
+                            var balanceAmount = paymentResult.claim_balance || "$0.00";
                             var policyNumber = paymentResult.policy_number || " ";
                             var groupNumber = paymentResult.group_number || " ";
                             var renderingProviders = paymentResult.rendering_provider || " ";
                             var referingProviders = paymentResult.referring_providers || " ";
-                            var placeOfService =  paymentResult.place_of_service || " ";
+                            var placeOfService = paymentResult.place_of_service || " ";
                             var followUpDate = paymentResult.followup_date || " ";
                             var invoiceNumber = paymentResult.invoice_no || " ";
                             var notes = paymentResult.claim_notes || " ";
@@ -1297,17 +1330,17 @@ define('grid', [
                                     row += result == "Claim Status" ? '"' + paymentResult.claim_status + '",' : '',
                                     row += result == "Date Of Birth" ? '"' + paymentResult.birth_date + '",' : '',
                                     row += result == "Invoice" ? '"' + invoiceNumber + '",' : '',
-                                    row += result == "Follow-up Date" ?   followUpDate + ',' : '',
+                                    row += result == "Follow-up Date" ? followUpDate + ',' : '',
                                     row += result == "Place OF Service" ? '"' + placeOfService + '",' : '',
                                     row += result == "Balance" ? '"' + balanceAmount + '",' : '',
                                     row += result == "Referring Providers" ? '"' + referingProviders + '",' : '',
                                     row += result == "Rendering Providers" ? '"' + renderingProviders + '",' : '',
                                     row += result == "SSN" ? '"' + paymentResult.patient_ssn + '",' : '',
-                                    row += result == "Group Number" ? '"' + groupNumber  + '",' : '',
+                                    row += result == "Group Number" ? '"' + groupNumber + '",' : '',
                                     row += result == "Payer Type" ? '"' + paymentResult.payer_type + '",' : '',
                                     row += result == "Billing Class" ? '"' + billingClass + '",' : '',
-                                    row += result == "Billing Code" ? '"' + billingCode + '",' : ''                                                                                              
-                                  
+                                    row += result == "Billing Code" ? '"' + billingCode + '",' : ''
+
                             });
 
                             CSV += row + '\r\n';
@@ -1327,11 +1360,11 @@ define('grid', [
                         document.body.appendChild(link);
                         link.click();
                         document.body.removeChild(link);
-                        $('#btnValidateExport').prop('disabled', false); 
+                        $('#btnValidateExport').css('display', 'inline');
                     },
                     error: function (err) {
                         commonjs.handleXhrError(err);
-                        $('#btnValidateExport').prop('disabled', false); 
+                        $('#btnValidateExport').css('display', 'inline');
                     }
                 });
                 return true;

@@ -34,6 +34,10 @@
         width: 90%;
         text-align: right;
     }
+    
+    #divPendingPaymentsContainer .ui-jqgrid-bdiv{
+        overflow-x: hidden !important;
+    }
 </style>
 
 <div class="form-group row">
@@ -134,7 +138,7 @@
                                 <option value="">Select</option>
                                 <% _.each(paymentReasons, function(paymentReason) { %>
                                     <option value="<%= paymentReason.id %>">
-                                        <%= paymentReason.code %>
+                                        <%= paymentReason.description %>
                                     </option>
                                     <% }); %>
                             </select>

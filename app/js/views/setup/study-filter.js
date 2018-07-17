@@ -838,7 +838,6 @@ define([
                 }
                 else
                     this.model = new studyFiltersModel();
-                this.studyFilterSideMenuResize();
                 commonjs.validateControls();
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
             },
@@ -1746,8 +1745,8 @@ define([
                     text = $('#rbtLast').is(':checked') ? 'Last ' : 'Next ';
                     if (commonjs.checkNotEmpty($('#txtLastTime').val())) {
                         var lastFromTo = "",
-                            fromTime = $('#txtFromTimeLast').val(),
-                            toTime = $('#txtToTimeLast').val();
+                            fromTime = self.timeConverter($('#txtFromTimeLast').val()),
+                            toTime = self.timeConverter($('#txtToTimeLast').val());
                         if (fromTime && toTime) {
                             lastFromTo = " " + fromTime + " " + toTime;
                         }
@@ -1762,8 +1761,8 @@ define([
                     var fromDt = $('#txtDateFrom').val(),
                         toDt = $('#txtDateTo').val();
                     if (fromDt && toDt) {
-                        var fromTime = $('#txtFromTimeDate').val() ? " " + $('#txtFromTimeDate').val() : "";
-                        var toTime = $('#txtToTimeDate').val() ? " " + $('#txtToTimeDate').val(): "";
+                        var fromTime = $('#txtFromTimeDate').val() ? " " + self.timeConverter($('#txtFromTimeDate').val()) : "";
+                        var toTime = $('#txtToTimeDate').val() ? " " + self.timeConverter($('#txtToTimeDate').val()): "";
                         $('#lblSummaryDate').text('Date: from ' + fromDt + fromTime + ' to ' + toDt + toTime);
                     }
                 }
@@ -1886,6 +1885,11 @@ define([
                     arrSummary = " " + $('input[name=' + radioName + ']:checked').val() + " " + arrSummary
                 }
                 return arrSummary;
+            },
+
+            timeConverter: function (timeStr){
+               var time = timeStr.split(':');
+               return (time[0] > 12) ? ""+(time[0]-12)+":"+time[1]+" PM": ""+time[0]+":"+time[1]+" AM" ;
             }
         })
     });

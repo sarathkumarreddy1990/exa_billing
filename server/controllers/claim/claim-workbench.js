@@ -159,7 +159,7 @@ module.exports = {
                 errorMessages.push('Cannot validate without billing method..');
             }
 
-            if(currentClaim.billing_method && currentClaim.billing_method != 'patient_payment'){
+            if(currentClaim.billing_method && currentClaim.billing_method != 'patient_payment') {
                 currentClaim.payer_name = currentClaim.payer_info.payer_name;
                 currentClaim.payer_address1 = currentClaim.payer_info.payer_address1;
                 currentClaim.payer_city = currentClaim.payer_info.payer_city;
@@ -228,23 +228,17 @@ module.exports = {
     checkClaimSubsInsValidation: (validationFields, currentClaim) => {
         let insSubsInvalidFields = [];
 
-        if (currentClaim.primary_patient_insurance_id != null && currentClaim.primary_patient_insurance_id != '') {
-            _.each(validationFields, (validationField) => {
-                !currentClaim['p_' + validationField] || currentClaim['p_' + validationField].length == 0 ? insSubsInvalidFields.push('p_' + validationField) : null;
-            });
-        }
+        _.each(validationFields, (validationField) => {              
+            !currentClaim['p_' + validationField] || currentClaim['p_' + validationField].length == 0 ? insSubsInvalidFields.push('p_' + validationField) : null;
+        });
 
-        if (currentClaim.secondary_patient_insurance_id != null && currentClaim.secondary_patient_insurance_id != '') {
-            _.each(validationFields, (validationField) => {
-                !currentClaim['s_' + validationField] || currentClaim['s_' + validationField].length == 0 ? insSubsInvalidFields.push('s_' + validationField) : null;
-            });
-        }
+        _.each(validationFields, (validationField) => {
+            !currentClaim['s_' + validationField] || currentClaim['s_' + validationField].length == 0 ? insSubsInvalidFields.push('s_' + validationField) : null;
+        });
 
-        if (currentClaim.tertiary_patient_insurance_id != null && currentClaim.tertiary_patient_insurance_id != '') {
-            _.each(validationFields, (validationField) => {
-                !currentClaim['t_' + validationField] || currentClaim['t_' + validationField].length == 0 ? insSubsInvalidFields.push('t_' + validationField) : null;
-            });
-        }
+        _.each(validationFields, (validationField) => {
+            !currentClaim['t_' + validationField] || currentClaim['t_' + validationField].length == 0 ? insSubsInvalidFields.push('t_' + validationField) : null;
+        });
 
         return insSubsInvalidFields;
     },
@@ -283,5 +277,9 @@ module.exports = {
         params.created_by = parseInt(params.userId);
 
         return await data.createBatchClaims(params);
+    },
+
+    getClaimDataInvoice: async function (params) {
+        return await data.getClaimDataInvoice(params);
     }
 };

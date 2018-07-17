@@ -133,7 +133,6 @@ module.exports = {
         'patient_insurances': 'CLIM', //create claim
         'line_items': 'CLIM', //create claim
         'studies': 'HSTY', 
-        'study_filters': 'SFIL',
         'studies_total_records': 'HSTY',
         'payments': 'PAYM',
         'payment': 'PAYM',
@@ -189,6 +188,12 @@ module.exports = {
         'claim_study': 'ECLM',
         'follow_ups': 'ECLM',
         'claim_patient': 'PCLM',
-        'payment_applications': 'APAY'
+        'payment_applications': 'APAY',
+        'invoice_claims': 'CLIM',
+        'claims': 'CLIM',
+        'payment-invoice': 'CLIM',
+        'patient': 'ECLM',
+        'invoice_details': 'APAY',
+        'apply_invoice_payments': 'APAY'
     }
 };
