@@ -605,6 +605,8 @@ define(['jquery',
                                 commonjs.showDialog({ header: 'Invoice Claim', i18nHeader: 'billing.fileInsurance.invoiceClaim', width: '60%', height: '40%', html: self.invoiceClaim({ response_data: data }) });  
 
                                 $(".spnInvoicePrint").click(function (e) {
+                                    $(e.target).removeClass("icon-ic-print");
+                                    $(e.target).text("Printed").css({ fontSize: "14px" })
                                     var ele = (e.target.id).split('_');
                                     printerClaimids = [];
 
