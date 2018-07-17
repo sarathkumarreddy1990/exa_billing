@@ -359,10 +359,11 @@ define([
                     gridelementid: '#tblInvoiceGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['', 'Invoice No', 'Date', 'Total Billing Fee', 'Total Payments', 'Total Adjustment',  'Balance',''],
-                    i18nNames: ['', 'billing.fileInsurance.invoiceNo', 'billing.claims.Date', 'billing.COB.billingFee','billing.claims.totalPayments', 'billing.fileInsurance.totalAdjustment',  'billing.claims.Balance',''],
+                    colNames: ['', '', 'Invoice No', 'Date', 'Total Billing Fee', 'Total Payments', 'Total Adjustment',  'Balance',''],
+                    i18nNames: ['', '', 'billing.fileInsurance.invoiceNo', 'billing.claims.Date', 'billing.COB.billingFee','billing.claims.totalPayments', 'billing.fileInsurance.totalAdjustment',  'billing.claims.Balance',''],
                     colModel: [
-                        { name: '', index: 'id', key: true, hidden: true, search: false },                      
+                        { name: '', index: 'id', key: true, hidden: true, search: false },  
+                        { name: 'claim_ids', hidden: true} ,                    
                         {
                             name: 'invoice_no', search: true, width: 100
                         },
@@ -384,12 +385,14 @@ define([
                         {
                             name: 'edit', width: 50, sortable: false, search: false,
                             formatter: function (cellvalue, options, rowObject) {
-                                return "<a href='javascript: void(0)' id =" + rowObject.id + ">REPRINT</a>";
+                                return '<span class="icon-ic-print spnInvoicePrint" title="Print Claim" id="spnInvoicePrint" style="font-size: 20px; cursor:pointer;"></span>'
                             },
                             cellattr: function () {
                                 return "style='text-align: center;text-decoration: underline;'";
                             },
                             customAction: function (rowID, e) {
+                                var gridData = $('#tblInvoiceGrid').jqGrid('getRowData', rowID);
+                                self.printInvoice(gridData.claim_ids);
                             }
                         }
 
@@ -434,7 +437,6 @@ define([
                         payerType: payer_type
                     },
                     success: function (data, response) {
-                        console.log(data)
                         if(data && data.length){
                             $('#tdPtCurrent').text(data[0].current_balance || '$0.00')
                             $('#tdPtAge30').text(data[0].to30 || '$0.00')
@@ -453,6 +455,11 @@ define([
                     self.showInvoiceGrid.refreshAll();
                 });
 
+            },
+
+            printInvoice: function(claimids) {
+                claimids =  claimids && claimids.split(',')
+                paperClaim.print( 'direct_invoice', claimids );
             },
 
             showPatientClaimsLogGrid: function (claimID, patientId) {

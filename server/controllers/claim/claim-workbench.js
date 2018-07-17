@@ -174,15 +174,24 @@ module.exports = {
             }
 
             if(currentClaim.p_relationship) {
-                currentClaim.patient_firstName === currentClaim.p_subscriber_firstName ? '' : errorMessages.push('Claim - Primary Subscriber name(Self) and Patient name Not Matched');
+                currentClaim.patient_firstName === currentClaim.p_subscriber_firstName ? '' : errorMessages.push('Claim - Primary Subscriber First Name (Self) and Patient First Name Not Matched');
+                currentClaim.patient_lastName === currentClaim.p_subscriber_lastName ? '' : errorMessages.push('Claim - Primary Subscriber Last Name (Self) and Patient Last Name Not Matched');
+                currentClaim.patient_middleName === currentClaim.p_subscriber_middleName ? '' : errorMessages.push('Claim - Primary Subscriber Middle Name (Self) and Patient Middle Name Not Matched');
+                currentClaim.patient_suffixName === currentClaim.p_subscriber_suffixName ? '' : errorMessages.push('Claim - Primary Subscriber Suffix Name (Self) and Patient Suffix Name Not Matched');
             }
 
             if(currentClaim.s_relationship) {
-                currentClaim.patient_firstName === currentClaim.p_subscriber_firstName ? '' : errorMessages.push('Claim - Secondary Subscriber name(Self) and Patient name Not Matched');
+                currentClaim.patient_firstName === currentClaim.s_subscriber_firstName ? '' : errorMessages.push('Claim - Secondary Subscriber First Name (Self) and Patient First Name Not Matched');
+                currentClaim.patient_lastName === currentClaim.s_subscriber_lastName ? '' : errorMessages.push('Claim - Secondary Subscriber Last Name (Self) and Patient Last Name Not Matched');
+                currentClaim.patient_middleName === currentClaim.s_subscriber_middleName ? '' : errorMessages.push('Claim - Secondary Subscriber Middle Name (Self) and Patient Suffix Name Not Matched');
+                currentClaim.patient_suffixName === currentClaim.s_subscriber_suffixName ? '' : errorMessages.push('Claim - Secondary Subscriber Suffix Name (Self) and Patient Suffix Name Not Matched');
             }
 
             if(currentClaim.s_relationship) {
-                currentClaim.patient_firstName === currentClaim.p_subscriber_firstName ? '' : errorMessages.push('Claim - Tertiary Subscriber name(Self) and Patient name Not Matched');
+                currentClaim.patient_firstName === currentClaim.t_subscriber_firstName ? '' : errorMessages.push('Claim - Tertiary Subscriber Fisrt Name (Self) and Patient First Name Not Matched');
+                currentClaim.patient_lastName === currentClaim.t_subscriber_lastName ? '' : errorMessages.push('Claim - Tertiary Subscriber Last Name (Self) and Patient Last Name Not Matched');
+                currentClaim.patient_middleName === currentClaim.t_subscriber_middleName ? '' : errorMessages.push('Claim - Tertiary Subscriber Middle Name (Self) and Patient Middle Name Not Matched');
+                currentClaim.patient_suffixName === currentClaim.t_subscriber_suffixName ? '' : errorMessages.push('Claim - Tertiary Subscriber Suffix Name (Self) and Patient Suffix Name Not Matched');
             }
 
             _.each(validationFields, (validationField) => {

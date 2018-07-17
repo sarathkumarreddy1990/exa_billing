@@ -29,6 +29,8 @@ module.exports = {
 						, p.first_name AS "patient_firstName"
 						, p.last_name AS "patient_lastName"
 						, p.full_name AS patient_name
+						, p.middle_name AS "patient_middleName"
+						, p.suffix_name AS "patient_suffixName"
 						, p.patient_info->'c1State' AS "patient_state"
 						, p.patient_info->'c1Zip' AS "patient_zipCode"
 						, ref_pr.first_name AS "ref_full_name"
@@ -118,6 +120,8 @@ module.exports = {
 									, p_pi.subscriber_dob AS "p_subscriber_dob"
 									, p_pi.subscriber_firstname AS "p_subscriber_firstName"
 									, p_pi.subscriber_lastname AS "p_subscriber_lastName"
+									, p_pi.subscriber_middlename AS "p_subscriber_middleName"
+									, p_pi.subscriber_name_suffix AS "p_subscriber_suffixName"
 									, p_pi.subscriber_state AS "p_subscriber_state"
 									, p_pi.subscriber_zipcode AS "p_subscriber_zipCode"	
 					
@@ -126,6 +130,8 @@ module.exports = {
 									, s_pi.subscriber_dob AS "s_subscriber_dob"
 									, s_pi.subscriber_firstname AS "s_subscriber_firstName"
 									, s_pi.subscriber_lastname AS "s_subscriber_lastName"
+									, s_pi.subscriber_middlename AS "s_subscriber_middleName"
+									, s_pi.subscriber_name_suffix AS "s_subscriber_suffixName" 
 									, s_pi.subscriber_state AS "s_subscriber_state"
 									, s_pi.subscriber_zipcode AS "s_subscriber_zipCode"	
 					
@@ -134,6 +140,8 @@ module.exports = {
 									, t_pi.subscriber_dob AS "t_subscriber_dob"
 									, t_pi.subscriber_firstname AS "t_subscriber_firstName"
 									, t_pi.subscriber_lastname AS "t_subscriber_lastName"
+									, t_pi.subscriber_middlename AS "t_subscriber_middleName"
+									, t_pi.subscriber_name_suffix AS "t_subscriber_suffixName" 
 									, t_pi.subscriber_state AS "t_subscriber_state"
 									, t_pi.subscriber_zipcode AS "t_subscriber_zipCode"					
 									, (SELECT array_agg(row_to_json(pointer)) AS charge_pointer FROM (
