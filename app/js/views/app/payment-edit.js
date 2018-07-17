@@ -127,7 +127,7 @@ define(['jquery',
                 app.adjustmentCodes = [];
                 this.paidlocation = new modelCollection(app.facilities);
                 this.facilityAdd = new modelCollection(commonjs.bindArray([app.facilities], true, true, false));
-                var facilities = (app.userInfo.user_type == "SU") ? app.facilities : app.userfacilities;
+                var facilities = (app.userInfo.user_type == "SU") ? app.facilities : app.userFacilities;
                 var adjustment_codes = jQuery.grep(app.adjustmentCodes, function (obj, i) {
                     return (obj.type == "ADJCDE" || obj.type == "REFADJ");
                 });
@@ -227,8 +227,6 @@ define(['jquery',
                     $('#btnPaymentRefClick').hide();
                     $('#selectPayerType').focus();
                     commonjs.hideLoading();
-                    commonjs.paymentStatus = [];
-                    commonjs.paymentFilterFields = [];
                 }
                 else {
                     this.model.set({ id: paymentID });
@@ -920,6 +918,9 @@ define(['jquery',
                         paymentID: paymentID,
                         payerId: payerId,
                         payerType: payerType
+                    },
+                    onaftergridbind: function (model, gridObj) {
+                        self.setMoneyMask();
                     }
                 });
 
@@ -1018,6 +1019,9 @@ define(['jquery',
                         beforeRequest: function () {
                             self.setCustomArgs(paymentID, payerId, payerType, patientId, claimIdToSearch, invoiceNoToSearch);
                         },
+                        onaftergridbind: function (model, gridObj) {
+                            self.setMoneyMask();
+                        }
                     });
 
                     setTimeout(function () {
@@ -1149,6 +1153,7 @@ define(['jquery',
                     },
                     onaftergridbind: function (model, gridObj) {
                         self.afterAppliedGridBind(model, gridObj, self);
+                        self.setMoneyMask();
                     }
                 });
 
@@ -1750,11 +1755,11 @@ define(['jquery',
                             commonjs.showStatus('Payment has been applied successfully');
                             targetObj.removeAttr('disabled');
                             commonjs.hideLoading();
-                            if (paymentStatus != 'applied') {
-                                self.casSegmentsSelected = [];
-                                self.closeAppliedPendingPayments(e, paymentId);
-                                commonjs.hideDialog();
-                            }
+                            // if (paymentStatus != 'applied') {
+                            self.casSegmentsSelected = [];
+                            self.closeAppliedPendingPayments(e, paymentId);
+                            commonjs.hideDialog();
+                            // }
                         },
                         error: function (err, response) {
                             targetObj.removeAttr('disabled');
@@ -1790,7 +1795,7 @@ define(['jquery',
             },
 
             goBackToPayments: function () {
-                Backbone.history.navigate('#billing/payments/list', true);
+                Backbone.history.navigate('#billing/payments/filter', true);
             },
 
             applySearch: _.debounce(function (e) {
@@ -2220,7 +2225,7 @@ define(['jquery',
                         },
                         success: function (data, response) {
                             commonjs.showStatus('Payment has been deleted successfully');
-                            Backbone.history.navigate('#billing/payments/list', true);
+                            Backbone.history.navigate('#billing/payments/filter', true);
                         },
                         error: function (err, response) {
                             commonjs.handleXhrError(err, response);
@@ -2398,6 +2403,12 @@ define(['jquery',
                     self.showAppliedByPaymentsGrid(paymentID, payer_type, payer_id);
                 }
                 self.tabClicked = id;
+            },
+
+            setMoneyMask: function (obj1, obj2) {
+                $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar input[name=billing_fee],[name=balance],[name=bill_fee],[name=adjustment],[name=this_adjustment],[name=payment]").addClass('floatbox');
+                $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar input[name=claim_id]").addClass('integerbox');
+                commonjs.validateControls();
             }
 
         });

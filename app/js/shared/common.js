@@ -267,7 +267,7 @@ var commonjs = {
         }
         else {
             if (typeof filter !== 'undefined') {
-                filter.customGridTable.jqGrid('GridUnload');
+               // filter.customGridTable.jqGrid('GridUnload');
                 cjs.loadedStudyFilters = filters.delete(id);
                 return true;
             }
@@ -831,6 +831,33 @@ var commonjs = {
             return docServerUrl.replace('https://', 'https@');
         }
         return docServerUrl;
+    },
+
+    showAbout: function() {
+        var self = this;
+
+        if(this.AboutTemplate && _) {
+            $.ajax({
+                url: '/exa_modules/billing/about',
+                type: "GET",
+                dataType: 'json',
+                success: function (versionInfo, response) {
+                    commonjs.hideLoading();
+
+                    try {
+                        var about = _.template(self.AboutTemplate);
+                        var previewHtml = about({ data: versionInfo });
+
+                        commonjs.showDialog({ header: 'About', width: '30%', height: '30%', html: previewHtml }, true);
+                    } catch (err) {
+                        console.log(err);
+                    }
+                },
+                error: function (err, response) {
+                    //commonjs.handleXhrError(err, response);
+                }
+            })
+        }
     },
 
     showDialog: function (options) {
@@ -1778,7 +1805,7 @@ var commonjs = {
         if (!app.userInfo) {
             throw new Error('App settings is missing userInfo!');
         }
-        return app.userInfo.user_type === 'SU' ? app.facilities : app.userfacilities
+        return app.userInfo.user_type === 'SU' ? app.facilities : app.userFacilities
     },
 
     getModalityRoomFromAppSettings: function (modalityRoomId) {
@@ -4787,7 +4814,7 @@ var commonjs = {
     getActiveFacilities: function (showStudiesFlag) {
         facilities = app.userInfo.user_type === "SU"
             ? app.facilities
-            : app.userfacilities;
+            : app.userFacilities;
         if (showStudiesFlag) {
             return facilities.reduce(function (facilitiesAcc, facility) {
                 var parsedFacility = Object.assign({}, facility, { facility_info: commonjs.hstoreParse(facility.facility_info) });

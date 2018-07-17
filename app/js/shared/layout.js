@@ -211,7 +211,7 @@ var layout = {
 
         var screenTitle = layout.moduleHeaders[module] ? layout.moduleHeaders[module].toUpperCase() : 'BILLING';
         $('#aNavTitlebar').text(screenTitle);
-        $('#aNavTitlebar').attr("href", location.href);
+        //$('#aNavTitlebar').attr("href", location.href);
 
         $('.daterangepicker').remove();
         this.triggerSettingsRefresh(module, currentScreen);

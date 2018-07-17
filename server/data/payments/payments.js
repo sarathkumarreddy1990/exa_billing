@@ -110,15 +110,16 @@ module.exports = {
             whereQuery.push(` patient_id = ${patientID} AND ( SELECT payment_status from billing.get_payment_totals(payments.id)) = 'unapplied' `) ;
         }
 
-        let joinQuery = ` INNER JOIN public.users ON users.id = payments.created_by
-        LEFT JOIN public.patients ON patients.id = payments.patient_id
-        LEFT JOIN public.provider_groups ON provider_groups.id = payments.provider_group_id
-        LEFT JOIN public.provider_contacts ON provider_contacts.id = payments.provider_contact_id
-        LEFT JOIN public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
-        LEFT JOIN public.insurance_providers  ON insurance_providers.id = payments.insurance_provider_id
-        LEFT JOIN LATERAL (select * from billing.get_payment_totals(payments.id)) payment_totals  ON true
-        LEFT JOIN public.facilities ON facilities.id = payments.facility_id `;
-
+        let joinQuery = `
+            INNER JOIN public.users ON users.id = payments.created_by
+            LEFT JOIN public.patients ON patients.id = payments.patient_id
+            LEFT JOIN public.provider_groups ON provider_groups.id = payments.provider_group_id
+            LEFT JOIN public.provider_contacts ON provider_contacts.id = payments.provider_contact_id
+            LEFT JOIN public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
+            LEFT JOIN public.insurance_providers  ON insurance_providers.id = payments.insurance_provider_id
+            LEFT JOIN LATERAL (select * from billing.get_payment_totals(payments.id)) payment_totals  ON true
+            LEFT JOIN public.facilities ON facilities.id = payments.facility_id
+        `;
         let sql = '';
 
         if (isGetTotal) {
@@ -127,10 +128,10 @@ module.exports = {
                     SUM(payment_totals.payments_applied_total) AS total_applied       
                     ,SUM(payment_totals.adjustments_applied_total) AS total_adjustment
                 FROM billing.payments
-                    LEFT JOIN LATERAL 
-                    (SELECT * FROM billing.get_payment_totals(payments.id)) payment_totals ON true
             `;
 
+            sql.append(joinQuery);
+            
             if (whereQuery.length) {
                 sql.append(SQL` WHERE `)
                     .append(whereQuery.join(' AND '));
@@ -141,14 +142,11 @@ module.exports = {
         else if (countFlag == 'true') {
             sql = SQL`  SELECT
                         COUNT(1) AS total_records
-                        FROM billing.payments INNER JOIN public.users ON users.id = payments.created_by
-                        LEFT JOIN public.patients ON patients.id = payments.patient_id
-                        LEFT JOIN public.provider_groups ON provider_groups.id = payments.provider_group_id
-                        LEFT JOIN public.provider_contacts ON provider_contacts.id = payments.provider_contact_id
-                        LEFT JOIN public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
-                        LEFT JOIN public.insurance_providers  ON insurance_providers.id = payments.insurance_provider_id
-                        LEFT JOIN public.facilities ON facilities.id = payments.facility_id`;
+                        FROM billing.payments   
+                        `;    
             
+            sql.append(joinQuery);
+
             if (whereQuery.length) {
                 sql.append(SQL` WHERE `)
                     .append(whereQuery.join(' AND '));
