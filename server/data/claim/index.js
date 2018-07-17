@@ -692,9 +692,9 @@ module.exports = {
 				            ,p.gender AS patient_gender
 				            ,p.account_no AS patient_account_no
                             ,f.id AS facility_id
-                            ,COALESCE(f.facility_info->'billing_provider_id','0')::numeric AS billing_provider_id
-                            ,COALESCE(f.facility_info->'service_facility_id','0')::numeric AS service_facility_id
-                            ,COALESCE(f.facility_info->'rendering_provider_id','0')::numeric AS rendering_provider_id 
+                            ,COALESCE(NULLIF(f.facility_info->'billing_provider_id',''),'0')::numeric AS billing_provider_id
+                            ,COALESCE(NULLIF(f.facility_info->'service_facility_id',''),'0')::numeric AS service_facility_id
+                            ,COALESCE(NULLIF(f.facility_info->'rendering_provider_id',''),'0')::numeric AS rendering_provider_id 
                             ,facility_info->'service_facility_name' as service_facility_name
                             ,fac_prov_cont.id AS rendering_provider_contact_id
                             ,fac_prov.full_name AS rendering_provider_full_name

@@ -694,7 +694,11 @@ define(['jquery',
                     $('#txtPriSubPriAddr').val(claimData.p_subscriber_address_line1);
                     $('#txtPriSubSecAddr').val(claimData.p_subscriber_address_line2);
                     $('#txtPriCity').val(claimData.p_subscriber_city);
-                    $('#ddlPriState').val(claimData.p_subscriber_state);
+                    var states = app.states && app.states.length && app.states[0].app_states;
+                    if (states && states.indexOf(claimData.p_subscriber_state) > -1) {
+                        $('#ddlPriState').val(claimData.p_subscriber_state);
+                    }
+                    
                     $('#txtPriZipCode').val(claimData.p_subscriber_zipcode);
                     document.querySelector('#txtPriDOB').value = claimData.p_subscriber_dob ? moment(claimData.p_subscriber_dob).format('L') : '';
                     document.querySelector('#txtPriStartDate').value = claimData.p_valid_from_date ? moment(claimData.p_valid_from_date).format('L') : '';
@@ -905,7 +909,7 @@ define(['jquery',
                     self.setTerRelationShipSelf(e);
                     self.changeRelationalShip(e);
                 });
-                
+
                 $('#modal_div_container').animate({scrollTop: 0}, 100);
             },
             getLineItemsAndBind: function (selectedStudyIds) {
@@ -2260,7 +2264,7 @@ define(['jquery',
                     $('#txt' + flag + 'MiddleName').val(result.subscriber_middlename);
                     $('#txt' + flag + 'SubLastName').val(result.subscriber_lastname);
                     $('#txt' + flag + 'SubSuffix').val(result.subscriber_name_suffix);
-                    if(app.gender.indexOf(result.subscriber_gender) > 0 )
+                    if(app.gender.indexOf(result.subscriber_gender) > -1 )
                     {
                         $('#ddl' + flag + 'Gender').val(result.subscriber_gender);
                     }
