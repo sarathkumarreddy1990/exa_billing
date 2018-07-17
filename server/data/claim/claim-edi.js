@@ -211,7 +211,7 @@ module.exports = {
 						communication_info->'usageIndicator' as "usageIndicator",
 						to_char(now(), 'YYYYMMDD')  as "fgDate",
 						to_char(now(), 'HH24MI')  as "fgTime",
-						communication_info->'groupControlNo' as "groupControlNo",
+						claims.id as "groupControlNo",
 						communication_info->'responsibleAgencyCode' as "responsibleAgencyCode",
 						communication_info->'verRelIndIdCode' as "verReleaseIDCode",
 						'837' as "tsIDCode",

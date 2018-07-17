@@ -267,7 +267,7 @@ var commonjs = {
         }
         else {
             if (typeof filter !== 'undefined') {
-                filter.customGridTable.jqGrid('GridUnload');
+               // filter.customGridTable.jqGrid('GridUnload');
                 cjs.loadedStudyFilters = filters.delete(id);
                 return true;
             }

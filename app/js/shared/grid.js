@@ -1245,6 +1245,7 @@ define('grid', [
                 },
                 rowattr: rowattr
             });
+            commonjs.processPostRender();    
             if (doExport) {
                 console.log('dfadsf', grid.getGridParam("postData")._search)
                 var searchFilterFlag = grid.getGridParam("postData")._search;
