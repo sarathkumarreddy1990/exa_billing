@@ -905,6 +905,8 @@ define(['jquery',
                     self.setTerRelationShipSelf(e);
                     self.changeRelationalShip(e);
                 });
+                
+                $('#modal_div_container').animate({scrollTop: 0}, 100);
             },
             getLineItemsAndBind: function (selectedStudyIds) {
                 var self = this;
@@ -2976,8 +2978,8 @@ define(['jquery',
 
                 tab_menu_link.click(function (e) {
                     var currId = $(this).attr('href').split('_')[1];
-                    tab_menu_item.removeClass('active');                    
-                    $(e.target).closest('li').addClass('active');
+                    tab_menu_item.removeClass('active');
+                    e && $(e.target).closest('li').addClass('active');
 
                     var _height = 0;
                     for (var i = 1; i < currId; i++) {
@@ -2992,7 +2994,7 @@ define(['jquery',
 
                     if ($('#tab_' + currId).find('input[type=text],textarea, select').filter(':input:enabled:visible:first'))
                         $('#tab_' + currId).find('input[type=text],textarea, select').filter(':input:enabled:visible:first').focus();
-                    e.preventDefault ? event.preventDefault() : event.returnValue = false;
+                    e && e.preventDefault ? e.preventDefault() : e.returnValue = false;
                 });
 
                 $('#modal_div_container').scrollTop(0); 
