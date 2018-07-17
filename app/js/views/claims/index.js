@@ -2502,6 +2502,7 @@ define(['jquery',
                                 var claimHideInterval = setTimeout(function () {
                                     clearTimeout(claimHideInterval);
                                     if(self.isEdit){
+                                        self.claim_row_version = response && response.length && response[0].result ? response[0].result : null;  
                                         saveButton.attr('disabled', false);
                                         $('#chktblClaimGridAll_Claims_' + self.claim_Id).prop('checked', true);
                                     }else{

@@ -3688,6 +3688,12 @@ BEGIN
             billing_method = billing.get_billing_method((i_claim_details->>'claim_id')::bigint,(i_claim_details->>'payer_type')::text)
     WHERE id = (i_claim_details->>'claim_id')::bigint;
 
+    SELECT 
+        xmin as claim_row_version INTO 
+        p_result 
+    FROM billing.claims 
+    WHERE 
+        id = p_claim_id;
 
     RETURN p_result;
 END;
