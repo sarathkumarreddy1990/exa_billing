@@ -666,7 +666,8 @@ function customGrid ( datastore, gridID ) {
                 if ( commonjs.isValidResponse(response) ) {
                     // console.log('datastore.fetch, url: %s, data: %O', self.datastore.url ? self.datastore.url: "---", _data);
                     // console.log('datastore.fetch, response: %O', response);
-                    app.workListStudiesData = response.result;
+                    //app.workListStudiesData = response.result;
+                    
                     if ( typeof isScroll === 'function' ) {
                         isScroll(self);
                     }
