@@ -727,6 +727,7 @@ module.exports = {
                                 , claim_totals.payments_applied_total AS payment
                                 , claim_totals.adjustments_applied_total AS adjustment
                                 , claim_totals.claim_balance_total AS balance
+                                , bc.id AS claim_id
                             FROM billing.claims bc
                             ${joinQuery}
                             INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
@@ -741,6 +742,7 @@ module.exports = {
                                 , sum(adjustment) AS invoice_adjustment
                                 , sum(balance) AS invoice_balance
                                 , COUNT(1) OVER (range unbounded preceding) AS total_records
+                                , array_agg(claim_id) AS claim_ids
                             FROM invoice_payment_details
                             GROUP BY invoice_no
                             ${havingQuery}

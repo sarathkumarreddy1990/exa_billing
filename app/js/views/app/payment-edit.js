@@ -127,7 +127,7 @@ define(['jquery',
                 app.adjustmentCodes = [];
                 this.paidlocation = new modelCollection(app.facilities);
                 this.facilityAdd = new modelCollection(commonjs.bindArray([app.facilities], true, true, false));
-                var facilities = (app.userInfo.user_type == "SU") ? app.facilities : app.userfacilities;
+                var facilities = (app.userInfo.user_type == "SU") ? app.facilities : app.userFacilities;
                 var adjustment_codes = jQuery.grep(app.adjustmentCodes, function (obj, i) {
                     return (obj.type == "ADJCDE" || obj.type == "REFADJ");
                 });
@@ -227,8 +227,6 @@ define(['jquery',
                     $('#btnPaymentRefClick').hide();
                     $('#selectPayerType').focus();
                     commonjs.hideLoading();
-                    commonjs.paymentStatus = [];
-                    commonjs.paymentFilterFields = [];
                 }
                 else {
                     this.model.set({ id: paymentID });
@@ -1790,7 +1788,7 @@ define(['jquery',
             },
 
             goBackToPayments: function () {
-                Backbone.history.navigate('#billing/payments/list', true);
+                Backbone.history.navigate('#billing/payments/filter', true);
             },
 
             applySearch: _.debounce(function (e) {
@@ -2220,7 +2218,7 @@ define(['jquery',
                         },
                         success: function (data, response) {
                             commonjs.showStatus('Payment has been deleted successfully');
-                            Backbone.history.navigate('#billing/payments/list', true);
+                            Backbone.history.navigate('#billing/payments/filter', true);
                         },
                         error: function (err, response) {
                             commonjs.handleXhrError(err, response);

@@ -1535,7 +1535,7 @@ define([
                     var statusCodes = defaultStatusArray.concat(app.customOrderStatus).concat(app.customStudyStatus);
                     var facilities = app.userInfo.user_type === 'SU' ?
                         app.facilities :
-                        app.userfacilities;
+                        app.userFacilities;
                     setupList('listModality', app.modalities, 'modality_code');
                     setupList('listBodyPart', app.bodyParts);
                     setupList('listStat', app.stat_level.slice(1), 'description', 'level');
