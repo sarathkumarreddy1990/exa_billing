@@ -614,7 +614,7 @@ module.exports = {
 											INNER JOIN   billing.cas_reason_codes ON cas_reason_codes.id=cas_reason_code_id
 											INNER JOIN 	billing.payment_applications	 ON payment_applications.id=cas_payment_application_details.payment_application_id			
 											INNER JOIN billing.payments ON  billing.payments.id=payment_applications.payment_id and payer_type='insurance' AND 
-											payment_applications.charge_id = charges.id 		AND payment_applications.payment_application_id is NOT  null
+											payment_applications.charge_id = charges.id 		AND payment_applications.amount_type = 'payment' 
 											WHERE 
 												   cas_group_codes.code= gc.code	 ) as CAS )
 						
@@ -623,13 +623,13 @@ module.exports = {
 											INNER JOIN   billing.cas_group_codes ON cas_group_codes.id=cas_group_code_id
 											INNER JOIN 	billing.payment_applications	 ON payment_applications.id=cas_payment_application_details.payment_application_id			
 												INNER JOIN billing.payments ON  billing.payments.id=payment_applications.payment_id and payer_type='insurance' AND 
-							payment_applications.charge_id = charges.id 		AND payment_applications.payment_application_id is NOT  null
+							payment_applications.charge_id = charges.id 		AND payment_applications.amount_type = 'payment' 
 							group by cas_group_codes.code ) 
 					as lineAdjustment)
 
 					FROM  billing.payment_applications pa
 					INNER JOIN billing.payments ON  billing.payments.id=pa.payment_id and payer_type='insurance'				
-									WHERE  charge_id=charges.id AND pa.payment_application_id is null ) 
+									WHERE  charge_id=charges.id AND pa.payment_applications.amount_type = 'payment'  ) 
 					as lineAdjudication)
 					FROM   billing.charges 
 							inner join cpt_codes on cpt_codes.id=cpt_id

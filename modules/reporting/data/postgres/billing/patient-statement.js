@@ -137,24 +137,37 @@ WITH claim_data as(
     order by first_name),
     detail_cte AS(
     select * From main_detail_cte
-    where (CASE WHEN payment_type = 'adjustment' THEN amount != 0::money ELSE 1 = 1 END)
+    where (CASE WHEN payment_type = 'adjustment' THEN amount != 0::money ELSE true END)
     <% if (minAmount > 0)  {%> 
     AND sum_amount >=  <%= minAmount  %>::money
     <% } else { %>
         AND sum_amount >  <%= minAmount  %>::money
         <% } %>
-
+    ),
+    date_cte AS (
+        select 
+            pid,
+            CASE WHEN payment_type ='payment' OR  payment_type ='adjustment' THEN 
+            max(enc_date::date) FILTER (WHERE payment_type = ANY (ARRAY['payment','adjustment']))
+                 WHEN payment_type ='charge' THEN 
+            max(enc_date::date) FILTER (WHERE payment_type = 'charge')
+        END AS payment_type_date
+        From main_detail_cte
+        where payment_type = ANY (ARRAY['payment','charge','adjustment'] )
+        group by pid,payment_type
     ),
     sum_encounter_cte AS (
     SELECT 
-            pid
-          , enc_id
-          , max(enc_date::date) AS bucket_date
-          , sum(amount)         AS enc_total_amount
-          FROM detail_cte
+            dc.pid
+          , dc.enc_id
+          , dtc.payment_type_date AS bucket_date
+          , sum(dc.amount) AS enc_total_amount
+          FROM detail_cte dc 
+          INNER JOIN date_cte dtc ON  dtc.pid = dc.pid
           GROUP BY 
-            pid
-          , enc_id
+            dc.pid
+          , dc.enc_id
+          , dtc.payment_type_date
     ),
     sum_statement_credit_cte AS (
           SELECT 

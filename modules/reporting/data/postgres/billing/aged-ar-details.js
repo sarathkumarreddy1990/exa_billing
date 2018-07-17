@@ -8,15 +8,35 @@ const _ = require('lodash')
 // generate query template ***only once*** !!!
 
 const agedARDetailsDataSetQueryTemplate = _.template(`
-WITH get_claim_details AS(
+WITH charges_cwt AS (
+    SELECT
+          bc.id                           AS claim_id
+        , max(date_part('day', (<%= claimDate %> - bc.claim_dt))) as age
+        , sum(c.bill_fee * c.units)       AS charges_bill_fee_total
+    FROM  billing.claims AS bc
+        INNER JOIN billing.charges AS c ON c.claim_id = bc.id
+    WHERE 1=1
+       AND (bc.claim_dt < <%= claimDate %>::DATE)  
+    GROUP BY bc.id
+), 
+applications_cwt AS (
+    SELECT  cc.claim_id
+        ,  coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)    AS payments_applied_total
+        , coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment'),0::money) AS ajdustments_applied_total
+    FROM charges_cwt cc
+    INNER JOIN billing.charges AS c  ON c.claim_id = cc.claim_id
+    INNER JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
+    INNER JOIN billing.payments AS p ON pa.payment_id = p.id
+    GROUP BY cc.claim_id
+),   
+get_claim_details AS(
     SELECT 
-        bc.id as claim_id,
-          date_part('day', (<%= claimDate %> - bc.claim_dt)) as age,
-       (SELECT coalesce(claim_balance_total,0::money) FROM billing.get_claim_totals(bc.id)) AS balance
-    FROM billing.claims bc
-    INNER JOIN billing.charges bch ON bch.claim_id = bc.id
-    WHERE 1=1 
-    AND (bc.claim_dt < <%= claimDate %>)
+        cc.claim_id as claim_id,
+        cc.age as age,
+       (cc.charges_bill_fee_total - ( ac.payments_applied_total +  ac.ajdustments_applied_total )) AS balance
+    FROM charges_cwt cc
+    INNER JOIN applications_cwt ac ON cc.claim_id = ac.claim_id  
+    WHERE (cc.charges_bill_fee_total - ( ac.payments_applied_total +  ac.ajdustments_applied_total )) != 0::money
  ),
  aging_details  AS( SELECT
  <% if (facilityIds) { %> (pf.facility_name) <% } else  { %> 'All'::text <% } %> as "Facility",
