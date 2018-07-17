@@ -534,7 +534,7 @@ const api = {
         return new Promise((resolve, reject) => {
             const sql = `
                 SELECT id, code, description AS name
-                FROM adjustment_codes
+                FROM billing.adjustment_codes
                 WHERE
                     company_id = $1
                 AND id = any ($2)
