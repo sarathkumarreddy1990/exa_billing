@@ -227,8 +227,6 @@ define(['jquery',
                     $('#btnPaymentRefClick').hide();
                     $('#selectPayerType').focus();
                     commonjs.hideLoading();
-                    commonjs.paymentStatus = [];
-                    commonjs.paymentFilterFields = [];
                 }
                 else {
                     this.model.set({ id: paymentID });
@@ -1750,11 +1748,11 @@ define(['jquery',
                             commonjs.showStatus('Payment has been applied successfully');
                             targetObj.removeAttr('disabled');
                             commonjs.hideLoading();
-                            if (paymentStatus != 'applied') {
-                                self.casSegmentsSelected = [];
-                                self.closeAppliedPendingPayments(e, paymentId);
-                                commonjs.hideDialog();
-                            }
+                            // if (paymentStatus != 'applied') {
+                            self.casSegmentsSelected = [];
+                            self.closeAppliedPendingPayments(e, paymentId);
+                            commonjs.hideDialog();
+                            // }
                         },
                         error: function (err, response) {
                             targetObj.removeAttr('disabled');
@@ -1790,7 +1788,7 @@ define(['jquery',
             },
 
             goBackToPayments: function () {
-                Backbone.history.navigate('#billing/payments/list', true);
+                Backbone.history.navigate('#billing/payments/filter', true);
             },
 
             applySearch: _.debounce(function (e) {
@@ -2220,7 +2218,7 @@ define(['jquery',
                         },
                         success: function (data, response) {
                             commonjs.showStatus('Payment has been deleted successfully');
-                            Backbone.history.navigate('#billing/payments/list', true);
+                            Backbone.history.navigate('#billing/payments/filter', true);
                         },
                         error: function (err, response) {
                             commonjs.handleXhrError(err, response);

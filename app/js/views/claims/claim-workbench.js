@@ -1149,7 +1149,8 @@ define(['jquery',
                                 'container': self.el,
                                 '$container': self.$el,
                                 'updateStudiesPager':updateStudiesPager,
-                                'isClaimGrid': true
+                                'isClaimGrid': true,
+                                'context': this
                             });
                             table.renderStudy();
 

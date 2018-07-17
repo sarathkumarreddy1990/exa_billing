@@ -603,6 +603,9 @@ function customGrid ( datastore, gridID ) {
         $loading.show();
         commonjs.showLoading()
         self.setSearchQuery();
+        if (self.options.gridelementid === "#tblpaymentsGrid") {
+            commonjs.paymentFilterFields = [];
+        }       
         var customArgs = null;
         var params = $tblGrid.jqGrid("getGridParam");
         if ( params && params.customargs ) {
@@ -666,7 +669,8 @@ function customGrid ( datastore, gridID ) {
                 if ( commonjs.isValidResponse(response) ) {
                     // console.log('datastore.fetch, url: %s, data: %O', self.datastore.url ? self.datastore.url: "---", _data);
                     // console.log('datastore.fetch, response: %O', response);
-                    app.workListStudiesData = response.result;
+                    //app.workListStudiesData = response.result;
+                    
                     if ( typeof isScroll === 'function' ) {
                         isScroll(self);
                     }
@@ -741,6 +745,17 @@ function customGrid ( datastore, gridID ) {
         }
     };
 
+    var getPaymentHeaderValues = function (elementID) {
+        let paymentFilterValues='';
+        if (commonjs.paymentFilterFields) {
+            paymentFilterValues =  $.grep(commonjs.paymentFilterFields, function (obj) {
+                    return obj && (obj.split('~')[0] == elementID)
+            });
+            return paymentFilterValues[0].split('~')[1];   
+        }else return '';
+       
+    };
+
     this.setSearchQuery = function () {
         var filterData = [];
         var filterRegData = [];
@@ -771,6 +786,13 @@ function customGrid ( datastore, gridID ) {
 
                 }
                 else $("#gs_assigned_to").attr('disabled', 'disabled');
+            }
+
+            if (commonjs.paymentFilterFields && commonjs.paymentFilterFields.length && self.options.gridelementid === "#tblpaymentsGrid") {
+                var paymentValue = getPaymentHeaderValues(element.id);
+                if (paymentValue) {
+                    $("#" + element.id).val(paymentValue);
+                }
             }
 
             if (element && element.id == 'gs_billing_method' && $(element).val() == '' && self.options.isClaimGrid) {
@@ -830,7 +852,7 @@ function customGrid ( datastore, gridID ) {
             }
         });
 
-        var filterDataValue=filterData;
+        var filterDataValue = filterData;
 
         if (self.options.isClaimGrid) {
             if (this.options.filterid == 'Follow_up_queue') {

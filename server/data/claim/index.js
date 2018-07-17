@@ -43,8 +43,8 @@ module.exports = {
                             INNER JOIN public.studies s ON s.id = sc.study_id
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
                             INNER JOIN public.orders o on o.id = s.order_id
-                            INNER JOIN appointment_types at ON at.id = s.appointment_type_id
-                            INNER JOIN appointment_type_procedures atp ON atp.procedure_id = sc.cpt_code_id AND atp.appointment_type_id = s.appointment_type_id
+                            LEFT JOIN appointment_types at ON at.id = s.appointment_type_id
+                            LEFT JOIN appointment_type_procedures atp ON atp.procedure_id = sc.cpt_code_id AND atp.appointment_type_id = s.appointment_type_id
                             WHERE
                                 study_id = ANY(${studyIds}) AND sc.has_deleted = FALSE
                             ORDER BY s.accession_no DESC
