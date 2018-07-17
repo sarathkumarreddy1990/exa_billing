@@ -25,7 +25,7 @@ module.exports = {
             WHERE
         id = ${args.id}
             AND NOT EXISTS (SELECT 1 FROM  billing.grid_filters WHERE filter_name ILIKE ${args.filterName} AND id !=  ${args.id} LIMIT 1)
-        RETURNING id,(SELECT row_to_json(old_row)
+        RETURNING *,(SELECT row_to_json(old_row)
         FROM   (SELECT * FROM   billing.grid_filters
         WHERE  id = ${args.id}) old_row) old_values
         ),
@@ -55,7 +55,7 @@ module.exports = {
                 WHERE NOT EXISTS (
                     SELECT 1 FROM billing.grid_filters WHERE filter_name ILIKE ${args.filterName} LIMIT 1
                 ) AND NOT EXISTS(SELECT * FROM update_grid_filter)
-                RETURNING id, '{}'::jsonb old_values
+                RETURNING *, '{}'::jsonb old_values
         ),
         insert_audit_cte AS(
             SELECT billing.create_audit(
@@ -64,7 +64,7 @@ module.exports = {
                 id,
                 ${args.screenName},
                 ${args.moduleName},
-                ${auditMsgIns} || ${args.filterName} || id,
+                ${auditMsgIns} || ${args.filterName} || filter_name,
                 ${args.clientIp || '127.0.0.1'},
                 json_build_object(
                     'old_values', (SELECT COALESCE(old_values, '{}') FROM insert_grid_filter),
@@ -81,7 +81,7 @@ module.exports = {
                 id,
                 ${args.screenName},
                 ${args.moduleName},
-                ${auditMsgUpdate} || (${args.filterName}) || id,
+                ${auditMsgUpdate} || (${args.filterName}) || filter_name,
                 ${args.clientIp || '127.0.0.1'},
                 json_build_object(
                     'old_values', (SELECT COALESCE(old_values, '{}') FROM update_grid_filter),
