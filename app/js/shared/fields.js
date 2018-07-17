@@ -121,7 +121,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 "description": "[Updox] Sent - Failed"
             }
         ];
-        
+
         var studyFlagValue = commonjs.makeValue(studyFlagArray, !isNoneExist ?
                                                        ":All;None:None;" :
                                                        ":All;","id", "description");
@@ -142,8 +142,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var imageDeliveryValue = commonjs.makeValue(imageDeliveryOptions, ':All;', 'type', 'label');
         var deletedValue = ":All;true:Only;false:None";
         var verifiedValue = ":All;true:Yes;false:No";
-        var billingMethodValue =  ":All;electronic_billing:Electronic Billing;paper_claim:Paper Claim;patient_payment:Patient Payment;direct_billing:Direct Billing";
-        var payerTypeValue =  ':All;primary_insurance:Primary Insurance;secondary_insurance:Secondary Insurance;tertiary_insurance:Teritary Insurance;patient:Patient;ordering_facility:Ordering facility;referring_provider:Referring Provider';
+        var billingMethodValue =  ":All;electronic_billing:Electronic Billing;paper_claim:Paper Claim;direct_billing:Direct Billing;patient_payment:Patient Payment";
+        var payerTypeValue =  ':All;primary_insurance:Primary Insurance;secondary_insurance:Secondary Insurance;tertiary_insurance:Tertiary Insurance;ordering_facility:Ordering facility;referring_provider:Referring Provider;patient:Patient';
 
         $.each(app.stat_level, function ( index, stat ) {
             if ( !stat.deleted ) {
