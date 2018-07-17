@@ -213,13 +213,17 @@ define(['jquery',
                         name: {
                             required: true
                         },
+                        claimBillingMethod: {
+                            required: true
+                        },
                         claimClearingHouse: {
                             required: true
                         }
                     },
                     messages: {
                         name: commonjs.getMessage("*", "Name"),
-                        claimClearingHouse: commonjs.getMessage("*", "claimClearingHouse")
+                        claimBillingMethod: commonjs.getMessage("*", "claim Billing Method"),
+                        claimClearingHouse: commonjs.getMessage("*", "claim Clearing House")
                     },
                     submitHandler: function () {
                         self.save();
@@ -231,7 +235,7 @@ define(['jquery',
 
             save: function () {
                 this.model.set({
-                    "claimClearingHouse": $('#ddlClaimClearingHouse').val() ? $('#ddlClaimClearingHouse').val() : null,
+                    "claimClearingHouse": ($('#ddlClaimClearingHouse').val() && $('#ddlClaimBillingMethod').val()=='electronic_billing' ) ? $('#ddlClaimClearingHouse').val() : null,
                     "billingMethod": $('#ddlClaimBillingMethod').val()
                 });
                 this.model.save({
