@@ -264,7 +264,7 @@ define([
                         },
                         cache: true
                     },
-                    placeholder: 'selectStudyReadPhysician',
+                    placeholder: 'select Study Read Physician',
                     escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
                     minimumInputLength: 0,
                     templateResult: formatRepo,
