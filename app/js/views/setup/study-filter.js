@@ -838,7 +838,6 @@ define([
                 }
                 else
                     this.model = new studyFiltersModel();
-                this.studyFilterSideMenuResize();
                 commonjs.validateControls();
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
             },

@@ -64,7 +64,7 @@ module.exports = {
                 id,
                 ${args.screenName},
                 ${args.moduleName},
-                ${auditMsgUpdate} || ${args.filterName} || id,
+                ${auditMsgIns} || ${args.filterName} || id,
                 ${args.clientIp || '127.0.0.1'},
                 json_build_object(
                     'old_values', (SELECT COALESCE(old_values, '{}') FROM insert_grid_filter),
