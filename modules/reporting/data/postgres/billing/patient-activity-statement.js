@@ -12,25 +12,31 @@ const patientStatementDataSetQueryTemplate = _.template(`
 
 WITH claim_data as(
     SELECT 
-       bcc.id as claim_id 
-    FROM billing.claims bcc
-    <% if (billingProviderIds) { %> INNER JOIN billing.providers bp ON bp.id = bcc.billing_provider_id <% } %>
+       bc.id as claim_id 
+    FROM billing.claims bc
+    <% if (billingProviderIds) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
     WHERE 1=1 
     AND <%= patientIds %>  
     <% if(billingProviderIds) { %> AND <% print(billingProviderIds); } %>   
     ),
     patient_insurance AS (
+
         select 
-               coverage_level as cov_level,
-               to_char(valid_from_date, 'MM/DD/YYYY') as valid_from_date,
-               to_char(valid_to_date, 'MM/DD/YYYY') AS valid_to_date,
-               policy_number AS policy_no,
-               group_number AS group_no,
-               subscriber_firstname AS company_name    
+        
+               p_pi.coverage_level as cov_level,
+               to_char(p_pi.valid_from_date, 'MM/DD/YYYY') as valid_from_date,
+               to_char(p_pi.valid_to_date, 'MM/DD/YYYY') AS valid_to_date,
+               p_pi.policy_number AS policy_no,
+               p_pi.group_number AS group_no,
+               p_pi.subscriber_firstname AS company_name    
          from   
-            patient_insurances pis 
-          WHERE 1=1 
-            AND <%= patientInsIds %>  
+            billing.claims bc 
+           LEFT JOIN public.patient_insurances p_pi on p_pi.id = bc.primary_patient_insurance_id
+					LEFT JOIN public.patient_insurances s_pi on s_pi.id = bc.secondary_patient_insurance_id
+					LEFT JOIN public.patient_insurances t_pi on t_pi.id = bc.tertiary_patient_insurance_id
+                    WHERE 1=1 
+                    AND <%= patientIds %> 
+                    <% if(reportBy == "false") { %> AND <% print(claimDate); } %>        
       ),
      billing_comments as 
     (
@@ -792,8 +798,7 @@ const api = {
         filters.companyId = queryBuilder.where('bc.id', '=', [params.length]);
 
         params.push(reportParams.patientIID);
-        filters.patientIds = queryBuilder.where('bcc.patient_id', '=', [params.length]);
-        filters.patientInsIds = queryBuilder.where('pis.patient_id', '=', [params.length]);
+        filters.patientIds = queryBuilder.where('bc.patient_id', '=', [params.length]);
 
 
         // Min Amount
@@ -812,7 +817,7 @@ const api = {
             filters.sDate = `$${params.length}::date`;
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
-            filters.claimDate = queryBuilder.whereDateBetween(' bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
         }
 
         filters.reportBy = reportParams.reportBy

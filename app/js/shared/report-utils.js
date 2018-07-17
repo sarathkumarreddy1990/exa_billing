@@ -618,7 +618,7 @@ define([
                     if (repo.loading) {
                         return repo.text;
                     }
-                    var markup1 = "<table class='ref-result' style='width: 100%'><tr class='inActiveRow'>";
+                    var markup1 = "<table class='ref-result' style='width: 100%'><tr>";
                     markup1 += "<td data-id='" + repo.group_id + " ' title='" + repo.full_name + "'> <div>" + repo.full_name + "</div>";
                     markup1 += "</td></tr></table>";
                     return markup1;
@@ -689,7 +689,7 @@ define([
                     if (repo.loading) {
                         return repo.display_description;
                     }
-                    var markup1 = "<table><tr class='inActiveRow'>";
+                    var markup1 = "<table><tr>";
                     if (repo.display_code != '')
                         markup1 += "<td title='" + repo.display_code + "(" + repo.display_description + ")" + "'><div>" + repo.display_code + "(" + repo.display_description + ")" + "</div>";
                     else
