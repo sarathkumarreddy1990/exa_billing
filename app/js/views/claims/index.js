@@ -2944,6 +2944,7 @@ define(['jquery',
                         var data = $($tblGrid, parent.document).getRowData(rowId);
                         commonjs.getClaimStudy(rowId, function (result) {
                             self.rendered = false;
+                            self.clearDependentVariables();
                             self.showEditClaimForm(rowId, null, {
                                 'study_id': result && result.study_id ? result.study_id : 0,
                                 'patient_name': data.patient_name,
@@ -3470,6 +3471,19 @@ define(['jquery',
                     $("#ddlTerRelationShip option:contains('Selected')").attr('selected', 'Selected');
                     $('#showTerSelf').show();
                 } 
+            },
+
+            clearDependentVariables: function () {
+                var self = this;
+                self.priInsID = '';
+                self.priInsName = '';
+                self.is_primary_available = false;
+                self.secInsID = '';
+                self.secInsName = '';
+                self.is_secondary_available = false;
+                self.terInsID = '';
+                self.terInsName = '';
+                self.is_tertiary_available = false;
             }
 
         });
