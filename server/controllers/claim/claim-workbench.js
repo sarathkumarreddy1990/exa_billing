@@ -169,8 +169,7 @@ module.exports = {
 
             if (currentClaim.billing_method == 'electronic_billing') {
                 !currentClaim.payer_info.claimClearingHouse ? errorMessages.push('Claim - Clearing house does not exists ') : null;
-                (!currentClaim.payer_info.edi_request_templates_id || currentClaim.payer_info.edi_request_templates_id == '-1') ? errorMessages.push('Claim - Request Template does not exists ') : null;
-                !currentClaim.payer_info.claim_req_type ? errorMessages.push('Claim - Request Type does not  exists ') : null;
+                (!currentClaim.payer_info.edi_request_templates_id || currentClaim.payer_info.edi_request_templates_id == '-1') ? errorMessages.push('Claim - Request Template does not exists ') : null;                
             }
 
             if(currentClaim.p_relationship) {
