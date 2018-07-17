@@ -741,8 +741,13 @@ define(['jquery',
                     $('#txtSecSubPriAddr').val(claimData.s_subscriber_address_line1);
                     $('#txtSecSubSecAddr').val(claimData.s_subscriber_address_line2);
                     $('#txtSecCity').val(claimData.s_subscriber_city);
-                    $('#ddlSecState').val(claimData.s_subscriber_state);
+                    //$('#ddlSecState').val(claimData.s_subscriber_state);
                     $('#txtSecZipCode').val(claimData.s_subscriber_zipcode);
+                    
+                    if (states && states.indexOf(claimData.s_subscriber_state) > -1) {
+                        $('#ddlSecState').val(claimData.s_subscriber_state);
+                    }
+
                     document.querySelector('#txtSecDOB').value = claimData.s_subscriber_dob ? moment(claimData.s_subscriber_dob).format('L') : '';
                     document.querySelector('#txtSecStartDate').value = claimData.s_valid_from_date ? moment(claimData.s_valid_from_date).format('L') : '';
                     document.querySelector('#txtSecExpDate').value = claimData.s_valid_to_date ? moment(claimData.s_valid_to_date).format('L') : '';
@@ -778,8 +783,13 @@ define(['jquery',
                     $('#txtTerSubPriAddr').val(claimData.t_subscriber_address_line1);
                     $('#txtTerSubSecAddr').val(claimData.t_subscriber_address_line2);
                     $('#txtTerCity').val(claimData.t_subscriber_city);
-                    $('#ddlTerState').val(claimData.t_subscriber_state);
+                    //$('#ddlTerState').val(claimData.t_subscriber_state);
                     $('#txtTerZipCode').val(claimData.t_subscriber_zipcode);
+                    
+                    if (states && states.indexOf(claimData.t_subscriber_state) > -1) {
+                        $('#ddlTerState').val(claimData.t_subscriber_state);
+                    }
+
                     document.querySelector('#txtTerDOB').value = claimData.t_subscriber_dob ? moment(claimData.t_subscriber_dob).format('L') : '';
                     document.querySelector('#txtTerStartDate').value = claimData.t_valid_from_date ? moment(claimData.t_valid_from_date).format('L') : '';
                     document.querySelector('#txtTerExpDate').value = claimData.t_valid_to_date ? moment(claimData.t_valid_to_date).format('L') : '';
