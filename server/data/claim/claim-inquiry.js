@@ -810,30 +810,46 @@ module.exports = {
         } = params;
 
         if (username) {
-            whereQuery.push(` username ILIKE '%${username}%'`);
+            whereQuery.push(` users.username ILIKE '%${username}%'`);
         }
 
         if (screen_name) {
-            whereQuery.push(` screen_name ILIKE '%${screen_name}%'`);
+            whereQuery.push(` audit.screen_name ILIKE '%${screen_name}%'`);
         }
 
         if (description) {
-            whereQuery.push(` description ILIKE '%${description}%'`);
+            whereQuery.push(` audit.description ILIKE '%${description}%'`);
         }
 
         if (created_dt) {
-            whereQuery.push(` ((created_dt)::date =('${created_dt}')::date) `);
+            whereQuery.push(` ((audit.created_dt)::date =('${created_dt}')::date) `);
         }
 
-        let sql = SQL`SELECT audit_log.id,
-                        users.username,
-                        created_dt,        
-                        screen_name,
-                        description
-                        FROM billing.claims 
-                        INNER JOIN billing.audit_log on audit_log.entity_key =claims.id 
-                        INNER JOIN  users on  users.id=audit_log.created_by
-                        WHERE  patient_id=${patientId}  AND entity_name='claims'
+        let sql = SQL`
+                SELECT audit.id, 
+                    users.username, 
+                    audit.created_dt, 
+                    audit.screen_name, 
+                    audit.description 
+                FROM   billing.claims bc 
+                    LEFT JOIN billing.charges bch 
+                            ON bch.claim_id = bc.id 
+                    LEFT JOIN billing.payments bp 
+                            ON bp.patient_id = bc.patient_id 
+                    LEFT JOIN billing.payment_applications bpa 
+                            ON bpa.payment_id = bp.id 
+                    INNER JOIN billing.audit_log audit 
+                            ON ( ( audit.entity_key = bc.id 
+                                    AND audit.entity_name = 'claims' ) 
+                                    OR ( audit.entity_key = bch.id 
+                                        AND audit.entity_name = 'charges' ) 
+                                    OR ( audit.entity_key = bp.id 
+                                        AND audit.entity_name = 'Payments' ) 
+                                    OR ( audit.entity_key = bpa.id 
+                                        AND audit.entity_name = 'payment_applications' ) ) 
+                    INNER JOIN users 
+                            ON users.id = audit.created_by 
+                    WHERE  bc.patient_id=${patientId}  AND audit.entity_name='claims'
                     `;
 
         if (whereQuery.length) {

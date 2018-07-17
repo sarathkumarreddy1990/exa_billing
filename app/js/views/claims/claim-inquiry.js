@@ -492,7 +492,7 @@ define([
                     container: self.el,
                     cmTemplate: { sortable: false },
                     customizeSort: false,
-                    sortname: "audit_log.id",
+                    sortname: "audit.id",
                     sortorder: "desc",
                     dblClickActionIndex: 1,
                     disablesearch: false,
