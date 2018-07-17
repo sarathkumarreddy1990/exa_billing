@@ -2258,15 +2258,14 @@ define(['jquery',
                     $('#txt' + flag + 'MiddleName').val(result.subscriber_middlename);
                     $('#txt' + flag + 'SubLastName').val(result.subscriber_lastname);
                     $('#txt' + flag + 'SubSuffix').val(result.subscriber_name_suffix);
-                    if(app.gender.indexOf(result.subscriber_gender) > 0 )
-                    {
+                    if (app.gender.indexOf(result.subscriber_gender) > -1) {
                         $('#ddl' + flag + 'Gender').val(result.subscriber_gender);
                     }
                     $('#txt' + flag + 'SubPriAddr').val(result.subscriber_address_line1);
                     $('#txt' + flag + 'SubSecAddr').val(result.subscriber_address_line2);
                     $('#txt' + flag + 'City').val(result.subscriber_city);
                     var states = app.states && app.states.length && app.states[0].app_states;
-                    if (states && states.indexOf(result.subscriber_state) > 0) {
+                    if (states && states.indexOf(result.subscriber_state) > -1) {
                         $('#ddl' + flag + 'State').val(result.subscriber_state);
                     }
                     $('#txt' + flag + 'ZipCode').val(result.subscriber_zipcode);
