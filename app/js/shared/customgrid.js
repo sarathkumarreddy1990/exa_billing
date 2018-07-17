@@ -666,7 +666,8 @@ function customGrid ( datastore, gridID ) {
                 if ( commonjs.isValidResponse(response) ) {
                     // console.log('datastore.fetch, url: %s, data: %O', self.datastore.url ? self.datastore.url: "---", _data);
                     // console.log('datastore.fetch, response: %O', response);
-                    app.workListStudiesData = response.result;
+                    //app.workListStudiesData = response.result;
+                    
                     if ( typeof isScroll === 'function' ) {
                         isScroll(self);
                     }
@@ -765,7 +766,12 @@ function customGrid ( datastore, gridID ) {
 
         $.each(elements, function (index, element) {
             if (element && element.id == 'gs_assigned_to' && !$(element).val() && self.options.isClaimGrid) {
-                $("#gs_assigned_to").val(app.userID)
+                $("#gs_assigned_to").val(app.userID);
+                if (app.userInfo && app.userInfo.user_settings && (app.userInfo.user_settings.assignClaimsToFollowUpQueue == "true" || app.userInfo.user_type == 'SU')) {
+                    $("#gs_assigned_to").removeAttr('disabled');
+
+                }
+                else $("#gs_assigned_to").attr('disabled', 'disabled');
             }
 
             if (element && element.id == 'gs_billing_method' && $(element).val() == '' && self.options.isClaimGrid) {
