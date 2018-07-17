@@ -29,6 +29,8 @@ module.exports = {
 						, p.first_name AS "patient_firstName"
 						, p.last_name AS "patient_lastName"
 						, p.full_name AS patient_name
+						, p.middle_name AS "patient_middleName"
+						, p.suffix_name AS "patient_suffixName"
 						, p.patient_info->'c1State' AS "patient_state"
 						, p.patient_info->'c1Zip' AS "patient_zipCode"
 						, ref_pr.first_name AS "ref_full_name"
@@ -118,6 +120,8 @@ module.exports = {
 									, p_pi.subscriber_dob AS "p_subscriber_dob"
 									, p_pi.subscriber_firstname AS "p_subscriber_firstName"
 									, p_pi.subscriber_lastname AS "p_subscriber_lastName"
+									, p_pi.subscriber_middlename AS "p_subscriber_middleName"
+									, p_pi.subscriber_name_suffix AS "p_subscriber_suffixName"
 									, p_pi.subscriber_state AS "p_subscriber_state"
 									, p_pi.subscriber_zipcode AS "p_subscriber_zipCode"	
 					
@@ -126,6 +130,8 @@ module.exports = {
 									, s_pi.subscriber_dob AS "s_subscriber_dob"
 									, s_pi.subscriber_firstname AS "s_subscriber_firstName"
 									, s_pi.subscriber_lastname AS "s_subscriber_lastName"
+									, s_pi.subscriber_middlename AS "s_subscriber_middleName"
+									, s_pi.subscriber_name_suffix AS "s_subscriber_suffixName" 
 									, s_pi.subscriber_state AS "s_subscriber_state"
 									, s_pi.subscriber_zipcode AS "s_subscriber_zipCode"	
 					
@@ -134,11 +140,16 @@ module.exports = {
 									, t_pi.subscriber_dob AS "t_subscriber_dob"
 									, t_pi.subscriber_firstname AS "t_subscriber_firstName"
 									, t_pi.subscriber_lastname AS "t_subscriber_lastName"
+									, t_pi.subscriber_middlename AS "t_subscriber_middleName"
+									, t_pi.subscriber_name_suffix AS "t_subscriber_suffixName" 
 									, t_pi.subscriber_state AS "t_subscriber_state"
 									, t_pi.subscriber_zipcode AS "t_subscriber_zipCode"					
 									, (SELECT array_agg(row_to_json(pointer)) AS charge_pointer FROM (
 										SELECT ch.id, pointer1, claim_id, cpt.ref_code, cpt.display_description FROM billing.charges ch INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id WHERE ch.claim_id = bc.id
 														 ) pointer) AS charge_pointer
+									, CASE WHEN lower(prs.description) = ('self') THEN true ELSE false END AS p_relationship
+									, CASE WHEN lower(srs.description) = ('self') THEN true ELSE false END AS s_relationship
+									, CASE WHEN lower(trs.description) = ('self') THEN true ELSE false END AS t_relationship
 					FROM
 						billing.claims bc
 					INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id	
@@ -161,7 +172,10 @@ module.exports = {
 					LEFT JOIN billing.edi_clearinghouses p_edi_clearinghouse ON p_edi_clearinghouse.id=p_ins_det.clearing_house_id
 					LEFT JOIN billing.edi_clearinghouses s_edi_clearinghouse ON s_edi_clearinghouse.id=s_ins_det.clearing_house_id
 					LEFT JOIN billing.edi_clearinghouses t_edi_clearinghouse ON t_edi_clearinghouse.id=t_ins_det.clearing_house_id
-					LEFT JOIN 
+					LEFT JOIN public.relationship_status prs ON prs.id = p_pi.subscriber_relationship_id
+					LEFT JOIN public.relationship_status srs ON srs.id = s_pi.subscriber_relationship_id
+					LEFT JOIN public.relationship_status trs ON trs.id = t_pi.subscriber_relationship_id
+					LEFT JOIN
 						LATERAL (SELECT icd_id FROM billing.claim_icds ci WHERE ci.claim_id = bc.id LIMIT 1) claim_icd ON true
 					WHERE bc.id = ANY(${params.claim_ids})`;
 
@@ -282,7 +296,7 @@ module.exports = {
 														(CASE coverage_level 
 															WHEN 'primary' THEN 'P'
 															WHEN 'secondary' THEN 'S'
-															WHEN 'teritary' THEN 'T' END) as "claimResponsibleParty",
+															WHEN 'tertiary' THEN 'T' END) as "claimResponsibleParty",
 														( SELECT 
 
 										(  CASE UPPER(description) 
@@ -488,7 +502,7 @@ module.exports = {
 											(CASE coverage_level 
 												WHEN 'primary' THEN 'P'
 												WHEN 'secondary' THEN 'S'
-												WHEN 'teritary' THEN 'T' END) as "otherClaimResponsibleParty",
+												WHEN 'tertiary' THEN 'T' END) as "otherClaimResponsibleParty",
 									( SELECT 
 
 											(  CASE description 
@@ -524,8 +538,8 @@ module.exports = {
 									WHERE  patient_insurances.id = 
 						(  CASE payer_type 
 						WHEN 'primary_insurance' THEN secondary_patient_insurance_id
-						WHEN 'secondary_insurance' THEN tertiary_patient_insurance_id
-						WHEN 'teritary_insurance' THEN primary_patient_insurance_id
+						WHEN 'secondary_insurance' THEN primary_patient_insurance_id
+						WHEN 'tertiary_insurance' THEN primary_patient_insurance_id
 						END) ) 
 					as otherSubscriber),
 					(SELECT Json_agg(Row_to_json(OtherPayer)) "OtherPayer"
@@ -549,7 +563,7 @@ module.exports = {
 						(  CASE payer_type 
 						WHEN 'primary_insurance' THEN secondary_patient_insurance_id
 						WHEN 'secondary_insurance' THEN primary_patient_insurance_id
-						WHEN 'teritary_insurance' THEN primary_patient_insurance_id
+						WHEN 'tertiary_insurance' THEN primary_patient_insurance_id
 						END) ) 
 					as OtherPayer),
 

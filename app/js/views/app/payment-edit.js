@@ -127,7 +127,7 @@ define(['jquery',
                 app.adjustmentCodes = [];
                 this.paidlocation = new modelCollection(app.facilities);
                 this.facilityAdd = new modelCollection(commonjs.bindArray([app.facilities], true, true, false));
-                var facilities = (app.userInfo.user_type == "SU") ? app.facilities : app.userfacilities;
+                var facilities = (app.userInfo.user_type == "SU") ? app.facilities : app.userFacilities;
                 var adjustment_codes = jQuery.grep(app.adjustmentCodes, function (obj, i) {
                     return (obj.type == "ADJCDE" || obj.type == "REFADJ");
                 });

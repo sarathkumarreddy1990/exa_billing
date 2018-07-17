@@ -17,11 +17,21 @@ WITH claim_data as(
     <% if (billingProviderIds) { %> INNER JOIN billing.providers bp ON bp.id = bcc.billing_provider_id <% } %>
     WHERE 1=1 
     AND <%= patientIds %>  
-   
-    
-    <% if(billingProviderIds) { %> AND <% print(billingProviderIds); } %>
-   
+    <% if(billingProviderIds) { %> AND <% print(billingProviderIds); } %>   
     ),
+    patient_insurance AS (
+        select 
+               coverage_level as cov_level,
+               to_char(valid_from_date, 'MM/DD/YYYY') as valid_from_date,
+               to_char(valid_to_date, 'MM/DD/YYYY') AS valid_to_date,
+               policy_number AS policy_no,
+               group_number AS group_no,
+               subscriber_firstname AS company_name    
+         from   
+            patient_insurances pis 
+          WHERE 1=1 
+            AND <%= patientInsIds %>  
+      ),
      billing_comments as 
     (
     select cc.claim_id as id,'claim' as type ,note as comments ,created_dt::date as commented_dt,null as amount,u.username as commented_by,null as code from  billing.claim_comments cc
@@ -220,6 +230,11 @@ WITH claim_data as(
           , 'Over90'             AS c24
           , 'Over120'            AS c25
           , 'BillingMessage'     AS c26
+          , 'ValidFrom'          AS c27
+          , 'Coverage'           AS c28
+          , 'Policy#'            AS c29
+          , 'Group#'             AS c30
+          , 'Company Name'       AS c31
           , -1                   AS pid  
           , -1                   AS enc_id
           , null::date           AS enc_date
@@ -227,7 +242,49 @@ WITH claim_data as(
           , -1                   AS sort_order
           , -1                   AS statement_flag
           UNION
-    
+          -- Coverage Info
+          
+          SELECT
+           null
+          ,null
+          ,null
+          ,null
+          ,null
+          ,null
+          ,null
+          ,null
+          ,null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , valid_from_date
+          , cov_level
+          , policy_no
+          , group_no
+          , company_name
+          , null
+        
+      , 0
+      , null
+      , 0
+      , 0                              AS sort_order
+      , 0
+      FROM patient_insurance
+      UNION
           -- Billing Information
           
               SELECT
@@ -240,6 +297,11 @@ WITH claim_data as(
               , billing_zip_plus
               , billing_phoneno
               , to_char('2018-04-12'::date, 'MM/DD/YYYY')
+              , null
+              , null
+              , null
+              , null
+              , null
               , null
               , null
               , null
@@ -296,6 +358,11 @@ WITH claim_data as(
               , null
               , null
               , null
+              , null
+              , null
+              , null
+              , null
+              , null
               , pid
               , 0
               , null
@@ -324,6 +391,11 @@ WITH claim_data as(
               , city
               , state
               , zip
+              , null
+              , null
+              , null
+              , null
+              , null
               , null
               , null
               , null
@@ -372,6 +444,11 @@ WITH claim_data as(
           , null
           , null
           , null
+          , null
+          , null
+          , null
+          , null
+          , null
           , pid
           , enc_id
           , enc_date::date
@@ -400,6 +477,11 @@ WITH claim_data as(
           , null
           , 'Encounter Total'
           , coalesce(enc_total_amount::text,'0.00')
+          , null
+          , null
+          , null
+          , null
+          , null
           , null
           , null
           , null
@@ -446,6 +528,11 @@ WITH claim_data as(
           , coalesce(over90_amount::text, '0.00')
           , coalesce(over120_amount::text, '0.00')
           , billing_msg
+          , null
+          , null
+          , null
+          , null
+          , null
           , pid
           , null
           , null
@@ -482,8 +569,12 @@ WITH claim_data as(
               , null
               , null
               , null
-              , pid
-            
+              , null
+              , null
+              , null
+              , null
+              , null
+              , pid            
               , null
               , null
               , 6
@@ -521,6 +612,11 @@ WITH claim_data as(
               , null
               , null
               , billing_msg
+              , null
+              , null
+              , null
+              , null
+              , null
               , pid
               , null
               , null
@@ -562,9 +658,14 @@ WITH claim_data as(
           , c24
           , c25
           , c26
+          , c27
+          , c28
+          , c29
+          , c30
+          , c31
           , row_flag
           , CASE row_flag WHEN 1 THEN c15 WHEN 2 THEN c16 WHEN 3 THEN c17 ELSE '' END AS enc_amount
-          , statement_flag
+          ,  CASE  WHEN c27 IS NOT NULL then 12 else statement_flag end as statement_flag
           FROM all_cte          
           ORDER BY 
             pid
@@ -681,7 +782,8 @@ const api = {
             patientIds: null,
             billingProviderIds: null,
             reportBy: null,
-            claimDate: null
+            claimDate: null,
+            patientInsIds: null
 
         };
 
@@ -691,6 +793,7 @@ const api = {
 
         params.push(reportParams.patientIID);
         filters.patientIds = queryBuilder.where('bcc.patient_id', '=', [params.length]);
+        filters.patientInsIds = queryBuilder.where('pis.patient_id', '=', [params.length]);
 
 
         // Min Amount
