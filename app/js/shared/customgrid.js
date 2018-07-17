@@ -746,7 +746,7 @@ function customGrid ( datastore, gridID ) {
     };
 
     var getPaymentHeaderValues = function (elementID) {
-        let paymentFilterValues='';
+        var paymentFilterValues='';
         if (commonjs.paymentFilterFields) {
             paymentFilterValues =  $.grep(commonjs.paymentFilterFields, function (obj) {
                     return obj && (obj.split('~')[0] == elementID)
