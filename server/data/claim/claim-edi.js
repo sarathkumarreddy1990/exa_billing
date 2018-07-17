@@ -282,7 +282,7 @@ module.exports = {
 														(CASE coverage_level 
 															WHEN 'primary' THEN 'P'
 															WHEN 'secondary' THEN 'S'
-															WHEN 'teritary' THEN 'T' END) as "claimResponsibleParty",
+															WHEN 'tertiary' THEN 'T' END) as "claimResponsibleParty",
 														( SELECT 
 
 										(  CASE UPPER(description) 
@@ -488,7 +488,7 @@ module.exports = {
 											(CASE coverage_level 
 												WHEN 'primary' THEN 'P'
 												WHEN 'secondary' THEN 'S'
-												WHEN 'teritary' THEN 'T' END) as "otherClaimResponsibleParty",
+												WHEN 'tertiary' THEN 'T' END) as "otherClaimResponsibleParty",
 									( SELECT 
 
 											(  CASE description 
@@ -524,8 +524,8 @@ module.exports = {
 									WHERE  patient_insurances.id = 
 						(  CASE payer_type 
 						WHEN 'primary_insurance' THEN secondary_patient_insurance_id
-						WHEN 'secondary_insurance' THEN tertiary_patient_insurance_id
-						WHEN 'teritary_insurance' THEN primary_patient_insurance_id
+						WHEN 'secondary_insurance' THEN primary_patient_insurance_id
+						WHEN 'tertiary_insurance' THEN primary_patient_insurance_id
 						END) ) 
 					as otherSubscriber),
 					(SELECT Json_agg(Row_to_json(OtherPayer)) "OtherPayer"
@@ -549,7 +549,7 @@ module.exports = {
 						(  CASE payer_type 
 						WHEN 'primary_insurance' THEN secondary_patient_insurance_id
 						WHEN 'secondary_insurance' THEN primary_patient_insurance_id
-						WHEN 'teritary_insurance' THEN primary_patient_insurance_id
+						WHEN 'tertiary_insurance' THEN primary_patient_insurance_id
 						END) ) 
 					as OtherPayer),
 
