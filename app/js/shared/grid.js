@@ -343,8 +343,12 @@ define('grid', [
                                             break;
                                     }
                                     $.ajax({
-                                        url: '/exa_modules/billing/claim_workbench/billing_payers?id=' + rowID + '&payer_type=' + payer_type,
+                                        url: '/exa_modules/billing/claim_workbench/billing_payers',
                                         type: 'PUT',
+                                        data:{
+                                            id:rowID,
+                                            payer_type:payer_type
+                                        },
                                         success: function (data, response) {
                                             if(data) {
                                                 commonjs.showStatus("Payer Changed Succesfully");
