@@ -84,7 +84,13 @@ module.exports = {
 									, 'payer_address1', ref_pc.contact_info->'ADDR1' 
 									, 'payer_city', ref_pc.contact_info->'CITY'
 									, 'payer_state', ref_pc.contact_info->'STATE'
-									, 'payer_zip_code', ref_pc.contact_info->'ZIP' ) END AS payer_info
+									, 'payer_zip_code', ref_pc.contact_info->'ZIP' )
+								WHEN bc.payer_type = 'patient' THEN
+                                	json_build_object( 'payer_name',  p.full_name 
+									, 'payer_address1', p.patient_info->'c1AddressLine1' 
+									, 'payer_city', p.patient_info->'c1City'
+									, 'payer_state', p.patient_info->'c1State'
+									, 'payer_zip_code', p.patient_info->'c1Zip' ) END AS payer_info
 									, bc.primary_patient_insurance_id
 									, p_ip.insurance_info->'Address1' AS "p_insurance_pro_address1"
 									, p_ip.insurance_info->'City' AS "p_insurance_pro_city"

@@ -17,9 +17,8 @@ module.exports = {
 
         const firstStudyId = studyIds.length > 0 ? studyIds[0] : null;
 
-        let sql = SQL`SELECT * FROM (
-            SELECT json_agg(row_to_json(charge)) "charges" 
-                      FROM (SELECT
+        let sql = SQL`WITH claim_charges AS (
+                            SELECT
                                   sc.id AS study_cpt_id
                                 , s.study_dt
                                 , s.facility_id
@@ -40,8 +39,6 @@ module.exports = {
                                 , display_description
                                 , additional_info
                                 , sc.cpt_code_id AS cpt_id
-                               -- , ARRAY( SELECT icd_codes.id||'~'|| code ||'~'|| icd_codes.description FROM public.icd_codes WHERE id = ANY(o.icd_code_ids_billing) ) as icd_codes_billing
-				               -- , o.icd_code_ids_billing  as icd_codes_billing_order 
                             FROM public.study_cpt sc
                             INNER JOIN public.studies s ON s.id = sc.study_id
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
@@ -49,14 +46,12 @@ module.exports = {
                             INNER JOIN appointment_types at ON at.id = s.appointment_type_id
                             INNER JOIN appointment_type_procedures atp ON atp.procedure_id = sc.cpt_code_id AND atp.appointment_type_id = s.appointment_type_id
                             WHERE
-                            
                                 study_id = ANY(${studyIds}) AND sc.has_deleted = FALSE
                             ORDER BY s.accession_no DESC
-                            ) AS charge
-                        ) charge_details
-                            ,(
-                                SELECT json_agg(row_to_json(claim_default_details)) "claim_details" FROM
-                                    (SELECT
+                            
+                        ) 
+                        ,claim_details AS (
+                                    SELECT
                                         orders.facility_id,
                                         order_info->'currentDate' AS current_illness_date,
                                         order_info->'similarIll' AS same_illness_first_date,
@@ -118,9 +113,42 @@ module.exports = {
                                                 WHERE s.id = ${firstStudyId}
                                         ) as studies_details ON TRUE   
                                     WHERE orders.id IN (SELECT order_id FROM public.studies s WHERE s.id = ${firstStudyId})
-
-                                    ) AS claim_default_details
-                            ) claims_info `;
+                            ) 
+                            ,claim_problems AS (
+                                        SELECT 
+                                            DISTINCT icd_codes.id
+                                            ,code
+                                            ,icd_codes.description
+                                            ,order_no
+                                        FROM public.icd_codes 
+                                        INNER JOIN patient_icds pi ON pi.icd_id = icd_codes.id
+                                        INNER JOIN public.orders o on o.id = pi.order_id
+                                        INNER JOIN public.studies s ON s.order_id = o.id
+                                        WHERE s.id = ANY(${studyIds})
+                                        AND s.has_deleted = FALSE
+                                        ORDER BY order_no
+                            )
+                            SELECT  ( SELECT COALESCE(json_agg(row_to_json(charge)),'[]') charges
+		                                FROM (
+                                                SELECT
+		                                	    *
+                                                FROM claim_charges 
+                                            ) AS charge
+                                    ) AS charges
+                                    ,( SELECT COALESCE(json_agg(row_to_json(claims)),'[]') claim_details
+		                                FROM (
+                                                SELECT
+		                                	    *
+                                                FROM claim_details 
+                                            ) AS claims
+                                    ) AS claim_details
+	                                ,( SELECT COALESCE(json_agg(row_to_json(claim_problems)),'[]') problems
+		                                FROM (
+                                                SELECT
+			                                    *   
+                                                FROM claim_problems 
+                                            ) AS claim_problems
+                                    ) AS problems `;
 
         return await query(sql);
     },
