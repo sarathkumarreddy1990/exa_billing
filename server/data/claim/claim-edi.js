@@ -139,6 +139,9 @@ module.exports = {
 									, (SELECT array_agg(row_to_json(pointer)) AS charge_pointer FROM (
 										SELECT ch.id, pointer1, claim_id, cpt.ref_code, cpt.display_description FROM billing.charges ch INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id WHERE ch.claim_id = bc.id
 														 ) pointer) AS charge_pointer
+									, CASE WHEN lower(prs.description) = ('self') THEN true ELSE false END AS p_relationship
+									, CASE WHEN lower(srs.description) = ('self') THEN true ELSE false END AS s_relationship
+									, CASE WHEN lower(trs.description) = ('self') THEN true ELSE false END AS t_relationship
 					FROM
 						billing.claims bc
 					INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id	
@@ -161,7 +164,10 @@ module.exports = {
 					LEFT JOIN billing.edi_clearinghouses p_edi_clearinghouse ON p_edi_clearinghouse.id=p_ins_det.clearing_house_id
 					LEFT JOIN billing.edi_clearinghouses s_edi_clearinghouse ON s_edi_clearinghouse.id=s_ins_det.clearing_house_id
 					LEFT JOIN billing.edi_clearinghouses t_edi_clearinghouse ON t_edi_clearinghouse.id=t_ins_det.clearing_house_id
-					LEFT JOIN 
+					LEFT JOIN public.relationship_status prs ON prs.id = p_pi.subscriber_relationship_id
+					LEFT JOIN public.relationship_status srs ON srs.id = s_pi.subscriber_relationship_id
+					LEFT JOIN public.relationship_status trs ON trs.id = t_pi.subscriber_relationship_id
+					LEFT JOIN
 						LATERAL (SELECT icd_id FROM billing.claim_icds ci WHERE ci.claim_id = bc.id LIMIT 1) claim_icd ON true
 					WHERE bc.id = ANY(${params.claim_ids})`;
 

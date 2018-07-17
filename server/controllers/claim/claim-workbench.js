@@ -173,6 +173,18 @@ module.exports = {
                 !currentClaim.payer_info.claim_req_type ? errorMessages.push('Claim - Request Type does not  exists ') : null;
             }
 
+            if(currentClaim.p_relationship) {
+                currentClaim.patient_firstName === currentClaim.p_subscriber_firstName ? '' : errorMessages.push('Claim - Primary Subscriber name(Self) and Patient name Not Matched');
+            }
+
+            if(currentClaim.s_relationship) {
+                currentClaim.patient_firstName === currentClaim.p_subscriber_firstName ? '' : errorMessages.push('Claim - Secondary Subscriber name(Self) and Patient name Not Matched');
+            }
+
+            if(currentClaim.s_relationship) {
+                currentClaim.patient_firstName === currentClaim.p_subscriber_firstName ? '' : errorMessages.push('Claim - Tertiary Subscriber name(Self) and Patient name Not Matched');
+            }
+
             _.each(validationFields, (validationField) => {
                 if (defaultSubsInsValidationFields.includes(validationField)) {
                     insSubsValidationFields.push(validationField);
@@ -231,14 +243,18 @@ module.exports = {
         _.each(validationFields, (validationField) => {              
             !currentClaim['p_' + validationField] || currentClaim['p_' + validationField].length == 0 ? insSubsInvalidFields.push('p_' + validationField) : null;
         });
+        
+        if (currentClaim.secondary_patient_insurance_id != null && currentClaim.secondary_patient_insurance_id != '') {
+            _.each(validationFields, (validationField) => {
+                !currentClaim['s_' + validationField] || currentClaim['s_' + validationField].length == 0 ? insSubsInvalidFields.push('s_' + validationField) : null;
+            });
+        }
 
-        _.each(validationFields, (validationField) => {
-            !currentClaim['s_' + validationField] || currentClaim['s_' + validationField].length == 0 ? insSubsInvalidFields.push('s_' + validationField) : null;
-        });
-
-        _.each(validationFields, (validationField) => {
-            !currentClaim['t_' + validationField] || currentClaim['t_' + validationField].length == 0 ? insSubsInvalidFields.push('t_' + validationField) : null;
-        });
+        if (currentClaim.tertiary_patient_insurance_id != null && currentClaim.tertiary_patient_insurance_id != '') {
+            _.each(validationFields, (validationField) => {
+                !currentClaim['t_' + validationField] || currentClaim['t_' + validationField].length == 0 ? insSubsInvalidFields.push('t_' + validationField) : null;
+            });
+        }
 
         return insSubsInvalidFields;
     },
