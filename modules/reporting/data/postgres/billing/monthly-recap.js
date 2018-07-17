@@ -78,19 +78,22 @@ ter_ins_payment AS (
 payment_details AS (
 	SELECT 
     	SUM(CASE WHEN amount_type = 'payment' THEN bpa.amount ELSE 0::money END) payment,
-    	SUM(CASE WHEN amount_type = 'adjustment' THEN bpa.amount ELSE 0::money END) adjustment ,
+        SUM(CASE WHEN amount_type = 'adjustment' and accounting_entry_type != 'refund_debit'  THEN bpa.amount ELSE 0::money END) adjustment ,
+        sum(CASE when amount_type = 'adjustment' and accounting_entry_type = 'refund_debit' then bpa.amount else 0::money end ) as refund_amount,
     	agg_claim.claim_id 
     FROM agg_claim 
     INNER JOIN billing.charges ch ON ch.claim_id = agg_claim.claim_id
     INNER JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id
+    LEFT JOIN billing.adjustment_codes bac ON bac.id = bpa.adjustment_code_id
     GROUP BY agg_claim.claim_id
 ),
 total_credit AS(
 	SELECT 
     	payment_details.claim_id ,
-    	SUM(payment + adjustment) AS tot_credit
+        SUM(payment + adjustment) AS tot_credit,
+        refund_amount
     FROM payment_details
-    GROUP BY payment_details.claim_id
+    GROUP BY payment_details.claim_id,refund_amount
 ),
 patient_payment AS(
 	SELECT 
@@ -109,6 +112,7 @@ SELECT
     , SUM(agg_claim.claim_balance) AS "Balance"
     , SUM(charge_details.expected_amount) AS "Expected Payments"
     , SUM(COALESCE(total_credit.tot_credit,0::money)) AS "All Credits"
+    , SUM(COALESCE(total_credit.refund_amount,0::money)) AS "Refund"
     , SUM(COALESCE(pri_ins_payment.pri_payment,0::money)) AS "Ins1 Pay"
     , SUM(COALESCE(sec_ins_payment.sec_payment,0::money)) AS "Ins2 Pay"
     , SUM(COALESCE(ter_ins_payment.ter_payment,0::money)) AS "Ins3 Pay"
@@ -133,6 +137,7 @@ GROUP BY GROUPING SETS(
     , SUM(agg_claim.claim_balance) AS "Balance"
     , SUM(charge_details.expected_amount) AS "Expected Payments"
     , SUM(COALESCE(total_credit.tot_credit,0::money)) AS "All Credits"
+    , SUM(COALESCE(total_credit.refund_amount,0::money)) AS "Refund"
     , SUM(COALESCE(pri_ins_payment.pri_payment,0::money)) AS "Ins1 Pay"
     , SUM(COALESCE(sec_ins_payment.sec_payment,0::money)) AS "Ins2 Pay"
     , SUM(COALESCE(ter_ins_payment.ter_payment,0::money)) AS "Ins3 Pay"
