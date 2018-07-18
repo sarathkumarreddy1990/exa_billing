@@ -94,6 +94,8 @@ module.exports = {
             params.isClaim=true;
             params.claimDetails=JSON.stringify(claimDetails);
             await data.changeClaimStatus(params);
+        } else {
+            ediResponse = result;
         }
 
         return ediResponse;
