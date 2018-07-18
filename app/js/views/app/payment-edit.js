@@ -157,6 +157,10 @@ define(['jquery',
                 else {
                     this.screenCode = [];
                 }
+
+                commonjs.initHotkeys({
+                    NEW_PAYMENT: '#btnPaymentAddNew'
+                });
             },
 
             returnDoubleDigits: function (str) {

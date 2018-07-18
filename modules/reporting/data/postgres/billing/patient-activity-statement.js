@@ -20,23 +20,18 @@ WITH claim_data as(
     <% if(billingProviderIds) { %> AND <% print(billingProviderIds); } %>   
     ),
     patient_insurance AS (
-
         select 
-        
-               p_pi.coverage_level as cov_level,
-               to_char(p_pi.valid_from_date, 'MM/DD/YYYY') as valid_from_date,
-               to_char(p_pi.valid_to_date, 'MM/DD/YYYY') AS valid_to_date,
-               p_pi.policy_number AS policy_no,
-               p_pi.group_number AS group_no,
-               p_pi.subscriber_firstname AS company_name    
-         from   
-            billing.claims bc 
-           LEFT JOIN public.patient_insurances p_pi on p_pi.id = bc.primary_patient_insurance_id
-					LEFT JOIN public.patient_insurances s_pi on s_pi.id = bc.secondary_patient_insurance_id
-					LEFT JOIN public.patient_insurances t_pi on t_pi.id = bc.tertiary_patient_insurance_id
-                    WHERE 1=1 
-                    AND <%= patientIds %> 
-                    <% if(reportBy == "false") { %> AND <% print(claimDate); } %>        
+        coverage_level as cov_level,
+        to_char(valid_from_date, 'MM/DD/YYYY') as valid_from_date,
+        to_char(valid_to_date, 'MM/DD/YYYY') AS valid_to_date,
+        policy_number AS policy_no,
+        group_number AS group_no,
+        subscriber_firstname AS company_name    
+  from   
+     patient_insurances pis  
+          WHERE 1=1           
+          AND <%= patientInsIds %>                         
+        ORDER BY cov_level      
       ),
      billing_comments as 
     (
@@ -671,7 +666,7 @@ WITH claim_data as(
           , c31
           , row_flag
           , CASE row_flag WHEN 1 THEN c15 WHEN 2 THEN c16 WHEN 3 THEN c17 ELSE '' END AS enc_amount
-          ,  CASE  WHEN c27 IS NOT NULL then 12 else statement_flag end as statement_flag
+          ,  CASE  WHEN c28 IS NOT NULL then 12 else statement_flag end as statement_flag
           FROM all_cte          
           ORDER BY 
             pid
@@ -799,6 +794,7 @@ const api = {
 
         params.push(reportParams.patientIID);
         filters.patientIds = queryBuilder.where('bc.patient_id', '=', [params.length]);
+        filters.patientInsIds = queryBuilder.where('pis.patient_id', '=', [params.length]);
 
 
         // Min Amount
