@@ -1419,11 +1419,44 @@ $BODY$
             WHEN NO_DATA_FOUND THEN
             RAISE NOTICE 'Claim Query failed - No Data Found';
         -- ???
-        RETURN 5::MONEY;
+        RETURN 0::MONEY;
         END;
         $BODY$
   LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION billing.get_payment_applications(IN i_payment_id bigint)
+  RETURNS TABLE(id bigint, payment_id bigint, charge_id bigint, adjustment_code_id bigint, payment_amount money, adjustment_amount money, payment_created_by bigint, adjustment_created_by bigint, payment_applied_dt timestamp with time zone, adjustment_applied_dt timestamp with time zone, payment_application_adjustment_id bigint) AS
+$BODY$
+BEGIN
+	RETURN QUERY
+
+	SELECT 	pa.id,
+		pa.payment_id,
+		pa.charge_id,
+		pa_adjustment.adjustment_code_id,
+		coalesce(pa.amount,0::money) as payment_amount,
+		coalesce(pa_adjustment.amount,0::money) as adjustment_amount,
+		pa.created_by as payment_created_by,
+		pa_adjustment.created_by as adjustment_created_by,
+		pa.applied_dt as payment_applied_dt,
+		pa_adjustment.applied_dt as adjustment_applied_dt,
+		pa_adjustment.id as payment_application_adjustment_id 
+	FROM	billing.payment_applications pa
+		LEFT JOIN LATERAL (
+			SELECT 	*
+			FROM	billing.payment_applications bpa
+			WHERE	bpa.payment_id = pa.payment_id
+				AND bpa.charge_id = pa.charge_id
+				AND bpa.applied_dt = pa.applied_dt
+				AND bpa.amount_type = 'adjustment'
+		) pa_adjustment ON true
+	WHERE	pa.payment_id = i_payment_id 
+		AND pa.amount_type = 'payment';
+
+END
+$BODY$
+  LANGUAGE plpgsql;
+--- --------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION billing.get_payment_applications(
     IN i_payment_id bigint,
     IN i_application_id bigint)
