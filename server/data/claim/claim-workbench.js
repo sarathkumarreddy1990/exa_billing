@@ -461,7 +461,6 @@ module.exports = {
                                 WHEN bc.payer_type = 'referring_provider' THEN
                                         pr.full_name
                                 END as payer_name
-                        , payer_type 
                         , SUM(ch.bill_fee * ch.units)  AS tot_bill_fee
                         , CASE WHEN bc.payer_type = 'patient' THEN
                                         'PPP'
@@ -490,8 +489,8 @@ module.exports = {
                     LEFT JOIN public.providers pr on pr.id = pc.provider_id 
                     WHERE bc.id = ANY(${claimIDs})
                     GROUP BY 
-                        payer_type ,
-                        payer_name `;
+                          payer_name 
+                        , payer`;
 
         return query(sql);
     }

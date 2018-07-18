@@ -660,7 +660,7 @@ define(['jquery',
                     }
                     var currentDate = new Date();
                     var defaultStudyDate = moment(currentDate).format('L');
-                    var lineItemStudyDate = self.studyDate && self.studyDate != '' ? self.convertToTimeZone(claim_data.facility_id, self.studyDate).format('L') : '';
+                    var lineItemStudyDate = self.studyDate && self.studyDate != '' ? moment(self.studyDate).format('L') : '';
                     $('#txtClaimDate').val(self.studyDate ? lineItemStudyDate : defaultStudyDate);
                 }
                 /* Common Details end */
@@ -2190,6 +2190,11 @@ define(['jquery',
                     $('.multiselect-container li').css('width', '300px');
                     $('label').css('color', 'black');
                     $('.multiselect-container li a').css('padding', '0');
+
+                    $.each($('.multiselect-item span'), function (index, obj) {
+                        $(this).find('.glyphicon-search').removeClass('glyphicon').removeClass('glyphicon-search').addClass('fa fa-search').css('margin', '10px');
+                        $(this).find('.glyphicon-remove-circle').removeClass('glyphicon').removeClass('glyphicon-remove-circle').addClass('fa fa-times');                        
+                    });
                 });
             },
 
@@ -2988,13 +2993,18 @@ define(['jquery',
                         commonjs.getClaimStudy(rowId, function (result) {
                             self.rendered = false;
                             self.clearDependentVariables();
+                            var study_id = result && result.study_id ? result.study_id : 0;
+                            var patient_id = data.patient_id;
+                            var order_id = result && result.order_id ? result.order_id : 0;
                             self.showEditClaimForm(rowId, null, {
-                                'study_id': result && result.study_id ? result.study_id : 0,
+                                'study_id': study_id,
                                 'patient_name': data.patient_name,
-                                'patient_id': data.patient_id,
-                                'order_id': result && result.order_id ? result.order_id : 0
+                                'patient_id': patient_id,
+                                'order_id': order_id
                             });
-
+                            if (window.reportWindow) {
+                                window.reportWindow.location.href = '/vieworder#patient/patientReport/all/' + btoa(patient_id) + '/' + btoa(order_id) + '/' + btoa(study_id);
+                            }
                             $('#modal_div_container').scrollTop(0); 
                         });
                     } else {

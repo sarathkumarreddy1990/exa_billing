@@ -157,6 +157,10 @@ define(['jquery',
                 else {
                     this.screenCode = [];
                 }
+
+                commonjs.initHotkeys({
+                    NEW_PAYMENT: '#btnPaymentAddNew'
+                });
             },
 
             returnDoubleDigits: function (str) {
@@ -821,10 +825,10 @@ define(['jquery',
                     this.model.save({
                     }, {
                             success: function (model, response) {
+                                self.gridFirstLoaded = false;
+                                self.pendingGridLoaderd = false;
+                                self.tabClicked = '';
                                 if (self.payment_id) {
-                                    self.gridFirstLoaded = false;
-                                    self.pendingGridLoaderd = false;
-                                    self.tabClicked = '';
                                     if (response && response.length) {
                                         commonjs.showStatus('Payment has been updated successfully');
                                         self.render(self.payment_id);
@@ -881,14 +885,14 @@ define(['jquery',
                         { name: 'id', index: 'id', key: true, searchFlag: 'int', hidden: true },
                         { name: 'order_id', hidden: true },
                         { name: 'charge_id', hidden: true },
-                        { name: 'claim_id', searchColumn: ['orders.id'], searchFlag: '%', width: 150 },
-                        { name: 'invoice_no', searchFlag: '%', width: 150 },
-                        { name: 'full_name', searchFlag: '%', searchColumn: ['pp.full_name'], width: 250 },
-                        { name: 'claim_date', searchFlag: '%', searchColumn: ['claim_date'], width: 250, formatter: self.claimDateFormatter },
-                        { name: 'billing_fee', searchFlag: 'int', formatter: self.billingFeeFormatter, width: 100 },
-                        { name: 'balance', searchFlag: 'int', formatter: self.balanceFormatter, width: 100 },
-                        { name: 'display_description', searchFlag: '%', width: 300 },
-                        { name: 'account_no', searchFlag: '%', width: 150 },
+                        { name: 'claim_id', width: 150 },
+                        { name: 'invoice_no',  width: 150 },
+                        { name: 'full_name', width: 250 },
+                        { name: 'claim_date', width: 250, formatter: self.claimDateFormatter },
+                        { name: 'billing_fee', width: 100 },
+                        { name: 'balance', width: 100 },
+                        { name: 'display_description', width: 300 },
+                        { name: 'account_no',  width: 150 },
                         { name: 'patient_id', key: true, hidden: true },
                         { name: 'facility_id', key: true, hidden: true },
                     ],
@@ -971,19 +975,19 @@ define(['jquery',
                                     self.showClaimInquiry(gridData.claim_id, '', true);
                                 }
                             },
-                            { name: 'id', index: 'id', key: true, searchFlag: 'int', hidden: true },
+                            { name: 'id', index: 'id', key: true, hidden: true },
                             { name: 'order_id', hidden: true },
                             { name: 'charge_id', hidden: true },
-                            { name: 'claim_id', searchColumn: ['orders.id'], searchFlag: '%', width: 150 },
-                            { name: 'invoice_no', searchFlag: '%', width: 150 },
-                            { name: 'full_name', searchFlag: '%', searchColumn: ['pp.full_name'], width: 250 },
-                            { name: 'claim_date', searchFlag: '%', searchColumn: ['claim_date'], width: 250, formatter: self.claimDateFormatter },
-                            { name: 'billing_fee', searchFlag: 'int', formatter: self.billingFeeFormatter, width: 100 },
-                            { name: 'balance', searchFlag: 'int', formatter: self.balanceFormatter, width: 100 },
-                            { name: 'display_description', searchFlag: '%', width: 300 },
-                            { name: 'account_no', searchFlag: '%', width: 150 },
+                            { name: 'claim_id', width: 150 },
+                            { name: 'invoice_no', width: 150 },
+                            { name: 'full_name', width: 250 },
+                            { name: 'claim_date',  width: 250, formatter: self.claimDateFormatter },
+                            { name: 'billing_fee', width: 100 },
+                            { name: 'balance', width: 100 },
+                            { name: 'display_description', width: 300 },
+                            { name: 'account_no', width: 150 },
                             { name: 'patient_id', key: true, hidden: true },
-                            { name: 'facility_id', key: true, hidden: true },
+                            { name: 'facility_id', key: true, hidden: true }
                         ],
                         customizeSort: true,
                         sortable: {
@@ -1108,19 +1112,19 @@ define(['jquery',
                                 self.showClaimInquiry(gridData.claim_id, '', true);
                             }
                         },
-                        { name: 'claim_id', index: 'id', key: true, searchFlag: 'int', hidden: true },
+                        { name: 'claim_id', index: 'id', key: true, hidden: true },
                         { name: 'charge_id', hidden: true },
-                        { name: 'claim_id', searchColumn: ['orders.id'], searchFlag: '%', width: 100 },
-                        { name: 'invoice_no', searchFlag: '%', width: 100 },
-                        { name: 'full_name', searchFlag: '%', searchColumn: ['pp.full_name'], width: 200 },
-                        { name: 'bill_fee', searchFlag: 'hstore', searchColumn: ['order_info->bill_fee'], formatter: self.appliedBillFeeFormatter, width: 100 },
-                        { name: 'patient_paid',  sortable: false, search: false, searchFlag: 'hstore', searchColumn: ['more_info->patient_paid'], formatter: self.appliedPatPaidFormatter, width: 100 },
-                        { name: 'others_paid', sortable: false,  searchFlag: 'hstore', search: false, searchColumn: ['more_info->payer_paid'], formatter: self.appliedPayerPaidFormatter, width: 100 },
-                        { name: 'adjustment', searchFlag: 'hstore', searchColumn: ['order_info->adjustment'], formatter: self.appliedAdjustmentFormatter, width: 100 },
-                        { name: 'this_adjustment', formatter: self.appliedAdjustmentFormatter, width: 100 },
-                        { name: 'payment', searchFlag: 'money', formatter: self.paymentApplied, width: 100 },
-                        { name: 'balance', searchFlag: 'hstore', searchColumn: ['order_info->balance'], formatter: self.appliedBalanceFormatter, width: 100 },
-                        { name: 'display_description', searchFlag: '%', width: 200 },
+                        { name: 'claim_id',  width: 100 },
+                        { name: 'invoice_no',  width: 100 },
+                        { name: 'full_name', width: 200 },
+                        { name: 'bill_fee', width: 100 },
+                        { name: 'patient_paid', sortable: false, search: false, width: 100 },
+                        { name: 'others_paid', sortable: false, search: false, width: 100 },
+                        { name: 'adjustment', width: 100 },
+                        { name: 'this_adjustment', width: 100 },
+                        { name: 'payment', width: 100 },
+                        { name: 'balance', width: 100 },
+                        { name: 'display_description', width: 200 },
                         { name: 'patient_id', key: true, hidden: true },
                         { name: 'facility_id', key: true, hidden: true },
                         { name: 'payment_application_id', key: false, hidden: true }
@@ -1376,7 +1380,7 @@ define(['jquery',
                         });
 
                         $('#applyPaymentContent').find('#btnSaveAppliedPendingPayments').unbind().on('click', function (e) {
-                            self.saveAllPayments(e, claimId, paymentId, paymentStatus, chargeId);
+                            self.saveAllPayments(e, claimId, paymentId, paymentStatus, chargeId, paymentApplicationId);
                         });                        
 
                         $('#btnClearAppliedPendingPayments').unbind().on('click', function (e) {
@@ -1384,7 +1388,7 @@ define(['jquery',
                         });
 
                         $('#btnPayfullAppliedPendingPayments').unbind().on('click', function (e) {
-                            self.saveAllPayments(e, claimId, paymentId, paymentStatus, chargeId);
+                            self.saveAllPayments(e, claimId, paymentId, paymentStatus, chargeId, paymentApplicationId);
                         });
 
                         self.reloadPaymentFields(claimId);
@@ -1500,12 +1504,12 @@ define(['jquery',
                 });
 
                 if (payment < 0)
-                    $('#spPaymentApplied').text('$(' + parseFloat(payment).toFixed(2).substr(1) + ')');
+                    $('#spPaymentApplied').text('($' + parseFloat(payment).toFixed(2).substr(1) + ')');
                 else
                     $('#spPaymentApplied').text('$' + parseFloat(payment).toFixed(2));
 
                 if (adjustment < 0)
-                    $('#spAdjustmentApplied').text('$(' + parseFloat(adjustment).toFixed(2).substr(1) + ')');
+                    $('#spAdjustmentApplied').text('($' + parseFloat(adjustment).toFixed(2).substr(1) + ')');
                 else
                     $('#spAdjustmentApplied').text('$' + parseFloat(adjustment).toFixed(2));
 
@@ -1514,12 +1518,12 @@ define(['jquery',
                 var orderAdjustment = parseFloat(adjustment) + parseFloat(other_adj);
 
                 if (orderBalance < 0)
-                    $('#lblBalanceNew').text('$(' + parseFloat(orderBalance).toFixed(2).substr(1) + ')');
+                    $('#lblBalanceNew').text('($' + parseFloat(orderBalance).toFixed(2).substr(1) + ')');
                 else
                     $('#lblBalanceNew').text('$' + parseFloat(orderBalance).toFixed(2));
 
                 if (orderAdjustment < 0)
-                    $('#lblAdjustment').text('$(' + parseFloat(orderAdjustment).toFixed(2).substr(1) + ')');
+                    $('#lblAdjustment').text('($' + parseFloat(orderAdjustment).toFixed(2).substr(1) + ')');
                 else
                     $('#lblAdjustment').text('$' + parseFloat(orderAdjustment).toFixed(2));
             },
@@ -1686,7 +1690,7 @@ define(['jquery',
                 else return true;
             },
 
-            saveAllPayments: function (e, claimId, paymentId, paymentStatus, chargeId) {
+            saveAllPayments: function (e, claimId, paymentId, paymentStatus, chargeId, paymentApplicationId) {
                 var targetObj = $(e.target);
                 var objIsPayInFull = targetObj.is('#btnPayfullAppliedPendingPayments');
                 var self = this;
@@ -1755,11 +1759,15 @@ define(['jquery',
                             commonjs.showStatus(paymentStatus === 'applied' ? 'Payment has been updated successfully' : 'Payment has been applied successfully');
                             targetObj.removeAttr('disabled');
                             commonjs.hideLoading();
-                            if (paymentStatus != 'applied') {
-                                self.casSegmentsSelected = [];
-                                self.closeAppliedPendingPayments(e, paymentId);
-                                commonjs.hideDialog();
-                            }
+                            // if (paymentStatus != 'applied') {
+                            //     self.casSegmentsSelected = [];
+                            //     self.closeAppliedPendingPayments(e, paymentId);
+                            //     commonjs.hideDialog();
+                            // }
+                            // else {
+                            paymentStatus != 'applied' ? paymentApplicationId = model[0].details.create_payment_applications.payment_application_id : paymentApplicationId;
+                            self.getClaimBasedCharges(claimId, paymentId, 'applied', chargeId, paymentApplicationId, false)
+                            // }
                         },
                         error: function (err, response) {
                             targetObj.removeAttr('disabled');

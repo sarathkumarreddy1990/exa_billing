@@ -267,7 +267,7 @@ var commonjs = {
         }
         else {
             if (typeof filter !== 'undefined') {
-               // filter.customGridTable.jqGrid('GridUnload');
+                // filter.customGridTable.jqGrid('GridUnload');
                 cjs.loadedStudyFilters = filters.delete(id);
                 return true;
             }
@@ -833,10 +833,10 @@ var commonjs = {
         return docServerUrl;
     },
 
-    showAbout: function() {
+    showAbout: function () {
         var self = this;
 
-        if(this.AboutTemplate && _) {
+        if (this.AboutTemplate && _) {
             $.ajax({
                 url: '/exa_modules/billing/about',
                 type: "GET",
@@ -884,15 +884,15 @@ var commonjs = {
         commonjs.initHideEvent(options);
     },
 
-    initHideEvent: function(options) {
+    initHideEvent: function (options) {
 
         var modalContainerId = options.modalContainerId || '#siteModal';
 
-        if(!commonjs.modalEvents) {
+        if (!commonjs.modalEvents) {
             commonjs.modalEvents = {};
         }
 
-        if(commonjs.modalEvents[options.modalContainerId]) {
+        if (commonjs.modalEvents[options.modalContainerId]) {
             return;
         }
 
@@ -1053,7 +1053,7 @@ var commonjs = {
 
     hideNestedDialog: function (callback) {
         var options = {};
-        
+
         options.modalContainerId = '#siteModalNested';
         options.modalDivContainerId = '#modal_div_container_nested';
         options.iframeContainerId = 'site_modal_iframe_container_nested';
@@ -1068,7 +1068,7 @@ var commonjs = {
         $siteModal.modal('hide');
     },
 
-    disposeDialog: function(options) {
+    disposeDialog: function (options) {
         var modalDivContainerId = options.modalDivContainerId || '#modal_div_container';
         var iframeContainerId = options.iframeContainerId || 'site_modal_iframe_container';
         var modalContainerId = options.modalContainerId || '#siteModal';
@@ -1082,6 +1082,16 @@ var commonjs = {
 
         $siteModal.modal('dispose');
         //commonjs.docResize();
+
+         //Report window close 
+         this.closeReportWindow();
+    },
+
+    closeReportWindow: function () {
+        if (window.reportWindow) {
+            window.reportWindow.close();
+            window.reportWindow = null;
+        }
     },
 
     // Set app.settings.report_queue_status using API
@@ -1237,7 +1247,12 @@ var commonjs = {
                 break;
 
             case '23505':
-                commonjs.showError('Duplicate record found');
+                var errMessage = 'Duplicate record found';
+                if(exaInternalErrors && exaInternalErrors.constraints && exaInternalErrors.constraints[err.constraint]) {
+                    errMessage = exaInternalErrors.constraints[err.constraint];
+                }
+
+                commonjs.showError(errMessage);
                 break;
 
             case '23514':
@@ -1970,7 +1985,7 @@ var commonjs = {
         }, {
                 type: type,
                 z_index: 1061,
-				offset: 5,
+                offset: 5,
                 delay: 1000,
                 placement: {
                     align: 'center',
@@ -2345,14 +2360,14 @@ var commonjs = {
         $('div.ui-jqgrid > div.ui-jqgrid-view > div.ui-jqgrid-bdiv > div > table.ui-jqgrid-btable').each(function (index) {
             if (!$(this).parents('table.ui-jqgrid-btable').length) {
                 var obj = commonjs.getGridMeasures(jq_isWidthResize, jq_isHeightResize, jq_userWidth, jq_userHeight, jq_offsetWidth, jq_offsetheight);
-                
+
                 //$(this).jqGrid('setGridWidth', obj.width);
                 if (($(this).attr('id') && $(this).attr('id').indexOf('tblGridOD') == 0) || ($(this).attr('id') && $(this).attr('id').indexOf('tblGridPS') == 0)) // for home page pre-orders and qc grids having buttons under grid
                     $(this).jqGrid('setGridHeight', obj.height - 20);
                 else
                     $(this).jqGrid('setGridHeight', obj.height);
 
-                if($('.exa-left-nav')) {
+                if ($('.exa-left-nav')) {
                     $('.exa-left-nav').height(obj.navHeight);
                 }
             }
@@ -2471,7 +2486,7 @@ var commonjs = {
         return { height: height, navHeight: navHeight };
     },
 
-    getWindowHeight: function() {
+    getWindowHeight: function () {
         //return $(window).innerHeight() - 15;
         return window.innerHeight - 15;
     },
@@ -3953,6 +3968,14 @@ var commonjs = {
 
         app.currentCulture = cultureCode;
         commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
+        commonjs.setMultiselectSearchIcon();
+    },
+
+    setMultiselectSearchIcon: function () {
+        $.each($('.multiselect-item span'), function (index, obj) {
+            $(this).find('.glyphicon-search').removeClass('glyphicon').removeClass('glyphicon-search').addClass('fa fa-search').css('margin', '10px');
+            $(this).find('.glyphicon-remove-circle').removeClass('glyphicon').removeClass('glyphicon-remove-circle').addClass('fa fa-times');                        
+        });
     },
 
     beautifyMe: function () {
@@ -4562,7 +4585,7 @@ var commonjs = {
             else
                 var modifierElement = 'ddlPointer';
 
-            var dataType =  isFrom; // M -- modifier , P -- Pointer
+            var dataType = isFrom; // M -- modifier , P -- Pointer
             if (($(element).val() == "") || $(element).hasClass('invalidModifier')) {
                 if (modifier == (dataType + "1") && $('#' + modifierElement + '2_' + id).val() == "" && $('#' + modifierElement + '3_' + id).val() == "" && $('#' + modifierElement + '4_' + id).val() == "") {
                     $('#' + modifierElement + '2_' + id).prop('disabled', true);
@@ -4970,6 +4993,33 @@ var commonjs = {
             return false;
         }
     },
+
+    initHotkeys: function (events) {
+        if (Object.keys(app.hotkeys).length && Object.keys(events).length) {
+            for (var key in events) {
+                this.initHotkey(key, events[key]);
+            }
+        }
+    },
+
+    initHotkey: function (eventName, handler) {
+        if (app.hotkeys[eventName]) {
+            var shortcut = app.hotkeys[eventName];
+            var handlerFn = handler;
+
+            if (typeof handler !== 'function') {
+                handlerFn = (function () {
+                    (function (id) {
+                        if ($(id).length) {
+                            $(id).click();
+                        }
+                    })(handler)
+                });
+            }
+
+            //$(document).on('keydown', null, shortcut, handlerFn);
+        }
+    }
 };
 
 
@@ -5123,7 +5173,7 @@ function removeIframeHeader() {
 // });
 
 $(document).ajaxSuccess(function (event, xhr, settings) {
-    if(settings.url.indexOf('billing/setup') > -1 && ['POST', 'PUT', 'DELETE'].indexOf(settings.type) > -1) {
+    if (settings.url.indexOf('billing/setup') > -1 && ['POST', 'PUT', 'DELETE'].indexOf(settings.type) > -1) {
         layout.setupDataUpdated = true;
     }
 });
