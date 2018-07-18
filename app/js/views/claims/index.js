@@ -2968,13 +2968,18 @@ define(['jquery',
                         commonjs.getClaimStudy(rowId, function (result) {
                             self.rendered = false;
                             self.clearDependentVariables();
+                            var study_id = result && result.study_id ? result.study_id : 0;
+                            var patient_id = data.patient_id;
+                            var order_id = result && result.order_id ? result.order_id : 0;
                             self.showEditClaimForm(rowId, null, {
-                                'study_id': result && result.study_id ? result.study_id : 0,
+                                'study_id': study_id,
                                 'patient_name': data.patient_name,
-                                'patient_id': data.patient_id,
-                                'order_id': result && result.order_id ? result.order_id : 0
+                                'patient_id': patient_id,
+                                'order_id': order_id
                             });
-
+                            if (window.reportWindow) {
+                                window.reportWindow.location.href = '/vieworder#patient/patientReport/all/' + btoa(patient_id) + '/' + btoa(order_id) + '/' + btoa(study_id);
+                            }
                             $('#modal_div_container').scrollTop(0); 
                         });
                     } else {
