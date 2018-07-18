@@ -116,35 +116,40 @@ module.exports = {
 
     getStudiesByPatientId: async (params) => { return await data.getStudiesByPatientId(params); },
 
-    getIcd9To10: async function(params) {
+    getIcd9To10: async function (params) {
         let pokitdokSecretKey = await data.getKeys();
         let pokitdok_client_id = pokitdokSecretKey.rows[1].info.value;
         let pokitdok_client_secret = pokitdokSecretKey.rows[2].info.value;
 
         let pokitdok = new PokitDok(pokitdok_client_id, pokitdok_client_secret);
 
-        if (!pokitdok.clientId || !pokitdok.clientSecret)
-        return 'Pokitdok credentials not yet set.';
+        if (!pokitdok.clientId || !pokitdok.clientSecret) {
+            return 'Pokitdok credentials not yet set.';
+        }
 
-        return await new Promise((resolve,reject) => { 
-            pokitdok.icdConvert({code:params.icd9Code}, function(err, res) {
-                if(err) {
+
+        return await new Promise((resolve, reject) => {
+            pokitdok.icdConvert({ code: params.icd9Code }, function (err, res) {
+                if (err) {
                     reject(err);
                 } else {
                     if (res && res.data && res.data.destination_scenarios && res.data.destination_scenarios.length && res.data.destination_scenarios[0].choice_lists && res.data.destination_scenarios[0].choice_lists.length) {
-                        var icd10Data = [];
-                        for (var i = 0; i < res.data.destination_scenarios[0].choice_lists.length; i++) {
+
+                        let icd10Data = [];
+
+                        for (let i = 0; i < res.data.destination_scenarios[0].choice_lists.length; i++) {
                             if (res.data.destination_scenarios[0].choice_lists[i].length) {
-                                for (var j = 0; j < res.data.destination_scenarios[0].choice_lists[i].length; j++) {
+                                for (let j = 0; j < res.data.destination_scenarios[0].choice_lists[i].length; j++) {
                                     icd10Data.push(res.data.destination_scenarios[0].choice_lists[i][j]);
                                 }
                             }
                         }
+
                         resolve(icd10Data);
                     } else {
                         resolve(res);
                     }
-                } 
+                }
             });
         }).catch(function (result) {
             return result;
