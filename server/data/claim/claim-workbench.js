@@ -216,13 +216,15 @@ module.exports = {
         let updateData = SQL`UPDATE 
 							billing.claims bc
                         SET claim_status_id = (SELECT id FROM getStatus),
-                            invoice_no = (SELECT billing.get_invoice_no(${params.success_claimID}))
+                            invoice_no = (SELECT billing.get_invoice_no(${params.success_claimID})),
+                            submitted_dt=now()
 						WHERE bc.id = ANY(${params.success_claimID})
                         RETURNING bc.id`;
 
         let updateEDIData = SQL`UPDATE 
                             billing.claims bc
-                        SET claim_status_id = (SELECT id FROM getStatus)                        
+                        SET claim_status_id = (SELECT id FROM getStatus) ,
+                        submitted_dt=now()                       
                         WHERE bc.id = ANY(${params.success_claimID})
                         RETURNING bc.id`;
 

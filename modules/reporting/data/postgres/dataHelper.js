@@ -92,46 +92,50 @@ const api = {
 
     addReportAuditRecord: (reportData) => {
         const auditInfo = `"username"=>"${reportData.lookups.user.lastName}, ${reportData.lookups.user.firstName}", "user_level"=>"user"`; //hstore
-        const logMessage = `Query: Report "${reportData.report.title}" generated (id: "${reportData.report.id}", category: "${reportData.report.category}", format: "${reportData.report.format}")`;
+        const logMessage = `Query: Report ${reportData.report.title} generated (id: ${reportData.report.id}, category: ${reportData.report.category}, format: ${reportData.report.format})`;
         const salt = bcrypt.genSaltSync(8);
         const hash = bcrypt.hashSync(logMessage, salt);
         // audit log viewer displays flat list of 'old values' when report is viewed...
         // in order to keep the entry compatible, detailed_info has to be in a certain 'flattened' format...
         const detailedInfo = {
-            oldValues: {
+            old_values: {
                 Report_Id: reportData.report.id,
                 Report_Category: reportData.report.category,
                 Report_Format: reportData.report.format,
                 Report_Title: reportData.report.title
             },
-            newValues: {}
+            new_values: {}
         }
-        _.forEach(reportData.filters, (filter) => {
-            detailedInfo.oldValues[`Filters_${filter.name}`] = _.isArray(filter.value) ? filter.value.join(',') : filter.value;
-        })
-        const auditRecord = {
-            user_id: reportData.lookups.user.id,
-            patient_id: 0,
-            order_id: 0,
-            study_id: 0,
-            screen_name: 'Reports',
-            module_name: 'Patient', // should it be Reporting?
-            log_description: logMessage,
-            client_ip: reportData.lookups.user.clientIpAddress,
-            detailed_info: JSON.stringify(detailedInfo),
-            sa_id: 0,
-            hash_value: hash,
-            hash_salt: salt,
-            audit_info: auditInfo, // hstore
-            company_id: reportData.lookups.company.id
+        // _.forEach(reportData.filters, (filter) => {
+        //     detailedInfo.oldValues[`Filters_${filter.name}`] = _.isArray(filter.value) ? filter.value.join(',') : filter.value;
+        // })
+        const params = {
+            companyId: reportData.lookups.company.id,
+            entityName :'reports',
+            entitykey: 1,
+            screenName:  reportData.report.title,
+            moduleName: 'reports', 
+            clientIp: reportData.lookups.user.clientIpAddress || '127.0.0.1',
+            logDescriptions: logMessage,
+            detailedInfo: JSON.stringify(detailedInfo),
+            userId: reportData.lookups.user.id            
         }
-        const auditQuery = `
-            INSERT INTO audit_log (user_id, patient_id, order_id, study_id, screen_name, module_name, log_description, client_ip, detailed_info, logged_dt, sa_id, hash_value, hash_salt, audit_info, company_id)
-                          VALUES  ($1     , $2        , $3      , $4      , $5         , $6         , $7             , $8       , $9           , now()    , $10  , $11       , $12      , $13       , $14       )
-        `;
-        return db.query(auditQuery, [auditRecord.user_id, auditRecord.patient_id, auditRecord.order_id, auditRecord.study_id, auditRecord.screen_name
-            , auditRecord.module_name, auditRecord.log_description, auditRecord.client_ip, auditRecord.detailed_info, auditRecord.sa_id
-            , auditRecord.hash_value, auditRecord.hash_salt, auditRecord.audit_info, auditRecord.company_id])
+
+        let sql = SQL`
+        SELECT billing.create_audit(
+            ${params.companyId}
+          , ${params.entityName}
+          , ${params.entitykey}
+          , ${params.screenName}
+          , ${params.moduleName}
+          , ${params.logDescriptions}
+          , ${params.clientIp}
+          , ${JSON.stringify(detailedInfo)}::jsonb
+          , ${params.userId}
+          )
+        `
+
+        return db.query(sql.text, sql.values)
             .then((pgResult) => {
                 return true;
             })

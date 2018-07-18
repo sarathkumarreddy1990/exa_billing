@@ -18,7 +18,7 @@ module.exports = {
         } = params;
 
         if (username) {
-            whereQuery.push(`u.last_name ILIKE '%${username}%' OR u.first_name ILIKE '%${username}%'`);
+            whereQuery.push(`COALESCE(TRIM(u.last_name),'') ||' '|| COALESCE(TRIM(u.first_name),'') ILIKE '%${username}%' `);
         }
 
         if (screen_name) {

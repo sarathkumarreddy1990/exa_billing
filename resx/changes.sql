@@ -2935,3 +2935,6 @@ CREATE INDEX IF NOT EXISTS payment_applications_idx1 ON billing.payment_applicat
 -- RAISE NOTICE '--- END OF THE SCRIPT ---';
 -- --------------------------------------------------------------------------------------------------------------------
 -- ====================================================================================================================
+
+ALTER TABLE billing.insurance_provider_details ADD COLUMN IF NOT EXISTS claim_filing_indicator_code text;
+-- ====================================================================================================================
