@@ -1247,7 +1247,12 @@ var commonjs = {
                 break;
 
             case '23505':
-                commonjs.showError('Duplicate record found');
+                var errMessage = 'Duplicate record found';
+                if(exaInternalErrors && exaInternalErrors.constraints && exaInternalErrors.constraints[err.constraint]) {
+                    errMessage = exaInternalErrors.constraints[err.constraint];
+                }
+
+                commonjs.showError(errMessage);
                 break;
 
             case '23514':

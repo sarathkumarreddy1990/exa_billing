@@ -406,7 +406,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         },
                         "defaultValue": "",
                         "cellattr": function ( id, cellvalue, rowObject ) {
-                            var statusDetail = commonjs.getClaimColorCodeForStatus(rowObject.claim_status,'claim');
+                            var statusDetail = commonjs.getClaimColorCodeForStatus(rowObject.claim_status_code,'claim');
                             var statusObj = statusDetail[ 0 ];
                             return 'style="background:' + (statusObj && statusObj.color_code || 'transparent') + ';"';
                         },

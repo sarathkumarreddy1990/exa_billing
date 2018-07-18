@@ -947,7 +947,7 @@ define([
 
                 $('#btnPatientActivity').on().click(function () {
 
-                    if ($('#txtDate').val() > $('#txtOtherDate').val()) {
+                    if (self.fromDate.date() > self.toDate.date()) {
                         commonjs.showWarning('From date is greater than To Date');
                         return
                     }
@@ -1159,8 +1159,11 @@ define([
             },
 
             showAllActivity: function () {
-                if ($('#radActivityAllStatus').is(':visible'))
+                if ($('#radActivityAllStatus').is(':visible')){
                     $('#activityDetails').hide();
+                    this.fromDate.clear();
+                    this.toDate.clear();
+                }
                 $('input[type=date]').val('');
             },
 
