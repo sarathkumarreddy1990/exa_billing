@@ -30,6 +30,30 @@
                         </select>
                 </div>
             </div>
+            <div class="form-group row">
+                <label for="selectPayerEDICode" class="col-sm-2 col-form-label field-required" i18n="billing.fileInsurance.ediCode"></label>
+                <div class="col-sm-5">
+                    <select id="selectPayerEDICode" name="ediCode" class="form-control valid">
+                        <option value="-1" i18n="shared.buttons.select">Select</option>
+                        <option value="A" i18n="billing.insurance.attorney"></option>
+                        <option value="C" i18n="billing.insurance.medicare"></option>
+                        <option value="D" i18n="billing.insurance.medicaid"></option>
+                        <option value="F" i18n="billing.insurance.commercial"></option>
+                        <option value="G" i18n="billing.insurance.blueCross"></option>
+                        <option value="R" i18n="billing.insurance.railroadMC"></option>
+                        <option value="W" i18n="billing.insurance.workersCompensation"></option>
+                        <option value="X" i18n="billing.insurance.xChampus"></option>
+                        <option value="Y" i18n="billing.insurance.yFacility"></option>
+                        <option value="M" i18n="billing.insurance.mDMERC"></option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="txtClaimFileIndicatorCode" class="col-sm-2 col-form-label field-required" i18n="billing.insurance.fileIndicatorCode"></label>
+                <div class="col-sm-5">
+                    <input type="text" class="form-control" id="txtClaimFileIndicatorCode" name="fileIndicatorCode" disabled>
+                </div>
+            </div>
         </form>
     </div>
 </div>

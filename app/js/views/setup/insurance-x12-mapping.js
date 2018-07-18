@@ -170,7 +170,8 @@ define(['jquery',
                                     $('#lblInsuranceName ').html(data.insurance_name ? data.insurance_name : '');
                                     $('#ddlClaimClearingHouse').val(data.claimclearinghouse ? data.claimclearinghouse : '');
                                     $('#ddlClaimBillingMethod').val(data.billing_method ? data.billing_method : '');
-
+                                    $('#txtClaimFileIndicatorCode').val(data.indicator_code ? data.indicator_code : '');
+                                    self.changeCorrespondingEDICode(data.indicator_code);
                                     if(data.billing_method == 'electronic_billing'){
                                         $('#clearingHouse').show();
                                     }
@@ -193,6 +194,9 @@ define(['jquery',
 
                 $('#divInsuranceX12MappingGrid').hide();
                 $('#divInsuranceX12MappingForm').show();
+                $('#selectPayerEDICode').change(function(){
+                    self.changeEDICode();
+                });
                 commonjs.processPostRender();
             },
 
@@ -242,7 +246,8 @@ define(['jquery',
             save: function () {
                 this.model.set({
                     "claimClearingHouse": ($('#ddlClaimClearingHouse').val() && $('#ddlClaimBillingMethod').val()=='electronic_billing' ) ? $('#ddlClaimClearingHouse').val() : null,
-                    "billingMethod": $('#ddlClaimBillingMethod').val()
+                    "billingMethod": $('#ddlClaimBillingMethod').val(),
+                    "indicatorCode": $('#txtClaimFileIndicatorCode').val()
                 });
                 this.model.save({
                 }, {
@@ -285,6 +290,74 @@ define(['jquery',
                     $('#clearingHouse').hide();
                 }
                     
+            },
+
+            changeEDICode: function () {
+                var ediCode = $('#selectPayerEDICode').val();
+                var ediVal = '';
+                switch (ediCode) {
+                    case '-1':
+                    case 'A':
+                    case 'Y':
+                    case 'M':
+                        ediVal = ''
+                        break;
+                    case 'C':
+                        ediVal = 'MB'
+                        break;
+                    case 'D':
+                        ediVal = 'MC'
+                        break;
+                    case 'F':
+                        ediVal = 'CI'
+                        break;
+                    case 'G':
+                        ediVal = 'BL'
+                        break;
+                    case 'R':
+                        ediVal = 'MB'
+                        break;
+                    case 'W':
+                        ediVal = 'WC'
+                        break;
+                    case 'X':
+                        ediVal = 'CH'
+                        break;
+                    case 'default':
+                        ediVal = ''
+                }
+                $('#txtClaimFileIndicatorCode').val(ediVal);
+            },
+
+            changeCorrespondingEDICode: function( indicator ){
+                var ediVal = '';
+                switch(indicator) {
+                    case 'MB':
+                        ediVal = 'C';
+                        break;
+                    case 'MC':
+                        ediVal = 'D';
+                        break;
+                    case 'CI':
+                        ediVal = 'F';
+                        break;
+                    case 'BL':
+                        ediVal = 'G';
+                        break;
+                    case 'MB':
+                        ediVal = 'R';
+                        break;
+                    case 'WC':
+                        ediVal = 'W';
+                        break;
+                    case 'CH':
+                        ediVal = 'X';
+                        break;
+                    default:
+                        ediVal = '-1';
+                        break;
+                }
+                $("#selectPayerEDICode").val(ediVal);
             }
         });
         return insuranceX12MappingView;

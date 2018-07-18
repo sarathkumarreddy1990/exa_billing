@@ -66,6 +66,7 @@ module.exports = {
                             , ip.insurance_name 
                             , ch.id AS claimclearinghouse
                             , billing_method
+                            , claim_filing_indicator_code as indicator_code
                         FROM 
                             public.insurance_providers ip
                         LEFT JOIN billing.insurance_provider_details bip ON bip.insurance_provider_id  = ip.id
@@ -86,7 +87,8 @@ module.exports = {
             moduleName,
             clientIp,
             userId,
-            billingMethod
+            billingMethod,
+            indicatorCode
         } = params;
 
         const sql = SQL` WITH insert_house AS (
@@ -108,6 +110,7 @@ module.exports = {
                                 SET
                                       clearing_house_id = ${claimClearingHouse}
                                     , billing_method = ${billingMethod}
+                                    , claim_filing_indicator_code = ${indicatorCode}
                                 WHERE
                                     insurance_provider_id = ${id} 
                                     AND NOT EXISTS (SELECT 1 FROM insert_house)
