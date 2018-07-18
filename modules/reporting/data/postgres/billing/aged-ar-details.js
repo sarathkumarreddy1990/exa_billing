@@ -201,7 +201,7 @@ aged_ar_total AS ( SELECT
     null::text as "Responsible Party",
     null::text AS "Payer Name",
     null::text as "EDI",
-    ('--- Total ---')::text as "Provider Type", 
+    ('- Total -')::text as "Provider Type", 
     sum(cast("0-30 Sum" AS NUMERIC))::MONEY as "0-30 Sum", 
     sum(cast("30-60 Sum" AS NUMERIC))::MONEY as "30-60 Sum",
     sum("60-90 Sum") as "60-90 Sum",
