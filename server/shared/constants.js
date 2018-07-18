@@ -101,6 +101,7 @@ module.exports = {
         'billing_classes': 'BICL',
         'claim_status': 'CLST',
         'billing_providers': 'BIPR',
+        'provider_id_codes': 'BIPR',
         'provider_id_code_qualifiers': 'PRCQ',
         'billing_messages': 'BILM',
         'payment_reasons': 'PARE',
@@ -165,6 +166,7 @@ module.exports = {
         'payments_list': 'PAYM', // screenNameInternal = list for EOB doubts having
         'payments-pdf': 'PAYM',
         'total_amount': 'PAYM',
+        'count': 'PAYM',
         'groupcodes_and_reasoncodes': 'PAYM',
         'all': 'PAYM',
         'patient_count': 'PAYM',

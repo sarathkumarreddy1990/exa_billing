@@ -94,6 +94,8 @@ module.exports = {
             params.isClaim=true;
             params.claimDetails=JSON.stringify(claimDetails);
             await data.changeClaimStatus(params);
+        } else {
+            ediResponse = result;
         }
 
         return ediResponse;
@@ -239,7 +241,7 @@ module.exports = {
         });
 
         if (params.success_claimID && params.success_claimID.length > 0) {
-            validation_result.validClaim_data = await data.movetoPendingSub(params);
+            validation_result.validClaim_data = await data.updateValidateClaimStatus(params);
         }
 
         return validation_result;           
