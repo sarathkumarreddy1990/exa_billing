@@ -6,6 +6,7 @@ var rjsConfig = {
         'jquery.validate': '../node_modules/jquery-validation/dist/jquery.validate',
         'jqueryvalidateadditional': '../node_modules/jquery-validation/dist/additional-methods',
         'underscore': '../node_modules/underscore/underscore',
+        'hotkeys': '../node_modules/jquery.hotkeys/jquery.hotkeys',
         '_get': '../libs/_get/index',
         'text': '../node_modules/requirejs-text/text',
         'backbone': '../node_modules/backbone/backbone',
@@ -47,6 +48,9 @@ var rjsConfig = {
             deps: ['jquery', 'jquery.validate']
         },
         'bootstrap': {
+            deps: ['jquery']
+        },
+        'hotkeys': {
             deps: ['jquery']
         },
         'jqgrid': {
@@ -128,6 +132,7 @@ if (require && require.config) {
         'jquery.validate',
         'jquery',
         'underscore',
+        'hotkeys',
         'fastdom',
         'jqueryvalidateadditional',
         'jstorage',
@@ -155,6 +160,7 @@ if (require && require.config) {
         jqueryvalidate,
         $,
         _,
+        hotkeys,
         fastdom,
         jqueryvalidateadditional,
         jstorage,
