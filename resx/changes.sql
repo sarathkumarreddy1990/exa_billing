@@ -757,11 +757,14 @@ CREATE OR REPLACE FUNCTION billing.create_payment_applications(
   RETURNS TABLE(payment_application_id bigint, payment_application_adjustment_id bigint, cas_payment_application_detail_id bigint) AS
 $BODY$
 DECLARE
+
   p_screen_name TEXT;
   p_module_name TEXT;
   p_client_ip TEXT;
   p_user_id BIGINT;
   p_company_id BIGINT;
+  p_is_recoupment BOOLEAN;
+
 BEGIN
 
   p_screen_name := i_audit_details->>'screen_name';
@@ -769,6 +772,9 @@ BEGIN
   p_client_ip := i_audit_details->>'client_ip';
   p_user_id := (i_audit_details->>'user_id')::BIGINT;
   p_company_id := (i_audit_details->>'company_id')::BIGINT;
+
+  SELECT accounting_entry_type = 'recoupment_debit' INTO p_is_recoupment FROM billing.adjustment_codes WHERE id = i_adjustment_code_id;
+  p_is_recoupment := coalesce(p_is_recoupment, false);
 
 	RETURN QUERY
 	
@@ -797,19 +803,16 @@ BEGIN
 			amount_type,
 			amount,
 			adjustment_code_id,
-			created_by,
-			payment_application_id
+			created_by
 		) (SELECT 
 			i_payment_id,
 			i_charge_id,
 			'adjustment' AS amount_type,
 			i_adjustment_amount,
 			i_adjustment_code_id,
-			i_created_by,
-			payment_cte.id
+			i_created_by
 		FROM payment_cte
-		WHERE i_adjustment_amount != 0::money OR i_cas_details != '[]'::jsonb)
-
+		WHERE p_is_recoupment OR i_adjustment_amount != 0::money OR i_cas_details != '[]'::jsonb)
 		RETURNING *, '{}'::jsonb old_values
 	),
 
@@ -885,7 +888,7 @@ BEGIN
 		FROM cas_cte pc
 		WHERE pc.id IS NOT NULL
 	)
-	SELECT	adjustment_cte.payment_application_id, 
+	SELECT	adjustment_cte.id AS payment_application_id, 
 		cas_cte.payment_application_id as payment_application_adjustment_id, 
 		cas_cte.id as cas_payment_application_detail_id
 	FROM	cas_cte
@@ -1129,11 +1132,11 @@ $BODY$
 -- --------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION billing.get_computed_bill_fee(
     p_claim_id bigint,
-    p_cpt_id integer,
-    p_modifier1 integer,
-    p_modifier2 integer,
-    p_modifier3 integer,
-    p_modifier4 integer,
+    p_cpt_id bigint,
+    p_modifier1 bigint,
+    p_modifier2 bigint,
+    p_modifier3 bigint,
+    p_modifier4 bigint,
     p_category text,
     p_payer_type text)
   RETURNS money AS
@@ -1141,19 +1144,19 @@ $BODY$
         DECLARE
             l_payer_type TEXT;
             l_patient_id INTEGER;
-	        l_primary_insurance_id INTEGER;
+	    l_primary_insurance_id INTEGER;
             l_secondary_insurance_id INTEGER;
             l_tertiary_insurance_id INTEGER;
             l_ordering_facility_id INTEGER;
-	        l_referring_provider_contact_id INTEGER;
+	    l_referring_provider_contact_id INTEGER;
             l_facility_id INTEGER;
             l_ordering_physician_id INTEGER;
             l_claim_facility_id INTEGER;
-            l_active_modifier INTEGER;
-            l_modifier1 INTEGER;
-            l_modifier2 INTEGER;
-            l_modifier3 INTEGER;
-            l_modifier4 INTEGER;
+            l_active_modifier BIGINT;
+            l_modifier1 BIGINT;
+            l_modifier2 BIGINT;
+            l_modifier3 BIGINT;
+            l_modifier4 BIGINT;
             l_fee_level TEXT;
             l_dynamic_fee_modifier_type TEXT;
             l_dynamic_fee_modifier TEXT;
@@ -1196,12 +1199,11 @@ $BODY$
             WHERE
                 1 = 1
                 AND c.id = p_claim_id;
-            l_payer_type = COALESCE (l_payer_type,
-                'x');
 
-            IF p_payer_type IS NOT NULL THEN
+	    IF p_payer_type IS NOT NULL THEN
                l_payer_type := p_payer_type;
-	        END IF;
+	    END IF;
+
             ---- Get the active_modifer from the parameter list
             l_modifier1 := p_modifier1;
             l_modifier2 := p_modifier2;
@@ -1216,7 +1218,7 @@ $BODY$
             ELSIF l_modifier1 IS NOT NULL THEN
                 l_active_modifier := l_modifier1;
             ELSE
-                l_active_modifier := 0;
+                l_active_modifier := 0; 
             END IF;
 
             -- Control gets here if Claim id and cpt id in the parameters list is valid
@@ -1237,8 +1239,9 @@ $BODY$
 							WHEN l_payer_type = 'tertiary_insurance' THEN l_tertiary_insurance_id
 						   END
                     AND i.has_deleted IS FALSE
-		            AND i.is_active IS TRUE
-                     LIMIT 1;
+		    AND i.is_active IS TRUE
+		LIMIT 1;
+		    
             ELSIF l_payer_type = 'ordering_facility' THEN
                 SELECT
                    pg.fee_schedule_id INTO l_resp_fs_id
@@ -1248,7 +1251,7 @@ $BODY$
                     pg.id = l_ordering_facility_id
                     AND pg.has_deleted IS FALSE
                     AND pg.is_active IS TRUE
-                    LIMIT 1;
+                LIMIT 1;
             ELSIF l_payer_type = 'facility' THEN
                 SELECT
                    fee_schedule_id INTO l_resp_fs_id
@@ -1258,7 +1261,7 @@ $BODY$
                     f.id = l_facility_id
                     AND f.has_deleted IS FALSE
                     AND f.is_active IS TRUE
-                    LIMIT 1;
+                LIMIT 1;
             ELSIF l_payer_type = 'referring_provider' THEN
                 SELECT
                    p.fee_schedule_id INTO l_resp_fs_id
@@ -1272,7 +1275,7 @@ $BODY$
                     AND pc.id = l_referring_provider_contact_id
                     AND p.has_deleted IS FALSE
                     AND p.is_active IS TRUE
-                    LIMIT 1;
+		LIMIT 1;
 	    ELSIF l_payer_type = 'patient' THEN
 		SELECT
                     fs.id INTO l_resp_fs_id
@@ -1282,15 +1285,15 @@ $BODY$
                     1 = 1
                     AND fs.category = 'self_pay'
                     AND fs.inactivated_dt IS NULL
-                    LIMIT 1;
+                LIMIT 1;
 		
             END IF;
             l_resp_fs_id := COALESCE (l_resp_fs_id,
                 0);
-
-            l_resp_allowed_fs_id := COALESCE (l_resp_allowed_fs_id,
+	    l_resp_allowed_fs_id := COALESCE (l_resp_allowed_fs_id,
                 0);
             IF l_resp_fs_id = 0 THEN
+	        
                 -- Getting the default fee schedule id and cpt code id from fee facilities
                 SELECT
                     f.fee_schedule_id INTO l_facility_fs_id
@@ -1300,7 +1303,7 @@ $BODY$
                     f.id = l_facility_id
                     AND f.has_deleted IS FALSE
                     AND f.is_active IS TRUE
-                    LIMIT 1;
+                LIMIT 1;
                 l_facility_fs_id := COALESCE (l_facility_fs_id,
                     0);
                 --- If fee schedule is not attached to facility, take the default fee schedule from fee schedules setup
@@ -1314,7 +1317,7 @@ $BODY$
                         1 = 1
                         AND fs.category = 'default'
                         AND fs.inactivated_dt IS NULL
-                        LIMIT 1;
+                    LIMIT 1;
                     l_fee_fs_id := COALESCE (l_fee_fs_id,
                         0);
                     l_derived_fs_id := l_fee_fs_id;
@@ -1324,24 +1327,19 @@ $BODY$
             ELSE
                 l_derived_fs_id := l_resp_fs_id;
             END IF;
-
-              ------ Allowed only calculate for insurances   		
+            ------ Allowed only calculate for insurances   		
             IF p_category = 'allowed' THEN
-		        IF l_payer_type = 'primary_insurance' OR l_payer_type = 'secondary_insurance' OR l_payer_type = 'tertiary_insurance' THEN
-		            IF l_resp_allowed_fs_id != 0 THEN
-			            l_derived_fs_id =  l_resp_allowed_fs_id;
-		            END IF;
+		IF l_payer_type = 'primary_insurance' OR l_payer_type = 'secondary_insurance' OR l_payer_type = 'tertiary_insurance' THEN
+		   IF l_resp_allowed_fs_id != 0 THEN
+			l_derived_fs_id =  l_resp_allowed_fs_id;
+		   END IF;
                 ELSE
-		            RETURN 0::MONEY;
-	            END IF;
-            END IF;
-
-            ------- If cpt not available in fee schedule allowed fee same as bill fee
-            IF l_professional_fee IS NULL AND p_category = 'allowed' AND (l_payer_type = 'primary_insurance' OR l_payer_type = 'secondary_insurance' OR l_payer_type = 'tertiary_insurance') THEN 
-		        RETURN billing.get_computed_bill_fee(p_claim_id, p_cpt_id, p_modifier1, p_modifier2, p_modifier3, p_modifier4, 'billing', p_payer_type);
+		   RETURN 0::MONEY;
 	        END IF;
+            END IF;
             
             -- Step- 2 -- Get the Fees from Fee_schedule_cpts based on the derived scheduled id
+
             SELECT
                 professional_fee,
                 technical_fee,
@@ -1354,7 +1352,12 @@ $BODY$
                 1 = 1
                 AND fsc.fee_schedule_id = l_derived_fs_id
                 AND fsc.cpt_code_id = p_cpt_id
-                LIMIT 1;
+            LIMIT 1;
+
+	    IF l_professional_fee IS NULL AND p_category = 'allowed' AND (l_payer_type = 'primary_insurance' OR l_payer_type = 'secondary_insurance' OR l_payer_type = 'tertiary_insurance') THEN 
+		        RETURN billing.get_computed_bill_fee(p_claim_id, p_cpt_id, p_modifier1, p_modifier2, p_modifier3, p_modifier4, 'billing', p_payer_type);
+	        END IF;
+          
             -- Get the modifier details for the given input
 	    SELECT 
 	         m.level,
@@ -1370,7 +1373,8 @@ $BODY$
 	         public.modifiers m 
 	    WHERE 
                  m.id = l_active_modifier
-                LIMIT 1;
+	    LIMIT 1;
+		
             -- Calculate the base fee.
             IF l_fee_level = 'global' THEN
                 l_base_fee := l_global_fee;
@@ -1383,8 +1387,8 @@ $BODY$
                 -- Default the global fee if fee level is not defined
             END IF;
 
-            l_base_fee := COALESCE (l_base_fee, 0::MONEY);
-            
+	    l_base_fee := COALESCE (l_base_fee,
+                    0::MONEY);
             -- Apply the modifiers
             IF COALESCE (l_fee_override,
                     0::MONEY) != 0::MONEY THEN
@@ -1407,49 +1411,17 @@ $BODY$
                     END IF;
                 END IF;
             END IF;
-            l_result := COALESCE (l_base_fee, 0::MONEY);
+            l_result := COALESCE (l_base_fee,
+                    0::MONEY);
             ----------------------------------------------------------------------------------------------------------------------
             RETURN l_result;
         EXCEPTION
             WHEN NO_DATA_FOUND THEN
             RAISE NOTICE 'Claim Query failed - No Data Found';
         -- ???
-        RETURN 0::MONEY;
+        RETURN 5::MONEY;
         END;
         $BODY$
-  LANGUAGE plpgsql;
--- --------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION billing.get_payment_applications(IN i_payment_id bigint)
-  RETURNS TABLE(id bigint, payment_id bigint, charge_id bigint, adjustment_code_id bigint, payment_amount money, adjustment_amount money, payment_created_by bigint, adjustment_created_by bigint, payment_applied_dt timestamp with time zone, adjustment_applied_dt timestamp with time zone, payment_application_adjustment_id bigint) AS
-$BODY$
-BEGIN
-	RETURN QUERY
-
-	SELECT 	pa.id,
-		pa.payment_id,
-		pa.charge_id,
-		pa_adjustment.adjustment_code_id,
-		coalesce(pa.amount,0::money) as payment_amount,
-		coalesce(pa_adjustment.amount,0::money) as adjustment_amount,
-		pa.created_by as payment_created_by,
-		pa_adjustment.created_by as adjustment_created_by,
-		pa.applied_dt as payment_applied_dt,
-		pa_adjustment.applied_dt as adjustment_applied_dt,
-		pa_adjustment.id as payment_application_adjustment_id 
-	FROM	billing.payment_applications pa
-		LEFT JOIN LATERAL (
-			SELECT 	*
-			FROM	billing.payment_applications bpa
-			WHERE	bpa.payment_id = pa.payment_id
-				AND bpa.charge_id = pa.charge_id
-				AND bpa.applied_dt = pa.applied_dt
-				AND bpa.amount_type = 'adjustment'
-		) pa_adjustment ON true
-	WHERE	pa.payment_id = i_payment_id 
-		AND pa.amount_type = 'payment';
-
-END
-$BODY$
   LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION billing.get_payment_applications(
@@ -1778,6 +1750,7 @@ BEGIN
 	SELECT pch.audit_id FROM purge_charge_audit pch)
 	select audit_id INTO p_result from audit_details;
 	RETURN true;
+-- To delete charge only
 ELSIF i_type = 'charge' THEN
  
 	WITH purge_charge_studies AS(
@@ -2214,8 +2187,8 @@ BEGIN
                     , assign_benefits_to_patient
                     , subscriber_dob
                     , medicare_insurance_type_code
-                    , now()
-                    , now() + interval '1 month'
+                    , valid_from_date
+                    , valid_to_date
             FROM
                 insurance_details
             WHERE
@@ -2600,7 +2573,9 @@ WITH claim_details as (
 $BODY$
   LANGUAGE sql;
 -- --------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION billing.get_batch_claim_details(IN i_study_id bigint, IN i_created_by bigint)
+CREATE OR REPLACE FUNCTION billing.get_batch_claim_details(
+    IN i_study_id bigint,
+    IN i_created_by bigint)
   RETURNS TABLE(claim_icds json, charges json, insurances json, claims json) AS
 $BODY$
 BEGIN
@@ -2641,7 +2616,6 @@ BEGIN
 				, sc.authorization_info->'authorization_no' AS authorization_no
 				, COALESCE(s.study_dt,now()) AS charge_dt
 				, sc.study_id
-                , o.icd_code_ids_billing 
                 , o.id AS order_id
                 , o.patient_id
                 , i_created_by AS created_by
@@ -2791,7 +2765,7 @@ BEGIN
             ) AS place_of_service_id
           ,( SELECT id FROM 
               billing.claim_status
-              WHERE code = 'PV'  AND NOT is_system_status AND company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) 
+              WHERE code = 'PV'  AND company_id = ( SELECT COALESCE(NULLIF(company_id,'0'),'0')::numeric FROM study_details ) 
             ) AS claim_status_id
           ,( SELECT id FROM 
               billing.billing_codes
@@ -2829,7 +2803,11 @@ BEGIN
           ,null AS primary_patient_insurance_id
           ,null AS secondary_patient_insurance_id
           ,null AS tertiary_patient_insurance_id
-          ,( SELECT COALESCE(billing_method,'patient') FROM insurances WHERE coverage_level = 'primary' ) AS billing_method
+          ,( CASE 
+              WHEN ( SELECT count(1) FROM insurances WHERE coverage_level = 'primary' ) > 0 THEN ( SELECT billing_method FROM insurances WHERE coverage_level = 'primary' )
+              ELSE 'patient_payment'
+                END
+           ) as billing_method
           ,( CASE 
               WHEN ( SELECT count(1) FROM insurances WHERE coverage_level = 'primary' ) > 0 THEN 'primary_insurance'
               ELSE 'patient'
@@ -2892,21 +2870,14 @@ $BODY$
 ----------------------------------------------------------------------------------------------------------------------
 CREATE SEQUENCE IF NOT EXISTS billing.invoice_no_seq START 1001;
 
--- Function: billing.get_invoice_no(bigint[])
-
--- DROP FUNCTION billing.get_invoice_no(bigint[]);
-
 CREATE OR REPLACE FUNCTION billing.get_invoice_no(claim_ids bigint[])
   RETURNS text AS
 $BODY$
 BEGIN 
-	
-RETURN (SELECT nextval('billing.invoice_no_seq'));
-
+    RETURN (SELECT nextval('billing.invoice_no_seq'));
 END;
 $BODY$
-  LANGUAGE plpgsql IMMUTABLE
-  COST 100;
+  LANGUAGE plpgsql;
 
 -- --------------------------------------------------------------------------------------------------------------------
 -- Alter script For new Table changes 
@@ -2922,11 +2893,15 @@ ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS paper_claim_original_
 ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS direct_invoice_template_id BIGINT;
 ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS patient_invoice_template_id BIGINT;
 ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS grid_field_settings JSON;
+ALTER TABLE billing.insurance_provider_details ADD COLUMN IF NOT EXISTS claim_filing_indicator_code text;
+-- ALTER TABLE IF EXISTS billing.payment_applications DROP COLUMN IF EXISTS payment_application_id;
+DROP INDEX IF EXISTS edi_files_file_path_ux;
 --ALTER TABLE billing.grid_filters ADD CONSTRAINT IF NOT EXISTS grid_filters_filter_name_uc UNIQUE(filter_type, filter_name);
 -- --------------------------------------------------------------------------------------------------------------------
 CREATE INDEX IF NOT EXISTS charges_studies_idx1 ON billing.charges_studies(study_id);
 CREATE INDEX IF NOT EXISTS charges_studies_idx2 ON billing.charges_studies(charge_id);
 CREATE INDEX IF NOT EXISTS payment_applications_idx1 ON billing.payment_applications(charge_id);
+CREATE INDEX claims_claim_dt_ix on billing.claims(claim_dt, id);
 -- --------------------------------------------------------------------------------------------------------------------
 -- MAKE SURE THIS COMMENT STAYS AT THE BOTTOM - ADD YOUR CHANGES ABOVE !!!!
 -- RULES:
@@ -2934,7 +2909,4 @@ CREATE INDEX IF NOT EXISTS payment_applications_idx1 ON billing.payment_applicat
 --  * When you delete a DB object (DROP TABLE, COLUMN, INDEX, etc, etc), remove/comment out prior uses (creation)
 -- RAISE NOTICE '--- END OF THE SCRIPT ---';
 -- --------------------------------------------------------------------------------------------------------------------
--- ====================================================================================================================
-
-ALTER TABLE billing.insurance_provider_details ADD COLUMN IF NOT EXISTS claim_filing_indicator_code text;
 -- ====================================================================================================================

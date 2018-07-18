@@ -751,20 +751,35 @@ module.exports = {
     },
 
     getFeeDetails: async function (params) {
+
+        let {
+            paymentId,
+            paymentApplicationId,
+            claimId 
+        } = params;
+
+        paymentApplicationId = paymentApplicationId || 0;
+
         return await query(
-            `            
+            `   with get_payment_details AS (
+                SELECT 
+                    sum(payment_amount) AS payment_amount,
+                    sum(adjustment_amount) AS adjustment_amount
+                FROM billing.get_payment_applications(${paymentId},${paymentApplicationId})
+               )      
                 SELECT
                     (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) AS bill_fee,
                     COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient' and bpa.amount_type = 'payment'),0::money) AS patient_paid,
                     COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient' and bpa.amount_type = 'payment'),0::money) AS others_paid,
-                    (SELECT adjustments_applied_total from billing.get_claim_totals(bc.id)) AS adjustment,
-                    (SELECT payments_applied_total from billing.get_claim_totals(bc.id)) AS payment,
+                    (SELECT adjustments_applied_total from billing.get_claim_totals(bc.id)) AS total_adjustment,
+                    (SELECT adjustment_amount from get_payment_details) AS adjustment,
+                    (SELECT payment_amount from get_payment_details) AS payment,
                     (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) AS balance
                 FROM billing.claims bc
                     INNER JOIN billing.charges bch ON bch.claim_id = bc.id 
                     LEFT JOIN billing.payment_applications bpa ON bpa.charge_id  =  bch.id -- For getting applid and pending payments 
                     LEFT JOIN billing.payments bp ON bp.id = bpa.payment_id 
-                WHERE bc.id = ${params.claimId}
+                WHERE bc.id = ${claimId}
                     GROUP BY bc.id
                     `
         );

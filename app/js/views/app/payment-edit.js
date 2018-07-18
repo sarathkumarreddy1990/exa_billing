@@ -1233,7 +1233,8 @@ define(['jquery',
                 var order_info = claimDetail;
                 $('#lblBalanceNew').text(order_info.balance ? order_info.balance : "0.00");
                 $('#lblBillingFee, #spApplyTotalFee').text(order_info.billFee ? order_info.billFee : "0.00");
-                $('#lblAdjustment, #spAdjustmentApplied').text(order_info.adjustment ? order_info.adjustment : "0.00");
+                $('#spAdjustmentApplied').text(order_info.adjustment ? order_info.adjustment : "0.00");
+                $('#lblAdjustment').text(order_info.total_adjustment ? order_info.total_adjustment : "0.00");
                 $('#spPaymentApplied').text(order_info.payment ? order_info.payment : "0.00");
                 $('#lblOthers').text(order_info.others_paid ? order_info.others_paid : "0.00");
                 $('#lblPatient').text(order_info.patient_paid ? order_info.patient_paid : "0.00");
@@ -1391,7 +1392,7 @@ define(['jquery',
                             self.saveAllPayments(e, claimId, paymentId, paymentStatus, chargeId, paymentApplicationId);
                         });
 
-                        self.reloadPaymentFields(claimId);
+                        self.reloadPaymentFields(claimId,paymentId,paymentApplicationId);
 
                         $('#txtResponsibleNotes').val(payerTypes[0].billing_notes);
 
@@ -1405,6 +1406,8 @@ define(['jquery',
                             {
                                 self.isRefundApplied = true;
                             }
+                             else
+                                self.isRefundApplied = false;
                         }
                         else
                         {
@@ -1674,7 +1677,7 @@ define(['jquery',
                     commonjs.showWarning('Please select DR checkbox ');
                     return false;
                 } else if (self.isRefundApplied === true) {
-                    if ($('#ddlAdjustmentCode_fast').find(':selected').attr('data_code_type') != 'refund_debit') {
+                    if ($('#ddlAdjustmentCode_fast').val() && $('#ddlAdjustmentCode_fast').find(':selected').attr('data_code_type') != 'refund_debit') {
                         var refund_change_confirm = confirm("This payment is refund mode want to overwrite this payment ? ");
                         if (refund_change_confirm == true) {
                             self.isRefundApplied = false;
@@ -1759,6 +1762,7 @@ define(['jquery',
                             commonjs.showStatus(paymentStatus === 'applied' ? 'Payment has been updated successfully' : 'Payment has been applied successfully');
                             targetObj.removeAttr('disabled');
                             commonjs.hideLoading();
+                            self.isRefundApplied = false;
                             // if (paymentStatus != 'applied') {
                             //     self.casSegmentsSelected = [];
                             //     self.closeAppliedPendingPayments(e, paymentId);
@@ -1777,18 +1781,20 @@ define(['jquery',
                 }
             },
 
-            reloadPaymentFields: function (claimId) {
+            reloadPaymentFields: function (claimId,paymentId,paymentApplicationId) {
                 var self = this;
                 jQuery.ajax({
                     url: "/exa_modules/billing/pending_payments/fee_details",
                     type: "GET",
                     data: {
-                        claimId: claimId
+                        claimId: claimId,
+                        paymentId:paymentId,
+                        paymentApplicationId:paymentApplicationId
                     },
                     success: function (data, textStatus, jqXHR) {
                         if (data) {
                             var feeDetails = data[0];
-                            self.setFeeFields({ billFee: feeDetails.bill_fee, adjustment: feeDetails.adjustment, balance: feeDetails.balance, others_paid: feeDetails.others_paid, patient_paid: feeDetails.patient_paid, payment: feeDetails.payment });
+                            self.setFeeFields({ billFee: feeDetails.bill_fee, adjustment: feeDetails.adjustment, balance: feeDetails.balance, others_paid: feeDetails.others_paid, patient_paid: feeDetails.patient_paid, payment: feeDetails.payment,total_adjustment: feeDetails.total_adjustment });
                         }
                         commonjs.hideLoading();
                     },
