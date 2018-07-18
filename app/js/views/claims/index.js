@@ -659,7 +659,7 @@ define(['jquery',
                     }
                     var currentDate = new Date();
                     var defaultStudyDate = moment(currentDate).format('L');
-                    var lineItemStudyDate = self.studyDate && self.studyDate != '' ? self.convertToTimeZone(claim_data.facility_id, self.studyDate).format('L') : '';
+                    var lineItemStudyDate = self.studyDate && self.studyDate != '' ? moment(self.studyDate).format('L') : '';
                     $('#txtClaimDate').val(self.studyDate ? lineItemStudyDate : defaultStudyDate);
                 }
                 /* Common Details end */
