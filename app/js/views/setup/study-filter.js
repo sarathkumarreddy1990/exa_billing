@@ -368,7 +368,7 @@ define([
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
                     colNames: ['', '', '', ''],
-                    i18nNames: ['', '', 'filterName', 'filterOrder'],
+                    i18nNames: ['', '', 'setup.studyFilters.filterName', 'setup.studyFilters.filterOrder'],
                     colModel: [
                         {
                             name: 'edit',
