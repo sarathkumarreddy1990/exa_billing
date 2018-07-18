@@ -293,7 +293,11 @@ module.exports = {
             claimIDs,
             assignedTo,
             followupDate,
-            followUpDetails
+            followUpDetails,
+            companyId,
+            screenName,
+            clientIp,
+            userId
         } = params;
         let sql;
         claimIDs = claimIDs.split(',');
@@ -303,7 +307,7 @@ module.exports = {
                     DELETE FROM 
                         billing.claim_followups
                     WHERE 
-                        claim_id = ANY(${claimIDs}) RETURNING id `;
+                        claim_id = ANY(${claimIDs}) RETURNING * `;
         }
         else {
             sql = SQL`WITH update_followup AS(
@@ -314,7 +318,7 @@ module.exports = {
                     , assigned_to= ${assignedTo} 
                 WHERE 
                     claim_id = ANY(${claimIDs})
-                RETURNING *
+                RETURNING * , '{}'::jsonb old_values
             ), 
             followup_details AS (
                 SELECT 
@@ -341,9 +345,45 @@ module.exports = {
                 FROM 
                     followup_details
                 WHERE NOT EXISTS ( SELECT claim_id FROM billing.claim_followups  WHERE billing.claim_followups.claim_id = followup_details.claim_id )
-                RETURNING *
-            ) 
-            SELECT * FROM update_followup UNION SELECT * FROM insert_followup `;
+                RETURNING *, '{}'::jsonb old_values
+            ),
+            insert_audit_followup AS (
+                SELECT billing.create_audit(
+                      ${companyId}
+                    , 'claims'
+                    , id
+                    , ${screenName}
+                    , 'claims'
+                    , 'New Followup for Claim created ' || insert_followup.id || '  Claim ID  ' ||  insert_followup.claim_id
+                    , ${clientIp}
+                    , json_build_object(
+                        'old_values', COALESCE(old_values, '{}'),
+                        'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM insert_followup limit 1) temp_row)
+                      )::jsonb
+                    , ${userId}
+                  ) AS id 
+                FROM insert_followup
+                WHERE id IS NOT NULL
+            ), 
+            update_audit_followup AS (
+                SELECT billing.create_audit(
+                      ${companyId}
+                    , 'claims'
+                    , id
+                    , ${screenName}
+                    , 'claims'
+                    , 'Follow Up Updated  ' || update_followup.id ||' Date ' || update_followup.followup_date || ' Claim ID  ' || update_followup.claim_id
+                    , ${clientIp}
+                    , json_build_object(
+                        'old_values', COALESCE(old_values, '{}'),
+                        'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_followup limit 1 ) temp_row)
+                      )::jsonb
+                    , ${userId}
+                  ) AS id 
+                FROM update_followup
+                WHERE id IS NOT NULL
+            )
+            SELECT * FROM insert_audit_followup UNION SELECT * FROM update_audit_followup `;
         }
 
         return await query(sql);

@@ -549,17 +549,20 @@ module.exports = {
                         , ch.bill_fee
                         , ch.allowed_amount
                         , cas.cas_details
-                        , pa.amount as payment
-                        , pa_adjustment.amount as adjustment
+                        , COALESCE(pa.amount,0::money) AS payment
+                        , COALESCE(pa_adjustment.amount, 0::money) AS adjustment
                         , cpt.display_code AS cpt_code
-                        , pa_adjustment.id as payment_application_adjustment_id
+                        , pa_adjustment.id AS payment_application_adjustment_id
                     FROM	billing.payment_applications pa
                     INNER JOIN billing.charges ch ON ch.id = pa.charge_id
                     INNER JOIN public.cpt_codes cpt ON cpt.id = ch.cpt_id
                     LEFT JOIN LATERAL (
-                        SELECT 	* 
-                        FROM	billing.payment_applications  
-                        WHERE	payment_application_id = pa.id
+                        SELECT 	*
+                        FROM	billing.payment_applications bpa
+                        WHERE	bpa.payment_id = pa.payment_id
+                            AND bpa.charge_id = pa.charge_id
+                            AND bpa.applied_dt = pa.applied_dt
+                            AND bpa.amount_type = 'adjustment'
                     ) pa_adjustment ON true
                     LEFT JOIN LATERAL (
                         SELECT json_agg(row_to_json(cas)) AS cas_details

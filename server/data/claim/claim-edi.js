@@ -629,7 +629,7 @@ module.exports = {
 
 					FROM  billing.payment_applications pa
 					INNER JOIN billing.payments ON  billing.payments.id=pa.payment_id and payer_type='insurance'				
-									WHERE  charge_id=charges.id AND pa.payment_applications.amount_type = 'payment'  ) 
+									WHERE  charge_id=charges.id AND pa.amount_type = 'payment'  ) 
 					as lineAdjudication)
 					FROM   billing.charges 
 							inner join cpt_codes on cpt_codes.id=cpt_id
