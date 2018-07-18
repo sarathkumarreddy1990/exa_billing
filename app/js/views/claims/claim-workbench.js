@@ -464,7 +464,7 @@ define(['jquery',
                         existingClearingHouse = clearingHouse;
                     }
 
-                    var payerType = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'payer_type'); 
+                    var payerType = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'payer_name'); 
                     selectedpayerType.push(payerType)
 
                     // var ediTemplate = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'edi_template');
