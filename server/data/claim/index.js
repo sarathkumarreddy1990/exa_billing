@@ -724,5 +724,32 @@ module.exports = {
                     id = ${params.id}`;
 
         return await query(sqlQry);
+    },
+
+    saveICD: async (params) => {
+        let sqlQry = SQL `
+                INSERT INTO public.icd_codes(
+                            code
+                            ,description
+                            ,is_active
+                            ,company_id
+                            ,code_type
+                            ,has_deleted
+                            ,created_dt
+                )
+                SELECT
+                       ${params.code}
+                    ,  ${params.description}
+                    , true
+                    , ${params.companyId}
+                    , ${params.code_type}
+                    , false
+                    , now()
+                WHERE NOT EXISTS ( SELECT id FROM public.icd_codes  WHERE code ILIKE ${params.code}  AND company_id = ${params.companyId} AND NOT has_deleted)
+                RETURNING *, '{}'::jsonb old_values
+                `;
+
+        return await query(sqlQry);
+        
     }
 };

@@ -11,6 +11,7 @@ define(['jquery',
 'collections/app/patientsearch',
 'text!templates/app/patientSearchResult.html',
 'text!templates/claims/claim-validation.html',
+'text!templates/claims/icd9-icd10.html',
 'shared/permissions'],
     function ($, 
         _, 
@@ -25,6 +26,7 @@ define(['jquery',
         patientCollection,
         patSearchContent,
         claimValidation,
+        icd9to10Template,
         Permission) {
         var claimView = Backbone.View.extend({
             el: null,
@@ -44,6 +46,7 @@ define(['jquery',
             enableInsuranceEligibility: '',
             tradingPartnerId: '',
             ACSelect: { refPhy: {}, readPhy: {} },
+            icd9to10Template : _.template(icd9to10Template),
             responsible_list: [
                 { payer_type: "PPP", payer_type_name: "patient", payer_id: null, payer_name: null },
                 { payer_type: "PIP_P", payer_type_name: "primary_insurance", payer_id: null, coverage_level: "P", payer_name: null, billing_method: null },
@@ -1780,6 +1783,107 @@ define(['jquery',
                     self.icd_code = res.code;
                     self.icd_description = res.description;
                     return res.code;
+                }
+                $('#ddlMultipleDiagCodes').on('select2:selecting', function (e) {
+                    var res = e.params.args.data;
+                    if (res.code_type == 'icd9') {
+                        if (confirm('Do you want to show the corresponding ICD-10 codes for ICD-9')) {
+                            commonjs.showLoading('')
+                            self.showIcd9t010Popup(res);
+                        }
+                    } else {
+                        self.ICDID = res.id;
+                        self.icd_code = res.code;
+                        self.icd_description = res.description;
+                    }
+                    return res.code;
+                });
+            },
+
+            showIcd9t010Popup: function (icd9Response) {
+                var self = this;
+                commonjs.showLoading('Connecting pokitdok.. please wait.')
+                self.icd9Code = icd9Response.code;
+                $.ajax({
+                    url: '/exa_modules/billing/claims/claim/getIcd9To10',
+                    type: 'GET',
+                    data: {
+                        icd9Code: self.icd9Code
+                    },
+                    success: function (model, response) {
+                        var form = $('<form class="form-horizontal" style="margin-left:8%"> </form>');
+                        if (model && model.result && typeof model.result == 'string') {
+                            var data = JSON.parse(model.result)
+                            if (data && data.error && data.error == 'invalid_client')
+                                commonjs.showError('Invalid Pokitdok Client Ip')
+                        } else if (model && model.result && model.result.length) {
+                            var icdCodes = model.result;
+                            var icds = [];
+                            for (var i = 0; i < icdCodes.length; i++) {
+                                icds.push({
+                                    code: icdCodes[i].value,
+                                    slNo: i + 1,
+                                    description: icdCodes[i].description
+                                })
+                            }
+                            commonjs.showNestedDialog({
+                                header: 'ICD10 Codes for ICD9 - ' + self.icd9Code,
+                                width: '55%',
+                                height: '65%',
+                                html: self.icd9to10Template({
+                                    icds: icds
+                                })
+                            });
+                            commonjs.processPostRender();
+                            $('#btnSaveSelectedIcd').click(function () {
+                                self.saveIcd10Codes()
+                            })
+                        } else if (model && model.result && model.result.data && model.result.data.errors && model.result.data.errors.validation && model.result.data.errors.validation.code && model.result.data.errors.validation.code.length) {
+                            var errorMsg = model.result.data.errors.validation.code[0];
+                            commonjs.showError(errorMsg)
+                        } else if (model && model.result && model.result.data && model.result.data.errors && model.result.data.errors && model.result.data.errors.query) {
+                            var errorMsg = model.result.data.errors.query;
+                            commonjs.showError(errorMsg)
+                        } else if (model && model.result && model.result.err) {
+                            commonjs.showError(model.result.err)
+                        } else {
+                            commonjs.showError('No Matches Found')
+                        }
+                        commonjs.hideLoading();
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                })
+            },
+
+            saveIcd10Codes: function () {
+                var self = this;
+                if ($('input[name=icdCode]:checked').length) {
+                    var selected_element = $('input[name=icdCode]:checked').closest('tr');
+                    $.ajax({
+                        url: '/exa_modules/billing/claims/claim/icdCode',
+                        type: 'POST',
+                        data: {
+                            code: $(selected_element).data('code'),
+                            description: $(selected_element).data('description'),
+                            code_type: 'icd10',
+                            is_active: true
+                        },
+                        success: function (model, response) {
+                            if (response && response == 'success') {
+                                commonjs.hideNestedDialog();
+                                self.addDiagCodes(true);
+                            }
+                        },
+                        error: function (err, response) {
+                            commonjs.handleXhrError(err, response);
+                        }
+                    })
+                }
+                else {
+                    commonjs.showWarning('Please select one icd code');
+                    return;
                 }
             },
 
