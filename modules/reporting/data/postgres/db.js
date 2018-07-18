@@ -38,7 +38,7 @@ const config = require('../../../../server/config')
 const pgPoolConfig = pgConnStrngParser(dbConnString);
 pgPoolConfig.max = 4;
 pgPoolConfig.min = 2;
-pgPoolConfig.idleTimeoutMillis = 180000;
+pgPoolConfig.idleTimeoutMillis = 600000;
 pgPoolConfig.application_name = 'exa_web_reporting';
 pgPoolConfig.Promise = require('bluebird');
 

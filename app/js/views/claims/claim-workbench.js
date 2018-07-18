@@ -426,7 +426,7 @@ define(['jquery',
                 var filterID = commonjs.currentStudyFilter;
                 var filter = commonjs.loadedStudyFilters.get(filterID);
 
-                var claimIds =[],existingBillingMethod='',existingClearingHouse='',existingEdiTemplate='', selectedpayerType = [];      
+                var claimIds =[],existingBillingMethod='',existingClearingHouse='',existingEdiTemplate='', selectedPayerName = [];      
 
                 for (var i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
                     var rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;
@@ -464,8 +464,8 @@ define(['jquery',
                         existingClearingHouse = clearingHouse;
                     }
 
-                    var payerType = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'payer_name'); 
-                    selectedpayerType.push(payerType)
+                    var payerName = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'payer_name'); 
+                    selectedPayerName.push(payerName)
 
                     // var ediTemplate = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'edi_template');
                     // if (existingEdiTemplate == '') existingEdiTemplate = ediTemplate;
@@ -507,10 +507,10 @@ define(['jquery',
                         sortBy = 'service_date';
                     }
                 }
-                var uniquePayerType = $.unique(selectedpayerType);
+                var uniquePayerName = $.unique(selectedPayerName);
                 
                 if(existingBillingMethod === 'direct_billing') {
-                    if(uniquePayerType && uniquePayerType.length && uniquePayerType.length > 1) {
+                    if(uniquePayerName && uniquePayerName.length && uniquePayerName.length > 1) {
                         self.printInvoiceClaim('direct_invoice', claimIds, sortBy)
                         return;
                     }

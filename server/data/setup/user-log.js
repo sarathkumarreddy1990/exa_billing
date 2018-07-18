@@ -7,10 +7,10 @@ module.exports = {
         let {
             username,
             clientIP,
-            loggedInDate,
-            loggedOutDate,
-            lastAccessedDate,
-            logSource,
+            logged_in_dt,
+            logged_out_dt,
+            last_access_dt,
+            login_source,
             sortOrder,
             sortField,
             pageNo,
@@ -18,27 +18,27 @@ module.exports = {
         } = params;
 
         if (username) {
-            whereQuery.push(`u.last_name ILIKE '%${username}%' OR u.first_name ILIKE '%${username}%'`);
+            whereQuery.push(`COALESCE(TRIM(u.last_name),'') ||' '|| COALESCE(TRIM(u.first_name),'') ILIKE '%${username}%' `);
         }
 
         if (clientIP) {
             whereQuery.push(` client_info->'ip' ILIKE '%${clientIP}%'`);
         }
 
-        if (loggedInDate) {
-            whereQuery.push(` logged_in_dt::date =  ${loggedInDate}`);
+        if (logged_in_dt) {
+            whereQuery.push(` logged_in_dt::date =  '${logged_in_dt}'::date`);
         }
 
-        if(loggedOutDate){
-            whereQuery.push(` logged_out_dt::date =  ${loggedOutDate}`);
+        if(logged_out_dt){
+            whereQuery.push(` logged_out_dt::date =  '${logged_out_dt}'::date`);
         }
 
-        if(lastAccessedDate){
-            whereQuery.push(` last_access_dt::date =  ${lastAccessedDate}`);
+        if(last_access_dt){
+            whereQuery.push(` last_access_dt::date =  '${last_access_dt}'::date`);
         }
 
-        if(logSource){
-            whereQuery.push(` login_source = '${logSource}'`);
+        if(login_source){
+            whereQuery.push(` login_source = '${login_source}'`);
         }
 
         const sql = SQL`SELECT 
