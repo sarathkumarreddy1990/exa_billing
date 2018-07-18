@@ -156,7 +156,7 @@ module.exports = {
                                 , id
                                 , ${screenName}
                                 , ${moduleName}
-                                , 'new claim created ' || new_claim.id
+                                , 'new claim created ' || new_claim.id 
                                 , ${clientIp}
                                 , json_build_object(
                                     'old_values', COALESCE(old_values, '{}'),
@@ -174,7 +174,7 @@ module.exports = {
                                 , id
                                 , ${screenName}
                                 , ${moduleName}
-                                , 'Claim ID of Charge  updated  ' ||'Charge ID  '|| update_charge.id || 'Claim ID  ' || update_charge.claim_id
+                                , 'Claim ID of Charge  updated  ' ||' Charge ID  '|| update_charge.id || '  New Claim ID  ' || update_charge.claim_id ||  '  Old Claim ID ' ||  ${claim_id} 
                                 , ${clientIp}
                                 , json_build_object(
                                     'old_values', COALESCE(old_values, '{}'),

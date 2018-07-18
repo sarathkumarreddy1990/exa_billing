@@ -157,7 +157,8 @@ define('grid', [
                     billed_status:_storeEle.billed_status,
                     claim_id:_storeEle.claim_id,
                     invoice_no:_storeEle.invoice_no,
-                    payer_type:_storeEle.payer_type
+                    payer_type:_storeEle.payer_type,
+                    billing_method:_storeEle.billing_method
                 };
                 if (_storeEle.billed_status == 'billed') {
                     isbilled_status = true;
@@ -444,12 +445,12 @@ define('grid', [
                     }
                    
                 self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
-                self.claimInquiryView.patientInquiryForm(studyIds,selectedStudies[0].patient_id, selectedStudies[0].patient_name);
+                self.claimInquiryView.patientInquiryForm(studyIds, selectedStudies[0].patient_id, selectedStudies[0].patient_name);
                 });
 
 
                 var liInvoiceInquiry = commonjs.getRightClickMenu('anc_invoice_inquiry','setup.rightClickMenu.directBillingInquiry',false,'Direct Billing Inquiry',false);
-                if(studyArray.length == 1)
+                if (studyArray.length == 1 && selectedStudies[0].billing_method == "direct_billing")
                     $divObj.append(liInvoiceInquiry);
                 self.checkRights('anc_invoice_inquiry');
                 $('#anc_invoice_inquiry').click(function () {

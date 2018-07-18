@@ -46,6 +46,15 @@ get_claim_details AS(
  get_full_name(pp.last_name,pp.first_name) AS "Patient Name",
  to_char(bc.claim_dt, 'MM/DD/YYYY') AS "Claim Date",
  pp.account_no as "Account #",
+ 
+ CASE WHEN payer_type = 'primary_insurance' THEN 1
+ WHEN payer_type = 'secondary_insurance' THEN 1
+ WHEN payer_type = 'tertiary_insurance' THEN 1
+ WHEN payer_type = 'referring_provider' THEN 4
+ WHEN payer_type = 'patient' THEN 2
+ WHEN payer_type = 'ordering_facility' THEN 3  
+END AS "Responsible Party_order_by",
+
  <% if(incPatDetail == 'true') { %>     
     CASE WHEN primary_patient_insurance_id is not null THEN 'Primary Insurance' ELSE '-No payer-'  END AS "Responsible Party",     
 <%} else {%>    
@@ -136,9 +145,8 @@ COALESCE(CASE WHEN gcd.age > 90 and gcd.age <=120 THEN gcd.balance END,0::money)
       AND <%=companyId%>
       <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
       <% if(billingProID) { %> AND <% print(billingProID); } %>
-      <% if(excCreditBal == 'true'){ %> AND  gcd.balance::money > '0' <% } %>
-GROUP BY "Payer Name","Facility","Claim ID","Cut-off Date","Billing Pro Name","Patient Name","Claim Date","Account #","Responsible Party","EDI","Provider Type", gcd.age,gcd.balance
-
+      <% if(excCreditBal == 'true'){ %> AND  gcd.balance::money > '0' <% } %>      
+      GROUP BY "Payer Name","Facility","Claim ID","Cut-off Date","Billing Pro Name","Patient Name","Claim Date","Account #","Responsible Party","EDI","Provider Type", gcd.age,gcd.balance
 ),
 aged_ar_sum AS ( SELECT 
        null::text as "Facility", 
@@ -148,6 +156,7 @@ aged_ar_sum AS ( SELECT
        null::text as "Patient Name", 
        null::text as "Claim Date", 
        null::varchar(64) as "Account #", 
+       "Responsible Party_order_by" ,
        null::text as "Responsible Party",
        "Payer Name",
        null::text as "EDI",
@@ -178,7 +187,7 @@ aged_ar_sum AS ( SELECT
    FROM 
        aging_details 
    GROUP BY 
-       "Payer Name"       
+   "Responsible Party_order_by", "Payer Name"            
 ),
 aged_ar_total AS ( SELECT 
     null::text as "Facility", 
@@ -188,10 +197,11 @@ aged_ar_total AS ( SELECT
     null::text as "Patient Name", 
     null::text as "Claim Date", 
     null::varchar(64) as "Account #", 
+    null::bigint "Responsible Party_order_by" ,
     null::text as "Responsible Party",
     null::text AS "Payer Name",
     null::text as "EDI",
-    ('--- Total ---')::text as "Provider Type", 
+    ('- Total -')::text as "Provider Type", 
     sum(cast("0-30 Sum" AS NUMERIC))::MONEY as "0-30 Sum", 
     sum(cast("30-60 Sum" AS NUMERIC))::MONEY as "30-60 Sum",
     sum("60-90 Sum") as "60-90 Sum",
@@ -228,8 +238,44 @@ aging_result as ( SELECT
                   * 
                   FROM aged_ar_total 
 ) 
-SELECT * FROM aging_result 
-    ORDER BY   "Payer Name", "Responsible Party"
+SELECT 
+	   "Facility" 
+	 , "Claim ID" 
+	 , "Cut-off Date"
+	 , "Billing Pro Name"
+	 , "Patient Name"
+	 , "Claim Date"
+	 , "Account #"
+	 , "Responsible Party" 
+	 , "Payer Name"
+	 , "EDI"
+	 , "Provider Type"
+	 , "0-30 Sum"
+	 , "30-60 Sum"
+	 , "60-90 Sum"
+     , "90-120 Sum",
+     <% if(excelExtented == 'true') { %>  
+          "120-150 Sum",
+          "150-180 Sum",
+          "180-210 Sum",
+          "210-240 Sum",
+          "240-270 Sum",
+          "270-300 Sum",
+          "300-330 Sum",
+          "330-360 Sum",
+          "360-450 Sum (Q4)",
+          "450-540 Sum (Q3)",
+          "540-630 Sum (Q2)",
+          "630-730 Sum (Q1)",
+          "730+ Sum",
+        <% } else { %> 
+             "120+ Sum",
+        <% }%>
+	  "Total"
+FROM
+    aging_result 
+ORDER BY   "Responsible Party_order_by","Payer Name", "Responsible Party"
+
    
 `);
 

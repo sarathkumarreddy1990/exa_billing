@@ -2195,6 +2195,11 @@ define(['jquery',
                     $('.multiselect-container li').css('width', '300px');
                     $('label').css('color', 'black');
                     $('.multiselect-container li a').css('padding', '0');
+
+                    $.each($('.multiselect-item span'), function (index, obj) {
+                        $(this).find('.glyphicon-search').removeClass('glyphicon').removeClass('glyphicon-search').addClass('fa fa-search').css('margin', '10px');
+                        $(this).find('.glyphicon-remove-circle').removeClass('glyphicon').removeClass('glyphicon-remove-circle').addClass('fa fa-times');                        
+                    });
                 });
             },
 

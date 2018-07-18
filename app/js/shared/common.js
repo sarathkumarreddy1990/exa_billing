@@ -1255,7 +1255,12 @@ var commonjs = {
                 break;
 
             case '23505':
-                commonjs.showError('Duplicate record found');
+                var errMessage = 'Duplicate record found';
+                if(exaInternalErrors && exaInternalErrors.constraints && exaInternalErrors.constraints[err.constraint]) {
+                    errMessage = exaInternalErrors.constraints[err.constraint];
+                }
+
+                commonjs.showError(errMessage);
                 break;
 
             case '23514':
@@ -3971,6 +3976,14 @@ var commonjs = {
 
         app.currentCulture = cultureCode;
         commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
+        commonjs.setMultiselectSearchIcon();
+    },
+
+    setMultiselectSearchIcon: function () {
+        $.each($('.multiselect-item span'), function (index, obj) {
+            $(this).find('.glyphicon-search').removeClass('glyphicon').removeClass('glyphicon-search').addClass('fa fa-search').css('margin', '10px');
+            $(this).find('.glyphicon-remove-circle').removeClass('glyphicon').removeClass('glyphicon-remove-circle').addClass('fa fa-times');                        
+        });
     },
 
     beautifyMe: function () {
