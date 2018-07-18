@@ -107,7 +107,7 @@
             "refund": "Refund",
             "balance": "Balance",
             "receivedAmount": "Received Amount",
-            "paymentmode": "Payment As Mode",
+            "paymentmode": "Payment Mode",
             "cash": "Cash",
             "cheque": "Check",
             "card": "Card",
