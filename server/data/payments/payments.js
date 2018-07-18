@@ -538,7 +538,7 @@ module.exports = {
 
     updatePaymentApplication: async function (params) {
 
-        let logDescription = `Payment application updated for claim id : ${params.claimId} For payment id : `;
+        let logDescription = ` Payment application updated for claim id : ${params.claimId} For payment id : `;
 
         const sql = SQL`WITH update_application_details AS(
                             SELECT 
@@ -612,7 +612,6 @@ module.exports = {
                                 amount,
                                 adjustment_code_id,
                                 created_by,
-                                payment_application_id,
                                 applied_dt
                             ) 
                             SELECT 
@@ -622,7 +621,6 @@ module.exports = {
                                 , amount
                                 , adjustment_id
                                 , ${params.userId}
-                                , parent_application_id
                                 , parent_applied_dt
                             FROM update_application_details
                             WHERE  payment_application_id is null and (amount != 0::money OR ${JSON.stringify(params.save_cas_details)} != '[]')

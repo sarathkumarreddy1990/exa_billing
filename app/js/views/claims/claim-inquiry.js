@@ -365,7 +365,7 @@ define([
                         { name: '', index: 'id', key: true, hidden: true, search: false },  
                         { name: 'claim_ids', hidden: true} ,                    
                         {
-                            name: 'invoice_no', search: true, width: 100
+                            name: 'invoice_no', search: true, width: 100 
                         },
                         {
                             name: 'invoice_date', search: true, formatter: self.dateFormatter, width: 150
@@ -415,7 +415,9 @@ define([
                         payerType: payer_type
                     },
                     pager: '#gridPager_invoiceClaim',
-                    onaftergridbind: self.afterGridBind,
+                    onaftergridbind: function (model, gridObj) {
+                        self.setMoneyMask();
+                    }
                 });
 
 
@@ -452,7 +454,7 @@ define([
                 });
 
                 $('.inquiryReload').click(function(){
-                    self.showInvoiceGrid.refreshAll();
+                    self.invoiceTable.refreshAll();
                 });
 
             },
@@ -546,7 +548,6 @@ define([
                     $('#tdAge120').html(age_summary && age_summary.total_age_121 || '$0.00');
                     $('#tdAgeTotal').html(age_summary && age_summary.total_balance || '$0.00'); 
                     $('#spUnapplied').html(age_summary && age_summary.total_unapplied || '$0.00');
-
             },
 
             showClaimCommentsGrid: function () {
@@ -1185,6 +1186,15 @@ define([
                 var self = this;
                 self.unappliedPaymentView = new unappliedPaymentView({el: $('#modal_div_container_nested')}); 
                 self.unappliedPaymentView.render(patientID);
+            },
+
+            setMoneyMask: function (obj1, obj2) {
+                $("#gs_invoice_bill_fee").addClass('floatbox');
+                $("#gs_invoice_payment").addClass('floatbox');
+                $("#gs_invoice_adjustment").addClass('floatbox');
+                $("#gs_invoice_balance").addClass('floatbox');
+                $("#gs_invoice_no").addClass('integerbox');
+                commonjs.validateControls();
             }
     });
 });
