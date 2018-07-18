@@ -48,8 +48,8 @@ router.post('/create_claim', async function (req, res) {
     httpHandler.send(req, res, data);
 });
 
-router.get('/validate_claims', async function (req, res) {
-    const data = await claimWorkbenchController.validateClaim(req.query);
+router.post('/validate_claims', async function (req, res) {
+    const data = await claimWorkbenchController.validateClaim(req.body);
     httpHandler.send(req, res, data);
 });
 

@@ -3618,8 +3618,8 @@ BEGIN
             AND  chd.id is NOT NULL
     )
     SELECT
-	(SELECT id FROM insurance_audit_cte) as insurance_details,
-	(SELECT id FROM claim_update_audit_cte) as claim_details,
+	(SELECT id FROM insurance_audit_cte limit 1) as insurance_details,
+	(SELECT id FROM claim_update_audit_cte limit 1) as claim_details,
         (SELECT id FROM charge_update_audit_cte limit 1) as charge_details,
 	( SELECT json_agg(row_to_json(save_insurance)) save_insurance
                 FROM (

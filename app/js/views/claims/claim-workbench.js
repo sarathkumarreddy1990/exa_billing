@@ -1155,8 +1155,9 @@ define(['jquery',
                             table.renderStudy();
 
                             $('#btnValidateExport').one().click(function (e) {
-                                commonjs.showLoading('Export is In Process ...')
-                                table.renderStudy(true);                                  
+                                commonjs.showStatus('Export Is In Process...')                               
+                                table.renderStudy(true);      
+                                commonjs.showLoading('Export is In Process ...')                           
                                 $('#btnValidateExport').css('display','none');    
                                 commonjs.hideLoading();
 
@@ -1707,7 +1708,7 @@ define(['jquery',
                 
                 $.ajax({
                     url: '/exa_modules/billing/claim_workbench/validate_claims',
-                    type: 'GET',
+                    type: 'POST',
                     data: {
                         claim_ids: claimIds 
                     },

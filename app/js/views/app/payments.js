@@ -90,6 +90,10 @@ define(['jquery',
                 this.paymentsList = new paymentsLists();
                 this.adjustmentCodeList = new modelCollection(adjustment_codes);
                 this.claimStatusList = new modelCollection(claim_status);
+
+                commonjs.initHotkeys({
+                    NEW_PAYMENT: '#btnPaymentAdd'
+                });
             },
 
             initializeDateTimePickers: function () {
