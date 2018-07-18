@@ -108,6 +108,7 @@
             "balance": "Balance",
             "receivedAmount": "Received Amount",
             "paymentmode": "Payment Mode",
+            "paymentASmode": "Payment AS Mode",
             "cash": "Cash",
             "cheque": "Check",
             "card": "Card",
