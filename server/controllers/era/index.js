@@ -20,28 +20,25 @@ const createDir = function (fileStorePath, filePath) {
 
     logger.info(`File store: ${fileStorePath}, ${filePath}`);
 
-
-    let dirExists = fs.existsSync(dirPath);
+    let dirExists = fs.existsSync(fileStorePath);
 
     if (!dirExists) {
-        logger.info(`Directory not found -  ${dirPath}`);
+        logger.info(`Root directory not found in file store -  ${fileStorePath}`);
         return {
             status: false,
-            message: 'Directory not found in file store'
+            message: 'Root directory not found in file store'
         };
     }
-
+    
     if (fileStorePath) {
-        if (!fs.exists(dirPath)) {
-            mkdirp(dirPath);
+        const folderExist = fs.existsSync(dirPath);
+
+        if (folderExist) {            
             return { status: true };
         }
 
-        logger.info(`Directory not found -  ${dirPath}`);
-        return {
-            status: false,
-            message: 'Directory not found in file store'
-        };
+        mkdirp(dirPath);
+        return { status: true };
     }
 
     logger.info(`Directory not found -  ${dirPath}`);
