@@ -101,6 +101,7 @@ module.exports = {
         'billing_classes': 'BICL',
         'claim_status': 'CLST',
         'billing_providers': 'BIPR',
+        'provider_id_codes': 'BIPR',
         'provider_id_code_qualifiers': 'PRCQ',
         'billing_messages': 'BILM',
         'payment_reasons': 'PARE',
