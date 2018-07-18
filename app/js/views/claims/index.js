@@ -384,7 +384,7 @@ define(['jquery',
                             self.claim_row_version = claimDetails.claim_row_version || null;
 
                             self.facilityId = claimDetails.facility_id; // claim facility_date
-                            self.studyDate = commonjs.getConvertedFacilityTime(claimDetails.claim_dt, "", claimDetails.facility_id, "L");
+                            self.studyDate = self.cur_study_date; // Assign claim data as studyDate variable to newly adding charges
                             /* Bind claim charge Details*/
                             $('#tBodyCharge').empty();
                             claimDetails.claim_charges = claimDetails.claim_charges || [];
@@ -663,7 +663,7 @@ define(['jquery',
                     }
                     var currentDate = new Date();
                     var defaultStudyDate = moment(currentDate).format('L');
-                    var lineItemStudyDate = self.studyDate && self.studyDate != '' ? self.studyDate : '';
+                    var lineItemStudyDate = self.studyDate && self.studyDate != '' ? moment(self.studyDate).format('L') : '';
                     $('#txtClaimDate').val(self.studyDate ? lineItemStudyDate : defaultStudyDate);
                 }
                 /* Common Details end */
@@ -831,8 +831,6 @@ define(['jquery',
                 if (!this.rendered)
                     this.render('claim');
 
-                self.studyDate = (primaryStudyDetails.study_date !='null' && commonjs.checkNotEmpty(primaryStudyDetails.study_date) ? commonjs.convertToFacilityTimeZone(primaryStudyDetails.facility_id, primaryStudyDetails.study_date).format('L') : '');
-
                 self.getLineItemsAndBind(selectedStudyIds);
                 if(options && options == 'patientSearch'){
                     self.bindDetails();
@@ -955,9 +953,8 @@ define(['jquery',
                             if (model && model.length > 0) {
                                 $('#tBodyCharge').empty();
                                 var modelDetails = model[0];
-                                var studyDate = modelDetails && modelDetails.charges && modelDetails.charges.length && modelDetails.charges[0].study_dt ? modelDetails.charges[0].study_dt : "" 
+                                self.studyDate = modelDetails && modelDetails.charges && modelDetails.charges.length && modelDetails.charges[0].study_dt ? modelDetails.charges[0].study_dt : self.cur_study_date ;
                                 self.facilityId = modelDetails && modelDetails.charges && modelDetails.charges.length && modelDetails.charges[0].facility_id ? modelDetails.charges[0].facility_id : self.facilityId ;
-                                self.studyDate =  commonjs.getConvertedFacilityTime(studyDate, moment(modelDetails.charges[0].study_dt), "", self.facilityId, "L");
                                 var _defaultDetails = modelDetails.claim_details && modelDetails.claim_details.length > 0 ? modelDetails.claim_details[0] : {};
                                 var _diagnosisProblems = modelDetails.problems && modelDetails.problems.length > 0 ? modelDetails.problems : [];
                                 var diagnosisCodes = [];
@@ -1082,7 +1079,7 @@ define(['jquery',
             addLineItems: function (data, index, isDefault) {
                 var self = this;
 
-                data.charge_dt = self.studyDate ? self.studyDate : '--';
+                data.charge_dt = commonjs.checkNotEmpty(self.studyDate) ? commonjs.convertToFacilityTimeZone(self.facilityId, self.studyDate).format('L') : '--';
                 self.bindModifiersData(data);
                 var chargeTableRow = self.chargerowtemplate({ row: data });
                 $('#tBodyCharge').append(chargeTableRow);
@@ -3453,7 +3450,7 @@ define(['jquery',
                                 _.each(charges, function (study) {
                                     study.study_description = study.study_description ? study.study_description : '--';
                                     study.accession_no = study.accession_no ? study.accession_no : '--';
-                                    var study_date = study.study_dt = study.study_dt ? commonjs.convertToFacilityTimeZone(app.facilityID, moment(study.study_dt)).format('L LT z') : commonjs.convertToFacilityTimeZone(app.facilityID, moment()).format('L');
+                                    var study_date = study.study_dt ? commonjs.convertToFacilityTimeZone(app.facilityID, moment(study.study_dt)).format('L LT z') : '--'
                                     $list.append('<li><input id="studyChk_' + study.id + '" type="checkbox" name="chkStudy" data-study_dt="' + study.study_dt + '" data-accession_no="' + study.accession_no + '" />'+
                                     '<label style="font-weight: bold;overflow-wrap: break-word;"  for="studyChk_' + study.id + '" >' + study.study_description
                                     + ' ( Accession# : ' + study.accession_no + ' , Study.Date: ' + study_date + ')</label></li>');
@@ -3556,8 +3553,8 @@ define(['jquery',
                 $('#ddlResponsible').val('PPP');
 
                 self.cur_study_date = commonjs.convertToFacilityTimeZone(app.facilityID, moment()).format('L LT z')
-                document.querySelector('#txtClaimDate').value = moment().format('YYYY-MM-DD')
-                self.studyDate = commonjs.convertToFacilityTimeZone(app.facilityID, moment()).format('L')
+                document.querySelector('#txtClaimDate').value = moment().format('YYYY-MM-DD');
+
                 // Bind Patient Default details
                 var renderingProvider = patient_details.rendering_provider_full_name || self.usermessage.selectStudyReadPhysician;
                 var service_facility_name = patient_details.service_facility_name || self.usermessage.selectOrdFacility;
