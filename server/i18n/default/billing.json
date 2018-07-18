@@ -47,6 +47,7 @@
             "claim": "Claim",
             "reprint": "Reprint",
             "EDIResponse": "EDI Response",
+            "ediCode": "EDI Code",
             "warningMessages": "Warning Messages",
             "download": "Download",
             "search": "Search",
@@ -411,6 +412,19 @@
             "appointmentStatus": "Appointment Status",
             "studyProgress": "Study Progress - Tech.",
             "radStatus": "Rad Status"
+        },
+        "insurance": {
+            "attorney":"Attorney",
+            "medicare":"Medicare",
+            "medicaid":"Medicaid",
+            "commercial":"Commercial",
+            "blueCross":"Blue Cross",
+            "railroadMC":"Railroad MC",
+            "workersCompensation":"Worker's Compensation",
+            "xChampus":"X Champus",
+            "yFacility":"Y Facility",
+            "mDMERC":"M DMERC",
+            "fileIndicatorCode": "Claim File Indicator Code"
         }
     }    
 }
