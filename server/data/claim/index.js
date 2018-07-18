@@ -165,6 +165,7 @@ module.exports = {
                             , ip.insurance_info->'State' AS ins_state
                             , ip.insurance_info->'ZipCode' AS ins_zip_code
                             , ip.insurance_info->'Address1' AS ins_pri_address
+                            , ip.insurance_info->'PhoneNo' AS ins_phone_no
                             , ip.insurance_code
                             , pi.coverage_level
                             , pi.subscriber_relationship_id   
