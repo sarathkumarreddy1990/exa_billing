@@ -42,7 +42,7 @@ module.exports = {
             WHERE NOT EXISTS (
                 SELECT * FROM billing.user_settings WHERE user_id = ${args.userId} AND grid_name = ${args.flag}
             )
-            RETURNING *
+            RETURNING * , '{}'::jsonb old_values 
         ),
         update_user_setting AS 
         (
@@ -60,11 +60,53 @@ module.exports = {
             WHERE 
                 user_id = ${args.userId}
                 AND grid_name = ${args.flag}
-            RETURNING *
+            RETURNING *, 
+            (
+                SELECT row_to_json(old_row) 
+                FROM   (SELECT * 
+                        FROM   billing.user_settings
+                        WHERE  user_id = ${args.userId}  AND grid_name = ${args.flag} ) old_row 
+            ) old_values
+        ),
+        insert_audit_usersettings AS (
+            SELECT billing.create_audit(
+                  ${args.companyId}
+                , 'user_settings'
+                , id
+                , ${args.screenName}
+                , 'setup'
+                , 'User Settings created ' 
+                , ${args.clientIp}
+                , json_build_object(
+                    'old_values', COALESCE(old_values, '{}'),
+                    'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM insert_user_setting) temp_row)
+                  )::jsonb
+                , ${args.userId}
+              ) AS id 
+            FROM insert_user_setting
+            WHERE id IS NOT NULL
+        ), 
+        update_audit_usersettings AS (
+            SELECT billing.create_audit(
+                  ${args.companyId}
+                , 'user_settings'
+                , id
+                , ${args.screenName}
+                , 'setup'
+                , 'User Settings Updated' 
+                , ${args.clientIp}
+                , json_build_object(
+                    'old_values', COALESCE(old_values, '{}'),
+                    'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_user_setting ) temp_row)
+                  )::jsonb
+                , ${args.userId}
+              ) AS id 
+            FROM update_user_setting
+            WHERE id IS NOT NULL
         )
-        SELECT id FROM insert_user_setting
+        SELECT id FROM insert_audit_usersettings
         UNION
-        SELECT id FROM update_user_setting`;
+        SELECT id FROM update_audit_usersettings`;
 
         return await query(querySetting); 
 
