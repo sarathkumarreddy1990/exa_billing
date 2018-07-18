@@ -603,6 +603,9 @@ function customGrid ( datastore, gridID ) {
         $loading.show();
         commonjs.showLoading()
         self.setSearchQuery();
+        if (self.options.gridelementid === "#tblpaymentsGrid") {
+            commonjs.paymentFilterFields = [];
+        }       
         var customArgs = null;
         var params = $tblGrid.jqGrid("getGridParam");
         if ( params && params.customargs ) {
@@ -666,7 +669,8 @@ function customGrid ( datastore, gridID ) {
                 if ( commonjs.isValidResponse(response) ) {
                     // console.log('datastore.fetch, url: %s, data: %O', self.datastore.url ? self.datastore.url: "---", _data);
                     // console.log('datastore.fetch, response: %O', response);
-                    app.workListStudiesData = response.result;
+                    //app.workListStudiesData = response.result;
+                    
                     if ( typeof isScroll === 'function' ) {
                         isScroll(self);
                     }
@@ -741,6 +745,17 @@ function customGrid ( datastore, gridID ) {
         }
     };
 
+    var getPaymentHeaderValues = function (elementID) {
+        var paymentFilterValues='';
+        if (commonjs.paymentFilterFields) {
+            paymentFilterValues =  $.grep(commonjs.paymentFilterFields, function (obj) {
+                    return obj && (obj.split('~')[0] == elementID)
+            });
+            return paymentFilterValues[0].split('~')[1];   
+        }else return '';
+       
+    };
+
     this.setSearchQuery = function () {
         var filterData = [];
         var filterRegData = [];
@@ -765,7 +780,19 @@ function customGrid ( datastore, gridID ) {
 
         $.each(elements, function (index, element) {
             if (element && element.id == 'gs_assigned_to' && !$(element).val() && self.options.isClaimGrid) {
-                $("#gs_assigned_to").val(app.userID)
+                $("#gs_assigned_to").val(app.userID);
+                if (app.userInfo && app.userInfo.user_settings && (app.userInfo.user_settings.assignClaimsToFollowUpQueue == "true" || app.userInfo.user_type == 'SU')) {
+                    $("#gs_assigned_to").removeAttr('disabled');
+
+                }
+                else $("#gs_assigned_to").attr('disabled', 'disabled');
+            }
+
+            if (commonjs.paymentFilterFields && commonjs.paymentFilterFields.length && self.options.gridelementid === "#tblpaymentsGrid") {
+                var paymentValue = getPaymentHeaderValues(element.id);
+                if (paymentValue) {
+                    $("#" + element.id).val(paymentValue);
+                }
             }
 
             if (element && element.id == 'gs_billing_method' && $(element).val() == '' && self.options.isClaimGrid) {
@@ -825,20 +852,87 @@ function customGrid ( datastore, gridID ) {
             }
         });
 
-        var filterDataValue=filterData;
+        var filterDataValue = filterData;
 
         if (self.options.isClaimGrid) {
             if (this.options.filterid == 'Follow_up_queue') {
-                $("#btnPaperClaim").hide();
                 $("#btnInsuranceClaim").hide();
-            } else if (filterCol.indexOf('billing_method') > -1 && filterDataValue.indexOf('paper\\_claim')>-1) {                
-                $("#btnPaperClaim").show();
-                $("#btnInsuranceClaim").hide();
-            } else {
-                $("#btnPaperClaim").hide();
-                $("#btnInsuranceClaim").show();
-            }
+            } else if (filterCol.indexOf('billing_method') > -1 && filterDataValue.indexOf('paper\\_claim') > -1) {
+                $("#liEC").addClass('disabled');
+                $("#liPCBW").removeClass('disabled');
+                $("#liPCRED").removeClass('disabled');
+                $("#liINSD").addClass('disabled');
+                $("#liINPN").addClass('disabled');
+                $("#liPP").addClass('disabled');
+                $("#btnClaimFormat").attr('data-method', 'paper_claim');
+                
+                if (localStorage.getItem('default_paperclaim')) {
+                    $("#btnClaimFormat").text(localStorage.getItem('default_paperclaim'));
+                    $("#btnClaimFormat").attr('data-format', localStorage.getItem('default_paperclaim_format'));
+                    $("#btnClaimFormat").attr('data-value', localStorage.getItem('default_paperclaim'));
 
+                } else {
+                    $("#btnClaimFormat").text($("#liPCBW").find('a').attr('data-value'));
+                    $("#btnClaimFormat").attr('data-format', $("#liPCBW").find('a').attr('data-format'));
+                    $("#btnClaimFormat").attr('data-value', $("#liPCBW").find('a').attr('data-value'));
+                }
+
+
+            }
+            else if (filterCol.indexOf('billing_method') > -1 && filterDataValue.indexOf('electronic\\_billing') > -1) {
+                $("#liEC").removeClass('disabled');
+                $("#liPCBW").addClass('disabled');
+                $("#liPCRED").addClass('disabled');
+                $("#liINSD").addClass('disabled');
+                $("#liINPN").addClass('disabled');
+                $("#liPP").addClass('disabled');
+                $("#btnClaimFormat").attr('data-method', 'electronic_billing');
+                $("#btnClaimFormat").text($("#liEC").find('a').attr('data-value'));
+                $("#btnClaimFormat").attr('data-value', $("#liEC").find('a').attr('data-value'));
+
+            }
+            else if (filterCol.indexOf('billing_method') > -1 && filterDataValue.indexOf('direct\\_billing') > -1) {
+                $("#liEC").addClass('disabled');
+                $("#liPCBW").addClass('disabled');
+                $("#liPCRED").addClass('disabled');
+                $("#liINSD").removeClass('disabled');
+                $("#liINPN").removeClass('disabled');
+                $("#liPP").addClass('disabled');
+                $("#btnClaimFormat").attr('data-method', 'direct_billing');
+
+                if (localStorage.getItem('default_directbilling')) {
+
+                    $("#btnClaimFormat").text(localStorage.getItem('default_directbilling'));
+                    $("#btnClaimFormat").attr('data-value', localStorage.getItem('default_directbilling'));
+                    $("#btnClaimFormat").attr('data-format', (localStorage.getItem('default_directbilling_format')));
+
+                }
+                else {
+
+                    $("#btnClaimFormat").text($("#liINSD").find('a').attr('data-value'));
+                    $("#btnClaimFormat").attr('data-value', $("#liINSD").find('a').attr('data-value'));
+                    $("#btnClaimFormat").attr('data-format', $("#liINSD").find('a').attr('data-format'));
+                }
+
+            }
+            else if (filterCol.indexOf('billing_method') > -1 && filterDataValue.indexOf('patient\\_payment') > -1) {
+                $("#liEC").addClass('disabled');
+                $("#liPCBW").addClass('disabled');
+                $("#liPCRED").addClass('disabled');
+                $("#liINSD").addClass('disabled');
+                $("#liINPN").addClass('disabled');
+                $("#liPP").removeClass('disabled');
+                $("#btnClaimFormat").attr('data-method', 'patient_payment');
+                $("#btnClaimFormat").text($("#liPP").find('a').attr('data-value'));
+
+            } else {
+                $("#liEC").removeClass('disabled');
+                $("#liPCBW").removeClass('disabled');
+                $("#liPCRED").removeClass('disabled');
+                $("#liINSD").removeClass('disabled');
+                $("#liINPN").removeClass('disabled');
+                $("#liPP").removeClass('disabled');
+            }
         }
         self.pager.set({
             "DefaultFilterQuery": "",
@@ -1141,11 +1235,8 @@ function customGrid ( datastore, gridID ) {
                 SearchFlag:filterObj.pager.get('searchFlag')
             },
             success: function (data, textStatus, jqXHR) {
-                if (data && data.result) {
-                    if (self.options.pagerFlag && self.options.pagerFlag == 'ordering_facility_pager')
-                        filterObj.pager.set({"TotalRecords": data.result.total_records});
-                    else
-                        filterObj.pager.set({"TotalRecords": data.result[0].total_records});
+                if (data && data.length) {
+                    filterObj.pager.set({ "TotalRecords": data[0].total_records });
                     filterObj.setPagerInfos();
 
                     filterObj.pager.set({"LastPageNo": Math.ceil(filterObj.pager.get('TotalRecords') / filterObj.pager.get('PageSize'))});

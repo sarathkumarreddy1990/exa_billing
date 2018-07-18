@@ -1,6 +1,6 @@
 {
     "report": {
-        "arCutoffDate": "AR Cut Off Date",
+        "arCutoffDate": "A/R Cut-off Date",
         "facilities": "Facility",
         "billingProviders": "Billing Provider",
         "reportByPrimaryPayaer": "Report By Primary Payer",
@@ -30,7 +30,7 @@
         "patients": "Patients" ,
         "referingphysician": "Referring Physician",
         "totalByMonth": " By Month / Day",
-        "payToProvider":"Use address of Pay-To-Provider",
+        "payToProvider":"Pay-To-Provider",
         "insurances": "Insurance",
         "insuranceProvider": "Insurance Provider",
         "cpt": "CPT"

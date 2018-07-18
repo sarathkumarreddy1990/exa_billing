@@ -10,6 +10,11 @@ router.get('/', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/count', async function (req, res) {
+    req.query.isGetTotal = false;
+    const data = await paymentsController.getPayments(req.query);
+    httpHandler.sendRows(req, res, data);
+});
 
 router.get('/total_amount', async function (req, res) {
     req.query.isGetTotal = true;

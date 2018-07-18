@@ -21,8 +21,8 @@ WITH details AS(
        
         pip.insurance_name AS "Insurance (Paid)", 
         pip.insurance_code AS "Insurance (Cur)",
-        pr.full_name AS "Ref. Doctor"        
-        --, ac.description       AS "Insurance Payer Type"    
+        pr.full_name AS "Ref. Doctor",        
+        pippt.description AS "Insurance Payer Type" 
     FROM billing.claims bc
     INNER JOIN billing.charges bch ON bch.claim_id = bc.id 
     INNER JOIN public.patients pp on pp.id = bc.patient_id  
@@ -34,7 +34,8 @@ WITH details AS(
     LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
     LEFT JOIN public.providers pr ON  pr.id = ppc.provider_id
      INNER JOIN public.facilities f ON f.id = bc.facility_id
-    <% if (billingProID) { %> INNER JOIN billing.providers bpp ON bp.id = bc.billing_provider_id <% } %>
+     LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
+    <% if (billingProID) { %> INNER JOIN billing.providers bpp ON bp.id = bc.billing_provider_id <% } %>   
         WHERE 1 = 1
         AND <%=companyId%>       
    
@@ -51,8 +52,8 @@ WITH details AS(
         <% if(referringProIds) { %>AND <% print(referringProIds);} %>
     
         <%
-        if(insPaid) { %> AND ( bp.payer_type = 'patient')   <% }
-        else if(patPaid) { %> AND ( bp.payer_type = 'insurance') <% }
+        if(patPaid) { %> AND ( bp.payer_type = 'patient')   <% }
+        else if(insPaid) { %> AND ( bp.payer_type = 'insurance') <% }
         else if(unPaid)  { %> AND ( bp.id is null ) <% }
         else if(insPaid && patPaid )  { %> AND ( bp.payer_type = 'patient' ) OR ( bp.payer_type = 'insurance' ) <% }
         else if(patPaid &&  unPaid)  { %> AND ( bp.payer_type = 'patient' OR bp.id is null ) <% }
@@ -60,7 +61,7 @@ WITH details AS(
         else if(unPaid && insPaid && patPaid)  { %> AND ( bp.payer_type = 'patient' OR bp.payer_type = 'insurance' OR bp.id is null ) <% }
         %>  
         
-    GROUP BY bc.id,pip.insurance_name,pip.insurance_code,pp.last_name,pp.first_name,pr.full_name
+    GROUP BY bc.id,pip.insurance_name,pip.insurance_code,pp.last_name,pp.first_name,pr.full_name, pippt.description
 
     <% if (orderBy == "claimId") { %>  
            ORDER BY  bc.id
@@ -83,7 +84,7 @@ WITH details AS(
          ,null             
              ,(SELECT SUM("Insurance Balance")::money from details)
              ,(SELECT SUM("Charge Amount") FROM details) 
-            ,(SELECT SUM("Paid Amount") from details ) ,'---','---','---'
+            ,(SELECT SUM("Paid Amount") from details ) ,'---','---','---', null
         WHERE (SELECT COUNT(*) FROM details) > 0
 `);
 
@@ -323,13 +324,13 @@ const api = {
 
         if (reportParams.insuranceIds && reportParams.insuranceIds.length > 0) {
             params.push(reportParams.insuranceIds);
-            filters.insuranceIds = queryBuilder.whereIn(`ppi.id`, [params.length]);
+            filters.insuranceIds = queryBuilder.whereIn(`pip.id`, [params.length]);
         }
 
 
         if (reportParams.insuranceGroupList && reportParams.insuranceGroupList.length > 0) {
             params.push(reportParams.insuranceGroupList);
-            filters.insGroups = queryBuilder.whereIn(`pip.insurance_info->'providerType'`, [params.length]);
+            filters.insGroups = queryBuilder.whereIn(`pippt.id`, [params.length]);
         }
 
         if (reportParams.cptCodeLists && reportParams.cptCodeLists.length > 0) {

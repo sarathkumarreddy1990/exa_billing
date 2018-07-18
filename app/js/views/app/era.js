@@ -88,9 +88,8 @@ define([
                                     self.showPayments(rowID, gridData.uploaded_file_name);
                                 }
                                 else {
-                                    commonjs.showWarning('File not in Success status');
+                                    commonjs.showWarning('File not in success status');
                                 }
-
                             }
                         },
                         { name: 'id', index: 'id', searchFlag: 'int', searchFlag: '%' },
@@ -137,6 +136,7 @@ define([
                     },
                     onaftergridbind: function (model, gridObj) {
                         self.afterEraGridBind(model, gridObj, self);
+                        self.setPhoneMask();
                     },
                     ondblClickRow: function (rowID) {
                         var gridData = $('#tblEOBFileList').jqGrid('getRowData', rowID);
@@ -157,6 +157,11 @@ define([
                     $('#tblEOBFileList #' + fileUploadedObj.innerHTML).dblclick();
                     fileUploadedObj.innerHTML = '';
                 }
+            },
+            
+            setPhoneMask: function (obj1, obj2) {
+                $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar input[name=id]").addClass('integerbox');
+                commonjs.validateControls();
             },
 
             fileUpdatedDateFormatter: function (cellvalue, options, rowObject) {
@@ -365,6 +370,13 @@ define([
                     fileStoreExist.innerHTML = '';
                     return false;
                 }
+                else if (fileStoreExist && fileStoreExist.innerHTML != '') {
+                    commonjs.showWarning(fileStoreExist.innerHTML);
+                    fileDuplicateObj.innerHTML = '';
+                    fileUploadedObj.innerHTML = '';
+                    fileStoreExist.innerHTML = '';
+                    return false;
+                }
                 else {
                     this.pager.set({ "PageNo": 1 });
                     $('.ui-jqgrid-htable:visible').find('input, select').val('');
@@ -399,7 +411,7 @@ define([
                     error: function (err, response) {
                         commonjs.handleXhrError(err, response);
                     }
-                })
+                });
             },
 
             showPayments: function (fileId, fileName) {
@@ -416,7 +428,7 @@ define([
                         },
                         success: function (model, response) {
 
-                            if (model && model.rows.length) {
+                            if (model && model.rows && model.rows.length) {
                                 var $eraTable = $('#eraResultTable');
                                 fileName = fileName.substr(0, fileName.lastIndexOf('.'));
                                 

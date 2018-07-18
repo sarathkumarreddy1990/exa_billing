@@ -505,6 +505,7 @@ define([
 
                     /* Bind add button for ordering facilities - SMH */
                     $('#btnAddOrdFacility').unbind('click').click(function () {
+                        if($('#select2-ddlOrdFacility-container').text() === '') return;
                         if ($('#s2id_txtListOrdFacility > a.select2-default').length > 0) {
                             return false;
                         }
@@ -837,7 +838,6 @@ define([
                 }
                 else
                     this.model = new studyFiltersModel();
-                this.studyFilterSideMenuResize();
                 commonjs.validateControls();
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
             },
@@ -1535,7 +1535,7 @@ define([
                     var statusCodes = defaultStatusArray.concat(app.customOrderStatus).concat(app.customStudyStatus);
                     var facilities = app.userInfo.user_type === 'SU' ?
                         app.facilities :
-                        app.userfacilities;
+                        app.userFacilities;
                     setupList('listModality', app.modalities, 'modality_code');
                     setupList('listBodyPart', app.bodyParts);
                     setupList('listStat', app.stat_level.slice(1), 'description', 'level');
@@ -1610,7 +1610,7 @@ define([
             studyFilterSideMenuResize: function () {
                 var ul = $('#ulStudyFilterSideMenu');
                 var h = ul.outerHeight(true) - ul.height();
-                var docHeight = commonjs.setupMenuHeight() - ($('#ulStudyFilterSideMenu').offset().top - h / 2);
+                var docHeight = $('#ulStudyFilterSideMenu').offset().top - h / 2;
                 ul.height(docHeight);
                 $('#divStudyFilterSide').height(docHeight);
             },
@@ -1745,8 +1745,8 @@ define([
                     text = $('#rbtLast').is(':checked') ? 'Last ' : 'Next ';
                     if (commonjs.checkNotEmpty($('#txtLastTime').val())) {
                         var lastFromTo = "",
-                            fromTime = $('#txtFromTimeLast').val(),
-                            toTime = $('#txtToTimeLast').val();
+                            fromTime = self.timeConverter($('#txtFromTimeLast').val()),
+                            toTime = self.timeConverter($('#txtToTimeLast').val());
                         if (fromTime && toTime) {
                             lastFromTo = " " + fromTime + " " + toTime;
                         }
@@ -1761,8 +1761,8 @@ define([
                     var fromDt = $('#txtDateFrom').val(),
                         toDt = $('#txtDateTo').val();
                     if (fromDt && toDt) {
-                        var fromTime = $('#txtFromTimeDate').val() ? " " + $('#txtFromTimeDate').val() : "";
-                        var toTime = $('#txtToTimeDate').val() ? " " + $('#txtToTimeDate').val(): "";
+                        var fromTime = $('#txtFromTimeDate').val() ? " " + self.timeConverter($('#txtFromTimeDate').val()) : "";
+                        var toTime = $('#txtToTimeDate').val() ? " " + self.timeConverter($('#txtToTimeDate').val()): "";
                         $('#lblSummaryDate').text('Date: from ' + fromDt + fromTime + ' to ' + toDt + toTime);
                     }
                 }
@@ -1885,6 +1885,11 @@ define([
                     arrSummary = " " + $('input[name=' + radioName + ']:checked').val() + " " + arrSummary
                 }
                 return arrSummary;
+            },
+
+            timeConverter: function (timeStr){
+               var time = timeStr.split(':');
+               return (time[0] > 12) ? ""+(time[0]-12)+":"+time[1]+" PM": ""+time[0]+":"+time[1]+" AM" ;
             }
         })
     });

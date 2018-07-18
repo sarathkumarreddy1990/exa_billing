@@ -12,6 +12,7 @@
         "buttons": {
             "useExisting": "Use existing",
             "createNewClaim": "New Claim",
+            "batchClaim": "Batch Claim",
             "convertDirectly": "Convert directly",
             "fax": "Fax",
             "faxSelected": "Fax selected",
@@ -145,8 +146,8 @@
             "descOrder": "Descending Order",
             "processPayement":"Process Payments",
             "exportToExcel": "Export To Excel",
-            "paperclaimOrg": "Paper Claim Original",
-            "paperclaimFull": "Paper Claim Full"
+            "paperclaimOrg": "Paper Claim (B & W)",
+            "paperclaimFull": "Paper Claim (RED)"
         },
         "screens": {},
         "fields": {

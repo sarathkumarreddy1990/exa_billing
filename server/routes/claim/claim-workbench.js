@@ -48,8 +48,8 @@ router.post('/create_claim', async function (req, res) {
     httpHandler.send(req, res, data);
 });
 
-router.get('/validate_claims', async function (req, res) {
-    const data = await claimWorkbenchController.validateClaim(req.query);
+router.post('/validate_claims', async function (req, res) {
+    const data = await claimWorkbenchController.validateClaim(req.body);
     httpHandler.send(req, res, data);
 });
 
@@ -69,7 +69,7 @@ router.get('/billing_payers', async function(req, res){
 });
 
 router.put('/billing_payers', async function (req, res) {
-    const data = await claimWorkbenchController.updateBillingPayers(req.query);
+    const data = await claimWorkbenchController.updateBillingPayers(req.body);
     httpHandler.sendRows(req, res, data);
 });
 
@@ -80,6 +80,18 @@ router.put('/follow_ups', async function(req, res){
 
 router.post('/claims/batch', async function(req, res){
     const data = await claimWorkbenchController.createBatchClaims(req.body);
+    httpHandler.sendRows(req, res, data);
+});
+
+
+router.post('/update_claim_status', async function (req, res) {
+    const data = await claimWorkbenchController.updateStatus(req.body);
+    httpHandler.sendRows(req, res, data);
+});
+
+
+router.get('/invoice_claims', async function (req, res) {
+    const data = await claimWorkbenchController.getClaimDataInvoice(req.query);
     httpHandler.sendRows(req, res, data);
 });
 

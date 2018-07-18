@@ -25,7 +25,7 @@ define([
             events: {
                 'change #ddlStudyStatuses': 'onStudyStatusesChange',
                 'click #btnViewReport': 'onReportViewClick',
-                'click #btnViewReportNewTab': 'onReportViewClick',
+                'click #btnViewReportNewTabInsVsLop': 'onReportViewClick',
                 'click #btnPdfReport': 'onReportViewClick',
                 'click #btnExcelReport': 'onReportViewClick',
                 'click #btnCsvReport': 'onReportViewClick',
@@ -98,7 +98,7 @@ define([
                     btnClicked = btnClicked.parent(); // in case FA icon 'inside'' button was clicked...
                 }
                 var rFormat = btnClicked ? btnClicked.attr('data-rformat') : null;
-                var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnViewReportNewTab' : false;
+                var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnViewReportNewTabInsVsLop' : false;
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = openInNewTab && rFormat === 'html';
                 if (this.hasValidViewModel()) {

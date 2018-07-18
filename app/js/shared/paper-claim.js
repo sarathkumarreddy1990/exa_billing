@@ -48,6 +48,37 @@ define([
                 this.getTemplate(claimIDs, templateType, function (err, template) {
                     self.getClaimObject(claimIDs, templateType, options, function (err, claimData) {
 
+                        var discardedIDs = [];
+                        var processedIDs = [];
+
+                        if (templateType === 'direct_invoice' || templateType === 'patient_invoice') {
+                            if (claimData.length === 0) {
+                                return commonjs.showWarning('Unable to process..');
+                            }
+
+                            if (claimData[0].claim_details.length === 0) {
+                                return commonjs.showWarning('Unable to process..');
+                            }
+
+                            processedIDs = claimData[0].claim_details.map(function (claim) { return claim.claim_no })
+                        }
+
+                        if (templateType === 'paper_claim_original' || templateType === 'paper_claim_full') {
+                            processedIDs = claimData.map(function (c) { return c.claim_id });
+                        }
+
+                        if (processedIDs.length === 0) {
+                            return commonjs.showWarning('Unable to process..');
+                        }
+
+                        claimIDs = claimIDs.map(Number);
+                        processedIDs = processedIDs.map(Number);
+
+                        discardedIDs = _.difference(claimIDs, processedIDs);
+                        if (discardedIDs.length > 0) {
+                            commonjs.showWarning('Unable to process few claims - ' + discardedIDs.toString());
+                        }
+
                         var docDefinition = self.mergeTemplate(templateType, template, claimData);
                         //var docDefinition = { content: 'This is an sample PDF printed with pdfMake', style: 'header', mmmm: 'sdfdsfdsf' };
 
@@ -68,19 +99,21 @@ define([
                             if (showNestedDialog) {
                                 showDialog = commonjs.showNestedDialog;
                             }
+                            
+                            self.updateClaimStatus(processedIDs, templateType, function (err, claimData) {
+                                showDialog({
+                                    header: self.pdfDetails[templateType].header,
+                                    width: '90%',
+                                    height: '75%',
+                                    url: res.data.pdfBlob
+                                });
 
-                            showDialog({
-                                header: self.pdfDetails[templateType].header,
-                                width: '95%',
-                                height: '80%',
-                                url: res.data.pdfBlob
+                                // const anchor = document.createElement('a');
+                                // document.body.appendChild(anchor);
+                                // anchor.href = window.URL.createObjectURL(res.data.pdfBlob);
+                                // anchor.download = 'myFileName.pdf';
+                                // anchor.click();
                             });
-
-                            // const anchor = document.createElement('a');
-                            // document.body.appendChild(anchor);
-                            // anchor.href = window.URL.createObjectURL(res.data.pdfBlob);
-                            // anchor.download = 'myFileName.pdf';
-                            // anchor.click();
                         };
 
                         pdfWorker.postMessage(docDefinition);
@@ -122,7 +155,8 @@ define([
                     data: {
                         claimIds: claimIDs.toString(),
                         payerType: options.payerType || '',
-                        payerId: options.payerId || ''
+                        payerId: options.payerId || '',
+                        sortBy: options.sortBy || ''
                     }, success: function (data, response) {
                         callback(null, data);
                     }, error: function (err, response) {
@@ -141,6 +175,24 @@ define([
                         claimIds: claimIDs.toString(),
                         templateType: templateType
                     }, success: function (data, response) {
+                        callback(null, data.length > 0 ? data[0] : {});
+                    }, error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                        callback(err);
+                    }
+                });
+            };
+
+            this.updateClaimStatus = function (claimIDs, templateType, callback) {
+
+                $.ajax({
+                    url: '/exa_modules/billing/claim_workbench/update_claim_status',
+                    type: 'post',
+                    data: {
+                        claimIds: claimIDs.toString(),
+                        templateType: templateType
+                    }, success: function (data, response) {
+                        $("#btnClaimsRefresh").click();
                         callback(null, data.length > 0 ? data[0] : {});
                     }, error: function (err, response) {
                         commonjs.handleXhrError(err, response);

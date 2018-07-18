@@ -239,13 +239,13 @@
                                                     <span id="editBillFee_<%= row.data_row_id %>" class="editBillFee icon-ic-edit" style="margin-left: 4px;cursor:pointer;" title="Edit" ></span>
                                                 </td>
                                                 <td>
-                                                    <input disabled value="<%= row.total_bill_fee ? row.total_bill_fee : 0.00 %>" id="txtTotalBillFee_<%= row.data_row_id %>" type="text" class="totalbill form-control floatbox">
+                                                    <input disabled value="<%= row.total_bill_fee ? row.total_bill_fee : 0.00 %>" id="txtTotalBillFee_<%= row.data_row_id %>" type="text" class="totalbill form-control floatbox text-right">
                                                 </td>
                                                 <td>
                                                     <input disabled value="<%= row.allowed_fee ? row.allowed_fee : 0.00 %>" id="txtAllowedFee_<%= row.data_row_id %>" type="text" class="maskFee allowedFee form-control floatbox">
                                                 </td>
                                                 <td>
-                                                    <input disabled value="<%= row.total_allowed_fee ? row.total_allowed_fee : 0.00 %>" id="txtTotalAllowedFee_<%= row.data_row_id %>" type="text" class="totalallowed form-control floatbox">
+                                                    <input disabled value="<%= row.total_allowed_fee ? row.total_allowed_fee : 0.00 %>" id="txtTotalAllowedFee_<%= row.data_row_id %>" type="text" class="totalallowed form-control floatbox text-right">
                                                 </td>
                                                 <td>
                                                     <input id="txtAuthInfo_<%= row.data_row_id %>" type="text" class="form-control " value="<%= row.authorization_no %>">
@@ -267,15 +267,17 @@
                                         </td>
                                         <td colspan="3" style="text-align: right;border: 0">
                                             <span id="spTotalBillFee">Total Bill Fee</span>:
+                                            <span class="font-weight-bold" id="spTotalBillFeeValue"></span>
                                         </td>
                                         <td style="border: 0">
-                                            <span style="font-weight: bold;" id="spTotalBillFeeValue"></span>
+                                            <!-- <span style="font-weight: bold;" id="spTotalBillFeeValue"></span> -->
                                         </td>
                                         <td style="text-align: right;border: 0">
                                             <span id="spTotalAllowedFee">Total Allowed</span>:
+                                            <span class="font-weight-bold" id="spTotalAllowedFeeValue"></span>
                                         </td>
                                         <td style="text-align: left;border: 0" colspan="3">
-                                            <span style="font-weight: bold;" id="spTotalAllowedFeeValue"></span>
+                                            <!-- <span style="font-weight: bold;" id="spTotalAllowedFeeValue"></span> -->
                                         </td>
                                     </tr>
                                 </tfoot>
@@ -433,7 +435,7 @@
                 <div class="form-group row">
                     <label for="txtPriPolicyNo" class="col-sm-3 col-form-label field-required" i18n="billing.claims.policyNo"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtPriPolicyNo" placeholder="PolicyNo">
+                        <input type="text" class="form-control" id="txtPriPolicyNo" placeholder="Policy No">
                     </div>
                 </div>
                 <div class="form-group row">
@@ -471,13 +473,13 @@
                 <div class="form-group row">
                     <label for="txtPriSubFirstName" class="col-sm-3 col-form-label field-required" i18n="billing.claims.subscriberName"></label>
                     <div class="col-sm-3">
-                        <input type="text" class="form-control" id="txtPriSubFirstName" name="SubsFirstName" placeholder="FirstName">
+                        <input type="text" class="form-control" id="txtPriSubFirstName" name="SubsFirstName" placeholder="First Name">
                     </div>
                     <div class="col-sm-1" style="padding-left:0px;">
                         <input type="text" class="form-control" id="txtPriSubMiName" name="SubsMiName" placeholder="Mi">
                     </div>
                     <div class="col-sm-3" style="padding-left:0px;">
-                        <input type="text" class="form-control" id="txtPriSubLastName" name="SubsLastName" placeholder="LastName">
+                        <input type="text" class="form-control" id="txtPriSubLastName" name="SubsLastName" placeholder="Last Name">
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
                         <input type="text" class="form-control" id="txtPriSubSuffix" placeholder="Suffix">
@@ -521,7 +523,6 @@
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
                         <select id="ddlPriState" class="form-control" style="height:32px;">
-                            <option value=''>Select</option>
                             <% _.each(states, function(obj) { %>
                                 <option value='<%= obj.id %>'>
                                     <%= obj.text %>
@@ -621,7 +622,7 @@
                 <div class="form-group row">
                     <label for="txtSecPolicyNo" class="col-sm-3 col-form-label field-required" i18n="billing.claims.policyNo"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtSecPolicyNo" placeholder="PolicyNo">
+                        <input type="text" class="form-control" id="txtSecPolicyNo" placeholder="Policy No">
                     </div>
                 </div>
                 <div class="form-group row">
@@ -659,13 +660,13 @@
                 <div class="form-group row">
                     <label for="txtSecSubFirstName" class="col-sm-3 col-form-label field-required" i18n="billing.claims.subscriberName"></label>
                     <div class="col-sm-3">
-                        <input type="text" class="form-control" id="txtSecSubFirstName" name="SubsFirstName" placeholder="FirstName">
+                        <input type="text" class="form-control" id="txtSecSubFirstName" name="SubsFirstName" placeholder="First Name">
                     </div>
                     <div class="col-sm-1" style="padding-left:0px;">
                         <input type="text" class="form-control" id="txtSecSubMiName" name="SubsMiName" placeholder="Mi">
                     </div>
                     <div class="col-sm-3" style="padding-left:0px;">
-                        <input type="text" class="form-control" id="txtSecSubLastName" name="SubsLastName" placeholder="LastName">
+                        <input type="text" class="form-control" id="txtSecSubLastName" name="SubsLastName" placeholder="Last Name">
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
                         <input type="text" class="form-control" id="txtSecSubSuffix" placeholder="Suffix">
@@ -709,7 +710,6 @@
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
                         <select id="ddlSecState" class="form-control" style="height:32px;">
-                            <option value=''>Select</option>
                             <% _.each(states, function(obj) { %>
                                 <option value='<%= obj.id %>'>
                                     <%= obj.text %>
@@ -830,13 +830,13 @@
                 <div class="form-group row">
                     <label for="txtTerSubFirstName" class="col-sm-3 col-form-label field-required" i18n="billing.claims.subscriberName"></label>
                     <div class="col-sm-3">
-                        <input type="text" class="form-control" id="txtTerSubFirstName" name="SubsFirstName3" placeholder="FirstName">
+                        <input type="text" class="form-control" id="txtTerSubFirstName" name="SubsFirstName3" placeholder="First Name">
                     </div>
                     <div class="col-sm-1" style="padding-left:0px;">
                         <input type="text" class="form-control" id="txtTerSubMiName" name="SubsMiName" placeholder="Mi">
                     </div>
                     <div class="col-sm-3" style="padding-left:0px;">
-                        <input type="text" class="form-control" id="txtTerSubLastName" name="SubsLastName3" placeholder="LastName">
+                        <input type="text" class="form-control" id="txtTerSubLastName" name="SubsLastName3" placeholder="Last Name">
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
                         <input type="text" class="form-control" id="txtTerSubSuffix" placeholder="Suffix">
@@ -880,7 +880,6 @@
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
                         <select id="ddlTerState" class="form-control" style="height:32px;">
-                            <option value=''>Select</option>
                             <% _.each(states, function(obj) { %>
                                 <option value='<%= obj.id %>'>
                                     <%= obj.text %>
@@ -1016,7 +1015,7 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="txtHCT" class="col-sm-3 col-form-label" i18n="billing.claims.claimNotes"></label>
+                    <label for="txtClaimNotes" class="col-sm-3 col-form-label" i18n="billing.claims.claimNotes"></label>
                     <div class="col-sm-5">
                         <textarea id="txtClaimNotes" name="claimNotes" class="form-control form-control-lg"></textarea>
                         <div class="form-check form-check-inline">
@@ -1028,7 +1027,7 @@
                 <div class="form-group row">
                     <label for="txtOriginalRef" class="col-sm-3 col-form-label" i18n="billing.claims.originalRef"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtOriginalRef" placeholder="OutsideRef">
+                        <input type="text" class="form-control" id="txtOriginalRef" placeholder="Outside Ref">
                     </div>
                 </div>
                 <div class="form-group row">

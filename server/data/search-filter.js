@@ -7,9 +7,13 @@ const util = require('./util');
 
 const colModel = [
     {
-        name: 'insurance_providers',
-        searchColumns: ['orders.insurance_providers'],
-        searchFlag: 'arrayString'
+        name: 'insurance_providers'
+        , searchColumns: [`(ARRAY[
+        COALESCE( (SELECT insurance_name FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = orders.primary_patient_insurance_id) LIMIT 1), null),
+        COALESCE( (SELECT insurance_name FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = orders.secondary_patient_insurance_id) LIMIT 1), null),
+        COALESCE( (SELECT insurance_name FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = orders.tertiary_patient_insurance_id) LIMIT 1), null)
+        ])`]
+        , searchFlag: 'arrayString'
     },
     {
         name: 'study_description',
@@ -305,6 +309,11 @@ const colModel = [
         searchColumns: ['(SELECT claim_id FROM billing.charges_studies inner JOIN billing.charges ON charges.id= charges_studies.charge_id  WHERE study_id = studies.id LIMIT 1) '],
         searchFlag: '='
     },
+    {
+        name: 'eligibility_verified',
+        searchColumns: [`(eligibility.verified OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)`]
+        , searchFlag: 'bool_null'
+    }
 ];
 
 const api = {
@@ -358,12 +367,16 @@ const api = {
         `;
     },
 
-    getSortFields: function (args, screenName) {
+    getSortFields: function (args, screenName, report_queue_status_query) {
         //console.log('getSortFields: ', args, screenName);
         switch (args) {
             case 'study_id': return 'studies.id';
             case 'claim_id': return '(SELECT claim_id FROM billing.charges_studies inner JOIN billing.charges ON charges.id= charges_studies.charge_id  WHERE study_id = studies.id LIMIT 1) ';
-            case 'insurance_providers': return 'orders.insurance_providers';
+            case 'insurance_providers': return `(ARRAY[
+                COALESCE( (SELECT insurance_name FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = orders.primary_patient_insurance_id) LIMIT 1), null),
+                COALESCE( (SELECT insurance_name FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = orders.secondary_patient_insurance_id) LIMIT 1), null),
+                COALESCE( (SELECT insurance_name FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = orders.tertiary_patient_insurance_id) LIMIT 1), null)
+                ])`;
             case 'image_delivery': return 'imagedelivery.image_delivery';            
             case 'station': return "study_info->'station'";
             case 'has_deleted': return 'studies.has_deleted';
@@ -465,7 +478,7 @@ const api = {
             case 'order_type': return 'orders.order_type';
             case 'cpt_codes': return 'studies.cpt_codes';
             case 'mu_last_updated': return 'orders.mu_last_updated';
-            case 'report_queue_status': return 'report_queue_status_query';
+            case 'report_queue_status': return report_queue_status_query;
             case 'account_no': return 'patients.account_no';
             case 'modality_room_id': return 'orders.modality_room_id';
             case 'institution': return 'studies.institution';
@@ -477,7 +490,10 @@ const api = {
             case 'billed_status': return `(SELECT  CASE WHEN (SELECT 1 FROM billing.charges_studies inner JOIN billing.charges ON charges.id= 
                                                 charges_studies.charge_id  WHERE study_id = studies.id LIMIT 1) >0 THEN 'billed'
                                                 ELSE 'unbilled' END)`;
-            case 'study_cpt_id': return 'study_cpt.study_cpt_id';
+            case 'study_cpt_id': return 'study_cpt.study_cpt_id';   
+            case 'ins_provider_type': return 'insurance_providers.provider_types';        
+            case "eligibility_verified": return `(COALESCE(eligibility.verified, false) OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)`;
+
         }
 
         return args;
@@ -530,7 +546,7 @@ const api = {
     },
     getWLQueryJoin: function (columns) {
         let tables = columns instanceof Object && columns || api.getTables(columns);
-        let imp_orders = tables.vehicles || tables.users || tables.providers || tables.adj1 || tables.adj2 || tables.adj3  || tables.auth;
+        let imp_orders = tables.vehicles || tables.users || tables.providers || tables.adj1 || tables.adj2 || tables.adj3  || tables.auth || tables.eligibility;
         let imp_provider_contacts = tables.imagedelivery || tables.providers_ref;
         let imp_facilities = tables.tat;
         let r = '';
@@ -553,7 +569,7 @@ const api = {
         if (tables.auth){
             r += `
                 LEFT JOIN LATERAL (
-                        SELECT get_authorization(studies.id,studies.facility_id,studies.modality_id,studies.patient_id,orders.insurance_provider_ids,studies.study_dt)::text AS as_authorization
+                    SELECT get_authorization(studies.id,studies.facility_id,studies.modality_id,studies.patient_id,(ARRAY[coalesce(orders.primary_patient_insurance_id,0), coalesce(orders.secondary_patient_insurance_id,0), coalesce(orders.tertiary_patient_insurance_id,0)]),studies.study_dt)::text AS as_authorization
                 ) AS auth ON true
                 `;
         }
@@ -568,12 +584,13 @@ const api = {
         if (tables.insurance_providers){
             r += `
                   LEFT JOIN LATERAL(
-                        SELECT
-                            '' as provider_types,
+                            SELECT
+                            array_agg(ippt.description) FILTER (WHERE ippt.description is not null) provider_types,
                             orders.id AS order_id
                                 FROM orders
-                            LEFT JOIN patient_insurances pat_ins ON pat_ins.id = ANY(orders.insurance_provider_ids)
+                            LEFT JOIN patient_insurances pat_ins ON ( pat_ins.id = orders.primary_patient_insurance_id OR pat_ins.id = orders.secondary_patient_insurance_id OR pat_ins.id =  orders.tertiary_patient_insurance_id )
                             LEFT JOIN insurance_providers insp ON pat_ins.insurance_provider_id = insp.id
+                            LEFT JOIN insurance_provider_payer_types  ippt ON ippt.id = COALESCE (insp.provider_payer_type_id, 0)
                             WHERE orders.id = studies.order_id
                         GROUP BY orders.id
                   ) AS insurance_providers ON true
@@ -617,6 +634,26 @@ const api = {
                     ) AS image_delivery
                 ) AS imagedelivery ON TRUE
                 `;
+        }
+
+        if (tables.eligibility){        
+            r += `
+                LEFT JOIN LATERAL (
+                    SELECT
+                        COALESCE(
+                            eligibility_response->'data'->'coverage'->>'active',
+                            'false'
+                        )::boolean       AS verified,
+                        eligibility_dt   AS dt
+                    FROM
+                        eligibility_log
+                    WHERE
+                        eligibility_log.patient_id = studies.patient_id
+                    ORDER BY
+                        eligibility_log.id DESC
+                    LIMIT 1
+                ) eligibility ON TRUE `;
+
         }
 
         if (tables.study_status){ r += ` LEFT JOIN study_status ON (
@@ -788,11 +825,13 @@ const api = {
                                 FROM users
                                 LEFT JOIN user_locks ON user_locks.user_id = users.id AND lock_type = 'viewer' AND user_locks.locked_dt > (now() - INTERVAL '1 hours')
                                 WHERE user_locks.study_id = studies.id
-                        ) AS locked_by,
-                        studies.stat_level AS stat_level,
-                        order_info->'patientRoom' AS patient_room,
-                        insurance_providers.provider_types AS ins_provider_type `,
-            'orders.insurance_providers',
+                        ) AS locked_by`,
+            `studies.stat_level AS stat_level`,
+            `order_info->'patientRoom' AS patient_room`,
+            `insurance_providers.provider_types AS ins_provider_type`,
+            `(SELECT array_agg(insurance_name) FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = orders.primary_patient_insurance_id OR id = orders.secondary_patient_insurance_id OR id = orders.tertiary_patient_insurance_id )) AS insurance_providers`,       
+            `(COALESCE(eligibility.verified, false) OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)   AS eligibility_verified`,
+            `eligibility.dt AS eligibility_dt`
         ];
 
         return stdcolumns.concat(

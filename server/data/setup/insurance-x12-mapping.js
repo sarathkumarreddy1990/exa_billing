@@ -34,6 +34,7 @@ module.exports = {
                             , ip.insurance_name 
                             , ch.id AS claimclearinghouse
                             , billing_method
+                            , ip.is_active
                             , COUNT(1) OVER (range unbounded preceding) AS total_records
                         FROM 
                             public.insurance_providers ip

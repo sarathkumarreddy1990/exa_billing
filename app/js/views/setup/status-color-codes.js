@@ -122,6 +122,10 @@ define(['jquery',
                         },
                         {
                             name: 'process_type',
+                            formatter: function (cellvalue) {
+                                return commonjs.checkNotEmpty(cellvalue) ?
+                                        self.getProcessType(cellvalue) : '';
+                            }
                         },
                         {
                             name: 'process_status',
@@ -178,6 +182,22 @@ define(['jquery',
                 this.renderForm(id);
             },
 
+            getProcessType: function (processType) {
+                var processTypeValue = "";
+                switch (processType) {
+                    case "claim":
+                        processTypeValue = "Claim";
+                        break;
+                    case "payment":
+                        processTypeValue = "Payment";
+                        break;
+                    case "study":
+                        processTypeValue = "Study";
+                        break;
+                }
+                return processTypeValue;
+            },
+
             renderForm: function(id) {
                 var self = this;
                 $('#divStatusColorCodesForm').html(this.statusColorCodesFormTemplate());
@@ -225,7 +245,7 @@ define(['jquery',
                 var elPaymentStatus = $('#ddlProcessStatus');
                 elPaymentStatus.empty();
                 for(var i = 0; i < paymentStatusList.length; i++) {
-                    $('<option/>',{value:paymentStatusList[i].description}).html(paymentStatusList[i].description).appendTo(elPaymentStatus);
+                    $('<option/>',{value:paymentStatusList[i].code ? paymentStatusList[i].code :paymentStatusList[i].description}).html(paymentStatusList[i].description).appendTo(elPaymentStatus);
                 }
             },
 

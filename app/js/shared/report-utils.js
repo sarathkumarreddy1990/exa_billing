@@ -165,20 +165,20 @@ define([
             bindInsuranceProviderAutocomplete: function (userMessage, btnAdd, ulList) {
                 $("#txtInsuranceProviderName").select2({
                     ajax: {
-                        url: "/exa_modules/billing/autoCompleteRouter/provider_group",
+                        url: "/exa_modules/billing/autoCompleteRouter/insurance_payer_types",
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
                             return {
-                                page: params.page || 1,
+                                page: params.page || 2,
                                 q: params.term || '',
                                 pageSize: 10,
-                                sortField: "group_name",
-                                sortOrder: "ASC",
-                                groupType: 'PG',
+                                sortField: "description",
+                                sortOrder: "ASC",                            
                                 company_id: 1                            
                             };
                         },
+
                         processResults: function (data, params) {
                             params.page = params.page || 1;
                             return {
@@ -188,7 +188,7 @@ define([
                                 }
                             };
                         },
-                        cache: true
+                        cache: true                      
                     },
                     placeholder: 'Select Insurance  Provider',
                     escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
@@ -201,16 +201,16 @@ define([
                         return repo.text;
                     }
                     var markup = "<table class='ref-result' style='width: 100%'><tr>";
-                    markup += "<td class='movie-info'><div class='movie-title'><b>" + repo.group_name + "</b> </div>";
+                    markup += "<td class='movie-info'><div class='movie-title'><b>" + repo.description + "</b> </div>";
                     markup += "</td></tr></table>";
                     return markup;
 
                 }
                 function formatRepoSelection(res) {
-                    self.group_name = res.group_name;
-                    self.group_id = res.provider_group_id;
+                    self.groupdescription_name = res.description;
+                    self.code = res.code;
                     if (res && res.id) {
-                        return res.group_name;
+                        return res.description;
                     }
                 }
                 $('#btnAddInsuranceProvider').unbind('click').click(function () {
@@ -223,7 +223,7 @@ define([
                         return false;
                     }
                     var data_id = $('#txtInsuranceProviderName').select2('data')[0].id;
-                    var bind_text = $('#txtInsuranceProviderName').select2('data')[0].group_name;
+                    var bind_text = $('#txtInsuranceProviderName').select2('data')[0].description;
                     $('#ulListInsuranceProvider').append('<li id="' + data_id + '"><span style="background:#3c91f0; color:white; border:1px solid black">' + bind_text + '</span><a class="remove" data-id="' + $('#txtInsuranceProviderName').select2('data')[0].id + '"><span class="icon-ic-close" style="margin-left:8px;"></span></a></li>')
                     $('#txtInsuranceProviderName a span').html('Select User');
                 });
@@ -264,7 +264,7 @@ define([
                         },
                         cache: true
                     },
-                    placeholder: 'selectStudyReadPhysician',
+                    placeholder: 'select Study Read Physician',
                     escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
                     minimumInputLength: 0,
                     templateResult: formatRepo,
@@ -618,7 +618,7 @@ define([
                     if (repo.loading) {
                         return repo.text;
                     }
-                    var markup1 = "<table class='ref-result' style='width: 100%'><tr class='inActiveRow'>";
+                    var markup1 = "<table class='ref-result' style='width: 100%'><tr>";
                     markup1 += "<td data-id='" + repo.group_id + " ' title='" + repo.full_name + "'> <div>" + repo.full_name + "</div>";
                     markup1 += "</td></tr></table>";
                     return markup1;
@@ -689,7 +689,7 @@ define([
                     if (repo.loading) {
                         return repo.display_description;
                     }
-                    var markup1 = "<table><tr class='inActiveRow'>";
+                    var markup1 = "<table><tr>";
                     if (repo.display_code != '')
                         markup1 += "<td title='" + repo.display_code + "(" + repo.display_description + ")" + "'><div>" + repo.display_code + "(" + repo.display_description + ")" + "</div>";
                     else

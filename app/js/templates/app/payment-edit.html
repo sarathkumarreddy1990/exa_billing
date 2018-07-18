@@ -28,6 +28,16 @@
     .floatbox, .textRight{
         text-align: right;
     }
+
+    .rightAlign{
+        display: block !important;
+        width: 90%;
+        text-align: right;
+    }
+    
+    #divPendingPaymentsContainer .ui-jqgrid-bdiv{
+        overflow-x: hidden !important;
+    }
 </style>
 
 <div class="form-group row">
@@ -128,7 +138,7 @@
                                 <option value="">Select</option>
                                 <% _.each(paymentReasons, function(paymentReason) { %>
                                     <option value="<%= paymentReason.id %>">
-                                        <%= paymentReason.code %>
+                                        <%= paymentReason.description %>
                                     </option>
                                     <% }); %>
                             </select>
@@ -190,13 +200,13 @@
                     <div class="form-group row">
                         <label for="lblApplied" class="control-label col-sm-4" i18n="billing.payments.applied"></label>
                         <div class="col-sm-3">
-                            <label class="pad-top-6 w70 rt-offset10" id="lblApplied"></label>
+                            <label class="pad-top-6 w70 rt-offset10 rightAlign" id="lblApplied"></label>
                         </div>
                     </div>
                     <div class="form-group row">
                         <label for="lblBalance" class="control-label col-sm-4" i18n="billing.payments.balance"></label>
                         <div class="col-sm-3">
-                            <label class="pad-top-6 w70 rt-offset10" id="lblBalance"></label>
+                            <label class="pad-top-6 w70 rt-offset10 rightAlign" id="lblBalance"></label>
                         </div>
                     </div>
                 </div>

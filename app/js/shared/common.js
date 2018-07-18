@@ -267,7 +267,7 @@ var commonjs = {
         }
         else {
             if (typeof filter !== 'undefined') {
-                filter.customGridTable.jqGrid('GridUnload');
+                // filter.customGridTable.jqGrid('GridUnload');
                 cjs.loadedStudyFilters = filters.delete(id);
                 return true;
             }
@@ -833,6 +833,33 @@ var commonjs = {
         return docServerUrl;
     },
 
+    showAbout: function () {
+        var self = this;
+
+        if (this.AboutTemplate && _) {
+            $.ajax({
+                url: '/exa_modules/billing/about',
+                type: "GET",
+                dataType: 'json',
+                success: function (versionInfo, response) {
+                    commonjs.hideLoading();
+
+                    try {
+                        var about = _.template(self.AboutTemplate);
+                        var previewHtml = about({ data: versionInfo });
+
+                        commonjs.showDialog({ header: 'About', width: '30%', height: '30%', html: previewHtml }, true);
+                    } catch (err) {
+                        console.log(err);
+                    }
+                },
+                error: function (err, response) {
+                    //commonjs.handleXhrError(err, response);
+                }
+            })
+        }
+    },
+
     showDialog: function (options) {
         options.modalContainerId = '#siteModal';
         options.spanHeaderId = '#spanModalHeader';
@@ -842,6 +869,7 @@ var commonjs = {
         options.iframeContainerId = 'site_modal_iframe_container';
 
         commonjs.showDefaultDialog(options);
+        commonjs.initHideEvent(options);
     },
 
     showNestedDialog: function (options) {
@@ -853,6 +881,27 @@ var commonjs = {
         options.iframeContainerId = 'site_modal_iframe_container_nested';
 
         commonjs.showDefaultDialog(options);
+        commonjs.initHideEvent(options);
+    },
+
+    initHideEvent: function (options) {
+
+        var modalContainerId = options.modalContainerId || '#siteModal';
+
+        if (!commonjs.modalEvents) {
+            commonjs.modalEvents = {};
+        }
+
+        if (commonjs.modalEvents[options.modalContainerId]) {
+            return;
+        }
+
+        commonjs.modalEvents[options.modalContainerId] = true;
+        var $siteModal = $(modalContainerId);
+
+        $siteModal.on('hidden.bs.modal', function (event) {
+            commonjs.disposeDialog(options);
+        });
     },
 
     showDefaultDialog: function (options) {
@@ -906,8 +955,9 @@ var commonjs = {
                 ifr.style.width = '100%';
 
                 $modalBody.append($(ifr));
-                $modalBody.css({ 'padding': '0px' })
             }
+
+            $modalBody.css({ 'padding': '0px' })
 
             dataContainer = $('#' + iframeContainerId);
             dataContainer.attr('src', options.url);
@@ -1003,7 +1053,7 @@ var commonjs = {
 
     hideNestedDialog: function (callback) {
         var options = {};
-        
+
         options.modalContainerId = '#siteModalNested';
         options.modalDivContainerId = '#modal_div_container_nested';
         options.iframeContainerId = 'site_modal_iframe_container_nested';
@@ -1013,40 +1063,35 @@ var commonjs = {
 
     hideDefaultDialog: function (options, callback) {
         var modalContainerId = options.modalContainerId || '#siteModal';
-        var modalDivContainerId = options.modalDivContainerId || '#modal_div_container';
-        var iframeContainerId = options.iframeContainerId || 'site_modal_iframe_container';
-
         var $siteModal = $(modalContainerId);
-        var $modalDivContainer = $(modalDivContainerId);
-        var $iframeContainer = $('#' + iframeContainerId);
-
-        if (typeof callback === 'function') {
-            if ($siteModal.is(':visible')) {
-                $siteModal
-                    .on('hidden.bs.modal', function () {
-                        /**
-                         * Have to remove this before callback is called or
-                         * transition will conflict when opened window closes
-                         * and tries to open a new dialog.
-                         */
-
-                        $('.modal-backdrop').remove();
-
-
-                        $modalDivContainer.html('');
-                        $iframeContainer.attr('src', '');
-
-                        callback();
-                        $(this).off('hidden.bs.modal');
-                    });
-            } else {
-                $modalDivContainer.html('');
-                $iframeContainer.attr('src', '');
-                callback();
-            }
-        }
 
         $siteModal.modal('hide');
+    },
+
+    disposeDialog: function (options) {
+        var modalDivContainerId = options.modalDivContainerId || '#modal_div_container';
+        var iframeContainerId = options.iframeContainerId || 'site_modal_iframe_container';
+        var modalContainerId = options.modalContainerId || '#siteModal';
+
+        var $modalDivContainer = $(modalDivContainerId);
+        var $iframeContainer = $('#' + iframeContainerId);
+        var $siteModal = $(modalContainerId);
+
+        $modalDivContainer.empty();
+        $iframeContainer.attr('src', '');
+
+        $siteModal.modal('dispose');
+        //commonjs.docResize();
+
+         //Report window close 
+         this.closeReportWindow();
+    },
+
+    closeReportWindow: function () {
+        if (window.reportWindow) {
+            window.reportWindow.close();
+            window.reportWindow = null;
+        }
     },
 
     // Set app.settings.report_queue_status using API
@@ -1770,7 +1815,7 @@ var commonjs = {
         if (!app.userInfo) {
             throw new Error('App settings is missing userInfo!');
         }
-        return app.userInfo.user_type === 'SU' ? app.facilities : app.userfacilities
+        return app.userInfo.user_type === 'SU' ? app.facilities : app.userFacilities
     },
 
     getModalityRoomFromAppSettings: function (modalityRoomId) {
@@ -1935,7 +1980,7 @@ var commonjs = {
         }, {
                 type: type,
                 z_index: 1061,
-				offset: 5,
+                offset: 5,
                 delay: 1000,
                 placement: {
                     align: 'center',
@@ -2179,60 +2224,6 @@ var commonjs = {
         $('#divLoadingMsg').html(msg);
     },
 
-    hideMenu: function (isPatient) {
-        //$('#body_content>div:eq(0)').hide()
-        $('header.header').hide();
-        $('.page-header').hide();
-        switch (commonjs.currentModule) {
-            case 'Home':
-            case 'Setup':
-                commonjs.hideSetupMenu();
-                break;
-            case 'Patient':
-                $('#body_content>div:eq(1)').removeClass('col-md-10').addClass('col-md-11');
-                //$("#divPatientFrame").css({"float": "none"});
-                //$("#divPatientFrame").css({"margin-right": "0px"});
-                break;
-        }
-        $('#indexHeader').hide();
-        //$('body').attr('style', "padding-top :5px !important;");
-    },
-
-    hideSetupMenu: function () {
-        $('#divSetupMain').removeClass('col-sm-9 col-md-9 col-lg-9').addClass('col-sm-12 col-md-12 col-lg-12');
-        $('#divSetupSideMenu').hide();
-        $("#divSetupMain").css({ "float": "none" });
-        $("#divSetupMain").css({ "margin-right": "0px" });
-        $("#divSetupMain").css({ "margin-left": "0px" });
-        $('#body_container').removeClass('sidebar-left');
-        $('#left, #top').hide();
-        $('#content').removeClass('col-sm-8 col-md-8 col lg-8');
-        $('#wrap').show();
-        $('#wrap > #content').css('position', 'inherit');
-    },
-
-    hideOrderMenu: function () {
-        $('#orderSideMenu').hide('fast');
-        $("#pageHeaderTab").hide();
-        $('#divOrderFrame').removeClass('col-xs-10').addClass('col-xs-12');
-        $('#spInformationHeader').addClass('orderMenuHidden');
-        $('#btnMenuHide').hide();
-        $('#btnMenuShow').hide(); //change back to show after install FJC
-        $('#divOrderFrame').unbind('click');
-
-    },
-    showOrderMenu: function () {
-        $('#orderSideMenu').show('fast');
-        $("#pageHeaderTab").show();
-        $('#divOrderFrame').removeClass('col-xs-12').addClass('col-xs-10');
-        $('#spInformationHeader').removeClass('orderMenuHidden');
-        $('#btnMenuShow').hide();
-        $('#btnMenuHide').hide();   //change back To show after install FJC
-        $('#divOrderFrame').click(function () {
-            commonjs.hideOrderMenu();
-        });
-    },
-
     docClick: function (e) {
         // SMH - Bug #2613 - Cleaned up as much as was reasonable
 
@@ -2364,14 +2355,14 @@ var commonjs = {
         $('div.ui-jqgrid > div.ui-jqgrid-view > div.ui-jqgrid-bdiv > div > table.ui-jqgrid-btable').each(function (index) {
             if (!$(this).parents('table.ui-jqgrid-btable').length) {
                 var obj = commonjs.getGridMeasures(jq_isWidthResize, jq_isHeightResize, jq_userWidth, jq_userHeight, jq_offsetWidth, jq_offsetheight);
-                
+
                 //$(this).jqGrid('setGridWidth', obj.width);
                 if (($(this).attr('id') && $(this).attr('id').indexOf('tblGridOD') == 0) || ($(this).attr('id') && $(this).attr('id').indexOf('tblGridPS') == 0)) // for home page pre-orders and qc grids having buttons under grid
                     $(this).jqGrid('setGridHeight', obj.height - 20);
                 else
                     $(this).jqGrid('setGridHeight', obj.height);
 
-                if($('.exa-left-nav')) {
+                if ($('.exa-left-nav')) {
                     $('.exa-left-nav').height(obj.navHeight);
                 }
             }
@@ -2438,33 +2429,6 @@ var commonjs = {
 
         var divTabsContainerWidth = divUseableSpace - headerIconsWidth;
         $divTabsContainer.css({ width: divTabsContainerWidth });
-
-        //set gadget Width on window Resize
-        var _ww = $(window).width() - 50,
-            _gw = 566,
-            _rw = _ww % _gw,
-            _cols = _ww / _gw,
-            _isDecrease = true;
-        while (_rw > 50) {
-            if (_isDecrease)
-                _gw -= 20;
-            else
-                _gw += 20;
-            _rw = _ww % _gw;
-            if (_gw < 520) {
-                _isDecrease = false;
-            }
-            if (_gw >= 650)
-                break;
-        }
-        $('#divGadgetSummaryNew .widget.item').css('width', (_gw - 26) + 'px');
-        $('#column1 .masonry-wrap').css('width', ($(window).width() - 50 + 'px'));
-        // $('#column1').masonry();
-
-    },
-
-    resizeCalendar: function () {
-        $('#iframe_calandar_container').height($(window).height() - ($('body>#indexHeader').height() + $('body>footer').height()));
     },
 
     getGridMeasures: function (isWidthResize, isHeightResize, userWidth, userHeight, offsetWidth, offsetHeight) {
@@ -2473,52 +2437,53 @@ var commonjs = {
         if (isHeightResize && (typeof userHeight !== 'number' || userHeight > 0)) {
             if (typeof userHeight == 'number') {
                 height = userHeight;
-            }
-            else if (userHeight.indexOf('%') > 0) {
-                var whei = $(window).height();
+            } else if (userHeight.indexOf('%') > 0) {
+                var whei = commonjs.getWindowHeight();
                 height = parseInt(userHeight.replace('%', ''));
                 height = (whei / 100) * height;
-            }
-            else {
+            } else {
                 height = parseInt(userHeight.replace('%', '').replace('px', ''));
             }
-        }
-        else {
+        } else {
             //EXA-7310 - For schedule book-> new order screen header was hided , when replace launch login url -> worklist page showing header element.
             if (!$('header.header').is(':visible'))
                 $('header.header').show();
-            var topnavHieght = $('.header').outerHeight() + $('.top-nav').outerHeight()
+
+            var topnavHieght = $('.header').outerHeight() + $('.top-nav').outerHeight();
+
             switch (commonjs.currentModule) {
                 case 'Home':
                 case 'Claims':
                 case 'app':
                 default:
-                    height = $(window).height() - (topnavHieght + $('.ui-jqgrid-htable:visible').height() + $('#divPager').outerHeight() + 50);
+                    height = commonjs.getWindowHeight() - (topnavHieght + 145);
                     break;
-                case 'Billing':
-                    height = $(window).height() - ($('body>.topbar').outerHeight() + $('body>header').outerHeight() + $('body>.top-nav').outerHeight() + 235);
-                    break;
+
                 case 'Payments':
-                    height = $(window).height() - ($('#divPaymentFilter').height() + 155);
+                    height = commonjs.getWindowHeight() - ($('#divPaymentFilter').height() + 155);
                     break;
+
                 case 'Setup':
-                    height = $(window).height() - ($('body>nav').outerHeight() + $('#divPageHeaderButtons').outerHeight() + 100 + ($('#auditFilterdiv').outerHeight() ? $('#auditFilterdiv').outerHeight() : 0));
+                    height = commonjs.getWindowHeight() - ($('body>nav').outerHeight() + $('#divPageHeaderButtons').outerHeight() + 100 + ($('#auditFilterdiv').outerHeight() ? $('#auditFilterdiv').outerHeight() : 0));
                     break;
-                case 'Patient':
-                    height = $(window).height() - ($('header.header').outerHeight() + $('#patientDocHeader').outerHeight() + 200);
-                    break;
+
                 case 'EOB':
-                    height = $(window).height() - 225;
+                    height = commonjs.getWindowHeight() - 225;
+                    break;
             }
         }
 
         //width = width - (offsetWidth ? parseInt(offsetWidth) : 0);
         height = height - (offsetHeight ? parseInt(offsetHeight) : 0);
-        var navHeight = $(window).height() - ($('body>nav').outerHeight() + 50);
+        var navHeight = commonjs.getWindowHeight() - ($('body>nav').outerHeight() + 50);
 
         //return {width: width, height: height};
         return { height: height, navHeight: navHeight };
+    },
 
+    getWindowHeight: function () {
+        //return $(window).innerHeight() - 15;
+        return window.innerHeight - 15;
     },
 
     setpatientFrameheight: function (isResize) {
@@ -2720,12 +2685,6 @@ var commonjs = {
         }
     },
 
-    hideOrderMenu: function () {
-        $('.viztek-nav').hide();
-        $('.order-menu-panel').hide();
-        $('#divOrderFrame').removeClass('menu-open');
-    },
-
     refreshUserSettings: function () {
         commonjs.changeCss();
     },
@@ -2781,7 +2740,7 @@ var commonjs = {
             case "secondary_insurance":
                 payer = "Secondary Insurance";
                 break;
-            case "teritary_insurance":
+            case "tertiary_insurance":
                 payer = "Tertiary Insurance";
                 break;
             default:
@@ -4021,7 +3980,7 @@ var commonjs = {
 
     getRightClickMenu: function (elementID, i18n, isSubMenu, elementName, isULMenu) {
         if (isULMenu) {
-            return '<li class="dropdown-submenu" id=li_' + elementID + '><a tabindex="-1" href="javascript: void(0)" i18n=' + i18n + ' class="dropdown-item">' + elementName + '</a><ul id=' + elementID + ' style="float:right;" class="dropdown-menu"></ul></li>';
+            return '<li class="dropdown-submenu" id=li_' + elementID + '><a tabindex="-1" href="javascript: void(0)" i18n=' + i18n + ' class="dropdown-item">' + elementName + '</a><ul id=' + elementID + ' style="float:right; max-width: 500px; overflow: auto; max-height: 300px";" class="dropdown-menu"></ul></li>';
         } else if (isSubMenu) {
             return '<li><a class="dropdown-item" id=' + elementID + '  href="javascript: void(0)" >' + elementName + '</a></li>'
         } else {
@@ -4058,27 +4017,26 @@ var commonjs = {
         return [];
     },
 
-    getClaimStudy: function (claim_id) {
-        return new Promise(function (resolve, reject) {
-            var result = {
-                'study_id': 0,
-                'order_id': 0
-            };
-            $.ajax({
-                url: '/exa_modules/billing/claim_workbench/claim_study?claim_id=' + claim_id,
-                type: 'GET',
-                success: function (data, response) {
-                    if (data && data.length > 0) {
-                        result.study_id = data[0].study_id;
-                        result.order_id = data[0].order_id;
-                    }
-                    resolve(result);
-                },
-                error: function (err, response) {
-                    commonjs.handleXhrError(err, response);
-                    reject();
+    getClaimStudy: function (claim_id, callback) {
+        var result = {
+            'study_id': 0,
+            'order_id': 0
+        };
+
+        $.ajax({
+            url: '/exa_modules/billing/claim_workbench/claim_study?claim_id=' + claim_id,
+            type: 'GET',
+            success: function (data, response) {
+                if (data && data.length > 0) {
+                    result.study_id = data[0].study_id;
+                    result.order_id = data[0].order_id;
                 }
-            });
+
+                callback(result);
+            },
+            error: function (err, response) {
+                commonjs.handleXhrError(err, response);
+            }
         });
     },
 
@@ -4310,11 +4268,6 @@ var commonjs = {
 
         var pattern = new RegExp(/^\+?[0-9]{6,}$/);
         return pattern.test(faxNo);
-    },
-
-    setupMenuHeight: function () {
-        var setupMenuHeight = $(window).height() - ($('body>#indexHeader').height() + $('body>footer').height() + 30);
-        return setupMenuHeight;
     },
 
     initMouseWheel: function () {
@@ -4619,7 +4572,7 @@ var commonjs = {
             else
                 var modifierElement = 'ddlPointer';
 
-            var dataType =  isFrom; // M -- modifier , P -- Pointer
+            var dataType = isFrom; // M -- modifier , P -- Pointer
             if (($(element).val() == "") || $(element).hasClass('invalidModifier')) {
                 if (modifier == (dataType + "1") && $('#' + modifierElement + '2_' + id).val() == "" && $('#' + modifierElement + '3_' + id).val() == "" && $('#' + modifierElement + '4_' + id).val() == "") {
                     $('#' + modifierElement + '2_' + id).prop('disabled', true);
@@ -4871,7 +4824,7 @@ var commonjs = {
     getActiveFacilities: function (showStudiesFlag) {
         facilities = app.userInfo.user_type === "SU"
             ? app.facilities
-            : app.userfacilities;
+            : app.userFacilities;
         if (showStudiesFlag) {
             return facilities.reduce(function (facilitiesAcc, facility) {
                 var parsedFacility = Object.assign({}, facility, { facility_info: commonjs.hstoreParse(facility.facility_info) });
@@ -5027,6 +4980,33 @@ var commonjs = {
             return false;
         }
     },
+
+    initHotkeys: function (events) {
+        if (Object.keys(app.hotkeys).length && Object.keys(events).length) {
+            for (var key in events) {
+                this.initHotkey(key, events[key]);
+            }
+        }
+    },
+
+    initHotkey: function (eventName, handler) {
+        if (app.hotkeys[eventName]) {
+            var shortcut = app.hotkeys[eventName];
+            var handlerFn = handler;
+
+            if (typeof handler !== 'function') {
+                handlerFn = (function () {
+                    (function (id) {
+                        if ($(id).length) {
+                            $(id).click();
+                        }
+                    })(handler)
+                });
+            }
+
+            //$(document).on('keydown', null, shortcut, handlerFn);
+        }
+    }
 };
 
 
@@ -5180,7 +5160,7 @@ function removeIframeHeader() {
 // });
 
 $(document).ajaxSuccess(function (event, xhr, settings) {
-    if(settings.url.indexOf('billing/setup') > -1 && ['POST', 'PUT', 'DELETE'].indexOf(settings.type) > -1) {
+    if (settings.url.indexOf('billing/setup') > -1 && ['POST', 'PUT', 'DELETE'].indexOf(settings.type) > -1) {
         layout.setupDataUpdated = true;
     }
 });

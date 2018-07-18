@@ -49,4 +49,9 @@ router.get('/getUserRoles', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/insurance_payer_types', async function (req, res) {
+    const data = await autoCompleteController.insurance_payer_types(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;

@@ -170,7 +170,7 @@ define([
                             }
 
                             if (patient_details && patient_details.length > 0) {
-                                var patient_details = 'Claim Inquiry: ' + patient_details[0].patient_name + ' (Acc#:' + patient_details[0].account_no + ')' + ',  ' + patient_details[0].birth_date + ',  ' + patient_details[0].gender;
+                                var patient_details = 'Claim Inquiry: ' + patient_details[0].patient_name + ' (Acc#:' + patient_details[0].account_no + ')' + ',  ' + moment(patient_details[0].birth_date).format('L') + ',  ' + patient_details[0].gender;
                                 $(parent.document).find('#spanModalHeader').html(patient_details)
                             }
 
@@ -251,9 +251,9 @@ define([
                         var payerType = $(target).attr('data-payer-type');
 
                         if (target.className.indexOf('btn-paper-claim-original') > -1) {
-                            self.showPaperClaim('paper_claim_original', claimID, rowid, payerType);
+                            self.showPaperClaim('paper_claim_original', [claimID], rowid, payerType);
                         } else if (target.className.indexOf('btn-paper-claim-full') > -1) {
-                            self.showPaperClaim('paper_claim_full', claimID, rowid, payerType);
+                            self.showPaperClaim('paper_claim_full', [claimID], rowid, payerType);
                         }
                     },
                 });
@@ -359,10 +359,11 @@ define([
                     gridelementid: '#tblInvoiceGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['', 'Invoice No', 'Date', 'Total Billing Fee', 'Total Payments', 'Total Adjustment',  'Balance',''],
-                    i18nNames: ['', 'billing.fileInsurance.invoiceNo', 'billing.claims.Date', 'billing.COB.billingFee','billing.claims.totalPayments', 'billing.fileInsurance.totalAdjustment',  'billing.claims.Balance',''],
+                    colNames: ['', '', 'Invoice No', 'Date', 'Total Billing Fee', 'Total Payments', 'Total Adjustment',  'Balance',''],
+                    i18nNames: ['', '', 'billing.fileInsurance.invoiceNo', 'billing.claims.Date', 'billing.COB.billingFee','billing.claims.totalPayments', 'billing.fileInsurance.totalAdjustment',  'billing.claims.Balance',''],
                     colModel: [
-                        { name: '', index: 'id', key: true, hidden: true, search: false },                      
+                        { name: '', index: 'id', key: true, hidden: true, search: false },  
+                        { name: 'claim_ids', hidden: true} ,                    
                         {
                             name: 'invoice_no', search: true, width: 100
                         },
@@ -384,12 +385,14 @@ define([
                         {
                             name: 'edit', width: 50, sortable: false, search: false,
                             formatter: function (cellvalue, options, rowObject) {
-                                return "<a href='javascript: void(0)' id =" + rowObject.id + ">REPRINT</a>";
+                                return '<span class="icon-ic-print spnInvoicePrint" title="Print Claim" id="spnInvoicePrint" style="font-size: 20px; cursor:pointer;"></span>'
                             },
                             cellattr: function () {
                                 return "style='text-align: center;text-decoration: underline;'";
                             },
                             customAction: function (rowID, e) {
+                                var gridData = $('#tblInvoiceGrid').jqGrid('getRowData', rowID);
+                                self.printInvoice(gridData.claim_ids);
                             }
                         }
 
@@ -421,7 +424,10 @@ define([
                     $("#tblInvoiceGrid").setGridHeight($(window).height()-600);
                 }, 200);
 
+                commonjs.initializeScreen({ header: { screen: 'Claim Invoice', ext: 'Claim Invoice' } });
                 $('#divIvoiceAgeSummary').html(self.invoiceAgingSummaryTemplate());
+
+
 
                 $.ajax({
                     url: "/exa_modules/billing/claims/claim_inquiry/claim_invoice/age",
@@ -431,7 +437,6 @@ define([
                         payerType: payer_type
                     },
                     success: function (data, response) {
-                        console.log(data)
                         if(data && data.length){
                             $('#tdPtCurrent').text(data[0].current_balance || '$0.00')
                             $('#tdPtAge30').text(data[0].to30 || '$0.00')
@@ -444,9 +449,17 @@ define([
                     error: function (err, response) {
                         commonjs.handleXhrError(err, response);
                     }
-                })
+                });
 
-                
+                $('.inquiryReload').click(function(){
+                    self.showInvoiceGrid.refreshAll();
+                });
+
+            },
+
+            printInvoice: function(claimids) {
+                claimids =  claimids && claimids.split(',')
+                paperClaim.print( 'direct_invoice', claimids );
             },
 
             showPatientClaimsLogGrid: function (claimID, patientId) {
@@ -479,7 +492,7 @@ define([
                     container: self.el,
                     cmTemplate: { sortable: false },
                     customizeSort: false,
-                    sortname: "audit_log.id",
+                    sortname: "audit.id",
                     sortorder: "desc",
                     dblClickActionIndex: 1,
                     disablesearch: false,
@@ -622,7 +635,7 @@ define([
                             customAction: function (rowID) {
                                 var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
                                 $("#tBodyCIPayment").empty();
-                                self.getDetailsOfPay(gridData.payment_id);
+                                self.getDetailsOfPay(gridData.payment_id, gridData.row_id); //row_id = pay_application id
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.type && rowObject.code == 'payment')
@@ -890,7 +903,7 @@ define([
             patientInquiryForm: function (claimId, patientId, patientName) {
                 var self = this;
                 commonjs.showDialog({
-                    'header': 'Patient Claim',
+                    'header': 'Patient Claims',
                     'width': '85%',
                     'height': '75%',
                     'needShrink': true
@@ -912,7 +925,7 @@ define([
 
 
                 this.$el.html(this.claimPatientTemplate());
-                 var headerName = 'Patient Claim: ' + patientName ;
+                 var headerName = 'Patient Claims: ' + patientName ;
                  $(parent.document).find('#spanModalHeader').html(headerName)
                 this.fromDate =  commonjs.bindDateTimePicker("divFDate", { format: 'L' }); 
                 this.fromDate.date(); 
@@ -1052,7 +1065,7 @@ define([
                 });
             },
 
-            getDetailsOfPay: function (pay_id) {
+            getDetailsOfPay: function (pay_id, application_id) {
                 var self = this;
 
                 $.ajax({
@@ -1060,7 +1073,8 @@ define([
                     type: 'GET',
                     data: {
                         'claim_id': self.claim_id,
-                        'payment_id': pay_id
+                        'payment_id': pay_id,
+                        'pay_application_id': application_id
                     },
                     success: function (data, response) {
                         $("#tBodyCIPayment").empty();

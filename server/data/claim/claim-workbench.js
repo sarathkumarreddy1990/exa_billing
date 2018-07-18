@@ -1,5 +1,5 @@
 const SearchFilter = require('./claim-search-filters');
-const { SQL, query } = require('../index');
+const { SQL, query, queryWithAudit } = require('../index');
 
 module.exports = {
 
@@ -36,11 +36,11 @@ module.exports = {
             screenName,
             clientIp,
             claimIds,
-            companyId, 
-            userId      
+            companyId,
+            userId
         } = params;
-        
-        params.logDescriptions='Updated ' + params.process + '  for claims ' ;
+
+        params.logDescriptions = 'Updated ' + params.process + '  for claims ';
         params.moduleName = 'claims';
 
         let updateData;
@@ -83,7 +83,9 @@ module.exports = {
     },
 
     /// TODO: bad fn name -- need to rename
-    movetoPendingSub: async (params) => {
+    updateValidateClaimStatus: async (params) => {
+        params.screenName = params.entityName = params.moduleName = 'claims';    
+        params.logDescriptions= `Validate claims for `;    
         let sql = SQL`WITH getStatus AS 
 						(
 							SELECT 
@@ -92,19 +94,66 @@ module.exports = {
 								billing.claim_status
 							WHERE code  = 'PS'
 						)	
-						UPDATE 
+						,update_cte AS (UPDATE 
 							billing.claims bc
 						SET claim_status_id = (SELECT id FROM getStatus)
 						WHERE bc.id = ANY(${params.success_claimID})
-						RETURNING bc.id`;
+                        RETURNING bc.id,'{}'::jsonb old_values)
+                        SELECT billing.create_audit(
+                            ${params.companyId}
+                          , ${params.screenName}
+                          , id
+                          , ${params.screenName}
+                          , ${params.moduleName}
+                          , ${params.logDescriptions} || id
+                          , ${params.clientIp}
+                          , json_build_object(
+                              'old_values', COALESCE(old_values, '{}'),
+                              'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_cte LIMIT 1 ) temp_row)
+                              )::jsonb
+                          , ${params.userId}
+                          ) AS id 
+                          FROM update_cte
+                          WHERE id IS NOT NULL`;
 
         return await query(sql);
     },
 
-    changeClaimStatus: async (params) => {   
+    changeClaimStatus: async (params) => {
 
-        let insertClaimComments=
-         SQL` , claim_details AS (
+        //let success_claimID = params.success_claimID.split(',');
+
+        let getClaimsDetails = SQL` ,getClaimsDetails as (                
+                SELECT claims.id,payer_type, (  CASE payer_type 
+                    WHEN 'primary_insurance' THEN insurance_providers.insurance_name
+                    WHEN 'secondary_insurance' THEN insurance_providers.insurance_name
+                    WHEN 'teritary_insurance' THEN insurance_providers.insurance_name
+                    WHEN 'ordering_facility' THEN provider_groups.group_name
+                    WHEN 'referring_provider' THEN ref_provider.full_name
+                    WHEN 'rendering_provider' THEN render_provider.full_name
+                    WHEN 'patient' THEN patients.full_name        END)   || '(' ||  payer_type  ||')' as payer_name 
+                FROM billing.claims 
+
+                LEFT JOIN patient_insurances ON patient_insurances.id = 
+                        (  CASE payer_type 
+                        WHEN 'primary_insurance' THEN primary_patient_insurance_id
+                        WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
+                        WHEN 'teritary_insurance' THEN tertiary_patient_insurance_id
+                        END)
+
+                INNER JOIN patients ON claims.patient_id = patients.id 
+                LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id
+                LEFT JOIN provider_contacts  ON provider_contacts.id=claims.referring_provider_contact_id 
+                LEFT JOIN providers as ref_provider ON ref_provider.id=provider_contacts.provider_id
+                LEFT JOIN provider_groups ON claims.ordering_facility_id = provider_groups.id 
+                LEFT JOIN provider_contacts as rendering_pro_contact ON rendering_pro_contact.id=claims.rendering_provider_contact_id
+                LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.provider_id
+
+                WHERE claims.id=${params.success_claimID[0]} ) 
+        `;
+
+        let insertClaimComments =
+            SQL` , claim_details AS (
             SELECT 
                   "claim_id",
                  "note"  
@@ -122,18 +171,25 @@ module.exports = {
                     note , 
                     created_by, 
                     created_dt 
-                )
-                SELECT
-                claim_id,
-                ${params.type},
-                note,
-               ${params.userId},   
-                now()
-          FROM 
-          claim_details )
+                )              
                 `;
-              
+        let getpaymentComments = SQL`  SELECT
+                        claim_id,
+                        ${params.type},
+                        note || ( SELECT payer_name FROM getClaimsDetails),
+                        ${params.userId},   
+                        now()
+                    FROM 
+                    claim_details )`;
 
+        let getEDIpaymentComments = SQL`SELECT
+                                        claim_id,
+                                        ${params.type},
+                                        note,
+                                        ${params.userId},   
+                                        now()
+                                        FROM 
+                                    claim_details )`;
         let sql = SQL`WITH getStatus AS 
 						(
 							SELECT 
@@ -143,21 +199,43 @@ module.exports = {
 							WHERE code  = ${params.claim_status}
                         )`;
 
+        if (params.templateType) {
+            sql.append(getClaimsDetails);
+        }
+
         if (params.isClaim) {
             sql.append(insertClaimComments);
-        }        
 
-        let updateData =SQL`UPDATE 
+            if (params.templateType) {
+                sql.append(getpaymentComments);
+            } else {
+                sql.append(getEDIpaymentComments);
+            }
+        }
+
+        let updateData = SQL`UPDATE 
 							billing.claims bc
-						SET claim_status_id = (SELECT id FROM getStatus)
+                        SET claim_status_id = (SELECT id FROM getStatus),
+                            invoice_no = (SELECT billing.get_invoice_no(${params.success_claimID}))
 						WHERE bc.id = ANY(${params.success_claimID})
                         RETURNING bc.id`;
 
-        sql.append(updateData);                
-       
+        let updateEDIData = SQL`UPDATE 
+                            billing.claims bc
+                        SET claim_status_id = (SELECT id FROM getStatus)                        
+                        WHERE bc.id = ANY(${params.success_claimID})
+                        RETURNING bc.id`;
+
+
+        if (params.templateType && params.templateType != 'patient_invoice') {
+            sql.append(updateData);
+        } else {
+            sql.append(updateEDIData);
+        }
+
         return await query(sql);
     },
-	
+
     getClaimStudy: async (params) => {
 
         let {
@@ -211,16 +289,21 @@ module.exports = {
                             c.id = ${params.id}`;
 
         return await query(sql);
-           
+
     },
 
-    updateBillingPayers: async function(params) {
+    updateBillingPayers: async function (params) {
+        params.screenName = params.entityName = params.moduleName = 'claims';        
         const sql = SQL`
-                        SELECT
-                        billing.change_payer_type(${params.id},${params.payer_type})
+                        SELECT id,
+                        billing.change_payer_type(claims.id,${params.payer_type})
+                        ,'{}'::jsonb old_values from billing.claims WHERE id=${params.id}
                         `;
 
-        return await query(sql);
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: `Change claim payer type (${params.payer_type}) for claims(${params.id})`
+        });
     },
 
     updateFollowUp: async (params) => {
@@ -228,7 +311,11 @@ module.exports = {
             claimIDs,
             assignedTo,
             followupDate,
-            followUpDetails
+            followUpDetails,
+            companyId,
+            screenName,
+            clientIp,
+            userId
         } = params;
         let sql;
         claimIDs = claimIDs.split(',');
@@ -238,7 +325,7 @@ module.exports = {
                     DELETE FROM 
                         billing.claim_followups
                     WHERE 
-                        claim_id = ANY(${claimIDs}) RETURNING id `;
+                        claim_id = ANY(${claimIDs}) RETURNING * `;
         }
         else {
             sql = SQL`WITH update_followup AS(
@@ -249,7 +336,7 @@ module.exports = {
                     , assigned_to= ${assignedTo} 
                 WHERE 
                     claim_id = ANY(${claimIDs})
-                RETURNING *
+                RETURNING * , '{}'::jsonb old_values
             ), 
             followup_details AS (
                 SELECT 
@@ -276,9 +363,45 @@ module.exports = {
                 FROM 
                     followup_details
                 WHERE NOT EXISTS ( SELECT claim_id FROM billing.claim_followups  WHERE billing.claim_followups.claim_id = followup_details.claim_id )
-                RETURNING *
-            ) 
-            SELECT * FROM update_followup UNION SELECT * FROM insert_followup `;
+                RETURNING *, '{}'::jsonb old_values
+            ),
+            insert_audit_followup AS (
+                SELECT billing.create_audit(
+                      ${companyId}
+                    , 'claims'
+                    , id
+                    , ${screenName}
+                    , 'claims'
+                    , 'New Followup for Claim created ' || insert_followup.id || '  Claim ID  ' ||  insert_followup.claim_id
+                    , ${clientIp}
+                    , json_build_object(
+                        'old_values', COALESCE(old_values, '{}'),
+                        'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM insert_followup limit 1) temp_row)
+                      )::jsonb
+                    , ${userId}
+                  ) AS id 
+                FROM insert_followup
+                WHERE id IS NOT NULL
+            ), 
+            update_audit_followup AS (
+                SELECT billing.create_audit(
+                      ${companyId}
+                    , 'claims'
+                    , id
+                    , ${screenName}
+                    , 'claims'
+                    , 'Follow Up Updated  ' || update_followup.id ||' Date ' || update_followup.followup_date || ' Claim ID  ' || update_followup.claim_id
+                    , ${clientIp}
+                    , json_build_object(
+                        'old_values', COALESCE(old_values, '{}'),
+                        'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_followup limit 1 ) temp_row)
+                      )::jsonb
+                    , ${userId}
+                  ) AS id 
+                FROM update_followup
+                WHERE id IS NOT NULL
+            )
+            SELECT * FROM insert_audit_followup UNION SELECT * FROM update_audit_followup `;
         }
 
         return await query(sql);
@@ -317,5 +440,59 @@ module.exports = {
                         `;
 
         return await query(sql);
+    },
+
+    getClaimDataInvoice: function (params) {
+        let { claimIDs } = params;
+
+        let sql = SQL` SELECT 
+                          array_length (array_agg(DISTINCT bc.id), 1) AS claim_count
+                        , array_to_string(array_agg(DISTINCT bc.id), '_')  AS claimids 
+                        , CASE WHEN bc.payer_type = 'patient' THEN
+                                        p.full_name
+                                WHEN bc.payer_type = 'primary_insurance' THEN
+                                        pip.insurance_name
+                                WHEN bc.payer_type = 'secondary_insurance' THEN
+                                        sip.insurance_name
+                                WHEN bc.payer_type = 'tertiary_insurance' THEN
+                                        tip.insurance_name
+                                WHEN bc.payer_type = 'ordering_facility' THEN  
+                                        pg.group_name
+                                WHEN bc.payer_type = 'referring_provider' THEN
+                                        pr.full_name
+                                END as payer_name
+                        , payer_type 
+                        , SUM(ch.bill_fee * ch.units)  AS tot_bill_fee
+                        , CASE WHEN bc.payer_type = 'patient' THEN
+                                        'PPP'
+                                WHEN bc.payer_type = 'primary_insurance' THEN
+                                        'PIP'
+                                WHEN bc.payer_type = 'secondary_insurance' THEN
+                                        'SIP'
+                                WHEN bc.payer_type = 'tertiary_insurance' THEN
+                                        'SIP'
+                                WHEN bc.payer_type = 'ordering_facility' THEN  
+                                        'POF'
+                                WHEN bc.payer_type = 'referring_provider' THEN
+                                        'PR'
+                                END as payer
+                    FROM billing.claims bc
+                    INNER JOIN billing.charges ch ON ch.claim_id = bc.id
+                    LEFT JOIN public.patients p ON p.id = bc.patient_id
+                    LEFT JOIN public.patient_insurances ppi ON ppi.id = bc.primary_patient_insurance_id
+                    LEFT JOIN public.insurance_providers pip on pip.id = ppi.insurance_provider_id
+                    LEFT JOIN public.patient_insurances spi ON spi.id = bc.secondary_patient_insurance_id
+                    LEFT JOIN public.insurance_providers sip on sip.id = spi.insurance_provider_id
+                    LEFT JOIN public.patient_insurances tpi ON tpi.id = bc.tertiary_patient_insurance_id
+                    LEFT JOIN public.insurance_providers tip on tip.id = tpi.insurance_provider_id
+                    LEFT JOIN public.provider_groups  pg on pg.id = bc.ordering_facility_id  
+                    LEFT JOIN public.provider_contacts  pc on pc.id = bc.referring_provider_contact_id
+                    LEFT JOIN public.providers pr on pr.id = pc.provider_id 
+                    WHERE bc.id = ANY(${claimIDs})
+                    GROUP BY 
+                        payer_type ,
+                        payer_name `;
+
+        return query(sql);
     }
 };
