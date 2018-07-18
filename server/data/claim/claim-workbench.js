@@ -296,7 +296,6 @@ module.exports = {
             followUpDetails,
             companyId,
             screenName,
-            moduleName,
             clientIp,
             userId
         } = params;
