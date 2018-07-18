@@ -648,7 +648,12 @@ define(['jquery',
                     $('#ddlPOSType').val(claim_data.place_of_service_id || '');
                     document.querySelector('#txtClaimDate').value = claim_data.claim_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.claim_dt).format('L') : '';
                 } else {
-                    $('#ddlResponsible').val('PPP');
+                    var responsibleIndex = _.find(self.responsible_list, function (item) { return item.payer_type == 'PIP_P'; });
+                    if (responsibleIndex && responsibleIndex.payer_id) {
+                        $('#ddlResponsible').val('PIP_P');
+                    }else{
+                        $('#ddlResponsible').val('PPP');
+                    }
                     $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
                     var frequency = [{ code: 7, desc: 'corrected' }, { code: 8, desc: 'void' }, { code: 1, desc: 'original' }];
                     if (claim_data.frequency) {
