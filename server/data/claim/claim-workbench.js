@@ -83,7 +83,9 @@ module.exports = {
     },
 
     /// TODO: bad fn name -- need to rename
-    movetoPendingSub: async (params) => {
+    updateValidateClaimStatus: async (params) => {
+        params.screenName = params.entityName = params.moduleName = 'claims';    
+        params.logDescriptions= `Validate claims for `;    
         let sql = SQL`WITH getStatus AS 
 						(
 							SELECT 
@@ -92,11 +94,27 @@ module.exports = {
 								billing.claim_status
 							WHERE code  = 'PS'
 						)	
-						UPDATE 
+						,update_cte AS (UPDATE 
 							billing.claims bc
 						SET claim_status_id = (SELECT id FROM getStatus)
 						WHERE bc.id = ANY(${params.success_claimID})
-						RETURNING bc.id`;
+                        RETURNING bc.id,'{}'::jsonb old_values)
+                        SELECT billing.create_audit(
+                            ${params.companyId}
+                          , ${params.screenName}
+                          , id
+                          , ${params.screenName}
+                          , ${params.moduleName}
+                          , ${params.logDescriptions} || id
+                          , ${params.clientIp}
+                          , json_build_object(
+                              'old_values', COALESCE(old_values, '{}'),
+                              'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_cte LIMIT 1 ) temp_row)
+                              )::jsonb
+                          , ${params.userId}
+                          ) AS id 
+                          FROM update_cte
+                          WHERE id IS NOT NULL`;
 
         return await query(sql);
     },
