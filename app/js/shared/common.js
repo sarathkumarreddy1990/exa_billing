@@ -1247,12 +1247,12 @@ var commonjs = {
                 break;
 
             case '23505':
-                if(err.constraint != "status_color_codes_process_type_color_code_uc"){
-                    commonjs.showError('Duplicate record found');
+                var errMessage = 'Duplicate record found';
+                if(exaInternalErrors && exaInternalErrors.constraints && exaInternalErrors.constraints[err.constraint]) {
+                    errMessage = exaInternalErrors.constraints[err.constraint];
                 }
-                else{
-                    commonjs.showError('Color code already exits for this Process Type');
-                }
+
+                commonjs.showError(errMessage);
                 break;
 
             case '23514':
