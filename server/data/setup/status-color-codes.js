@@ -32,14 +32,18 @@ module.exports = {
             whereQuery.push(` color_code ILIKE '%${colorCode}%'`);
         }
 
-        const sql = SQL`SELECT 
-                          id
-                        , process_type
-                        , process_status
-                        , color_code
-                        , COUNT(1) OVER (range unbounded preceding) AS total_records
-                    FROM   
-                        billing.status_color_codes `;
+        const sql = SQL`SELECT
+                            status_color_codes.id
+                            , process_type
+                            , coalesce(claim_status.description, process_status) process_status
+                            , color_code
+                            , COUNT(1) OVER (range unbounded preceding) AS total_records
+                        FROM
+                            billing.status_color_codes
+                        LEFT JOIN
+                            billing.claim_status
+                        ON
+                            claim_status.code = status_color_codes.process_status`;
 
         if (whereQuery.length) {
             sql.append(SQL` WHERE `)
