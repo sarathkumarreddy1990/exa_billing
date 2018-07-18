@@ -1082,6 +1082,16 @@ var commonjs = {
 
         $siteModal.modal('dispose');
         //commonjs.docResize();
+
+         //Report window close 
+         this.closeReportWindow();
+    },
+
+    closeReportWindow: function () {
+        if (window.reportWindow) {
+            window.reportWindow.close();
+            window.reportWindow = null;
+        }
     },
 
     // Set app.settings.report_queue_status using API

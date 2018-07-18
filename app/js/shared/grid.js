@@ -1248,12 +1248,9 @@ define('grid', [
                 rowattr: rowattr
             });
             commonjs.processPostRender();    
-            if (doExport) {
-                console.log('dfadsf', grid.getGridParam("postData")._search)
+            if (doExport) {              
                 var searchFilterFlag = grid.getGridParam("postData")._search;
-                console.log('ssssssssss', studyStore)
                 var colHeader = studyFields.colName;
-
                 $.ajax({
                     'url': '/exa_modules/billing/claim_workbench',
                     type: 'GET',
