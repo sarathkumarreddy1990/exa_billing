@@ -464,7 +464,7 @@ define(['jquery',
                         existingClearingHouse = clearingHouse;
                     }
 
-                    var payerType = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'payer_type'); 
+                    var payerType = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'payer_name'); 
                     selectedpayerType.push(payerType)
 
                     // var ediTemplate = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'edi_template');
@@ -1155,8 +1155,9 @@ define(['jquery',
                             table.renderStudy();
 
                             $('#btnValidateExport').one().click(function (e) {
-                                commonjs.showLoading('Export is In Process ...')
-                                table.renderStudy(true);                                  
+                                commonjs.showStatus('Export Is In Process...')                               
+                                table.renderStudy(true);      
+                                commonjs.showLoading('Export is In Process ...')                           
                                 $('#btnValidateExport').css('display','none');    
                                 commonjs.hideLoading();
 
