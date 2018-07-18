@@ -72,4 +72,14 @@ router.get('/studiesby_patient_id', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/getIcd9To10', async function(req,res) {
+    const data = await claimsController.getIcd9To10(req.query);
+    httpHandler.send(req, res, {'result':data});
+});
+
+router.post('/icdcode', async function(req,res) {
+    const data = await claimsController.saveICD(req.body);
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;
