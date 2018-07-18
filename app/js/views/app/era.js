@@ -88,9 +88,8 @@ define([
                                     self.showPayments(rowID, gridData.uploaded_file_name);
                                 }
                                 else {
-                                    commonjs.showWarning('File not in Success status');
+                                    commonjs.showWarning('File not in success status');
                                 }
-
                             }
                         },
                         { name: 'id', index: 'id', searchFlag: 'int', searchFlag: '%' },
@@ -429,7 +428,7 @@ define([
                         },
                         success: function (model, response) {
 
-                            if (model && model.rows.length) {
+                            if (model && model.rows && model.rows.length) {
                                 var $eraTable = $('#eraResultTable');
                                 fileName = fileName.substr(0, fileName.lastIndexOf('.'));
                                 
