@@ -22,7 +22,7 @@ html
         div#modalDialog.modal-dialog.modal-dialog-centered(role='document')
             div.modal-content
                 div.modal-header
-                    button.close(type='button', data-dismiss='modal', aria-label='Close')
+                    button.close.btn.btn-close.btn-danger(type='button', data-dismiss='modal', aria-label='Close')
                         span(aria-hidden='true') &times;
                     h4#spanModalHeader.modal-title
                 div#modalBody.modal-body
@@ -34,7 +34,7 @@ html
         div#modalDialogNested.modal-dialog.modal-dialog-centered(role='document')
             div.modal-content
                 div.modal-header
-                    button.close(type='button', data-dismiss='modal', aria-label='Close')
+                    button.close.btn.btn-close.btn-danger(type='button', data-dismiss='modal', aria-label='Close')
                         span(aria-hidden='true') &times;
                     h4#spanModalHeaderNested.modal-title
                 div#modalBodyNested.modal-body
