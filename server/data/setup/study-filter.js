@@ -64,7 +64,7 @@ module.exports = {
                 id,
                 ${args.screenName},
                 ${args.moduleName},
-                ${auditMsgIns} || ${args.filterName} || filter_name,
+                ${auditMsgIns} || ${args.filterName},
                 ${args.clientIp || '127.0.0.1'},
                 json_build_object(
                     'old_values', (SELECT COALESCE(old_values, '{}') FROM insert_grid_filter),
@@ -81,7 +81,7 @@ module.exports = {
                 id,
                 ${args.screenName},
                 ${args.moduleName},
-                ${auditMsgUpdate} || (${args.filterName}) || filter_name,
+                ${auditMsgUpdate} || (${args.filterName}) ,
                 ${args.clientIp || '127.0.0.1'},
                 json_build_object(
                     'old_values', (SELECT COALESCE(old_values, '{}') FROM update_grid_filter),
@@ -157,11 +157,10 @@ module.exports = {
     },
 
     delete: async function (params) {
-        let delete_data = SQL` DELETE FROM billing.grid_filters WHERE id = ${params.id} RETURNING  id,'{}'::jsonb old_values `;
-
+        let delete_data = SQL` DELETE FROM billing.grid_filters WHERE id = ${params.id} RETURNING  * ,'{}'::jsonb old_values `;
         return await queryWithAudit(delete_data, {
             ...params,
-            logDescription: 'Deleted.' || params.id
+            logDescription: `Deleted. ${ params.name} `
         });
     }
 };

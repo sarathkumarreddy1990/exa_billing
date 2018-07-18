@@ -368,7 +368,7 @@ define([
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
                     colNames: ['', '', '', ''],
-                    i18nNames: ['', '', 'filterName', 'filterOrder'],
+                    i18nNames: ['', '', 'setup.studyFilters.filterName', 'setup.studyFilters.filterOrder'],
                     colModel: [
                         {
                             name: 'edit',
@@ -392,9 +392,9 @@ define([
                             customAction: function (rowID) {
                                 if (confirm("Are you sure want to delete")) {
                                     var gridData = $('#tblStudyFilterGrid').jqGrid('getRowData', rowID);
-                                    self.model.set({ "id": rowID });
+                                    self.model.set({ "id": rowID, "filter_name": gridData.filter_name });
                                     self.model.destroy({
-                                        data: $.param({ id: self.model.id }),
+                                        data: $.param({ id: self.model.id, name: gridData.filter_name }),
                                         success: function (model, response) {
                                             self.studyFilterTable.refreshAll();
                                             commonjs.showStatus("Deleted Succesfully")
