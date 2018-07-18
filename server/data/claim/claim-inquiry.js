@@ -329,10 +329,35 @@ module.exports = {
                         WHERE 
                             id = commentid 
                         RETURNING id), 
-                        update_billNotes AS ( UPDATE 
+                        update_billnotes AS ( UPDATE 
                                 billing.claims SET billing_notes  = ${notes}
                              WHERE id = ${claim_id} 
-                            RETURNING id), `;
+                            RETURNING *, 
+                            (
+                                SELECT row_to_json(old_row) 
+                                FROM   (SELECT * 
+                                        FROM  billing.claims 
+                                        WHERE  id = ${claim_id}) old_row 
+                            ) old_values
+                        ),
+                        update_audit_billnotes AS (
+                                SELECT billing.create_audit(
+                                      ${companyId}
+                                    , 'claims'
+                                    , id
+                                    , ${screenName}
+                                    , ${moduleName}
+                                    , 'Billing Notes Updated  '||  'Claim ID  ' || update_billnotes.id
+                                    , ${clientIp}
+                                    , json_build_object(
+                                        'old_values', COALESCE(old_values, '{}'),
+                                        'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_billnotes ) temp_row)
+                                      )::jsonb
+                                    , ${userId}
+                                  ) AS id 
+                                FROM update_billnotes
+                                WHERE id IS NOT NULL
+                            ), `;
 
             if(followupDate == '')
             {
@@ -358,7 +383,13 @@ module.exports = {
                                 FROM update_followup
                                 WHERE id IS NOT NULL
                             )
-                        SELECT * FROM update_cmt, update_billNotes, update_audit_followup`);
+                        SELECT * FROM update_cmt
+                        UNION   
+                        SELECT * FROM  update_billnotes 
+                        UNION
+                        SELECT * FROM update_audit_followup 
+                        UNION
+                        SELECT * FROM update_audit_billnotes`);
             }
             else{
                 sql.append(`update_followup AS(
@@ -427,7 +458,7 @@ module.exports = {
                     FROM update_followup
                     WHERE id IS NOT NULL
                 )
-                SELECT * FROM insert_audit_followup UNION SELECT * FROM update_audit_followup`);
+                SELECT * FROM insert_audit_followup UNION SELECT * FROM update_audit_followup UNION SELECT * FROM update_audit_billnotes`);
             }
 
         } else {   
