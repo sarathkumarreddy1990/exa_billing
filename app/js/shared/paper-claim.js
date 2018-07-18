@@ -79,46 +79,53 @@ define([
                             commonjs.showWarning('Unable to process few claims - ' + discardedIDs.toString());
                         }
 
-                        var docDefinition = self.mergeTemplate(templateType, template, claimData);
-                        //var docDefinition = { content: 'This is an sample PDF printed with pdfMake', style: 'header', mmmm: 'sdfdsfdsf' };
+                        self.updateClaimStatus(processedIDs, templateType, function (err, response) {
+                            var invoiceNo = '10001';
 
-                        var pdfWorker;
-
-                        try {
-                            pdfWorker = new Worker('/exa_modules/billing/static/js/workers/pdf.js');
-                        } catch (e) {
-                            console.error(e);
-                            return;
-                        }
-
-                        pdfWorker.onmessage = function (res) {
-                            commonjs.hideLoading();
-
-                            var showDialog = commonjs.showDialog;
-
-                            if (showNestedDialog) {
-                                showDialog = commonjs.showNestedDialog;
-                            }
-                            
-                            self.updateClaimStatus(processedIDs, templateType, function (err, claimData) {
-                                showDialog({
-                                    header: self.pdfDetails[templateType].header,
-                                    width: '90%',
-                                    height: '75%',
-                                    url: res.data.pdfBlob
-                                });
-
-                                // const anchor = document.createElement('a');
-                                // document.body.appendChild(anchor);
-                                // anchor.href = window.URL.createObjectURL(res.data.pdfBlob);
-                                // anchor.download = 'myFileName.pdf';
-                                // anchor.click();
-                            });
-                        };
-
-                        pdfWorker.postMessage(docDefinition);
+                            claimData[0].invoiceNo = invoiceNo;
+                            return self.preparePdfWorker(templateType, template, claimData);
+                        });
                     });
                 });
+            };
+
+            this.preparePdfWorker = function (templateType, template, claimData) {
+                var pdfWorker;
+                var self = this;
+                var docDefinition = this.mergeTemplate(templateType, template, claimData);
+
+                try {
+                    pdfWorker = new Worker('/exa_modules/billing/static/js/workers/pdf.js');
+                } catch (e) {
+                    commonjs.showError('Unable to load PDF!!');
+                    console.error(e);
+                    return;
+                }
+
+                pdfWorker.onmessage = function (res) {
+                    commonjs.hideLoading();
+
+                    var showDialog = commonjs.showDialog;
+
+                    if (showNestedDialog) {
+                        showDialog = commonjs.showNestedDialog;
+                    }
+
+                    showDialog({
+                        header: self.pdfDetails[templateType].header,
+                        width: '90%',
+                        height: '75%',
+                        url: res.data.pdfBlob
+                    });
+
+                    // const anchor = document.createElement('a');
+                    // document.body.appendChild(anchor);
+                    // anchor.href = window.URL.createObjectURL(res.data.pdfBlob);
+                    // anchor.download = 'myFileName.pdf';
+                    // anchor.click();
+                };
+
+                pdfWorker.postMessage(docDefinition);
             };
 
             this.mergeTemplate = function (templateType, template, claimData) {
