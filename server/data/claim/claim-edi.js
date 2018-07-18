@@ -316,7 +316,7 @@ module.exports = {
 										policy_number  as "policyNo",
 										group_name as "planName",
 										group_number as "planType",
-										insurance_info->'claimFileIndicatorCode' as "claimFilingCode",
+										insurance_provider_details.claim_filing_indicator_code as "claimFilingCode",
 										subscriber_firstname as "firstName",
 										subscriber_lastname as "lastName",
 										subscriber_middlename as "middleName",
@@ -520,7 +520,7 @@ module.exports = {
 											policy_number  as "policyNo",
 											group_name as "groupName",
 											group_number as "groupNumber",
-											insurance_info->'claimFileIndicatorCode' as "claimFilingCode",
+											other_ins_details.claim_filing_indicator_code as "claimFilingCode",
 					medicare_insurance_type_code as "insuranceTypeCode",
 					subscriber_firstname as "firstName",
 					subscriber_lastname as "lastName",
@@ -534,6 +534,7 @@ module.exports = {
 					subscriber_zipcode as "zipCode",
 					assign_benefits_to_patient as "acceptAssignment"
 					FROM   patient_insurances 
+					LEFT JOIN billing.insurance_provider_details  other_ins_details ON other_ins_details.insurance_provider_id = patient_insurances.insurance_provider_id
 									WHERE  patient_insurances.id = 
 						(  CASE payer_type 
 						WHEN 'primary_insurance' THEN secondary_patient_insurance_id
@@ -659,7 +660,7 @@ module.exports = {
 											WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
 											WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
 											END)
-									INNER JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id   
+									INNER JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id 
 									LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
 									LEFT JOIN relationship_status ON  subscriber_relationship_id =relationship_status.id									
 									LEFT JOIN public.insurance_provider_payer_types  ON insurance_provider_payer_types.id = insurance_providers.provider_payer_type_id
