@@ -46,6 +46,8 @@ LEFT JOIN public.provider_groups ppg ON ppg.id = bp.provider_group_id
 LEFT JOIN public.provider_contacts ppc ON ppc.id = bp.provider_contact_id
 LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
 LEFT JOIN public.facilities pf ON pf.id = bp.facility_id
+order by payment_id DESC
+LIMIT <%=  pageSize %> 
   )
   SELECT
     facility_name AS "Facility Name",
@@ -94,7 +96,7 @@ LEFT JOIN public.facilities pf ON pf.id = bp.facility_id
          SUM(amount) AS "Payment"
          FROM
                paymentsPDF
-         LIMIT <%=  pageSize %> 
+       
         
 
 `);
