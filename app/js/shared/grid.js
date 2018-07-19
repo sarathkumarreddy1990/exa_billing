@@ -558,7 +558,7 @@ define('grid', [
                     self.followUpView.render(studyIds);
                 });
 
-                if (options.context.homeOpentab == 'Follow_up_queue') {
+                if (options.filterid == 'Follow_up_queue') {
                     var liResetFollowUp = commonjs.getRightClickMenu('anc_reset_followup', 'setup.rightClickMenu.resetFollowUp', false, 'Cancel Follow-up', false);
                     $divObj.append(liResetFollowUp);
                     self.checkRights('anc_reset_followup');
@@ -572,6 +572,20 @@ define('grid', [
 
                         self.followUpView = new followUpView();
                         self.followUpView.resetFollowUp(studyIds);
+                    });
+                }
+
+                if (options.filterid != 'Follow_up_queue') {
+                    var liEditClaim = commonjs.getRightClickMenu('anc_reset_invoice_no','setup.rightClickMenu.resetInvoice',false,'Reset Invoice Number',false);         
+                    if(studyArray.length == 1 && selectedStudies[0].invoice_no != null && selectedStudies[0].invoice_no != '')
+                        $divObj.append(liEditClaim);
+                    self.checkRights('anc_reset_invoice_no');
+
+                    $('#anc_reset_invoice_no').click(function () {
+                        if ($('#anc_reset_invoice_no').hasClass('disabled')) {
+                            return false;
+                        }
+                        self.resetInvoiceNumber(selectedStudies[0].invoice_no);
                     });
                 }
 
@@ -1278,13 +1292,15 @@ define('grid', [
                         }
                     },
                     success: function (data, response) {
-                        //commonjs.showLoading();
-
-                        self.prepareCsvWorker({
+                        commonjs.prepareCsvWorker({
                             data: data,
-                            colHeader: colHeader,
-                            searchFilterFlag: searchFilterFlag
-                        });
+                            reportName: 'CLAIMS',
+                            fileName: 'Claims'
+                        }, {
+                                afterDownload: function () {
+                                    $('#btnValidateExport').css('display', 'inline');
+                                }
+                            });
                     },
                     error: function (err) {
                         commonjs.handleXhrError(err);
@@ -1293,40 +1309,6 @@ define('grid', [
                 });
                 return true;
             }
-        };
-        
-        self.prepareCsvWorker = function (requestData) {
-            var csvWorker;
-            var self = this;
-
-            try {
-                csvWorker = new Worker('/exa_modules/billing/static/js/workers/csv.js');
-            } catch (e) {
-                commonjs.showError('Unable to load CSV!!');
-                console.error(e);
-                return;
-            }
-
-            csvWorker.onmessage = function (response) {
-                commonjs.hideLoading();
-                var workerResponse = response.data;
-
-                if (!workerResponse.csvData) {
-                    return alert("Invalid data");
-                }
-
-                var uri = workerResponse.csvData;
-                var link = document.createElement("a");
-                link.href = uri;
-                link.style = "visibility:hidden";
-                link.download = workerResponse.fileName + ".csv";
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                $('#btnValidateExport').css('display', 'inline');
-            };
-
-            csvWorker.postMessage(requestData);
         };
 
         self.setDropDownSubMenuPosition = function (e, divObj) {
@@ -1356,6 +1338,24 @@ define('grid', [
                 $('#'+ menuId).removeClass('dropdown-submenu')
                 $('#'+ menuId).css({'opacity':'0.7'});
             }
+        },
+
+        self.resetInvoiceNumber = function(invoiceNo) {
+
+            $.ajax({
+                url: '/exa_modules/billing/claim_workbench/invoice_no',
+                type: 'PUT',
+                data: {
+                    invoiceNo: invoiceNo,
+                },
+                success: function (data, response) {
+                    commonjs.showStatus('Claim Invoice Number has been reset');                                    
+                    $("#btnClaimsRefresh").click();
+                },
+                error: function (err, response) {
+                    commonjs.handleXhrError(err, response);
+                }
+            });
         }
     };
 });

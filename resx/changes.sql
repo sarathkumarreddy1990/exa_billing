@@ -2987,6 +2987,7 @@ ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS direct_invoice_templa
 ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS patient_invoice_template_id BIGINT;
 ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS grid_field_settings JSON;
 ALTER TABLE billing.insurance_provider_details ADD COLUMN IF NOT EXISTS claim_filing_indicator_code text;
+ALTER TABLE billing.insurance_provider_details ADD COLUMN IF NOT EXISTS payer_edi_code text;
 -- ALTER TABLE IF EXISTS billing.payment_applications DROP COLUMN IF EXISTS payment_application_id;
 DROP INDEX IF EXISTS edi_files_file_path_ux;
 --ALTER TABLE billing.grid_filters ADD CONSTRAINT IF NOT EXISTS grid_filters_filter_name_uc UNIQUE(filter_type, filter_name);
