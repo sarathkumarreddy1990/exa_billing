@@ -3,6 +3,8 @@ const path = require('path');
 const nconf = require('nconf');
 const logger = require('../../logger');
 
+const siteID = 1;
+
 module.exports = {
 
     keys: {
@@ -42,6 +44,27 @@ module.exports = {
 
     initialize: async function () {
         await this.loadConfigFile();
+
+        const configData = require('../data/config-data');
+
+        const rows = await configData.read(siteID);
+
+        if (rows && rows.constructor.name === 'Error') {
+            logger.error('Failed to load web_config - ensure update_db has been run successfully');
+            return;
+        }
+
+        const options = rows[0].web_config;
+        this.setKeys(options);
+
+        return true;
+    },
+
+    setKeys: function (options) {
+        Object.assign(this.keys, options.reduce((keys, obj) => {
+            keys[obj.id] = obj.id;
+            return keys;
+        }, {}));
     },
 
     set: function (key, value, callback) {
