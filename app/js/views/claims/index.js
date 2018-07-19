@@ -148,7 +148,7 @@ define(['jquery',
                     $('#btPatientDocuemnt').attr('disabled', true)   
                     
                 self.initializeDateTimePickers();
-                
+                $('#modal_div_container').animate({ scrollTop: 0 }, 100);                
             },
 
             initializeDateTimePickers: function () {
