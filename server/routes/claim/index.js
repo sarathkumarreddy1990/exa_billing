@@ -82,7 +82,7 @@ router.post('/icdcode', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
-router.get('/getApprovedReportsByPatient' , async function(req,res) {
+router.get('/getApprovedReportsByPatient', async function (req, res) {
     const data = await claimsController.getApprovedReportsByPatient(req.query);
     httpHandler.sendRows(req, res, data);
 });
