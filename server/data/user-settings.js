@@ -75,7 +75,7 @@ module.exports = {
                 , id
                 , ${args.screenName}
                 , 'setup'
-                , 'User Settings created ' 
+                , insert_user_setting.default_tab || '   User Settings created ' 
                 , ${args.clientIp}
                 , json_build_object(
                     'old_values', COALESCE(old_values, '{}'),
@@ -93,7 +93,7 @@ module.exports = {
                 , id
                 , ${args.screenName}
                 , 'setup'
-                , 'User Settings Updated' 
+                , update_user_setting.default_tab || '   User Settings Updated '
                 , ${args.clientIp}
                 , json_build_object(
                     'old_values', COALESCE(old_values, '{}'),
