@@ -74,7 +74,8 @@ define([
                 this.viewModel.paymentOptions = $('#ddlPaymentOption').val();
                 var urlParams = {
                     pamentIds: reportArgs.payment_id,
-                    paymentStatus: reportArgs.paymentStatus || " "                   
+                    paymentStatus: reportArgs.paymentStatus || " " ,
+                    filterFlag: "paymentsExportPDFFlag"                  
                 }
                 if (reportArgs.flag == 'paymentPDF') {
                     reportArgsFlag = 'payment-print-pdf';
