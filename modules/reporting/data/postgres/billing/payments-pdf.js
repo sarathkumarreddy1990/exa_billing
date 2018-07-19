@@ -94,9 +94,6 @@ LEFT JOIN public.facilities pf ON pf.id = bp.facility_id
          SUM(amount) AS "Payment"
          FROM
                paymentsPDF
-         ORDER BY
-            payment_id  
-                DESC   
          LIMIT <%=  pageSize %> 
         
 
@@ -198,9 +195,9 @@ const api = {
             filters.paymentStatus = queryBuilder.whereIn('status', [params.length]);
         }       
 
-        if (reportParams.filterFlag === 'paymentPDF') {
-            if (config.get('paymentPDF')) {
-                filters.pageSize = config.get('paymentPDF');
+        if (reportParams.filterFlag === 'paymentsExportPDFFlag') {
+            if (config.get('paymentsExportRecordsCount')) {
+                filters.pageSize = config.get('paymentsExportRecordsCount');
             } else {
                 filters.pageSize = 1000;
             }
