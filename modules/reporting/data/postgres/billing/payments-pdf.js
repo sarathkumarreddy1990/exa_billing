@@ -3,6 +3,7 @@ const _ = require('lodash')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
     , queryBuilder = require('../queryBuilder')
+    , config = require('../../../../../server/config')
     , logger = require('../../../../../logger');
 
 // generate query template ***only once*** !!!
@@ -59,8 +60,9 @@ LEFT JOIN public.facilities pf ON pf.id = bp.facility_id
     SUM(amount) AS "Payment"
   FROM
         paymentsPDF
-     WHERE  1=1 
-    <% if (paymentStatus) { %>AND <% print(paymentStatus); } %>            
+     WHERE  1=1      
+    <% if (paymentStatus) { %>AND <% print(paymentStatus); } %>    
+      
          
   GROUP BY
      grouping sets(
@@ -91,7 +93,12 @@ LEFT JOIN public.facilities pf ON pf.id = bp.facility_id
            'GRAND TOTAL'::TEXT AS "Payment Status" , 
          SUM(amount) AS "Payment"
          FROM
-               paymentsPDF         
+               paymentsPDF
+         ORDER BY
+            payment_id  
+                DESC   
+         LIMIT <%=  pageSize %> 
+        
 
 `);
 
@@ -170,7 +177,8 @@ const api = {
         const params = [];
         const filters = {
           paymentDate : null,
-          paymentStatus : null
+          paymentStatus : null,
+          pageSize : null
         };    
         
         
@@ -188,8 +196,15 @@ const api = {
         if (reportParams.paymentStatus) {
             params.push(reportParams.paymentStatus);
             filters.paymentStatus = queryBuilder.whereIn('status', [params.length]);
-        }
+        }       
 
+        if (reportParams.filterFlag === 'paymentPDF') {
+            if (config.get('paymentPDF')) {
+                filters.pageSize = config.get('paymentPDF');
+            } else {
+                filters.pageSize = 1000;
+            }
+         }
       
         
         return {
