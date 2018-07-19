@@ -82,8 +82,8 @@ module.exports = {
                                         referring_pro_study_desc,
                                         studies_details.rendering_provider_contact_id,
                                         studies_details.reading_phy_full_name,
-                                        providers.id as fac_rendering_provider_contact_id,
-                                        providers.full_name as fac_reading_phy_full_name,
+                                        fac_prov_cont.id as fac_rendering_provider_contact_id,
+                                        fac_prov.full_name as fac_reading_phy_full_name,
                                         facility_info->'service_facility_id' as service_facility_id,
                                         facility_info->'service_facility_name' as service_facility_name,
                                         facility_info->'billing_provider_id' as fac_billing_provider_id,
@@ -101,18 +101,14 @@ module.exports = {
                                         orders                                      
                                         INNER JOIN facilities ON  facilities.id= orders.facility_id
                                         INNER JOIN patients p ON p.id= orders.patient_id
-                                        LEFT JOIN LATERAL (
-                                            SELECT pc.id, p.full_name FROM provider_contacts pc
-                                                INNER JOIN providers p ON p.id = pc.provider_id
-                                            WHERE	pc.id = nullif(facility_info->'rendering_provider_id', '')::integer limit 1
-                                        ) providers ON true
-                                        LEFT JOIN LATERAL ( 
+                                        LEFT JOIN provider_contacts fac_prov_cont ON   facility_info->'rendering_provider_id'::text = fac_prov_cont.id::text
+                                        LEFT JOIN providers fac_prov ON fac_prov.id = fac_prov_cont.provider_id
+                                        JOIN LATERAL ( 
                                             SELECT 
                                                 providers.full_name AS reading_phy_full_name,
                                                 reading_physician_id as rendering_provider_contact_id
-                                            FROM 
-                                                public.studies s 
-                                                LEFT JOIN provider_contacts ON provider_contacts.id = s.reading_physician_id
+                                                FROM 
+                                                public.studies s LEFT JOIN provider_contacts ON   s.reading_physician_id = provider_contacts.id
                                                 LEFT JOIN providers ON providers.id = provider_contacts.provider_id
                                                 WHERE s.id = ${firstStudyId}
                                         ) as studies_details ON TRUE   
@@ -610,13 +606,13 @@ module.exports = {
     },
 
     update: async function (args) {
-        
+
         let {
             claims
             , insurances
             , claim_icds
             , charges
-            , auditDetails} = args;
+            , auditDetails } = args;
 
 
         const sqlQry = SQL`SELECT billing.update_claim_charge (
@@ -625,7 +621,7 @@ module.exports = {
             (${JSON.stringify(claim_icds)})::json,
             (${JSON.stringify(auditDetails)})::json,
             (${JSON.stringify(charges)})::json) as result`;
-            
+
         return await query(sqlQry);
     },
 
@@ -719,7 +715,7 @@ module.exports = {
 
     getExistingPayer: async (params) => {
 
-        let sqlQry = SQL `
+        let sqlQry = SQL`
                 SELECT 
                     payer_type 
                 FROM 
@@ -731,7 +727,7 @@ module.exports = {
     },
 
     saveICD: async (params) => {
-        let sqlQry = SQL `
+        let sqlQry = SQL`
                 INSERT INTO public.icd_codes(
                             code
                             ,description
@@ -754,22 +750,23 @@ module.exports = {
                 `;
 
         return await query(sqlQry);
-        
+
     },
 
-    getICD: async(params) => {
-        let sqlQry = SQL `
+    getICD: async (params) => {
+        let sqlQry = SQL`
             SELECT 
                 * 
             FROM 
                 public.icd_codes  
-           WHERE code ILIKE ${params.code}  AND company_id = ${params.companyId} AND NOT has_deleted `;
+           WHERE code ILIKE ${params.code}  AND company_id = ${params.companyId} AND NOT has_deleted
+        `;
 
         return await query(sqlQry);
     },
 
     getApprovedReportsByPatient: async (params) => {
-        let sqlQry = SQL `
+        let sqlQry = SQL`
             SELECT 
              id
             FROM 
@@ -778,7 +775,8 @@ module.exports = {
                 patient_id = ${params.patient_id}
                 AND study_status='APP'
                 AND NOT has_deleted
-            ORDER BY study_dt`;
+            ORDER BY study_dt
+        `;
 
         return await query(sqlQry);
     }

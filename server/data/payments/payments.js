@@ -165,8 +165,6 @@ module.exports = {
                     , provider_contact_id
                     , payment_reason_id
                     , amount MONEY
-                    , accounting_dt::text
-                    , payment_dt::text
                     , alternate_payment_id AS display_id
                     , (  CASE payer_type 
                             WHEN 'insurance' THEN insurance_providers.insurance_name
@@ -174,6 +172,7 @@ module.exports = {
                             WHEN 'ordering_provider' THEN ref_provider.full_name
                             WHEN 'patient' THEN patients.full_name        END) AS payer_name
                     , payment_dt
+                    , accounting_dt
                     , invoice_no
                     , alternate_payment_id
                     , payer_type
@@ -583,13 +582,6 @@ module.exports = {
                                   , amount MONEY
                                   , parent_application_id BIGINT)
                                 ),
-                        delete_cas_applications as(
-                                SELECT 
-                                   id as cas_id 
-                                FROM billing.cas_payment_application_details 
-                                WHERE payment_application_id IN (SELECT payment_application_id FROM cas_application_details)
-                                AND id NOT IN (SELECT cas_id FROM cas_application_details)
-                                ),
                         update_applications AS(
                             UPDATE billing.payment_applications 
                                 SET
@@ -623,7 +615,7 @@ module.exports = {
                                 , ${params.userId}
                                 , parent_applied_dt
                             FROM update_application_details
-                            WHERE  payment_application_id is null and (amount != 0::money OR ${JSON.stringify(params.save_cas_details)} != '[]')
+                            WHERE  payment_application_id is null and amount != 0::money
                             RETURNING *
                         ),
                         update_claim_details AS(
@@ -667,7 +659,7 @@ module.exports = {
                                           , cas_reason_code_id = cad.reason_code_id
                                           , amount = cad.amount
                                     FROM cas_application_details cad
-                                    WHERE cad.cas_id = bcpad.id 
+                                    WHERE bcpad.id = cad.cas_id 
                                     RETURNING *,
                                     (
                                         SELECT row_to_json(old_row) 
@@ -676,10 +668,6 @@ module.exports = {
                                             WHERE  id = cad.cas_id) old_row 
                                     ) old_values
                                 ),
-                        purge_cas_applications AS (
-                            DELETE FROM billing.cas_payment_application_details 
-                            WHERE id in (SELECT cas_id FROM delete_cas_applications)
-                        ),
                         insert_cas_applications AS (
                                 INSERT INTO billing.cas_payment_application_details
                                 (
@@ -689,19 +677,18 @@ module.exports = {
                                   , amount 
                                 )
                                 SELECT 
-                                    CASE WHEN cas.payment_application_id IS NULL THEN 
-                                        (SELECT id FROM insert_applications bpa where bpa.payment_application_id = cas.parent_application_id) 
-                                    ELSE  cas.payment_application_id END
+                                    billing.get_cas_application_id(cas.parent_application_id) 
                                   , cas.group_code_id
                                   , cas.reason_code_id
                                   , cas.amount
                                 FROM cas_application_details cas
                                 WHERE cas.cas_id is null
+                                AND parent_application_id IS NOT NULL
                                 RETURNING *, '{}'::jsonb old_values
                             ),
                         purge_cas_details as (
                             DELETE FROM billing.cas_payment_application_details
-                            WHERE payment_application_id = ANY (${(params.clearCasDetais).map(Number)})
+                            WHERE id = ANY (${(JSON.parse(params.casDeleted)).map(Number)})
                             ),
                             update_applications_audit_cte as(
                                 SELECT billing.create_audit(

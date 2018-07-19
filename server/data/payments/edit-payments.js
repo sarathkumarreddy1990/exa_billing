@@ -774,7 +774,7 @@ module.exports = {
                     (SELECT adjustments_applied_total from billing.get_claim_totals(bc.id)) AS total_adjustment,
                     (SELECT adjustment_amount from get_payment_details) AS adjustment,
                     (SELECT payment_amount from get_payment_details) AS payment,
-                    (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) AS balance
+                    (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) FROM billing.get_claim_totals(bc.id)) AS balance
                 FROM billing.claims bc
                     INNER JOIN billing.charges bch ON bch.claim_id = bc.id 
                     LEFT JOIN billing.payment_applications bpa ON bpa.charge_id  =  bch.id -- For getting applid and pending payments 
