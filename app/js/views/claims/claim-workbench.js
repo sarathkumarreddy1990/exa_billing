@@ -319,7 +319,7 @@ define(['jquery',
                 var drpTabColumnSet = [
                     {                        
                         forTab: "claims",
-                        columns: ["current_illness_date", "claim_dt", "followup_date","birth_date",'submitted_dt']
+                        columns: ["current_illness_date", "claim_dt", "followup_date", "birth_date", 'submitted_dt']
                     }
                 ];
                 var columnsToBind = _.find(drpTabColumnSet,function (val) {
@@ -426,7 +426,7 @@ define(['jquery',
                 var filterID = commonjs.currentStudyFilter;
                 var filter = commonjs.loadedStudyFilters.get(filterID);
 
-                var claimIds =[],invoiceNo=[],existingBillingMethod='',existingClearingHouse='',existingEdiTemplate='', selectedPayerName = [];      
+                var claimIds = [], invoiceNo = [], existingBillingMethod = '', existingClearingHouse = '', existingEdiTemplate = '', selectedPayerName = [];      
 
                 for (var i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
                     var rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;
@@ -475,7 +475,7 @@ define(['jquery',
                     // } else {
                     //     existingEdiTemplate = ediTemplate;
                     // }
-                    var invoice_no = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'invoice_no'); 
+                    var invoice_no = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'invoice_no');
                     invoiceNo.push(invoice_no);
                     claimIds.push(rowId);
                 }
@@ -515,15 +515,15 @@ define(['jquery',
                 }
                 var uniquePayerName = $.unique(selectedPayerName);
                 
-                if(existingBillingMethod === 'direct_billing' && _.uniq(invoiceNo).length == 1) {
-                    if(uniquePayerName && uniquePayerName.length && uniquePayerName.length > 1) {
+                if (existingBillingMethod === 'direct_billing' && _.uniq(invoiceNo).length == 1) {
+                    if (uniquePayerName && uniquePayerName.length && uniquePayerName.length > 1) {
                         self.printInvoiceClaim('direct_invoice', claimIds, sortBy)
                         return;
                     }
                     else {
                         paperClaim.print('direct_invoice', claimIds, {
                             sortBy: sortBy,
-                            invoiceNo:invoiceNo[0]
+                            invoiceNo: invoiceNo[0]
                         });
                         return;
                     }

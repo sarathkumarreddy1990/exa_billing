@@ -79,17 +79,17 @@ define([
                             commonjs.showWarning('Unable to process few claims - ' + discardedIDs.toString());
                         }
 
-                        if(options.invoiceNo){
-                            var invoiceNo = options.invoiceNo;    
+                        if (options && options.invoiceNo) {
+                            var invoiceNo = options.invoiceNo;
                             claimData[0].invoiceNo = invoiceNo;
                             return self.preparePdfWorker(templateType, template, claimData);
-                        }else{
-                            self.updateClaimStatus(processedIDs, templateType, function (err, response) {
-                                var invoiceNo = response.invoice_no;
-                                claimData[0].invoiceNo = invoiceNo;
-                                return self.preparePdfWorker(templateType, template, claimData);
-                            });
                         }
+
+                        self.updateClaimStatus(processedIDs, templateType, function (err, response) {
+                            var invoiceNo = response.invoice_no;
+                            claimData[0].invoiceNo = invoiceNo;
+                            return self.preparePdfWorker(templateType, template, claimData);
+                        });
 
                         
                     });
@@ -171,8 +171,8 @@ define([
                         payerType: options.payerType || '',
                         payerId: options.payerId || '',
                         sortBy: options.sortBy || '',
-                        invoiceNo:options.invoiceNo,
-                        flag:options.invoiceNo?'invoice':'new'
+                        invoiceNo: options.invoiceNo,
+                        flag: options.invoiceNo ? 'invoice' : 'new'
                     }, success: function (data, response) {
                         callback(null, data);
                     }, error: function (err, response) {

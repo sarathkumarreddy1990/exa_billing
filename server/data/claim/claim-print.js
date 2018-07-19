@@ -19,7 +19,8 @@ module.exports = {
                     submitted_dt AS invoice_date,
                     ppr.full_name as referring_physician_name,
                     '' AS reason_for_exam,
-                    json_build_object('patient_name',get_full_name(pp.last_name, pp.first_name),'patient_address1',pp.patient_info->'c1AddressLine1',
+                    json_build_object('patient_name',get_full_name(pp.last_name, pp.first_name)
+                    ,'patient_address1',pp.patient_info->'c1AddressLine1',
                     'patient_address2', pp.patient_info->'c1AddressLine2',
                     'patient_city',  pp.patient_info->'c1City',
                     'patient_state' ,pp.patient_info->'c1State',
