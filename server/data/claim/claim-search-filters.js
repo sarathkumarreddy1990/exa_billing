@@ -373,8 +373,8 @@ const api = {
         sortField = api.getSortFields(sortField);
 
         if (args.customArgs && args.customArgs.flag === 'exportExcel') {
-            if (config.get('claimCsvRecords')) {
-                args.pageSize = config.get('claimCsvRecords');
+            if (config.get('claimsExportRecordsCount')) {
+                args.pageSize = config.get('claimsExportRecordsCount');
             } else {
                 args.pageSize = 25000;
             }
