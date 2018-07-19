@@ -1087,7 +1087,7 @@ END;
 $BODY$
 LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
-DROP FUNCTION billing.get_age_claim_payments(bigint);
+DROP FUNCTION  IF EXISTS billing.get_age_claim_payments(bigint);
 CREATE OR REPLACE FUNCTION billing.get_age_claim_payments(IN bigint)
   RETURNS TABLE(age_0_30 money, age_31_60 money, age_61_90 money, age_91_120 money, age_121 money, total_balance money, payment_insurance_total money, payment_patient_total money) AS
 $BODY$
