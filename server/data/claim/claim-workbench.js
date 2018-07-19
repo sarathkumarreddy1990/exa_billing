@@ -510,7 +510,8 @@ module.exports = {
                     UPDATE 
                         billing.claims bc
                     SET
-                        invoice_no = null
+                        invoice_no = null,
+                        submitted_dt = null
                     WHERE
                         bc.invoice_no = ${invoiceNo}
                     RETURNING * ,
