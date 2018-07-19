@@ -46,7 +46,7 @@ define([
                 'click #btnExcelReport': 'onReportViewClick',
                 'click #btnCsvReport': 'onReportViewClick',
                 'click #btnXmlReport': 'onReportViewClick',
-                "click #ddlInsuranceBinding": "onInsuranceBinding",
+                "change #ddlInsuranceBinding": "onInsuranceBinding",
             },
 
             initialize: function (options) {
