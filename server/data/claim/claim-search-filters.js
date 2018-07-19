@@ -1,5 +1,6 @@
 const studyfilterdata = require('./../study-filters');
 const filterValidator = require('./../filter-validator')();
+const config = require('../../config');
 const { query, SQL } = require('./../index');
 const util = require('./../util');
 
@@ -316,6 +317,7 @@ const api = {
             'claims.id',
             'claims.id as claim_id',
             'claims.claim_dt',
+            'claims.facility_id',
             'claim_status.description as claim_status',
             'claim_status.code as claim_status_code',
             'patients.full_name as patient_name',
@@ -362,6 +364,14 @@ const api = {
         let sortField = (args.sortField || '').trim();
         let sortOrder = (args.sortOrder || '').trim();
         sortField = api.getSortFields(sortField);
+
+        if (args.customArgs && args.customArgs.flag === 'exportExcel') {
+            if (config.get('claimCsvRecords')) {
+                args.pageSize = config.get('claimCsvRecords');
+            } else {
+                args.pageSize = 25000;
+            }
+        }
 
         let params = [];
         const tables = api.getTables([sortField]);

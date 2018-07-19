@@ -1,10 +1,3 @@
-// This is awkward but needed to make pdfmake work on web workers
-// https://github.com/bpampuch/pdfmake/issues/38#issuecomment-149095815
-window = this;
-document = { createElementNS: function () { return {}; } };
-
-
-// Substitute with the path to your pdfmake and vfs_fonts script
 importScripts('/exa_modules/billing/static/node_modules/pdfmake/build/pdfmake.min.js');
 importScripts('/exa_modules/billing/static/node_modules/pdfmake/build/vfs_fonts.js');
 

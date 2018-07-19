@@ -154,5 +154,14 @@ module.exports = {
         });
     },
 
-    saveICD: async (params) => { return await data.saveICD(params); }
+    saveICD: async (params) => { 
+
+        await data.saveICD(params); 
+        
+        return await data.getICD(params);
+    },
+
+    getApprovedReportsByPatient: async (params) => {
+        return await data.getApprovedReportsByPatient(params);
+    }
 };

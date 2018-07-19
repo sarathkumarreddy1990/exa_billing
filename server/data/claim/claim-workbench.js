@@ -219,7 +219,7 @@ module.exports = {
                             invoice_no = (SELECT billing.get_invoice_no(${params.success_claimID})),
                             submitted_dt=now()
 						WHERE bc.id = ANY(${params.success_claimID})
-                        RETURNING bc.id`;
+                        RETURNING bc.id,invoice_no`;
 
         let updateEDIData = SQL`UPDATE 
                             billing.claims bc
