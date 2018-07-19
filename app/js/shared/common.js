@@ -5026,6 +5026,38 @@ var commonjs = {
         }
     },
 
+    prepareCsvWorker: function (requestData, options) {
+        var csvWorker;
+
+        try {
+            csvWorker = new Worker('/exa_modules/billing/static/js/workers/csv.js');
+        } catch (e) {
+            commonjs.showError('Unable to export CSV!!');
+            console.error(e);
+            return;
+        }
+
+        csvWorker.onmessage = function (response) {
+            commonjs.hideLoading();
+            var workerResponse = response.data;
+
+            if (!workerResponse.csvData) {
+                return alert("Invalid data");
+            }
+
+            var fileName = requestData.fileName.replace(/ /g, "_");
+            commonjs.downloadCsv(fileName + ".csv", workerResponse.csvData);
+           
+            if(typeof options.afterDownload === 'function') {
+                options.afterDownload();
+            }
+
+            return;
+        };
+
+        csvWorker.postMessage(requestData);
+    },
+
     downloadCsv: function (fileName, csvData) {
 
         var link = document.createElement("a");

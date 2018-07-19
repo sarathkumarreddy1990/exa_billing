@@ -1292,13 +1292,15 @@ define('grid', [
                         }
                     },
                     success: function (data, response) {
-                        //commonjs.showLoading();
-
-                        self.prepareCsvWorker({
+                        commonjs.prepareCsvWorker({
                             data: data,
-                            colHeader: colHeader,
-                            searchFilterFlag: searchFilterFlag
-                        });
+                            reportName: 'CLAIMS',
+                            fileName: 'Claims'
+                        }, {
+                                afterDownload: function () {
+                                    $('#btnValidateExport').css('display', 'inline');
+                                }
+                            });
                     },
                     error: function (err) {
                         commonjs.handleXhrError(err);
@@ -1307,35 +1309,6 @@ define('grid', [
                 });
                 return true;
             }
-        };
-        
-        self.prepareCsvWorker = function (requestData) {
-            var csvWorker;
-            var self = this;
-
-            try {
-                csvWorker = new Worker('/exa_modules/billing/static/js/workers/csv.js');
-            } catch (e) {
-                commonjs.showError('Unable to load CSV!!');
-                console.error(e);
-                return;
-            }
-
-            csvWorker.onmessage = function (response) {
-                commonjs.hideLoading();
-                var workerResponse = response.data;
-
-                if (!workerResponse.csvData) {
-                    return alert("Invalid data");
-                }
-
-                commonjs.downloadCsv(workerResponse.fileName + ".csv", workerResponse.csvData);
-                $('#btnValidateExport').css('display', 'inline');
-
-                return;
-            };
-
-            csvWorker.postMessage(requestData);
         };
 
         self.setDropDownSubMenuPosition = function (e, divObj) {

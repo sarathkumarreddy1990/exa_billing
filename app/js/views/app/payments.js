@@ -387,7 +387,11 @@ define(['jquery',
                 var self = this;
                 var searchFilterFlag = grid.getGridParam("postData")._search;
                 $('#btnGenerateExcel').prop('disabled', true);
-                commonjs.showLoading('Exporting Excel ...')
+                
+                setTimeout(function() {
+                    commonjs.showLoading();
+                }, 500);
+
                 $.ajax({
                     url: "/exa_modules/billing/payments/payments_list",
                     type: 'GET',
@@ -396,71 +400,15 @@ define(['jquery',
                         paymentStatus: $("#ulPaymentStatus").val()
                     },
                     success: function (data, response) {
-                        var responseJSON = searchFilterFlag ? self.paymentsList : data;
-                        var ReportTitle = 'Payments';
-                        var ShowLabel = 'Payment List';
-                        var paymentExcelData = typeof responseJSON != 'object' ? JSON.parse(responseJSON) : responseJSON;
-                        var CSV = '';
-                        CSV += ReportTitle + '\r';
-                        if (ShowLabel) {
-                            var row = "";
-                            row += 'PAYMENT ID' + ',';
-                            row += 'REF. PAYMENT ID' + ',';
-                            row += 'PAYMENT DATE' + ',';
-                            row += 'ACCOUNTING DATE' + ',';
-                            row += 'PAYER TYPE' + ',';
-                            row += 'PAYER NAME' + ',';
-                            row += 'PAYMENT AMOUNT' + ',';
-                            row += 'PAYMENT APPLIED' + ',';
-                            row += 'BALANCE' + ',';
-                            row += 'ADJUSTMENT' + ',';
-                            row += 'POSTED BY' + ',';
-                            row += 'PAYMENT MODE' + ',';
-                            row += 'FACILITY' + ',';
-                        }
-                        row = row.slice(0, -1);
-                        CSV += row + '\r\n';
-
-                        for (var i = 0; i < paymentExcelData.length; i++) {
-                            var row = "";
-                            var paymentResult = searchFilterFlag ? paymentExcelData.models[i].attributes : paymentExcelData[i];
-                            var paymentDate = moment(paymentResult.payment_dt).format('L');
-                            var accountingDate = moment(paymentResult.accounting_dt).format('L');
-                            var refPaymentId = paymentResult.alternate_payment_id || " ";
-                            var facilityName = paymentResult.facility_name || " ";
-                            row += '"' + paymentResult.id + '",',
-                                row += '"' + refPaymentId + '",',
-                                row += '"' + paymentDate + '",',
-                                row += '"' + accountingDate + '",',
-                                row += '"' + paymentResult.payer_type + '",',
-                                row += '"' + paymentResult.payer_name + '",',
-                                row += '"' + paymentResult.amount + '",',
-                                row += '"' + paymentResult.applied + '",',
-                                row += '"' + paymentResult.available_balance + '",',
-                                row += '"' + paymentResult.adjustment_amount + '",',
-                                row += '"' + paymentResult.user_full_name + '",',
-                                row += '"' + paymentResult.payment_mode + '",',
-                                row += '"' + facilityName + '",'
-
-                            CSV += row + '\r\n';
-                        }
-
-                        if (CSV == '') {
-                            alert("Invalid data");
-                            return;
-                        }
-                        var fileName = "";
-                        fileName += ReportTitle.replace(/ /g, "_");
-                        var uri = 'data:text/csv;charset=utf-8,' + escape(CSV);
-                        var link = document.createElement("a");
-                        link.href = uri;
-                        link.style = "visibility:hidden";
-                        link.download = fileName + ".csv";
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        $('#btnGenerateExcel').prop('disabled', false);
-                        commonjs.hideLoading();
+                        commonjs.prepareCsvWorker({
+                            data: data,
+                            reportName: 'PAYMENTS',
+                            fileName: 'Payments'
+                        }, {
+                                afterDownload: function () {
+                                    $('#btnGenerateExcel').prop('disabled', false);
+                                }
+                            });
                     },
                     error: function (err) {
                         commonjs.handleXhrError(err);
