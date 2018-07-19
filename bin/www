@@ -76,6 +76,7 @@ function onError(error) {
             break;
 
         default:
+            logger.error(error.toString());
             throw error;
     }
 }
