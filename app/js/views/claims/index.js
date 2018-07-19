@@ -122,7 +122,7 @@ define(['jquery',
                     })
                 });
 
-
+                self.clearDependentVariables();
                 // Hide non-edit tabs
                 if (!self.isEdit) {
                     $('.editClaimRelated').hide();
@@ -449,7 +449,7 @@ define(['jquery',
                                 $('#txtModifier4_' + index).val(data.modifier1_id ? self.getModifierCode(data.modifier4_id) : "").attr('data-id',data.modifier4_id);
                             });
                            
-                            if (isFrom && (isFrom == 'studies' || isFrom == 'reload'))
+                            if (isFrom && isFrom == 'studies')
                                 $('.claimProcess').hide(); // hide Next/Prev btn if opened from studies worklist
 
                             // trigger blur event for update Total bill fee, balance etc.
@@ -3683,6 +3683,14 @@ define(['jquery',
                 self.terInsID = '';
                 self.terInsName = '';
                 self.is_tertiary_available = false;
+                self.responsible_list = [
+                    { payer_type: "PPP", payer_type_name: "patient", payer_id: null, payer_name: null },
+                    { payer_type: "PIP_P", payer_type_name: "primary_insurance", payer_id: null, coverage_level: "P", payer_name: null, billing_method: null },
+                    { payer_type: "PIP_S", payer_type_name: "secondary_insurance", payer_id: null, coverage_level: "S", payer_name: null, billing_method: null },
+                    { payer_type: "PIP_T", payer_type_name: "tertiary_insurance", payer_id: null, coverage_level: "T", payer_name: null, billing_method: null },
+                    { payer_type: "POF", payer_type_name: "ordering_facility", payer_id: null, payer_name: null },
+                    { payer_type: "RF", payer_type_name: "referring_provider", payer_id: null, payer_name: null }
+                ]
             }
 
         });
