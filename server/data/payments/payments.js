@@ -1,15 +1,16 @@
 const { query, SQL } = require('./../index');
+const config = require('./../../config');
 const queryMakers = require('./../query-maker-map');
-const generator = queryMakers.get('date');     
+const generator = queryMakers.get('date');
 
 module.exports = {
 
     getPayments: async function (params) {
         let whereQuery = [];
 
-        if(!params.paymentReportFlag) {
+        if (!params.paymentReportFlag) {
             params.sortOrder = params.sortOrder || ' ASC';
-            params.sortField = params.sortField == 'id' ? ' payments.id ' : params.sortField;        
+            params.sortField = params.sortField == 'id' ? ' payments.id ' : params.sortField;
 
             params.sortField = params.sortField == 'payment_dt' ? ' payments.payment_dt ' : params.sortField;
         }
@@ -106,8 +107,8 @@ module.exports = {
             whereQuery.push(`facility_name  ILIKE '%${facility_name}%' `);
         }
 
-        if(from == 'patient_claim') {
-            whereQuery.push(` patient_id = ${patientID} AND ( SELECT payment_status from billing.get_payment_totals(payments.id)) = 'unapplied' `) ;
+        if (from == 'patient_claim') {
+            whereQuery.push(` patient_id = ${patientID} AND ( SELECT payment_status from billing.get_payment_totals(payments.id)) = 'unapplied' `);
         }
 
         let joinQuery = `
@@ -131,20 +132,20 @@ module.exports = {
             `;
 
             sql.append(joinQuery);
-            
+
             if (whereQuery.length) {
                 sql.append(SQL` WHERE `)
                     .append(whereQuery.join(' AND '));
             }
-            
+
             return await query(sql);
         }
         else if (countFlag == 'true') {
             sql = SQL`  SELECT
                         COUNT(1) AS total_records
                         FROM billing.payments   
-                        `;    
-            
+                        `;
+
             sql.append(joinQuery);
 
             if (whereQuery.length) {
@@ -198,6 +199,17 @@ module.exports = {
                 .append(whereQuery.join(' AND '));
         }
 
+        if (params.paymentReportFlag) {
+            if (config.get('paymentsExportRecordsCount')) {
+                pageSize = config.get('paymentsExportRecordsCount');
+            } else {
+                pageSize = 1000;
+            }
+
+            sql.append(SQL` ORDER BY  payments.id desc `)
+                .append(SQL` LIMIT ${pageSize}`);
+        }
+
         if (!isGetTotal && !params.paymentReportFlag) {
             sql.append(SQL` ORDER BY  `)
                 .append(sortField)
@@ -206,6 +218,7 @@ module.exports = {
                 .append(SQL` LIMIT ${pageSize}`)
                 .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
         }
+
 
         return await query(sql);
     },
@@ -423,7 +436,7 @@ module.exports = {
             auditDetails } = params;
 
         const sql = SQL` SELECT billing.purge_payment (${payment_id}, (${JSON.stringify(auditDetails)})::json) AS details`;
-        
+
         return await query(sql);
     },
 
@@ -436,7 +449,7 @@ module.exports = {
             logDescription } = params;
         adjustmentId = adjustmentId ? adjustmentId : null;
         logDescription = `Claim updated Id : ${params.claimId}`;
-        
+
         const sql = SQL`WITH claim_comment_details AS(
                                     SELECT 
                                           claim_id
@@ -813,12 +826,12 @@ module.exports = {
                     AS balance
                 )
                 SELECT * FROM applied, balance
-        `    
+        `
         );
     },
 
     getClaimCharges: async function (params) {
-      
+
         let {
             invoice_no,
             paymentId,
@@ -828,7 +841,7 @@ module.exports = {
 
         let whereQuery = payer_type == 'patient' ? ` WHERE bc.patient_id = ${payer_id} ` : ` WHERE bc.invoice_no = ${invoice_no}::text `;
 
-        const sql =SQL`WITH 
+        const sql = SQL`WITH 
                     claims_details AS (
                         SELECT 
                             bc.id AS claim_id,

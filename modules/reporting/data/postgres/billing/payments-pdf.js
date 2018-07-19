@@ -3,6 +3,7 @@ const _ = require('lodash')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
     , queryBuilder = require('../queryBuilder')
+    , config = require('../../../../../server/config')
     , logger = require('../../../../../logger');
 
 // generate query template ***only once*** !!!
@@ -45,6 +46,8 @@ LEFT JOIN public.provider_groups ppg ON ppg.id = bp.provider_group_id
 LEFT JOIN public.provider_contacts ppc ON ppc.id = bp.provider_contact_id
 LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
 LEFT JOIN public.facilities pf ON pf.id = bp.facility_id
+order by payment_id DESC
+LIMIT <%=  pageSize %> 
   )
   SELECT
     facility_name AS "Facility Name",
@@ -59,8 +62,9 @@ LEFT JOIN public.facilities pf ON pf.id = bp.facility_id
     SUM(amount) AS "Payment"
   FROM
         paymentsPDF
-     WHERE  1=1 
-    <% if (paymentStatus) { %>AND <% print(paymentStatus); } %>            
+     WHERE  1=1      
+    <% if (paymentStatus) { %>AND <% print(paymentStatus); } %>    
+      
          
   GROUP BY
      grouping sets(
@@ -91,7 +95,9 @@ LEFT JOIN public.facilities pf ON pf.id = bp.facility_id
            'GRAND TOTAL'::TEXT AS "Payment Status" , 
          SUM(amount) AS "Payment"
          FROM
-               paymentsPDF         
+               paymentsPDF
+       
+        
 
 `);
 
@@ -170,7 +176,8 @@ const api = {
         const params = [];
         const filters = {
           paymentDate : null,
-          paymentStatus : null
+          paymentStatus : null,
+          pageSize : null
         };    
         
         
@@ -188,8 +195,15 @@ const api = {
         if (reportParams.paymentStatus) {
             params.push(reportParams.paymentStatus);
             filters.paymentStatus = queryBuilder.whereIn('status', [params.length]);
-        }
+        }       
 
+        if (reportParams.filterFlag === 'paymentsExportPDFFlag') {
+            if (config.get('paymentsExportRecordsCount')) {
+                filters.pageSize = config.get('paymentsExportRecordsCount');
+            } else {
+                filters.pageSize = 1000;
+            }
+         }
       
         
         return {

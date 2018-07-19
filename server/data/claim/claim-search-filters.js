@@ -11,6 +11,11 @@ const colModel = [
         searchFlag: 'daterange'
     },
     {
+        name: 'submitted_dt',
+        searchColumns: ['claims.submitted_dt'],
+        searchFlag: 'daterange'
+    },
+    {
         name: 'claim_status',
         searchFlag: 'int',
         searchColumns: ['claims.claim_status_id']
@@ -231,6 +236,7 @@ const api = {
             case 'billing_class': return 'billing_classes.description';
             case 'gender': return 'patients.gender';
             case 'claim_notes': return 'claims.claim_notes';
+            case 'submitted_dt': return 'claims.submitted_dt';
         }
 
         return args;
@@ -323,6 +329,7 @@ const api = {
             'patients.full_name as patient_name',
             'patients.account_no',
             'patients.birth_date::text as birth_date',
+            'claims.submitted_dt',
             `patients.patient_info->'ssn' 
             as patient_ssn`,
             'billing_providers.name as billing_provider',
@@ -366,8 +373,8 @@ const api = {
         sortField = api.getSortFields(sortField);
 
         if (args.customArgs && args.customArgs.flag === 'exportExcel') {
-            if (config.get('claimCsvRecords')) {
-                args.pageSize = config.get('claimCsvRecords');
+            if (config.get('claimsExportRecordsCount')) {
+                args.pageSize = config.get('claimsExportRecordsCount');
             } else {
                 args.pageSize = 25000;
             }

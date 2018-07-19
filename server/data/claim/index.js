@@ -82,8 +82,8 @@ module.exports = {
                                         referring_pro_study_desc,
                                         studies_details.rendering_provider_contact_id,
                                         studies_details.reading_phy_full_name,
-                                        fac_prov_cont.id as fac_rendering_provider_contact_id,
-                                        fac_prov.full_name as fac_reading_phy_full_name,
+                                        providers.id as fac_rendering_provider_contact_id,
+                                        providers.full_name as fac_reading_phy_full_name,
                                         facility_info->'service_facility_id' as service_facility_id,
                                         facility_info->'service_facility_name' as service_facility_name,
                                         facility_info->'billing_provider_id' as fac_billing_provider_id,
@@ -101,16 +101,19 @@ module.exports = {
                                         orders                                      
                                         INNER JOIN facilities ON  facilities.id= orders.facility_id
                                         INNER JOIN patients p ON p.id= orders.patient_id
-                                        LEFT JOIN provider_contacts fac_prov_cont ON   facility_info->'rendering_provider_id'::text = fac_prov_cont.id::text
-                                        LEFT JOIN providers fac_prov ON fac_prov.id = fac_prov_cont.provider_id
+                                        LEFT JOIN LATERAL (
+                                            SELECT pc.id, p.full_name FROM provider_contacts pc
+                                                INNER JOIN providers p ON p.id = pc.provider_id
+                                            WHERE	pc.id = nullif(facility_info->'rendering_provider_id', '')::integer limit 1
+                                        ) providers ON true
                                         JOIN LATERAL ( 
                                             SELECT 
                                                 providers.full_name AS reading_phy_full_name,
                                                 reading_physician_id as rendering_provider_contact_id
                                                 FROM 
-                                                public.studies s LEFT JOIN provider_contacts ON   s.reading_physician_id = provider_contacts.id
+                                                public.studies s LEFT JOIN provider_contacts ON   provider_contacts.id = s.reading_physician_id
                                                 LEFT JOIN providers ON providers.id = provider_contacts.provider_id
-                                                WHERE s.id = ${firstStudyId}
+                                                WHERE s.id = ${firstStudyId} LIMIT 1
                                         ) as studies_details ON TRUE   
                                     WHERE orders.id IN (SELECT order_id FROM public.studies s WHERE s.id = ${firstStudyId})
                             ) 
