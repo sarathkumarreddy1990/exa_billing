@@ -1701,6 +1701,22 @@ var commonjs = {
         return this.getCurrentDateTime(val).format('LT');
     },
 
+    getConvertedFacilityTime: function (dt1, dt2, f, facility_id) {
+        try {
+            var date = "";
+            if (this.checkNotEmpty(dt1)) {
+                date = this.convertToFacilityTimeZone(facility_id, dt1).format(f);
+            } else if (this.checkNotEmpty(dt2)) {
+                date = this.convertToFacilityTimeZone(facility_id, dt2).format(f);
+            }
+        }
+        catch(err){
+            commonjs.showWarning(err);
+        }
+       
+        return date;
+    },
+
     //
     // start: moment-timezone functions
     //
