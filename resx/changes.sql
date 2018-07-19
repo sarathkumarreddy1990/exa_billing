@@ -2010,6 +2010,7 @@ END;
 $BODY$
   LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
+
 CREATE OR REPLACE FUNCTION billing.change_responsible_party(
     i_claim_id bigint,
     i_claim_status_code bigint,
@@ -2028,7 +2029,24 @@ BEGIN
 		  ,(SELECT original_reference FROM  billing.claims WHERE id = i_claim_id ) AS default_original_reference
 		  ,(SELECT claim_status_id FROM  billing.claims WHERE id = i_claim_id ) AS default_claim_status_id
 		  FROM billing.get_claim_totals(i_claim_id)
-		)
+		),
+    insurance_paid as (
+		WITH ins_paid as (
+		SELECT bc.primary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id is_primary,
+			bc.secondary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id is_secondary,
+			bc.tertiary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id is_tertiary
+		FROM billing.claims bc
+		     INNER JOIN billing.charges bch ON  bch.claim_id = bc.id  
+		     INNER JOIN billing.payment_applications bpa ON  bpa.charge_id = bch.id  
+		     INNER JOIN billing.payments bp ON  bp.id = bpa.payment_id
+		     INNER JOIN public.patient_insurances ppi ON ppi.id = ANY(ARRAY[bc.primary_patient_insurance_id, bc.secondary_patient_insurance_id, bc.tertiary_patient_insurance_id])
+		 WHERE bc.id = i_claim_id AND bp.payer_type = 'insurance'
+		 ) 
+		 SELECT
+		 (SELECT count(1) > 0 FROM ins_paid WHERE is_primary) is_primary_paid,
+		 (SELECT count(1) > 0 FROM ins_paid WHERE is_secondary) is_secondary_paid,
+		 (SELECT count(1) > 0 FROM ins_paid WHERE is_tertiary) is_tertiary_paid
+		) 
 
 	UPDATE billing.claims
 
@@ -2036,13 +2054,13 @@ BEGIN
 			CASE WHEN claim_details.adjustments_applied_total = claim_details.charges_bill_fee_total AND claim_details.payments_applied_total::money = 0::money THEN claim_details.payer_type
 			ELSE
 			    CASE 
-				WHEN claim_details.claim_balance_total > 0::money AND (claim_details.payer_type = 'primary_insurance' AND secondary_patient_insurance_id IS NOT NULL )
+				WHEN claim_details.claim_balance_total > 0::money AND (claim_details.payer_type = 'primary_insurance' AND secondary_patient_insurance_id IS NOT NULL ) AND insurance_paid.is_primary_paid
 				THEN 'secondary_insurance'
 			    
-				WHEN claim_details.claim_balance_total > 0::money AND (claim_details.payer_type = 'secondary_insurance' AND tertiary_patient_insurance_id IS NOT NULL )
+				WHEN claim_details.claim_balance_total > 0::money AND (claim_details.payer_type = 'secondary_insurance' AND tertiary_patient_insurance_id IS NOT NULL ) AND insurance_paid.is_secondary_paid
 				THEN 'tertiary_insurance'
 				
-				WHEN claim_details.claim_balance_total > 0::money AND claim_details.payer_type = 'tertiary_insurance'
+				WHEN claim_details.claim_balance_total > 0::money AND claim_details.payer_type = 'tertiary_insurance' AND  insurance_paid.is_tertiary_paid
 				THEN 'patient'				    
 			    
 				WHEN claim_details.claim_balance_total > 0::money AND (secondary_patient_insurance_id IS NULL AND tertiary_patient_insurance_id IS NULL )
@@ -2076,7 +2094,7 @@ BEGIN
                                   ),
                 original_reference = COALESCE(i_original_reference, claim_details.default_original_reference )
 		
-	FROM claim_details WHERE billing.claims.id = i_claim_id;
+	FROM claim_details,insurance_paid WHERE billing.claims.id = i_claim_id;
 
     UPDATE billing.claims set billing_method = (SELECT billing.get_billing_method(i_claim_id, null)) WHERE  id = i_claim_id ;
 

@@ -67,6 +67,7 @@ WITH transaction_summary_by_day as (
     INNER JOIN billing.claims bcl on bcl.id = bc.claim_id
     INNER JOIN facilities f on f.id = bcl.facility_id
     <% if (billingProID) { %> INNER JOIN billing.providers bbp ON bbp.id = bcl.billing_provider_id <% } %>
+    LEFT JOIN billing.adjustment_codes bac ON bac.id = bpa.adjustment_code_id
     WHERE 1 = 1    
     AND <%= accounting_dt %>
     <% if (facilityIds) { %>AND <% print(facilityIds); } %>        

@@ -216,7 +216,7 @@ const api = {
         // billingProvider single or multiple
         if (reportParams.billingProvider) {
             params.push(reportParams.billingProvider);
-            filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
+            filters.billingProID = queryBuilder.whereIn('bc.billing_provider_id', [params.length]);
         }
 
         return {
