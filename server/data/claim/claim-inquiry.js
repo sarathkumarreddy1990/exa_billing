@@ -561,7 +561,7 @@ module.exports = {
                                 FROM billing.cas_payment_application_details cas 
                                 INNER JOIN billing.cas_reason_codes rc ON rc.id = cas.cas_reason_code_id
                                 WHERE  cas.payment_application_id = pa.payment_application_adjustment_id
-                                
+                                order by cas.id
                                 ) as cas
                     ) cas on true 
                     WHERE ch.claim_id = ${claim_id} 
@@ -602,8 +602,8 @@ module.exports = {
                                     rc.code
                                 FROM billing.cas_payment_application_details cas 
                                 INNER JOIN billing.cas_reason_codes rc ON rc.id = cas.cas_reason_code_id
-                                WHERE  cas.payment_application_id = pa_adjustment.id
-                                ) as cas
+                                WHERE  cas.payment_application_id = pa_adjustment.id order by cas.id
+                                ) as cas 
                     ) cas on true 
                     WHERE	pa.charge_id = ${charge_id}
                         AND pa.amount_type = 'payment'  
