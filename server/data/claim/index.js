@@ -750,5 +750,16 @@ module.exports = {
 
         return await query(sqlQry);
         
+    },
+
+    getICD: async(params) => {
+        let sqlQry = SQL `
+            SELECT 
+                * 
+            FROM 
+                public.icd_codes  
+           WHERE code ILIKE ${params.code}  AND company_id = ${params.companyId} AND NOT has_deleted
+        `
+        return await query(sqlQry);
     }
 };

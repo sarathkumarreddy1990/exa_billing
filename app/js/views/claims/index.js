@@ -1866,10 +1866,13 @@ define(['jquery',
                             is_active: true
                         },
                         success: function (model, response) {
-                            if (response && response == 'success') {
-                                commonjs.hideNestedDialog();
-                                self.addDiagCodes(true);
-                            }
+                            var result = model && model[0] ? model[0] : {};
+                            self.ICDID = result.id
+                            self.icd_code = result.code ? result.code : $(selected_element).data('code');
+                            self.description = result.description ? result.description : $(selected_element).data('description');
+                            self.is_active = true;
+                            commonjs.hideNestedDialog();
+                            self.addDiagCodes(true);
                         },
                         error: function (err, response) {
                             commonjs.handleXhrError(err, response);

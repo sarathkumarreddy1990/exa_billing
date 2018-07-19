@@ -151,5 +151,10 @@ module.exports = {
         });
     },
 
-    saveICD: async (params) => { return await data.saveICD(params); }
+    saveICD: async (params) => { 
+
+        await data.saveICD(params); 
+        
+        return data.getICD(params);
+    }
 };
