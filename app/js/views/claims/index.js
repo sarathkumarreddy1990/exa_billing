@@ -3171,7 +3171,13 @@ define(['jquery',
                                 'order_id': order_id
                             });
                             if (window.reportWindow) {
-                                window.reportWindow.location.href = '/vieworder#patient/patientReport/all/' + btoa(patient_id) + '/' + btoa(order_id) + '/' + btoa(study_id);
+                                commonjs.closeReportWindow();
+                                commonjs.openDocumentsAndReports({
+                                    'study_id': study_id,
+                                    'patient_name': data.patient_name,
+                                    'patient_id': patient_id,
+                                    'order_id': order_id
+                                });
                             }
                             $('#modal_div_container').scrollTop(0); 
                         });
