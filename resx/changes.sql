@@ -1087,7 +1087,7 @@ END;
 $BODY$
 LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
-DROP FUNCTION billing.get_age_claim_payments(bigint);
+DROP FUNCTION  IF EXISTS billing.get_age_claim_payments(bigint);
 CREATE OR REPLACE FUNCTION billing.get_age_claim_payments(IN bigint)
   RETURNS TABLE(age_0_30 money, age_31_60 money, age_61_90 money, age_91_120 money, age_121 money, total_balance money, payment_insurance_total money, payment_patient_total money) AS
 $BODY$
@@ -2912,6 +2912,66 @@ END;
 $BODY$
   LANGUAGE plpgsql;
 
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION billing.get_cas_application_id(i_parent_application_id BIGINT)
+RETURNS BIGINT AS
+$BODY$
+DECLARE 
+
+  p_payment_id BIGINT;
+  p_application_adjustment_id BIGINT;
+  p_result BIGINT;
+  
+BEGIN 
+
+    SELECT payment_id INTO p_payment_id FROM billing.payment_applications WHERE id = i_parent_application_id;
+	RAISE NOTICE '%',p_payment_id;
+    SELECT
+      bpa.id INTO p_application_adjustment_id
+    FROM billing.payment_applications bpa
+    INNER JOIN LATERAL ( SELECT
+				applied_dt,
+				charge_id
+			    FROM
+			    billing.payment_applications bpa2
+			    WHERE bpa2.id = i_parent_application_id
+			) bpa_payment ON TRUE
+    WHERE bpa.payment_id = p_payment_id
+    AND bpa.applied_dt = bpa_payment.applied_dt
+    AND bpa.charge_id = bpa_payment.charge_id
+    AND bpa.amount_type = 'adjustment';
+
+    -- Until testing finished
+    -- SELECT payment_application_adjustment_id INTO p_application_adjustment_id FROM billing.get_payment_applications(p_payment_id,i_parent_application_id) WHERE id = i_parent_application_id;
+
+    IF  p_application_adjustment_id IS NOT NULL THEN 
+        p_result := p_application_adjustment_id;
+    ELSE 
+        INSERT INTO billing.payment_applications
+	( 
+            payment_id,
+            charge_id,
+            amount_type,
+            amount,
+            created_by,
+            applied_dt
+        ) 
+        SELECT 
+            payment_id,
+            charge_id,
+            'adjustment',
+            0::money,
+            created_by,
+            applied_dt
+        FROM billing.payment_applications
+        WHERE id = i_parent_application_id
+        RETURNING id INTO p_result;
+    END IF;
+
+    RETURN p_result;
+END;
+$BODY$
+LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
 -- Alter script For new Table changes 
 -- --------------------------------------------------------------------------------------------------------------------

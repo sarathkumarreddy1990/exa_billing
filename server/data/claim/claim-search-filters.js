@@ -11,6 +11,11 @@ const colModel = [
         searchFlag: 'daterange'
     },
     {
+        name: 'submitted_dt',
+        searchColumns: ['claims.submitted_dt'],
+        searchFlag: 'daterange'
+    },
+    {
         name: 'claim_status',
         searchFlag: 'int',
         searchColumns: ['claims.claim_status_id']
@@ -231,6 +236,7 @@ const api = {
             case 'billing_class': return 'billing_classes.description';
             case 'gender': return 'patients.gender';
             case 'claim_notes': return 'claims.claim_notes';
+            case 'submitted_dt': return 'claims.submitted_dt';
         }
 
         return args;
@@ -317,11 +323,13 @@ const api = {
             'claims.id',
             'claims.id as claim_id',
             'claims.claim_dt',
+            'claims.facility_id',
             'claim_status.description as claim_status',
             'claim_status.code as claim_status_code',
             'patients.full_name as patient_name',
             'patients.account_no',
             'patients.birth_date::text as birth_date',
+            'claims.submitted_dt',
             `patients.patient_info->'ssn' 
             as patient_ssn`,
             'billing_providers.name as billing_provider',

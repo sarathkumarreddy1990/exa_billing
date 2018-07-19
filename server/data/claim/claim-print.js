@@ -16,23 +16,30 @@ module.exports = {
 			WITH claim_details AS(
                 SELECT 
                     bc.invoice_no,
-                    '' AS invoice_date,
-                    '' AS service_date,
-                    bp.name AS  referring_physician_name,
+                    submitted_dt AS invoice_date,
+                    ppr.full_name as referring_physician_name,
                     '' AS reason_for_exam,
-                    '' AS modifier1,
-                    '' AS modifier2,
-                    '' AS modifier3,
-                    '' AS modifier4,
-                    pp.patient_info->'c1AddressLine1' AS patient_address1,
-                    pp.patient_info->'c1AddressLine2' AS patient_address2,
+                    json_build_object('patient_name',get_full_name(pp.last_name, pp.first_name)
+                    ,'patient_address1',pp.patient_info->'c1AddressLine1',
+                    'patient_address2', pp.patient_info->'c1AddressLine2',
+                    'patient_city',  pp.patient_info->'c1City',
+                    'patient_state' ,pp.patient_info->'c1State',
+                    'patient_zip',pp.patient_info->'c1Zip'
+                    ) as patient_adrress_details,
                     (SELECT claim_balance_total FROM billing.get_claim_totals(bc.id)) as claim_balance,
                     bc.claim_dt,
                     pp.account_no,
                     '' AS payment_details,
                     f.facility_name,
+                    json_build_object('facility_address1' ,facility_info->'facility_address1',
+                    'facility_address2', facility_info->'facility_address2',
+                    'facility_city',  facility_info->'facility_city',
+                    'facility_state' ,facility_info->'facility_state',
+                    'facility_zip',facility_info->'facility_zip'
+                    ) as facility_adrress_details,
                     bc.id as claim_no,
                     get_full_name(pp.last_name, pp.first_name) as patient_name,
+                    bc.facility_id as facility_id,
                     pp.birth_date,
                     CASE WHEN payer_type = 'primary_insurance' THEN json_build_object('name',pip.insurance_name,'address',pip.insurance_info->'Address1','address2',pip.insurance_info->'Address2','city',pip.insurance_info->'City','state',pip.insurance_info->'State','zip_code',pip.insurance_info->'ZipCode','phone_no',pip.insurance_info->'PhoneNo')
                     WHEN payer_type = 'secondary_insurance' THEN json_build_object('name',pip.insurance_name,'address',pip.insurance_info->'Address1', 'address2',pip.insurance_info->'Address2','city',pip.insurance_info->'City','state',pip.insurance_info->'State','zip_code',pip.insurance_info->'ZipCode','phone_no',pip.insurance_info->'PhoneNo')
@@ -54,7 +61,9 @@ module.exports = {
                 LEFT JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id
                 LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
                 LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
-                WHERE bc.id = ANY(${params.claimIds})
+                WHERE  CASE WHEN ${params.flag}='new' THEN  bc.id = ANY(${params.claimIds})
+                            WHEN ${params.flag}='invoice'  THEN  bc.id in(SELECT claims.id FROM billing.claims WHERE invoice_no=${params.invoiceNo})  END
+               
                 ORDER BY ${params.sortBy}
             ),
 			charge_details as(
@@ -62,15 +71,66 @@ module.exports = {
                     bch.claim_id as claim_no,
                     pcc.display_code,
                     pcc.display_description,
-                    billing.get_charge_icds(bch.id),
+                    charge_dt as "service_date",
+                    billing.get_charge_icds(bch.id),                    
+                    modifier1.code as "modifier1",
+					modifier2.code as "modifier2",
+					modifier3.code as "modifier3",
+					modifier4.code as "modifier4",
                     bch.units,
                     (bch.units * bch.bill_fee) As bill_fee
                 FROM  billing.charges bch
                 INNER JOIN  public.cpt_codes pcc ON pcc.id = bch.cpt_id
-                WHERE bch.claim_id = ANY(${params.claimIds})
-			)
+                LEFT join modifiers as modifier1 on modifier1.id=modifier1_id
+                LEFT join modifiers as modifier2 on modifier2.id=modifier2_id
+                LEFT join modifiers as modifier3 on modifier3.id=modifier3_id
+                LEFT join modifiers as modifier4 on modifier4.id=modifier4_id
+                WHERE  CASE WHEN ${params.flag}='new' THEN  bch.claim_id = ANY(${params.claimIds})
+                            WHEN ${params.flag}='invoice'  THEN  bch.claim_id in(SELECT claims.id FROM billing.claims WHERE invoice_no=${params.invoiceNo}) END
+               
+            ),
+            payment_details as(
+                SELECT 
+                    bp.payment_dt
+                    ,bp.payer_type
+                    , (  CASE bp.payer_type 
+                            WHEN 'insurance' THEN pip.insurance_name
+                            WHEN 'ordering_facility' THEN ppg.group_name
+                            WHEN 'ordering_provider' THEN ppr.full_name
+                            WHEN 'patient' THEN patients.full_name        END) AS payer_name
+                    ,bc.id as claim_id
+                    ,bp.id payment_id
+                    ,payments_applied_total
+                    ,ajdustments_applied_total
+
+                FROM billing.claims bc
+                INNER JOIN billing.charges ch ON ch.claim_id = bc.id
+                INNER JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id 
+                LEFT JOIN billing.payments bp ON bp.id = bpa.payment_id
+                LEFT JOIN public.patients ON patients.id = bp.patient_id
+                LEFT JOIN public.insurance_providers pip ON pip.id = bp.insurance_provider_id
+                LEFT JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id
+                LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
+                LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
+                LEFT OUTER JOIN (
+                            SELECT
+                                payment_id
+                                , count(payment_id) FILTER (WHERE amount_type = 'payment')    AS payments_applied_count
+                                , sum(amount)       FILTER (WHERE amount_type = 'payment')    AS payments_applied_total
+                                , count(payment_id) FILTER (WHERE amount_type = 'adjustment') AS adjustments_applied_count
+                                , sum(amount)       FILTER (WHERE amount_type = 'adjustment') AS ajdustments_applied_total
+                            FROM
+                                billing.payment_applications
+                            GROUP BY
+                                payment_id
+                        ) AS pa ON pa.payment_id = bp.id
+                            WHERE  CASE WHEN ${params.flag}='new' THEN  bc.id = ANY(${params.claimIds})
+                            WHEN ${params.flag}='invoice'  THEN  bc.id in(SELECT claims.id FROM billing.claims WHERE invoice_no=${params.invoiceNo}) END
+               
+            )
 			SELECT (SELECT json_agg(row_to_json(claim_details)) AS claim_details FROM (SELECT * FROM claim_details) AS claim_details),
-					(SELECT json_agg(row_to_json(charge_details)) AS charge_details FROM (SELECT * FROM charge_details) AS charge_details)
+                    (SELECT json_agg(row_to_json(charge_details)) AS charge_details FROM (SELECT * FROM charge_details) AS charge_details),
+                    (SELECT json_agg(row_to_json(payment_details)) AS payment_details FROM (SELECT * FROM payment_details) AS payment_details)
         `;
 
         return await query(sql);

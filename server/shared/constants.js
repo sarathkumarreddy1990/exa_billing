@@ -133,6 +133,7 @@ module.exports = {
         'claim_json':'CLIM', //when claim
         'patient_insurances': 'CLIM', //create claim
         'line_items': 'CLIM', //create claim
+        'invoice_no': 'CLIM', // Reset Invoice No
         'studies': 'HSTY', 
         'studies_total_records': 'HSTY',
         'payments': 'PAYM',
@@ -194,6 +195,7 @@ module.exports = {
         'payment-invoice': 'CLIM',
         'patient': 'ECLM',
         'invoice_details': 'APAY',
-        'apply_invoice_payments': 'APAY'
+        'apply_invoice_payments': 'APAY',
+        'update_claim_status': 'CLIM'
     }
 };

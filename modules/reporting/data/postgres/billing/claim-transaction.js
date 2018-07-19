@@ -35,7 +35,7 @@ WITH details AS(
     LEFT JOIN public.providers pr ON  pr.id = ppc.provider_id
      INNER JOIN public.facilities f ON f.id = bc.facility_id
      LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
-    <% if (billingProID) { %> INNER JOIN billing.providers bpp ON bp.id = bc.billing_provider_id <% } %>   
+    <% if (billingProID) { %> INNER JOIN billing.providers bpp ON bpp.id = bc.billing_provider_id <% } %>   
         WHERE 1 = 1
         AND <%=companyId%>       
    
