@@ -2,13 +2,65 @@ const _ = require('lodash')
     , Promise = require('bluebird')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder')    
+    , queryBuilder = require('../queryBuilder')
     , logger = require('../../../../../logger');
 
 // generate query template ***only once*** !!!
 
 const claimInquiryDataSetQueryTemplate = _.template(`
 with claim_data as (
+    Select 
+       bc.id as claim_id,
+       p.full_name as patient_name,
+       p.account_no,
+       COALESCE(p.patient_info->'ssn','') AS ssn,
+       COALESCE(to_char(p.birth_date,'MM/DD/YYYY'),'') AS dob,
+       COALESCE(p.patient_info->'c1HomePhone','') AS phone,
+       claim_totals.claim_balance_total,
+       bc.payer_type,
+       nullif(ip.insurance_name,'')  AS insurance_name,
+       nullif(ip.insurance_code,'')  AS insurance_code,
+       nullif(ip.insurance_info->'Address1','')  AS address1,
+       nullif(ip.insurance_info->'Address2','')  AS address2,
+       nullif(ip.insurance_info->'City','') AS city,
+       nullif(ip.insurance_info->'State','')  AS state,
+       nullif(ip.insurance_info->'ZipCode','')  AS zip,
+       nullif(ip.insurance_info->'ZipPlus','')  AS zip_plus,
+       nullif(ip.insurance_info->'PhoneNo','')  AS phone_no,
+       nullif(ip.insurance_info->'FaxNo','')  AS fax_no,
+       bc.claim_dt,
+       CASE
+         WHEN bc.payer_type = 'primary_insurance' THEN ip.insurance_name
+         WHEN bc.payer_type = 'secondary_insurance'  THEN ip.insurance_name
+         WHEN bc.payer_type = 'tertiary_insurance' THEN ip.insurance_name
+         WHEN bc.payer_type = 'patient'  THEN p.full_name
+         WHEN bc.payer_type = 'ordering_facility' THEN f.facility_name
+         WHEN bc.payer_type = 'referring_provider' THEN null
+         ELSE  NULL
+       END AS carrier,
+       json_build_array('coverage_level',pi.coverage_level,'GroupNo',pi.group_number,'PolicyNo',pi.policy_number,'expire_date',pi.valid_to_date,'insurance_name',ip.insurance_name) as cov,
+       bp.name
+    FROM billing.claims bc
+    INNER JOIN LATERAL billing.get_claim_totals(bc.id) AS claim_totals ON TRUE
+    INNER JOIN public.patients p on p.id = bc.patient_id
+    INNER JOIN public.facilities f on f.id = bc.facility_id
+    INNER JOIN billing.providers bp on bp.id = bc.billing_provider_id
+    LEFT JOIN public.patient_insurances pi on pi.id = (CASE WHEN  bc.payer_type = 'primary_insurance' THEN
+                                                                                      primary_patient_insurance_id
+                                                                                WHEN  bc.payer_type = 'secondary_insurance' THEN
+                                                                                      secondary_patient_insurance_id
+                                                                                WHEN  bc.payer_type = 'tertiary_insurance' THEN
+                                                                                      tertiary_patient_insurance_id
+                                                                                END)
+    LEFT JOIN public.insurance_providers ip on ip.id = pi.insurance_provider_id
+    WHERE 1=1
+    AND  <%= companyId %>
+     ORDER BY p.full_name,p.account_no ASC)    
+    select * from claim_data limit 10
+`);
+
+const claimInquiryDataSetQueryTemplate1 = _.template(`
+with claim_data_comments as (
     Select 
        bc.id as claim_id,
        p.full_name as patient_name,
@@ -59,11 +111,11 @@ with claim_data as (
      billing_comments as 
     (
     select cc.claim_id as id,'claim' as type ,note as comments ,created_dt::date as commented_dt,null as amount,u.username as commented_by from  billing.claim_comments cc
-    INNER JOIN claim_data cd on cd.claim_id = cc.claim_id
+    INNER JOIN claim_data_comments cd on cd.claim_id = cc.claim_id
     inner join users u  on u.id = cc.created_by 
     UNION ALL
     select  c.claim_id as id,'charge' as type,cc.short_description as comments,c.charge_dt::date as commented_dt,(c.bill_fee*c.units) as amount,u.username as commented_by from billing.charges c
-    INNER JOIN claim_data cd on cd.claim_id = c.claim_id
+    INNER JOIN claim_data_comments cd on cd.claim_id = c.claim_id
     inner join cpt_codes cc on cc.id = c.cpt_id 
     inner join users u  on u.id = c.created_by
     UNION ALL
@@ -83,7 +135,7 @@ with claim_data as (
     from billing.payments bp
     inner join billing.payment_applications pa on pa.payment_id = bp.id
     inner join billing.charges bc on bc.id = pa.charge_id 
-    INNER JOIN claim_data cd on cd.claim_id = bc.claim_id
+    INNER JOIN claim_data_comments cd on cd.claim_id = bc.claim_id
     inner join users u  on u.id = bp.created_by
     LEFT JOIN public.patients pp on pp.id = bp.patient_id
     LEFT JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id
@@ -91,7 +143,7 @@ with claim_data as (
     LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
     LEFT JOIN public.providers p on p.id = pc.provider_id
     )
-    select * from billing_comments
+    select * from billing_comments limit 50
 `);
 
 const api = {
@@ -101,13 +153,27 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
-        return Promise.join(            
+        return Promise.join(
             api.createclaimInquiryDataSet(initialReportData.report.params),
+            api.createclaimInquiryDataSet1(initialReportData.report.params),
             // other data sets could be added here...
-            (claimInquiryDataSet) => {
+            (claimInquiryDataSet, claimInquiryDataSet1) => {
                 // add report filters                
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
+                for (i = 0; i < claimInquiryDataSet.rows.length; i++) {
+                    var comments = [];
+                    for (j = 0; j < claimInquiryDataSet1.rows.length; j++) {
+                        if (claimInquiryDataSet1.rows[j][0] === claimInquiryDataSet.rows[i][0]) {
+                            comments.push(claimInquiryDataSet1.rows[j]);
+                        }
+                    }
+                    comments.push(claimInquiryDataSet1.rows);
+                    claimInquiryDataSet.rows[i].push(comments);
+
+                }
+
+                // add report specific data sets
                 initialReportData.dataSets.push(claimInquiryDataSet);
                 initialReportData.dataSetCount = initialReportData.dataSets.length;
                 return initialReportData;
@@ -178,13 +244,23 @@ const api = {
         return db.queryForReportData(query, queryContext.queryParams);
     },
 
+    createclaimInquiryDataSet1: (reportParams) => {
+        // 1 - build the query context. Each report will 'know' how to do this, based on report params and query/queries to be executed...
+        const queryContext = api.getclaimInquiryDataSetQueryContext(reportParams);
+        console.log('context__', queryContext)
+        // 2 - geenrate query to execute
+        const query = claimInquiryDataSetQueryTemplate1(queryContext.templateData);
+        // 3a - get the report data and return a promise
+        return db.queryForReportData(query, queryContext.queryParams);
+    },
+
     // query context is all about query building: 1 - query parameters and 2 - query template data
     // every report and/or query may have a different logic to build a query context...
     getclaimInquiryDataSetQueryContext: (reportParams) => {
         const params = [];
         const filters = {
             companyId: null
-           
+
         };
 
         // company id
@@ -214,7 +290,7 @@ const api = {
 
         return {
             queryParams: params,
-            templateData: filters         
+            templateData: filters
         }
     }
 }
