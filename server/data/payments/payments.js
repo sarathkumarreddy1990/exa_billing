@@ -165,8 +165,6 @@ module.exports = {
                     , provider_contact_id
                     , payment_reason_id
                     , amount MONEY
-                    , accounting_dt::text
-                    , payment_dt::text
                     , alternate_payment_id AS display_id
                     , (  CASE payer_type 
                             WHEN 'insurance' THEN insurance_providers.insurance_name
@@ -174,6 +172,7 @@ module.exports = {
                             WHEN 'ordering_provider' THEN ref_provider.full_name
                             WHEN 'patient' THEN patients.full_name        END) AS payer_name
                     , payment_dt
+                    , accounting_dt
                     , invoice_no
                     , alternate_payment_id
                     , payer_type
