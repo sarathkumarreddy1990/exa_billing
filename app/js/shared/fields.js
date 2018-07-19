@@ -520,7 +520,20 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "name": "billing_provider",
                         "width": 200
                     }
-                }
+                },
+                "Submitted Date":{
+                    "id": 28,
+                    "field_code": "submitted_dt",
+                    "field_name": "Submitted Date",
+                    "i18n_name": "setup.userSettings.submittedDate",
+                    "field_info": {
+                      "name": "submitted_dt",
+                      "searchFlag": "datetime",
+                      "formatter": claimDateFormatter,
+                      "width": 200
+                    }
+                    
+                  }
 
 
             });   

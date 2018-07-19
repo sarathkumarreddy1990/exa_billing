@@ -317,6 +317,18 @@
           "width": 200
         },
         "id": 27
+      },
+      {
+        "field_code": "submitted_dt",
+        "field_name": "Submitted Date",
+        "i18n_name": "setup.userSettings.submittedDate",
+        "field_info": {
+          "name": "submitted_dt",
+          "searchFlag": "datetime",
+          "formatter": "self.claimDateFormatter",
+          "width": 100
+        },
+        "id": 28
       }
     ],
     "study_fields": [
