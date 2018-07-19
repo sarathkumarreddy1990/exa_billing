@@ -66,7 +66,8 @@ define(['jquery',
             gridFirstLoaded: false,
             canDeletePayment: true,
             pendingGridLoaderd: false,
-            isRefundApplied:false,
+            isRefundApplied: false,
+            casDeleted: [],
 
             events: {
                 'click #btnPaymentSave': 'savePayment',
@@ -1243,6 +1244,7 @@ define(['jquery',
             getClaimBasedCharges: function (claimId, paymentId, paymentStatus, chargeId, paymentApplicationId, isInitialBind) {
                 var self = this;
                 self.casSave = [];
+                self.casDeleted = [];
                 $.ajax({
                     url: '/exa_modules/billing/pending_payments/claim-charges',
                     type: 'GET',
@@ -1568,9 +1570,13 @@ define(['jquery',
                     var groupCode = $('#selectGroupCode' + k).val();
                     var reasonCode = $('#selectReason' + k).val();
                     var amount = $('#txtAmount' + k).val();
-                    
+                    var cas_id = '';
                     if (paymentStatus === 'applied') {
-                        var cas_id = $('#selectGroupCode' + k).attr('cas_id');
+                        cas_id = $('#selectGroupCode' + k).attr('cas_id');
+                    }
+
+                    if (groupCode == '' && ($('#selectGroupCode' + k).attr('cas_id') != '' && $('#selectGroupCode' + k).attr('cas_id') > 0)) {
+                        self.casDeleted.push($('#selectGroupCode' + k).attr('cas_id'));
                     }
 
                     if (groupCode != '' && reasonCode != '' && amount != '') {
@@ -1616,6 +1622,7 @@ define(['jquery',
                             paymentApplicationId: paymentApplicationId
                         },
                         success: function (data, response) {
+                            $('#divPaymentCAS select').removeAttr('cas_id');
                             var payemntCasApplns = data || self.casSegmentsSelected;
                                 $.each(payemntCasApplns, function (index, appln) {
                                     var rowVal = index + 1;
@@ -1640,7 +1647,7 @@ define(['jquery',
                     if (casSelected && casSelected.length) {
                         $.each(casSelected[0].casObj, function (index, appln) {
                             var rowVal = index + 1;
-                            $('#selectGroupCode' + rowVal).val(appln.group_code_id);
+                            $('#selectGroupCode' + rowVal).val(appln.group_code_id).attr('cas_id', '');
                             $('#selectReason' + rowVal).val(appln.reason_code_id);
                             $('#txtAmount' + rowVal).val(parseFloat(appln.amount).toFixed(2));
                         });
@@ -1756,13 +1763,15 @@ define(['jquery',
                             billingNotes: billingNotes,
                             payerType: payerType,
                             adjustmentId: adjustmentType,
-                            paymentStatus: paymentStatus
+                            paymentStatus: paymentStatus,
+                            casDeleted: JSON.stringify(self.casDeleted)
                         },
                         success: function (model, response) {
                             commonjs.showStatus(paymentStatus === 'applied' ? 'Payment has been updated successfully' : 'Payment has been applied successfully');
                             targetObj.removeAttr('disabled');
                             commonjs.hideLoading();
                             self.isRefundApplied = false;
+                            self.casDeleted = [];
                             // if (paymentStatus != 'applied') {
                             //     self.casSegmentsSelected = [];
                             //     self.closeAppliedPendingPayments(e, paymentId);

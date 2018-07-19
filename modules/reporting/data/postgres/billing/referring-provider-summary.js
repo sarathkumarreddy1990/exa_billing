@@ -34,11 +34,12 @@ WITH referringProviderSummary as (
     SELECT 
         provider_code AS "Provider Code",
         provider_name AS "Provider Name",
-        orderCount AS "Count" ,
-        BillingFee AS "Bill Fee", 
-        AllowedFee AS "Allowed Fee"
+        SUM(orderCount) AS "Count" ,
+        SUM(BillingFee) AS "Bill Fee", 
+        SUM(AllowedFee) AS "Allowed Fee"
     FROM
          referringProviderSummary
+    GROUP BY "Provider Code","Provider Name"
 `);
 
 const api = {
