@@ -382,11 +382,7 @@ module.exports = {
                                   ) AS id 
                                 FROM update_followup
                                 WHERE id IS NOT NULL
-                            )
-                        SELECT * FROM update_cmt
-                        UNION   
-                        SELECT * FROM  update_billnotes 
-                        UNION
+                            )  
                         SELECT * FROM update_audit_followup 
                         UNION
                         SELECT * FROM update_audit_billnotes`);
@@ -462,12 +458,40 @@ module.exports = {
             }
 
         } else {   
-            sql = SQL`UPDATE 
+            sql = SQL`WITH update_comments AS (
+                    UPDATE 
                         billing.claim_comments
                     SET 
                         note = ${note}
                     WHERE
-                        id = ${commentId} `;
+                        id = ${commentId}
+                    RETURNING *, 
+                    (
+                        SELECT row_to_json(old_row) 
+                        FROM   (SELECT * 
+                                FROM   billing.claim_comments 
+                                WHERE  id = ${commentId}) old_row 
+                    ) old_values
+                ),
+                update_audit_comments AS (
+                    SELECT billing.create_audit(
+                          ${companyId}
+                        , 'claims'
+                        , id
+                        , ${screenName}
+                        , ${moduleName}
+                        , 'Updated:  Claim Inquiry ( ' || update_comments.claim_id ||' ) Updated'
+                        , ${clientIp}
+                        , json_build_object(
+                            'old_values', COALESCE(old_values, '{}'),
+                            'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_comments ) temp_row)
+                          )::jsonb
+                        , ${userId}
+                      ) AS id 
+                    FROM update_comments
+                    WHERE id IS NOT NULL
+                ) 
+                SELECT * FROM update_audit_comments`;
         }
 
         return await query(sql);
@@ -561,7 +585,7 @@ module.exports = {
                                 FROM billing.cas_payment_application_details cas 
                                 INNER JOIN billing.cas_reason_codes rc ON rc.id = cas.cas_reason_code_id
                                 WHERE  cas.payment_application_id = pa.payment_application_adjustment_id
-                                order by cas.id
+                                ORDER BY cas.id
                                 ) as cas
                     ) cas on true 
                     WHERE ch.claim_id = ${claim_id} 
@@ -602,8 +626,9 @@ module.exports = {
                                     rc.code
                                 FROM billing.cas_payment_application_details cas 
                                 INNER JOIN billing.cas_reason_codes rc ON rc.id = cas.cas_reason_code_id
-                                WHERE  cas.payment_application_id = pa_adjustment.id order by cas.id
-                                ) as cas 
+                                WHERE  cas.payment_application_id = pa_adjustment.id
+                                ORDER BY cas.id
+                                ) as cas
                     ) cas on true 
                     WHERE	pa.charge_id = ${charge_id}
                         AND pa.amount_type = 'payment'  
