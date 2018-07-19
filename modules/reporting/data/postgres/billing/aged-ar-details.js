@@ -134,6 +134,7 @@ COALESCE(CASE WHEN gcd.age > 90 and gcd.age <=120 THEN gcd.balance END,0::money)
  LEFT JOIN public.patient_insurances ppi ON ppi.id = CASE WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
                                                  WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
                                                  WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
+                                                 <% if(incPatDetail == 'true') { %>  ELSE primary_patient_insurance_id <% } %>
                                             END
  LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
  LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id

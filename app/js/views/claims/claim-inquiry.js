@@ -67,7 +67,9 @@ define([
 
             initialize: function (options) {
                 this.options = options;
-                this.pager = new Pager();
+                this.invoicePager = new Pager();
+                this.claimsPager = new Pager();
+                this.claimInquiryPager = new Pager();
                 this.claimCommentsList = new claimCommentsList();
                 this.claimPatientList = new claimPatientList();
                 this.claimInvoiceList = new claimInvoiceList();
@@ -285,7 +287,7 @@ define([
                 this.patientClaimsTable = new customGrid();
                 this.patientClaimsTable.render({
                     gridelementid: '#tblPatientClaimsGrid',
-                    custompager: new Pager(),
+                    custompager: this.claimsPager,
                     emptyMessage: 'No Record found',
                     colNames: ['', 'Claim Number', 'Claim Date', 'Billing Fee', 'Total Adjustment','Total Insurance Payments', 'Total Patient Payments', 'Balance', 'Claim Status', 'Current responsibility'],
                     i18nNames: ['', 'billing.fileInsurance.claimNo', 'billing.claims.claimDate', 'billing.COB.billingFee','billing.fileInsurance.totalAdjustment', 'billing.claims.totalInsurancePayments', 'billing.claims.totalPatientPayments', 'billing.claims.Balance', 'billing.claims.claimStatus', 'billing.claims.currentResponsibility'],
@@ -357,7 +359,7 @@ define([
                 this.invoiceTable = new customGrid();
                 this.invoiceTable.render({
                     gridelementid: '#tblInvoiceGrid',
-                    custompager: new Pager(),
+                    custompager: self.invoicePager,
                     emptyMessage: 'No Record found',
                     colNames: ['', '', 'Invoice No', 'Date', 'Total Billing Fee', 'Total Payments', 'Total Adjustment',  'Balance',''],
                     i18nNames: ['', '', 'billing.fileInsurance.invoiceNo', 'billing.claims.Date', 'billing.COB.billingFee','billing.claims.totalPayments', 'billing.fileInsurance.totalAdjustment',  'billing.claims.Balance',''],
@@ -365,7 +367,7 @@ define([
                         { name: '', index: 'id', key: true, hidden: true, search: false },  
                         { name: 'claim_ids', hidden: true} ,                    
                         {
-                            name: 'invoice_no', search: true, width: 100 
+                            name: 'invoice_no', search: true, width: 100
                         },
                         {
                             name: 'invoice_date', search: true, formatter: self.dateFormatter, width: 150
@@ -454,6 +456,7 @@ define([
                 });
 
                 $('.inquiryReload').click(function(){
+                    self.invoicePager.set({ "PageNo": 1 });
                     self.invoiceTable.refreshAll();
                 });
 
@@ -557,7 +560,7 @@ define([
                 payCmtGrid = new customGrid();
                 payCmtGrid.render({
                     gridelementid: '#tblCIClaimComments',
-                    custompager: self.pager,
+                    custompager: self.claimInquiryPager,
                     emptyMessage: 'No Records Found',
                     colNames: ['','', 'date', '', 'code', 'payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', '',''],
                     colModel: [
@@ -947,54 +950,43 @@ define([
                 })
 
                 $('#btnPatientActivity').on().click(function () {
-
-                    if (self.fromDate.date() > self.toDate.date()) {
-                        commonjs.showWarning('From date is greater than To Date');
-                        return
-                    }
-
-                    if ($('#radActivityAllStatus').prop("checked")){
+                    if ($('#radActivityAllStatus').prop("checked")) {
                         reportBy = true;
                     }
-                    else{
-                        if ( $('#txtOtherDate').val() < moment(moment().format('MM/DD/YYYY'))) {
-                            commonjs.showWarning('To date is Future');
-                            return
-                        }
-                        
-                        if ( $('#txtDate').val() < moment(moment().format('MM/DD/YYYY'))) {
-                            commonjs.showWarning('From date is Future');
-                            return
-                        }
-                        if ($('#radioActivityStatus').prop("checked")) {
-                            if ($('#txtDate').val() == '') {
-                                commonjs.showWarning('Please select From Date');
-                                return
-                            }
-                            if ($('#txtOtherDate').val() == '') {
-                                commonjs.showWarning('Please select To Date');
-                                return
-                            }
-    
-                            if ( ( $('#txtOtherDate').val() == '') || $('#txtOtherDate').val() == '') {
-                                commonjs.showWarning('Please select date');
-                                return
-                            }
-    
-                        }
-                        
+                    else if ($('#radioActivityStatus').prop("checked") && self.validateFromAndToDate(self.fromDate, self.toDate)) {
                         reportBy = false;
                         fromDate = $('#txtDate').val();
                         toDate = $('#txtOtherDate').val();
                     }
-
-               
+                    else return false;
+                    
                     var billing_pro = [], selectedBillingProList, allBillingProvider;
                     selectedBillingProList = $('#ddlBillingProvider option:selected').val() ? [$('#ddlBillingProvider option:selected').val()] : [];
 
                     reportBy  ? self.generatePatientActivity(claimId, patientId, reportBy,null,null, selectedBillingProList) : self.generatePatientActivity(claimId, patientId, reportBy, fromDate, toDate, selectedBillingProList)
                     $('#modal_div_container').removeAttr('style');
                 });
+            },
+            
+            validateFromAndToDate: function (objFromDate, objToDate) {
+                var validationResult = commonjs.validateDateTimePickerRange(objFromDate, objToDate, false);
+                if($('#txtDate').val() == '' && $('#txtOtherDate').val() == ''){
+                    commonjs.showWarning('Please select date range')
+                    return false;
+                }
+                if($('#txtDate').val() == ''){
+                    commonjs.showWarning('Please select from Date')
+                    return false;
+                }
+                if($('#txtOtherDate').val() == ''){
+                    commonjs.showWarning('Please select to date')
+                    return false;
+                }
+                if (!validationResult.valid) {
+                    commonjs.showWarning(validationResult.message);
+                    return false;
+                }
+                return true;
             },
 
             patientInquiryLog: function (claimId, patientId) {
@@ -1162,8 +1154,8 @@ define([
             showAllActivity: function () {
                 if ($('#radActivityAllStatus').is(':visible')){
                     $('#activityDetails').hide();
-                    this.fromDate.clear();
-                    this.toDate.clear();
+                    this.fromDate ? this.fromDate.clear() : '';
+                    this.toDate ? this.toDate.clear() : '';
                 }
                 $('input[type=date]').val('');
             },
@@ -1193,7 +1185,7 @@ define([
                 $("#gs_invoice_payment").addClass('floatbox');
                 $("#gs_invoice_adjustment").addClass('floatbox');
                 $("#gs_invoice_balance").addClass('floatbox');
-                $("#gs_invoice_no").addClass('integerbox');
+                $("#tblInvoiceGrid #gs_invoice_no").addClass('integerbox');
                 commonjs.validateControls();
             }
     });
