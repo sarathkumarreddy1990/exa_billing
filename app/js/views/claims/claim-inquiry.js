@@ -385,7 +385,7 @@ define([
                         {
                             name: 'edit', width: 50, sortable: false, search: false,
                             formatter: function (cellvalue, options, rowObject) {
-                                return '<span class="icon-ic-print spnInvoicePrint" title="Print Claim" id="spnInvoicePrint" style="font-size: 20px; cursor:pointer;"></span>'
+                                return '<span class="icon-ic-print spnInvoicePrint" title="Print Claim" id="spnInvoicePrint" style="font-size: 15px; cursor:pointer;"></span>'
                             },
                             cellattr: function () {
                                 return "style='text-align: center;text-decoration: underline;'";
