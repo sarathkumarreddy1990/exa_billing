@@ -483,8 +483,8 @@ CREATE TABLE IF NOT EXISTS billing.claim_status
     display_order bigint NOT NULL,
     CONSTRAINT claim_status_pk PRIMARY KEY(id),
     CONSTRAINT claim_status_company_id_fk FOREIGN KEY (company_id) REFERENCES public.companies (id), 
-    CONSTRAINT claim_status_company_code_uc UNIQUE(company_id,code)
-    --CONSTRAINT claim_status_company_display_order_uc UNIQUE(company_id,display_order)
+    CONSTRAINT claim_status_company_code_uc UNIQUE(company_id,code),
+    CONSTRAINT claim_status_company_display_order_uc UNIQUE(company_id,display_order)
 );
 -- --------------------------------------------------------------------------------------------------------------------
 IF NOT EXISTS(SELECT 1 FROM billing.claim_status) THEN 
@@ -891,7 +891,7 @@ CREATE TABLE IF NOT EXISTS billing.edi_files
 );
 
 -- CREATE UNIQUE INDEX IF NOT EXISTS edi_files_file_path_ux ON billing.edi_files(lower(file_path));
-DROP INDEX IF EXISTS edi_files_file_path_ux;
+-- DROP INDEX IF EXISTS edi_files_file_path_ux;
 
 COMMENT ON TABLE billing.edi_files IS 'Details of 837(EDI electronic claim) and 835 (ERA response) files';
 
@@ -990,7 +990,6 @@ CREATE TABLE IF NOT EXISTS billing.payment_applications
     amount_type TEXT NOT NULL,
     created_by BIGINT NOT NULL,
     applied_dt TIMESTAMPTZ NOT NULL DEFAULT now(),
-    payment_application_id BIGINT,
     CONSTRAINT payment_applications_pk PRIMARY KEY (id),
     CONSTRAINT payment_applications_payment_id_fk FOREIGN KEY (payment_id) REFERENCES billing.payments (id),
     CONSTRAINT payment_applications_charge_id_fk FOREIGN KEY (charge_id) REFERENCES billing.charges (id),
@@ -1114,7 +1113,7 @@ CREATE TABLE IF NOT EXISTS billing.audit_log
   changes JSONB NOT NULL,
   CONSTRAINT audit_log_pk PRIMARY KEY (id),
   CONSTRAINT audit_log_created_by_fk FOREIGN KEY (created_by) REFERENCES public.users(id),
-  CONSTRAINT audit_log_module_name_cc CHECK(module_name in ('setup','claims','payments','era','edi'))
+  CONSTRAINT audit_log_module_name_cc CHECK(module_name in ('setup','claims','payments','era','edi','reports'))
  ); 
 CREATE INDEX IF NOT EXISTS audit_log_entity_name_entity_key_idx ON billing.audit_log (entity_name,entity_key);
 
@@ -1129,14 +1128,14 @@ CREATE TABLE IF NOT EXISTS billing.insurance_provider_details
   insurance_provider_id bigint NOT NULL,
   clearing_house_id bigint,
   billing_method text,
+  claim_filing_indicator_code text,
   CONSTRAINT b_insurance_provider_id_pk PRIMARY KEY (insurance_provider_id),
   CONSTRAINT b_insurance_providers_clearing_house_id_fk FOREIGN KEY (clearing_house_id) REFERENCES billing.edi_clearinghouses (id),
   CONSTRAINT insurance_providers_insurance_provider_id_fk FOREIGN KEY (insurance_provider_id) REFERENCES insurance_providers (id),
   CONSTRAINT insurance_provider_details_ins_id_clear_house_id_uc UNIQUE (insurance_provider_id, clearing_house_id),
-  CONSTRAINT insurance_providers_ins_id_clear_house_id_uc UNIQUE (insurance_provider_id, billing_method)
-  --CONSTRAINT insurance_provider_details_billing_method_cc CHECK (billing_method IN ('patient_payment', 'direct_billing', 'electronic_billing', 'paper_claim'))
+  CONSTRAINT insurance_providers_ins_id_clear_house_id_uc UNIQUE (insurance_provider_id, billing_method),
+  CONSTRAINT insurance_provider_details_billing_method_cc CHECK (billing_method IN ('patient_payment', 'direct_billing', 'electronic_billing', 'paper_claim'))
 );
-
 END
 $$;
 -- ====================================================================================================================

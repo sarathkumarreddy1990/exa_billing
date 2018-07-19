@@ -1242,6 +1242,14 @@ var commonjs = {
                 commonjs.showError(errorMessage);
                 break;
 
+            case '23502':
+                errorMessage = errorMessage.split('"').map(function (obj) { return obj.trim() });
+                if (errorMessage.indexOf('billing_provider_id') > -1 || errorMessage.indexOf('claim_status_id') > -1) {
+                    errorMessage = errorMessage[1] || '';
+                }
+                commonjs.showError('Unable to get Default ' + errorMessage);
+                break;
+
             case '23503':
                 commonjs.showError('Dependent records found');
                 break;

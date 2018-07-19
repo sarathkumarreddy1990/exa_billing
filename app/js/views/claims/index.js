@@ -449,7 +449,7 @@ define(['jquery',
                                 $('#txtModifier4_' + index).val(data.modifier1_id ? self.getModifierCode(data.modifier4_id) : "").attr('data-id',data.modifier4_id);
                             });
                            
-                            if (isFrom && isFrom == 'studies')
+                            if (isFrom && (isFrom == 'studies' || isFrom == 'reload'))
                                 $('.claimProcess').hide(); // hide Next/Prev btn if opened from studies worklist
 
                             // trigger blur event for update Total bill fee, balance etc.
@@ -651,7 +651,12 @@ define(['jquery',
                     $('#ddlPOSType').val(claim_data.place_of_service_id || '');
                     document.querySelector('#txtClaimDate').value = claim_data.claim_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.claim_dt).format('L') : '';
                 } else {
-                    $('#ddlResponsible').val('PPP');
+                    var responsibleIndex = _.find(self.responsible_list, function (item) { return item.payer_type == 'PIP_P'; });
+                    if (responsibleIndex && responsibleIndex.payer_id) {
+                        $('#ddlResponsible').val('PIP_P');
+                    }else{
+                        $('#ddlResponsible').val('PPP');
+                    }
                     $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
                     var frequency = [{ code: 7, desc: 'corrected' }, { code: 8, desc: 'void' }, { code: 1, desc: 'original' }];
                     if (claim_data.frequency) {
@@ -2563,15 +2568,22 @@ define(['jquery',
                     var id = $(this).attr('data_row_id');
                     var cpt_code_id = $('#lblCptCode_' + id).attr('data_id');
                     var rowData = _.find(self.chargeModel, { 'data_row_id': parseInt(id) });
+                    var pointers = [
+                        $(this).find('td:nth-child(7)>input').val() ? $(this).find('td:nth-child(7)>input').val() : '',
+                        $(this).find('td:nth-child(8)>input').val() ? $(this).find('td:nth-child(8)>input').val() : '',
+                        $(this).find('td:nth-child(9)>input').val() ? $(this).find('td:nth-child(9)>input').val() : '',
+                        $(this).find('td:nth-child(10)>input').val() ? $(this).find('td:nth-child(10)>input').val() : ''
+                    ];
+                    pointers = _.compact(pointers);
                     claim_model.charges.push({
                         id: rowData.id ? rowData.id : null,
                         claim_id: rowData.claim_id ? parseInt(rowData.claim_id) : null,
                         //line_num: index,
                         cpt_id: parseInt(cpt_code_id),
-                        pointer1: $('#ddlPointer1_' + id).val() || null,
-                        pointer2: $('#ddlPointer2_' + id).val() || null,
-                        pointer3: $('#ddlPointer3_' + id).val() || null,
-                        pointer4: $('#ddlPointer4_' + id).val() || null,
+                        pointer1: pointers[0] || null,
+                        pointer2: pointers[1] || null,
+                        pointer3: pointers[2] || null,
+                        pointer4: pointers[3] || null,
                         modifier1_id: $('#txtModifier1_' + id).attr('data-id') ? parseInt($('#txtModifier1_' + id).attr('data-id')) : null,
                         modifier2_id: $('#txtModifier2_' + id).attr('data-id') ? parseInt($('#txtModifier2_' + id).attr('data-id')) : null,
                         modifier3_id: $('#txtModifier3_' + id).attr('data-id') ? parseInt($('#txtModifier3_' + id).attr('data-id')) : null,
@@ -2796,7 +2808,37 @@ define(['jquery',
                 }
 
                 /* Charge section */
+                var invalidCount = 0;
+                
+                $("#tBodyCharge").find("tr").each(function (index) {
+                    var modifiers = [
+                        $(this).find('td:nth-child(11)>input').val() ? $(this).find('td:nth-child(11)>input').val() : '',
+                        $(this).find('td:nth-child(12)>input').val() ? $(this).find('td:nth-child(12)>input').val() : '',
+                        $(this).find('td:nth-child(13)>input').val() ? $(this).find('td:nth-child(13)>input').val() : '',
+                        $(this).find('td:nth-child(14)>input').val() ? $(this).find('td:nth-child(14)>input').val() : ''
+                    ];
 
+                    if (modifiers[0] == "" && (modifiers[1] != "" || modifiers[2] != "" || modifiers[3] != "")) {
+                        $(this).find('td:nth-child(11)>input').focus(); 
+                        invalidCount++;
+                        return false;
+                    }
+                    if (modifiers[1] == "" && (modifiers[2]  != "" || modifiers[3]  != "")) {
+                        $(this).find('td:nth-child(12)>input').focus();
+                        invalidCount++;
+                        return false;
+                    }
+                    if (modifiers[2]  == "" && (modifiers[3]  != "")) {
+                        $(this).find('td:nth-child(13)>input').focus();
+                        invalidCount++;
+                        return false;
+                    }
+                });
+
+                if (invalidCount > 0) {
+                    commonjs.showWarning("Please enter modifiers in required position");
+                    return false;
+                }
                 if (!$('#tBodyCharge tr').length) {
                     commonjs.showWarning("shared.warning.chargeValidation", 'largewarning');
                     return false;
