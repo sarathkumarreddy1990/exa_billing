@@ -2438,8 +2438,11 @@ define(['jquery',
                         $('#selectMedicalPayer').val(result.medicare_insurance_type_code).toggle(true);
                     }
                     setTimeout(function () {
-                        if (!self.isEdit)
-                            $('#ddlResponsible').val('PIP_P');
+                        if (!self.isEdit) {
+                            var responsibleIndex = _.find(self.responsible_list, function (item) { return item.payer_type == 'PIP_P'; });
+                            var val = responsibleIndex && responsibleIndex.payer_id ? 'PIP_P' : 'PPP'
+                            $('#ddlResponsible').val(val);
+                        }
                     }, 200);
                     
                 }
