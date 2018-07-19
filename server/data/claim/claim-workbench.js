@@ -495,5 +495,52 @@ module.exports = {
                         , payer`;
 
         return query(sql);
+    },
+
+    updateInvoiceNo: async (params) => {
+        let {
+            companyId,
+            invoiceNo,
+            screenName,
+            clientIp,
+            userId
+        } = params;
+
+        let sql = SQL`WITH reset_invoice_no AS (
+                    UPDATE 
+                        billing.claims bc
+                    SET
+                        invoice_no = null
+                    WHERE
+                        bc.invoice_no = ${invoiceNo}
+                    RETURNING * ,
+                        (
+                            SELECT row_to_json(old_row) 
+                            FROM   (SELECT * 
+                                    FROM   billing.claims 
+                                    WHERE  invoice_no = ${invoiceNo} LIMIT 1) old_row 
+                        ) old_values
+                    ),
+                    update_audit_invoice AS (
+                        SELECT billing.create_audit(
+                              ${companyId}
+                            , 'claims'
+                            , id
+                            , ${screenName}
+                            , 'claims'
+                            , 'Invoice Number Resetted  Claim ID  '|| reset_invoice_no.id 
+                            , ${clientIp}
+                            , json_build_object(
+                                'old_values', COALESCE(old_values, '{}'),
+                                'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM reset_invoice_no limit 1 ) temp_row)
+                              )::jsonb
+                            , ${userId}
+                          ) AS id 
+                        FROM reset_invoice_no
+                        WHERE id IS NOT NULL
+                    )
+                    SELECT * FROM update_audit_invoice `;
+
+        return await query(sql);
     }
 };

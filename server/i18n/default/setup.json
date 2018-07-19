@@ -242,7 +242,8 @@
             "viewDocuments": "View Documents",
             "viewReports":"View Reports",
             "addFollowUP":"Add Follow-up",
-            "resetFollowUp": "Cancel Follow-up"
+            "resetFollowUp": "Cancel Follow-up",
+            "resetInvoice": "Reset Invoice Number"
         },
         "validation":{
             "billingGrp": "Billing Provider",
