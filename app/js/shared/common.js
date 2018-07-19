@@ -2116,13 +2116,12 @@ var commonjs = {
     },
 
     showLoading: function (msg) {
-        return commonjs.showLoading_v1(msg);
+        //return commonjs.showLoading_v1(msg);
         if (!msg) {
             msg = 'messages.loadingMsg.default';
             if (i18n.get(msg) != app.currentCulture + '.' + msg) {
                 msg = i18n.get('messages.loadingMsg.default');
-            }
-            else {
+            } else {
                 msg = 'Loading...';
             }
         }
@@ -2131,6 +2130,7 @@ var commonjs = {
         if (tickTimer) {
             clearTimeout(tickTimer);
         }
+
         commonjs.loadingTime = 2;
         commonjs.hasLoaded = false;
         commonjs.tickLoading(msg, true);
@@ -2194,7 +2194,7 @@ var commonjs = {
     tickLoading: function (msg, delayLoad) {
         var self = this;
         if (delayLoad) {
-            commonjs.showModalBg();
+            //commonjs.showModalBg();
             tickTimer = setTimeout(function () {
                 clearTimeout(tickTimer);
                 self.showLoadingMessage(msg);

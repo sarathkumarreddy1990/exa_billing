@@ -143,6 +143,7 @@ module.exports = {
 
     validateClaim: async function (params) {
         let claimDetails = await ediData.validateClaim(params);
+
         claimDetails = claimDetails.rows;
         let validation_result = { invalidClaim_data: [], 
             validClaim_data: [] };
