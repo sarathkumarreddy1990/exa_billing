@@ -1253,7 +1253,9 @@ define('grid', [
                 var searchFilterFlag = grid.getGridParam("postData")._search;
                 var colHeader = studyFields.colName;
 
-                commonjs.showLoading();
+                setTimeout(function() {
+                    commonjs.showLoading();
+                }, 500);
 
                 $.ajax({
                     'url': '/exa_modules/billing/claim_workbench',
@@ -1267,7 +1269,7 @@ define('grid', [
                         }
                     },
                     success: function (data, response) {
-                        commonjs.showLoading();
+                        //commonjs.showLoading();
 
                         self.prepareCsvWorker({
                             data: data,
