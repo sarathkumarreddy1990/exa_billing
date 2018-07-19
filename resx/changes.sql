@@ -2064,7 +2064,7 @@ BEGIN
 				THEN 'patient'
 
 				ELSE 
-				claim_details.payer_type
+				    claim_details.payer_type
 			     END 
 			END 
 		),
