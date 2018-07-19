@@ -933,6 +933,15 @@ define('grid', [
                     hidden: true,
                     isIconCol: true
                 },
+                {
+                    name: 'facility_id',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true
+                },
                 {   
                     name: 'assigned_to',
                     width: 200,

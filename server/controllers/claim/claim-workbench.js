@@ -138,7 +138,8 @@ module.exports = {
         });
 
         params.claimDetails = JSON.stringify(claimDetails);
-        await data.changeClaimStatus(params);
+        let result = await data.changeClaimStatus(params);
+        return result;
     },
 
     validateClaim: async function (params) {
