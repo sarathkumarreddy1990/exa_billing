@@ -16,10 +16,10 @@ module.exports = {
 			WITH claim_details AS(
                 SELECT 
                     bc.invoice_no,
-                    'submitted_dt' AS invoice_date,
+                    submitted_dt AS invoice_date,
                     ppr.full_name as referring_physician_name,
                     '' AS reason_for_exam,
-                    json_build_object('patient_address1' ,pp.patient_info->'c1AddressLine1',
+                    json_build_object('patient_name',get_full_name(pp.last_name, pp.first_name),'patient_address1',pp.patient_info->'c1AddressLine1',
                     'patient_address2', pp.patient_info->'c1AddressLine2',
                     'patient_city',  pp.patient_info->'c1City',
                     'patient_state' ,pp.patient_info->'c1State',
@@ -60,7 +60,9 @@ module.exports = {
                 LEFT JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id
                 LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
                 LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
-                WHERE bc.id = ANY(${params.claimIds})
+                WHERE  CASE WHEN ${params.flag}='new' THEN  bc.id = ANY(${params.claimIds})
+                            WHEN ${params.flag}='invoice'  THEN  bc.id in(SELECT claims.id FROM billing.claims WHERE invoice_no=${params.invoiceNo})  END
+               
                 ORDER BY ${params.sortBy}
             ),
 			charge_details as(
@@ -82,7 +84,9 @@ module.exports = {
                 LEFT join modifiers as modifier2 on modifier2.id=modifier2_id
                 LEFT join modifiers as modifier3 on modifier3.id=modifier3_id
                 LEFT join modifiers as modifier4 on modifier4.id=modifier4_id
-                WHERE bch.claim_id = ANY(${params.claimIds})
+                WHERE  CASE WHEN ${params.flag}='new' THEN  bch.claim_id = ANY(${params.claimIds})
+                            WHEN ${params.flag}='invoice'  THEN  bch.claim_id in(SELECT claims.id FROM billing.claims WHERE invoice_no=${params.invoiceNo}) END
+               
             ),
             payment_details as(
                 SELECT 
@@ -119,8 +123,9 @@ module.exports = {
                             GROUP BY
                                 payment_id
                         ) AS pa ON pa.payment_id = bp.id
-                            WHERE 
-                                bc.id =  ANY(${params.claimIds})
+                            WHERE  CASE WHEN ${params.flag}='new' THEN  bc.id = ANY(${params.claimIds})
+                            WHEN ${params.flag}='invoice'  THEN  bc.id in(SELECT claims.id FROM billing.claims WHERE invoice_no=${params.invoiceNo}) END
+               
             )
 			SELECT (SELECT json_agg(row_to_json(claim_details)) AS claim_details FROM (SELECT * FROM claim_details) AS claim_details),
                     (SELECT json_agg(row_to_json(charge_details)) AS charge_details FROM (SELECT * FROM charge_details) AS charge_details),

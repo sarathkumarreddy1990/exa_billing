@@ -79,12 +79,19 @@ define([
                             commonjs.showWarning('Unable to process few claims - ' + discardedIDs.toString());
                         }
 
-                        self.updateClaimStatus(processedIDs, templateType, function (err, response) {
-                            var invoiceNo = '10001';
-
+                        if(options.invoiceNo){
+                            var invoiceNo = options.invoiceNo;    
                             claimData[0].invoiceNo = invoiceNo;
                             return self.preparePdfWorker(templateType, template, claimData);
-                        });
+                        }else{
+                            self.updateClaimStatus(processedIDs, templateType, function (err, response) {
+                                var invoiceNo = response.invoice_no;
+                                claimData[0].invoiceNo = invoiceNo;
+                                return self.preparePdfWorker(templateType, template, claimData);
+                            });
+                        }
+
+                        
                     });
                 });
             };
@@ -163,7 +170,9 @@ define([
                         claimIds: claimIDs.toString(),
                         payerType: options.payerType || '',
                         payerId: options.payerId || '',
-                        sortBy: options.sortBy || ''
+                        sortBy: options.sortBy || '',
+                        invoiceNo:options.invoiceNo,
+                        flag:options.invoiceNo?'invoice':'new'
                     }, success: function (data, response) {
                         callback(null, data);
                     }, error: function (err, response) {

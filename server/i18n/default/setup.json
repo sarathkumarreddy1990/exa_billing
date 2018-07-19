@@ -225,7 +225,8 @@
               "Settings":"Settings",
               "columnSort":"Column Order",
               "printerTemplates" : "Printer Template"
-            }
+            },
+            "submittedDate":"Submitted Date"
       },
         "rightClickMenu":{
             "billingStatus":"Change Billing Status",

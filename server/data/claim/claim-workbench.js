@@ -217,14 +217,14 @@ module.exports = {
 							billing.claims bc
                         SET claim_status_id = (SELECT id FROM getStatus),
                             invoice_no = (SELECT billing.get_invoice_no(${params.success_claimID})),
-                            submitted_dt=now()
+                            submitted_dt=timezone(get_facility_tz(bc.facility_id::int), now()::timestamp)
 						WHERE bc.id = ANY(${params.success_claimID})
                         RETURNING bc.id,invoice_no`;
 
         let updateEDIData = SQL`UPDATE 
                             billing.claims bc
                         SET claim_status_id = (SELECT id FROM getStatus) ,
-                        submitted_dt=now()                       
+                        submitted_dt=timezone(get_facility_tz(bc.facility_id::int), now()::timestamp)                
                         WHERE bc.id = ANY(${params.success_claimID})
                         RETURNING bc.id`;
 
