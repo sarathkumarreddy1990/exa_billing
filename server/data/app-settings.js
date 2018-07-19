@@ -257,6 +257,10 @@ module.exports = {
                                             AND (facilities.id) = ANY(users.facilities )
                                             ORDER BY 
                                             facility_name )AS userFacilities 
+                ),
+                cte_currentDate as (
+                    SELECT 
+                        now() as currentDate
                 )
 
                SELECT *
@@ -283,7 +287,8 @@ module.exports = {
                       cte_user_group_list,
                       cte_payment_reasons_list,
                       cte_modifiers,
-                      cte_user_facilities
+                      cte_user_facilities,
+                      cte_currentDate
                `;
 
         return await query(sql);
