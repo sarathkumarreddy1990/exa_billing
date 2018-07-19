@@ -458,12 +458,40 @@ module.exports = {
             }
 
         } else {   
-            sql = SQL`UPDATE 
+            sql = SQL`WITH update_comments AS (
+                    UPDATE 
                         billing.claim_comments
                     SET 
                         note = ${note}
                     WHERE
-                        id = ${commentId} `;
+                        id = ${commentId}
+                    RETURNING *, 
+                    (
+                        SELECT row_to_json(old_row) 
+                        FROM   (SELECT * 
+                                FROM   billing.claim_comments 
+                                WHERE  id = ${commentId}) old_row 
+                    ) old_values
+                ),
+                update_audit_comments AS (
+                    SELECT billing.create_audit(
+                          ${companyId}
+                        , 'claims'
+                        , id
+                        , ${screenName}
+                        , ${moduleName}
+                        , 'Updated:  Claim Inquiry ( ' || update_comments.claim_id ||' ) Updated'
+                        , ${clientIp}
+                        , json_build_object(
+                            'old_values', COALESCE(old_values, '{}'),
+                            'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_comments ) temp_row)
+                          )::jsonb
+                        , ${userId}
+                      ) AS id 
+                    FROM update_comments
+                    WHERE id IS NOT NULL
+                ) 
+                SELECT * FROM update_audit_comments`;
         }
 
         return await query(sql);
