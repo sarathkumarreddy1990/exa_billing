@@ -158,6 +158,10 @@ module.exports = {
 
         await data.saveICD(params); 
         
-        return data.getICD(params);
+        return await data.getICD(params);
+    },
+
+    getApprovedReportsByPatient: async (params) => {
+        return await data.getApprovedReportsByPatient(params);
     }
 };
