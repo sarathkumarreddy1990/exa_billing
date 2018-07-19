@@ -774,7 +774,7 @@ module.exports = {
 
         if(params.invoice_no)
         {
-            whereQuery += ` AND bc.invoice_no = (${params.invoice_no})::text`; 
+            whereQuery += ` AND bc.invoice_no::text = '${params.invoice_no}'::text`;
         }
 
         if(params.invoice_date)
@@ -852,6 +852,7 @@ module.exports = {
                                 , claim_totals.adjustments_applied_total AS adjustment
                                 , claim_totals.claim_balance_total AS balance
                                 , bc.id AS claim_id
+                                , bc.facility_id
                             FROM billing.claims bc
                             ${joinQuery}
                             INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
@@ -867,8 +868,9 @@ module.exports = {
                                 , sum(balance) AS invoice_balance
                                 , COUNT(1) OVER (range unbounded preceding) AS total_records
                                 , array_agg(claim_id) AS claim_ids
+                                , facility_id
                             FROM invoice_payment_details
-                            GROUP BY invoice_no
+                            GROUP BY invoice_no,facility_id
                             ${havingQuery}
                             ORDER BY ${sortField}  ${sortOrder}   LIMIT ${pageSize}
                             OFFSET ${((pageNo * pageSize) - pageSize)}`);
@@ -954,7 +956,8 @@ module.exports = {
                     users.username, 
                     audit.created_dt, 
                     audit.screen_name, 
-                    audit.description 
+                    audit.description,
+                    bc.facility_id
                 FROM   billing.claims bc 
                     LEFT JOIN billing.charges bch 
                             ON bch.claim_id = bc.id 
