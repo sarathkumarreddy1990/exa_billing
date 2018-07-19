@@ -48,8 +48,8 @@ get_insurance_balance As (
     CASE WHEN bc.payer_type = 'patient' THEN pat_balance ELSE 0::money END AS patient_balance,
     CASE WHEN bc.payer_type != 'patient' THEN ins_balance ELSE 0::money END AS insurance_balance
 FROM billing.claims bc
-     INNER JOIN get_patient_balance gpb on gpb.patient_id = bc.patient_id
-     INNER JOIN get_insurance_balance gib on gib.patient_id = bc.patient_id
+     LEFT JOIN get_patient_balance gpb on gpb.patient_id = bc.patient_id
+     LEFT JOIN get_insurance_balance gib on gib.patient_id = bc.patient_id
      INNER JOIN public.patients pp ON pp.id = bc.patient_id
      INNER JOIN billing.claim_status bcs ON bcs.id = bc.claim_status_id
      INNER JOIN LATERAL billing.get_claim_totals(bc.id) bgct ON true
