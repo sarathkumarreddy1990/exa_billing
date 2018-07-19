@@ -7,8 +7,9 @@ module.exports = {
 
         args.userId = args.userId ? args.userId : 1;
         let inactivated_dt = args.isActive ? null : 'now()'; //is_active
-        let auditMsgUpdate = args.filterType == 'claims' ? `Update : Claim Updated ` : `Update : StudyFilter Updated `;
-        let auditMsgIns = args.filterType == 'claims' ? `Update : Claim Added ` : `Update : StudyFilter Added `;
+        let auditMsgUpdate = args.filterType == 'claims' ? `Update : Claim Filter Updated ` : `Update : Study Filter Updated `;
+        let auditMsgIns = args.filterType == 'claims' ? `Create : Claim Filter Added ` : `Create : Study Filter Added `;
+        let auditScreenName = args.filterType == 'claims' ? `Claim Filter ` : `Study Filter` ;
 
         let insert_update_study_filter = SQL` WITH update_grid_filter AS
         ( UPDATE
@@ -62,7 +63,7 @@ module.exports = {
                 ${args.companyId},
                 ${args.screenName},
                 id,
-                ${args.screenName},
+                ${auditScreenName},
                 ${args.moduleName},
                 ${auditMsgIns} || ${args.filterName},
                 ${args.clientIp || '127.0.0.1'},
@@ -79,7 +80,7 @@ module.exports = {
                 ${args.companyId},
                 ${args.screenName},
                 id,
-                ${args.screenName},
+                ${auditScreenName},
                 ${args.moduleName},
                 ${auditMsgUpdate} || (${args.filterName}) ,
                 ${args.clientIp || '127.0.0.1'},
