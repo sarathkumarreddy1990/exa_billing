@@ -108,7 +108,6 @@ const api = {
                 // add report filters                
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
-                // add report specific data sets
                 initialReportData.dataSets.push(claimInquiryDataSet);
                 initialReportData.dataSetCount = initialReportData.dataSets.length;
                 return initialReportData;

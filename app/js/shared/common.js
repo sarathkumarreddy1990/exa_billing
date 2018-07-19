@@ -5026,6 +5026,49 @@ var commonjs = {
         }
     },
 
+    downloadCsv: function (fileName, csvData) {
+
+        var link = document.createElement("a");
+        link.id = 'lnkDownloadCsv';
+        link.href = '#';
+        link.style = "visibility:hidden";
+
+        document.body.appendChild(link);
+
+        if (window.navigator.msSaveBlob) {
+
+            var blob = new Blob([decodeURIComponent(csvData)], {
+                type: 'text/csv;charset=utf8'
+            });
+
+            window.navigator.msSaveBlob(blob, fileName);
+        } else if (window.Blob && window.URL) {
+            var blob = new Blob([csvData], { type: 'text/csv;charset=utf8' });
+            var csvUrl = URL.createObjectURL(blob);
+
+            $('#lnkDownloadCsv')
+                .attr({
+                    'download': fileName,
+                    'href': csvUrl
+                });
+
+            link.click();
+        } else {
+            var csvData = 'data:application/csv;charset=utf-8,' + encodeURIComponent(csvData);
+
+            $('#lnkDownloadCsv')
+                .attr({
+                    'download': fileName,
+                    'href': csvData,
+                    'target': '_blank'
+                });
+
+            link.click();
+        }
+
+        document.body.removeChild(link);
+    },
+
     initHotkey: function (eventName, handler) {
         if (app.hotkeys[eventName]) {
             var shortcut = app.hotkeys[eventName];

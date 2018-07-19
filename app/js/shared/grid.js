@@ -1306,15 +1306,10 @@ define('grid', [
                     return alert("Invalid data");
                 }
 
-                var uri = workerResponse.csvData;
-                var link = document.createElement("a");
-                link.href = uri;
-                link.style = "visibility:hidden";
-                link.download = workerResponse.fileName + ".csv";
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                commonjs.downloadCsv(workerResponse.fileName + ".csv", workerResponse.csvData);
                 $('#btnValidateExport').css('display', 'inline');
+
+                return;
             };
 
             csvWorker.postMessage(requestData);
