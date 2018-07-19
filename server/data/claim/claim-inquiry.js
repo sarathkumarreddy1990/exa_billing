@@ -382,11 +382,7 @@ module.exports = {
                                   ) AS id 
                                 FROM update_followup
                                 WHERE id IS NOT NULL
-                            )
-                        SELECT * FROM update_cmt
-                        UNION   
-                        SELECT * FROM  update_billnotes 
-                        UNION
+                            )  
                         SELECT * FROM update_audit_followup 
                         UNION
                         SELECT * FROM update_audit_billnotes`);
@@ -561,7 +557,7 @@ module.exports = {
                                 FROM billing.cas_payment_application_details cas 
                                 INNER JOIN billing.cas_reason_codes rc ON rc.id = cas.cas_reason_code_id
                                 WHERE  cas.payment_application_id = pa.payment_application_adjustment_id
-                                
+                                ORDER BY cas.id
                                 ) as cas
                     ) cas on true 
                     WHERE ch.claim_id = ${claim_id} 
@@ -603,6 +599,7 @@ module.exports = {
                                 FROM billing.cas_payment_application_details cas 
                                 INNER JOIN billing.cas_reason_codes rc ON rc.id = cas.cas_reason_code_id
                                 WHERE  cas.payment_application_id = pa_adjustment.id
+                                ORDER BY cas.id
                                 ) as cas
                     ) cas on true 
                     WHERE	pa.charge_id = ${charge_id}
