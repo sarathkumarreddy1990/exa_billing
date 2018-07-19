@@ -471,6 +471,15 @@ define([
                     $("#divDateTime>table").appendTo("#divClaimDateTime");
                     $("#divClaimDateTime>table").css({'height':'125px','margin-left': '3%'});
                 }
+                var dtpDateOptions = { format: "L", useCurrent: false };
+                self.dtpFromDate = commonjs.bindDateTimePicker("divDateFrom", dtpDateOptions);
+                self.dtpToDate = commonjs.bindDateTimePicker("divDateTo", dtpDateOptions);
+
+                var dtpTimeOptions = { format: "LT", useCurrent: false, ignoreReadonly: true };
+                self.dtpFromTime = commonjs.bindDateTimePicker("divFromTime", dtpTimeOptions);
+                self.dtpToTime = commonjs.bindDateTimePicker("divToTime", dtpTimeOptions);
+                self.dtpFromTimeLast = commonjs.bindDateTimePicker("divFromTimeLast", dtpTimeOptions);
+                self.dtpToTimeLast = commonjs.bindDateTimePicker("divToTimeLast", dtpTimeOptions);
 
                 this.setupLists();
                 $('#rbtPreformatted').unbind().change(function (e) {

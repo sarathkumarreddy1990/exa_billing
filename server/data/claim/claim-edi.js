@@ -146,9 +146,9 @@ module.exports = {
 									, (SELECT array_agg(row_to_json(pointer)) AS charge_pointer FROM (
 										SELECT ch.id, pointer1, claim_id, cpt.ref_code, cpt.display_description FROM billing.charges ch INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id WHERE ch.claim_id = bc.id
 														 ) pointer) AS charge_pointer
-									, CASE WHEN lower(prs.description) = ('self') THEN true ELSE false END AS p_relationship
-									, CASE WHEN lower(srs.description) = ('self') THEN true ELSE false END AS s_relationship
-									, CASE WHEN lower(trs.description) = ('self') THEN true ELSE false END AS t_relationship
+									, CASE WHEN lower(prs.description) = ('self') THEN true ELSE false END AS is_pri_relationship_self
+									, CASE WHEN lower(srs.description) = ('self') THEN true ELSE false END AS is_sec_relationship_self 
+									, CASE WHEN lower(trs.description) = ('self') THEN true ELSE false END AS is_ter_relationship_self
 					FROM
 						billing.claims bc
 					INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id	
