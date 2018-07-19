@@ -1701,6 +1701,22 @@ var commonjs = {
         return this.getCurrentDateTime(val).format('LT');
     },
 
+    getConvertedFacilityTime: function (dt1, dt2, f, facility_id) {
+        try {
+            var date = "";
+            if (this.checkNotEmpty(dt1)) {
+                date = this.convertToFacilityTimeZone(facility_id, dt1).format(f);
+            } else if (this.checkNotEmpty(dt2)) {
+                date = this.convertToFacilityTimeZone(facility_id, dt2).format(f);
+            }
+        }
+        catch(err){
+            commonjs.showWarning(err);
+        }
+       
+        return date;
+    },
+
     //
     // start: moment-timezone functions
     //
@@ -2116,13 +2132,12 @@ var commonjs = {
     },
 
     showLoading: function (msg) {
-        return commonjs.showLoading_v1(msg);
+        //return commonjs.showLoading_v1(msg);
         if (!msg) {
             msg = 'messages.loadingMsg.default';
             if (i18n.get(msg) != app.currentCulture + '.' + msg) {
                 msg = i18n.get('messages.loadingMsg.default');
-            }
-            else {
+            } else {
                 msg = 'Loading...';
             }
         }
@@ -2131,6 +2146,7 @@ var commonjs = {
         if (tickTimer) {
             clearTimeout(tickTimer);
         }
+
         commonjs.loadingTime = 2;
         commonjs.hasLoaded = false;
         commonjs.tickLoading(msg, true);
@@ -2194,7 +2210,7 @@ var commonjs = {
     tickLoading: function (msg, delayLoad) {
         var self = this;
         if (delayLoad) {
-            commonjs.showModalBg();
+            //commonjs.showModalBg();
             tickTimer = setTimeout(function () {
                 clearTimeout(tickTimer);
                 self.showLoadingMessage(msg);

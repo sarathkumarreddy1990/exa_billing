@@ -606,13 +606,13 @@ module.exports = {
     },
 
     update: async function (args) {
-        
+
         let {
             claims
             , insurances
             , claim_icds
             , charges
-            , auditDetails} = args;
+            , auditDetails } = args;
 
 
         const sqlQry = SQL`SELECT billing.update_claim_charge (
@@ -621,7 +621,7 @@ module.exports = {
             (${JSON.stringify(claim_icds)})::json,
             (${JSON.stringify(auditDetails)})::json,
             (${JSON.stringify(charges)})::json) as result`;
-            
+
         return await query(sqlQry);
     },
 
@@ -715,7 +715,7 @@ module.exports = {
 
     getExistingPayer: async (params) => {
 
-        let sqlQry = SQL `
+        let sqlQry = SQL`
                 SELECT 
                     payer_type 
                 FROM 
@@ -727,7 +727,7 @@ module.exports = {
     },
 
     saveICD: async (params) => {
-        let sqlQry = SQL `
+        let sqlQry = SQL`
                 INSERT INTO public.icd_codes(
                             code
                             ,description
@@ -750,6 +750,34 @@ module.exports = {
                 `;
 
         return await query(sqlQry);
-        
+
+    },
+
+    getICD: async (params) => {
+        let sqlQry = SQL`
+            SELECT 
+                * 
+            FROM 
+                public.icd_codes  
+           WHERE code ILIKE ${params.code}  AND company_id = ${params.companyId} AND NOT has_deleted
+        `;
+
+        return await query(sqlQry);
+    },
+
+    getApprovedReportsByPatient: async (params) => {
+        let sqlQry = SQL`
+            SELECT 
+             id
+            FROM 
+                public.studies  
+                WHERE
+                patient_id = ${params.patient_id}
+                AND study_status='APP'
+                AND NOT has_deleted
+            ORDER BY study_dt
+        `;
+
+        return await query(sqlQry);
     }
 };

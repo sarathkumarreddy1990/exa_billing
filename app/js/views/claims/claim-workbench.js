@@ -1155,15 +1155,12 @@ define(['jquery',
                             table.renderStudy();
 
                             $('#btnValidateExport').one().click(function (e) {
-                                commonjs.showStatus('Export Is In Process...')                               
-                                table.renderStudy(true);      
-                                commonjs.showLoading('Export is In Process ...')                           
-                                $('#btnValidateExport').css('display','none');    
-                                commonjs.hideLoading();
+                                $('#btnValidateExport').css('display', 'none');
 
+                                commonjs.showLoading();
+                                table.renderStudy(true);
                             });
                         };
-
 
                         createStudiesTable();
                     }
