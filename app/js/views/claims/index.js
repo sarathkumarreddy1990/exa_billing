@@ -837,7 +837,6 @@ define(['jquery',
                 if (!this.rendered)
                     this.render('claim');
 
-               // self.studyDate = (primaryStudyDetails.study_date !='null' && commonjs.checkNotEmpty(primaryStudyDetails.study_date) ? commonjs.convertToFacilityTimeZone(primaryStudyDetails.facility_id, primaryStudyDetails.study_date).format('L') : '');
                 self.studyDate = commonjs.getConvertedFacilityTime(primaryStudyDetails.study_date, '', 'L', primaryStudyDetails.facility_id);
                 self.getLineItemsAndBind(selectedStudyIds);
                 if(options && options == 'patientSearch'){
