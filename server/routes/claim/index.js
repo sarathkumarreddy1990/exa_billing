@@ -42,9 +42,9 @@ router.get('/', async function (req, res) {
 });
 
 router.post('/', async function (req, res) {
-    if(req.body.id) {
-        const data= await claimsController.update(req.body);        
-        return  httpHandler.send(req, res, data);
+    if (req.body.id) {
+        const data = await claimsController.update(req.body);
+        return httpHandler.send(req, res, data);
     }
 
     const data = await claimsController.save(req.body);
@@ -56,7 +56,7 @@ router.put('/:id', async function (req, res) {
     const data = await claimsController.update(req.body);
 
     if (data && !data.rows) {
-        return  httpHandler.send(req, res, data);
+        return httpHandler.send(req, res, data);
     }
 
     httpHandler.sendRows(req, res, data);
@@ -72,12 +72,12 @@ router.get('/studiesby_patient_id', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
-router.get('/getIcd9To10', async function(req, res) {
+router.get('/getIcd9To10', async function (req, res) {
     const data = await claimsController.getIcd9To10(req.query);
-    httpHandler.send(req, res, {'result':data});
+    httpHandler.send(req, res, { 'result': data });
 });
 
-router.post('/icdcode', async function(req, res) {
+router.post('/icdcode', async function (req, res) {
     const data = await claimsController.saveICD(req.body);
     httpHandler.sendRows(req, res, data);
 });

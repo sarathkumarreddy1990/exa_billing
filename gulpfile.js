@@ -132,7 +132,14 @@ gulp.task('bump', ['compress'], () => {
         .pipe(gulp.dest('./'));
 });
 
-gulp.task('replace', ['bump'], () => {
+gulp.task('copy-package-json', ['bump'], () => {
+    return gulp.src([
+        './package.json'
+    ])
+        .pipe(gulp.dest('./build'));
+});
+
+gulp.task('replace', ['copy-package-json'], () => {
     let version = getCurrentVersion();
 
     return gulp.src('./build/server/**/*.pug')

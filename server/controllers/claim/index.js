@@ -59,9 +59,9 @@ module.exports = {
         }
 
         return await data.update(params);
-        
+
     },
-    
+
     getData: async (params) => { return await data.getClaimData(params); },
 
     /// TODO: have to include benefitOnDate & relationshipCode
@@ -127,28 +127,26 @@ module.exports = {
             return 'Pokitdok credentials not yet set.';
         }
 
-
         return await new Promise((resolve, reject) => {
             pokitdok.icdConvert({ code: params.icd9Code }, function (err, res) {
                 if (err) {
-                    reject(err);
-                } else {
-                    if (res && res.data && res.data.destination_scenarios && res.data.destination_scenarios.length && res.data.destination_scenarios[0].choice_lists && res.data.destination_scenarios[0].choice_lists.length) {
+                    return reject(err);
+                }
 
-                        let icd10Data = [];
+                if (res && res.data && res.data.destination_scenarios && res.data.destination_scenarios.length && res.data.destination_scenarios[0].choice_lists && res.data.destination_scenarios[0].choice_lists.length) {
+                    let icd10Data = [];
 
-                        for (let i = 0; i < res.data.destination_scenarios[0].choice_lists.length; i++) {
-                            if (res.data.destination_scenarios[0].choice_lists[i].length) {
-                                for (let j = 0; j < res.data.destination_scenarios[0].choice_lists[i].length; j++) {
-                                    icd10Data.push(res.data.destination_scenarios[0].choice_lists[i][j]);
-                                }
+                    for (let i = 0; i < res.data.destination_scenarios[0].choice_lists.length; i++) {
+                        if (res.data.destination_scenarios[0].choice_lists[i].length) {
+                            for (let j = 0; j < res.data.destination_scenarios[0].choice_lists[i].length; j++) {
+                                icd10Data.push(res.data.destination_scenarios[0].choice_lists[i][j]);
                             }
                         }
-
-                        resolve(icd10Data);
-                    } else {
-                        resolve(res);
                     }
+
+                    resolve(icd10Data);
+                } else {
+                    resolve(res);
                 }
             });
         }).catch(function (result) {
