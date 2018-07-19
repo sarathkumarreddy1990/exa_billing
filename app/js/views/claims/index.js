@@ -384,6 +384,7 @@ define(['jquery',
                             self.claim_row_version = claimDetails.claim_row_version || null;
 
                             self.facilityId = claimDetails.facility_id; // claim facility_date
+                            self.studyDate = commonjs.getConvertedFacilityTime(claimDetails.claim_dt, '', 'L', claimDetails.facility_id); 
                             self.studyDate = self.cur_study_date; // Assign claim data as studyDate variable to newly adding charges
                             /* Bind claim charge Details*/
                             $('#tBodyCharge').empty();
@@ -517,6 +518,23 @@ define(['jquery',
                                 $('#btPatientDocuemnt').prop('disabled', true);
 
                             commonjs.hideLoading();
+
+                            //open reports if available for patient
+
+                            $.ajax({
+                                type: 'GET',
+                                url: '/exa_modules/billing/claims/claim/getApprovedReportsByPatient',
+                                data: {
+                                    patient_id: self.options.patient_id
+                                },
+                                success: function (model, response) {
+                                    if(model && model.length > 0) {
+                                        window.localStorage.setItem('last_billing_screen', 'patientReport');
+                                        $('#btPatientDocuemnt').click();
+                                    }
+                                }
+                            });
+
                         }
                     },
                     error: function (model, response) {
@@ -668,7 +686,7 @@ define(['jquery',
                     }
                     var currentDate = new Date();
                     var defaultStudyDate = moment(currentDate).format('L');
-                    var lineItemStudyDate = self.studyDate && self.studyDate != '' ? moment(self.studyDate).format('L') : '';
+                    var lineItemStudyDate = self.studyDate && self.studyDate != '' ?  self.studyDate : '';
                     $('#txtClaimDate').val(self.studyDate ? lineItemStudyDate : defaultStudyDate);
                 }
                 /* Common Details end */
@@ -836,6 +854,7 @@ define(['jquery',
                 if (!this.rendered)
                     this.render('claim');
 
+                self.studyDate = commonjs.getConvertedFacilityTime(primaryStudyDetails.study_date, '', 'L', primaryStudyDetails.facility_id);
                 self.getLineItemsAndBind(selectedStudyIds);
                 if(options && options == 'patientSearch'){
                     self.bindDetails();
@@ -958,7 +977,7 @@ define(['jquery',
                             if (model && model.length > 0) {
                                 $('#tBodyCharge').empty();
                                 var modelDetails = model[0];
-                                self.studyDate = modelDetails && modelDetails.charges && modelDetails.charges.length && modelDetails.charges[0].study_dt ? modelDetails.charges[0].study_dt : self.cur_study_date ;
+                                self.studyDate = modelDetails && modelDetails.charges && modelDetails.charges.length && modelDetails.charges[0].study_dt ? commonjs.getConvertedFacilityTime(modelDetails.charges[0].study_dt, '', 'L', self.facilityId) : self.studyDate;
                                 self.facilityId = modelDetails && modelDetails.charges && modelDetails.charges.length && modelDetails.charges[0].facility_id ? modelDetails.charges[0].facility_id : self.facilityId ;
                                 var _defaultDetails = modelDetails.claim_details && modelDetails.claim_details.length > 0 ? modelDetails.claim_details[0] : {};
                                 var _diagnosisProblems = modelDetails.problems && modelDetails.problems.length > 0 ? modelDetails.problems : [];
@@ -1084,7 +1103,7 @@ define(['jquery',
             addLineItems: function (data, index, isDefault) {
                 var self = this;
 
-                data.charge_dt = commonjs.checkNotEmpty(self.studyDate) ? commonjs.convertToFacilityTimeZone(self.facilityId, self.studyDate).format('L') : '--';
+                data.charge_dt = self.studyDate ? self.studyDate : '--';
                 self.bindModifiersData(data);
                 var chargeTableRow = self.chargerowtemplate({ row: data });
                 $('#tBodyCharge').append(chargeTableRow);
@@ -1871,10 +1890,13 @@ define(['jquery',
                             is_active: true
                         },
                         success: function (model, response) {
-                            if (response && response == 'success') {
-                                commonjs.hideNestedDialog();
-                                self.addDiagCodes(true);
-                            }
+                            var result = model && model[0] ? model[0] : {};
+                            self.ICDID = result.id
+                            self.icd_code = result.code ? result.code : $(selected_element).data('code');
+                            self.description = result.description ? result.description : $(selected_element).data('description');
+                            self.is_active = true;
+                            commonjs.hideNestedDialog();
+                            self.addDiagCodes(true);
                         },
                         error: function (err, response) {
                             commonjs.handleXhrError(err, response);
@@ -3497,7 +3519,7 @@ define(['jquery',
                                 _.each(charges, function (study) {
                                     study.study_description = study.study_description ? study.study_description : '--';
                                     study.accession_no = study.accession_no ? study.accession_no : '--';
-                                    var study_date = study.study_dt ? commonjs.convertToFacilityTimeZone(app.facilityID, moment(study.study_dt)).format('L LT z') : '--'
+                                    var study_date = commonjs.getConvertedFacilityTime(study.study_dt, app.currentdate, 'L', app.facility_id);
                                     $list.append('<li><input id="studyChk_' + study.id + '" type="checkbox" name="chkStudy" data-study_dt="' + study.study_dt + '" data-accession_no="' + study.accession_no + '" />'+
                                     '<label style="font-weight: bold;overflow-wrap: break-word;"  for="studyChk_' + study.id + '" >' + study.study_description
                                     + ' ( Accession# : ' + study.accession_no + ' , Study.Date: ' + study_date + ')</label></li>');
@@ -3599,8 +3621,9 @@ define(['jquery',
                 $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
                 $('#ddlResponsible').val('PPP');
 
-                self.cur_study_date = commonjs.convertToFacilityTimeZone(app.facilityID, moment()).format('L LT z')
-                document.querySelector('#txtClaimDate').value = moment().format('YYYY-MM-DD');
+                self.cur_study_date = commonjs.convertToFacilityTimeZone(app.facilityID, app.currentdate).format('L LT z');
+                self.studyDate = commonjs.getConvertedFacilityTime(app.currentdate, '', 'L', app.facilityID);
+                document.querySelector('#txtClaimDate').value = self.studyDate;
 
                 // Bind Patient Default details
                 var renderingProvider = patient_details.rendering_provider_full_name || self.usermessage.selectStudyReadPhysician;

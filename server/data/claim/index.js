@@ -751,5 +751,31 @@ module.exports = {
 
         return await query(sqlQry);
         
+    },
+
+    getICD: async(params) => {
+        let sqlQry = SQL `
+            SELECT 
+                * 
+            FROM 
+                public.icd_codes  
+           WHERE code ILIKE ${params.code}  AND company_id = ${params.companyId} AND NOT has_deleted
+        `
+        return await query(sqlQry);
+    },
+
+    getApprovedReportsByPatient: async (params) => {
+        let sqlQry = SQL `
+            SELECT 
+             id
+            FROM 
+                public.studies  
+                WHERE
+                patient_id = ${params.patient_id}
+                AND study_status='APP'
+                AND NOT has_deleted
+            ORDER BY study_dt
+        `
+        return await query(sqlQry);
     }
 };
