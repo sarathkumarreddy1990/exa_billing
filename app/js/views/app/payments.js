@@ -388,9 +388,7 @@ define(['jquery',
                 var searchFilterFlag = grid.getGridParam("postData")._search;
                 $('#btnGenerateExcel').prop('disabled', true);
                 
-                setTimeout(function() {
-                    commonjs.showLoading();
-                }, 500);
+                commonjs.showLoading();
 
                 $.ajax({
                     url: "/exa_modules/billing/payments/payments_list",
