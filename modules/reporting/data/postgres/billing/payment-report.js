@@ -78,7 +78,7 @@ const summaryQueryTemplate = _.template(`
                      WHEN
                        payer_type = 'ordering_facility' THEN 'Ordering Facility'
                       WHEN
-                       payer_type = 'ordering_provider' THEN 'Ordering Provider'
+                       payer_type = 'ordering_provider' THEN 'Provider'
 
                     END         
                     END  AS "Payer Type", 

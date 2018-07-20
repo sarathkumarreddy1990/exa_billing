@@ -146,8 +146,8 @@
             "descOrder": "Descending Order",
             "processPayement":"Process Payments",
             "exportToExcel": "Export To Excel",
-            "paperclaimOrg": "Paper Claim (B & W)",
-            "paperclaimFull": "Paper Claim (RED)"
+            "paperclaimOrg": "Paper Claim (RED)",
+            "paperclaimFull": "Paper Claim (B & W)"
         },
         "screens": {},
         "fields": {

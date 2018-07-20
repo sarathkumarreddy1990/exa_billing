@@ -58,7 +58,7 @@ LIMIT <%=  pageSize %>
     cheque_card_number AS "CHK/CC#",
     payment_date AS "Payment Date",
     accounting_dt  AS "Accounting Date",
-    COALESCE(status, 'TOTAL') AS "Payment Status" ,  
+    COALESCE(status, '~~ TOTAL ~~') AS "Payment Status" ,  
     SUM(amount) AS "Payment"
   FROM
         paymentsPDF
@@ -96,6 +96,8 @@ LIMIT <%=  pageSize %>
          SUM(amount) AS "Payment"
          FROM
                paymentsPDF
+               WHERE  1=1      
+               <% if (paymentStatus) { %>AND <% print(paymentStatus); } %> 
        
         
 

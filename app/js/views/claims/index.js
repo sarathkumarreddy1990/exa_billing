@@ -385,7 +385,6 @@ define(['jquery',
 
                             self.facilityId = claimDetails.facility_id; // claim facility_date
                             self.studyDate = commonjs.getConvertedFacilityTime(claimDetails.claim_dt, '', 'L', claimDetails.facility_id); 
-                            self.studyDate = self.cur_study_date; // Assign claim data as studyDate variable to newly adding charges
                             /* Bind claim charge Details*/
                             $('#tBodyCharge').empty();
                             claimDetails.claim_charges = claimDetails.claim_charges || [];
@@ -3669,7 +3668,10 @@ define(['jquery',
 
             setPriRelationShipSelf: function(e) {
                 if($('#chkPriSelf').is(":checked")) {
-                    var selfValue = $("#ddlPriRelationShip option:contains('Self')").val();
+                    var selfValue = $('#ddlPriRelationShip option').filter(function () { 
+                        return this.text.toLowerCase() == 'self'; 
+                    } ).attr('value');    
+
                     $('#ddlPriRelationShip').val(selfValue).attr('selected', true);
                     $('#showPriSelf').hide();
                     $('#chkPriSelf').prop('checked', false);
@@ -3682,7 +3684,10 @@ define(['jquery',
 
             setSecRelationShipSelf: function(e) {
                 if($('#chkSecSelf').is(":checked")) {
-                    var selfValue = $("#ddlSecRelationShip option:contains('Self')").val();
+                    var selfValue = $('#ddlSecRelationShip option').filter(function () { 
+                        return this.text.toLowerCase() == 'self'; 
+                    } ).attr('value');  
+
                     $('#ddlSecRelationShip').val(selfValue).attr('selected', true);
                     $('#showSecSelf').hide();
                     $('#chkSecSelf').prop('checked', false);
@@ -3694,7 +3699,10 @@ define(['jquery',
 
             setTerRelationShipSelf: function(e) {
                 if($('#chkTerSelf').is(":checked")) {
-                    var selfValue = $("#ddlTerRelationShip option:contains('Self')").val();
+                    var selfValue = $('#ddlTerRelationShip option').filter(function () { 
+                        return this.text.toLowerCase() == 'self'; 
+                    } ).attr('value');
+
                     $('#ddlTerRelationShip').val(selfValue).attr('selected', true);
                     $('#showTerSelf').hide();
                     $('#chkTerSelf').prop('checked', false);

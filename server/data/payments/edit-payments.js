@@ -763,9 +763,10 @@ module.exports = {
         return await query(
             `   with get_payment_details AS (
                 SELECT 
-                    sum(payment_amount) AS payment_amount,
-                    sum(adjustment_amount) AS adjustment_amount
-                FROM billing.get_payment_applications(${paymentId},${paymentApplicationId})
+                    sum(bgpa.payment_amount) AS payment_amount,
+                    sum(bgpa.adjustment_amount) AS adjustment_amount
+                FROM billing.get_payment_applications(${paymentId},${paymentApplicationId}) bgpa
+                INNER JOIN billing.charges bch on bch.id = bgpa.charge_id where bch.claim_id =  ${claimId}
                )      
                 SELECT
                     (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) AS bill_fee,

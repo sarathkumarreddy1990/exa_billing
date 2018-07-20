@@ -14,11 +14,14 @@ const replace = require('gulp-replace');
 const zip = require('gulp-zip');
 const bump = require('gulp-bump');
 const git = require('gulp-git');
+const gutil = require('gulp-util');
+const ftp = require('vinyl-ftp');
 
 const fs = require('fs');
 const path = require('path');
 
 let currentBranch = 'develop';
+let buildFileName = '';
 let requirejsConfig = require('./app/js/main').rjsConfig;
 
 let getCurrentVersion = function () {
@@ -150,9 +153,24 @@ gulp.task('replace', ['copy-package-json'], () => {
 gulp.task('zip', ['replace'], () => {
     let version = getCurrentVersion();
 
+    buildFileName = `exa-billing-${currentBranch}-${version}.zip`;
+
     return gulp.src('./build/**')
-        .pipe(zip(`exa-billing-${currentBranch}-${version}.zip`))
+        .pipe(zip(buildFileName))
         .pipe(gulp.dest('./dist'));
+});
+
+gulp.task('ftp-upload', () => {
+    const conn = ftp.create({
+        host: '12.70.252.178',
+        user: 'development',
+        password: '1q2w3e4r5t',
+        log: gutil.log
+    });
+
+    return gulp.src(['./dist/**'], { base: './dist', buffer: false })
+        //.pipe(conn.newer('/EXA/billing'))
+        .pipe(conn.dest('/EXA'));
 });
 
 gulp.task('clean-all', ['zip'], () => {
@@ -212,6 +230,10 @@ gulp.task('build', [
     'zip',
     'clean-all',
 ]);
+
+gulp.task('deploy', (done) => {
+    runSequence('git-pull', 'build', 'git-commit', 'git-push', 'ftp-upload', done);
+});
 
 gulp.task('build-from-repo', (done) => {
     runSequence('git-pull', 'build', 'git-commit', 'git-push', done);
