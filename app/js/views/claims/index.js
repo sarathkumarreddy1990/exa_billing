@@ -385,7 +385,6 @@ define(['jquery',
 
                             self.facilityId = claimDetails.facility_id; // claim facility_date
                             self.studyDate = commonjs.getConvertedFacilityTime(claimDetails.claim_dt, '', 'L', claimDetails.facility_id); 
-                            self.studyDate = self.cur_study_date; // Assign claim data as studyDate variable to newly adding charges
                             /* Bind claim charge Details*/
                             $('#tBodyCharge').empty();
                             claimDetails.claim_charges = claimDetails.claim_charges || [];
