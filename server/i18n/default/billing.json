@@ -338,7 +338,7 @@
             "teritaryInsurance" : "Tertiary Insurance",
             "additionalInfo" : "Additional Info",
             "patientConditionRelatedTo" : "Is Patient's Condition Related To",
-            "illness" : "Date Of Current illness(First symptom)OR INJURY(Accident) OR PREGNANCY(LMP)",
+            "illness" : "Date Of Current illness(First symptom) OR INJURY(Accident) OR PREGNANCY(LMP)",
             "date" : "Date",
             "otherDate" : "Other Date",            
             "employment" : "Employment",
