@@ -661,6 +661,7 @@ module.exports = {
                             WHEN 'rendering_provider' THEN render_provider.full_name
                             WHEN 'patient' THEN patients.full_name        END) AS payer_name
                         , claim_dt
+                        , claims.facility_id
                         , claim_status.description as claim_status
                         , (select adjustments_applied_total from billing.get_claim_payments(claims.id)) AS ajdustments_applied_total
                         , (select payment_patient_total from billing.get_claim_payments(claims.id)) AS total_patient_payment
@@ -767,7 +768,7 @@ module.exports = {
             
         }
 
-        if(params.invoice_adjustment || params.invoice_bill_fee || params.invoice_balance || params.invoice_payment)
+        if(params.invoice_adjustment || params.invoice_bill_fee || params.invoice_balance || params.invoice_payment||params.invoice_date)
         {
             havingQuery += ' HAVING true '; 
         }
@@ -779,7 +780,7 @@ module.exports = {
 
         if(params.invoice_date)
         {
-            havingQuery += ` AND max(date) = ${params.invoice_date}`; 
+            havingQuery += ` AND max(date) = '${params.invoice_date}'`; 
         }
         
         if(params.invoice_adjustment)
@@ -861,7 +862,8 @@ module.exports = {
                             SELECT
                                   ROW_NUMBER () OVER (ORDER BY invoice_no) AS id
                                 , invoice_no As invoice_no
-                                , max(date) AS invoice_date
+                                --, max(date) AS invoice_date
+                                , timezone(public.get_facility_tz(facility_id::INT), max(date)::TIMESTAMP) AS invoice_date
                                 , sum(bill_fee) AS invoice_bill_fee
                                 , sum(payment) AS invoice_payment
                                 , sum(adjustment) AS invoice_adjustment
