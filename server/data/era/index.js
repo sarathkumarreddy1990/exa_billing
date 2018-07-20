@@ -173,6 +173,8 @@ module.exports = {
                                 ,cas_details jsonb
                                 ,claim_status_code bigint
                                 ,service_date date
+                                ,index integer
+                                ,duplicate boolean
                              )
                             ),
                            matched_claims AS (
@@ -183,7 +185,7 @@ module.exports = {
                                     application_details.original_reference,
                                     application_details.service_date,
                                     json_build_object(
-                                        'charge_id',charges.id,
+                                        'charge_id',COALESCE(application_details.charge_id, (SELECT billing.get_era_charge_id(application_details.claim_number, application_details.cpt_code, application_details.service_date::date, application_details.duplicate, application_details.index))),
                                         'payment',application_details.payment,
                                         'adjustment',application_details.adjustment,
                                         'cas_details',application_details.cas_details)
@@ -191,26 +193,9 @@ module.exports = {
                                     application_details  
                                 INNER JOIN billing.claims c on c.id = application_details.claim_number
                                 INNER JOIN public.patients p on p.id = c.patient_id
-                                INNER JOIN LATERAL (
-                                    SELECT 
-                                       ch.id
-                                    FROM 
-                                        billing.charges ch	
-                                   INNER JOIN cpt_codes on cpt_codes.id = ch.cpt_id 
-                                   WHERE 
-                                    ch.claim_id = c.id 
-                                    AND (
-                                        CASE 
-                                          WHEN ( application_details.charge_id != 0 ) THEN application_details.charge_id = ch.id
-                                          WHEN ( application_details.charge_id  = 0 AND application_details.cpt_code !='' ) THEN cpt_codes.display_code = application_details.cpt_code
-                                        END
-                                    ) `;
+                                INNER JOIN billing.charges ch on ch.id = COALESCE(application_details.charge_id, (SELECT billing.get_era_charge_id(application_details.claim_number, application_details.cpt_code, application_details.service_date::date, application_details.duplicate, application_details.index))) `;
 
-        sql.append(conditionalJoin);
-
-        sql.append(SQL` ORDER BY id ASC LIMIT 1
-                                ) AS charges ON true
-                                WHERE 
+        sql.append(SQL`         WHERE 
 			                    	(   CASE 
                                         WHEN    ( application_details.patient_fname != '' ) 
 			                    		    AND ( application_details.patient_lname != '' ) 
@@ -220,13 +205,16 @@ module.exports = {
                                         THEN ( p.first_name = application_details.patient_fname AND p.last_name = application_details.patient_lname )
     			                    	    ELSE '0'
                                         END 
-                                    )
-                           ), 
+                                    ) `);
+
+        sql.append(conditionalJoin);
+
+        sql.append(SQL`    ), 
                            insert_payment_adjustment AS (
                                 SELECT
                                     matched_claims.claim_id
                                     ,matched_claims.claim_status_code
-                                    ,billing.create_payment_applications(
+                                    ,billing.create_payment_applications_test(
                                         ${paymentDetails.id}
                                         ,( SELECT id FROM billing.adjustment_codes WHERE code =${paymentDetails.code} ORDER BY id ASC LIMIT 1 )
                                         ,${paymentDetails.created_by}
@@ -300,30 +288,30 @@ module.exports = {
         } = params;
 
         const sql = SQL`
-                    WITH unapplied_charges AS (
-                        SELECT claim_details.payment_id,
-                            json_build_object('charge_id',ch.id,'payment',0,'adjustment',0,'cas_details','[]')
-                        FROM
-                            billing.charges ch
-                        INNER JOIN billing.claims AS c ON ch.claim_id = c.id
-                        INNER JOIN (
-                            SELECT
-                                distinct ch.id as charge_id
-                                ,ch.claim_id
+                    WITH claim_pamyent AS (
+			                SELECT
+                                distinct ch.claim_id
                                 ,efp.payment_id
+                                ,pa.applied_dt
                             FROM
                                 billing.charges AS ch
                             INNER JOIN billing.payment_applications AS pa ON pa.charge_id = ch.id
                             INNER JOIN billing.payments AS p ON pa.payment_id  = p.id
                             INNER JOIN billing.edi_file_payments AS efp ON pa.payment_id = efp.payment_id 
-                            WHERE 
-                                efp.edi_file_id = ${file_id}  AND mode = 'eft' 
-                        ) AS claim_details ON claim_details.claim_id = c.id
-                        WHERE claim_details.charge_id != ch.id
+                            WHERE efp.edi_file_id = ${file_id}  AND mode = 'eft' 
+                            ORDER BY pa.applied_dt DESC
                     )
-                    ,insert_payment_adjustment AS (
+                    ,unapplied_charges AS (
+                        SELECT cp.payment_id,
+                            json_build_object('charge_id',ch.id,'payment',0,'adjustment',0,'cas_details','[]','applied_dt',cp.applied_dt)
+                        FROM
+                            billing.charges ch
+                        INNER JOIN billing.claims AS c ON ch.claim_id = c.id
+                        INNER JOIN claim_pamyent AS cp ON cp.claim_id = c.id
+                        WHERE ch.id NOT IN ( SELECT charge_id FROM  billing.payment_applications pa WHERE pa.charge_id = ch.id AND pa.payment_id = cp.payment_id )
+                    ),insert_payment_adjustment AS (
                         SELECT
-                            billing.create_payment_applications(
+                            billing.create_payment_applications_test(
                                 uc.payment_id
                                 ,( SELECT id FROM billing.adjustment_codes WHERE code = ${code} ORDER BY id ASC LIMIT 1 )
                                 ,${created_by}
