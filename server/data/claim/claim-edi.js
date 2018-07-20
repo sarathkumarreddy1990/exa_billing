@@ -615,7 +615,7 @@ module.exports = {
 											INNER JOIN   billing.cas_reason_codes ON cas_reason_codes.id=cas_reason_code_id
 											INNER JOIN 	billing.payment_applications	 ON payment_applications.id=cas_payment_application_details.payment_application_id			
 											INNER JOIN billing.payments ON  billing.payments.id=payment_applications.payment_id and payer_type='insurance' AND 
-											payment_applications.charge_id = charges.id 		AND payment_applications.amount_type = 'payment' 
+											payment_applications.charge_id = charges.id 		AND payment_applications.amount_type = 'adjustment' 
 											WHERE 
 												   cas_group_codes.code= gc.code	 ) as CAS )
 						
@@ -624,7 +624,7 @@ module.exports = {
 											INNER JOIN   billing.cas_group_codes ON cas_group_codes.id=cas_group_code_id
 											INNER JOIN 	billing.payment_applications	 ON payment_applications.id=cas_payment_application_details.payment_application_id			
 												INNER JOIN billing.payments ON  billing.payments.id=payment_applications.payment_id and payer_type='insurance' AND 
-							payment_applications.charge_id = charges.id 		AND payment_applications.amount_type = 'payment' 
+							payment_applications.charge_id = charges.id 		AND payment_applications.amount_type = 'adjustment' 
 							group by cas_group_codes.code ) 
 					as lineAdjustment)
 
