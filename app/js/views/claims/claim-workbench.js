@@ -593,6 +593,8 @@ define(['jquery',
                                 document.body.removeChild(element);
                             });
                             $("#btnClaimsRefresh").click();
+                        } else {
+                            commonjs.showWarning('NO_DATA');
                         }
                     },
                     error: function (err) {
