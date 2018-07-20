@@ -593,6 +593,8 @@ define(['jquery',
                                 document.body.removeChild(element);
                             });
                             $("#btnClaimsRefresh").click();
+                        } else {
+                            commonjs.showWarning('NO_DATA');
                         }
                     },
                     error: function (err) {
@@ -1460,9 +1462,13 @@ define(['jquery',
                                     if (filter.pager.get('PageNo') === 1 && filter.pager.get('PageSize') === 100) {
                                         filter.pager.set({"PageNo": 4});
                                         filter.pager.set({"PageSize": 25});
+                                        // Reset scroll position
+                                        $bdiv.scrollTop(curScroll);
                                     }
-                                    // Reset scroll position
-                                    $bdiv.scrollTop(curScroll);
+                                    else {
+                                        filter.pager.set({"PageNo": filter.pager.get("PageNo")});
+                                        filter.pager.set({"PageSize": 25}); 
+                                    }
                                     // Reset selected rows
 
                                     if ($bdiv.scrollTop() === curScroll) {

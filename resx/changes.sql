@@ -2047,28 +2047,28 @@ BEGIN
 		 (SELECT count(1) > 0 FROM ins_paid WHERE is_secondary) is_secondary_paid,
 		 (SELECT count(1) > 0 FROM ins_paid WHERE is_tertiary) is_tertiary_paid
 		) 
-
 	UPDATE billing.claims
-
 	SET payer_type = (
 			CASE WHEN claim_details.adjustments_applied_total = claim_details.charges_bill_fee_total AND claim_details.payments_applied_total::money = 0::money THEN claim_details.payer_type
 			ELSE
 			    CASE 
-				WHEN claim_details.claim_balance_total > 0::money AND (claim_details.payer_type = 'primary_insurance' AND secondary_patient_insurance_id IS NOT NULL ) AND insurance_paid.is_primary_paid
-				THEN 'secondary_insurance'
-			    
-				WHEN claim_details.claim_balance_total > 0::money AND (claim_details.payer_type = 'secondary_insurance' AND tertiary_patient_insurance_id IS NOT NULL ) AND insurance_paid.is_secondary_paid
-				THEN 'tertiary_insurance'
-				
-				WHEN claim_details.claim_balance_total > 0::money AND claim_details.payer_type = 'tertiary_insurance' AND  insurance_paid.is_tertiary_paid
-				THEN 'patient'				    
-			    
-				WHEN claim_details.claim_balance_total > 0::money AND (secondary_patient_insurance_id IS NULL AND tertiary_patient_insurance_id IS NULL )
-				THEN 'patient'
-
+			        WHEN claim_details.claim_balance_total > 0::money  THEN
+			            CASE WHEN NOT is_primary_paid AND primary_patient_insurance_id IS NOT NULL 
+						THEN 'primary_insurance'
+					        WHEN NOT is_secondary_paid AND secondary_patient_insurance_id IS NOT NULL 
+						THEN 'secondary_insurance'
+					        WHEN NOT is_tertiary_paid AND tertiary_patient_insurance_id IS NOT NULL 
+						THEN 'tertiary_insurance'
+					        ELSE 'patient' 
+					 END
+				WHEN claim_details.claim_balance_total < 0::money AND (claim_details.payer_type = 'primary_insurance') AND secondary_patient_insurance_id IS NOT NULL
+					THEN 'secondary_insurance'
+				WHEN claim_details.claim_balance_total < 0::money AND (claim_details.payer_type = 'secondary_insurance') AND tertiary_patient_insurance_id IS NOT NULL
+					THEN 'tertiary_insurance'
+				WHEN claim_details.claim_balance_total < 0::money AND (claim_details.payer_type = 'tertiary_insurance') 
+					THEN 'patient'
 				WHEN claim_details.claim_balance_total = 0::money
 				THEN 'patient'
-
 				ELSE 
 				claim_details.payer_type
 			     END 
@@ -3016,7 +3016,7 @@ DROP INDEX IF EXISTS edi_files_file_path_ux;
 CREATE INDEX IF NOT EXISTS charges_studies_idx1 ON billing.charges_studies(study_id);
 CREATE INDEX IF NOT EXISTS charges_studies_idx2 ON billing.charges_studies(charge_id);
 CREATE INDEX IF NOT EXISTS payment_applications_idx1 ON billing.payment_applications(charge_id);
-CREATE INDEX claims_claim_dt_ix on billing.claims(claim_dt, id);
+CREATE INDEX IF NOT EXISTS claims_claim_dt_ix on billing.claims(claim_dt, id);
 -- --------------------------------------------------------------------------------------------------------------------
 -- MAKE SURE THIS COMMENT STAYS AT THE BOTTOM - ADD YOUR CHANGES ABOVE !!!!
 -- RULES:

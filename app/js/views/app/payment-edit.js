@@ -2368,10 +2368,10 @@ define(['jquery',
                     },
                     success: function (data, response) {
                         if (data && data.length) {
+                            commonjs.showStatus('All payment has been applied successfully');
                             self.getAppliedBalance(self.payment_id);
                             $('#btnPaymentPendingRefresh').click();
                             $('#btnAppliedPayRefresh').click();
-                            commonjs.showStatus('Payment has been applied auccessfully');
                         }
                     },
                     error: function (err, response) {

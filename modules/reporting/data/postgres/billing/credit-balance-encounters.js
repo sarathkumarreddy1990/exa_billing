@@ -43,7 +43,7 @@ get_insurance_balance As (
     pp.account_no AS account_number,
     bcs.description AS status,
     to_char(bc.claim_dt, 'MM/DD/YYYY') AS encounter_date,
-    round(bgct.claim_balance_total::numeric) AS total,
+    (bgct.claim_balance_total::numeric) AS total,
     bc.payer_type,
     CASE WHEN bc.payer_type = 'patient' THEN pat_balance ELSE 0::money END AS patient_balance,
     CASE WHEN bc.payer_type != 'patient' THEN ins_balance ELSE 0::money END AS insurance_balance
