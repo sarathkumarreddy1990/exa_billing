@@ -22,6 +22,9 @@
 ### Build
 * ``` yarn build ```
 
+### Build - FTP Deployment
+* ``` yarn deploy ```
+
 ## Who do I talk to? ##
 
 * Repo owner or admin
