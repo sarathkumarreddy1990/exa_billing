@@ -31,21 +31,27 @@
                 <div class="form-group form-inline">
                     <label id="lblInsProviderAddress" for="auditFromDate" class="control-label">
                         Address :&nbsp;
-                        <%= eraData.payerIdentification.payerAddress.addressInformation ? eraData.payerIdentification.payerAddress.addressInformation : '' %>
+                        <b>
+                            <%= eraData.payerIdentification.payerAddress.addressInformation ? eraData.payerIdentification.payerAddress.addressInformation : '' %>
+                        </b>
                     </label>
                 </div>
                 <div class="form-group form-inline">
                     <label id="lblInsProviderCityState" for="auditFromDate" class="control-label">
                         City/State/Zip :&nbsp;
-                        <%= eraData.payerIdentification.payerCityStateZipCode.payerCity ? eraData.payerIdentification.payerCityStateZipCode.payerCity : '' %>/
-                            <%= eraData.payerIdentification.payerCityStateZipCode.payerState ? eraData.payerIdentification.payerCityStateZipCode.payerState : '' %>/
-                                <%= eraData.payerIdentification.payerCityStateZipCode.payerZIPCode ? eraData.payerIdentification.payerCityStateZipCode.payerZIPCode : '' %>
+                        <b>
+                            <%= eraData.payerIdentification.payerCityStateZipCode.payerCity ? eraData.payerIdentification.payerCityStateZipCode.payerCity : '' %>/
+                                <%= eraData.payerIdentification.payerCityStateZipCode.payerState ? eraData.payerIdentification.payerCityStateZipCode.payerState : '' %>/
+                                    <%= eraData.payerIdentification.payerCityStateZipCode.payerZIPCode ? eraData.payerIdentification.payerCityStateZipCode.payerZIPCode : '' %>
+                        </b>
                     </label>
                 </div>
                 <div class="form-group form-inline">
                     <label id="lblInsProviderPhoneNo" for="auditFromDate" class="control-label">
                         Phone # :&nbsp;
-                        <%= eraData.payerIdentification.payerContactInformation.commNumber1 ? eraData.payerIdentification.payerContactInformation.commNumber1 : '' %>
+                        <b>
+                            <%= eraData.payerIdentification.payerContactInformation.commNumber1 ? eraData.payerIdentification.payerContactInformation.commNumber1 : '' %>
+                        </b>
                     </label>
                 </div>
             </div>
@@ -57,10 +63,8 @@
                         <div class="col-md-12" style="border-top: 2px solid #d6d6d6; padding-top: 10px;">
                             <div class="col-md-6 topMargin" style="float: left;">
                                 Patient Name :
-                                <b>
                                     <%= claimPaymentInformation.patientName.lastName %>,
                                         <%= claimPaymentInformation.patientName.firstName %>
-                                </b>
                             </div>
                             <div class="col-md-6 topMargin" style="float: right;">
                                 Paid :
@@ -72,9 +76,7 @@
                             </div>
                             <div class="col-md-6 topMargin" style="float: right;">
                                 Claim No:
-                                <b>
                                     <%= claimPaymentInformation.claimNumber ? claimPaymentInformation.claimNumber : '' %>
-                                </b>
                             </div>
                             <div class="col-md-6 topMargin" style="float: right;">
                                 Claim Status Code :
@@ -121,11 +123,9 @@
                                     <tr>
                                         <td> </td>
                                         <td></td>
-                                        <td class="txtAlignRight"> Total : $
-                                            <%= totalBillFee %>
+                                        <td class="txtAlignRight"> Total : $<%= totalBillFee %>
                                         </td>
-                                        <td class="txtAlignRight"> Total : $
-                                            <%= totalAmount %>
+                                        <td class="txtAlignRight"> Total : $<%= totalAmount %>
                                         </td>
                                         <td></td>
                                     </tr>
