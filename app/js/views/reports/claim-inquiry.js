@@ -5,12 +5,12 @@ define([
     , 'shared/report-utils'
     , 'text!templates/reports/claim-inquiry.html'
 ],
-    function ($, _, Backbone, UI, ClaimInquiryTemplate) {
+    function ($, _, Backbone, UI, claimInquiryTemplate) {
 
         var ClaimInquiryView = Backbone.View.extend({
             rendered: false,
             expanded: false,
-            mainTemplate: _.template(ClaimInquiryTemplate),
+            mainTemplate: _.template(claimInquiryTemplate),
             viewModel: {
                 sDate: null,
                 patientIds: null,
@@ -34,11 +34,15 @@ define([
                 payDateTo: null,
                 billCreatedDateFrom: null,
                 billCreatedDateTo: null,
+                chkServiceDateBill: null,
                 insuranceOption: null,
                 referringDoctoreOption: null,
                 insuranceIds: null,
+                insuranceGroupIds: null,
                 userIds: null,
                 userNames: null,
+                refPhyId: null,
+                refProName: null,
                 referringProIds: null,
                 allFacilities: false,
                 allBillingProvider: false,
@@ -65,19 +69,19 @@ define([
                 'change #ddlReferringPhysicianOption': 'onOptionChangeSelect',
                 'change #ddlCPTCodeOption': 'onOptionChangeSelectCPT',
                 'click #btnViewReport': 'onReportViewClick',
-                'click #btnViewReportNewTab': 'onReportViewClick',
+                'click #btnViewReportNewTabClaimTransaction': 'onReportViewClick',
                 'click #btnPdfReport': 'onReportViewClick',
                 'click #btnExcelReport': 'onReportViewClick',
                 'click #btnCsvReport': 'onReportViewClick',
                 'click #btnXmlReport': 'onReportViewClick',
                 "click #chkAllClaims": "selectAllClaims",
                 "click #chkAllInsGroup": "selectAllInsGroup",
-                "change .insGrpChk": "chkInsGroup",
-                "click #chkAllBillingPro": "selectAllBillingProviders",
+                "change .insGrpChk": "chkInsGroup",               
                 "click #chkAllFacility": "selectAllFacility",
                 "click #showCheckboxesClaim": "showCheckboxesClaim",
                 "click #showInsGroupCheckboxes": "showInsuranceGroupList",
                 'change #ddlUsersOption': 'onOptionChangeSelectUser'
+                //'change #ddlReferringPhysicianOption': 'onOptionChangeSelectRefPhysician'
             },
 
             usermessage: {
@@ -86,19 +90,19 @@ define([
 
             initialize: function (options) {
                 this.showForm();
-                this.$el.html(this.mainTemplate(this.viewModel));               
+                this.$el.html(this.mainTemplate(this.viewModel));
                 UI.initializeReportingViewModel(options, this.viewModel);
 
-                // this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
+                //    this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
 
-                // this.viewModel.dateFrom = moment().startOf('month').add(-1, 'month');    // start of the last month
-                // this.viewModel.dateTo = this.viewModel.dateFrom.clone().endOf('month');  // end of the last month
+                this.viewModel.dateFrom = moment().startOf('month').add(-1, 'month');    // start of the last month
+                this.viewModel.dateTo = this.viewModel.dateFrom.clone().endOf('month');  // end of the last month
 
-                // this.viewModel.cmtFromDate = moment().startOf('month').add(-1, 'month');    // start of the last month  (CPT Pay Date)
-                // this.viewModel.cmtToDate = this.viewModel.cmtFromDate.clone().endOf('month');  // end of the last month
+                this.viewModel.cmtFromDate = moment().startOf('month').add(-1, 'month');    // start of the last month  (CPT Pay Date)
+                this.viewModel.cmtToDate = this.viewModel.cmtFromDate.clone().endOf('month');  // end of the last month
 
-                // this.viewModel.billCreatedDateFrom = moment().startOf('month').add(-1, 'month');    // start of the last month  (CPT Pay Date)
-                // this.viewModel.billCreatedDateTo = this.viewModel.billCreatedDateFrom.clone().endOf('month');  // end of the last month
+                this.viewModel.billCreatedDateFrom = moment().startOf('month').add(-1, 'month');    // start of the last month  (CPT Pay Date)
+                this.viewModel.billCreatedDateTo = this.viewModel.billCreatedDateFrom.clone().endOf('month');  // end of the last month
 
 
             },
@@ -109,65 +113,61 @@ define([
                 }
                 commonjs.initializeScreen({ header: { screen: this.viewModel.reportTitle, ext: this.viewModel.reportId } }); // html title
                 UI.setPageTitle(this.viewModel.reportTitle);
-              //  this.bindBillingProvider();
-               // this.bindCPTAutoComplete();   // CPT Code Auto complete
-
             },
+
             render: function () {
+                var self = this;
                 var modelCollection = Backbone.Collection.extend({
                     model: Backbone.Model.extend({})
                 });
                 this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
                 this.$el.html(this.mainTemplate(this.viewModel));
                 UI.bindBillingProvider();
-                UI.bindInsuranceAutocomplete('Select Insurance', 'btnAddInsurance', 'ulListInsurance');           
-
+                UI.bindInsuranceAutocomplete('Select Insurance', 'btnAddInsurance', 'ulListInsurance');
                 UI.bindInsuranceProviderAutocomplete('Select Insurance Provider', 'btnAddInsuranceProvider', 'ulListInsuranceProvider');
-                
-               
+                UI.listUsersAutoComplete('Select User', 'btnAddUsers', 'ulListUsers');
+                UI.bindCPTCodeInformations('txtCPTCode', 'btnCPTCode', 'ulListCPTCodeDetails');
+                UI.bindReferringProviderAutoComplete('txtReferringPhysician', 'btnAddReferringPhysician', 'ulListReferringPhysicians');
+
                 // pre-select default facility
                 this.selectDefaultFacility();
-               // self.bindDateRangePickers();  //  Binding date range pickers
-                
-               // self.bindUserAutocomplete();   // Referring Docotor Auto complete
+                self.bindDateRangePicker();  //  Binding date range pickers                
+                self.bindUserAutocomplete();   // Referring Docotor Auto complete
 
                 //   Service date (Bill) Date Picker
-                // self.drpStudyDt.setStartDate(this.viewModel.dateFrom);
-                // self.drpStudyDt.setEndDate(this.viewModel.dateTo);
+                self.drpStudyDt.setStartDate(this.viewModel.dateFrom);
+                self.drpStudyDt.setEndDate(this.viewModel.dateTo);
 
                 // //   Comment date  Date Picker
-                // self.commentDate.setStartDate(this.viewModel.cmtFromDate);
-                // self.commentDate.setEndDate(this.viewModel.cmtToDate);
+                self.commentDate.setStartDate(this.viewModel.cmtFromDate);
+                self.commentDate.setEndDate(this.viewModel.cmtToDate);
 
                 // //   Bill Created date  Picker
-                // self.billCreatedDate.setStartDate(this.viewModel.billCreatedDateFrom);
-                // self.billCreatedDate.setEndDate(this.viewModel.billCreatedDateTo);
+                self.billCreatedDate.setStartDate(this.viewModel.billCreatedDateFrom);
+                self.billCreatedDate.setEndDate(this.viewModel.billCreatedDateTo);
 
 
                 // Default selection
                 $('#workedByAll').prop('checked', true);     // For Worked By Drop down
                 $('#chkServiceDateBill').attr('checked', true); // For service Date
 
-               // facilityFilter multi select boxes
-                $('#ddlFacilityFilter, #ddlClaimSelectBoxes, #ddlInsuranceOption, #ddlUsersOption , #ddlOrderBySelection').multiselect({
+                // facilityFilter multi select boxes
+                $('#ddlFacilityFilter,  #ddlInsuranceOption, #ddlUsersOption , #ddlOrderBySelection, #ddlReferringPhysicianOption').multiselect({
                     maxHeight: 200,
                     buttonWidth: '250px',
                     enableFiltering: true,
                     includeSelectAllOption: true,
                     enableCaseInsensitiveFiltering: true
                 });
-                // // facilityFilter multi select boxes
-                // $('#ddlClaimSelectBoxes').multiselect({
-                //     maxHeight: 170,
-                //     buttonWidth: '170px',
-                //     includeSelectAllOption: true
-                // });
-                // // BillingProvider multi select boxes
-                // $('#ddlBillingProvider').empty();
+               
+                $('#ddlClaimSelectBoxes').multiselect({
+                    maxHeight: 170,
+                    buttonWidth: '200px'                  
+                });            
             },
-            
+
             // Date Range Binding
-            bindDateRangePickers: function () {
+            bindDateRangePicker: function () {
                 var self = this;
                 var drpEl = $('#serviceDateBill');
                 //   Service date (Bill) Date Picker
@@ -210,14 +210,20 @@ define([
                     btnClicked = btnClicked.parent(); // in case FA icon 'inside'' button was clicked...
                 }
                 var rFormat = btnClicked ? btnClicked.attr('data-rformat') : null;
-                var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnViewReportNewTab' : false;
+                var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnViewReportNewTabClaimTransaction' : false;
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = openInNewTab && rFormat === 'html';
 
-                this.viewModel.insuranceIds = $('ul#ulListInsurance li a').map(function () {
+                this.viewModel.insuranceIds = $('ul#ulListInsurance li').map(function () {
                     return this.id;
                 }).get();
-                this.viewModel.userIds = $('ul#ulListUsers li a').map(function () {
+                this.viewModel.insuranceGroupList = $('ul#ulListInsuranceProvider li').map(function () {
+                    return this.id;
+                }).get();
+                this.viewModel.userIds = $('ul#ulListUsers li').map(function () {
+                    return this.id;
+                }).get();
+                this.viewModel.refPhyId = $('ul#ulListReferringPhysicians li').map(function () {
                     return this.id;
                 }).get();
                 this.viewModel.insuranceOption = $('#ddlInsuranceOption').val();
@@ -225,7 +231,7 @@ define([
 
                 this.viewModel.referringDoctor = $('#ddlReferringPhysicianOption').val();
 
-                this.viewModel.cptCodeLists = $('ul#ulListCPTCodes li a').map(function () {
+                this.viewModel.cptCodeLists = $('ul#ulListCPTCodeDetails li').map(function () {
                     return this.id;
                 }).get();
 
@@ -233,98 +239,86 @@ define([
                 this.getSelectedFacility();
                 this.getBillingProvider();
 
-                //if (this.hasValidViewModel()) {
+                if (this.hasValidViewModel()) {
                     var urlParams = this.getReportParams();
                     UI.showReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
-                //}
+                }
             },
 
             hasValidViewModel: function () {
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
-                 //   commonjs.showWarning('Please check report id, category, and/or format!');
-                    return false;
+                    commonjs.showWarning('Please check report id, category, and/or format!');
+                    return;
                 }
 
-                // Billing Provider validataion
-                if ($('#billingProChk').attr('checked')) {
-                    if ($('#ddlBillingProvider option:selected').length < 1) {
-                        //commonjs.showWarning('Please select billing provider in option');
-                        return false;
-                    }
+                // Claim # validatation for from# &  To #
+                if ($('#claimIdFrom').val() != '' && $('#claimIdTo').val() == "") {
+                    commonjs.showWarning('Please Enter To Range (Claim #)');
+                    return;
                 }
-                // Facility Validataion
-                if ($('#facilityChk').attr('checked')) {
-                    if ($('#ddlFacilityFilter option:selected').length < 1) {
-                       // commonjs.showWarning('Please select facility in option');
-                        return false;
-                    }
+                if ($('#claimIdTo').val() != '' && $('#claimIdFrom').val() == "") {
+                    commonjs.showWarning('Please Enter From Range (Claim #)');
+                    return;
                 }
 
-                if( !($('#chkServiceDateBill').attr('checked')) && !($('#chkServicePayDateCPT').attr('checked')) &&!($('#billCreatedDate').attr('checked')) ){
+                if ($('#claimIdFrom').val() > $('#claimIdTo').val()) {
+                    commonjs.showWarning('Claim From# not Greater than To#');
+                    return;
+                }
+
+                if (!($('#chkServiceDateBill').prop('checked')) && !($('#chkServicePayDateCPT').prop('checked')) && !($('#billCreatedDate').prop('checked'))) {
                    // commonjs.showWarning('Please Select Service / Pay / Bill Created Date');
-                    return false;
+                    return;
                 }
-
-                // claim Selection Validation
-                if ($('#ddlClaimSelectBoxes option:selected').length < 1) {
-                   // commonjs.showWarning('Please Select Claim Selection');
-                    return false;
-                }
-
-                // ref.Doctor Selection Validation
-                if ($('#ddlReferringPhysicianOption').val() =='S') {
-                    if(this.viewModel.referringProIds && this.viewModel.referringProIds.length <  1){
-                      //  commonjs.showWarning('Please Add Referring Doctor');
-                        return false;
-                    }
-                }
+               
                 return true;
             },
 
             // Binding Report Params
             getReportParams: function () {
                 return urlParams = {
-                    // 'allFacilities': this.viewModel.allFacilities,
-                    // 'facilityIds': this.viewModel.facilityIds,
+                    'allFacilities': this.viewModel.allFacilities,
+                    'facilityIds': this.viewModel.facilityIds,
 
-                    // 'workedBy': $('#workedBy').prop('checked'),
-                    // 'workedByAll': $('#workedByAll').prop('checked'),
+                    'workedBy': $('#workedBy').prop('checked'),
+                    'workedByAll': $('#workedByAll').prop('checked'),
 
-                    // 'facilityIds': ['1'], //$('#facilityChk').prop('checked') && this.selectedFacilityList ? this.selectedFacilityList : 
-                    // 'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
+                    'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : '',
+                    'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
 
+                    'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
+                    'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
+                    billingProFlag: this.viewModel.allBillingProvider == 'true' ? true : false,
 
-                    // 'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
-                    // 'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
-                    //  billingProFlag : this.viewModel.allBillingProvider == 'true' ? true : false,
+                    'fromDate': ($('#chkServiceDateBill').prop('checked')) == true ? this.viewModel.dateFrom.format('MM/DD/YYYY') : '',
+                    'toDate': ($('#chkServiceDateBill').prop('checked')) == true ? this.viewModel.dateTo.format('MM/DD/YYYY') : '',
 
-                    // 'fromDate': ($('#chkServiceDateBill').attr('checked')) ? this.viewModel.dateFrom.format('YYYY-MM-DD') : '',
-                    // 'toDate': ($('#chkServiceDateBill').attr('checked')) ? this.viewModel.dateTo.format('YYYY-MM-DD') : '',
+                    'cmtFromDate': ($('#chkServicePayDateCPT').prop('checked')) == true ? this.viewModel.cmtFromDate.format('MM/DD/YYYY') : '',
+                    'cmtToDate': ($('#chkServicePayDateCPT').prop('checked')) == true ? this.viewModel.cmtToDate.format('MM/DD/YYYY') : '',
+                    'cptDateOption': $('#chkServicePayDateCPT').is(':checked') ? $("input[name='accountingAndActualPayment']:checked").val() : '',
 
-                    // 'cmtFromDate': ($('#chkServicePayDateCPT').attr('checked')) ? this.viewModel.cmtFromDate.format('YYYY-MM-DD') : '',
-                    // 'cmtToDate': ($('#chkServicePayDateCPT').attr('checked')) ? this.viewModel.cmtToDate.format('YYYY-MM-DD') : '',
+                    'billCreatedDateFrom': ($('#billCreatedDate').prop('checked')) == true ? this.viewModel.billCreatedDateFrom.format('MM/DD/YYYY') : '',
+                    'billCreatedDateTo': ($('#billCreatedDate').prop('checked')) == true ? this.viewModel.billCreatedDateTo.format('MM/DD/YYYY') : '',
 
+                    insuranceIds: this.viewModel.insuranceIds,
+                    insuranceOption: this.viewModel.insuranceOption ? this.viewModel.insuranceOption : '',
+                    'insuranceGroupList': this.viewModel.insuranceGroupList,
 
-                    // 'billCreatedDateFrom': ($('#billCreatedDate').attr('checked')) ? this.viewModel.billCreatedDateFrom.format('YYYY-MM-DD') : '',
-                    // 'billCreatedDateTo': ($('#billCreatedDate').attr('checked')) ? this.viewModel.billCreatedDateTo.format('YYYY-MM-DD') : '',
+                    allInsuranceGroup: this.viewModel.allInsGrpSelection ? this.viewModel.allInsGrpSelection : '',                    
 
-                    // insuranceIds: this.viewModel.insuranceIds,
-                    // insuranceOption: this.viewModel.insuranceOption ? this.viewModel.insuranceOption : '',
+                    userIds: this.viewModel.userIds ? this.viewModel.userIds : '',
+                    referringProIds: this.viewModel.refPhyId ? this.viewModel.refPhyId : '',
 
-                    // allInsuranceGroup: this.viewModel.allInsGrpSelection ? this.viewModel.allInsGrpSelection : '',
-                    // insuranceGroupList: this.selectedInsGrpList ? this.selectedInsGrpList : '',
+                    claimLists: this.selectedClaimList ? this.selectedClaimList : '',
+                    allClaimSelection: this.viewModel.allClaimSelection ? this.viewModel.allClaimSelection : '',
 
-                    // userIds: this.viewModel.userIds ? this.viewModel.userIds : '',
+                    claimFrom: $('#claimIdFrom').val() ? parseInt($('#claimIdFrom').val()) : '',
+                    claimTo: $('#claimIdTo').val() ? parseInt($('#claimIdTo').val()) : '',
 
-                    // claimLists: this.selectedClaimList ? this.selectedClaimList : '',
-                    // allClaimSelection: this.viewModel.allClaimSelection ? this.viewModel.allClaimSelection : '',
+                    cptCodeLists: this.viewModel.cptCodeLists ? this.viewModel.cptCodeLists : '',
 
-                    // claimFrom: $('#claimIdFrom').val() ? parseInt($('#claimIdFrom').val()) : '',
-                    // claimTo: $('#claimIdTo').val() ? parseInt($('#claimIdTo').val()) : '',
-
-                    // cptCodeLists: this.viewModel.cptCodeLists ? this.viewModel.cptCodeLists : '',
-
-                    // orderBy: $('#ddlOrderBySelection').val() ? $('#ddlOrderBySelection').val() : ''
+                    orderBy: $('#ddlOrderBySelection').val() ? $('#ddlOrderBySelection').val() : '',
+                    insurancePayerTypeOption: $('#ddlClaimSelectBoxes').val() || ''
 
                 };
             },
@@ -332,39 +326,67 @@ define([
             onOptionChange: function () {
                 if ($('#ddlInsuranceOption').val() == 'S') {
                     $("#ddlOptionBox").show();
+                    $("#ddlOptionBoxList").show();
                     $("#ddlInsuranceGroupBox").hide();
+                    $("#ddlInsuranceGroupBoxList").hide();
                     $("#chkAllInsGroup").attr('checked', false);
                     $('input[class=insGrpChk]').prop('checked', false);
                     this.selectedInsGrpList = []; // empty the selected insurance group list
                 }
                 else if ($('#ddlInsuranceOption').val() == 'G') {
                     $("#ddlOptionBox").hide();
+                    $("#ddlOptionBoxList").hide();
                     $("#ddlInsuranceGroupBox").show();
+                    $("#ddlInsuranceGroupBoxList").show();
                     $('#ulListInsurance').empty();
+                    $('#ulListInsuranceProvider').empty();
                     this.viewModel.insuranceIds = [];
-                    $('#ulListInsurance').data('insuranceIds',[]);
+                    $('#ulListInsurance').data('insuranceGroupList', []);
                 }
                 else {
                     $("#ddlOptionBox").hide();
+                    $("#ddlOptionBoxList").hide();
                     $("#ddlInsuranceGroupBox").hide();
+                    $("#ddlInsuranceGroupBoxList").hide();
                     $('#ulListInsurance').empty();
+                    $('#ulListInsuranceProvider').empty();
                     this.viewModel.insuranceIds = [];
-                    $('#ulListInsurance').data('insuranceIds',[]);
+                    this.viewModel.insuranceGroupList = [];
+                    $('#ulListInsurance').data('insuranceIds', []);
+                    $('#ulListInsuranceProvider').data('insuranceGroupList', []);
                     $("#chkAllInsGroup").attr('checked', false);
                     $('input[class=insGrpChk]').prop('checked', false);
                     this.selectedInsGrpList = []; // empty the selected insurance group list
                 }
             },
-            // Referring Physician Value changed
+
             onOptionChangeSelectUser: function () {
-                if ($('#ddlUsersOption').val() == 'S')
+                if ($('#ddlUsersOption').val() == 'S') {
                     $("#ddlUsersBox").show();
-                else{
+                    $("#divUsers").show();
+                }
+                else {
                     $("#ddlUsersBox").hide();
+                    $("#divUsers").hide();
                     $('#ulListUsers').empty();
                     this.viewModel.userNames = [];
                     this.viewModel.userIds = [];
-                    $('#ulListUsers').data('userIds',[])
+                    $('#ulListUsers').data('userIds', [])
+                }
+            },
+
+            onOptionChangeSelectRefPhysician: function () {
+                if ($('#ddlReferringPhysicianOption').val() == 'S') {
+                    $("#ddlReferringPhysicianBox").show();
+                    $("#divReferringPhysician").show();
+                }
+                else {
+                    $("#ddlReferringPhysicianBox").hide();
+                    $("#divReferringPhysician").hide();
+                    $('#ulListReferringPhysicians').empty();
+                    this.viewModel.refProName = [];
+                    this.viewModel.refPhyId = [];
+                    $('#ulListReferringPhysicians').data('refPhyId', [])
                 }
             },
 
@@ -416,19 +438,18 @@ define([
                 this.viewModel.allFacilities = false;
                 $('#facilityDiv').hide();
                 $('#billingProviderDiv').hide();
-              //  $('#ddlBillingProvider').multiselect("deselectAll", false).multiselect("refresh");
-             //   $('#ddlFacilityFilter').multiselect("deselectAll", false).multiselect("refresh");
-
             },
+
             // Billing Provider Changes -- worked
             onBillingProviderChange: function () {
                 $('#billingProDropdown').show();
                 $('#facilityDropDown').hide();
 
                 // clear facility filters
-             //   $('#ddlFacilityFilter').multiselect("deselectAll", false).multiselect("refresh");
+                $('#ddlFacilityFilter').multiselect("deselectAll", false).multiselect("refresh");
                 this.viewModel.allFacilities = false;
             },
+            
             // Facility Changes -- worked
             onFacilityChange: function () {
                 $('#billingProDropdown').hide();
@@ -442,13 +463,13 @@ define([
             // Claim Selection and validation -- worked
             getClaimSelection: function () {
 
-               var selected = $("#ddlClaimSelectBoxes option:selected");
-               var claimSelections = [];
-                   selected.each(function () {
-                      claimSelections.push($(this).val());
-                   });
-               this.selectedClaimList = claimSelections
-              // this.viewModel.allClaimSelection = this.selectedClaimList && this.selectedClaimList.length === $('#ddlClaimSelectBoxes option').length;
+                var selected = $("#ddlClaimSelectBoxes option:selected");
+                var claimSelections = [];
+                selected.each(function () {
+                    claimSelections.push($(this).val());
+                });
+                this.selectedClaimList = claimSelections;             
+                // this.viewModel.allClaimSelection = this.selectedClaimList && this.selectedClaimList.length === $('#ddlClaimSelectBoxes option').length;
 
             },
             // Binding selected facility from the check box - worked
@@ -458,9 +479,10 @@ define([
                 selected.each(function () {
                     facilities.push($(this).val());
                 });
-              //  this.selectedFacilityList = facilities
-            //    this.viewModel.allFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlFacilityFilter option").length;
+                this.selectedFacilityList = facilities
+                this.viewModel.allFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlFacilityFilter option").length;
             },
+
             // multi select billing provider - worked
             getBillingProvider: function (e) {
                 var billing_pro = []
@@ -471,6 +493,7 @@ define([
                 this.selectedBillingProList = billing_pro;
                 this.viewModel.allBillingProvider = this.selectedBillingProList && this.selectedBillingProList.length === $("#ddlBillingProvider option").length;
             },
+
 
             // multi select insurance provider
             chkInsGroup: function (e) {
@@ -528,17 +551,19 @@ define([
             // Binding default facility Group
             selectDefaultFacility: function () {
                 // if there is only 1 facility select it, otherwise use default facility id
-                //var defFacId = this.viewModel.facilities.length === 1 ? this.viewModel.facilities.at(0).get('id') : app.default_facility_id;
-              //  this.defaultyFacilityId = defFacId;
+                var defFacId = this.viewModel.facilities.length === 1 ? this.viewModel.facilities.at(0).get('id') : app.default_facility_id;
+                this.defaultyFacilityId = defFacId;
             },
             // Pay Date CPT information
             onPayDateCPT: function () {
                 // Show OR Hide accounting date and payment date
-                if ($('#chkServicePayDateCPT').attr('checked')) {
+                if ($('#chkServicePayDateCPT').prop('checked')) {
                     $('#accountingAndActualPaymentInfo').show();
+                    $('#divAccountingDate').css('visibility', 'visible');
                     $('#accountingDate').prop('checked', true);
                 }
                 else {
+                    $('#divAccountingDate').css('visibility', 'hidden');
                     $('#accountingAndActualPaymentInfo').hide();
                     $('#accountingDate').prop('checked', false);
                 }
@@ -568,7 +593,7 @@ define([
                     this.expanded = false;
                 }
             },
-           
+
             // Binding insurance group auto complete drop down. Todo:: Once insurance group screen come in setup then use  this fun.
             bindInsuranceGroupAutocomplete: function () {
                 var self = this;
@@ -589,7 +614,7 @@ define([
                 var txtCptCode = 'txtCPTCode';
                 // var s2id_txtCPTCodeName = 's2id_txtCPTCode a span';
                 // UI.bindCptAutocomplete(txtCptCode, s2id_txtCPTCodeName, 'Select CPT Code', self.defaultyFacilityId, 'btnCPTCode', 'ulListCPTCodes');
-            }         
+            }
 
         });
         return ClaimInquiryView;
