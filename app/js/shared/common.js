@@ -5019,7 +5019,7 @@ var commonjs = {
     },
 
     initHotkeys: function (events) {
-        if (Object.keys(app.hotkeys).length && Object.keys(events).length) {
+        if (app.hotkeys && Object.keys(app.hotkeys).length && Object.keys(events).length) {
             for (var key in events) {
                 this.initHotkey(key, events[key]);
             }
