@@ -8,9 +8,11 @@
         "dev": "nodemon ./bin/www",
         "start": "npm-run-all lint dev",
         "gulp-build": "gulp build",
+        "gulp-deploy": "gulp deploy",
         "gulp-build-from-repo": "gulp build-from-repo",
         "install-node_modules": "yarn install && cd app && yarn install && cd..",
         "build": "npm-run-all install-node_modules gulp-build",
+        "deploy": "npm-run-all install-node_modules gulp-deploy",
         "build-from-repo": "npm-run-all install-node_modules gulp-build-from-repo",
         "start-production": "nodemon ./bin/www-cluster",
         "test": "mocha --recursive test/unit"

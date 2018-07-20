@@ -170,7 +170,7 @@ gulp.task('ftp-upload', () => {
 
     return gulp.src(['./dist/**'], { base: './dist', buffer: false })
         //.pipe(conn.newer('/EXA/billing'))
-        .pipe(conn.dest('/EXA/billing'));
+        .pipe(conn.dest('/EXA'));
 });
 
 gulp.task('clean-all', ['zip'], () => {
@@ -231,10 +231,9 @@ gulp.task('build', [
     'clean-all',
 ]);
 
-// gulp.task('deploy', (done) => {
-//     //runSequence('git-pull', 'build', 'git-commit', 'git-push', 'deploy', done);
-//     runSequence('deploy', done);
-// });
+gulp.task('deploy', (done) => {
+    runSequence('git-pull', 'build', 'git-commit', 'git-push', 'ftp-upload', done);
+});
 
 gulp.task('build-from-repo', (done) => {
     runSequence('git-pull', 'build', 'git-commit', 'git-push', done);
