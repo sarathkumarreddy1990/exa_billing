@@ -558,7 +558,7 @@ define('grid', [
                     self.followUpView.render(studyIds);
                 });
 
-                if (options.context.homeOpentab == 'Follow_up_queue') {
+                if (options.filterid == 'Follow_up_queue') {
                     var liResetFollowUp = commonjs.getRightClickMenu('anc_reset_followup', 'setup.rightClickMenu.resetFollowUp', false, 'Cancel Follow-up', false);
                     $divObj.append(liResetFollowUp);
                     self.checkRights('anc_reset_followup');
@@ -572,6 +572,20 @@ define('grid', [
 
                         self.followUpView = new followUpView();
                         self.followUpView.resetFollowUp(studyIds);
+                    });
+                }
+
+                if (options.filterid != 'Follow_up_queue') {
+                    var liEditClaim = commonjs.getRightClickMenu('anc_reset_invoice_no','setup.rightClickMenu.resetInvoice',false,'Reset Invoice Number',false);         
+                    if(studyArray.length == 1 && selectedStudies[0].invoice_no != null && selectedStudies[0].invoice_no != '')
+                        $divObj.append(liEditClaim);
+                    self.checkRights('anc_reset_invoice_no');
+
+                    $('#anc_reset_invoice_no').click(function () {
+                        if ($('#anc_reset_invoice_no').hasClass('disabled')) {
+                            return false;
+                        }
+                        self.resetInvoiceNumber(selectedStudies[0].invoice_no);
                     });
                 }
 
@@ -1078,6 +1092,44 @@ define('grid', [
                     self.StudyFilterView.showGrid();
                     $('#tblStudyFilterGrid').append(self.template);
             });
+
+            if (doExport) {
+                var searchFilterFlag = grid.getGridParam("postData")._search;
+                var colHeader = studyFields.colName;
+
+                commonjs.showLoading();
+
+                $.ajax({
+                    'url': '/exa_modules/billing/claim_workbench',
+                    type: 'GET',
+                    data: {
+                        filterData: [],
+                        filterCol: [],
+                        customArgs: {
+                            filter_id: filterID,
+                            flag: 'exportExcel'
+                        }
+                    },
+                    success: function (data, response) {
+                        commonjs.prepareCsvWorker({
+                            data: data,
+                            reportName: 'CLAIMS',
+                            fileName: 'Claims'
+                        }, {
+                                afterDownload: function () {
+                                    $('#btnValidateExport').css('display', 'inline');
+                                }
+                            });
+                    },
+                    error: function (err) {
+                        commonjs.handleXhrError(err);
+                        $('#btnValidateExport').css('display', 'inline');
+                    }
+                });
+
+                return true;
+            }
+
             claimsTable.render({
                 gridelementid: gridID,
                 custompager: new Pager(),
@@ -1094,14 +1146,14 @@ define('grid', [
                 container: options.container,
                 multiselect: true,
                 ondblClickRow: function (rowID, irow, icol, event) {
-                    if(screenCode.indexOf('ECLM') > -1)
+                    if (screenCode.indexOf('ECLM') > -1)
                         return false;
                     var gridData = getData(rowID, studyStore, gridID);
-                    var study_id =0;
-                    var order_id =0;
-                    
-                    if ($('#chk'+gridID.slice(1)+'_' + rowID).length > 0) {
-                        $('#chk'+gridID.slice(1)+'_' + rowID).attr('checked',true);
+                    var study_id = 0;
+                    var order_id = 0;
+
+                    if ($('#chk' + gridID.slice(1) + '_' + rowID).length > 0) {
+                        $('#chk' + gridID.slice(1) + '_' + rowID).attr('checked', true);
                     }
                     if (options.isClaimGrid || (gridData.claim_id && gridData.claim_id != '')) {
                         self.claimView = new claimsView();
@@ -1110,7 +1162,7 @@ define('grid', [
                                 study_id = result.study_id;
                                 order_id = result.order_id;
                             }
-                            self.claimView.showEditClaimForm(gridData.claim_id, !options.isClaimGrid ? 'studies' : null , {
+                            self.claimView.showEditClaimForm(gridData.claim_id, !options.isClaimGrid ? 'studies' : null, {
                                 'study_id': study_id,
                                 'patient_name': gridData.patient_name,
                                 'patient_id': gridData.patient_id,
@@ -1118,7 +1170,7 @@ define('grid', [
                             });
                         });
                     } else {
-                        if (['ABRT', 'CAN', 'NOS'].indexOf(gridData.study_status) <0 && !gridData.has_deleted) {
+                        if (['ABRT', 'CAN', 'NOS'].indexOf(gridData.study_status) < 0 && !gridData.has_deleted) {
                             var study = {
                                 study_id: rowID,
                                 patient_id: gridData.patient_id,
@@ -1166,19 +1218,19 @@ define('grid', [
 
                 onRightClickRow: function (rowID, iRow, iCell, event, options) {
                     var gridData = $('#' + event.currentTarget.id).jqGrid('getRowData', rowID);
-                    if (['Aborted', 'Cancelled','Canceled', 'No Shows'].indexOf(gridData.study_status) >-1 || gridData.has_deleted=="Yes") {
+                    if (['Aborted', 'Cancelled', 'Canceled', 'No Shows'].indexOf(gridData.study_status) > -1 || gridData.has_deleted == "Yes") {
                         event.stopPropagation();
                     } else if (disableRightClick()) {
                         var _selectEle = $(event.currentTarget).find('#' + rowID).find('input:checkbox');
                         _selectEle.attr('checked', true);
 
                         if (!options.isClaimGrid && !gridData.claim_id) {
-                            if(validateClaimSelection(rowID, true, _selectEle, studyStore))
+                            if (validateClaimSelection(rowID, true, _selectEle, studyStore))
                                 openCreateClaim(rowID, event, options.isClaimGrid, studyStore);
-                        }else{
+                        } else {
                             openCreateClaim(rowID, event, options.isClaimGrid, studyStore);
                         }
-                       
+
                     }
                     else {
                         event.stopPropagation();
@@ -1191,7 +1243,7 @@ define('grid', [
 
                     if (!options.isClaimGrid) {
                         enableField = _selectEle.is(':checked');
-                       // validateClaimSelection(rowID, enableField, _selectEle, studyStore);
+                        // validateClaimSelection(rowID, enableField, _selectEle, studyStore);
                     }
 
                     // var gridData = $('#'+e.currentTarget.id).jqGrid('getRowData', rowID);
@@ -1204,9 +1256,9 @@ define('grid', [
                     //     $("#btnInsuranceClaim").show();  
                     // }
 
-                    var i=(e.target || e.srcElement).parentNode.cellIndex;
+                    var i = (e.target || e.srcElement).parentNode.cellIndex;
 
-                    if ( i > 0) {
+                    if (i > 0) {
                         options.colModel[i].customAction(rowID, e, self);
                     }
                 },
@@ -1257,76 +1309,8 @@ define('grid', [
                 },
                 rowattr: rowattr
             });
-            commonjs.processPostRender();    
-            if (doExport) {              
-                var searchFilterFlag = grid.getGridParam("postData")._search;
-                var colHeader = studyFields.colName;
 
-                setTimeout(function() {
-                    commonjs.showLoading();
-                }, 500);
-
-                $.ajax({
-                    'url': '/exa_modules/billing/claim_workbench',
-                    type: 'GET',
-                    data: {
-                        filterData: [],
-                        filterCol: [],
-                        customArgs: {
-                            filter_id: filterID,
-                            flag: 'exportExcel'
-                        }
-                    },
-                    success: function (data, response) {
-                        //commonjs.showLoading();
-
-                        self.prepareCsvWorker({
-                            data: data,
-                            colHeader: colHeader,
-                            searchFilterFlag: searchFilterFlag
-                        });
-                    },
-                    error: function (err) {
-                        commonjs.handleXhrError(err);
-                        $('#btnValidateExport').css('display', 'inline');
-                    }
-                });
-                return true;
-            }
-        };
-        
-        self.prepareCsvWorker = function (requestData) {
-            var csvWorker;
-            var self = this;
-
-            try {
-                csvWorker = new Worker('/exa_modules/billing/static/js/workers/csv.js');
-            } catch (e) {
-                commonjs.showError('Unable to load CSV!!');
-                console.error(e);
-                return;
-            }
-
-            csvWorker.onmessage = function (response) {
-                commonjs.hideLoading();
-                var workerResponse = response.data;
-
-                if (!workerResponse.csvData) {
-                    return alert("Invalid data");
-                }
-
-                var uri = workerResponse.csvData;
-                var link = document.createElement("a");
-                link.href = uri;
-                link.style = "visibility:hidden";
-                link.download = workerResponse.fileName + ".csv";
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                $('#btnValidateExport').css('display', 'inline');
-            };
-
-            csvWorker.postMessage(requestData);
+            commonjs.processPostRender();
         };
 
         self.setDropDownSubMenuPosition = function (e, divObj) {
@@ -1356,6 +1340,24 @@ define('grid', [
                 $('#'+ menuId).removeClass('dropdown-submenu')
                 $('#'+ menuId).css({'opacity':'0.7'});
             }
+        },
+
+        self.resetInvoiceNumber = function(invoiceNo) {
+
+            $.ajax({
+                url: '/exa_modules/billing/claim_workbench/invoice_no',
+                type: 'PUT',
+                data: {
+                    invoiceNo: invoiceNo,
+                },
+                success: function (data, response) {
+                    commonjs.showStatus('Claim Invoice Number has been reset');                                    
+                    $("#btnClaimsRefresh").click();
+                },
+                error: function (err, response) {
+                    commonjs.handleXhrError(err, response);
+                }
+            });
         }
     };
 });

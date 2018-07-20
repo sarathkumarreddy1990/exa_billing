@@ -8,23 +8,54 @@ const _ = require('lodash')
 // generate query template ***only once*** !!!
 
 const creditBalanceEncounterDataSetQueryTemplate = _.template(`
-WITH agg AS(
+WITH get_patient_balance As (
+    SELECT 
+       bc.patient_id AS patient_id,
+       sum(bgct.claim_balance_total) AS pat_balance
+    FROM billing.claims bc
+    INNER JOIN public.patients pp ON pp.id = bc.patient_id
+    INNER JOIN LATERAL billing.get_claim_totals(bc.id) bgct ON true
+    WHERE  <%=companyId%>
+    AND <%= claimDate %>
+    AND payer_type = 'patient'
+    <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+    <% if(billingProID) { %> AND <% print(billingProID); } %>
+    GROUP BY bc.patient_id
+),
+get_insurance_balance As (
+    SELECT 
+       bc.patient_id AS patient_id,
+       sum(bgct.claim_balance_total) AS ins_balance
+    FROM billing.claims bc
+    INNER JOIN public.patients pp ON pp.id = bc.patient_id
+    INNER JOIN LATERAL billing.get_claim_totals(bc.id) bgct ON true
+    WHERE  <%=companyId%>
+    AND <%= claimDate %>
+    AND payer_type != 'patient'
+    <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+    <% if(billingProID) { %> AND <% print(billingProID); } %>
+    GROUP BY bc.patient_id
+),
+ agg AS(
     SELECT
     get_full_name(pp.last_name, pp.first_name, pp.middle_name, pp.prefix_name, pp.suffix_name) AS Patient,
     bc.id AS claim_id,
     pp.account_no AS account_number,
     bcs.description AS status,
     to_char(bc.claim_dt, 'MM/DD/YYYY') AS encounter_date,
-    (SELECT round(claim_balance_total::numeric) FROM billing.get_claim_totals(bc.id))  AS total,
-    (SELECT abs(claim_balance_total::numeric) FROM billing.get_claim_totals(bc.id)) AS unformated_total,
-    '  ' AS patient_balance,
-    '  ' AS insurance_balance
+    round(bgct.claim_balance_total::numeric) AS total,
+    bc.payer_type,
+    CASE WHEN bc.payer_type = 'patient' THEN pat_balance ELSE 0::money END AS patient_balance,
+    CASE WHEN bc.payer_type != 'patient' THEN ins_balance ELSE 0::money END AS insurance_balance
 FROM billing.claims bc
+     LEFT JOIN get_patient_balance gpb on gpb.patient_id = bc.patient_id
+     LEFT JOIN get_insurance_balance gib on gib.patient_id = bc.patient_id
      INNER JOIN public.patients pp ON pp.id = bc.patient_id
      INNER JOIN billing.claim_status bcs ON bcs.id = bc.claim_status_id
+     INNER JOIN LATERAL billing.get_claim_totals(bc.id) bgct ON true
 	   WHERE 1 = 1
     AND <%=companyId%>
-    AND (SELECT claim_balance_total FROM billing.get_claim_totals(bc.id)) < 0::money
+    AND bgct.claim_balance_total < 0::money
     AND <%= claimDate %>
     <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
     <% if(billingProID) { %> AND <% print(billingProID); } %>
@@ -34,7 +65,7 @@ GROUP BY
     Patient,
     Total,
     bcs.description,
-    patient_balance,
+    pat_balance,
     insurance_balance
 )
 SELECT
@@ -43,18 +74,21 @@ SELECT
     agg.status AS "Status",
     agg.account_number AS "Account #",
     agg.encounter_date As "Accounting Date",
-    agg.total || ' CR' AS "Total",
-    agg.unformated_total AS "UnFormatted Total"
+    agg.total || ' CR' AS "Total", 
+    CASE WHEN payer_type = 'patient' THEN  (agg.patient_balance::numeric  - agg.total)::text ELSE '    ─ ─   ' END  AS  "Patient Balance",
+    CASE WHEN payer_type != 'patient' THEN (agg.insurance_balance::numeric - agg.total)::text  ELSE '    ─ ─   ' END  AS  "Insurance Balance"
+
 FROM agg
 UNION 
 SELECT
     NULL,
     NULL,
-    NULL,
+    '─ Credit Total ─',
     NULL,
     NULL,
     sum(total) || ' CR',
-    sum(unformated_total)
+    NULL,
+    NULL
 FROM
 	agg
 ORDER BY
@@ -182,7 +216,7 @@ const api = {
         // billingProvider single or multiple
         if (reportParams.billingProvider) {
             params.push(reportParams.billingProvider);
-            filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
+            filters.billingProID = queryBuilder.whereIn('bc.billing_provider_id', [params.length]);
         }
 
         return {

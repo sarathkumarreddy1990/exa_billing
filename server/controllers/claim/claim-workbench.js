@@ -327,5 +327,9 @@ module.exports = {
 
     getClaimDataInvoice: async function (params) {
         return await data.getClaimDataInvoice(params);
+    },
+
+    updateInvoiceNo: async function (params) {
+        return await data.updateInvoiceNo(params);
     }
 };

@@ -2438,8 +2438,11 @@ define(['jquery',
                         $('#selectMedicalPayer').val(result.medicare_insurance_type_code).toggle(true);
                     }
                     setTimeout(function () {
-                        if (!self.isEdit)
-                            $('#ddlResponsible').val('PIP_P');
+                        if (!self.isEdit) {
+                            var responsibleIndex = _.find(self.responsible_list, function (item) { return item.payer_type == 'PIP_P'; });
+                            var val = responsibleIndex && responsibleIndex.payer_id ? 'PIP_P' : 'PPP'
+                            $('#ddlResponsible').val(val);
+                        }
                     }, 200);
                     
                 }
@@ -3666,7 +3669,10 @@ define(['jquery',
 
             setPriRelationShipSelf: function(e) {
                 if($('#chkPriSelf').is(":checked")) {
-                    var selfValue = $("#ddlPriRelationShip option:contains('Self')").val();
+                    var selfValue = $('#ddlPriRelationShip option').filter(function () { 
+                        return this.text.toLowerCase() == 'self'; 
+                    } ).attr('value');    
+
                     $('#ddlPriRelationShip').val(selfValue).attr('selected', true);
                     $('#showPriSelf').hide();
                     $('#chkPriSelf').prop('checked', false);
@@ -3679,7 +3685,10 @@ define(['jquery',
 
             setSecRelationShipSelf: function(e) {
                 if($('#chkSecSelf').is(":checked")) {
-                    var selfValue = $("#ddlSecRelationShip option:contains('Self')").val();
+                    var selfValue = $('#ddlSecRelationShip option').filter(function () { 
+                        return this.text.toLowerCase() == 'self'; 
+                    } ).attr('value');  
+
                     $('#ddlSecRelationShip').val(selfValue).attr('selected', true);
                     $('#showSecSelf').hide();
                     $('#chkSecSelf').prop('checked', false);
@@ -3691,7 +3700,10 @@ define(['jquery',
 
             setTerRelationShipSelf: function(e) {
                 if($('#chkTerSelf').is(":checked")) {
-                    var selfValue = $("#ddlTerRelationShip option:contains('Self')").val();
+                    var selfValue = $('#ddlTerRelationShip option').filter(function () { 
+                        return this.text.toLowerCase() == 'self'; 
+                    } ).attr('value');
+
                     $('#ddlTerRelationShip').val(selfValue).attr('selected', true);
                     $('#showTerSelf').hide();
                     $('#chkTerSelf').prop('checked', false);

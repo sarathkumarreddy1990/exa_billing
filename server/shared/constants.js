@@ -133,6 +133,7 @@ module.exports = {
         'claim_json':'CLIM', //when claim
         'patient_insurances': 'CLIM', //create claim
         'line_items': 'CLIM', //create claim
+        'invoice_no': 'CLIM', // Reset Invoice No
         'studies': 'HSTY', 
         'studies_total_records': 'HSTY',
         'payments': 'PAYM',
@@ -185,6 +186,7 @@ module.exports = {
         'upload': 'ERAI',
         'era_file_preview': 'ERAI',
         'process-file': 'ERAI',
+        'era_details': 'ERAI',
         'claim_study': 'ECLM',
         'follow_ups': 'ECLM',
         'claim_patient': 'PCLM',

@@ -1172,8 +1172,6 @@ define(['jquery',
 
                             $('#btnValidateExport').one().click(function (e) {
                                 $('#btnValidateExport').css('display', 'none');
-
-                                commonjs.showLoading();
                                 table.renderStudy(true);
                             });
                         };

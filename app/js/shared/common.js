@@ -5019,11 +5019,86 @@ var commonjs = {
     },
 
     initHotkeys: function (events) {
-        if (Object.keys(app.hotkeys).length && Object.keys(events).length) {
+        if (app.hotkeys && Object.keys(app.hotkeys).length && Object.keys(events).length) {
             for (var key in events) {
                 this.initHotkey(key, events[key]);
             }
         }
+    },
+
+    prepareCsvWorker: function (requestData, options) {
+        var csvWorker;
+
+        try {
+            csvWorker = new Worker('/exa_modules/billing/static/js/workers/csv.js');
+        } catch (e) {
+            commonjs.showError('Unable to export CSV!!');
+            console.error(e);
+            return;
+        }
+
+        csvWorker.onmessage = function (response) {
+            commonjs.hideLoading();
+            var workerResponse = response.data;
+
+            if (!workerResponse.csvData) {
+                return alert("Invalid data");
+            }
+
+            var fileName = requestData.fileName.replace(/ /g, "_");
+            commonjs.downloadCsv(fileName + ".csv", workerResponse.csvData);
+           
+            if(typeof options.afterDownload === 'function') {
+                options.afterDownload();
+            }
+
+            return;
+        };
+
+        csvWorker.postMessage(requestData);
+    },
+
+    downloadCsv: function (fileName, csvData) {
+
+        var link = document.createElement("a");
+        link.id = 'lnkDownloadCsv';
+        link.href = '#';
+        link.style = "visibility:hidden";
+
+        document.body.appendChild(link);
+
+        if (window.navigator.msSaveBlob) {
+
+            var blob = new Blob([decodeURIComponent(csvData)], {
+                type: 'text/csv;charset=utf8'
+            });
+
+            window.navigator.msSaveBlob(blob, fileName);
+        } else if (window.Blob && window.URL) {
+            var blob = new Blob([csvData], { type: 'text/csv;charset=utf8' });
+            var csvUrl = URL.createObjectURL(blob);
+
+            $('#lnkDownloadCsv')
+                .attr({
+                    'download': fileName,
+                    'href': csvUrl
+                });
+
+            link.click();
+        } else {
+            var csvData = 'data:application/csv;charset=utf-8,' + encodeURIComponent(csvData);
+
+            $('#lnkDownloadCsv')
+                .attr({
+                    'download': fileName,
+                    'href': csvData,
+                    'target': '_blank'
+                });
+
+            link.click();
+        }
+
+        document.body.removeChild(link);
     },
 
     initHotkey: function (eventName, handler) {

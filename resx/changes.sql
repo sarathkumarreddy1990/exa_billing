@@ -2010,6 +2010,7 @@ END;
 $BODY$
   LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
+
 CREATE OR REPLACE FUNCTION billing.change_responsible_party(
     i_claim_id bigint,
     i_claim_status_code bigint,
@@ -2028,7 +2029,24 @@ BEGIN
 		  ,(SELECT original_reference FROM  billing.claims WHERE id = i_claim_id ) AS default_original_reference
 		  ,(SELECT claim_status_id FROM  billing.claims WHERE id = i_claim_id ) AS default_claim_status_id
 		  FROM billing.get_claim_totals(i_claim_id)
-		)
+		),
+    insurance_paid as (
+		WITH ins_paid as (
+		SELECT bc.primary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id is_primary,
+			bc.secondary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id is_secondary,
+			bc.tertiary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id is_tertiary
+		FROM billing.claims bc
+		     INNER JOIN billing.charges bch ON  bch.claim_id = bc.id  
+		     INNER JOIN billing.payment_applications bpa ON  bpa.charge_id = bch.id  
+		     INNER JOIN billing.payments bp ON  bp.id = bpa.payment_id
+		     INNER JOIN public.patient_insurances ppi ON ppi.id = ANY(ARRAY[bc.primary_patient_insurance_id, bc.secondary_patient_insurance_id, bc.tertiary_patient_insurance_id])
+		 WHERE bc.id = i_claim_id AND bp.payer_type = 'insurance'
+		 ) 
+		 SELECT
+		 (SELECT count(1) > 0 FROM ins_paid WHERE is_primary) is_primary_paid,
+		 (SELECT count(1) > 0 FROM ins_paid WHERE is_secondary) is_secondary_paid,
+		 (SELECT count(1) > 0 FROM ins_paid WHERE is_tertiary) is_tertiary_paid
+		) 
 
 	UPDATE billing.claims
 
@@ -2036,13 +2054,13 @@ BEGIN
 			CASE WHEN claim_details.adjustments_applied_total = claim_details.charges_bill_fee_total AND claim_details.payments_applied_total::money = 0::money THEN claim_details.payer_type
 			ELSE
 			    CASE 
-				WHEN claim_details.claim_balance_total > 0::money AND (claim_details.payer_type = 'primary_insurance' AND secondary_patient_insurance_id IS NOT NULL )
+				WHEN claim_details.claim_balance_total > 0::money AND (claim_details.payer_type = 'primary_insurance' AND secondary_patient_insurance_id IS NOT NULL ) AND insurance_paid.is_primary_paid
 				THEN 'secondary_insurance'
 			    
-				WHEN claim_details.claim_balance_total > 0::money AND (claim_details.payer_type = 'secondary_insurance' AND tertiary_patient_insurance_id IS NOT NULL )
+				WHEN claim_details.claim_balance_total > 0::money AND (claim_details.payer_type = 'secondary_insurance' AND tertiary_patient_insurance_id IS NOT NULL ) AND insurance_paid.is_secondary_paid
 				THEN 'tertiary_insurance'
 				
-				WHEN claim_details.claim_balance_total > 0::money AND claim_details.payer_type = 'tertiary_insurance'
+				WHEN claim_details.claim_balance_total > 0::money AND claim_details.payer_type = 'tertiary_insurance' AND  insurance_paid.is_tertiary_paid
 				THEN 'patient'				    
 			    
 				WHEN claim_details.claim_balance_total > 0::money AND (secondary_patient_insurance_id IS NULL AND tertiary_patient_insurance_id IS NULL )
@@ -2076,7 +2094,7 @@ BEGIN
                                   ),
                 original_reference = COALESCE(i_original_reference, claim_details.default_original_reference )
 		
-	FROM claim_details WHERE billing.claims.id = i_claim_id;
+	FROM claim_details,insurance_paid WHERE billing.claims.id = i_claim_id;
 
     UPDATE billing.claims set billing_method = (SELECT billing.get_billing_method(i_claim_id, null)) WHERE  id = i_claim_id ;
 
@@ -2628,16 +2646,28 @@ BEGIN
 			INNER JOIN public.facilities f ON f.id = s.facility_id
 		WHERE  s.id =  i_study_id
 	)
+    ,billing_icds AS (
+		SELECT 
+			DISTINCT icd_codes.id as icd_id,
+			order_no
+		FROM public.icd_codes 
+			INNER JOIN patient_icds pi ON pi.icd_id = icd_codes.id
+			INNER JOIN public.orders o on o.id = pi.order_id
+			INNER JOIN public.studies s ON s.order_id = o.id
+		WHERE s.id = i_study_id 
+		AND s.has_deleted = FALSE
+		order by order_no
+	)
 	,claim_charges AS (
 
 		SELECT
                 null AS id
                 , null AS claim_id
                 , cpt_codes.id AS cpt_id
-                , COALESCE((string_to_array(regexp_replace(study_cpt_info->'diagCodes_pointer', '[^0-9,]', '', 'g'),',')::int[])[1],null) AS pointer1  
-                , COALESCE((string_to_array(regexp_replace(study_cpt_info->'diagCodes_pointer', '[^0-9,]', '', 'g'),',')::int[])[2],null) AS pointer2  
-                , COALESCE((string_to_array(regexp_replace(study_cpt_info->'diagCodes_pointer', '[^0-9,]', '', 'g'),',')::int[])[3],null) AS pointer3  
-                , COALESCE((string_to_array(regexp_replace(study_cpt_info->'diagCodes_pointer', '[^0-9,]', '', 'g'),',')::int[])[4],null) AS pointer4
+                , (select order_no from billing_icds LIMIT 1 OFFSET 0) AS pointer1  
+                , (select order_no from billing_icds LIMIT 1 OFFSET 1) AS pointer2  
+                , (select order_no from billing_icds LIMIT 1 OFFSET 2) AS pointer3
+                , (select order_no from billing_icds LIMIT 1 OFFSET 3) AS pointer4
 				, atp.modifier1_id
                 , atp.modifier2_id
                 , atp.modifier3_id
@@ -2666,7 +2696,8 @@ BEGIN
 			ins.* 
 		  FROM (
 			SELECT
-                pi.patient_id
+                  pi.id AS claim_patient_insurance_id
+                , pi.patient_id 
                 , ip.id AS insurance_provider_id
                 , pi.subscriber_relationship_id   
                 , pi.subscriber_dob
@@ -2683,7 +2714,7 @@ BEGIN
                 , pi.subscriber_city
                 , pi.subscriber_state
                 , pi.subscriber_zipcode
-                , pi.assign_benefits_to_patient
+                , true as assign_benefits_to_patient
                 , pi.medicare_insurance_type_code
 			    , pi.subscriber_employment_status_id  
                 , pi.valid_from_date
@@ -2701,11 +2732,11 @@ BEGIN
                 FROM 
                     public.patient_insurances 
                 WHERE 
-                    patient_id = ( SELECT COALESCE(NULLIF(patient_id,'0'),'0')::numeric FROM study_details ) AND valid_to_date >= COALESCE((SELECT charge_dt FROM claim_charges LIMIT 1) , now())::date
+                    patient_id = ( SELECT COALESCE(NULLIF(patient_id,'0'),'0')::numeric FROM study_details ) AND (valid_to_date >= COALESCE((SELECT charge_dt FROM claim_charges LIMIT 1) , now())::date OR valid_to_date IS NULL)
                     GROUP BY coverage_level 
             ) as expiry ON TRUE                           
             WHERE 
-                pi.patient_id = ( SELECT COALESCE(NULLIF(patient_id,'0'),'0')::numeric FROM study_details )  AND expiry.valid_to_date = pi.valid_to_date AND expiry.coverage_level = pi.coverage_level 
+                pi.patient_id = ( SELECT COALESCE(NULLIF(patient_id,'0'),'0')::numeric FROM study_details )  AND (expiry.valid_to_date = pi.valid_to_date OR expiry.valid_to_date IS NULL) AND expiry.coverage_level = pi.coverage_level 
                 ORDER BY pi.id ASC
             ) ins
             WHERE  ins.rank = 1
@@ -2853,16 +2884,6 @@ BEGIN
         LEFT JOIN providers ON providers.id = provider_contacts.provider_id
         WHERE orders.id = ( SELECT COALESCE(NULLIF(order_id,'0'),'0')::numeric FROM study_details )
 )
- , billing_icds AS (
-	SELECT 
-        DISTINCT icd_codes.id as icd_id
-	FROM public.icd_codes 
-        INNER JOIN patient_icds pi ON pi.icd_id = icd_codes.id
-        INNER JOIN public.orders o on o.id = pi.order_id
-        INNER JOIN public.studies s ON s.order_id = o.id
-        WHERE s.id = i_study_id 
-        AND s.has_deleted = FALSE
- )
  
 SELECT
 	( SELECT COALESCE(json_agg(row_to_json(claims_icds)),'[]') claim_icds
@@ -2987,6 +3008,7 @@ ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS direct_invoice_templa
 ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS patient_invoice_template_id BIGINT;
 ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS grid_field_settings JSON;
 ALTER TABLE billing.insurance_provider_details ADD COLUMN IF NOT EXISTS claim_filing_indicator_code text;
+ALTER TABLE billing.insurance_provider_details ADD COLUMN IF NOT EXISTS payer_edi_code text;
 -- ALTER TABLE IF EXISTS billing.payment_applications DROP COLUMN IF EXISTS payment_application_id;
 DROP INDEX IF EXISTS edi_files_file_path_ux;
 --ALTER TABLE billing.grid_filters ADD CONSTRAINT IF NOT EXISTS grid_filters_filter_name_uc UNIQUE(filter_type, filter_name);
