@@ -2053,13 +2053,13 @@ BEGIN
 			ELSE
 			    CASE 
 			        WHEN claim_details.claim_balance_total > 0::money  THEN
-			                CASE WHEN NOT is_primary_paid AND primary_patient_insurance_id IS NOT NULL 
+			            CASE WHEN NOT is_primary_paid AND primary_patient_insurance_id IS NOT NULL 
 						THEN 'primary_insurance'
-					     WHEN NOT is_secondary_paid AND secondary_patient_insurance_id IS NOT NULL 
+					        WHEN NOT is_secondary_paid AND secondary_patient_insurance_id IS NOT NULL 
 						THEN 'secondary_insurance'
-					     WHEN NOT is_tertiary_paid AND tertiary_patient_insurance_id IS NOT NULL 
+					        WHEN NOT is_tertiary_paid AND tertiary_patient_insurance_id IS NOT NULL 
 						THEN 'tertiary_insurance'
-					 ELSE 'patient' 
+					        ELSE 'patient' 
 					 END
 				WHEN claim_details.claim_balance_total < 0::money AND (claim_details.payer_type = 'primary_insurance') AND secondary_patient_insurance_id IS NOT NULL
 					THEN 'secondary_insurance'
