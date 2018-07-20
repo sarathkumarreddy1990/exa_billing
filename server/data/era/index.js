@@ -214,7 +214,7 @@ module.exports = {
                                 SELECT
                                     matched_claims.claim_id
                                     ,matched_claims.claim_status_code
-                                    ,billing.create_payment_applications_test(
+                                    ,billing.create_payment_applications(
                                         ${paymentDetails.id}
                                         ,( SELECT id FROM billing.adjustment_codes WHERE code =${paymentDetails.code} ORDER BY id ASC LIMIT 1 )
                                         ,${paymentDetails.created_by}
