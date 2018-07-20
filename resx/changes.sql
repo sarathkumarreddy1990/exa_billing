@@ -2646,16 +2646,28 @@ BEGIN
 			INNER JOIN public.facilities f ON f.id = s.facility_id
 		WHERE  s.id =  i_study_id
 	)
+    ,billing_icds AS (
+		SELECT 
+			DISTINCT icd_codes.id as icd_id,
+			order_no
+		FROM public.icd_codes 
+			INNER JOIN patient_icds pi ON pi.icd_id = icd_codes.id
+			INNER JOIN public.orders o on o.id = pi.order_id
+			INNER JOIN public.studies s ON s.order_id = o.id
+		WHERE s.id = i_study_id 
+		AND s.has_deleted = FALSE
+		order by order_no
+	)
 	,claim_charges AS (
 
 		SELECT
                 null AS id
                 , null AS claim_id
                 , cpt_codes.id AS cpt_id
-                , COALESCE((string_to_array(regexp_replace(study_cpt_info->'diagCodes_pointer', '[^0-9,]', '', 'g'),',')::int[])[1],null) AS pointer1  
-                , COALESCE((string_to_array(regexp_replace(study_cpt_info->'diagCodes_pointer', '[^0-9,]', '', 'g'),',')::int[])[2],null) AS pointer2  
-                , COALESCE((string_to_array(regexp_replace(study_cpt_info->'diagCodes_pointer', '[^0-9,]', '', 'g'),',')::int[])[3],null) AS pointer3  
-                , COALESCE((string_to_array(regexp_replace(study_cpt_info->'diagCodes_pointer', '[^0-9,]', '', 'g'),',')::int[])[4],null) AS pointer4
+                , (select order_no from billing_icds LIMIT 1 OFFSET 0) AS pointer1  
+                , (select order_no from billing_icds LIMIT 1 OFFSET 1) AS pointer2  
+                , (select order_no from billing_icds LIMIT 1 OFFSET 2) AS pointer3
+                , (select order_no from billing_icds LIMIT 1 OFFSET 3) AS pointer4
 				, atp.modifier1_id
                 , atp.modifier2_id
                 , atp.modifier3_id
@@ -2684,7 +2696,8 @@ BEGIN
 			ins.* 
 		  FROM (
 			SELECT
-                pi.patient_id
+                  pi.id AS claim_patient_insurance_id
+                , pi.patient_id 
                 , ip.id AS insurance_provider_id
                 , pi.subscriber_relationship_id   
                 , pi.subscriber_dob
@@ -2701,7 +2714,7 @@ BEGIN
                 , pi.subscriber_city
                 , pi.subscriber_state
                 , pi.subscriber_zipcode
-                , pi.assign_benefits_to_patient
+                , true as assign_benefits_to_patient
                 , pi.medicare_insurance_type_code
 			    , pi.subscriber_employment_status_id  
                 , pi.valid_from_date
@@ -2719,11 +2732,11 @@ BEGIN
                 FROM 
                     public.patient_insurances 
                 WHERE 
-                    patient_id = ( SELECT COALESCE(NULLIF(patient_id,'0'),'0')::numeric FROM study_details ) AND valid_to_date >= COALESCE((SELECT charge_dt FROM claim_charges LIMIT 1) , now())::date
+                    patient_id = ( SELECT COALESCE(NULLIF(patient_id,'0'),'0')::numeric FROM study_details ) AND (valid_to_date >= COALESCE((SELECT charge_dt FROM claim_charges LIMIT 1) , now())::date OR valid_to_date IS NULL)
                     GROUP BY coverage_level 
             ) as expiry ON TRUE                           
             WHERE 
-                pi.patient_id = ( SELECT COALESCE(NULLIF(patient_id,'0'),'0')::numeric FROM study_details )  AND expiry.valid_to_date = pi.valid_to_date AND expiry.coverage_level = pi.coverage_level 
+                pi.patient_id = ( SELECT COALESCE(NULLIF(patient_id,'0'),'0')::numeric FROM study_details )  AND (expiry.valid_to_date = pi.valid_to_date OR expiry.valid_to_date IS NULL) AND expiry.coverage_level = pi.coverage_level 
                 ORDER BY pi.id ASC
             ) ins
             WHERE  ins.rank = 1
@@ -2871,16 +2884,6 @@ BEGIN
         LEFT JOIN providers ON providers.id = provider_contacts.provider_id
         WHERE orders.id = ( SELECT COALESCE(NULLIF(order_id,'0'),'0')::numeric FROM study_details )
 )
- , billing_icds AS (
-	SELECT 
-        DISTINCT icd_codes.id as icd_id
-	FROM public.icd_codes 
-        INNER JOIN patient_icds pi ON pi.icd_id = icd_codes.id
-        INNER JOIN public.orders o on o.id = pi.order_id
-        INNER JOIN public.studies s ON s.order_id = o.id
-        WHERE s.id = i_study_id 
-        AND s.has_deleted = FALSE
- )
  
 SELECT
 	( SELECT COALESCE(json_agg(row_to_json(claims_icds)),'[]') claim_icds
