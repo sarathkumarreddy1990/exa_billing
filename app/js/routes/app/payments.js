@@ -16,7 +16,8 @@ define([
             routes: {
                 "edit/:id": "editPayment",
                 "new": "newPayment",
-                "list": "allPayments"
+                "list": "showAllPayments",
+                "filter": "filterPayments"
             },
 
             editPayment: function (id) {
@@ -29,9 +30,14 @@ define([
                 this.editPaymentsScreen.render(0);
             },
 
-            allPayments: function () {
+            showAllPayments: function () {
                 this.initializeRouter();
                 this.paymentsScreen.showGrid();
+            },
+            
+            filterPayments: function () {
+                this.initializeRouter();
+                this.paymentsScreen.showGrid(true);
             },
 
             initialize: function (options) {

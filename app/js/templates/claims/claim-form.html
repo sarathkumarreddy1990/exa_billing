@@ -11,6 +11,11 @@
         width: 300px !important;
         overflow:hidden !important;
     }
+    .multiselect-container>li>a>label>input[type=checkbox] {
+        margin-top: 8px !important;
+        margin-bottom: 0 !important;
+        margin-right: 5px !important;
+    }
 </style>
 <div class="row woClaimRelated" id="headerContainer">
     <nav id="newClaimNav" class="top-nav">
@@ -447,10 +452,10 @@
                 <div class="form-group row">
                     <label class="col-sm-3 col-form-label" i18n="billing.claims.insuranceStartExpiryDate"></label>
                     <div class="col-sm-2">
-                        <input type="text" class="form-control" placeholder="YYYY-MM-DD" id="txtPriStartDate" disabled>
+                        <input type="text" class="form-control" placeholder="MM/DD/YYYY" id="txtPriStartDate" disabled>
                     </div>
                     <div class="col-sm-2">
-                        <input type="text" class="form-control" placeholder="YYYY-MM-DD" id="txtPriExpDate" disabled>
+                        <input type="text" class="form-control" placeholder="MM/DD/YYYY" id="txtPriExpDate" disabled>
                     </div>
                 </div>
                 <div class="form-group row">

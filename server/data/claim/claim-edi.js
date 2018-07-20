@@ -26,8 +26,10 @@ module.exports = {
 						, p.patient_info->'c1AddressLine1' AS "patient_address1"
 						, p.patient_info->'c1City' AS "patient_city"
 						, p.birth_date AS "patient_dob"
-						, p.first_name AS "patient_firstName"
-						, p.last_name AS "patient_lastName"
+						, COALESCE (NULLIF(p.first_name, ''), '') AS "patient_firstName"
+						, COALESCE (NULLIF(p.last_name, ''), '') AS "patient_lastName"
+						, COALESCE (NULLIF(p.middle_name, ''), '') AS "patient_middleName"
+						, COALESCE (NULLIF(p.suffix_name, ''), '') AS "patient_suffixName"
 						, p.full_name AS patient_name
 						, p.patient_info->'c1State' AS "patient_state"
 						, p.patient_info->'c1Zip' AS "patient_zipCode"
@@ -53,7 +55,7 @@ module.exports = {
 									, 'payer_zip_code', p_ip.insurance_info->'ZipCode'
 									, 'claimClearingHouse', p_edi_clearinghouse.receiver_name
 									, 'edi_request_templates_id',  p_edi_clearinghouse.edi_template_name
-									, 'claim_req_type', p_ip.insurance_info->'claim_req_type_prov')
+									)
 								WHEN bc.payer_type = 'secondary_insurance' THEN
 									json_build_object('payer_name',  s_ip.insurance_name 
 									, 'payer_address1', s_ip.insurance_info->'Address1' 
@@ -62,14 +64,13 @@ module.exports = {
 									, 'payer_zip_code', s_ip.insurance_info->'ZipCode'
 									, 'claimClearingHouse',  s_edi_clearinghouse.receiver_name
 									, 'edi_request_templates_id',  s_edi_clearinghouse.edi_template_name
-									, 'claim_req_type', s_ip.insurance_info->'claim_req_type_prov')
+									)
 								WHEN bc.payer_type = 'tertiary_insurance' THEN
 									json_build_object( 'payer_name', t_ip.insurance_name 
 									, 'payer_address1', t_ip.insurance_info->'Address1' 
 									, 'payer_city', t_ip.insurance_info->'City' 
 									, 'payer_state', t_ip.insurance_info->'State' 
-									, 'payer_zip_code', t_ip.insurance_info->'ZipCode'
-									, 'claim_req_type', t_ip.insurance_info->'claim_req_type_prov'
+									, 'payer_zip_code', t_ip.insurance_info->'ZipCode'									
 									, 'claimClearingHouse', t_edi_clearinghouse.receiver_name
 									, 'edi_request_templates_id', t_edi_clearinghouse.edi_template_name)
 								WHEN bc.payer_type = 'ordering_facility' THEN	
@@ -116,29 +117,38 @@ module.exports = {
 									, p_pi.subscriber_address_line1 AS "p_subscriber_addressLine1"
 									, p_pi.subscriber_city AS "p_subscriber_city"
 									, p_pi.subscriber_dob AS "p_subscriber_dob"
-									, p_pi.subscriber_firstname AS "p_subscriber_firstName"
-									, p_pi.subscriber_lastname AS "p_subscriber_lastName"
+									, COALESCE (NULLIF(p_pi.subscriber_firstname, ''), '')  AS "p_subscriber_firstName"
+									, COALESCE (NULLIF(p_pi.subscriber_middlename, ''), '')  AS "p_subscriber_middleName"
+									, COALESCE (NULLIF(p_pi.subscriber_name_suffix, ''), '')  AS "p_subscriber_suffixName"
+									, COALESCE (NULLIF(p_pi.subscriber_lastname, ''), '') AS "p_subscriber_lastName"
 									, p_pi.subscriber_state AS "p_subscriber_state"
 									, p_pi.subscriber_zipcode AS "p_subscriber_zipCode"	
 					
 									, s_pi.subscriber_address_line1 AS "s_subscriber_addressLine1"
 									, s_pi.subscriber_city AS "s_subscriber_city"
 									, s_pi.subscriber_dob AS "s_subscriber_dob"
-									, s_pi.subscriber_firstname AS "s_subscriber_firstName"
-									, s_pi.subscriber_lastname AS "s_subscriber_lastName"
+									, COALESCE (NULLIF(s_pi.subscriber_firstname, ''), '')  AS "s_subscriber_firstName"
+									, COALESCE (NULLIF(s_pi.subscriber_middlename, ''), '')  AS "s_subscriber_middleName"
+									, COALESCE (NULLIF(s_pi.subscriber_name_suffix, ''), '')  AS "s_subscriber_suffixName"
+									, COALESCE (NULLIF(s_pi.subscriber_lastname, ''), '') AS "s_subscriber_lastName"
 									, s_pi.subscriber_state AS "s_subscriber_state"
 									, s_pi.subscriber_zipcode AS "s_subscriber_zipCode"	
 					
 									, t_pi.subscriber_address_line1 AS "t_subscriber_addressLine1"
 									, t_pi.subscriber_city AS "t_subscriber_city"
 									, t_pi.subscriber_dob AS "t_subscriber_dob"
-									, t_pi.subscriber_firstname AS "t_subscriber_firstName"
-									, t_pi.subscriber_lastname AS "t_subscriber_lastName"
+									, COALESCE (NULLIF(t_pi.subscriber_firstname, ''), '')  AS "t_subscriber_firstName"
+									, COALESCE (NULLIF(t_pi.subscriber_middlename, ''), '')  AS "t_subscriber_middleName"
+									, COALESCE (NULLIF(t_pi.subscriber_name_suffix, ''), '')  AS "t_subscriber_suffixName"
+									, COALESCE (NULLIF(t_pi.subscriber_lastname, ''), '') AS "t_subscriber_lastName" 
 									, t_pi.subscriber_state AS "t_subscriber_state"
 									, t_pi.subscriber_zipcode AS "t_subscriber_zipCode"					
 									, (SELECT array_agg(row_to_json(pointer)) AS charge_pointer FROM (
 										SELECT ch.id, pointer1, claim_id, cpt.ref_code, cpt.display_description FROM billing.charges ch INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id WHERE ch.claim_id = bc.id
 														 ) pointer) AS charge_pointer
+									, lower(prs.description) = ('self') AS is_pri_relationship_self
+									, lower(srs.description) = ('self') AS is_sec_relationship_self 
+									, lower(trs.description) = ('self') AS is_ter_relationship_self
 					FROM
 						billing.claims bc
 					INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id	
@@ -161,7 +171,10 @@ module.exports = {
 					LEFT JOIN billing.edi_clearinghouses p_edi_clearinghouse ON p_edi_clearinghouse.id=p_ins_det.clearing_house_id
 					LEFT JOIN billing.edi_clearinghouses s_edi_clearinghouse ON s_edi_clearinghouse.id=s_ins_det.clearing_house_id
 					LEFT JOIN billing.edi_clearinghouses t_edi_clearinghouse ON t_edi_clearinghouse.id=t_ins_det.clearing_house_id
-					LEFT JOIN 
+					LEFT JOIN public.relationship_status prs ON prs.id = p_pi.subscriber_relationship_id
+					LEFT JOIN public.relationship_status srs ON srs.id = s_pi.subscriber_relationship_id
+					LEFT JOIN public.relationship_status trs ON trs.id = t_pi.subscriber_relationship_id
+					LEFT JOIN
 						LATERAL (SELECT icd_id FROM billing.claim_icds ci WHERE ci.claim_id = bc.id LIMIT 1) claim_icd ON true
 					WHERE bc.id = ANY(${params.claim_ids})`;
 
@@ -211,7 +224,7 @@ module.exports = {
 						communication_info->'usageIndicator' as "usageIndicator",
 						to_char(now(), 'YYYYMMDD')  as "fgDate",
 						to_char(now(), 'HH24MI')  as "fgTime",
-						communication_info->'groupControlNo' as "groupControlNo",
+						claims.id as "groupControlNo",
 						communication_info->'responsibleAgencyCode' as "responsibleAgencyCode",
 						communication_info->'verRelIndIdCode' as "verReleaseIDCode",
 						'837' as "tsIDCode",
@@ -282,7 +295,7 @@ module.exports = {
 														(CASE coverage_level 
 															WHEN 'primary' THEN 'P'
 															WHEN 'secondary' THEN 'S'
-															WHEN 'teritary' THEN 'T' END) as "claimResponsibleParty",
+															WHEN 'tertiary' THEN 'T' END) as "claimResponsibleParty",
 														( SELECT 
 
 										(  CASE UPPER(description) 
@@ -303,7 +316,7 @@ module.exports = {
 										policy_number  as "policyNo",
 										group_name as "planName",
 										group_number as "planType",
-										insurance_info->'claimFileIndicatorCode' as "claimFilingCode",
+										insurance_provider_details.claim_filing_indicator_code as "claimFilingCode",
 										subscriber_firstname as "firstName",
 										subscriber_lastname as "lastName",
 										subscriber_middlename as "middleName",
@@ -488,7 +501,7 @@ module.exports = {
 											(CASE coverage_level 
 												WHEN 'primary' THEN 'P'
 												WHEN 'secondary' THEN 'S'
-												WHEN 'teritary' THEN 'T' END) as "otherClaimResponsibleParty",
+												WHEN 'tertiary' THEN 'T' END) as "otherClaimResponsibleParty",
 									( SELECT 
 
 											(  CASE description 
@@ -507,7 +520,7 @@ module.exports = {
 											policy_number  as "policyNo",
 											group_name as "groupName",
 											group_number as "groupNumber",
-											insurance_info->'claimFileIndicatorCode' as "claimFilingCode",
+											other_ins_details.claim_filing_indicator_code as "claimFilingCode",
 					medicare_insurance_type_code as "insuranceTypeCode",
 					subscriber_firstname as "firstName",
 					subscriber_lastname as "lastName",
@@ -521,11 +534,12 @@ module.exports = {
 					subscriber_zipcode as "zipCode",
 					assign_benefits_to_patient as "acceptAssignment"
 					FROM   patient_insurances 
+					LEFT JOIN billing.insurance_provider_details  other_ins_details ON other_ins_details.insurance_provider_id = patient_insurances.insurance_provider_id
 									WHERE  patient_insurances.id = 
 						(  CASE payer_type 
 						WHEN 'primary_insurance' THEN secondary_patient_insurance_id
-						WHEN 'secondary_insurance' THEN tertiary_patient_insurance_id
-						WHEN 'teritary_insurance' THEN primary_patient_insurance_id
+						WHEN 'secondary_insurance' THEN primary_patient_insurance_id
+						WHEN 'tertiary_insurance' THEN primary_patient_insurance_id
 						END) ) 
 					as otherSubscriber),
 					(SELECT Json_agg(Row_to_json(OtherPayer)) "OtherPayer"
@@ -549,7 +563,7 @@ module.exports = {
 						(  CASE payer_type 
 						WHEN 'primary_insurance' THEN secondary_patient_insurance_id
 						WHEN 'secondary_insurance' THEN primary_patient_insurance_id
-						WHEN 'teritary_insurance' THEN primary_patient_insurance_id
+						WHEN 'tertiary_insurance' THEN primary_patient_insurance_id
 						END) ) 
 					as OtherPayer),
 
@@ -601,7 +615,7 @@ module.exports = {
 											INNER JOIN   billing.cas_reason_codes ON cas_reason_codes.id=cas_reason_code_id
 											INNER JOIN 	billing.payment_applications	 ON payment_applications.id=cas_payment_application_details.payment_application_id			
 											INNER JOIN billing.payments ON  billing.payments.id=payment_applications.payment_id and payer_type='insurance' AND 
-											payment_applications.charge_id = charges.id 		AND payment_applications.payment_application_id is NOT  null
+											payment_applications.charge_id = charges.id 		AND payment_applications.amount_type = 'adjustment' 
 											WHERE 
 												   cas_group_codes.code= gc.code	 ) as CAS )
 						
@@ -610,13 +624,13 @@ module.exports = {
 											INNER JOIN   billing.cas_group_codes ON cas_group_codes.id=cas_group_code_id
 											INNER JOIN 	billing.payment_applications	 ON payment_applications.id=cas_payment_application_details.payment_application_id			
 												INNER JOIN billing.payments ON  billing.payments.id=payment_applications.payment_id and payer_type='insurance' AND 
-							payment_applications.charge_id = charges.id 		AND payment_applications.payment_application_id is NOT  null
+							payment_applications.charge_id = charges.id 		AND payment_applications.amount_type = 'adjustment' 
 							group by cas_group_codes.code ) 
 					as lineAdjustment)
 
 					FROM  billing.payment_applications pa
 					INNER JOIN billing.payments ON  billing.payments.id=pa.payment_id and payer_type='insurance'				
-									WHERE  charge_id=charges.id AND pa.payment_application_id is null ) 
+									WHERE  charge_id=charges.id AND pa.amount_type = 'payment'  ) 
 					as lineAdjudication)
 					FROM   billing.charges 
 							inner join cpt_codes on cpt_codes.id=cpt_id
@@ -646,7 +660,7 @@ module.exports = {
 											WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
 											WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
 											END)
-									INNER JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id   
+									INNER JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id 
 									LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
 									LEFT JOIN relationship_status ON  subscriber_relationship_id =relationship_status.id									
 									LEFT JOIN public.insurance_provider_payer_types  ON insurance_provider_payer_types.id = insurance_providers.provider_payer_type_id

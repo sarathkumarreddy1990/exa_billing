@@ -67,7 +67,9 @@ define([
 
             initialize: function (options) {
                 this.options = options;
-                this.pager = new Pager();
+                this.invoicePager = new Pager();
+                this.claimsPager = new Pager();
+                this.claimInquiryPager = new Pager();
                 this.claimCommentsList = new claimCommentsList();
                 this.claimPatientList = new claimPatientList();
                 this.claimInvoiceList = new claimInvoiceList();
@@ -285,7 +287,7 @@ define([
                 this.patientClaimsTable = new customGrid();
                 this.patientClaimsTable.render({
                     gridelementid: '#tblPatientClaimsGrid',
-                    custompager: new Pager(),
+                    custompager: this.claimsPager,
                     emptyMessage: 'No Record found',
                     colNames: ['', 'Claim Number', 'Claim Date', 'Billing Fee', 'Total Adjustment','Total Insurance Payments', 'Total Patient Payments', 'Balance', 'Claim Status', 'Current responsibility'],
                     i18nNames: ['', 'billing.fileInsurance.claimNo', 'billing.claims.claimDate', 'billing.COB.billingFee','billing.fileInsurance.totalAdjustment', 'billing.claims.totalInsurancePayments', 'billing.claims.totalPatientPayments', 'billing.claims.Balance', 'billing.claims.claimStatus', 'billing.claims.currentResponsibility'],
@@ -357,12 +359,13 @@ define([
                 this.invoiceTable = new customGrid();
                 this.invoiceTable.render({
                     gridelementid: '#tblInvoiceGrid',
-                    custompager: new Pager(),
+                    custompager: self.invoicePager,
                     emptyMessage: 'No Record found',
-                    colNames: ['', 'Invoice No', 'Date', 'Total Billing Fee', 'Total Payments', 'Total Adjustment',  'Balance',''],
-                    i18nNames: ['', 'billing.fileInsurance.invoiceNo', 'billing.claims.Date', 'billing.COB.billingFee','billing.claims.totalPayments', 'billing.fileInsurance.totalAdjustment',  'billing.claims.Balance',''],
+                    colNames: ['', '', 'Invoice No', 'Date', 'Total Billing Fee', 'Total Payments', 'Total Adjustment',  'Balance',''],
+                    i18nNames: ['', '', 'billing.fileInsurance.invoiceNo', 'billing.claims.Date', 'billing.COB.billingFee','billing.claims.totalPayments', 'billing.fileInsurance.totalAdjustment',  'billing.claims.Balance',''],
                     colModel: [
-                        { name: '', index: 'id', key: true, hidden: true, search: false },                      
+                        { name: '', index: 'id', key: true, hidden: true, search: false },  
+                        { name: 'claim_ids', hidden: true} ,                    
                         {
                             name: 'invoice_no', search: true, width: 100
                         },
@@ -384,12 +387,14 @@ define([
                         {
                             name: 'edit', width: 50, sortable: false, search: false,
                             formatter: function (cellvalue, options, rowObject) {
-                                return "<a href='javascript: void(0)' id =" + rowObject.id + ">REPRINT</a>";
+                                return '<span class="icon-ic-print spnInvoicePrint" title="Print Claim" id="spnInvoicePrint" style="font-size: 15px; cursor:pointer;"></span>'
                             },
                             cellattr: function () {
                                 return "style='text-align: center;text-decoration: underline;'";
                             },
                             customAction: function (rowID, e) {
+                                var gridData = $('#tblInvoiceGrid').jqGrid('getRowData', rowID);
+                                self.printInvoice(gridData.claim_ids);
                             }
                         }
 
@@ -412,7 +417,9 @@ define([
                         payerType: payer_type
                     },
                     pager: '#gridPager_invoiceClaim',
-                    onaftergridbind: self.afterGridBind,
+                    onaftergridbind: function (model, gridObj) {
+                        self.setMoneyMask();
+                    }
                 });
 
 
@@ -434,7 +441,6 @@ define([
                         payerType: payer_type
                     },
                     success: function (data, response) {
-                        console.log(data)
                         if(data && data.length){
                             $('#tdPtCurrent').text(data[0].current_balance || '$0.00')
                             $('#tdPtAge30').text(data[0].to30 || '$0.00')
@@ -450,9 +456,15 @@ define([
                 });
 
                 $('.inquiryReload').click(function(){
-                    self.showInvoiceGrid.refreshAll();
+                    self.invoicePager.set({ "PageNo": 1 });
+                    self.invoiceTable.refreshAll();
                 });
 
+            },
+
+            printInvoice: function(claimids) {
+                claimids =  claimids && claimids.split(',')
+                paperClaim.print( 'direct_invoice', claimids );
             },
 
             showPatientClaimsLogGrid: function (claimID, patientId) {
@@ -485,7 +497,7 @@ define([
                     container: self.el,
                     cmTemplate: { sortable: false },
                     customizeSort: false,
-                    sortname: "audit_log.id",
+                    sortname: "audit.id",
                     sortorder: "desc",
                     dblClickActionIndex: 1,
                     disablesearch: false,
@@ -539,7 +551,6 @@ define([
                     $('#tdAge120').html(age_summary && age_summary.total_age_121 || '$0.00');
                     $('#tdAgeTotal').html(age_summary && age_summary.total_balance || '$0.00'); 
                     $('#spUnapplied').html(age_summary && age_summary.total_unapplied || '$0.00');
-
             },
 
             showClaimCommentsGrid: function () {
@@ -549,7 +560,7 @@ define([
                 payCmtGrid = new customGrid();
                 payCmtGrid.render({
                     gridelementid: '#tblCIClaimComments',
-                    custompager: self.pager,
+                    custompager: self.claimInquiryPager,
                     emptyMessage: 'No Records Found',
                     colNames: ['','', 'date', '', 'code', 'payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', '',''],
                     colModel: [
@@ -939,54 +950,43 @@ define([
                 })
 
                 $('#btnPatientActivity').on().click(function () {
-
-                    if ($('#txtDate').val() > $('#txtOtherDate').val()) {
-                        commonjs.showWarning('From date is greater than To Date');
-                        return
-                    }
-
-                    if ($('#radActivityAllStatus').prop("checked")){
+                    if ($('#radActivityAllStatus').prop("checked")) {
                         reportBy = true;
                     }
-                    else{
-                        if ( $('#txtOtherDate').val() < moment(moment().format('MM/DD/YYYY'))) {
-                            commonjs.showWarning('To date is Future');
-                            return
-                        }
-                        
-                        if ( $('#txtDate').val() < moment(moment().format('MM/DD/YYYY'))) {
-                            commonjs.showWarning('From date is Future');
-                            return
-                        }
-                        if ($('#radioActivityStatus').prop("checked")) {
-                            if ($('#txtDate').val() == '') {
-                                commonjs.showWarning('Please select From Date');
-                                return
-                            }
-                            if ($('#txtOtherDate').val() == '') {
-                                commonjs.showWarning('Please select To Date');
-                                return
-                            }
-    
-                            if ( ( $('#txtOtherDate').val() == '') || $('#txtOtherDate').val() == '') {
-                                commonjs.showWarning('Please select date');
-                                return
-                            }
-    
-                        }
-                        
+                    else if ($('#radioActivityStatus').prop("checked") && self.validateFromAndToDate(self.fromDate, self.toDate)) {
                         reportBy = false;
                         fromDate = $('#txtDate').val();
                         toDate = $('#txtOtherDate').val();
                     }
-
-               
+                    else return false;
+                    
                     var billing_pro = [], selectedBillingProList, allBillingProvider;
                     selectedBillingProList = $('#ddlBillingProvider option:selected').val() ? [$('#ddlBillingProvider option:selected').val()] : [];
 
                     reportBy  ? self.generatePatientActivity(claimId, patientId, reportBy,null,null, selectedBillingProList) : self.generatePatientActivity(claimId, patientId, reportBy, fromDate, toDate, selectedBillingProList)
                     $('#modal_div_container').removeAttr('style');
                 });
+            },
+            
+            validateFromAndToDate: function (objFromDate, objToDate) {
+                var validationResult = commonjs.validateDateTimePickerRange(objFromDate, objToDate, false);
+                if($('#txtDate').val() == '' && $('#txtOtherDate').val() == ''){
+                    commonjs.showWarning('Please select date range')
+                    return false;
+                }
+                if($('#txtDate').val() == ''){
+                    commonjs.showWarning('Please select from Date')
+                    return false;
+                }
+                if($('#txtOtherDate').val() == ''){
+                    commonjs.showWarning('Please select to date')
+                    return false;
+                }
+                if (!validationResult.valid) {
+                    commonjs.showWarning(validationResult.message);
+                    return false;
+                }
+                return true;
             },
 
             patientInquiryLog: function (claimId, patientId) {
@@ -1152,8 +1152,11 @@ define([
             },
 
             showAllActivity: function () {
-                if ($('#radActivityAllStatus').is(':visible'))
+                if ($('#radActivityAllStatus').is(':visible')){
                     $('#activityDetails').hide();
+                    this.fromDate ? this.fromDate.clear() : '';
+                    this.toDate ? this.toDate.clear() : '';
+                }
                 $('input[type=date]').val('');
             },
 
@@ -1175,6 +1178,15 @@ define([
                 var self = this;
                 self.unappliedPaymentView = new unappliedPaymentView({el: $('#modal_div_container_nested')}); 
                 self.unappliedPaymentView.render(patientID);
+            },
+
+            setMoneyMask: function (obj1, obj2) {
+                $("#gs_invoice_bill_fee").addClass('floatbox');
+                $("#gs_invoice_payment").addClass('floatbox');
+                $("#gs_invoice_adjustment").addClass('floatbox');
+                $("#gs_invoice_balance").addClass('floatbox');
+                $("#tblInvoiceGrid #gs_invoice_no").addClass('integerbox');
+                commonjs.validateControls();
             }
     });
 });

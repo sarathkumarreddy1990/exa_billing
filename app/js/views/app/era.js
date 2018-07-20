@@ -84,13 +84,12 @@ define([
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblEOBFileList').jqGrid('getRowData', rowID);
-                                if ('success' == gridData.current_status) {
+                                if ('success' === gridData.current_status.toLowerCase()) {
                                     self.showPayments(rowID, gridData.uploaded_file_name);
                                 }
                                 else {
-                                    commonjs.showWarning('File not in Success status');
+                                    commonjs.showWarning('File not in success status');
                                 }
-
                             }
                         },
                         { name: 'id', index: 'id', searchFlag: 'int', searchFlag: '%' },
@@ -111,6 +110,8 @@ define([
                             edittype: 'select', editoptions: { value: self.eobStatus },
                             cellattr: function (rowId, value, rowObject, colModel, arrData) {
                                 return 'style=text-transform: capitalize;'
+                            },formatter: function (cellvalue, options, rowObject) {
+                                return self.eobStatusFormatter(cellvalue, options, rowObject);
                             }
                         }
                     ],
@@ -151,6 +152,23 @@ define([
                 });
             },
 
+            eobStatusFormatter: function (cellvalue, options, rowObject) {
+                switch (rowObject.current_status) {
+                    case "pending":
+                        return "Pending";
+                    case "in_progress":
+                        return "In Progress";
+                    case "failure":
+                        return "Failure";
+                    case "success":
+                        return "Success";
+                    case "RP":
+                        return "Ready for Processing";
+                    default :
+                        return '';
+                }
+            },
+
             afterEraGridBind: function (dataset, e, self) {
                 var fileUploadedObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileNameUploaded');
 
@@ -173,10 +191,6 @@ define([
                 var i = parseInt(Math.floor(Math.log(rowObject.size) / Math.log(1024)));
                 var sizes = ['Bytes', 'KB'];
                 return Math.round(rowObject.size / Math.pow(1024, i), 2) + ' ' + sizes[i];
-            },
-
-            eobStatusFormatter: function (cellvalue, options, rowObject) {
-                return rowObject.updated_date_time ? moment(rowObject.updated_date_time).format('L, h:mm a') : ''
             },
 
             processFile: function (file_id, gridData, currentStatus) {
@@ -412,7 +426,7 @@ define([
                     error: function (err, response) {
                         commonjs.handleXhrError(err, response);
                     }
-                })
+                });
             },
 
             showPayments: function (fileId, fileName) {
@@ -429,7 +443,7 @@ define([
                         },
                         success: function (model, response) {
 
-                            if (model && model.rows.length) {
+                            if (model && model.rows && model.rows.length) {
                                 var $eraTable = $('#eraResultTable');
                                 fileName = fileName.substr(0, fileName.lastIndexOf('.'));
                                 
@@ -482,7 +496,7 @@ define([
                                     console.log(err);
                                 }
                                 
-                                $('#divResponseSection').height($(window).height() - 440);
+                                $('#divResponseSection').height($(window).height() - 450);
                                 $('#era-processed-preview').height(($(window).height() - 360));
                             }
                             else {

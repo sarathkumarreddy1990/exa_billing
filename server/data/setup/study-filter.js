@@ -7,8 +7,9 @@ module.exports = {
 
         args.userId = args.userId ? args.userId : 1;
         let inactivated_dt = args.isActive ? null : 'now()'; //is_active
-        let auditMsgUpdate = args.filterType == 'claims' ? `Update : Claim Updated ` : `Update : StudyFilter Updated `;
-        let auditMsgIns = args.filterType == 'claims' ? `Update : Claim Added ` : `Update : StudyFilter Added `;
+        let auditMsgUpdate = args.filterType == 'claims' ? 'Update : Claim Filter Updated ' : 'Update : Study Filter Updated ';
+        let auditMsgIns = args.filterType == 'claims' ? 'Create : Claim Filter Added ' : 'Create : Study Filter Added ';
+        let auditScreenName = args.filterType == 'claims' ? 'Claim Filter ' : 'Study Filter';
 
         let insert_update_study_filter = SQL` WITH update_grid_filter AS
         ( UPDATE
@@ -25,7 +26,7 @@ module.exports = {
             WHERE
         id = ${args.id}
             AND NOT EXISTS (SELECT 1 FROM  billing.grid_filters WHERE filter_name ILIKE ${args.filterName} AND id !=  ${args.id} LIMIT 1)
-        RETURNING id,(SELECT row_to_json(old_row)
+        RETURNING *,(SELECT row_to_json(old_row)
         FROM   (SELECT * FROM   billing.grid_filters
         WHERE  id = ${args.id}) old_row) old_values
         ),
@@ -55,16 +56,16 @@ module.exports = {
                 WHERE NOT EXISTS (
                     SELECT 1 FROM billing.grid_filters WHERE filter_name ILIKE ${args.filterName} LIMIT 1
                 ) AND NOT EXISTS(SELECT * FROM update_grid_filter)
-                RETURNING id, '{}'::jsonb old_values
+                RETURNING *, '{}'::jsonb old_values
         ),
         insert_audit_cte AS(
             SELECT billing.create_audit(
                 ${args.companyId},
                 ${args.screenName},
                 id,
-                ${args.screenName},
+                ${auditScreenName},
                 ${args.moduleName},
-                ${auditMsgIns} || ${args.filterName} || id,
+                ${auditMsgIns} || ${args.filterName},
                 ${args.clientIp || '127.0.0.1'},
                 json_build_object(
                     'old_values', (SELECT COALESCE(old_values, '{}') FROM insert_grid_filter),
@@ -79,9 +80,9 @@ module.exports = {
                 ${args.companyId},
                 ${args.screenName},
                 id,
-                ${args.screenName},
+                ${auditScreenName},
                 ${args.moduleName},
-                ${auditMsgUpdate} || (${args.filterName}) || id,
+                ${auditMsgUpdate} || (${args.filterName}) ,
                 ${args.clientIp || '127.0.0.1'},
                 json_build_object(
                     'old_values', (SELECT COALESCE(old_values, '{}') FROM update_grid_filter),
@@ -157,11 +158,10 @@ module.exports = {
     },
 
     delete: async function (params) {
-        let delete_data = SQL` DELETE FROM billing.grid_filters WHERE id = ${params.id} RETURNING  id,'{}'::jsonb old_values `;
-
+        let delete_data = SQL` DELETE FROM billing.grid_filters WHERE id = ${params.id} RETURNING  * ,'{}'::jsonb old_values `;
         return await queryWithAudit(delete_data, {
             ...params,
-            logDescription: 'Deleted.' || params.id
+            logDescription: `Deleted. ${ params.name} `
         });
     }
 };

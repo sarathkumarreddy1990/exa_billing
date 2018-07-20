@@ -11,6 +11,7 @@ define(['jquery',
 'collections/app/patientsearch',
 'text!templates/app/patientSearchResult.html',
 'text!templates/claims/claim-validation.html',
+'text!templates/claims/icd9-icd10.html',
 'shared/permissions'],
     function ($, 
         _, 
@@ -25,6 +26,7 @@ define(['jquery',
         patientCollection,
         patSearchContent,
         claimValidation,
+        icd9to10Template,
         Permission) {
         var claimView = Backbone.View.extend({
             el: null,
@@ -44,6 +46,7 @@ define(['jquery',
             enableInsuranceEligibility: '',
             tradingPartnerId: '',
             ACSelect: { refPhy: {}, readPhy: {} },
+            icd9to10Template : _.template(icd9to10Template),
             responsible_list: [
                 { payer_type: "PPP", payer_type_name: "patient", payer_id: null, payer_name: null },
                 { payer_type: "PIP_P", payer_type_name: "primary_insurance", payer_id: null, coverage_level: "P", payer_name: null, billing_method: null },
@@ -119,7 +122,7 @@ define(['jquery',
                     })
                 });
 
-
+                self.clearDependentVariables();
                 // Hide non-edit tabs
                 if (!self.isEdit) {
                     $('.editClaimRelated').hide();
@@ -140,9 +143,12 @@ define(['jquery',
 
                 if(self.screenCode.indexOf('CLVA') > -1) // this is for validate button rights
                     $('#btnValidateClaim').attr('disabled', true)   
+                
+                if(self.screenCode.indexOf('PATR') > -1) 
+                    $('#btPatientDocuemnt').attr('disabled', true)   
                     
                 self.initializeDateTimePickers();
-                
+                $('#modal_div_container').animate({ scrollTop: 0 }, 100);                
             },
 
             initializeDateTimePickers: function () {
@@ -336,11 +342,11 @@ define(['jquery',
                     self.bindExistingPatientInsurance();
             },
 
-            initializeClaimEditForm: function () {
+            initializeClaimEditForm: function (isFrom) {
                 var self = this;
                 if (!this.rendered)
                     this.render('claim');
-                self.bindclaimFormEvents();
+                self.bindclaimFormEvents(isFrom);
             },
 
             /* Get claim edit details function*/
@@ -378,6 +384,7 @@ define(['jquery',
                             self.claim_row_version = claimDetails.claim_row_version || null;
 
                             self.facilityId = claimDetails.facility_id; // claim facility_date
+                            self.studyDate = commonjs.getConvertedFacilityTime(claimDetails.claim_dt, '', 'L', claimDetails.facility_id); 
                             self.studyDate = self.cur_study_date; // Assign claim data as studyDate variable to newly adding charges
                             /* Bind claim charge Details*/
                             $('#tBodyCharge').empty();
@@ -401,7 +408,7 @@ define(['jquery',
                                 });
                             });
 
-                            self.initializeClaimEditForm();
+                            self.initializeClaimEditForm(isFrom);
 
                             /* Bind chargeLineItems events - started*/
                             if(self.screenCode.indexOf('DCLM') > -1) {
@@ -511,9 +518,27 @@ define(['jquery',
                                 $('#btPatientDocuemnt').prop('disabled', true);
 
                             commonjs.hideLoading();
+
+                            //open reports if available for patient
+
+                            $.ajax({
+                                type: 'GET',
+                                url: '/exa_modules/billing/claims/claim/getApprovedReportsByPatient',
+                                data: {
+                                    patient_id: self.options.patient_id
+                                },
+                                success: function (model, response) {
+                                    if(model && model.length > 0) {
+                                        window.localStorage.setItem('last_billing_screen', 'patientReport');
+                                        $('#btPatientDocuemnt').click();
+                                    }
+                                }
+                            });
+
                         }
                     },
                     error: function (model, response) {
+                        commonjs.hideLoading();
                         commonjs.handleXhrError(model, response);
                     }
                 });
@@ -644,7 +669,12 @@ define(['jquery',
                     $('#ddlPOSType').val(claim_data.place_of_service_id || '');
                     document.querySelector('#txtClaimDate').value = claim_data.claim_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.claim_dt).format('L') : '';
                 } else {
-                    $('#ddlResponsible').val('PPP');
+                    var responsibleIndex = _.find(self.responsible_list, function (item) { return item.payer_type == 'PIP_P'; });
+                    if (responsibleIndex && responsibleIndex.payer_id) {
+                        $('#ddlResponsible').val('PIP_P');
+                    }else{
+                        $('#ddlResponsible').val('PPP');
+                    }
                     $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
                     var frequency = [{ code: 7, desc: 'corrected' }, { code: 8, desc: 'void' }, { code: 1, desc: 'original' }];
                     if (claim_data.frequency) {
@@ -656,7 +686,7 @@ define(['jquery',
                     }
                     var currentDate = new Date();
                     var defaultStudyDate = moment(currentDate).format('L');
-                    var lineItemStudyDate = self.studyDate && self.studyDate != '' ? self.convertToTimeZone(claim_data.facility_id, self.studyDate).format('L') : '';
+                    var lineItemStudyDate = self.studyDate && self.studyDate != '' ?  self.studyDate : '';
                     $('#txtClaimDate').val(self.studyDate ? lineItemStudyDate : defaultStudyDate);
                 }
                 /* Common Details end */
@@ -690,11 +720,17 @@ define(['jquery',
                     $('#txtPriSubMiName').val(claimData.p_subscriber_middlename);
                     $('#txtPriSubLastName').val(claimData.p_subscriber_lastname);
                     $('#txtPriSubSuffix').val(claimData.p_subscriber_name_suffix);
-                    $('#ddlPriGender').val(claimData.p_subscriber_gender);
+                    if (app.gender.indexOf(claimData.p_subscriber_gender) > -1) {
+                        $('#ddlPriGender').val(claimData.p_subscriber_gender);
+                    }
                     $('#txtPriSubPriAddr').val(claimData.p_subscriber_address_line1);
                     $('#txtPriSubSecAddr').val(claimData.p_subscriber_address_line2);
                     $('#txtPriCity').val(claimData.p_subscriber_city);
-                    $('#ddlPriState').val(claimData.p_subscriber_state);
+                    var states = app.states && app.states.length && app.states[0].app_states;
+                    if (states && states.indexOf(claimData.p_subscriber_state) > -1) {
+                        $('#ddlPriState').val(claimData.p_subscriber_state);
+                    }
+                    
                     $('#txtPriZipCode').val(claimData.p_subscriber_zipcode);
                     document.querySelector('#txtPriDOB').value = claimData.p_subscriber_dob ? moment(claimData.p_subscriber_dob).format('L') : '';
                     document.querySelector('#txtPriStartDate').value = claimData.p_valid_from_date ? moment(claimData.p_valid_from_date).format('L') : '';
@@ -728,14 +764,21 @@ define(['jquery',
                     ($.trim(secSelf) == 'self' || $.trim(secSelf) == 'select') ? $('#showSecSelf').hide() : $('#showSecSelf').show();                 
                     $('#txtSecSubFirstName').val(claimData.s_subscriber_firstname);
                     $('#txtSecSubMiName').val(claimData.s_subscriber_middlename);
-                    $('#ddlSecGender').val(claimData.s_subscriber_gender);
+                    if (app.gender.indexOf(claimData.s_subscriber_gender) > -1) {
+                        $('#ddlSecGender').val(claimData.s_subscriber_gender);
+                    }
                     $('#txtSecSubLastName').val(claimData.s_subscriber_lastname);
                     $('#txtSecSubSuffix').val(claimData.s_subscriber_name_suffix);
                     $('#txtSecSubPriAddr').val(claimData.s_subscriber_address_line1);
                     $('#txtSecSubSecAddr').val(claimData.s_subscriber_address_line2);
                     $('#txtSecCity').val(claimData.s_subscriber_city);
-                    $('#ddlSecState').val(claimData.s_subscriber_state);
+                    //$('#ddlSecState').val(claimData.s_subscriber_state);
                     $('#txtSecZipCode').val(claimData.s_subscriber_zipcode);
+                    
+                    if (states && states.indexOf(claimData.s_subscriber_state) > -1) {
+                        $('#ddlSecState').val(claimData.s_subscriber_state);
+                    }
+
                     document.querySelector('#txtSecDOB').value = claimData.s_subscriber_dob ? moment(claimData.s_subscriber_dob).format('L') : '';
                     document.querySelector('#txtSecStartDate').value = claimData.s_valid_from_date ? moment(claimData.s_valid_from_date).format('L') : '';
                     document.querySelector('#txtSecExpDate').value = claimData.s_valid_to_date ? moment(claimData.s_valid_to_date).format('L') : '';
@@ -765,14 +808,21 @@ define(['jquery',
                     ($.trim(terSelf) == 'self' || $.trim(terSelf) == 'select') ? $('#showTerSelf').hide() : $('#showTerSelf').show();                  
                     $('#txtTerSubFirstName').val(claimData.t_subscriber_firstname);
                     $('#txtTerSubMiName').val(claimData.t_subscriber_middlename);
-                    $('#ddlTerGender').val(claimData.t_subscriber_gender);
+                    if (app.gender.indexOf(claimData.t_subscriber_gender) > -1) {
+                        $('#ddlTerGender').val(claimData.t_subscriber_gender);
+                    }
                     $('#txtTerSubLastName').val(claimData.t_subscriber_lastname);
                     $('#txtTerSubSuffix').val(claimData.t_subscriber_name_suffix);
                     $('#txtTerSubPriAddr').val(claimData.t_subscriber_address_line1);
                     $('#txtTerSubSecAddr').val(claimData.t_subscriber_address_line2);
                     $('#txtTerCity').val(claimData.t_subscriber_city);
-                    $('#ddlTerState').val(claimData.t_subscriber_state);
+                    //$('#ddlTerState').val(claimData.t_subscriber_state);
                     $('#txtTerZipCode').val(claimData.t_subscriber_zipcode);
+                    
+                    if (states && states.indexOf(claimData.t_subscriber_state) > -1) {
+                        $('#ddlTerState').val(claimData.t_subscriber_state);
+                    }
+
                     document.querySelector('#txtTerDOB').value = claimData.t_subscriber_dob ? moment(claimData.t_subscriber_dob).format('L') : '';
                     document.querySelector('#txtTerStartDate').value = claimData.t_valid_from_date ? moment(claimData.t_valid_from_date).format('L') : '';
                     document.querySelector('#txtTerExpDate').value = claimData.t_valid_to_date ? moment(claimData.t_valid_to_date).format('L') : '';
@@ -804,6 +854,7 @@ define(['jquery',
                 if (!this.rendered)
                     this.render('claim');
 
+                self.studyDate = commonjs.getConvertedFacilityTime(primaryStudyDetails.study_date, '', 'L', primaryStudyDetails.facility_id);
                 self.getLineItemsAndBind(selectedStudyIds);
                 if(options && options == 'patientSearch'){
                     self.bindDetails();
@@ -834,7 +885,7 @@ define(['jquery',
                 });
             },
 
-            bindclaimFormEvents: function () {
+            bindclaimFormEvents: function (isFrom) {
 
                 var self = this;
                 $("#createNewCharge").off().click(function (e) {
@@ -905,6 +956,10 @@ define(['jquery',
                     self.setTerRelationShipSelf(e);
                     self.changeRelationalShip(e);
                 });
+
+                if (isFrom && isFrom != 'reload') {
+                    $('#modal_div_container').animate({ scrollTop: 0 }, 100);
+                }
             },
             getLineItemsAndBind: function (selectedStudyIds) {
                 var self = this;
@@ -922,7 +977,7 @@ define(['jquery',
                             if (model && model.length > 0) {
                                 $('#tBodyCharge').empty();
                                 var modelDetails = model[0];
-                                self.studyDate = modelDetails && modelDetails.charges && modelDetails.charges.length && modelDetails.charges[0].study_dt ? modelDetails.charges[0].study_dt : self.cur_study_date ;
+                                self.studyDate = modelDetails && modelDetails.charges && modelDetails.charges.length && modelDetails.charges[0].study_dt ? commonjs.getConvertedFacilityTime(modelDetails.charges[0].study_dt, '', 'L', self.facilityId) : self.studyDate;
                                 self.facilityId = modelDetails && modelDetails.charges && modelDetails.charges.length && modelDetails.charges[0].facility_id ? modelDetails.charges[0].facility_id : self.facilityId ;
                                 var _defaultDetails = modelDetails.claim_details && modelDetails.claim_details.length > 0 ? modelDetails.claim_details[0] : {};
                                 var _diagnosisProblems = modelDetails.problems && modelDetails.problems.length > 0 ? modelDetails.problems : [];
@@ -1048,7 +1103,7 @@ define(['jquery',
             addLineItems: function (data, index, isDefault) {
                 var self = this;
 
-                data.charge_dt = commonjs.checkNotEmpty(self.studyDate) ? commonjs.convertToFacilityTimeZone(self.facilityId, self.studyDate).format('L') : '--';
+                data.charge_dt = self.studyDate ? self.studyDate : '--';
                 self.bindModifiersData(data);
                 var chargeTableRow = self.chargerowtemplate({ row: data });
                 $('#tBodyCharge').append(chargeTableRow);
@@ -1748,6 +1803,110 @@ define(['jquery',
                     self.icd_description = res.description;
                     return res.code;
                 }
+                $('#ddlMultipleDiagCodes').on('select2:selecting', function (e) {
+                    var res = e.params.args.data;
+                    if (res.code_type == 'icd9') {
+                        if (confirm('Do you want to show the corresponding ICD-10 codes for ICD-9')) {
+                            commonjs.showLoading('')
+                            self.showIcd9t010Popup(res);
+                        }
+                    } else {
+                        self.ICDID = res.id;
+                        self.icd_code = res.code;
+                        self.icd_description = res.description;
+                    }
+                    return res.code;
+                });
+            },
+
+            showIcd9t010Popup: function (icd9Response) {
+                var self = this;
+                commonjs.showLoading('Connecting pokitdok.. please wait.')
+                self.icd9Code = icd9Response.code;
+                $.ajax({
+                    url: '/exa_modules/billing/claims/claim/getIcd9To10',
+                    type: 'GET',
+                    data: {
+                        icd9Code: self.icd9Code
+                    },
+                    success: function (model, response) {
+                        var form = $('<form class="form-horizontal" style="margin-left:8%"> </form>');
+                        if (model && model.result && typeof model.result == 'string') {
+                            var data = JSON.parse(model.result)
+                            if (data && data.error && data.error == 'invalid_client')
+                                commonjs.showError('Invalid Pokitdok Client Ip')
+                        } else if (model && model.result && model.result.length) {
+                            var icdCodes = model.result;
+                            var icds = [];
+                            for (var i = 0; i < icdCodes.length; i++) {
+                                icds.push({
+                                    code: icdCodes[i].value,
+                                    slNo: i + 1,
+                                    description: icdCodes[i].description
+                                })
+                            }
+                            commonjs.showNestedDialog({
+                                header: 'ICD10 Codes for ICD9 - ' + self.icd9Code,
+                                width: '55%',
+                                height: '65%',
+                                html: self.icd9to10Template({
+                                    icds: icds
+                                })
+                            });
+                            commonjs.processPostRender();
+                            $('#btnSaveSelectedIcd').click(function () {
+                                self.saveIcd10Codes()
+                            })
+                        } else if (model && model.result && model.result.data && model.result.data.errors && model.result.data.errors.validation && model.result.data.errors.validation.code && model.result.data.errors.validation.code.length) {
+                            var errorMsg = model.result.data.errors.validation.code[0];
+                            commonjs.showError(errorMsg)
+                        } else if (model && model.result && model.result.data && model.result.data.errors && model.result.data.errors && model.result.data.errors.query) {
+                            var errorMsg = model.result.data.errors.query;
+                            commonjs.showError(errorMsg)
+                        } else if (model && model.result && model.result.err) {
+                            commonjs.showError(model.result.err)
+                        } else {
+                            commonjs.showError('No Matches Found')
+                        }
+                        commonjs.hideLoading();
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                })
+            },
+
+            saveIcd10Codes: function () {
+                var self = this;
+                if ($('input[name=icdCode]:checked').length) {
+                    var selected_element = $('input[name=icdCode]:checked').closest('tr');
+                    $.ajax({
+                        url: '/exa_modules/billing/claims/claim/icdCode',
+                        type: 'POST',
+                        data: {
+                            code: $(selected_element).data('code'),
+                            description: $(selected_element).data('description'),
+                            code_type: 'icd10',
+                            is_active: true
+                        },
+                        success: function (model, response) {
+                            var result = model && model[0] ? model[0] : {};
+                            self.ICDID = result.id
+                            self.icd_code = result.code ? result.code : $(selected_element).data('code');
+                            self.description = result.description ? result.description : $(selected_element).data('description');
+                            self.is_active = true;
+                            commonjs.hideNestedDialog();
+                            self.addDiagCodes(true);
+                        },
+                        error: function (err, response) {
+                            commonjs.handleXhrError(err, response);
+                        }
+                    })
+                }
+                else {
+                    commonjs.showWarning('Please select one icd code');
+                    return;
+                }
             },
 
             addDiagCodes: function (isManual) {
@@ -2162,6 +2321,11 @@ define(['jquery',
                     $('.multiselect-container li').css('width', '300px');
                     $('label').css('color', 'black');
                     $('.multiselect-container li a').css('padding', '0');
+
+                    $.each($('.multiselect-item span'), function (index, obj) {
+                        $(this).find('.glyphicon-search').removeClass('glyphicon').removeClass('glyphicon-search').addClass('fa fa-search').css('margin', '10px');
+                        $(this).find('.glyphicon-remove-circle').removeClass('glyphicon').removeClass('glyphicon-remove-circle').addClass('fa fa-times');                        
+                    });
                 });
             },
 
@@ -2258,15 +2422,14 @@ define(['jquery',
                     $('#txt' + flag + 'MiddleName').val(result.subscriber_middlename);
                     $('#txt' + flag + 'SubLastName').val(result.subscriber_lastname);
                     $('#txt' + flag + 'SubSuffix').val(result.subscriber_name_suffix);
-                    if(app.gender.indexOf(result.subscriber_gender) > 0 )
-                    {
+                    if (app.gender.indexOf(result.subscriber_gender) > -1) {
                         $('#ddl' + flag + 'Gender').val(result.subscriber_gender);
                     }
                     $('#txt' + flag + 'SubPriAddr').val(result.subscriber_address_line1);
                     $('#txt' + flag + 'SubSecAddr').val(result.subscriber_address_line2);
                     $('#txt' + flag + 'City').val(result.subscriber_city);
                     var states = app.states && app.states.length && app.states[0].app_states;
-                    if (states && states.indexOf(result.subscriber_state) > 0) {
+                    if (states && states.indexOf(result.subscriber_state) > -1) {
                         $('#ddl' + flag + 'State').val(result.subscriber_state);
                     }
                     $('#txt' + flag + 'ZipCode').val(result.subscriber_zipcode);
@@ -2275,8 +2438,11 @@ define(['jquery',
                         $('#selectMedicalPayer').val(result.medicare_insurance_type_code).toggle(true);
                     }
                     setTimeout(function () {
-                        if (!self.isEdit)
-                            $('#ddlResponsible').val('PIP_P');
+                        if (!self.isEdit) {
+                            var responsibleIndex = _.find(self.responsible_list, function (item) { return item.payer_type == 'PIP_P'; });
+                            var val = responsibleIndex && responsibleIndex.payer_id ? 'PIP_P' : 'PPP'
+                            $('#ddlResponsible').val(val);
+                        }
                     }, 200);
                     
                 }
@@ -2424,15 +2590,22 @@ define(['jquery',
                     var id = $(this).attr('data_row_id');
                     var cpt_code_id = $('#lblCptCode_' + id).attr('data_id');
                     var rowData = _.find(self.chargeModel, { 'data_row_id': parseInt(id) });
+                    var pointers = [
+                        $(this).find('td:nth-child(7)>input').val() ? $(this).find('td:nth-child(7)>input').val() : '',
+                        $(this).find('td:nth-child(8)>input').val() ? $(this).find('td:nth-child(8)>input').val() : '',
+                        $(this).find('td:nth-child(9)>input').val() ? $(this).find('td:nth-child(9)>input').val() : '',
+                        $(this).find('td:nth-child(10)>input').val() ? $(this).find('td:nth-child(10)>input').val() : ''
+                    ];
+                    pointers = _.compact(pointers);
                     claim_model.charges.push({
                         id: rowData.id ? rowData.id : null,
                         claim_id: rowData.claim_id ? parseInt(rowData.claim_id) : null,
                         //line_num: index,
                         cpt_id: parseInt(cpt_code_id),
-                        pointer1: $('#ddlPointer1_' + id).val() || null,
-                        pointer2: $('#ddlPointer2_' + id).val() || null,
-                        pointer3: $('#ddlPointer3_' + id).val() || null,
-                        pointer4: $('#ddlPointer4_' + id).val() || null,
+                        pointer1: pointers[0] || null,
+                        pointer2: pointers[1] || null,
+                        pointer3: pointers[2] || null,
+                        pointer4: pointers[3] || null,
                         modifier1_id: $('#txtModifier1_' + id).attr('data-id') ? parseInt($('#txtModifier1_' + id).attr('data-id')) : null,
                         modifier2_id: $('#txtModifier2_' + id).attr('data-id') ? parseInt($('#txtModifier2_' + id).attr('data-id')) : null,
                         modifier3_id: $('#txtModifier3_' + id).attr('data-id') ? parseInt($('#txtModifier3_' + id).attr('data-id')) : null,
@@ -2478,8 +2651,6 @@ define(['jquery',
                     
                     self.model.save({}, {
                         success: function (model, response) {
-                            commonjs.hideLoading();
-
                             if (response && response.message) {
                                 commonjs.showWarning(response.message);
                                 saveButton.attr('disabled', false);
@@ -2497,10 +2668,24 @@ define(['jquery',
                                 var time = self.isEdit ? 800 : 100;
                                 var claimHideInterval = setTimeout(function () {
                                     clearTimeout(claimHideInterval);
-                                    if(self.isEdit){
+                                    if (self.isEdit) {
+                                        self.claim_row_version = response && response.length && response[0].result ? response[0].result : null;
                                         saveButton.attr('disabled', false);
                                         $('#chktblClaimGridAll_Claims_' + self.claim_Id).prop('checked', true);
-                                    }else{
+                                        // Call Edit claim API for rebind after save
+                                        commonjs.getClaimStudy(self.claim_Id, function (result) {
+                                            self.rendered = false;
+                                            self.clearDependentVariables();
+                                            self.showEditClaimForm(self.claim_Id, 'reload', {
+                                                'study_id': result && result.study_id ? result.study_id : 0,
+                                                'patient_name': self.cur_patient_name,
+                                                'patient_id': self.cur_patient_id,
+                                                'order_id': result && result.order_id ? result.order_id : 0
+                                            });
+                                        });
+
+                                    } else {
+                                        commonjs.hideLoading();
                                         commonjs.hideDialog();
                                     }
                                 }, time);
@@ -2645,7 +2830,37 @@ define(['jquery',
                 }
 
                 /* Charge section */
+                var invalidCount = 0;
+                
+                $("#tBodyCharge").find("tr").each(function (index) {
+                    var modifiers = [
+                        $(this).find('td:nth-child(11)>input').val() ? $(this).find('td:nth-child(11)>input').val() : '',
+                        $(this).find('td:nth-child(12)>input').val() ? $(this).find('td:nth-child(12)>input').val() : '',
+                        $(this).find('td:nth-child(13)>input').val() ? $(this).find('td:nth-child(13)>input').val() : '',
+                        $(this).find('td:nth-child(14)>input').val() ? $(this).find('td:nth-child(14)>input').val() : ''
+                    ];
 
+                    if (modifiers[0] == "" && (modifiers[1] != "" || modifiers[2] != "" || modifiers[3] != "")) {
+                        $(this).find('td:nth-child(11)>input').focus(); 
+                        invalidCount++;
+                        return false;
+                    }
+                    if (modifiers[1] == "" && (modifiers[2]  != "" || modifiers[3]  != "")) {
+                        $(this).find('td:nth-child(12)>input').focus();
+                        invalidCount++;
+                        return false;
+                    }
+                    if (modifiers[2]  == "" && (modifiers[3]  != "")) {
+                        $(this).find('td:nth-child(13)>input').focus();
+                        invalidCount++;
+                        return false;
+                    }
+                });
+
+                if (invalidCount > 0) {
+                    commonjs.showWarning("Please enter modifiers in required position");
+                    return false;
+                }
                 if (!$('#tBodyCharge tr').length) {
                     commonjs.showWarning("shared.warning.chargeValidation", 'largewarning');
                     return false;
@@ -2893,7 +3108,7 @@ define(['jquery',
                         self.ICDID = icdObj.id;
                         self.icd_code = icdObj.code;
                         self.icd_description = icdObj.description;
-                        self.addDiagCodes(false);
+                        self.addDiagCodes(true);
                     }
                 });
             },
@@ -2911,7 +3126,7 @@ define(['jquery',
                 $("#btnValidateClaim").attr("disabled", true);
                 $.ajax({
                     url: '/exa_modules/billing/claim_workbench/validate_claims',
-                    type: 'GET',
+                    type: 'POST',
                     data: {
                         claim_ids: claimIds 
                     },
@@ -2949,13 +3164,24 @@ define(['jquery',
                         commonjs.getClaimStudy(rowId, function (result) {
                             self.rendered = false;
                             self.clearDependentVariables();
+                            var study_id = result && result.study_id ? result.study_id : 0;
+                            var patient_id = data.patient_id;
+                            var order_id = result && result.order_id ? result.order_id : 0;
                             self.showEditClaimForm(rowId, null, {
-                                'study_id': result && result.study_id ? result.study_id : 0,
+                                'study_id': study_id,
                                 'patient_name': data.patient_name,
-                                'patient_id': data.patient_id,
-                                'order_id': result && result.order_id ? result.order_id : 0
+                                'patient_id': patient_id,
+                                'order_id': order_id
                             });
-
+                            if (window.reportWindow) {
+                                commonjs.closeReportWindow();
+                                commonjs.openDocumentsAndReports({
+                                    'study_id': study_id,
+                                    'patient_name': data.patient_name,
+                                    'patient_id': patient_id,
+                                    'order_id': order_id
+                                });
+                            }
                             $('#modal_div_container').scrollTop(0); 
                         });
                     } else {
@@ -2976,8 +3202,8 @@ define(['jquery',
 
                 tab_menu_link.click(function (e) {
                     var currId = $(this).attr('href').split('_')[1];
-                    tab_menu_item.removeClass('active');                    
-                    $(e.target).closest('li').addClass('active');
+                    tab_menu_item.removeClass('active');
+                    e && $(e.target).closest('li').addClass('active');
 
                     var _height = 0;
                     for (var i = 1; i < currId; i++) {
@@ -2992,7 +3218,7 @@ define(['jquery',
 
                     if ($('#tab_' + currId).find('input[type=text],textarea, select').filter(':input:enabled:visible:first'))
                         $('#tab_' + currId).find('input[type=text],textarea, select').filter(':input:enabled:visible:first').focus();
-                    e.preventDefault ? event.preventDefault() : event.returnValue = false;
+                    e && e.preventDefault ? e.preventDefault() : e.returnValue = false;
                 });
 
                 $('#modal_div_container').scrollTop(0); 
@@ -3302,7 +3528,7 @@ define(['jquery',
                                 _.each(charges, function (study) {
                                     study.study_description = study.study_description ? study.study_description : '--';
                                     study.accession_no = study.accession_no ? study.accession_no : '--';
-                                    var study_date = study.study_dt ? commonjs.convertToFacilityTimeZone(app.facilityID, moment(study.study_dt)).format('L LT z') : '--'
+                                    var study_date = commonjs.getConvertedFacilityTime(study.study_dt, app.currentdate, 'L', app.facility_id);
                                     $list.append('<li><input id="studyChk_' + study.id + '" type="checkbox" name="chkStudy" data-study_dt="' + study.study_dt + '" data-accession_no="' + study.accession_no + '" />'+
                                     '<label style="font-weight: bold;overflow-wrap: break-word;"  for="studyChk_' + study.id + '" >' + study.study_description
                                     + ' ( Accession# : ' + study.accession_no + ' , Study.Date: ' + study_date + ')</label></li>');
@@ -3404,8 +3630,9 @@ define(['jquery',
                 $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
                 $('#ddlResponsible').val('PPP');
 
-                self.cur_study_date = commonjs.convertToFacilityTimeZone(app.facilityID, moment()).format('L LT z')
-                document.querySelector('#txtClaimDate').value = moment().format('YYYY-MM-DD');
+                self.cur_study_date = commonjs.convertToFacilityTimeZone(app.facilityID, app.currentdate).format('L LT z');
+                self.studyDate = commonjs.getConvertedFacilityTime(app.currentdate, '', 'L', app.facilityID);
+                document.querySelector('#txtClaimDate').value = self.studyDate;
 
                 // Bind Patient Default details
                 var renderingProvider = patient_details.rendering_provider_full_name || self.usermessage.selectStudyReadPhysician;
@@ -3442,7 +3669,10 @@ define(['jquery',
 
             setPriRelationShipSelf: function(e) {
                 if($('#chkPriSelf').is(":checked")) {
-                    var selfValue = $("#ddlPriRelationShip option:contains('Self')").val();
+                    var selfValue = $('#ddlPriRelationShip option').filter(function () { 
+                        return this.text.toLowerCase() == 'self'; 
+                    } ).attr('value');    
+
                     $('#ddlPriRelationShip').val(selfValue).attr('selected', true);
                     $('#showPriSelf').hide();
                     $('#chkPriSelf').prop('checked', false);
@@ -3455,7 +3685,10 @@ define(['jquery',
 
             setSecRelationShipSelf: function(e) {
                 if($('#chkSecSelf').is(":checked")) {
-                    var selfValue = $("#ddlSecRelationShip option:contains('Self')").val();
+                    var selfValue = $('#ddlSecRelationShip option').filter(function () { 
+                        return this.text.toLowerCase() == 'self'; 
+                    } ).attr('value');  
+
                     $('#ddlSecRelationShip').val(selfValue).attr('selected', true);
                     $('#showSecSelf').hide();
                     $('#chkSecSelf').prop('checked', false);
@@ -3467,7 +3700,10 @@ define(['jquery',
 
             setTerRelationShipSelf: function(e) {
                 if($('#chkTerSelf').is(":checked")) {
-                    var selfValue = $("#ddlTerRelationShip option:contains('Self')").val();
+                    var selfValue = $('#ddlTerRelationShip option').filter(function () { 
+                        return this.text.toLowerCase() == 'self'; 
+                    } ).attr('value');
+
                     $('#ddlTerRelationShip').val(selfValue).attr('selected', true);
                     $('#showTerSelf').hide();
                     $('#chkTerSelf').prop('checked', false);
@@ -3488,6 +3724,14 @@ define(['jquery',
                 self.terInsID = '';
                 self.terInsName = '';
                 self.is_tertiary_available = false;
+                self.responsible_list = [
+                    { payer_type: "PPP", payer_type_name: "patient", payer_id: null, payer_name: null },
+                    { payer_type: "PIP_P", payer_type_name: "primary_insurance", payer_id: null, coverage_level: "P", payer_name: null, billing_method: null },
+                    { payer_type: "PIP_S", payer_type_name: "secondary_insurance", payer_id: null, coverage_level: "S", payer_name: null, billing_method: null },
+                    { payer_type: "PIP_T", payer_type_name: "tertiary_insurance", payer_id: null, coverage_level: "T", payer_name: null, billing_method: null },
+                    { payer_type: "POF", payer_type_name: "ordering_facility", payer_id: null, payer_name: null },
+                    { payer_type: "RF", payer_type_name: "referring_provider", payer_id: null, payer_name: null }
+                ]
             }
 
         });

@@ -1,15 +1,16 @@
 const { query, SQL } = require('./../index');
+const config = require('./../../config');
 const queryMakers = require('./../query-maker-map');
-const generator = queryMakers.get('date');     
+const generator = queryMakers.get('date');
 
 module.exports = {
 
     getPayments: async function (params) {
         let whereQuery = [];
 
-        if(!params.paymentReportFlag) {
+        if (!params.paymentReportFlag) {
             params.sortOrder = params.sortOrder || ' ASC';
-            params.sortField = params.sortField == 'id' ? ' payments.id ' : params.sortField;        
+            params.sortField = params.sortField == 'id' ? ' payments.id ' : params.sortField;
 
             params.sortField = params.sortField == 'payment_dt' ? ' payments.payment_dt ' : params.sortField;
         }
@@ -106,19 +107,20 @@ module.exports = {
             whereQuery.push(`facility_name  ILIKE '%${facility_name}%' `);
         }
 
-        if(from == 'patient_claim') {
-            whereQuery.push(` patient_id = ${patientID} AND ( SELECT payment_status from billing.get_payment_totals(payments.id)) = 'unapplied' `) ;
+        if (from == 'patient_claim') {
+            whereQuery.push(` patient_id = ${patientID} AND ( SELECT payment_status from billing.get_payment_totals(payments.id)) = 'unapplied' `);
         }
 
-        let joinQuery = ` INNER JOIN public.users ON users.id = payments.created_by
-        LEFT JOIN public.patients ON patients.id = payments.patient_id
-        LEFT JOIN public.provider_groups ON provider_groups.id = payments.provider_group_id
-        LEFT JOIN public.provider_contacts ON provider_contacts.id = payments.provider_contact_id
-        LEFT JOIN public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
-        LEFT JOIN public.insurance_providers  ON insurance_providers.id = payments.insurance_provider_id
-        LEFT JOIN LATERAL (select * from billing.get_payment_totals(payments.id)) payment_totals  ON true
-        LEFT JOIN public.facilities ON facilities.id = payments.facility_id `;
-
+        let joinQuery = `
+            INNER JOIN public.users ON users.id = payments.created_by
+            LEFT JOIN public.patients ON patients.id = payments.patient_id
+            LEFT JOIN public.provider_groups ON provider_groups.id = payments.provider_group_id
+            LEFT JOIN public.provider_contacts ON provider_contacts.id = payments.provider_contact_id
+            LEFT JOIN public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
+            LEFT JOIN public.insurance_providers  ON insurance_providers.id = payments.insurance_provider_id
+            LEFT JOIN LATERAL (select * from billing.get_payment_totals(payments.id)) payment_totals  ON true
+            LEFT JOIN public.facilities ON facilities.id = payments.facility_id
+        `;
         let sql = '';
 
         if (isGetTotal) {
@@ -127,28 +129,25 @@ module.exports = {
                     SUM(payment_totals.payments_applied_total) AS total_applied       
                     ,SUM(payment_totals.adjustments_applied_total) AS total_adjustment
                 FROM billing.payments
-                    LEFT JOIN LATERAL 
-                    (SELECT * FROM billing.get_payment_totals(payments.id)) payment_totals ON true
             `;
+
+            sql.append(joinQuery);
 
             if (whereQuery.length) {
                 sql.append(SQL` WHERE `)
                     .append(whereQuery.join(' AND '));
             }
-            
+
             return await query(sql);
         }
         else if (countFlag == 'true') {
             sql = SQL`  SELECT
                         COUNT(1) AS total_records
-                        FROM billing.payments INNER JOIN public.users ON users.id = payments.created_by
-                        LEFT JOIN public.patients ON patients.id = payments.patient_id
-                        LEFT JOIN public.provider_groups ON provider_groups.id = payments.provider_group_id
-                        LEFT JOIN public.provider_contacts ON provider_contacts.id = payments.provider_contact_id
-                        LEFT JOIN public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
-                        LEFT JOIN public.insurance_providers  ON insurance_providers.id = payments.insurance_provider_id
-                        LEFT JOIN public.facilities ON facilities.id = payments.facility_id`;
-            
+                        FROM billing.payments   
+                        `;
+
+            sql.append(joinQuery);
+
             if (whereQuery.length) {
                 sql.append(SQL` WHERE `)
                     .append(whereQuery.join(' AND '));
@@ -167,8 +166,6 @@ module.exports = {
                     , provider_contact_id
                     , payment_reason_id
                     , amount MONEY
-                    , accounting_dt::text
-                    , payment_dt::text
                     , alternate_payment_id AS display_id
                     , (  CASE payer_type 
                             WHEN 'insurance' THEN insurance_providers.insurance_name
@@ -176,6 +173,7 @@ module.exports = {
                             WHEN 'ordering_provider' THEN ref_provider.full_name
                             WHEN 'patient' THEN patients.full_name        END) AS payer_name
                     , payment_dt
+                    , accounting_dt
                     , invoice_no
                     , alternate_payment_id
                     , payer_type
@@ -201,6 +199,17 @@ module.exports = {
                 .append(whereQuery.join(' AND '));
         }
 
+        if (params.paymentReportFlag) {
+            if (config.get('paymentsExportRecordsCount')) {
+                pageSize = config.get('paymentsExportRecordsCount');
+            } else {
+                pageSize = 1000;
+            }
+
+            sql.append(SQL` ORDER BY  payments.id desc `)
+                .append(SQL` LIMIT ${pageSize}`);
+        }
+
         if (!isGetTotal && !params.paymentReportFlag) {
             sql.append(SQL` ORDER BY  `)
                 .append(sortField)
@@ -209,6 +218,7 @@ module.exports = {
                 .append(SQL` LIMIT ${pageSize}`)
                 .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
         }
+
 
         return await query(sql);
     },
@@ -426,7 +436,7 @@ module.exports = {
             auditDetails } = params;
 
         const sql = SQL` SELECT billing.purge_payment (${payment_id}, (${JSON.stringify(auditDetails)})::json) AS details`;
-        
+
         return await query(sql);
     },
 
@@ -439,7 +449,7 @@ module.exports = {
             logDescription } = params;
         adjustmentId = adjustmentId ? adjustmentId : null;
         logDescription = `Claim updated Id : ${params.claimId}`;
-        
+
         const sql = SQL`WITH claim_comment_details AS(
                                     SELECT 
                                           claim_id
@@ -540,7 +550,7 @@ module.exports = {
 
     updatePaymentApplication: async function (params) {
 
-        let logDescription = `Payment application updated for claim id : ${params.claimId} For payment id : `;
+        let logDescription = ` Payment application updated for claim id : ${params.claimId} For payment id : `;
 
         const sql = SQL`WITH update_application_details AS(
                             SELECT 
@@ -585,13 +595,6 @@ module.exports = {
                                   , amount MONEY
                                   , parent_application_id BIGINT)
                                 ),
-                        delete_cas_applications as(
-                                SELECT 
-                                   id as cas_id 
-                                FROM billing.cas_payment_application_details 
-                                WHERE payment_application_id IN (SELECT payment_application_id FROM cas_application_details)
-                                AND id NOT IN (SELECT cas_id FROM cas_application_details)
-                                ),
                         update_applications AS(
                             UPDATE billing.payment_applications 
                                 SET
@@ -614,7 +617,6 @@ module.exports = {
                                 amount,
                                 adjustment_code_id,
                                 created_by,
-                                payment_application_id,
                                 applied_dt
                             ) 
                             SELECT 
@@ -624,10 +626,9 @@ module.exports = {
                                 , amount
                                 , adjustment_id
                                 , ${params.userId}
-                                , parent_application_id
                                 , parent_applied_dt
                             FROM update_application_details
-                            WHERE  payment_application_id is null and (amount != 0::money OR ${JSON.stringify(params.save_cas_details)} != '[]')
+                            WHERE  payment_application_id is null and amount != 0::money
                             RETURNING *
                         ),
                         update_claim_details AS(
@@ -671,7 +672,7 @@ module.exports = {
                                           , cas_reason_code_id = cad.reason_code_id
                                           , amount = cad.amount
                                     FROM cas_application_details cad
-                                    WHERE cad.cas_id = bcpad.id 
+                                    WHERE bcpad.id = cad.cas_id 
                                     RETURNING *,
                                     (
                                         SELECT row_to_json(old_row) 
@@ -680,10 +681,6 @@ module.exports = {
                                             WHERE  id = cad.cas_id) old_row 
                                     ) old_values
                                 ),
-                        purge_cas_applications AS (
-                            DELETE FROM billing.cas_payment_application_details 
-                            WHERE id in (SELECT cas_id FROM delete_cas_applications)
-                        ),
                         insert_cas_applications AS (
                                 INSERT INTO billing.cas_payment_application_details
                                 (
@@ -693,19 +690,18 @@ module.exports = {
                                   , amount 
                                 )
                                 SELECT 
-                                    CASE WHEN cas.payment_application_id IS NULL THEN 
-                                        (SELECT id FROM insert_applications bpa where bpa.payment_application_id = cas.parent_application_id) 
-                                    ELSE  cas.payment_application_id END
+                                    billing.get_cas_application_id(cas.parent_application_id) 
                                   , cas.group_code_id
                                   , cas.reason_code_id
                                   , cas.amount
                                 FROM cas_application_details cas
                                 WHERE cas.cas_id is null
+                                AND parent_application_id IS NOT NULL
                                 RETURNING *, '{}'::jsonb old_values
                             ),
                         purge_cas_details as (
                             DELETE FROM billing.cas_payment_application_details
-                            WHERE payment_application_id = ANY (${(params.clearCasDetais).map(Number)})
+                            WHERE id = ANY (${(JSON.parse(params.casDeleted)).map(Number)})
                             ),
                             update_applications_audit_cte as(
                                 SELECT billing.create_audit(
@@ -830,12 +826,12 @@ module.exports = {
                     AS balance
                 )
                 SELECT * FROM applied, balance
-        `    
+        `
         );
     },
 
     getClaimCharges: async function (params) {
-      
+
         let {
             invoice_no,
             paymentId,
@@ -845,7 +841,7 @@ module.exports = {
 
         let whereQuery = payer_type == 'patient' ? ` WHERE bc.patient_id = ${payer_id} ` : ` WHERE bc.invoice_no = ${invoice_no}::text `;
 
-        const sql =SQL`WITH 
+        const sql = SQL`WITH 
                     claims_details AS (
                         SELECT 
                             bc.id AS claim_id,

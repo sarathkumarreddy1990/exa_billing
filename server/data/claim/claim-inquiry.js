@@ -303,7 +303,12 @@ module.exports = {
             followupDate,
             claim_id,
             assignedTo,
-            notes
+            notes,
+            screenName,
+            moduleName,
+            clientIp,
+            userId,
+            companyId
         } = params;
         let sql; 
 
@@ -324,18 +329,63 @@ module.exports = {
                         WHERE 
                             id = commentid 
                         RETURNING id), 
-                        update_billNotes AS ( UPDATE 
+                        update_billnotes AS ( UPDATE 
                                 billing.claims SET billing_notes  = ${notes}
                              WHERE id = ${claim_id} 
-                            RETURNING id), `;
+                            RETURNING *, 
+                            (
+                                SELECT row_to_json(old_row) 
+                                FROM   (SELECT * 
+                                        FROM  billing.claims 
+                                        WHERE  id = ${claim_id}) old_row 
+                            ) old_values
+                        ),
+                        update_audit_billnotes AS (
+                                SELECT billing.create_audit(
+                                      ${companyId}
+                                    , 'claims'
+                                    , id
+                                    , ${screenName}
+                                    , ${moduleName}
+                                    , 'Billing Notes Updated  '||  'Claim ID  ' || update_billnotes.id
+                                    , ${clientIp}
+                                    , json_build_object(
+                                        'old_values', COALESCE(old_values, '{}'),
+                                        'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_billnotes ) temp_row)
+                                      )::jsonb
+                                    , ${userId}
+                                  ) AS id 
+                                FROM update_billnotes
+                                WHERE id IS NOT NULL
+                            ), `;
 
             if(followupDate == '')
             {
                 sql.append(`update_followup AS (DELETE FROM 
                             billing.claim_followups
                         WHERE 
-                            claim_id = ${claim_id} RETURNING id )
-                        SELECT * FROM update_cmt, update_billNotes`);
+                            claim_id = ${claim_id} RETURNING *, '{}'::jsonb old_values  ),
+                            update_audit_followup AS (
+                                SELECT billing.create_audit(
+                                      ${companyId}
+                                    , 'claims'
+                                    , id
+                                    , '${screenName}'
+                                    , '${moduleName}'
+                                    , 'Follow Up Deleted  ' || update_followup.id || 'Claim ID  ' || update_followup.claim_id
+                                    , '${clientIp}'
+                                    , json_build_object(
+                                        'old_values', COALESCE(old_values, '{}'),
+                                        'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_followup ) temp_row)
+                                      )::jsonb
+                                    , ${userId}
+                                  ) AS id 
+                                FROM update_followup
+                                WHERE id IS NOT NULL
+                            )  
+                        SELECT * FROM update_audit_followup 
+                        UNION
+                        SELECT * FROM update_audit_billnotes`);
             }
             else{
                 sql.append(`update_followup AS(
@@ -346,7 +396,13 @@ module.exports = {
                         , assigned_to= ${assignedTo} 
                     WHERE 
                         claim_id = ${claim_id}
-                    RETURNING *
+                    RETURNING *,
+                    (
+                        SELECT row_to_json(old_row) 
+                        FROM   (SELECT * 
+                                FROM   billing.claim_followups 
+                                WHERE  claim_id = ${claim_id} ) old_row 
+                    ) old_values
                 ), 
                 insert_followup AS(
                     INSERT INTO billing.claim_followups(
@@ -360,18 +416,82 @@ module.exports = {
                         , ${assignedTo}
                     WHERE 
                     NOT EXISTS(SELECT * FROM update_followup) 
-                    RETURNING *
-                ) 
-                SELECT * FROM update_followup UNION SELECT * FROM insert_followup`);
+                    RETURNING *, '{}'::jsonb old_values 
+                ),
+                insert_audit_followup AS (
+                    SELECT billing.create_audit(
+                          ${companyId}
+                        , 'claims'
+                        , id
+                        , '${screenName}'
+                        , '${moduleName}'
+                        , 'New Followup/Billing Notes for Claim created ' || insert_followup.id || 'Claim ID  ' ||  insert_followup.claim_id
+                        , '${clientIp}'
+                        , json_build_object(
+                            'old_values', COALESCE(old_values, '{}'),
+                            'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM insert_followup) temp_row)
+                          )::jsonb
+                        , ${userId}
+                      ) AS id 
+                    FROM insert_followup
+                    WHERE id IS NOT NULL
+                ), 
+                update_audit_followup AS (
+                    SELECT billing.create_audit(
+                          ${companyId}
+                        , 'claims'
+                        , id
+                        , '${screenName}'
+                        , '${moduleName}'
+                        , 'Follow Up Updated/Billing Notes  ' || update_followup.id || 'Claim ID  ' || update_followup.claim_id
+                        , '${clientIp}'
+                        , json_build_object(
+                            'old_values', COALESCE(old_values, '{}'),
+                            'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_followup ) temp_row)
+                          )::jsonb
+                        , ${userId}
+                      ) AS id 
+                    FROM update_followup
+                    WHERE id IS NOT NULL
+                )
+                SELECT * FROM insert_audit_followup UNION SELECT * FROM update_audit_followup UNION SELECT * FROM update_audit_billnotes`);
             }
 
         } else {   
-            sql = SQL`UPDATE 
+            sql = SQL`WITH update_comments AS (
+                    UPDATE 
                         billing.claim_comments
                     SET 
                         note = ${note}
                     WHERE
-                        id = ${commentId} `;
+                        id = ${commentId}
+                    RETURNING *, 
+                    (
+                        SELECT row_to_json(old_row) 
+                        FROM   (SELECT * 
+                                FROM   billing.claim_comments 
+                                WHERE  id = ${commentId}) old_row 
+                    ) old_values
+                ),
+                update_audit_comments AS (
+                    SELECT billing.create_audit(
+                          ${companyId}
+                        , 'claims'
+                        , id
+                        , ${screenName}
+                        , ${moduleName}
+                        , 'Updated:  Claim Inquiry ( ' || update_comments.claim_id ||' ) Updated'
+                        , ${clientIp}
+                        , json_build_object(
+                            'old_values', COALESCE(old_values, '{}'),
+                            'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_comments ) temp_row)
+                          )::jsonb
+                        , ${userId}
+                      ) AS id 
+                    FROM update_comments
+                    WHERE id IS NOT NULL
+                ) 
+                SELECT * FROM update_audit_comments`;
         }
 
         return await query(sql);
@@ -465,7 +585,7 @@ module.exports = {
                                 FROM billing.cas_payment_application_details cas 
                                 INNER JOIN billing.cas_reason_codes rc ON rc.id = cas.cas_reason_code_id
                                 WHERE  cas.payment_application_id = pa.payment_application_adjustment_id
-                                
+                                ORDER BY cas.id
                                 ) as cas
                     ) cas on true 
                     WHERE ch.claim_id = ${claim_id} 
@@ -484,17 +604,20 @@ module.exports = {
                         , ch.bill_fee
                         , ch.allowed_amount
                         , cas.cas_details
-                        , pa.amount as payment
-                        , pa_adjustment.amount as adjustment
+                        , COALESCE(pa.amount,0::money) AS payment
+                        , COALESCE(pa_adjustment.amount, 0::money) AS adjustment
                         , cpt.display_code AS cpt_code
-                        , pa_adjustment.id as payment_application_adjustment_id
+                        , pa_adjustment.id AS payment_application_adjustment_id
                     FROM	billing.payment_applications pa
                     INNER JOIN billing.charges ch ON ch.id = pa.charge_id
                     INNER JOIN public.cpt_codes cpt ON cpt.id = ch.cpt_id
                     LEFT JOIN LATERAL (
-                        SELECT 	* 
-                        FROM	billing.payment_applications  
-                        WHERE	payment_application_id = pa.id
+                        SELECT 	*
+                        FROM	billing.payment_applications bpa
+                        WHERE	bpa.payment_id = pa.payment_id
+                            AND bpa.charge_id = pa.charge_id
+                            AND bpa.applied_dt = pa.applied_dt
+                            AND bpa.amount_type = 'adjustment'
                     ) pa_adjustment ON true
                     LEFT JOIN LATERAL (
                         SELECT json_agg(row_to_json(cas)) AS cas_details
@@ -504,6 +627,7 @@ module.exports = {
                                 FROM billing.cas_payment_application_details cas 
                                 INNER JOIN billing.cas_reason_codes rc ON rc.id = cas.cas_reason_code_id
                                 WHERE  cas.payment_application_id = pa_adjustment.id
+                                ORDER BY cas.id
                                 ) as cas
                     ) cas on true 
                     WHERE	pa.charge_id = ${charge_id}
@@ -537,6 +661,7 @@ module.exports = {
                             WHEN 'rendering_provider' THEN render_provider.full_name
                             WHEN 'patient' THEN patients.full_name        END) AS payer_name
                         , claim_dt
+                        , claims.facility_id
                         , claim_status.description as claim_status
                         , (select adjustments_applied_total from billing.get_claim_payments(claims.id)) AS ajdustments_applied_total
                         , (select payment_patient_total from billing.get_claim_payments(claims.id)) AS total_patient_payment
@@ -643,19 +768,19 @@ module.exports = {
             
         }
 
-        if(params.invoice_adjustment || params.invoice_bill_fee || params.invoice_balance || params.invoice_payment)
+        if(params.invoice_adjustment || params.invoice_bill_fee || params.invoice_balance || params.invoice_payment||params.invoice_date)
         {
             havingQuery += ' HAVING true '; 
         }
 
         if(params.invoice_no)
         {
-            whereQuery += ` AND bc.invoice_no = (${params.invoice_no})::text`; 
+            whereQuery += ` AND bc.invoice_no::text = '${params.invoice_no}'::text`;
         }
 
         if(params.invoice_date)
         {
-            havingQuery += ` AND max(date) = ${params.invoice_date}`; 
+            havingQuery += ` AND max(date) = '${params.invoice_date}'`; 
         }
         
         if(params.invoice_adjustment)
@@ -727,6 +852,8 @@ module.exports = {
                                 , claim_totals.payments_applied_total AS payment
                                 , claim_totals.adjustments_applied_total AS adjustment
                                 , claim_totals.claim_balance_total AS balance
+                                , bc.id AS claim_id
+                                , bc.facility_id
                             FROM billing.claims bc
                             ${joinQuery}
                             INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
@@ -735,14 +862,17 @@ module.exports = {
                             SELECT
                                   ROW_NUMBER () OVER (ORDER BY invoice_no) AS id
                                 , invoice_no As invoice_no
-                                , max(date) AS invoice_date
+                                --, max(date) AS invoice_date
+                                , timezone(public.get_facility_tz(facility_id::INT), max(date)::TIMESTAMP) AS invoice_date
                                 , sum(bill_fee) AS invoice_bill_fee
                                 , sum(payment) AS invoice_payment
                                 , sum(adjustment) AS invoice_adjustment
                                 , sum(balance) AS invoice_balance
                                 , COUNT(1) OVER (range unbounded preceding) AS total_records
+                                , array_agg(claim_id) AS claim_ids
+                                , facility_id
                             FROM invoice_payment_details
-                            GROUP BY invoice_no
+                            GROUP BY invoice_no,facility_id
                             ${havingQuery}
                             ORDER BY ${sortField}  ${sortOrder}   LIMIT ${pageSize}
                             OFFSET ${((pageNo * pageSize) - pageSize)}`);
@@ -808,30 +938,47 @@ module.exports = {
         } = params;
 
         if (username) {
-            whereQuery.push(` username ILIKE '%${username}%'`);
+            whereQuery.push(` users.username ILIKE '%${username}%'`);
         }
 
         if (screen_name) {
-            whereQuery.push(` screen_name ILIKE '%${screen_name}%'`);
+            whereQuery.push(` audit.screen_name ILIKE '%${screen_name}%'`);
         }
 
         if (description) {
-            whereQuery.push(` description ILIKE '%${description}%'`);
+            whereQuery.push(` audit.description ILIKE '%${description}%'`);
         }
 
         if (created_dt) {
-            whereQuery.push(` ((created_dt)::date =('${created_dt}')::date) `);
+            whereQuery.push(` ((audit.created_dt)::date =('${created_dt}')::date) `);
         }
 
-        let sql = SQL`SELECT audit_log.id,
-                        users.username,
-                        created_dt,        
-                        screen_name,
-                        description
-                        FROM billing.claims 
-                        INNER JOIN billing.audit_log on audit_log.entity_key =claims.id 
-                        INNER JOIN  users on  users.id=audit_log.created_by
-                        WHERE  patient_id=${patientId}  AND entity_name='claims'
+        let sql = SQL`
+                SELECT audit.id, 
+                    users.username, 
+                    audit.created_dt, 
+                    audit.screen_name, 
+                    audit.description,
+                    bc.facility_id
+                FROM   billing.claims bc 
+                    LEFT JOIN billing.charges bch 
+                            ON bch.claim_id = bc.id 
+                    LEFT JOIN billing.payments bp 
+                            ON bp.patient_id = bc.patient_id 
+                    LEFT JOIN billing.payment_applications bpa 
+                            ON bpa.payment_id = bp.id 
+                    INNER JOIN billing.audit_log audit 
+                            ON ( ( audit.entity_key = bc.id 
+                                    AND audit.entity_name = 'claims' ) 
+                                    OR ( audit.entity_key = bch.id 
+                                        AND audit.entity_name = 'charges' ) 
+                                    OR ( audit.entity_key = bp.id 
+                                        AND audit.entity_name = 'Payments' ) 
+                                    OR ( audit.entity_key = bpa.id 
+                                        AND audit.entity_name = 'payment_applications' ) ) 
+                    INNER JOIN users 
+                            ON users.id = audit.created_by 
+                    WHERE  bc.patient_id=${patientId} 
                     `;
 
         if (whereQuery.length) {

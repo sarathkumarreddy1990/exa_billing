@@ -267,7 +267,7 @@ var commonjs = {
         }
         else {
             if (typeof filter !== 'undefined') {
-                filter.customGridTable.jqGrid('GridUnload');
+                // filter.customGridTable.jqGrid('GridUnload');
                 cjs.loadedStudyFilters = filters.delete(id);
                 return true;
             }
@@ -833,6 +833,33 @@ var commonjs = {
         return docServerUrl;
     },
 
+    showAbout: function () {
+        var self = this;
+
+        if (this.AboutTemplate && _) {
+            $.ajax({
+                url: '/exa_modules/billing/about',
+                type: "GET",
+                dataType: 'json',
+                success: function (versionInfo, response) {
+                    commonjs.hideLoading();
+
+                    try {
+                        var about = _.template(self.AboutTemplate);
+                        var previewHtml = about({ data: versionInfo });
+
+                        commonjs.showDialog({ header: 'About', width: '30%', height: '30%', html: previewHtml }, true);
+                    } catch (err) {
+                        console.log(err);
+                    }
+                },
+                error: function (err, response) {
+                    //commonjs.handleXhrError(err, response);
+                }
+            })
+        }
+    },
+
     showDialog: function (options) {
         options.modalContainerId = '#siteModal';
         options.spanHeaderId = '#spanModalHeader';
@@ -857,15 +884,15 @@ var commonjs = {
         commonjs.initHideEvent(options);
     },
 
-    initHideEvent: function(options) {
+    initHideEvent: function (options) {
 
         var modalContainerId = options.modalContainerId || '#siteModal';
 
-        if(!commonjs.modalEvents) {
+        if (!commonjs.modalEvents) {
             commonjs.modalEvents = {};
         }
 
-        if(commonjs.modalEvents[options.modalContainerId]) {
+        if (commonjs.modalEvents[options.modalContainerId]) {
             return;
         }
 
@@ -1026,7 +1053,7 @@ var commonjs = {
 
     hideNestedDialog: function (callback) {
         var options = {};
-        
+
         options.modalContainerId = '#siteModalNested';
         options.modalDivContainerId = '#modal_div_container_nested';
         options.iframeContainerId = 'site_modal_iframe_container_nested';
@@ -1041,7 +1068,7 @@ var commonjs = {
         $siteModal.modal('hide');
     },
 
-    disposeDialog: function(options) {
+    disposeDialog: function (options) {
         var modalDivContainerId = options.modalDivContainerId || '#modal_div_container';
         var iframeContainerId = options.iframeContainerId || 'site_modal_iframe_container';
         var modalContainerId = options.modalContainerId || '#siteModal';
@@ -1055,6 +1082,16 @@ var commonjs = {
 
         $siteModal.modal('dispose');
         //commonjs.docResize();
+
+         //Report window close 
+         this.closeReportWindow();
+    },
+
+    closeReportWindow: function () {
+        if (window.reportWindow) {
+            window.reportWindow.close();
+            window.reportWindow = null;
+        }
     },
 
     // Set app.settings.report_queue_status using API
@@ -1205,12 +1242,25 @@ var commonjs = {
                 commonjs.showError(errorMessage);
                 break;
 
+            case '23502':
+                errorMessage = errorMessage.split('"').map(function (obj) { return obj.trim() });
+                if (errorMessage.indexOf('billing_provider_id') > -1 || errorMessage.indexOf('claim_status_id') > -1) {
+                    errorMessage = errorMessage[1] || '';
+                }
+                commonjs.showError('Unable to get Default ' + errorMessage);
+                break;
+
             case '23503':
                 commonjs.showError('Dependent records found');
                 break;
 
             case '23505':
-                commonjs.showError('Duplicate record found');
+                var errMessage = 'Duplicate record found';
+                if(exaInternalErrors && exaInternalErrors.constraints && exaInternalErrors.constraints[err.constraint]) {
+                    errMessage = exaInternalErrors.constraints[err.constraint];
+                }
+
+                commonjs.showError(errMessage);
                 break;
 
             case '23514':
@@ -1651,6 +1701,22 @@ var commonjs = {
         return this.getCurrentDateTime(val).format('LT');
     },
 
+    getConvertedFacilityTime: function (dt1, dt2, f, facility_id) {
+        try {
+            var date = "";
+            if (this.checkNotEmpty(dt1)) {
+                date = this.convertToFacilityTimeZone(facility_id, dt1).format(f);
+            } else if (this.checkNotEmpty(dt2)) {
+                date = this.convertToFacilityTimeZone(facility_id, dt2).format(f);
+            }
+        }
+        catch(err){
+            commonjs.showWarning(err);
+        }
+       
+        return date;
+    },
+
     //
     // start: moment-timezone functions
     //
@@ -1778,7 +1844,7 @@ var commonjs = {
         if (!app.userInfo) {
             throw new Error('App settings is missing userInfo!');
         }
-        return app.userInfo.user_type === 'SU' ? app.facilities : app.userfacilities
+        return app.userInfo.user_type === 'SU' ? app.facilities : app.userFacilities
     },
 
     getModalityRoomFromAppSettings: function (modalityRoomId) {
@@ -1943,7 +2009,7 @@ var commonjs = {
         }, {
                 type: type,
                 z_index: 1061,
-				offset: 5,
+                offset: 5,
                 delay: 1000,
                 placement: {
                     align: 'center',
@@ -2066,13 +2132,12 @@ var commonjs = {
     },
 
     showLoading: function (msg) {
-        return commonjs.showLoading_v1(msg);
+        //return commonjs.showLoading_v1(msg);
         if (!msg) {
             msg = 'messages.loadingMsg.default';
             if (i18n.get(msg) != app.currentCulture + '.' + msg) {
                 msg = i18n.get('messages.loadingMsg.default');
-            }
-            else {
+            } else {
                 msg = 'Loading...';
             }
         }
@@ -2081,6 +2146,7 @@ var commonjs = {
         if (tickTimer) {
             clearTimeout(tickTimer);
         }
+
         commonjs.loadingTime = 2;
         commonjs.hasLoaded = false;
         commonjs.tickLoading(msg, true);
@@ -2144,7 +2210,7 @@ var commonjs = {
     tickLoading: function (msg, delayLoad) {
         var self = this;
         if (delayLoad) {
-            commonjs.showModalBg();
+            //commonjs.showModalBg();
             tickTimer = setTimeout(function () {
                 clearTimeout(tickTimer);
                 self.showLoadingMessage(msg);
@@ -2318,14 +2384,14 @@ var commonjs = {
         $('div.ui-jqgrid > div.ui-jqgrid-view > div.ui-jqgrid-bdiv > div > table.ui-jqgrid-btable').each(function (index) {
             if (!$(this).parents('table.ui-jqgrid-btable').length) {
                 var obj = commonjs.getGridMeasures(jq_isWidthResize, jq_isHeightResize, jq_userWidth, jq_userHeight, jq_offsetWidth, jq_offsetheight);
-                
+
                 //$(this).jqGrid('setGridWidth', obj.width);
                 if (($(this).attr('id') && $(this).attr('id').indexOf('tblGridOD') == 0) || ($(this).attr('id') && $(this).attr('id').indexOf('tblGridPS') == 0)) // for home page pre-orders and qc grids having buttons under grid
                     $(this).jqGrid('setGridHeight', obj.height - 20);
                 else
                     $(this).jqGrid('setGridHeight', obj.height);
 
-                if($('.exa-left-nav')) {
+                if ($('.exa-left-nav')) {
                     $('.exa-left-nav').height(obj.navHeight);
                 }
             }
@@ -2444,7 +2510,7 @@ var commonjs = {
         return { height: height, navHeight: navHeight };
     },
 
-    getWindowHeight: function() {
+    getWindowHeight: function () {
         //return $(window).innerHeight() - 15;
         return window.innerHeight - 15;
     },
@@ -3453,7 +3519,7 @@ var commonjs = {
             $('#showColor').hide();
         }
         else {
-            var statusCodes = app.status_color_codes && app.status_color_codes.length && app.status_color_codes || parent.app.status_color_codes;
+            var statusCodes = app.status_color_codes && app.status_color_codes.length && (app.status_color_codes || parent.app.status_color_codes);
             if (statusCodes && statusCodes.length) {
                 var paymentStatus = $.grep(statusCodes, function (currentObj) {
                     return ((currentObj.process_type == 'payment'));
@@ -3926,6 +3992,14 @@ var commonjs = {
 
         app.currentCulture = cultureCode;
         commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
+        commonjs.setMultiselectSearchIcon();
+    },
+
+    setMultiselectSearchIcon: function () {
+        $.each($('.multiselect-item span'), function (index, obj) {
+            $(this).find('.glyphicon-search').removeClass('glyphicon').removeClass('glyphicon-search').addClass('fa fa-search').css('margin', '10px');
+            $(this).find('.glyphicon-remove-circle').removeClass('glyphicon').removeClass('glyphicon-remove-circle').addClass('fa fa-times');                        
+        });
     },
 
     beautifyMe: function () {
@@ -3971,7 +4045,7 @@ var commonjs = {
     },
 
     getClaimColorCodeForStatus: function (code, processType) {
-        var statusCodes = app.status_color_codes && app.status_color_codes.length && app.status_color_codes || parent.app.status_color_codes;
+        var statusCodes = app.status_color_codes && app.status_color_codes.length && (app.status_color_codes || parent.app.status_color_codes);
         if (statusCodes && statusCodes.length > 0) {
             return $.grep(statusCodes, function (currentObj) {
                 return ((currentObj.process_type == processType) && (currentObj.process_status == code));
@@ -4535,7 +4609,7 @@ var commonjs = {
             else
                 var modifierElement = 'ddlPointer';
 
-            var dataType =  isFrom; // M -- modifier , P -- Pointer
+            var dataType = isFrom; // M -- modifier , P -- Pointer
             if (($(element).val() == "") || $(element).hasClass('invalidModifier')) {
                 if (modifier == (dataType + "1") && $('#' + modifierElement + '2_' + id).val() == "" && $('#' + modifierElement + '3_' + id).val() == "" && $('#' + modifierElement + '4_' + id).val() == "") {
                     $('#' + modifierElement + '2_' + id).prop('disabled', true);
@@ -4787,7 +4861,7 @@ var commonjs = {
     getActiveFacilities: function (showStudiesFlag) {
         facilities = app.userInfo.user_type === "SU"
             ? app.facilities
-            : app.userfacilities;
+            : app.userFacilities;
         if (showStudiesFlag) {
             return facilities.reduce(function (facilitiesAcc, facility) {
                 var parsedFacility = Object.assign({}, facility, { facility_info: commonjs.hstoreParse(facility.facility_info) });
@@ -4943,6 +5017,108 @@ var commonjs = {
             return false;
         }
     },
+
+    initHotkeys: function (events) {
+        if (app.hotkeys && Object.keys(app.hotkeys).length && Object.keys(events).length) {
+            for (var key in events) {
+                this.initHotkey(key, events[key]);
+            }
+        }
+    },
+
+    prepareCsvWorker: function (requestData, options) {
+        var csvWorker;
+
+        try {
+            csvWorker = new Worker('/exa_modules/billing/static/js/workers/csv.js');
+        } catch (e) {
+            commonjs.showError('Unable to export CSV!!');
+            console.error(e);
+            return;
+        }
+
+        csvWorker.onmessage = function (response) {
+            commonjs.hideLoading();
+            var workerResponse = response.data;
+
+            if (!workerResponse.csvData) {
+                return alert("Invalid data");
+            }
+
+            var fileName = requestData.fileName.replace(/ /g, "_");
+            commonjs.downloadCsv(fileName + ".csv", workerResponse.csvData);
+           
+            if(typeof options.afterDownload === 'function') {
+                options.afterDownload();
+            }
+
+            return;
+        };
+
+        csvWorker.postMessage(requestData);
+    },
+
+    downloadCsv: function (fileName, csvData) {
+
+        var link = document.createElement("a");
+        link.id = 'lnkDownloadCsv';
+        link.href = '#';
+        link.style = "visibility:hidden";
+
+        document.body.appendChild(link);
+
+        if (window.navigator.msSaveBlob) {
+
+            var blob = new Blob([decodeURIComponent(csvData)], {
+                type: 'text/csv;charset=utf8'
+            });
+
+            window.navigator.msSaveBlob(blob, fileName);
+        } else if (window.Blob && window.URL) {
+            var blob = new Blob([csvData], { type: 'text/csv;charset=utf8' });
+            var csvUrl = URL.createObjectURL(blob);
+
+            $('#lnkDownloadCsv')
+                .attr({
+                    'download': fileName,
+                    'href': csvUrl
+                });
+
+            link.click();
+        } else {
+            var csvData = 'data:application/csv;charset=utf-8,' + encodeURIComponent(csvData);
+
+            $('#lnkDownloadCsv')
+                .attr({
+                    'download': fileName,
+                    'href': csvData,
+                    'target': '_blank'
+                });
+
+            link.click();
+        }
+
+        document.body.removeChild(link);
+    },
+
+    initHotkey: function (eventName, handler) {
+        if (app.hotkeys[eventName]) {
+            var shortcut = app.hotkeys[eventName];
+            var handlerFn = handler;
+
+            if (typeof handler !== 'function') {
+                handlerFn = (function () {
+                    (function (id) {
+                        if ($(id).length) {
+                            $(id).click();
+                        }
+                    })(handler)
+                });
+            }
+
+            //$(document).on('keydown', null, shortcut, handlerFn);
+        }
+    }
 };
 
 
@@ -5096,7 +5272,7 @@ function removeIframeHeader() {
 // });
 
 $(document).ajaxSuccess(function (event, xhr, settings) {
-    if(settings.url.indexOf('billing/setup') > -1 && ['POST', 'PUT', 'DELETE'].indexOf(settings.type) > -1) {
+    if (settings.url.indexOf('billing/setup') > -1 && ['POST', 'PUT', 'DELETE'].indexOf(settings.type) > -1) {
         layout.setupDataUpdated = true;
     }
 });

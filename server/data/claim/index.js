@@ -43,8 +43,8 @@ module.exports = {
                             INNER JOIN public.studies s ON s.id = sc.study_id
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
                             INNER JOIN public.orders o on o.id = s.order_id
-                            INNER JOIN appointment_types at ON at.id = s.appointment_type_id
-                            INNER JOIN appointment_type_procedures atp ON atp.procedure_id = sc.cpt_code_id AND atp.appointment_type_id = s.appointment_type_id
+                            LEFT JOIN appointment_types at ON at.id = s.appointment_type_id
+                            LEFT JOIN appointment_type_procedures atp ON atp.procedure_id = sc.cpt_code_id AND atp.appointment_type_id = s.appointment_type_id
                             WHERE
                                 study_id = ANY(${studyIds}) AND sc.has_deleted = FALSE
                             ORDER BY s.accession_no DESC
@@ -82,8 +82,8 @@ module.exports = {
                                         referring_pro_study_desc,
                                         studies_details.rendering_provider_contact_id,
                                         studies_details.reading_phy_full_name,
-                                        fac_prov_cont.id as fac_rendering_provider_contact_id,
-                                        fac_prov.full_name as fac_reading_phy_full_name,
+                                        providers.id as fac_rendering_provider_contact_id,
+                                        providers.full_name as fac_reading_phy_full_name,
                                         facility_info->'service_facility_id' as service_facility_id,
                                         facility_info->'service_facility_name' as service_facility_name,
                                         facility_info->'billing_provider_id' as fac_billing_provider_id,
@@ -101,16 +101,19 @@ module.exports = {
                                         orders                                      
                                         INNER JOIN facilities ON  facilities.id= orders.facility_id
                                         INNER JOIN patients p ON p.id= orders.patient_id
-                                        LEFT JOIN provider_contacts fac_prov_cont ON   facility_info->'rendering_provider_id'::text = fac_prov_cont.id::text
-                                        LEFT JOIN providers fac_prov ON fac_prov.id = fac_prov_cont.provider_id
+                                        LEFT JOIN LATERAL (
+                                            SELECT pc.id, p.full_name FROM provider_contacts pc
+                                                INNER JOIN providers p ON p.id = pc.provider_id
+                                            WHERE	pc.id = nullif(facility_info->'rendering_provider_id', '')::integer limit 1
+                                        ) providers ON true
                                         JOIN LATERAL ( 
                                             SELECT 
                                                 providers.full_name AS reading_phy_full_name,
                                                 reading_physician_id as rendering_provider_contact_id
                                                 FROM 
-                                                public.studies s LEFT JOIN provider_contacts ON   s.reading_physician_id = provider_contacts.id
+                                                public.studies s LEFT JOIN provider_contacts ON   provider_contacts.id = s.reading_physician_id
                                                 LEFT JOIN providers ON providers.id = provider_contacts.provider_id
-                                                WHERE s.id = ${firstStudyId}
+                                                WHERE s.id = ${firstStudyId} LIMIT 1
                                         ) as studies_details ON TRUE   
                                     WHERE orders.id IN (SELECT order_id FROM public.studies s WHERE s.id = ${firstStudyId})
                             ) 
@@ -165,6 +168,7 @@ module.exports = {
                             , ip.insurance_info->'State' AS ins_state
                             , ip.insurance_info->'ZipCode' AS ins_zip_code
                             , ip.insurance_info->'Address1' AS ins_pri_address
+                            , ip.insurance_info->'PhoneNo' AS ins_phone_no
                             , ip.insurance_code
                             , pi.coverage_level
                             , pi.subscriber_relationship_id   
@@ -294,6 +298,7 @@ module.exports = {
                             , ip.insurance_info->'State' AS ins_state
                             , ip.insurance_info->'ZipCode' AS ins_zip_code
                             , ip.insurance_info->'Address1' AS ins_pri_address
+                            , ip.insurance_info->'PhoneNo' AS ins_phone_no
                             , ip.insurance_code
                             , pi.coverage_level
                             , pi.subscriber_relationship_id 
@@ -604,13 +609,13 @@ module.exports = {
     },
 
     update: async function (args) {
-        
+
         let {
             claims
             , insurances
             , claim_icds
             , charges
-            , auditDetails} = args;
+            , auditDetails } = args;
 
 
         const sqlQry = SQL`SELECT billing.update_claim_charge (
@@ -619,7 +624,7 @@ module.exports = {
             (${JSON.stringify(claim_icds)})::json,
             (${JSON.stringify(auditDetails)})::json,
             (${JSON.stringify(charges)})::json) as result`;
-            
+
         return await query(sqlQry);
     },
 
@@ -692,9 +697,9 @@ module.exports = {
 				            ,p.gender AS patient_gender
 				            ,p.account_no AS patient_account_no
                             ,f.id AS facility_id
-                            ,COALESCE(f.facility_info->'billing_provider_id','0')::numeric AS billing_provider_id
-                            ,COALESCE(f.facility_info->'service_facility_id','0')::numeric AS service_facility_id
-                            ,COALESCE(f.facility_info->'rendering_provider_id','0')::numeric AS rendering_provider_id 
+                            ,COALESCE(NULLIF(f.facility_info->'billing_provider_id',''),'0')::numeric AS billing_provider_id
+                            ,COALESCE(NULLIF(f.facility_info->'service_facility_id',''),'0')::numeric AS service_facility_id
+                            ,COALESCE(NULLIF(f.facility_info->'rendering_provider_id',''),'0')::numeric AS rendering_provider_id 
                             ,facility_info->'service_facility_name' as service_facility_name
                             ,fac_prov_cont.id AS rendering_provider_contact_id
                             ,fac_prov.full_name AS rendering_provider_full_name
@@ -713,13 +718,68 @@ module.exports = {
 
     getExistingPayer: async (params) => {
 
-        let sqlQry = SQL `
+        let sqlQry = SQL`
                 SELECT 
                     payer_type 
                 FROM 
                     billing.claims
                 WHERE 
                     id = ${params.id}`;
+
+        return await query(sqlQry);
+    },
+
+    saveICD: async (params) => {
+        let sqlQry = SQL`
+                INSERT INTO public.icd_codes(
+                            code
+                            ,description
+                            ,is_active
+                            ,company_id
+                            ,code_type
+                            ,has_deleted
+                            ,created_dt
+                )
+                SELECT
+                       ${params.code}
+                    ,  ${params.description}
+                    , true
+                    , ${params.companyId}
+                    , ${params.code_type}
+                    , false
+                    , now()
+                WHERE NOT EXISTS ( SELECT id FROM public.icd_codes  WHERE code ILIKE ${params.code}  AND company_id = ${params.companyId} AND NOT has_deleted)
+                RETURNING *, '{}'::jsonb old_values
+                `;
+
+        return await query(sqlQry);
+
+    },
+
+    getICD: async (params) => {
+        let sqlQry = SQL`
+            SELECT 
+                * 
+            FROM 
+                public.icd_codes  
+           WHERE code ILIKE ${params.code}  AND company_id = ${params.companyId} AND NOT has_deleted
+        `;
+
+        return await query(sqlQry);
+    },
+
+    getApprovedReportsByPatient: async (params) => {
+        let sqlQry = SQL`
+            SELECT 
+             id
+            FROM 
+                public.studies  
+                WHERE
+                patient_id = ${params.patient_id}
+                AND study_status='APP'
+                AND NOT has_deleted
+            ORDER BY study_dt
+        `;
 
         return await query(sqlQry);
     }

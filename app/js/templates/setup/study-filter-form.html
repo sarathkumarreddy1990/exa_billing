@@ -267,19 +267,21 @@
                                     </select>
                                 </td>
                                 <td>
-                                    <label for="txtFromTimeLast" class="form-check-label" studyfilterLabel" i18n="setup.studyFilters.from">From</label>
+                                    <label for="txtFromTimeLast" class="form-check-label studyfilterLabel" i18n="setup.studyFilters.from">From</label>
                                 </td>
                                 <td>
                                     <div id="divFromTimeLast" class="input-group fc-short">
-                                        <input type="time" id="txtFromTimeLast" name="fromTimeLast" class="form-control">
+                                            <input type="text"id="txtFromTimeLast" name="fromTimeLast" class="form-control">
+                                            <span class="input-group-addon add-on datePickerSpan"><i class="icon-ic-alarm"></i></span>
                                     </div>
                                 </td>
                                 <td>
-                                    <label for="txtToTimeLast" class="form-check-label" studyfilterLabel" i18n="setup.studyFilters.to">To</label>
+                                    <label for="txtToTimeLast" class="form-check-label studyfilterLabel" i18n="setup.studyFilters.to">To</label>
                                 </td>
                                 <td>
                                     <div id="divToTimeLast" class="input-group fc-short">
-                                        <input type="time" id="txtToTimeLast" name="toTimeLast" class="form-control">
+                                        <input type="text" id="txtToTimeLast" name="toTimeLast" class="form-control">
+                                        <span class="input-group-addon add-on datePickerSpan"><i class="icon-ic-alarm"></i></span>
                                     </div>
                                 </td>
                             </tr>
@@ -290,20 +292,23 @@
                                 </td>
                                 <td>
                                     <div id="divDateFrom" class="input-group fc-short">
-                                        <input type="date" id="txtDateFrom" class="form-control">
+                                            <input type="text" id="txtDateFrom" class="form-control form-control-date">
+                                            <span class="input-group-addon add-on datePickerSpan"><i class="icon-ic-schedule"></i></span>
                                     </div>
                                 </td>
                                 <td>
                                     <div id="divFromTime" class="input-group fc-short">
-                                        <input type="time" id="txtFromTimeDate" name="fromTime" class="form-control">
+                                        <input type="text" readonly="readonly" id="txtFromTimeDate" name="fromTime" class="form-control">
+                                        <span class="input-group-addon add-on datePickerSpan"><i class="icon-ic-alarm"></i></span>
                                     </div>
                                 </td>
                                 <td>
-                                    <label for="rbtIsNotPatientName" class="form-check-label" studyfilterLabel" i18n="setup.studyFilters.dateTo">Date To</label>
+                                    <label for="rbtIsNotPatientName" class="form-check-label studyfilterLabel" i18n="setup.studyFilters.dateTo">Date To</label>
                                 </td>
                                 <td>
                                     <div id="divDateTo" class="input-group fc-short">
-                                        <input type="date" id="txtDateTo" class="form-control">
+                                            <input type="text" id="txtDateTo" class="form-control form-control-date">
+                                            <span class="input-group-addon add-on datePickerSpan"><i class="icon-ic-schedule"></i></span>
                                     </div>
                                 </td>
                                 <td>
@@ -311,7 +316,8 @@
                                 </td>
                                 <td>
                                     <div id="divToTime" class="input-group fc-short">
-                                        <input type="time" id="txtToTimeDate" name="toTimeMonday" class="form-control">
+                                    <input type="text" readonly="readonly" id="txtToTimeDate" name="toTimeMonday" class="form-control">
+                                    <span class="input-group-addon add-on datePickerSpan" ><i class="icon-ic-alarm"></i></span>
                                     </div>
                                 </td>
                             </tr>

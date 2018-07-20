@@ -50,7 +50,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
 
         // filter inactive and no show study facilities
         var facilities = [];
-        var facilityValue = commonjs.makeValue(app.facilities, ":All;", "id", "facility_name");
+        var facilityValue = commonjs.makeValue(commonjs.getCurrentUsersFacilitiesFromAppSettings(), ":All;", "id", "facility_name");
         var bodyPartValue = commonjs.makeValue(commonjs.bindArray(app.bodyParts, false), ":All;");
         var insProviderTypeValue = commonjs.makeValue(app.insProviderTypes, ":All;", "description", "description");
         var billingCodeValue = commonjs.makeValue(app.billing_codes, ":All;", "id", "description");
@@ -121,7 +121,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 "description": "[Updox] Sent - Failed"
             }
         ];
-        
+
         var studyFlagValue = commonjs.makeValue(studyFlagArray, !isNoneExist ?
                                                        ":All;None:None;" :
                                                        ":All;","id", "description");
@@ -142,8 +142,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var imageDeliveryValue = commonjs.makeValue(imageDeliveryOptions, ':All;', 'type', 'label');
         var deletedValue = ":All;true:Only;false:None";
         var verifiedValue = ":All;true:Yes;false:No";
-        var billingMethodValue =  ":All;electronic_billing:Electronic Billing;paper_claim:Paper Claim;patient_payment:Patient Payment;direct_billing:Direct Billing";
-        var payerTypeValue =  ':All;primary_insurance:Primary Insurance;secondary_insurance:Secondary Insurance;tertiary_insurance:Teritary Insurance;patient:Patient;ordering_facility:Ordering facility;referring_provider:Referring Provider';
+        var billingMethodValue =  ":All;electronic_billing:Electronic Billing;paper_claim:Paper Claim;direct_billing:Direct Billing;patient_payment:Patient Payment";
+        var payerTypeValue =  ':All;primary_insurance:Primary Insurance;secondary_insurance:Secondary Insurance;tertiary_insurance:Tertiary Insurance;ordering_facility:Ordering facility;referring_provider:Referring Provider;patient:Patient';
 
         $.each(app.stat_level, function ( index, stat ) {
             if ( !stat.deleted ) {
@@ -406,7 +406,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         },
                         "defaultValue": "",
                         "cellattr": function ( id, cellvalue, rowObject ) {
-                            var statusDetail = commonjs.getClaimColorCodeForStatus(rowObject.claim_status,'claim');
+                            var statusDetail = commonjs.getClaimColorCodeForStatus(rowObject.claim_status_code,'claim');
                             var statusObj = statusDetail[ 0 ];
                             return 'style="background:' + (statusObj && statusObj.color_code || 'transparent') + ';"';
                         },
@@ -520,7 +520,20 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "name": "billing_provider",
                         "width": 200
                     }
-                }
+                },
+                "Submitted Date":{
+                    "id": 28,
+                    "field_code": "submitted_dt",
+                    "field_name": "Submitted Date",
+                    "i18n_name": "setup.userSettings.submittedDate",
+                    "field_info": {
+                      "name": "submitted_dt",
+                      "searchFlag": "datetime",
+                      "formatter": claimDateFormatter,
+                      "width": 200
+                    }
+                    
+                  }
 
 
             });   

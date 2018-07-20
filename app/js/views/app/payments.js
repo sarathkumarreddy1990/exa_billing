@@ -90,6 +90,10 @@ define(['jquery',
                 this.paymentsList = new paymentsLists();
                 this.adjustmentCodeList = new modelCollection(adjustment_codes);
                 this.claimStatusList = new modelCollection(claim_status);
+
+                commonjs.initHotkeys({
+                    NEW_PAYMENT: '#btnPaymentAdd'
+                });
             },
 
             initializeDateTimePickers: function () {
@@ -127,12 +131,20 @@ define(['jquery',
 
             refreshPayments: function () {
                 var self = this;
+                $("#divAmountTotal").html(' <i class="fa fa-spinner loading-spinner"></i>');
+                $("#divAppliedTotal").html(' <i class="fa fa-spinner loading-spinner"></i>');
+                $("#divAdjTotal").html(' <i class="fa fa-spinner loading-spinner"></i>');
                 self.pager.set({ "PageNo": 1 });
                 self.paymentTable.refreshAll();
             },
 
             searchPayments: function () {
-                var self = this;
+                var self = this;                
+                $("#divAmountTotal").html(' <i class="fa fa-spinner loading-spinner"></i>');
+                $("#divAppliedTotal").html(' <i class="fa fa-spinner loading-spinner"></i>');
+                $("#divAdjTotal").html(' <i class="fa fa-spinner loading-spinner"></i>');
+
+                self.pager.set({ "PageNo": 1 });
                 self.paymentTable.options.customargs = {
                     paymentStatus: $("#ulPaymentStatus").val()
                 };
@@ -140,14 +152,22 @@ define(['jquery',
                 self.paymentTable.refresh();
             },
 
-            showGrid: function (opener) {
+            showGrid: function (filterApplied) {
                 if (!this.rendered)
                     this.render(opener);
 
                 var self = this;
 
+                //Listing all payments
+                if (!filterApplied) {
+                    commonjs.paymentStatus = [];
+                    commonjs.paymentFilterFields = [];
+                    self.gridLoaded = false;
+                    $("#ulPaymentStatus").val('');
+                    $("#ulPaymentStatus").multiselect("refresh");
+                }
                 //If any status filtered previously
-                if (commonjs.paymentStatus && commonjs.paymentStatus.length) {
+                else if (commonjs.paymentStatus && commonjs.paymentStatus.length) {
                     $("#ulPaymentStatus").val(commonjs.paymentStatus);
                     $("#ulPaymentStatus").multiselect("refresh");
                 }
@@ -194,22 +214,22 @@ define(['jquery',
                                     return 'style=text-align:center;'
                                 }
                             },
-                            { name: 'id', index: 'id', key: true, searchFlag: 'int', hidden: true },
+                            { name: 'id', index: 'id', key: true, hidden: true },
                             { name: 'current_status', hidden: true },
-                            { name: 'payment_id', searchFlag: 'int' },
+                            { name: 'payment_id' },
                             { name: 'invoice_no', hidden: true },
-                            { name: 'display_id', width: 150, searchFlag: '%' },
-                            { name: 'payment_dt', width: 250, searchFlag: 'date_pure', formatter: self.paymentDateFormatter },
-                            { name: 'accounting_dt', width: 250, searchFlag: 'date_pure', formatter: self.paymentAccountingDateFormatter },
-                            { name: 'payer_type', width: 215, searchFlag: '%', stype: 'select', formatter: self.payerTypeFormatter, searchoptions: { value: payerTypeValue } },
-                            { name: 'payer_name', width: 300, searchFlag: 'hstore' },
-                            { name: 'amount', width: 215, searchFlag: '%' },
-                            { name: 'applied', width: 215, searchFlag: '%' },
-                            { name: 'available_balance', width: 215, searchFlag: '%' },
-                            { name: 'adjustment_amount', width: 215, searchFlag: 'hstore', searchColumn: ['payment_info->adjustment_amount'] },
-                            { name: 'user_full_name', width: 215, searchFlag: '%', searchColumn: ['users.last_name'] },
-                            { name: 'payment_mode', width: 200, searchFlag: 'hstore', searchColumn: ['payment_info->payment_mode'] },
-                            { name: 'facility_name', width: 200, searchFlag: '%', searchColumn: ['facility_name'] },
+                            { name: 'display_id', width: 150 },
+                            { name: 'payment_dt', width: 250, formatter: self.paymentDateFormatter },
+                            { name: 'accounting_dt', width: 250, formatter: self.paymentAccountingDateFormatter },
+                            { name: 'payer_type', width: 215, stype: 'select', formatter: self.payerTypeFormatter, searchoptions: { value: payerTypeValue } },
+                            { name: 'payer_name', width: 300 },
+                            { name: 'amount', width: 215 },
+                            { name: 'applied', width: 215 },
+                            { name: 'available_balance', width: 215 },
+                            { name: 'adjustment_amount', width: 215 },
+                            { name: 'user_full_name', width: 215 },
+                            { name: 'payment_mode', width: 200 },
+                            { name: 'facility_name', width: 200 },
                             { name: 'total_amount', hidden: true },
                             { name: 'total_applied', hidden: true },
                             { name: 'total_adjustment', hidden: true }
@@ -230,8 +250,16 @@ define(['jquery',
                             self.editPayment(rowID);
                         },
                         onaftergridbind: function (model, gridObj) {
-                            self.bindDateRangeOnSearchBox(gridObj);
-                            self.setPhoneMask();
+                            if (model && model.length) {
+                                self.bindDateRangeOnSearchBox(gridObj);
+                                self.setMoneyMask();
+                                self.getTotalAmount();
+                            }    
+                            else {
+                                $("#divAmountTotal").html('');
+                                $("#divAppliedTotal").html('');
+                                $("#divAdjTotal").html('');
+                            }
                         },
                         disablesearch: false,
                         disablesort: false,
@@ -255,38 +283,6 @@ define(['jquery',
                     });
 
                     this.gridLoaded = true;
-
-                    $("#tblpaymentsGrid").bind("jqGridAfterGridComplete", function (e) {
-                        clearTimeout(self.amountTimer);
-                        self.amountTimer = setTimeout(self.calculateAmountTotal, 25);
-                        clearTimeout(self.adjustmentTimer);
-                        self.adjustmentTimer = setTimeout(self.calculateAdjustmentTotal, 25);
-                        clearTimeout(self.appliedTimer);
-                        self.appliedTimer = setTimeout(self.calculateAppliedTotal, 25);
-                        var dataSet = {
-                            paymentStatus: $("#ulPaymentStatus").val(),
-                            filterData: JSON.stringify(self.pager.get("FilterData")),
-                            filterCol: JSON.stringify(self.pager.get("FilterCol")),
-                            sortField: self.pager.get("SortField"),
-                            sortOrder: self.pager.get("SortOrder"),
-                        };
-
-                        jQuery.ajax({
-                            url: "/exa_modules/billing/payments/total_amount",
-                            type: "GET",
-                            data: dataSet,
-                            success: function (data, textStatus, jqXHR) {
-                                if (data && data.length) {
-                                    $("#divAmountTotal").html(data[0].total_amount);
-                                    $("#divAppliedTotal").html(data[0].total_applied);
-                                    $("#divAdjTotal").html(data[0].total_adjustment);
-                                }
-                            },
-                            error: function (err) {
-                                commonjs.handleXhrError(err);
-                            }
-                        });
-                    });
                 }
                 else {
                     this.paymentTable.refresh();
@@ -294,7 +290,35 @@ define(['jquery',
                 commonjs.docResize();
             },
 
-            setPhoneMask: function (obj1, obj2) {
+            getTotalAmount: function () {
+                var self = this;
+                var dataSet = {
+                    paymentStatus: $("#ulPaymentStatus").val(),
+                    filterData: JSON.stringify(self.pager.get("FilterData")),
+                    filterCol: JSON.stringify(self.pager.get("FilterCol")),
+                    sortField: self.pager.get("SortField"),
+                    sortOrder: self.pager.get("SortOrder"),
+                };
+
+                jQuery.ajax({
+                    url: "/exa_modules/billing/payments/total_amount",
+                    type: "GET",
+                    data: dataSet,
+                    success: function (data, textStatus, jqXHR) {
+                        if (data && data.length) {
+                            $("#divAmountTotal").html(data[0].total_amount);
+                            $("#divAppliedTotal").html(data[0].total_applied);
+                            $("#divAdjTotal").html(data[0].total_adjustment);
+                        }
+                    },
+                    error: function (err) {
+                        commonjs.handleXhrError(err);
+                    }
+                });
+            },
+
+            setMoneyMask: function (obj1, obj2) {
+                $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar input[name=available_balance],[name=applied],[name=amount],[name=adjustment_amount]").addClass('floatbox');
                 $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar input[name=payment_id]").addClass('integerbox');
                 commonjs.validateControls();
             },
@@ -363,7 +387,9 @@ define(['jquery',
                 var self = this;
                 var searchFilterFlag = grid.getGridParam("postData")._search;
                 $('#btnGenerateExcel').prop('disabled', true);
-                commonjs.showLoading('Exporting Excel ...')
+                
+                commonjs.showLoading();
+
                 $.ajax({
                     url: "/exa_modules/billing/payments/payments_list",
                     type: 'GET',
@@ -372,71 +398,15 @@ define(['jquery',
                         paymentStatus: $("#ulPaymentStatus").val()
                     },
                     success: function (data, response) {
-                        var responseJSON = searchFilterFlag ? self.paymentsList : data;
-                        var ReportTitle = 'Payments';
-                        var ShowLabel = 'Payment List';
-                        var paymentExcelData = typeof responseJSON != 'object' ? JSON.parse(responseJSON) : responseJSON;
-                        var CSV = '';
-                        CSV += ReportTitle + '\r';
-                        if (ShowLabel) {
-                            var row = "";
-                            row += 'PAYMENT ID' + ',';
-                            row += 'REF. PAYMENT ID' + ',';
-                            row += 'PAYMENT DATE' + ',';
-                            row += 'ACCOUNTING DATE' + ',';
-                            row += 'PAYER TYPE' + ',';
-                            row += 'PAYER NAME' + ',';
-                            row += 'PAYMENT AMOUNT' + ',';
-                            row += 'PAYMENT APPLIED' + ',';
-                            row += 'BALANCE' + ',';
-                            row += 'ADJUSTMENT' + ',';
-                            row += 'POSTED BY' + ',';
-                            row += 'PAYMENT MODE' + ',';
-                            row += 'FACILITY' + ',';
-                        }
-                        row = row.slice(0, -1);
-                        CSV += row + '\r\n';
-
-                        for (var i = 0; i < paymentExcelData.length; i++) {
-                            var row = "";
-                            var paymentResult = searchFilterFlag ? paymentExcelData.models[i].attributes : paymentExcelData[i];
-                            var paymentDate = moment(paymentResult.payment_dt).format('L');
-                            var accountingDate = moment(paymentResult.accounting_dt).format('L');
-                            var refPaymentId = paymentResult.alternate_payment_id || " ";
-                            var facilityName = paymentResult.facility_name || " ";
-                            row += '"' + paymentResult.id + '",',
-                                row += '"' + refPaymentId + '",',
-                                row += '"' + paymentDate + '",',
-                                row += '"' + accountingDate + '",',
-                                row += '"' + paymentResult.payer_type + '",',
-                                row += '"' + paymentResult.payer_name + '",',
-                                row += '"' + paymentResult.amount + '",',
-                                row += '"' + paymentResult.applied + '",',
-                                row += '"' + paymentResult.available_balance + '",',
-                                row += '"' + paymentResult.adjustment_amount + '",',
-                                row += '"' + paymentResult.user_full_name + '",',
-                                row += '"' + paymentResult.payment_mode + '",',
-                                row += '"' + facilityName + '",'
-
-                            CSV += row + '\r\n';
-                        }
-
-                        if (CSV == '') {
-                            alert("Invalid data");
-                            return;
-                        }
-                        var fileName = "";
-                        fileName += ReportTitle.replace(/ /g, "_");
-                        var uri = 'data:text/csv;charset=utf-8,' + escape(CSV);
-                        var link = document.createElement("a");
-                        link.href = uri;
-                        link.style = "visibility:hidden";
-                        link.download = fileName + ".csv";
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        $('#btnGenerateExcel').prop('disabled', false);
-                        commonjs.hideLoading();
+                        commonjs.prepareCsvWorker({
+                            data: data,
+                            reportName: 'PAYMENTS',
+                            fileName: 'Payments'
+                        }, {
+                                afterDownload: function () {
+                                    $('#btnGenerateExcel').prop('disabled', false);
+                                }
+                            });
                     },
                     error: function (err) {
                         commonjs.handleXhrError(err);

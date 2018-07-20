@@ -368,7 +368,7 @@ define([
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
                     colNames: ['', '', '', ''],
-                    i18nNames: ['', '', 'filterName', 'filterOrder'],
+                    i18nNames: ['', '', 'setup.studyFilters.filterName', 'setup.studyFilters.filterOrder'],
                     colModel: [
                         {
                             name: 'edit',
@@ -392,9 +392,9 @@ define([
                             customAction: function (rowID) {
                                 if (confirm("Are you sure want to delete")) {
                                     var gridData = $('#tblStudyFilterGrid').jqGrid('getRowData', rowID);
-                                    self.model.set({ "id": rowID });
+                                    self.model.set({ "id": rowID, "filter_name": gridData.filter_name });
                                     self.model.destroy({
-                                        data: $.param({ id: self.model.id }),
+                                        data: $.param({ id: self.model.id, name: gridData.filter_name }),
                                         success: function (model, response) {
                                             self.studyFilterTable.refreshAll();
                                             commonjs.showStatus("Deleted Succesfully")
@@ -471,6 +471,15 @@ define([
                     $("#divDateTime>table").appendTo("#divClaimDateTime");
                     $("#divClaimDateTime>table").css({'height':'125px','margin-left': '3%'});
                 }
+                var dtpDateOptions = { format: "L", useCurrent: false };
+                self.dtpFromDate = commonjs.bindDateTimePicker("divDateFrom", dtpDateOptions);
+                self.dtpToDate = commonjs.bindDateTimePicker("divDateTo", dtpDateOptions);
+
+                var dtpTimeOptions = { format: "LT", useCurrent: false, ignoreReadonly: true };
+                self.dtpFromTime = commonjs.bindDateTimePicker("divFromTime", dtpTimeOptions);
+                self.dtpToTime = commonjs.bindDateTimePicker("divToTime", dtpTimeOptions);
+                self.dtpFromTimeLast = commonjs.bindDateTimePicker("divFromTimeLast", dtpTimeOptions);
+                self.dtpToTimeLast = commonjs.bindDateTimePicker("divToTimeLast", dtpTimeOptions);
 
                 this.setupLists();
                 $('#rbtPreformatted').unbind().change(function (e) {
@@ -1535,7 +1544,7 @@ define([
                     var statusCodes = defaultStatusArray.concat(app.customOrderStatus).concat(app.customStudyStatus);
                     var facilities = app.userInfo.user_type === 'SU' ?
                         app.facilities :
-                        app.userfacilities;
+                        app.userFacilities;
                     setupList('listModality', app.modalities, 'modality_code');
                     setupList('listBodyPart', app.bodyParts);
                     setupList('listStat', app.stat_level.slice(1), 'description', 'level');

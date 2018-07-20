@@ -47,6 +47,7 @@
             "claim": "Claim",
             "reprint": "Reprint",
             "EDIResponse": "EDI Response",
+            "ediCode": "EDI Code",
             "warningMessages": "Warning Messages",
             "download": "Download",
             "search": "Search",
@@ -107,7 +108,8 @@
             "refund": "Refund",
             "balance": "Balance",
             "receivedAmount": "Received Amount",
-            "paymentmode": "Payment As Mode",
+            "paymentmode": "Payment Mode",
+            "paymentASmode": "Payment AS Mode",
             "cash": "Cash",
             "cheque": "Check",
             "card": "Card",
@@ -410,6 +412,19 @@
             "appointmentStatus": "Appointment Status",
             "studyProgress": "Study Progress - Tech.",
             "radStatus": "Rad Status"
+        },
+        "insurance": {
+            "attorney":"Attorney",
+            "medicare":"Medicare",
+            "medicaid":"Medicaid",
+            "commercial":"Commercial",
+            "blueCross":"Blue Cross",
+            "railroadMC":"Railroad MC",
+            "workersCompensation":"Worker's Compensation",
+            "xChampus":"X Champus",
+            "yFacility":"Y Facility",
+            "mDMERC":"M DMERC",
+            "fileIndicatorCode": "Claim File Indicator Code"
         }
     }    
 }

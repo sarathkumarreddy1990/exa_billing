@@ -34,6 +34,7 @@ module.exports = {
                             , ip.insurance_name 
                             , ch.id AS claimclearinghouse
                             , billing_method
+                            , ip.is_active
                             , COUNT(1) OVER (range unbounded preceding) AS total_records
                         FROM 
                             public.insurance_providers ip
@@ -65,6 +66,8 @@ module.exports = {
                             , ip.insurance_name 
                             , ch.id AS claimclearinghouse
                             , billing_method
+                            , claim_filing_indicator_code AS indicator_code
+                            , payer_edi_code AS edi_code
                         FROM 
                             public.insurance_providers ip
                         LEFT JOIN billing.insurance_provider_details bip ON bip.insurance_provider_id  = ip.id
@@ -85,7 +88,9 @@ module.exports = {
             moduleName,
             clientIp,
             userId,
-            billingMethod
+            billingMethod,
+            indicatorCode,
+            ediCode
         } = params;
 
         const sql = SQL` WITH insert_house AS (
@@ -107,6 +112,8 @@ module.exports = {
                                 SET
                                       clearing_house_id = ${claimClearingHouse}
                                     , billing_method = ${billingMethod}
+                                    , claim_filing_indicator_code = ${indicatorCode}
+                                    , payer_edi_code = ${ediCode}
                                 WHERE
                                     insurance_provider_id = ${id} 
                                     AND NOT EXISTS (SELECT 1 FROM insert_house)

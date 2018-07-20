@@ -225,7 +225,8 @@
               "Settings":"Settings",
               "columnSort":"Column Order",
               "printerTemplates" : "Printer Template"
-            }
+            },
+            "submittedDate":"Submitted Date"
       },
         "rightClickMenu":{
             "billingStatus":"Change Billing Status",
@@ -241,7 +242,8 @@
             "viewDocuments": "View Documents",
             "viewReports":"View Reports",
             "addFollowUP":"Add Follow-up",
-            "resetFollowUp": "Cancel Follow-up"
+            "resetFollowUp": "Cancel Follow-up",
+            "resetInvoice": "Reset Invoice Number"
         },
         "validation":{
             "billingGrp": "Billing Provider",
@@ -270,9 +272,9 @@
             "patient_lastName": "Patient-LastName",
             "patient_state": "Patient-State",
             "patient_zipCode": "Patient-ZipCode",
-            "readingGrp": "Reading Provider",
-            "reading_physician_full_name": "Reading Provider Name",
-            "reading_pro_npiNo": "Reading Provider-NpiNo",
+            "readingGrp": "Rendering Provider",
+            "reading_physician_full_name": "Rendering Provider Name",
+            "reading_pro_npiNo": "Rendering Provider-NpiNo",
             "refferingGrp": "Reffering Provider",
             "ref_full_name": "Reffering Provider Name",
             "referring_pro_npiNo": "Reffering Provider-NpiNo",

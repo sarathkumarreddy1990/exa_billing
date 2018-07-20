@@ -94,7 +94,7 @@ const api = {
 
                 api.logJsReportOptions(jsReportOptions);
                 console.time(`${repInfo} s5___jsreport`);
-                jsReportClient.render(jsReportOptions, { timeout: 600000 /* ms */, time: true }, (err, response) => {
+                jsReportClient.render(jsReportOptions, { timeout: 6000000 /* ms */, time: true }, (err, response) => {
                     console.timeEnd(`${repInfo} s5___jsreport`);
                     if (err) {
                         //return next(err);

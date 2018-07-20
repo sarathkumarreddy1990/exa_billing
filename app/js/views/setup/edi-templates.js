@@ -149,6 +149,11 @@ define([
                             commonjs.handleXhrError(err);
                         }
                     });
+                } else {
+                    var data = {};
+                    $('#dropdownMenuButton').html("");
+                    ace.edit('editor').setValue(JSON.stringify(data, null, '\t'));
+                    commonjs.showWarning("No more templates to load");
                 }
             },
 
@@ -173,9 +178,12 @@ define([
             },
 
             deleteTemplate: function () {
-                $('#lblTempHeader').html("Delete Templates");
-                $('#btnTemplateAction').html("DELETE TEMPLATE");
-                $('#divTemplateCreator').show();
+                var templateName = $('#dropdownMenuButton').html();
+                if (this.templateExists(templateName, this.templateLists) && confirm("Do you want to delete " + templateName)) {
+                    this.deleteTrigger(templateName);
+                } else {
+                    commonjs.showWarning("No more templates to delete");
+                }
             },
 
             templateAction: function (e) {

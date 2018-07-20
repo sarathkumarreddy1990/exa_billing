@@ -101,6 +101,7 @@ module.exports = {
         'billing_classes': 'BICL',
         'claim_status': 'CLST',
         'billing_providers': 'BIPR',
+        'provider_id_codes': 'BIPR',
         'provider_id_code_qualifiers': 'PRCQ',
         'billing_messages': 'BILM',
         'payment_reasons': 'PARE',
@@ -132,6 +133,7 @@ module.exports = {
         'claim_json':'CLIM', //when claim
         'patient_insurances': 'CLIM', //create claim
         'line_items': 'CLIM', //create claim
+        'invoice_no': 'CLIM', // Reset Invoice No
         'studies': 'HSTY', 
         'studies_total_records': 'HSTY',
         'payments': 'PAYM',
@@ -165,6 +167,7 @@ module.exports = {
         'payments_list': 'PAYM', // screenNameInternal = list for EOB doubts having
         'payments-pdf': 'PAYM',
         'total_amount': 'PAYM',
+        'count': 'PAYM',
         'groupcodes_and_reasoncodes': 'PAYM',
         'all': 'PAYM',
         'patient_count': 'PAYM',
@@ -178,13 +181,12 @@ module.exports = {
         'claim': 'ECLM',
         'billing_payers': 'ECLM',
         'service_facilities': 'ECLM',
-        'transcription': 'ECLM',
-        'vieworder': 'ECLM', // view doc Rmenu
         'claim_charge': 'ECLM', //delete Claim Rmenu 
         'era_list': 'ERAI',
         'upload': 'ERAI',
         'era_file_preview': 'ERAI',
         'process-file': 'ERAI',
+        'era_details': 'ERAI',
         'claim_study': 'ECLM',
         'follow_ups': 'ECLM',
         'claim_patient': 'PCLM',
@@ -194,6 +196,7 @@ module.exports = {
         'payment-invoice': 'CLIM',
         'patient': 'ECLM',
         'invoice_details': 'APAY',
-        'apply_invoice_payments': 'APAY'
+        'apply_invoice_payments': 'APAY',
+        'update_claim_status': 'CLIM'
     }
 };

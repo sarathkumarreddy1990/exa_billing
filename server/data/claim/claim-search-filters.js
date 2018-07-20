@@ -1,5 +1,6 @@
 const studyfilterdata = require('./../study-filters');
 const filterValidator = require('./../filter-validator')();
+const config = require('../../config');
 const { query, SQL } = require('./../index');
 const util = require('./../util');
 
@@ -7,6 +8,11 @@ const colModel = [
     {
         name: 'claim_dt',
         searchColumns: ['claims.claim_dt'],
+        searchFlag: 'daterange'
+    },
+    {
+        name: 'submitted_dt',
+        searchColumns: ['claims.submitted_dt'],
         searchFlag: 'daterange'
     },
     {
@@ -105,7 +111,7 @@ const colModel = [
         searchColumns: [`(  CASE payer_type 
                 WHEN 'primary_insurance' THEN insurance_providers.insurance_name
                 WHEN 'secondary_insurance' THEN insurance_providers.insurance_name
-                WHEN 'teritary_insurance' THEN insurance_providers.insurance_name
+                WHEN 'tertiary_insurance' THEN insurance_providers.insurance_name
 	            WHEN 'ordering_facility' THEN provider_groups.group_name
 	            WHEN 'referring_provider' THEN ref_provider.full_name
 	            WHEN 'rendering_provider' THEN render_provider.full_name
@@ -122,7 +128,7 @@ const colModel = [
     },   
     {
         name: 'claim_balance',
-        searchColumns: ['(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from BILLING.get_claim_totals(claims.id)) '],
+        searchColumns: ['(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) from BILLING.get_claim_totals(claims.id)) '],
         searchFlag: 'money'
     },
     {
@@ -218,18 +224,19 @@ const api = {
                 return `(  CASE payer_type 
                 WHEN 'primary_insurance' THEN insurance_providers.insurance_name
                 WHEN 'secondary_insurance' THEN insurance_providers.insurance_name
-                WHEN 'teritary_insurance' THEN insurance_providers.insurance_name
+                WHEN 'tertiary_insurance' THEN insurance_providers.insurance_name
 	            WHEN 'ordering_facility' THEN provider_groups.group_name
 	            WHEN 'referring_provider' THEN ref_provider.full_name
 	            WHEN 'rendering_provider' THEN render_provider.full_name
 	            WHEN 'patient' THEN patients.full_name        END) 
                     `;
             case 'clearing_house': return 'edi_clearinghouses.name';
-            case 'claim_balance': return '(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM BILLING.get_claim_totals(claims.id))';
+            case 'claim_balance': return '(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) FROM BILLING.get_claim_totals(claims.id))';
             case 'billing_code': return 'billing_codes.description';
             case 'billing_class': return 'billing_classes.description';
             case 'gender': return 'patients.gender';
             case 'claim_notes': return 'claims.claim_notes';
+            case 'submitted_dt': return 'claims.submitted_dt';
         }
 
         return args;
@@ -291,7 +298,7 @@ const api = {
                 (  CASE payer_type 
                 WHEN 'primary_insurance' THEN primary_patient_insurance_id
                 WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
-                WHEN 'teritary_insurance' THEN tertiary_patient_insurance_id
+                WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
                 END)`;
 
             r += ' LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id ';
@@ -299,9 +306,6 @@ const api = {
             r += ' LEFT JOIN   billing.edi_clearinghouses ON  billing.edi_clearinghouses.id=insurance_provider_details.clearing_house_id';
              
         }
-        
-
-        
        
         if (tables.provider_groups) { r += '  LEFT JOIN provider_groups ON claims.ordering_facility_id = provider_groups.id '; }
 
@@ -319,11 +323,13 @@ const api = {
             'claims.id',
             'claims.id as claim_id',
             'claims.claim_dt',
+            'claims.facility_id',
             'claim_status.description as claim_status',
             'claim_status.code as claim_status_code',
             'patients.full_name as patient_name',
             'patients.account_no',
             'patients.birth_date::text as birth_date',
+            'claims.submitted_dt',
             `patients.patient_info->'ssn' 
             as patient_ssn`,
             'billing_providers.name as billing_provider',
@@ -345,12 +351,12 @@ const api = {
             `(  CASE payer_type 
             WHEN 'primary_insurance' THEN insurance_providers.insurance_name
             WHEN 'secondary_insurance' THEN insurance_providers.insurance_name
-            WHEN 'teritary_insurance' THEN insurance_providers.insurance_name
+            WHEN 'tertiary_insurance' THEN insurance_providers.insurance_name
             WHEN 'ordering_facility' THEN provider_groups.group_name
             WHEN 'referring_provider' THEN ref_provider.full_name
             WHEN 'rendering_provider' THEN render_provider.full_name
             WHEN 'patient' THEN patients.full_name        END) as payer_name`,
-            '(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from BILLING.get_claim_totals(claims.id)) as claim_balance',
+            '(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) from BILLING.get_claim_totals(claims.id)) as claim_balance',
             'billing_codes.description as billing_code',
             'billing_classes.description as billing_class',
             'claims.claim_notes',
@@ -365,6 +371,14 @@ const api = {
         let sortField = (args.sortField || '').trim();
         let sortOrder = (args.sortOrder || '').trim();
         sortField = api.getSortFields(sortField);
+
+        if (args.customArgs && args.customArgs.flag === 'exportExcel') {
+            if (config.get('claimsExportRecordsCount')) {
+                args.pageSize = config.get('claimsExportRecordsCount');
+            } else {
+                args.pageSize = 25000;
+            }
+        }
 
         let params = [];
         const tables = api.getTables([sortField]);

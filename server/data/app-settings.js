@@ -93,7 +93,7 @@ module.exports = {
                                         is_system_status
                                     FROM   billing.claim_status
                                     WHERE  company_id=${companyID} AND inactivated_dt IS NULL
-                                    ORDER  BY display_order ) AS claim_status)
+                                    ORDER  BY display_order, description ) AS claim_status)
                 , cte_billing_codes AS(
                                     SELECT Json_agg(Row_to_json(billing_codes)) billing_codes
                                     FROM  (
@@ -241,6 +241,27 @@ module.exports = {
                                         modifier4
                                         FROM   modifiers
                                         WHERE  company_id=${companyID}  ) AS modifiers)
+                ,cte_user_facilities as(
+                                    SELECT Json_agg(Row_to_json(userFacilities)) "userFacilities"
+                                    FROM   (
+                                            SELECT facilities.id,
+                                                facility_code,
+                                                facility_name,
+                                                time_zone,
+                                                file_store_id
+                                            FROM   facilities
+                                            INNER JOIN users ON users.id=${userID}
+                                            WHERE  facilities.company_id=${companyID} 
+                                            AND    NOT facilities.has_deleted
+                                            AND    facilities.is_active 
+                                            AND (facilities.id) = ANY(users.facilities )
+                                            ORDER BY 
+                                            facility_name )AS userFacilities 
+                ),
+                cte_currentDate as (
+                    SELECT 
+                        now() as currentDate
+                )
 
                SELECT *
                FROM   cte_company,
@@ -265,7 +286,9 @@ module.exports = {
                       cte_adjustment_code_list,
                       cte_user_group_list,
                       cte_payment_reasons_list,
-                      cte_modifiers
+                      cte_modifiers,
+                      cte_user_facilities,
+                      cte_currentDate
                `;
 
         return await query(sql);

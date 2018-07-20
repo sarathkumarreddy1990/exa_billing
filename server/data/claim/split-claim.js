@@ -131,13 +131,7 @@ module.exports = {
                                 claim_id  = (SELECT id FROM new_claim)
                             WHERE 
                                 ch.id = ANY(${cpt_ids})
-                            RETURNING *,
-                            (
-                                SELECT row_to_json(old_row) 
-                                FROM   (SELECT * 
-                                        FROM   billing.charges 
-                                        WHERE  claim_id = ${claim_id} LIMIT 1) old_row 
-                            ) old_values
+                            RETURNING *, '{}'::jsonb old_values
                         ),
                         new_icd AS (
                             INSERT INTO 
@@ -162,7 +156,7 @@ module.exports = {
                                 , id
                                 , ${screenName}
                                 , ${moduleName}
-                                , 'new claim created '
+                                , 'new claim created ' || new_claim.id 
                                 , ${clientIp}
                                 , json_build_object(
                                     'old_values', COALESCE(old_values, '{}'),
@@ -180,7 +174,7 @@ module.exports = {
                                 , id
                                 , ${screenName}
                                 , ${moduleName}
-                                , ' Claim Id updated'
+                                , 'Claim ID of Charge  updated  ' ||' Charge ID  '|| update_charge.id || '  New Claim ID  ' || update_charge.claim_id ||  '  Old Claim ID ' ||  ${claim_id} 
                                 , ${clientIp}
                                 , json_build_object(
                                     'old_values', COALESCE(old_values, '{}'),
@@ -198,7 +192,7 @@ module.exports = {
                                 , id
                                 , ${screenName}
                                 , ${moduleName}
-                                , 'New icd created '
+                                , 'New icd created  ' || new_icd.id || 'claim ID  '|| new_icd.claim_id
                                 , ${clientIp}
                                 , json_build_object(
                                     'old_values', COALESCE(old_values, '{}'),

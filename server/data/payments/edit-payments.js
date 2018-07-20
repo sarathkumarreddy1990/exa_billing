@@ -75,7 +75,7 @@ module.exports = {
                     pp.account_no,
                     array_agg(pcc.display_code) AS display_description,
                     (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) AS billing_fee,
-                    (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) AS balance,
+                    (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) FROM billing.get_claim_totals(bc.id)) AS balance,
                     COUNT(1) OVER (range unbounded preceding) AS total_records
                 FROM billing.claims bc
                 INNER JOIN public.patients pp on pp.id = bc.patient_id 
@@ -122,7 +122,7 @@ module.exports = {
                         pp.account_no,
                         array_agg(pcc.display_code) AS display_description,
                         (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) AS billing_fee,
-                        (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) AS balance,
+                        (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) FROM billing.get_claim_totals(bc.id)) AS balance,
                         COUNT(1) OVER (range unbounded preceding) AS total_records
                     FROM billing.claims bc
                     INNER JOIN public.patients pp on pp.id = bc.patient_id 
@@ -202,7 +202,7 @@ module.exports = {
                     pp.account_no,
                     array_agg(pcc.display_code) AS display_description,
                     (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) AS billing_fee,
-                    (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) AS balance,
+                    (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) FROM billing.get_claim_totals(bc.id)) AS balance,
                     COUNT(1) OVER (range unbounded preceding) AS total_records
                 FROM billing.claims bc
                 INNER JOIN public.patients pp on pp.id = bc.patient_id 
@@ -319,7 +319,7 @@ module.exports = {
         }
 
         if (balance) {
-            whereQuery.push(`((SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from billing.get_claim_totals(bc.id)) = (${balance})::money)`);
+            whereQuery.push(`((SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) from billing.get_claim_totals(bc.id)) = (${balance})::money)`);
         }
 
         const sql = SQL `SELECT 
@@ -344,7 +344,7 @@ module.exports = {
             COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'adjustment'),0::money) as this_adjustment,
             COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'payment'),0::money) as payment,
             (SELECT claim_cpt_description from billing.get_claim_totals(bc.id)) as display_description,
-            (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from billing.get_claim_totals(bc.id)) as balance,
+            (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) from billing.get_claim_totals(bc.id)) as balance,
             COUNT(1) OVER (range unbounded preceding) AS total_records
         FROM billing.payments bp
         INNER JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
@@ -751,20 +751,36 @@ module.exports = {
     },
 
     getFeeDetails: async function (params) {
+
+        let {
+            paymentId,
+            paymentApplicationId,
+            claimId 
+        } = params;
+
+        paymentApplicationId = paymentApplicationId || 0;
+
         return await query(
-            `            
+            `   with get_payment_details AS (
+                SELECT 
+                    sum(bgpa.payment_amount) AS payment_amount,
+                    sum(bgpa.adjustment_amount) AS adjustment_amount
+                FROM billing.get_payment_applications(${paymentId},${paymentApplicationId}) bgpa
+                INNER JOIN billing.charges bch on bch.id = bgpa.charge_id where bch.claim_id =  ${claimId}
+               )      
                 SELECT
                     (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) AS bill_fee,
                     COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient' and bpa.amount_type = 'payment'),0::money) AS patient_paid,
                     COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient' and bpa.amount_type = 'payment'),0::money) AS others_paid,
-                    (SELECT adjustments_applied_total from billing.get_claim_totals(bc.id)) AS adjustment,
-                    (SELECT payments_applied_total from billing.get_claim_totals(bc.id)) AS payment,
-                    (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) AS balance
+                    (SELECT adjustments_applied_total from billing.get_claim_totals(bc.id)) AS total_adjustment,
+                    (SELECT adjustment_amount from get_payment_details) AS adjustment,
+                    (SELECT payment_amount from get_payment_details) AS payment,
+                    (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) FROM billing.get_claim_totals(bc.id)) AS balance
                 FROM billing.claims bc
                     INNER JOIN billing.charges bch ON bch.claim_id = bc.id 
                     LEFT JOIN billing.payment_applications bpa ON bpa.charge_id  =  bch.id -- For getting applid and pending payments 
                     LEFT JOIN billing.payments bp ON bp.id = bpa.payment_id 
-                WHERE bc.id = ${params.claimId}
+                WHERE bc.id = ${claimId}
                     GROUP BY bc.id
                     `
         );

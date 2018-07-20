@@ -262,7 +262,7 @@ define(['jquery',
                         $("#txtShortDesc").val($.trim($('#txtShortDesc').val()) || null);
                         $("#txtFederalTaxID").val($.trim($('#txtFederalTaxID').val()) || null);
                         $("#txtNpi").val($.trim($('#txtNpi').val()) || null);
-                        $("#txtTaxonomy").val($.trim($('#txtTaxonomy').val()) || null);
+                        $("#txtTaxonomy").val($.trim($('#txtTaxonomy').val().toUpperCase()) || null);
                         $("#txtContactName").val($.trim($('#txtContactName').val()) || null);
                         $("#txtAddressLine1").val($.trim($('#txtAddressLine1').val()) || null);
                         $("#txtCity").val($.trim($('#txtCity').val()) || null);
@@ -411,7 +411,7 @@ define(['jquery',
                     "shortDescription": $('#txtShortDesc').val(),
                     "federalTaxId": $('#txtFederalTaxID').val(),
                     "npiNo": $('#txtNpi').val(),
-                    "taxonomyCode": $('#txtTaxonomy').val(),
+                    "taxonomyCode": $('#txtTaxonomy').val().toUpperCase(),
                     "contactPersonName": $('#txtContactName').val(),
                     "addressLine1": $('#txtAddressLine1').val(),
                     "addressLine2": $.trim($('#txtAddressLine2').val()),

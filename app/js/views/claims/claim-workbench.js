@@ -319,7 +319,7 @@ define(['jquery',
                 var drpTabColumnSet = [
                     {                        
                         forTab: "claims",
-                        columns: ["current_illness_date", "claim_dt", "followup_date","birth_date"]
+                        columns: ["current_illness_date", "claim_dt", "followup_date", "birth_date", 'submitted_dt']
                     }
                 ];
                 var columnsToBind = _.find(drpTabColumnSet,function (val) {
@@ -426,7 +426,7 @@ define(['jquery',
                 var filterID = commonjs.currentStudyFilter;
                 var filter = commonjs.loadedStudyFilters.get(filterID);
 
-                var claimIds =[],existingBillingMethod='',existingClearingHouse='',existingEdiTemplate='', selectedpayerType = [];      
+                var claimIds = [], invoiceNo = [], existingBillingMethod = '', existingClearingHouse = '', existingEdiTemplate = '', selectedPayerName = [];      
 
                 for (var i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
                     var rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;
@@ -464,8 +464,8 @@ define(['jquery',
                         existingClearingHouse = clearingHouse;
                     }
 
-                    var payerType = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'payer_type'); 
-                    selectedpayerType.push(payerType)
+                    var payerName = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'payer_name'); 
+                    selectedPayerName.push(payerName)
 
                     // var ediTemplate = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'edi_template');
                     // if (existingEdiTemplate == '') existingEdiTemplate = ediTemplate;
@@ -475,13 +475,19 @@ define(['jquery',
                     // } else {
                     //     existingEdiTemplate = ediTemplate;
                     // }
-
+                    var invoice_no = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'invoice_no');
+                    invoiceNo.push(invoice_no);
                     claimIds.push(rowId);
                 }
 
 
                 if (claimIds && claimIds.length == 0) {
                     commonjs.showWarning('Please select claims with same type of billing method ');
+                    return false;
+                }
+                
+                if (existingBillingMethod === 'direct_billing' && _.uniq(invoiceNo).length > 1) {
+                    commonjs.showWarning('Please select claims with same invoice no ');
                     return false;
                 }
 
@@ -507,16 +513,24 @@ define(['jquery',
                         sortBy = 'service_date';
                     }
                 }
-                var uniquePayerType = $.unique(selectedpayerType);
+                var uniquePayerName = $.unique(selectedPayerName);
                 
-                if(existingBillingMethod === 'direct_billing') {
-                    if(uniquePayerType && uniquePayerType.length && uniquePayerType.length > 1) {
+                if (existingBillingMethod === 'direct_billing' && _.uniq(invoiceNo).length == 1) {
+                    if (invoiceNo && invoiceNo[0] && invoiceNo[0].length > 0) {
+                        paperClaim.print('direct_invoice', claimIds, {
+                            sortBy: sortBy,
+                            invoiceNo: invoiceNo[0]
+                        });
+                        return;
+                    }
+                    else if (uniquePayerName && uniquePayerName.length && uniquePayerName.length > 1) {
                         self.printInvoiceClaim('direct_invoice', claimIds, sortBy)
                         return;
                     }
                     else {
                         paperClaim.print('direct_invoice', claimIds, {
-                            sortBy: sortBy
+                            sortBy: sortBy,
+                            invoiceNo: invoiceNo[0]
                         });
                         return;
                     }
@@ -579,6 +593,8 @@ define(['jquery',
                                 document.body.removeChild(element);
                             });
                             $("#btnClaimsRefresh").click();
+                        } else {
+                            commonjs.showWarning('NO_DATA');
                         }
                     },
                     error: function (err) {
@@ -633,11 +649,11 @@ define(['jquery',
                 var self = this;
                 commonjs.showLoading('Fetching data..');
 
-                if (commonjs.loadedStudyFilters.size > 0) {
-                    commonjs.loadedStudyFilters.forEach(function (gridObj) {
-                        gridObj.customGridTable.jqGrid('GridUnload');
-                    });
-                }
+                // if (commonjs.loadedStudyFilters.size > 0) {
+                //     commonjs.loadedStudyFilters.forEach(function (gridObj) {
+                //         gridObj.customGridTable.jqGrid('GridUnload');
+                //     });
+                // }
                 commonjs.setFilter(null, null);
                 $('#divTabsContainer').show();
 
@@ -1149,19 +1165,16 @@ define(['jquery',
                                 'container': self.el,
                                 '$container': self.$el,
                                 'updateStudiesPager':updateStudiesPager,
-                                'isClaimGrid': true
+                                'isClaimGrid': true,
+                                'context': this
                             });
                             table.renderStudy();
 
                             $('#btnValidateExport').one().click(function (e) {
-                                commonjs.showLoading('Export is In Process ...')
-                                table.renderStudy(true);                                  
-                                $('#btnValidateExport').css('display','none');    
-                                commonjs.hideLoading();
-
+                                $('#btnValidateExport').css('display', 'none');
+                                table.renderStudy(true);
                             });
                         };
-
 
                         createStudiesTable();
                     }
@@ -1449,9 +1462,13 @@ define(['jquery',
                                     if (filter.pager.get('PageNo') === 1 && filter.pager.get('PageSize') === 100) {
                                         filter.pager.set({"PageNo": 4});
                                         filter.pager.set({"PageSize": 25});
+                                        // Reset scroll position
+                                        $bdiv.scrollTop(curScroll);
                                     }
-                                    // Reset scroll position
-                                    $bdiv.scrollTop(curScroll);
+                                    else {
+                                        filter.pager.set({"PageNo": filter.pager.get("PageNo")});
+                                        filter.pager.set({"PageSize": 25}); 
+                                    }
                                     // Reset selected rows
 
                                     if ($bdiv.scrollTop() === curScroll) {
@@ -1560,7 +1577,7 @@ define(['jquery',
                             filter.options.showEncOnly = showEncOnly;
                             $('input:checkbox[name=showDicom]').prop('checked', isDicomSearch);
                             $('input:checkbox[name=showRis]').prop('checked', isRisOrderSearch);
-                            filter.customGridTable.jqGrid('GridUnload');
+                           // filter.customGridTable.jqGrid('GridUnload');
                             commonjs.setFilter(null, null);
                             self.setTabContents(fid, isprior, isDicomSearch, isRisOrderSearch, showEncOnly);
                         }
@@ -1706,7 +1723,7 @@ define(['jquery',
                 
                 $.ajax({
                     url: '/exa_modules/billing/claim_workbench/validate_claims',
-                    type: 'GET',
+                    type: 'POST',
                     data: {
                         claim_ids: claimIds 
                     },

@@ -114,6 +114,12 @@ define(['jquery',
                             }
                         }
                     ],
+                    afterInsertRow: function (rowid, rowdata) {
+                        if (!rowdata.is_active) {
+                            var $row = $('#tblInsuranceX12MappingGrid').find('#' + rowid);
+                            $row.css('text-decoration', 'line-through');
+                        }
+                    },
                     datastore: self.insuranceX12MappingList,
                     container:self.el,
                     customizeSort: true,
@@ -164,7 +170,8 @@ define(['jquery',
                                     $('#lblInsuranceName ').html(data.insurance_name ? data.insurance_name : '');
                                     $('#ddlClaimClearingHouse').val(data.claimclearinghouse ? data.claimclearinghouse : '');
                                     $('#ddlClaimBillingMethod').val(data.billing_method ? data.billing_method : '');
-
+                                    $('#txtClaimFileIndicatorCode').val(data.indicator_code ? data.indicator_code : '');
+                                    $('#selectPayerEDICode').val(data.edi_code ? data.edi_code : '');
                                     if(data.billing_method == 'electronic_billing'){
                                         $('#clearingHouse').show();
                                     }
@@ -187,6 +194,9 @@ define(['jquery',
 
                 $('#divInsuranceX12MappingGrid').hide();
                 $('#divInsuranceX12MappingForm').show();
+                $('#selectPayerEDICode').change(function(){
+                    self.changeEDICode();
+                });
                 commonjs.processPostRender();
             },
 
@@ -236,7 +246,9 @@ define(['jquery',
             save: function () {
                 this.model.set({
                     "claimClearingHouse": ($('#ddlClaimClearingHouse').val() && $('#ddlClaimBillingMethod').val()=='electronic_billing' ) ? $('#ddlClaimClearingHouse').val() : null,
-                    "billingMethod": $('#ddlClaimBillingMethod').val()
+                    "billingMethod": $('#ddlClaimBillingMethod').val(),
+                    "indicatorCode": $('#txtClaimFileIndicatorCode').val(),
+                    "ediCode": $("#selectPayerEDICode").val()
                 });
                 this.model.save({
                 }, {
@@ -279,6 +291,43 @@ define(['jquery',
                     $('#clearingHouse').hide();
                 }
                     
+            },
+
+            changeEDICode: function () {
+                var ediCode = $('#selectPayerEDICode').val();
+                var ediVal = '';
+                switch (ediCode) {
+                    case '-1':
+                    case 'A':
+                    case 'Y':
+                    case 'M':
+                        ediVal = ''
+                        break;
+                    case 'C':
+                        ediVal = 'MB'
+                        break;
+                    case 'D':
+                        ediVal = 'MC'
+                        break;
+                    case 'F':
+                        ediVal = 'CI'
+                        break;
+                    case 'G':
+                        ediVal = 'BL'
+                        break;
+                    case 'R':
+                        ediVal = 'MB'
+                        break;
+                    case 'W':
+                        ediVal = 'WC'
+                        break;
+                    case 'X':
+                        ediVal = 'CH'
+                        break;
+                    case 'default':
+                        ediVal = ''
+                }
+                $('#txtClaimFileIndicatorCode').val(ediVal);
             }
         });
         return insuranceX12MappingView;

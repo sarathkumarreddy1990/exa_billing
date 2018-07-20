@@ -6,6 +6,7 @@ var rjsConfig = {
         'jquery.validate': '../node_modules/jquery-validation/dist/jquery.validate',
         'jqueryvalidateadditional': '../node_modules/jquery-validation/dist/additional-methods',
         'underscore': '../node_modules/underscore/underscore',
+        'hotkeys': '../node_modules/jquery.hotkeys/jquery.hotkeys',
         '_get': '../libs/_get/index',
         'text': '../node_modules/requirejs-text/text',
         'backbone': '../node_modules/backbone/backbone',
@@ -25,6 +26,7 @@ var rjsConfig = {
         'commonjs': 'shared/common',
         'mail-merge': 'shared/mail-merge',
         'layout': 'shared/layout',
+        'constants': 'shared/constants',
         'debug': 'shared/debug',
         'app-settings': 'shared/app-settings',
         'customgrid': 'shared/customgrid',
@@ -47,6 +49,9 @@ var rjsConfig = {
             deps: ['jquery', 'jquery.validate']
         },
         'bootstrap': {
+            deps: ['jquery']
+        },
+        'hotkeys': {
             deps: ['jquery']
         },
         'jqgrid': {
@@ -128,6 +133,7 @@ if (require && require.config) {
         'jquery.validate',
         'jquery',
         'underscore',
+        'hotkeys',
         'fastdom',
         'jqueryvalidateadditional',
         'jstorage',
@@ -135,6 +141,7 @@ if (require && require.config) {
         'bootstrap-notify',
         'commonjs',
         'layout',
+        'constants',
         'debug',
         'i18nscript',
         'sessionhandler',
@@ -155,6 +162,7 @@ if (require && require.config) {
         jqueryvalidate,
         $,
         _,
+        hotkeys,
         fastdom,
         jqueryvalidateadditional,
         jstorage,
@@ -162,6 +170,7 @@ if (require && require.config) {
         bootstrapNotify,
         commonjs_,
         layout,
+        constants,
         debug,
         i18n,
         sessionhandler,
