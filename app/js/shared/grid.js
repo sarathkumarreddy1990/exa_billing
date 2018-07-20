@@ -1222,7 +1222,7 @@ define('grid', [
                         event.stopPropagation();
                     } else if (disableRightClick()) {
                         var _selectEle = $(event.currentTarget).find('#' + rowID).find('input:checkbox');
-                        _selectEle.attr('checked', true);
+                        _selectEle.prop('checked', true);
 
                         if (!options.isClaimGrid && !gridData.claim_id) {
                             if (validateClaimSelection(rowID, true, _selectEle, studyStore))
@@ -1239,7 +1239,7 @@ define('grid', [
                 beforeSelectRow: function (rowID, e, options) {
                     var _selectEle = $(e.currentTarget).find('#' + rowID).find('input:checkbox');
                     var enableField = _selectEle.is(':checked')
-                    _selectEle.attr('checked', !enableField);
+                    _selectEle.prop('checked', !enableField);
 
                     if (!options.isClaimGrid) {
                         enableField = _selectEle.is(':checked');
