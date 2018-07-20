@@ -4,13 +4,13 @@
         <!-- col: form elements -->
         <div class="col-3">
             <div class="form-group form-inline">
-                <div class="col-form-content">
+                <div>
                     <label class="control-label" for="txtDateRangeFromTo" i18n="report.claimDate" />
                     <div id="divReportDate" class="input-group">
-                        <span class="input-group-addon add-on">
+                        <input type="text" id="txtDateRangeFromTo" class="form-control" required="required" name="dateRange">
+                        <span class="input-group-addon add-on datePickerSpan">
                             <i class="fa fa-calendar"></i>
                         </span>
-                        <input type="text" id="txtDateRangeFromTo" class="form-control" required="required" name="dateRange">
                     </div>
                 </div>
             </div>
