@@ -44,6 +44,14 @@ module.exports = {
         const result = await ediData.getClaimData(params);
         let ediResponse ={};
         let claimDetails=[];
+        
+        if (result && result instanceof Error) {
+            return result;
+        }
+        
+        if (result && result.rows && !result.rows.length) {
+            return new Error('NO_DATA');
+        }
 
         if (result.rows && result.rows.length) { 
 
