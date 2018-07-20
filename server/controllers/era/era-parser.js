@@ -177,17 +177,33 @@ module.exports = {
                         });
 
                         let serviceIdentification = _.filter(val.serviceIdentification, { referenceIdentQual: '6R' });
-                        let charge_id = 0;
+                        let charge_id = null;
 
                         if (serviceIdentification && serviceIdentification.length) {
-                            charge_id = serviceIdentification[0].assingedNumber && !isNaN(serviceIdentification[0].assingedNumber) ? serviceIdentification[0].assingedNumber : 0;
+                            charge_id = serviceIdentification[0].assingedNumber && !isNaN(serviceIdentification[0].assingedNumber) ? serviceIdentification[0].assingedNumber : null;
+                        }
+
+                        /**
+                        *  DESC : Formatting lineItems (Added sequence index and flag:true ) if duplicate cpt code came
+                        */
+                        let duplicateObj = _.findLast(lineItems, { claim_number: value.claimNumber, cpt_code: val.qualifierData.cptCode });
+                        let index = 1;
+                        let duplicate_flag = false;
+
+                        if (duplicateObj) {
+                            index = duplicateObj.index && duplicateObj.index ? duplicateObj.index + 1 : 1;
+                            duplicate_flag = true;
+
+                            if (!duplicateObj.duplicate) {
+                                duplicateObj.duplicate = true;
+                            }
                         }
 
                         lineItems.push({
+                            claim_number: value.claimNumber,
+                            cpt_code: val.qualifierData.cptCode,
                             payment: val.paidamount,
                             adjustment: adjustmentAmount || 0.00,
-                            cpt_code: val.qualifierData.cptCode,
-                            claim_number: value.claimNumber,
                             original_reference: value.payerClaimContorlNumber || null,
                             claim_status_code: value.claimStatusCode || 0,
                             cas_details: cas_obj,
@@ -197,7 +213,9 @@ module.exports = {
                             patient_lname : value.patientName.lastName || '',
                             patient_mname : value.patientName.middleName || '',
                             patient_prefix : value.patientName.prefix || '',
-                            patient_suffix : value.patientName.suffix || ''
+                            patient_suffix : value.patientName.suffix || '',
+                            index : index,
+                            duplicate : duplicate_flag
                         });
                     });
 
