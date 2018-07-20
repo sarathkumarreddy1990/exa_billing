@@ -2,9 +2,7 @@ importScripts('/exa_modules/billing/static/node_modules/underscore/underscore.js
 importScripts('/exa_modules/billing/static/node_modules/moment/min/moment-with-locales.js');
 importScripts('/exa_modules/billing/static/node_modules/moment-timezone/builds/moment-timezone-with-data.js');
 
-var reportTitle = 'Claims';
-
-var columnMap = {
+var claimColumns = {
     "Claim Date": "claim_dt",
     "Patient Name": "patient_name",
     "Clearing House": "clearing_house",
@@ -26,7 +24,25 @@ var columnMap = {
     "Payer Type": "payer_type",
     "Billing Class": "billing_class",
     "Billing Code": "billing_code"
-}
+};
+
+var paymentsColumns = {
+    "PAYMENT ID": "id",
+    "REF. PAYMENT ID": "alternate_payment_id",
+    "PAYMENT DATE": "payment_dt",
+    "ACCOUNTING DATE": "accounting_dt",
+    "PAYER TYPE": "payer_type",
+    "PAYER NAME": "payer_name",
+    "PAYMENT AMOUNT": "amount",
+    "PAYMENT APPLIED": "applied",
+    "BALANCE": "available_balance",
+    "ADJUSTMENT": "adjustment_amount",
+    "POSTED BY": "user_full_name",
+    "PAYMENT MODE": "payment_mode",
+    "FACILITY": "facility_name",
+};
+
+var dateColumns = ['Claim Date', 'PAYMENT DATE', 'ACCOUNTING DATE'];
 
 onmessage = function (req) {
     console.log('Request received from client');
@@ -40,9 +56,8 @@ onmessage = function (req) {
             reject(err);
         });
     }).then(function (data) {
-        var fileName = reportTitle.replace(/ /g, "_");
         var csvData = data;
-        postMessage({ fileName, csvData });
+        postMessage({ csvData });
     });
 };
 
@@ -55,8 +70,20 @@ function generateCsvData(dbResponse, callback) {
         throw new Error('generateCsvData is an async method and needs a callback');
     }
 
+    var columnMap = '';
+
     var showLabel = true;
     var dbData = typeof dbResponse.data != 'object' ? JSON.parse(dbResponse.data) : dbResponse.data;
+
+    switch (dbResponse.reportName) {
+        case 'CLAIMS':
+            columnMap = claimColumns;
+            break;
+
+        case 'PAYMENTS':
+            columnMap = paymentsColumns;
+            break
+    }
 
     var tmpColDelim = String.fromCharCode(11); // vertical tab character
     var tmpRowDelim = String.fromCharCode(0); // null character
@@ -81,7 +108,7 @@ function generateCsvData(dbResponse, callback) {
         return columns.map(function (colName, colIndex) {
             var csvText = showLabel && rowIndex == 0 ? colName : dbRow[columnMap[colName]];
 
-            if (rowIndex && colName === 'Claim Date') {
+            if (rowIndex && dateColumns.indexOf(colName) > -1) {
                 csvText = csvText ? moment(csvText).format('L') : '';
             }
 
