@@ -311,7 +311,7 @@ module.exports = {
                         WHERE ch.id NOT IN ( SELECT charge_id FROM  billing.payment_applications pa WHERE pa.charge_id = ch.id AND pa.payment_id = cp.payment_id )
                     ),insert_payment_adjustment AS (
                         SELECT
-                            billing.create_payment_applications_test(
+                            billing.create_payment_applications(
                                 uc.payment_id
                                 ,( SELECT id FROM billing.adjustment_codes WHERE code = ${code} ORDER BY id ASC LIMIT 1 )
                                 ,${created_by}
