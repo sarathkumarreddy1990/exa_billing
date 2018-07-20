@@ -48,8 +48,8 @@ define(['jquery',
                 this.templateType = [
                     { 'value': "direct_invoice", 'text': "Direct Invoice" },
                     { 'value': "patient_invoice", 'text': "Patient Invoice" },
-                    { 'value': "paper_claim_full", 'text': "Paper Claim Full" },
-                    { 'value': "paper_claim_original", 'text': "Paper Claim Original" }
+                    { 'value': "paper_claim_full", 'text': "Paper Claim (B & W)" },
+                    { 'value': "paper_claim_original", 'text': "Paper Claim (RED)" }
 
                 ];
                 this.paperClaimTemplatesList = new PaperClaimTemplatesCollections();
@@ -405,10 +405,10 @@ define(['jquery',
                 var colvalue = '';
                 switch (rowObject.template_type) {
                     case "paper_claim_original":
-                        colvalue = 'Paper Claim Original';
+                        colvalue = 'Paper Claim (RED)';
                         break;
                     case "paper_claim_full":
-                        colvalue = 'Paper Claim Full';
+                        colvalue = 'Paper Claim (B & W)';
                         break;
                     case "direct_invoice":
                         colvalue = 'Direct Invoice';
