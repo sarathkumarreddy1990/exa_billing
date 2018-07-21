@@ -970,7 +970,9 @@ define(['jquery',
                         url: '/exa_modules/billing/claims/claim/line_items',
                         data: {
                             from: 'claimCreation',
-                            study_ids: selectedStudyIds
+                            study_ids: selectedStudyIds,
+                            patient_id: self.cur_patient_id || 0,
+                            claim_date: self.cur_study_date || 'now()'
                         },
                         success: function (model, response) {
                             if (model && model.length > 0) {
@@ -2617,8 +2619,15 @@ define(['jquery',
                         charge_dt: self.cur_study_date || null,
                         study_id: rowData.study_id || null,
                         is_deleted: false,
-                        isEdit: !!$('#txtBillFee_' + id).attr('edit')
+                        isEdit: $('#txtBillFee_' + id).attr('edit')
                     });
+                    var charges = claim_model.charges[claim_model.charges.length - 1];
+                    if(charges) {
+                        if(!self.isEdit && charges.isEdit == "false") {
+                            charges.bill_fee = 0.00;
+                            charges.allowed_amount = 0.00;
+                        } 
+                    }
                 });
 
                 // Assign If any charges removed
