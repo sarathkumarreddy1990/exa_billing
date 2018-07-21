@@ -736,9 +736,10 @@ BEGIN
 				i_adjustment_code_id,
 				i_created_by,
 				charges.cas_details,	
-				i_audit_details
+				i_audit_details,
+                COALESCE(applied_dt,now())
 			)
-		FROM	(select * from jsonb_to_recordset(i_charge_details) as x(charge_id bigint, payment money, adjustment money, cas_details jsonb )) charges
+		FROM	(select * from jsonb_to_recordset(i_charge_details) as x(charge_id bigint, payment money, adjustment money, cas_details jsonb, applied_dt timestamptz )) charges
 	) x2;
 END
 $BODY$
@@ -753,7 +754,8 @@ CREATE OR REPLACE FUNCTION billing.create_payment_applications(
     IN i_adjustment_code_id bigint,
     IN i_created_by bigint,
     IN i_cas_details jsonb,
-    IN i_audit_details json)
+    IN i_audit_details json,
+    IN i_applied_dt timestamptz)
   RETURNS TABLE(payment_application_id bigint, payment_application_adjustment_id bigint, cas_payment_application_detail_id bigint) AS
 $BODY$
 DECLARE
@@ -785,13 +787,15 @@ BEGIN
 			charge_id,
 			amount_type,
 			amount,
-			created_by
+			created_by,
+            applied_dt
 		) VALUES (
 			i_payment_id,
 			i_charge_id,
 			'payment',
 			i_payment_amount,
-			i_created_by
+			i_created_by,
+            coalesce(i_applied_dt,now())
 		)
 		RETURNING *, '{}'::jsonb old_values
 	),
