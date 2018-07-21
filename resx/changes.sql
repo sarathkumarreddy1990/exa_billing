@@ -2036,7 +2036,8 @@ BEGIN
 		),
     insurance_paid as (
 		WITH ins_paid as (
-		SELECT bc.primary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id is_primary,
+		SELECT  ppi.insurance_provider_id,
+			bc.primary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id is_primary,
 			bc.secondary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id is_secondary,
 			bc.tertiary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id is_tertiary
 		FROM billing.claims bc
@@ -2045,24 +2046,40 @@ BEGIN
 		     INNER JOIN billing.payments bp ON  bp.id = bpa.payment_id
 		     INNER JOIN public.patient_insurances ppi ON ppi.id = ANY(ARRAY[bc.primary_patient_insurance_id, bc.secondary_patient_insurance_id, bc.tertiary_patient_insurance_id])
 		 WHERE bc.id = i_claim_id AND bp.payer_type = 'insurance'
-		 ) 
+		 ),
+		 is_other_paid AS 
+		 (
+		 SELECT  
+			 (bp.insurance_provider_id IN  (SELECT insurance_provider_id FROM ins_paid)) AS is_ins_other_paid
+		  FROM billing.claims bc
+		     INNER JOIN billing.charges bch ON  bch.claim_id = bc.id  
+		     INNER JOIN billing.payment_applications bpa ON  bpa.charge_id = bch.id  
+		     INNER JOIN billing.payments bp ON  bp.id = bpa.payment_id
+		     WHERE bc.id = i_claim_id AND bp.payer_type = 'insurance'
+		 )
 		 SELECT
 		 (SELECT count(1) > 0 FROM ins_paid WHERE is_primary) is_primary_paid,
 		 (SELECT count(1) > 0 FROM ins_paid WHERE is_secondary) is_secondary_paid,
-		 (SELECT count(1) > 0 FROM ins_paid WHERE is_tertiary) is_tertiary_paid
+		 (SELECT count(1) > 0 FROM ins_paid WHERE is_tertiary) is_tertiary_paid,
+		 (SELECT count(1) = count(1) Filter (WHERE is_ins_other_paid is false) FROM is_other_paid WHERE is_ins_other_paid) is_other_ins_paid	 
 		) 
 	UPDATE billing.claims
 	SET payer_type = (
-			CASE WHEN claim_details.adjustments_applied_total = claim_details.charges_bill_fee_total AND claim_details.payments_applied_total::money = 0::money THEN claim_details.payer_type
+			CASE WHEN claim_details.adjustments_applied_total = claim_details.charges_bill_fee_total AND claim_details.payments_applied_total::money = 0::money THEN 
+				claim_details.payer_type
 			ELSE
 			    CASE 
 			        WHEN claim_details.claim_balance_total > 0::money  THEN
-			            CASE WHEN NOT is_primary_paid AND primary_patient_insurance_id IS NOT NULL 
+			            CASE WHEN is_other_ins_paid AND (primary_patient_insurance_id IS NOT NULL OR secondary_patient_insurance_id IS NOT NULL OR tertiary_patient_insurance_id IS NOT NULL )
+						THEN 'secondary_insurance'
+						WHEN (NOT is_primary_paid  and is_other_ins_paid ) AND primary_patient_insurance_id IS NOT NULL 
 						THEN 'primary_insurance'
 					        WHEN NOT is_secondary_paid AND secondary_patient_insurance_id IS NOT NULL 
 						THEN 'secondary_insurance'
 					        WHEN NOT is_tertiary_paid AND tertiary_patient_insurance_id IS NOT NULL 
 						THEN 'tertiary_insurance'
+						WHEN is_other_ins_paid AND (primary_patient_insurance_id IS NOT NULL OR secondary_patient_insurance_id IS NOT NULL OR tertiary_patient_insurance_id IS NOT NULL )
+						THEN 'secondary_insurance'
 					        ELSE 'patient' 
 					 END
 				WHEN claim_details.claim_balance_total < 0::money AND (claim_details.payer_type = 'primary_insurance') AND secondary_patient_insurance_id IS NOT NULL
@@ -2074,7 +2091,7 @@ BEGIN
 				WHEN claim_details.claim_balance_total = 0::money
 				THEN 'patient'
 				ELSE 
-				claim_details.payer_type
+				    'patient'
 			     END 
 			END 
 		),
