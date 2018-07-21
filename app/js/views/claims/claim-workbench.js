@@ -1172,7 +1172,10 @@ define(['jquery',
 
                             $('#btnValidateExport').one().click(function (e) {
                                 $('#btnValidateExport').css('display', 'none');
-                                table.renderStudy(true);
+                                var filter = commonjs.loadedStudyFilters.get(filterID)
+                                filterData= JSON.stringify(filter.pager.get('FilterData')),
+                                filterCol =JSON.stringify(filter.pager.get('FilterCol'));
+                                table.renderStudy(true, filterData, filterCol);
                             });
                         };
 
