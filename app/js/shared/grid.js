@@ -679,7 +679,7 @@ define('grid', [
             }
         },
 
-        self.renderStudy = function (doExport) {
+        self.renderStudy = function (doExport, filterData, filterCol) {
             if (options.isClaimGrid)
                 var studyStore = studyDataStore = new claimWorkbench(null, { 'filterID': filterID });
             else {
@@ -1094,6 +1094,7 @@ define('grid', [
             });
 
             if (doExport) {
+                console.log('v', filterData, filterCol)
                 var searchFilterFlag = grid.getGridParam("postData")._search;
                 var colHeader = studyFields.colName;
 
@@ -1103,8 +1104,8 @@ define('grid', [
                     'url': '/exa_modules/billing/claim_workbench',
                     type: 'GET',
                     data: {
-                        filterData: [],
-                        filterCol: [],
+                        filterData: filterData,
+                        filterCol: filterCol ,
                         customArgs: {
                             filter_id: filterID,
                             flag: 'exportExcel'
