@@ -1992,6 +1992,8 @@ SELECT COALESCE(NULLIF(AGE_0_30, 0::money),0::money) as AGE_0_30, COALESCE(NULLI
 $BODY$
   LANGUAGE sql;
 -- --------------------------------------------------------------------------------------------------------------------
+DROP FUNCTION  IF EXISTS billing.get_computed_bill_fee(bigint, bigint, bigint, bigint, bigint, bigint, text, text);
+DROP FUNCTION  IF EXISTS billing.get_computed_bill_fee(bigint, bigint, bigint, bigint, bigint, bigint, text, text, bigint, bigint);
 CREATE OR REPLACE FUNCTION billing.get_computed_bill_fee(
     p_claim_id bigint,
     p_cpt_id bigint,
@@ -3518,6 +3520,7 @@ WITH claim_details as (
 $BODY$
   LANGUAGE sql;
 -- --------------------------------------------------------------------------------------------------------------------
+DROP FUNCTION  IF EXISTS billing.get_batch_claim_details(bigint, bigint);
 CREATE OR REPLACE FUNCTION billing.get_batch_claim_details(
     IN i_study_id bigint,
     IN i_created_by bigint)
