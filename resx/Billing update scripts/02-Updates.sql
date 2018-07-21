@@ -3522,7 +3522,12 @@ CREATE OR REPLACE FUNCTION billing.get_batch_claim_details(
     IN i_created_by bigint)
   RETURNS TABLE(claim_icds json, charges json, insurances json, claims json) AS
 $BODY$
+DECLARE
+	p_order_id BIGINT;
 BEGIN
+    
+    SELECT order_id INTO p_order_id FROM public.studies WHERE id = i_study_id;
+
 	RETURN QUERY
 	WITH study_details AS (
 		SELECT 
@@ -3775,7 +3780,7 @@ BEGIN
             orders
         LEFT JOIN provider_contacts ON COALESCE (NULLIF (order_info -> 'rendering_provider_id',''),'0') = provider_contacts.id::text
         LEFT JOIN providers ON providers.id = provider_contacts.provider_id
-        WHERE orders.id = ( SELECT COALESCE(NULLIF(order_id,'0'),'0')::numeric FROM study_details )
+        WHERE orders.id = p_order_id
 )
  
 SELECT
