@@ -1679,6 +1679,7 @@ define([
                $('#lblSummaryAccession').text('');
                $('#lblSummaryAttorney').text('');
                $('#lblSummaryStudyDescription').text('');
+               $('#lblSummaryInsurance').text('');
 
                $('#lblSummaryStudyID').text('');
                 $('#txtAccession').val('');
