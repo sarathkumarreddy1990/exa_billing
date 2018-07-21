@@ -716,6 +716,7 @@ END;
 $BODY$
   LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS billing.create_payment_applications(bigint, bigint, bigint, jsonb, json);
 CREATE OR REPLACE FUNCTION billing.create_payment_applications(
     IN i_payment_id bigint,
     IN i_adjustment_code_id bigint,
@@ -746,7 +747,7 @@ END
 $BODY$
   LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
-
+DROP FUNCTION IF EXISTS billing.create_payment_applications(bigint, bigint, money, money, bigint, bigint, jsonb, json);
 CREATE OR REPLACE FUNCTION billing.create_payment_applications(
     IN i_payment_id bigint,
     IN i_charge_id bigint,
