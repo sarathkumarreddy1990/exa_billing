@@ -2686,7 +2686,6 @@ define(['jquery',
                                     $("#btnStudiesRefresh").click();
                                 }, 200);
                                 
-                                //var time = self.isEdit ? 800 : 100;
                                 var claimHideInterval = setTimeout(function () {
                                     clearTimeout(claimHideInterval);
                                     
@@ -2703,11 +2702,6 @@ define(['jquery',
                                             'order_id': result && result.order_id ? result.order_id : 0
                                         });
                                     });
-
-                                    // } else {
-                                    //     commonjs.hideLoading();
-                                    //     commonjs.hideDialog();
-                                    // }
                                 }, 800);
                             }
                         },
