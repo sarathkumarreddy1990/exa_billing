@@ -70,7 +70,7 @@ define(['jquery',
                 // this.bindDateRangePicker();
                 // this.drpStudyDt.setStartDate(this.viewModel.dateFrom);
                 // this.drpStudyDt.setEndDate(this.viewModel.dateTo);
-                this.viewModel.fromDate = commonjs.bindDateTimePicker("divFromDate", { format: "L" });
+                this.viewModel.fromDate = commonjs.bindDateTimePicker("txtFromDate", { format: "L" });
                 this.viewModel.fromDate.date(commonjs.getFacilityCurrentDateTime(app.facilityID));
 
                 UI.bindBillingProvider();

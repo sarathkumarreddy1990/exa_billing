@@ -89,7 +89,7 @@
             "qualifierCode": "Qualifier Code"
         },
         "ediClearingHouses": {
-            "name": "clearing houses name",
+            "name": "clearing house name",
             "receiverName": "Receiver Name",
             "receiverID": "Receiver ID",
             "ediTemplate": "EDI Template",
