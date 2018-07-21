@@ -2388,8 +2388,14 @@ var commonjs = {
                 //$(this).jqGrid('setGridWidth', obj.width);
                 if (($(this).attr('id') && $(this).attr('id').indexOf('tblGridOD') == 0) || ($(this).attr('id') && $(this).attr('id').indexOf('tblGridPS') == 0)) // for home page pre-orders and qc grids having buttons under grid
                     $(this).jqGrid('setGridHeight', obj.height - 20);
-                else
-                    $(this).jqGrid('setGridHeight', obj.height);
+                else{
+                     if(($(this).attr('id') && ($(this).attr('id').indexOf('tblProviderIDCodesGrid')==-1 && $(this).attr('id').indexOf('tblPatientClaimsGrid')==-1 && $(this).attr('id').indexOf('tblInvoiceGrid')==-1 ))){
+                        $(this).jqGrid('setGridHeight', obj.height);
+                     }
+
+                } 
+               
+                   
 
                 if ($('.exa-left-nav')) {
                     $('.exa-left-nav').height(obj.navHeight);

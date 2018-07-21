@@ -94,7 +94,8 @@ define([
                         reportBy: claimInfo.reportByFlag,
                         toDate: claimInfo.toDate,
                         billingProviderIds: claimInfo.billingProId,
-                        sDate: moment().format('MM/DD/YYYY')
+                        sDate: moment().format('MM/DD/YYYY'),
+                        billingComments: claimInfo.billingComments
                     }
                 }
                 UI.showReport(reportName, this.viewModel.reportCategory, 'pdf', urlParams, true);

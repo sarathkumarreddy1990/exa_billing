@@ -32,8 +32,13 @@ WITH transaction_summary_by_month as (
         sum(bill_fee*units) as charge
     FROM billing.charges bch
     INNER JOIN billing.claims bc on bc.id = bch.claim_id 
+    INNER JOIN facilities f on f.id = bc.facility_id
+    <% if (billingProID) { %> INNER JOIN billing.providers bbp ON bbp.id = bc.billing_provider_id <% } %>
     WHERE 1=1
     AND<%=claimDate%>
+    <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+    <% if(billingProID) { %> AND <% print(billingProID); } %>
+   
     GROUP BY (date_trunc('month', bc.claim_dt) ))
     SELECT
         COALESCE(to_char(ts.txn_month, 'MON-yy'), to_char(cs.txn_month, 'MON-yy') ) AS "Date",
@@ -79,8 +84,13 @@ WITH transaction_summary_by_day as (
         sum(bill_fee*units) as charge
         FROM billing.charges bch
         INNER JOIN billing.claims bc on bc.id = bch.claim_id 
+        INNER JOIN facilities f on f.id = bc.facility_id
+        <% if (billingProID) { %> INNER JOIN billing.providers bbp ON bbp.id = bc.billing_provider_id <% } %>
+
     WHERE 1=1
     AND<%=claimDate%>
+    <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+    <% if(billingProID) { %> AND <% print(billingProID); } %>
     GROUP BY (date_trunc('day', bc.claim_dt) ))
     SELECT
         COALESCE(to_char(ts.txn_month, 'MM/DD/YYYY'), to_char(cs.txn_month, 'MM/DD/YYYY') ) AS "Date",

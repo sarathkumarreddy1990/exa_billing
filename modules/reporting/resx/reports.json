@@ -655,6 +655,37 @@
         }
     },
     {
+        "id": "claim-inquiry",
+        "category": "billing",
+        "title": "Claim Transaction",
+        "description": "Report shows all submitted claims and order payment/balance.",
+        "jsreport": {
+            "html": {             
+                    "template": { "name": "billing-claim-inquiry-html" }              
+            },
+            "pdf": {
+                "template": {
+                    "name": "billing-claim-inquiry-pdf"
+                }
+            },
+            "xlsx": {
+                "template": {
+                    "name": "default-table-excel"
+                }
+            },
+            "csv": {
+                "template": {
+                    "name": "default-table-csv"
+                }
+            },
+            "xml": {
+                "template": {
+                    "name": "default-table-xml"
+                }
+            }
+        }
+    },
+    {
         "id": "referringPhysicianStudyCount",
         "category": "operations",
         "title": "Referring Physician Study Count",
@@ -904,7 +935,7 @@
             },
             "pdf": {
                 "template": {
-                    "name": "billing-patient-statement-pdf"
+                    "name": "default-table-pdf"
                 }
             },
             "xlsx": {

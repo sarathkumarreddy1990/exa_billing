@@ -8,8 +8,8 @@ const _ = require('lodash')
 // generate query template ***only once*** !!!
 
 const claimInquiryDataSetQueryTemplate = _.template(`
-with claim_data as (
-    Select 
+WITH claim_data as (
+    SELECT 
        bc.id as claim_id,
        p.full_name as patient_name,
        p.account_no,
@@ -18,16 +18,16 @@ with claim_data as (
        COALESCE(p.patient_info->'c1HomePhone','') AS phone,
        claim_totals.claim_balance_total,
        bc.payer_type,
-       nullif(ip.insurance_name,'')  AS insurance_name,
-       nullif(ip.insurance_code,'')  AS insurance_code,
-       nullif(ip.insurance_info->'Address1','')  AS address1,
-       nullif(ip.insurance_info->'Address2','')  AS address2,
-       nullif(ip.insurance_info->'City','') AS city,
-       nullif(ip.insurance_info->'State','')  AS state,
-       nullif(ip.insurance_info->'ZipCode','')  AS zip,
-       nullif(ip.insurance_info->'ZipPlus','')  AS zip_plus,
-       nullif(ip.insurance_info->'PhoneNo','')  AS phone_no,
-       nullif(ip.insurance_info->'FaxNo','')  AS fax_no,
+       NULLIF(ip.insurance_name,'')  AS insurance_name,
+       NULLIF(ip.insurance_code,'')  AS insurance_code,
+       NULLIF(ip.insurance_info->'Address1','')  AS address1,
+       NULLIF(ip.insurance_info->'Address2','')  AS address2,
+       NULLIF(ip.insurance_info->'City','') AS city,
+       NULLIF(ip.insurance_info->'State','')  AS state,
+       NULLIF(ip.insurance_info->'ZipCode','')  AS zip,
+       NULLIF(ip.insurance_info->'ZipPlus','')  AS zip_plus,
+       NULLIF(ip.insurance_info->'PhoneNo','')  AS phone_no,
+       NULLIF(ip.insurance_info->'FaxNo','')  AS fax_no,
        bc.claim_dt,
        CASE
          WHEN bc.payer_type = 'primary_insurance' THEN ip.insurance_name
@@ -38,112 +38,165 @@ with claim_data as (
          WHEN bc.payer_type = 'referring_provider' THEN null
          ELSE  NULL
        END AS carrier,
-       json_build_array('coverage_level',pi.coverage_level,'GroupNo',pi.group_number,'PolicyNo',pi.policy_number,'expire_date',pi.valid_to_date,'insurance_name',ip.insurance_name) as cov,
-       bp.name
-    FROM billing.claims bc
+       json_build_object('coverage_level',pi.coverage_level,'insurance_name',ip.insurance_name,'expire_date',pi.valid_to_date,'PolicyNo',pi.policy_number, 'GroupNo',pi.group_number),
+       bp.name,
+       (SELECT 
+            claim_balance_total 
+        FROM 
+            billing.get_claim_totals(bc.id)) AS claim_balance
+    FROM 
+        billing.claims bc
     INNER JOIN LATERAL billing.get_claim_totals(bc.id) AS claim_totals ON TRUE
     INNER JOIN public.patients p on p.id = bc.patient_id
     INNER JOIN public.facilities f on f.id = bc.facility_id
     INNER JOIN billing.providers bp on bp.id = bc.billing_provider_id
-    LEFT JOIN public.patient_insurances pi on pi.id = (CASE WHEN  bc.payer_type = 'primary_insurance' THEN
-                                                                                      primary_patient_insurance_id
-                                                                                WHEN  bc.payer_type = 'secondary_insurance' THEN
-                                                                                      secondary_patient_insurance_id
-                                                                                WHEN  bc.payer_type = 'tertiary_insurance' THEN
-                                                                                      tertiary_patient_insurance_id
-                                                                                END)
+    LEFT JOIN public.patient_insurances pi on pi.id = (
+                                                CASE WHEN  bc.payer_type = 'primary_insurance' THEN
+                                                   primary_patient_insurance_id
+                                                WHEN  bc.payer_type = 'secondary_insurance' THEN
+                                                   secondary_patient_insurance_id
+                                                WHEN  bc.payer_type = 'tertiary_insurance' THEN
+                                                   tertiary_patient_insurance_id
+                                                END
+                                            )
     LEFT JOIN public.insurance_providers ip on ip.id = pi.insurance_provider_id
     WHERE 1=1
     AND  <%= companyId %>
      ORDER BY p.full_name,p.account_no ASC)    
-    select * from claim_data limit 10
+    SELECT
+         *
+    FROM
+         claim_data LIMIT 1000
 `);
 
 const claimInquiryDataSetQueryTemplate1 = _.template(`
 with claim_data_comments as (
-    Select 
-       bc.id as claim_id,
-       p.full_name as patient_name,
-       p.account_no,
-       COALESCE(p.patient_info->'ssn','') AS ssn,
-       COALESCE(to_char(p.birth_date,'MM/DD/YYYY'),'') AS dob,
-       COALESCE(p.patient_info->'c1HomePhone','') AS phone,
-       claim_totals.claim_balance_total,
-       bc.payer_type,
-       nullif(ip.insurance_name,'')  AS insurance_name,
-       nullif(ip.insurance_code,'')  AS insurance_code,
-       nullif(ip.insurance_info->'Address1','')  AS address1,
-       nullif(ip.insurance_info->'Address2','')  AS address2,
-       nullif(ip.insurance_info->'City','') AS city,
-       nullif(ip.insurance_info->'State','')  AS state,
-       nullif(ip.insurance_info->'ZipCode','')  AS zip,
-       nullif(ip.insurance_info->'ZipPlus','')  AS zip_plus,
-       nullif(ip.insurance_info->'PhoneNo','')  AS phone_no,
-       nullif(ip.insurance_info->'FaxNo','')  AS fax_no,
-       bc.claim_dt,
-       CASE
-         WHEN bc.payer_type = 'primary_insurance' THEN ip.insurance_name
-         WHEN bc.payer_type = 'secondary_insurance'  THEN ip.insurance_name
-         WHEN bc.payer_type = 'tertiary_insurance' THEN ip.insurance_name
-         WHEN bc.payer_type = 'patient'  THEN p.full_name
-         WHEN bc.payer_type = 'ordering_facility' THEN f.facility_name
-         WHEN bc.payer_type = 'referring_provider' THEN null
-         ELSE  NULL
-       END AS carrier,
-       json_build_object('coverage_level',pi.coverage_level,'GroupNo',pi.group_number,'PolicyNo',pi.policy_number,'expire_date',pi.valid_to_date,'insurance_name',ip.insurance_name),
-       bp.name
-    FROM billing.claims bc
-    INNER JOIN LATERAL billing.get_claim_totals(bc.id) AS claim_totals ON TRUE
-    INNER JOIN public.patients p on p.id = bc.patient_id
-    INNER JOIN public.facilities f on f.id = bc.facility_id
-    INNER JOIN billing.providers bp on bp.id = bc.billing_provider_id
-    LEFT JOIN public.patient_insurances pi on pi.id = (CASE WHEN  bc.payer_type = 'primary_insurance' THEN
-                                                                                      primary_patient_insurance_id
-                                                                                WHEN  bc.payer_type = 'secondary_insurance' THEN
-                                                                                      secondary_patient_insurance_id
-                                                                                WHEN  bc.payer_type = 'tertiary_insurance' THEN
-                                                                                      tertiary_patient_insurance_id
-                                                                                END)
-    LEFT JOIN public.insurance_providers ip on ip.id = pi.insurance_provider_id
-    WHERE 1=1
-    AND  <%= companyId %>
-     ORDER BY p.full_name,p.account_no ASC),
-     billing_comments as 
+    SELECT 
+    bc.id as claim_id,
+    p.full_name as patient_name,
+    p.account_no,
+    COALESCE(p.patient_info->'ssn','') AS ssn,
+    COALESCE(to_char(p.birth_date,'MM/DD/YYYY'),'') AS dob,
+    COALESCE(p.patient_info->'c1HomePhone','') AS phone,
+    claim_totals.claim_balance_total,
+    bc.payer_type,
+    NULLIF(ip.insurance_name,'')  AS insurance_name,
+    NULLIF(ip.insurance_code,'')  AS insurance_code,
+    NULLIF(ip.insurance_info->'Address1','')  AS address1,
+    NULLIF(ip.insurance_info->'Address2','')  AS address2,
+    NULLIF(ip.insurance_info->'City','') AS city,
+    NULLIF(ip.insurance_info->'State','')  AS state,
+    NULLIF(ip.insurance_info->'ZipCode','')  AS zip,
+    NULLIF(ip.insurance_info->'ZipPlus','')  AS zip_plus,
+    NULLIF(ip.insurance_info->'PhoneNo','')  AS phone_no,
+    NULLIF(ip.insurance_info->'FaxNo','')  AS fax_no,
+    bc.claim_dt,
+    CASE
+      WHEN bc.payer_type = 'primary_insurance' THEN ip.insurance_name
+      WHEN bc.payer_type = 'secondary_insurance'  THEN ip.insurance_name
+      WHEN bc.payer_type = 'tertiary_insurance' THEN ip.insurance_name
+      WHEN bc.payer_type = 'patient'  THEN p.full_name
+      WHEN bc.payer_type = 'ordering_facility' THEN f.facility_name
+      WHEN bc.payer_type = 'referring_provider' THEN null
+      ELSE  NULL
+    END AS carrier,
+    json_build_object('coverage_level',pi.coverage_level,'insurance_name',ip.insurance_name,'expire_date',pi.valid_to_date,'PolicyNo',pi.policy_number, 'GroupNo',pi.group_number),
+    bp.name,
+    (SELECT 
+         claim_balance_total 
+     FROM 
+         billing.get_claim_totals(bc.id)) AS claim_balance
+ FROM 
+     billing.claims bc
+ INNER JOIN LATERAL billing.get_claim_totals(bc.id) AS claim_totals ON TRUE
+ INNER JOIN public.patients p on p.id = bc.patient_id
+ INNER JOIN public.facilities f on f.id = bc.facility_id
+ INNER JOIN billing.providers bp on bp.id = bc.billing_provider_id
+ LEFT JOIN public.patient_insurances pi on pi.id = (
+                                             CASE WHEN  bc.payer_type = 'primary_insurance' THEN
+                                                primary_patient_insurance_id
+                                             WHEN  bc.payer_type = 'secondary_insurance' THEN
+                                                secondary_patient_insurance_id
+                                             WHEN  bc.payer_type = 'tertiary_insurance' THEN
+                                                tertiary_patient_insurance_id
+                                             END
+                                         )
+ LEFT JOIN public.insurance_providers ip on ip.id = pi.insurance_provider_id
+ WHERE 1=1
+ AND  <%= companyId %>
+  ORDER BY p.full_name,p.account_no ASC),  
+  
+  billing_comments as 
     (
-    select cc.claim_id as id,'claim' as type ,note as comments ,created_dt::date as commented_dt,null as amount,u.username as commented_by from  billing.claim_comments cc
+    SELECT 
+             cc.claim_id AS id
+            ,'claim' AS type 
+            , note   AS comments 
+            , created_dt::date AS commented_dt
+            , null AS charges
+            , u.username AS commented_by
+            , null::money AS adjustment_amount 
+            , null::money AS payment_amount
+            , null::bigint AS payment_id 
+            , null AS cpt_codes  
+    FROM
+          billing.claim_comments cc
     INNER JOIN claim_data_comments cd on cd.claim_id = cc.claim_id
-    inner join users u  on u.id = cc.created_by 
+    INNER join users u  on u.id = cc.created_by 
     UNION ALL
-    select  c.claim_id as id,'charge' as type,cc.short_description as comments,c.charge_dt::date as commented_dt,(c.bill_fee*c.units) as amount,u.username as commented_by from billing.charges c
+    SELECT
+            c.claim_id AS id
+          , 'charge' AS type
+          , cc.short_description AS comments
+          , c.charge_dt::date AS commented_dt
+          , (c.bill_fee*c.units) AS amount
+          , u.username AS commented_by
+          , null::money AS adjustment_amount
+          , null::money AS payment_amount
+          , null::bigint AS payment_id
+          , cc.display_code as cpt_codes 
+    FROM
+         billing.charges c
     INNER JOIN claim_data_comments cd on cd.claim_id = c.claim_id
-    inner join cpt_codes cc on cc.id = c.cpt_id 
-    inner join users u  on u.id = c.created_by
+    INNER JOIN cpt_codes cc on cc.id = c.cpt_id 
+    INNER JOIN users u  on u.id = c.created_by
     UNION ALL
-    select  bc.claim_id as id,amount_type as type,
-    CASE WHEN bp.payer_type = 'patient' THEN
-               pp.full_name
-         WHEN bp.payer_type = 'insurance' THEN
-               pip.insurance_name
-         WHEN bp.payer_type = 'ordering_facility' THEN
-               pg.group_name
-         WHEN bp.payer_type = 'ordering_provider' THEN
-               p.full_name
-    END as comments,
-    bp.accounting_dt::date as commented_dt,
-    pa.amount as amount,
-    u.username as commented_by 
-    from billing.payments bp
-    inner join billing.payment_applications pa on pa.payment_id = bp.id
-    inner join billing.charges bc on bc.id = pa.charge_id 
+    SELECT
+            bc.claim_id AS id
+          , amount_type AS type,
+            CASE 
+                WHEN bp.payer_type = 'patient' THEN
+                    pp.full_name
+                WHEN bp.payer_type = 'insurance' THEN
+                    pip.insurance_name
+                WHEN bp.payer_type = 'ordering_facility' THEN
+                    pg.group_name
+                WHEN bp.payer_type = 'ordering_provider' THEN
+                    p.full_name
+                END     AS comments,
+            bp.accounting_dt::date as commented_dt,
+            pa.amount as amount,
+            u.username as commented_by,
+            (bp.amount) AS total_payment, 
+            (SELECT adjustments_applied_total FROM billing.get_payment_totals(bp.id)) AS adjustments,
+            bp.id as payment_id,
+            null      
+    FROM 
+                billing.payments bp
+    INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
+    INNER JOIN billing.charges bc on bc.id = pa.charge_id 
     INNER JOIN claim_data_comments cd on cd.claim_id = bc.claim_id
-    inner join users u  on u.id = bp.created_by
+    INNER JOIN users u  on u.id = bp.created_by
     LEFT JOIN public.patients pp on pp.id = bp.patient_id
     LEFT JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id
     LEFT JOIN public.provider_groups  pg on pg.id = bp.provider_group_id
     LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
     LEFT JOIN public.providers p on p.id = pc.provider_id
     )
-    select * from billing_comments limit 50
+    SELECT 
+        *
+    FROM
+       billing_comments
 `);
 
 const api = {
@@ -160,7 +213,6 @@ const api = {
             (claimInquiryDataSet, claimInquiryDataSet1) => {
                 // add report filters                
                 initialReportData.filters = api.createReportFilters(initialReportData);
-
                 for (i = 0; i < claimInquiryDataSet.rows.length; i++) {
                     var comments = [];
                     for (j = 0; j < claimInquiryDataSet1.rows.length; j++) {
@@ -168,11 +220,9 @@ const api = {
                             comments.push(claimInquiryDataSet1.rows[j]);
                         }
                     }
-                    comments.push(claimInquiryDataSet1.rows);
                     claimInquiryDataSet.rows[i].push(comments);
 
                 }
-
                 // add report specific data sets
                 initialReportData.dataSets.push(claimInquiryDataSet);
                 initialReportData.dataSetCount = initialReportData.dataSets.length;

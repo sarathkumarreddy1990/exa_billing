@@ -228,7 +228,7 @@ define(['jquery',
                             { name: 'available_balance', width: 215 },
                             { name: 'adjustment_amount', width: 215 },
                             { name: 'user_full_name', width: 215 },
-                            { name: 'payment_mode', width: 200 },
+                            { name: 'payment_mode', width: 200, formatter: self.paymentModeFormatter },
                             { name: 'facility_name', width: 200 },
                             { name: 'total_amount', hidden: true },
                             { name: 'total_applied', hidden: true },
@@ -363,6 +363,28 @@ define(['jquery',
                 }
                 return colvalue;
             },
+
+            paymentModeFormatter: function (cellvalue, options, rowObject) {
+                var colvalue = '';
+                switch (rowObject.payment_mode) {
+                    case "cash":
+                        colvalue = 'Cash';
+                        break;
+                    case "eft":
+                        colvalue = 'EFT';
+                        break;
+                    case "check":
+                        colvalue = 'Check';
+                        break;
+                    case "card":
+                         colvalue = 'Card';
+                    break;
+
+
+                }
+                return colvalue;
+            },
+
 
             addNewPayemnt: function () {
                 Backbone.history.navigate('#billing/payments/new', true);

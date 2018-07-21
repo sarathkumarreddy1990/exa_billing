@@ -1545,10 +1545,10 @@ define(['jquery',
                 var self = this;
                 // commonjs.isHomePageVisited = false;
                 var filter = commonjs.loadedStudyFilters.get(commonjs.currentStudyFilter);
-                if (!filter) {
-                    self.loadTabContents();
-                    return;
-                }
+                // if (!filter) {
+                //     self.loadTabContents();
+                //     return;
+                // }
 
                 var $loading = $(document.getElementById('divPageLoading'));
                 $loading.show();
@@ -1577,7 +1577,7 @@ define(['jquery',
                             filter.options.showEncOnly = showEncOnly;
                             $('input:checkbox[name=showDicom]').prop('checked', isDicomSearch);
                             $('input:checkbox[name=showRis]').prop('checked', isRisOrderSearch);
-                           // filter.customGridTable.jqGrid('GridUnload');
+                            filter.customGridTable.jqGrid('GridUnload');
                             commonjs.setFilter(null, null);
                             self.setTabContents(fid, isprior, isDicomSearch, isRisOrderSearch, showEncOnly);
                         }
