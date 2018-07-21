@@ -410,6 +410,7 @@ END;
 $BODY$
   LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
+DROP FUNCTION  IF EXISTS billing.create_claim_charge(json, json, json, json, json);
 CREATE OR REPLACE FUNCTION billing.create_claim_charge(
     i_claim_details json,
     i_insurances_details json,
