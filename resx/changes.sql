@@ -416,7 +416,7 @@ CREATE OR REPLACE FUNCTION billing.create_claim_charge(
     i_claim_icds json,
     i_audit_details json,
     i_charge_details json)
-  RETURNS boolean AS
+  RETURNS bigint AS
 $BODY$
 DECLARE
 
@@ -710,7 +710,7 @@ BEGIN
 					, study_id bigint )
 		) charges;
 
-    RETURN TRUE;
+    RETURN p_claim_id;
 END;
 $BODY$
   LANGUAGE plpgsql;
