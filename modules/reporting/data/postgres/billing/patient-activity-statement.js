@@ -35,11 +35,12 @@ WITH claim_data as(
       ),
      billing_comments as 
     (
+    <% if (billingComments == "true")  { %>
     select cc.claim_id as id,'claim' as type ,note as comments ,created_dt::date as commented_dt,null as amount,u.username as commented_by,null as code from  billing.claim_comments cc
     INNER JOIN claim_data cd on cd.claim_id = cc.claim_id
     inner join users u  on u.id = cc.created_by
-    where cc.type in ('co_pay','co_insurance','deductible') 
     UNION ALL
+    <% } %>
     select  c.claim_id as id,'charge' as type,cc.short_description as comments,c.charge_dt::date as commented_dt,(c.bill_fee*c.units) as amount,u.username as commented_by,cc.display_code as code from billing.charges c
     INNER JOIN claim_data cd on cd.claim_id = c.claim_id
     inner join cpt_codes cc on cc.id = c.cpt_id 
@@ -782,7 +783,8 @@ const api = {
             billingProviderIds: null,
             reportBy: null,
             claimDate: null,
-            patientInsIds: null
+            patientInsIds: null,
+            billingComments: null
 
         };
 
@@ -814,7 +816,7 @@ const api = {
             filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
         }
 
-        filters.reportBy = reportParams.reportBy
+        filters.billingComments = reportParams.billingComments;
 
         // billingProvider single or multiple
         if (reportParams.billingProviderIds && reportParams.billingProviderIds.length > 0 && reportParams.billingProviderIds[0] != "0") {
