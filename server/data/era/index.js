@@ -522,7 +522,7 @@ module.exports = {
                     INNER JOIN billing.edi_file_payments befp ON befp.edi_file_id = bef.id 
                     INNER JOIN billing.payments bp on bp.id = befp.payment_id 
                     INNER JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id 
-                    where bef.id = ${file_id}
+                    where bef.id = ${file_id} AND bp.mode = 'eft'
                 ),
                 charge_details AS (         
                     (SELECT Json_agg(Row_to_json(chargeDetails)) "chargeDetails"
@@ -558,7 +558,7 @@ module.exports = {
                     LEFT JOIN billing.charges bch on bch.id = bpa.charge_id
                     LEFT JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
 
-                    WHERE bef.id = ${file_id} AND bch.claim_id IS NOT NULL
+                    WHERE bef.id = ${file_id} AND bch.claim_id IS NOT NULL AND bp.mode = 'eft'
                 ) AS chargeDetails )
                     ),
                 claim_details AS (              
@@ -578,7 +578,7 @@ module.exports = {
                             LEFT JOIN billing.payments pay on pay.id = efp.payment_id
                             LEFT  JOIN billing.payment_applications bpa on bpa.payment_id = pay.id
                             LEFT  JOIN billing.charges bch on bch.id = bpa.charge_id 
-                            where edi_files.id = ${file_id}
+                            where edi_files.id = ${file_id} AND pay.mode = 'eft'
                         ) AS claim_details
 
                         inner join billing.claims on claims.id = claim_details.claim_id
