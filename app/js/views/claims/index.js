@@ -359,6 +359,9 @@ define(['jquery',
                 self.removedCharges = [];
                 self.chargeModel = [];
                 self.options = options || {};
+                if (isFrom && isFrom != 'reload') {
+                    self.openedFrom = isFrom
+                }
 
                 commonjs.showLoading();
 
@@ -449,7 +452,7 @@ define(['jquery',
                                 $('#txtModifier4_' + index).val(data.modifier1_id ? self.getModifierCode(data.modifier4_id) : "").attr('data-id',data.modifier4_id);
                             });
                            
-                            if (isFrom && isFrom == 'studies')
+                            if (isFrom && (isFrom == 'studies' || self.openedFrom == 'studies' || self.openedFrom == 'patient'))
                                 $('.claimProcess').hide(); // hide Next/Prev btn if opened from studies worklist
 
                             // trigger blur event for update Total bill fee, balance etc.
@@ -837,7 +840,7 @@ define(['jquery',
 
             },
 
-            showClaimForm: function (options) {
+            showClaimForm: function (options, isFrom) {
                 var self = this;
                 var selectedStudyIds = JSON.parse(window.localStorage.getItem('selected_studies'));
                 var primaryStudyDetails = JSON.parse(window.localStorage.getItem('primary_study_details'));
@@ -850,8 +853,12 @@ define(['jquery',
                 self.cur_study_id = primaryStudyDetails.study_id || null;
                 self.isEdit = self.claim_Id ? true : false;
                 self.facilityId = primaryStudyDetails.facility_id;
+                if (isFrom && isFrom != 'reload') {
+                    self.openedFrom = isFrom
+                }
+
                 if (!this.rendered)
-                    this.render('claim');
+                    this.render('studies');
 
                 self.studyDate = commonjs.getConvertedFacilityTime(primaryStudyDetails.study_date, '', 'L', primaryStudyDetails.facility_id);
                 self.getLineItemsAndBind(selectedStudyIds);
@@ -2664,6 +2671,12 @@ define(['jquery',
                                 saveButton.attr('disabled', false);
                             } else {
 
+                                if (self.isEdit) {
+                                    self.claim_row_version = response && response.length && response[0].result ? response[0].result : null;
+                                } else {
+                                    self.claim_Id = response && response.length && response[0].result ? response[0].result : null
+                                }
+
                                 var claimRefreshInterval = setTimeout(function () {
                                     clearTimeout(claimRefreshInterval);
 
@@ -2673,30 +2686,23 @@ define(['jquery',
                                     $("#btnStudiesRefresh").click();
                                 }, 200);
                                 
-                                var time = self.isEdit ? 800 : 100;
                                 var claimHideInterval = setTimeout(function () {
                                     clearTimeout(claimHideInterval);
-                                    if (self.isEdit) {
-                                        self.claim_row_version = response && response.length && response[0].result ? response[0].result : null;
-                                        saveButton.attr('disabled', false);
-                                        $('#chktblClaimGridAll_Claims_' + self.claim_Id).prop('checked', true);
-                                        // Call Edit claim API for rebind after save
-                                        commonjs.getClaimStudy(self.claim_Id, function (result) {
-                                            self.rendered = false;
-                                            self.clearDependentVariables();
-                                            self.showEditClaimForm(self.claim_Id, 'reload', {
-                                                'study_id': result && result.study_id ? result.study_id : 0,
-                                                'patient_name': self.cur_patient_name,
-                                                'patient_id': self.cur_patient_id,
-                                                'order_id': result && result.order_id ? result.order_id : 0
-                                            });
+                                    
+                                    saveButton.attr('disabled', false);
+                                    $('#chktblClaimGridAll_Claims_' + self.claim_Id).prop('checked', true);
+                                    // Call Edit claim API for rebind after save
+                                    commonjs.getClaimStudy(self.claim_Id, function (result) {
+                                        self.rendered = false;
+                                        self.clearDependentVariables();
+                                        self.showEditClaimForm(self.claim_Id, 'reload', {
+                                            'study_id': result && result.study_id ? result.study_id : 0,
+                                            'patient_name': self.cur_patient_name,
+                                            'patient_id': self.cur_patient_id,
+                                            'order_id': result && result.order_id ? result.order_id : 0
                                         });
-
-                                    } else {
-                                        commonjs.hideLoading();
-                                        commonjs.hideDialog();
-                                    }
-                                }, time);
+                                    });
+                                }, 800);
                             }
                         },
                         error: function (model, response) {
@@ -3582,7 +3588,7 @@ define(['jquery',
                                             window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
 
                                             $('#divPageLoading').show();
-                                            self.showClaimForm('patientSearch');
+                                            self.showClaimForm('patientSearch', 'patient');
 
                                             setTimeout(function () {
                                                 $('#divPageLoading').hide();
@@ -3662,6 +3668,8 @@ define(['jquery',
                     $('#divPatient').hide();
                     $('.woClaimRelated').show();
                 }, 200);
+
+                self.openedFrom = 'patient';
 
             },
 
