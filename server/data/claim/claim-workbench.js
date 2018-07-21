@@ -127,7 +127,7 @@ module.exports = {
                 SELECT claims.id,payer_type, (  CASE payer_type 
                     WHEN 'primary_insurance' THEN insurance_providers.insurance_name
                     WHEN 'secondary_insurance' THEN insurance_providers.insurance_name
-                    WHEN 'teritary_insurance' THEN insurance_providers.insurance_name
+                    WHEN 'tertiary_insurance' THEN insurance_providers.insurance_name
                     WHEN 'ordering_facility' THEN provider_groups.group_name
                     WHEN 'referring_provider' THEN ref_provider.full_name
                     WHEN 'rendering_provider' THEN render_provider.full_name
