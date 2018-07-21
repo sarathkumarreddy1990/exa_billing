@@ -380,7 +380,7 @@ define('grid', [
                         return false;
                     }
                     self.claimView = new claimsView();
-                    self.claimView.showEditClaimForm(studyIds, null, {
+                    self.claimView.showEditClaimForm(studyIds, 'claims', {
                         'study_id': study_id,
                         'patient_name': selectedStudies[0].patient_name,
                         'patient_id': selectedStudies[0].patient_id,
@@ -604,7 +604,7 @@ define('grid', [
                             window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
     
                             self.claimView = new claimsView();
-                            self.claimView.showClaimForm(studyIds);
+                            self.claimView.showClaimForm(studyIds, 'studies');
     
                         });
                     }                      
@@ -615,7 +615,7 @@ define('grid', [
                     self.checkRights('anc_edit_claim');
                     $('#anc_edit_claim').off().click(function () {
                         self.claimView = new claimsView();
-                        self.claimView.showEditClaimForm(selectedStudies[0].claim_id, null, {
+                        self.claimView.showEditClaimForm(selectedStudies[0].claim_id, 'studies', {
                             'study_id': selectedStudies[0].claim_id,
                             'patient_name': selectedStudies[0].patient_name,
                             'patient_id': selectedStudies[0].patient_id,
@@ -779,7 +779,7 @@ define('grid', [
                             return false;
                         var gridData = $('#'+e.currentTarget.id).jqGrid('getRowData', rowID);
                             self.claimView = new claimsView();
-                            self.claimView.showEditClaimForm(gridData.claim_id, !options.isClaimGrid ? 'studies' : null, {
+                            self.claimView.showEditClaimForm(gridData.claim_id, !options.isClaimGrid ? 'studies' : 'claims', {
                                 'study_id': rowID,
                                 'patient_name': gridData.patient_name,
                                 'patient_id': gridData.patient_id,
@@ -1163,7 +1163,7 @@ define('grid', [
                                 study_id = result.study_id;
                                 order_id = result.order_id;
                             }
-                            self.claimView.showEditClaimForm(gridData.claim_id, !options.isClaimGrid ? 'studies' : null, {
+                            self.claimView.showEditClaimForm(gridData.claim_id, !options.isClaimGrid ? 'studies' : 'claims', {
                                 'study_id': study_id,
                                 'patient_name': gridData.patient_name,
                                 'patient_id': gridData.patient_id,
@@ -1187,7 +1187,7 @@ define('grid', [
                             window.localStorage.setItem('primary_study_details', JSON.stringify(study));
                             window.localStorage.setItem('selected_studies', JSON.stringify(rowID));
                             self.claimView = new claimsView();
-                            self.claimView.showClaimForm();
+                            self.claimView.showClaimForm(null, 'studies');
                         }
                     }
                 },

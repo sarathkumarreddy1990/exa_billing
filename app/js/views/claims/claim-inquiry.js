@@ -1131,7 +1131,8 @@ define([
                      reportByFlag: reportBy ,
                     'fromDate': fromDate || '',
                     'toDate': toDate || '',
-                    'billingProId': selectedBillingProList || []
+                    'billingProId': selectedBillingProList || [],
+                     'billingComments': $('#bindComments').prop('checked')
                 }
                 self.patientActivityStatement.onReportViewClick(e, claimInfo);
             },
