@@ -35,11 +35,12 @@ WITH claim_data as(
       ),
      billing_comments as 
     (
+    <% if (billingComments == "true")  { %>
     select cc.claim_id as id,'claim' as type ,note as comments ,created_dt::date as commented_dt,null as amount,u.username as commented_by,null as code from  billing.claim_comments cc
     INNER JOIN claim_data cd on cd.claim_id = cc.claim_id
     inner join users u  on u.id = cc.created_by
-    where cc.type in ('co_pay','co_insurance','deductible') 
     UNION ALL
+    <% } %>
     select  c.claim_id as id,'charge' as type,cc.short_description as comments,c.charge_dt::date as commented_dt,(c.bill_fee*c.units) as amount,u.username as commented_by,cc.display_code as code from billing.charges c
     INNER JOIN claim_data cd on cd.claim_id = c.claim_id
     inner join cpt_codes cc on cc.id = c.cpt_id 
@@ -77,8 +78,6 @@ WITH claim_data as(
     LEFT JOIN public.provider_groups  pg on pg.id = bp.provider_group_id
     LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
     LEFT JOIN public.providers p on p.id = pc.provider_id
-    WHERE 1=1 
-    AND  <%= companyId %>
     ),
     main_detail_cte as (
     SELECT 
@@ -174,12 +173,12 @@ WITH claim_data as(
           FROM sum_encounter_cte
           GROUP BY pid
     ),
-    billing_messages as (SELECT (select description from billing.messages where company_id = 1 and CODE = '0-30') as msg0to30,
-                                (select description from billing.messages where company_id = 1 and CODE = '31-60') as msg31to60,
-                                (select description from billing.messages where company_id = 1 and CODE = '61-90') as msg61to90,
-                                (select description from billing.messages where company_id = 1 and CODE = '91-120') as msg91to120,
-                                (select description from billing.messages where company_id = 1 and CODE = '>120') as msggrater120,
-                                (select description from billing.messages where company_id = 1 and CODE = 'collections') as collection
+    billing_messages as (SELECT (select description from billing.messages where <%= companyId %> and CODE = '0-30') as msg0to30,
+                                (select description from billing.messages where <%= companyId %> and CODE = '31-60') as msg31to60,
+                                (select description from billing.messages where <%= companyId %> and CODE = '61-90') as msg61to90,
+                                (select description from billing.messages where <%= companyId %> and CODE = '91-120') as msg91to120,
+                                (select description from billing.messages where <%= companyId %> and CODE = '>120') as msggrater120,
+                                (select description from billing.messages where <%= companyId %> and CODE = 'collections') as collection
     ),
     statement_cte AS (
           SELECT 
@@ -784,13 +783,14 @@ const api = {
             billingProviderIds: null,
             reportBy: null,
             claimDate: null,
-            patientInsIds: null
+            patientInsIds: null,
+            billingComments: null
 
         };
 
         // company id
         params.push(reportParams.companyId);
-        filters.companyId = queryBuilder.where('bc.id', '=', [params.length]);
+        filters.companyId = queryBuilder.where('company_id', '=', [params.length]);
 
         params.push(reportParams.patientIID);
         filters.patientIds = queryBuilder.where('bc.patient_id', '=', [params.length]);
@@ -816,7 +816,7 @@ const api = {
             filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
         }
 
-        filters.reportBy = reportParams.reportBy
+        filters.billingComments = reportParams.billingComments;
 
         // billingProvider single or multiple
         if (reportParams.billingProviderIds && reportParams.billingProviderIds.length > 0 && reportParams.billingProviderIds[0] != "0") {

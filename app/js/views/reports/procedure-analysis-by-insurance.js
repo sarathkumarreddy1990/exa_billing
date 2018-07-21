@@ -142,8 +142,10 @@ function ($, _, Backbone, UI, MainTemplate) {
             }
         },
 
-        onReportViewClick: function (e) {
+        onReportViewClick: function (e) {          
             var btnClicked = e && e.target ? $(e.target) : null;
+            this.getSelectedFacility();
+            this.getBillingProvider();
             if (btnClicked && btnClicked.prop('tagName') === 'I') {
                 btnClicked = btnClicked.parent(); // in case FA icon 'inside'' button was clicked...
             }
@@ -185,6 +187,27 @@ function ($, _, Backbone, UI, MainTemplate) {
             }
         },
 
+          // multi select facilities - worked
+          getSelectedFacility: function (e) {
+            var selected = $("#ddlFacilityFilter option:selected");
+            var facilities = [];
+            selected.each(function () {
+                facilities.push($(this).val());
+            });
+            this.selectedFacilityList = facilities
+            this.viewModel.allFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlFacilityFilter option").length;
+        },
+
+        // multi select billing provider - worked
+        getBillingProvider: function (e) {
+            var billing_pro = []
+            var selected = $("#ddlBillingProvider option:selected");
+            selected.each(function () {
+                billing_pro.push($(this).val());
+            });
+            this.selectedBillingProList = billing_pro;
+            this.viewModel.allBillingProvider = this.selectedBillingProList && this.selectedBillingProList.length === $("#ddlBillingProvider option").length;
+        },
         selectDefaultFacility: function () {
             // if there is only 1 facility select it, otherwise use default facility id
             var defFacId = this.viewModel.facilities.length === 1 ? this.viewModel.facilities.at(0).get('id') : app.default_facility_id;

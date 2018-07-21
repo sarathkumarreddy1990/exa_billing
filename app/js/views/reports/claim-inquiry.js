@@ -69,7 +69,7 @@ define([
                 'change #ddlReferringPhysicianOption': 'onOptionChangeSelect',
                 'change #ddlCPTCodeOption': 'onOptionChangeSelectCPT',
                 'click #btnViewReport': 'onReportViewClick',
-                'click #btnViewReportNewTabClaimTransaction': 'onReportViewClick',
+                'click #btnViewReportNewTabClaimInquiry': 'onReportViewClick',
                 'click #btnPdfReport': 'onReportViewClick',
                 'click #btnExcelReport': 'onReportViewClick',
                 'click #btnCsvReport': 'onReportViewClick',
@@ -210,7 +210,7 @@ define([
                     btnClicked = btnClicked.parent(); // in case FA icon 'inside'' button was clicked...
                 }
                 var rFormat = btnClicked ? btnClicked.attr('data-rformat') : null;
-                var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnViewReportNewTabClaimTransaction' : false;
+                var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnViewReportNewTabClaimInquiry' : false;
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = openInNewTab && rFormat === 'html';
 
