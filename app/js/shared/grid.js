@@ -1094,7 +1094,6 @@ define('grid', [
             });
 
             if (doExport) {
-                console.log('v', filterData, filterCol)
                 var searchFilterFlag = grid.getGridParam("postData")._search;
                 var colHeader = studyFields.colName;
 
