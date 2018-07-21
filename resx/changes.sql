@@ -306,13 +306,13 @@ BEGIN
     p_company_id := (i_audit_details ->> 'company_id')::BIGINT;
 
     IF i_bill_fee = 0::money THEN
-       p_bill_fee = billing.get_computed_bill_fee(i_claim_id,i_cpt_id,i_modifier1_id,i_modifier2_id,i_modifier3_id,i_modifier4_id,'billing',NULL);
+       p_bill_fee = billing.get_computed_bill_fee(i_claim_id,i_cpt_id,i_modifier1_id,i_modifier2_id,i_modifier3_id,i_modifier4_id,'billing',NULL,NULL,NULL);
     ELSE 
        p_bill_fee = i_bill_fee;
     END IF;
 
     IF i_allowed_amount = 0::money THEN
-       p_allowed_fee = billing.get_computed_bill_fee(i_claim_id,i_cpt_id,i_modifier1_id,i_modifier2_id,i_modifier3_id,i_modifier4_id,'allowed',NULL);
+       p_allowed_fee = billing.get_computed_bill_fee(i_claim_id,i_cpt_id,i_modifier1_id,i_modifier2_id,i_modifier3_id,i_modifier4_id,'allowed',NULL,NULL,NULL);
     ELSE 
        p_allowed_fee = i_allowed_amount;
     END IF;
@@ -1138,7 +1138,9 @@ CREATE OR REPLACE FUNCTION billing.get_computed_bill_fee(
     p_modifier3 bigint,
     p_modifier4 bigint,
     p_category text,
-    p_payer_type text)
+    p_payer_type text,
+    p_payer_id bigint, 
+    p_facility_id bigint)
   RETURNS money AS
 $BODY$
         DECLARE
@@ -1178,31 +1180,44 @@ $BODY$
             -- Step-1  -- Validate the Input parameters and derrive the assigned fee schedule ID
             -- Getting the current responsible party and it's payer type
 
-            SELECT
-                c.payer_type,
-                c.patient_id,
-                c.primary_patient_insurance_id,
-                c.secondary_patient_insurance_id,
-		c.tertiary_patient_insurance_id,
-                c.ordering_facility_id,
-		c.referring_provider_contact_id,
-                c.facility_id INTO STRICT l_payer_type,
-                l_patient_id,
-                l_primary_insurance_id,
-		l_secondary_insurance_id,
-		l_tertiary_insurance_id,
-                l_ordering_facility_id,
-		l_referring_provider_contact_id
-                l_facility_id
-            FROM
-                billing.claims c
-            WHERE
-                1 = 1
-                AND c.id = p_claim_id;
+            IF p_claim_id IS NOT NULL THEN 
+                SELECT
+                    c.payer_type,
+                    c.patient_id,
+                    c.primary_patient_insurance_id,
+                    c.secondary_patient_insurance_id,
+		            c.tertiary_patient_insurance_id,
+                    c.ordering_facility_id,
+		            c.referring_provider_contact_id,
+                    c.facility_id INTO l_payer_type,
+                    l_patient_id,
+                    l_primary_insurance_id,
+		            l_secondary_insurance_id,
+		            l_tertiary_insurance_id,
+                    l_ordering_facility_id,
+		            l_referring_provider_contact_id
+                    l_facility_id
+                FROM
+                    billing.claims c
+                WHERE
+                    1 = 1
+                    AND c.id = p_claim_id
+		            LIMIT 1;
+            END IF;
 
-	    IF p_payer_type IS NOT NULL THEN
+          ------ When change payer from claim grid
+	        IF p_payer_type IS NOT NULL THEN
                l_payer_type := p_payer_type;
-	    END IF;
+	        END IF;
+	 ------- When before creating claim , needs bill fee 
+            IF p_payer_id IS NOT NULL THEN 
+		        IF l_payer_type = 'patient' THEN
+		            l_patient_id := p_payer_id;
+		        ELSE
+		            l_primary_insurance_id := p_payer_id;
+                END IF;
+                l_facility_id := p_facility_id;
+ 	        END IF;
 
             ---- Get the active_modifer from the parameter list
             l_modifier1 := p_modifier1;
@@ -1355,7 +1370,7 @@ $BODY$
             LIMIT 1;
 
 	    IF l_professional_fee IS NULL AND p_category = 'allowed' AND (l_payer_type = 'primary_insurance' OR l_payer_type = 'secondary_insurance' OR l_payer_type = 'tertiary_insurance') THEN 
-		        RETURN billing.get_computed_bill_fee(p_claim_id, p_cpt_id, p_modifier1, p_modifier2, p_modifier3, p_modifier4, 'billing', p_payer_type);
+		        RETURN billing.get_computed_bill_fee(p_claim_id, p_cpt_id, p_modifier1, p_modifier2, p_modifier3, p_modifier4, 'billing', p_payer_type,p_payer_id,p_facility_id);
 	        END IF;
           
             -- Get the modifier details for the given input
@@ -1997,8 +2012,8 @@ BEGIN
 		  UPDATE 
 			billing.charges
 		  SET
-			bill_fee = billing.get_computed_bill_fee(l_charges.claim_id, l_charges.cpt_id, l_charges.modifier1_id,l_charges.modifier2_id,l_charges.modifier3_id,l_charges.modifier4_id,'billing',NULL),
-			allowed_amount = billing.get_computed_bill_fee(l_charges.claim_id, l_charges.cpt_id, l_charges.modifier1_id,l_charges.modifier2_id,l_charges.modifier3_id,l_charges.modifier4_id,'allowed',NULL)
+			bill_fee = billing.get_computed_bill_fee(l_charges.claim_id, l_charges.cpt_id, l_charges.modifier1_id,l_charges.modifier2_id,l_charges.modifier3_id,l_charges.modifier4_id,'billing',NULL,NULL,NULL),
+			allowed_amount = billing.get_computed_bill_fee(l_charges.claim_id, l_charges.cpt_id, l_charges.modifier1_id,l_charges.modifier2_id,l_charges.modifier3_id,l_charges.modifier4_id,'allowed',NULL,NULL,NULL)
 	        WHERE 
 			id = l_charges.id;
 		END LOOP;
@@ -2444,12 +2459,12 @@ BEGIN
         SET
               cpt_id    = chd.cpt_id
            , bill_fee  = CASE WHEN billing.is_need_bill_fee_recaulculation((i_claim_details->>'claim_id')::bigint,i_claim_details->>'payer_type',i_claim_details->>'existing_payer_type') = TRUE THEN
-                             billing.get_computed_bill_fee((i_claim_details->>'claim_id')::bigint,chd.cpt_id,chd.modifier1_id,chd.modifier2_id,chd.modifier3_id,chd.modifier4_id,'billing',i_claim_details->>'payer_type')
+                             billing.get_computed_bill_fee((i_claim_details->>'claim_id')::bigint,chd.cpt_id,chd.modifier1_id,chd.modifier2_id,chd.modifier3_id,chd.modifier4_id,'billing',i_claim_details->>'payer_type',NULL,NULL)
                           ELSE
                             chd.bill_fee
                           END 
             , allowed_amount = CASE WHEN billing.is_need_bill_fee_recaulculation((i_claim_details->>'claim_id')::bigint,i_claim_details->>'payer_type',i_claim_details->>'existing_payer_type') = TRUE THEN
-                             billing.get_computed_bill_fee((i_claim_details->>'claim_id')::bigint,chd.cpt_id,chd.modifier1_id,chd.modifier2_id,chd.modifier3_id,chd.modifier4_id,'allowed',i_claim_details->>'payer_type')
+                             billing.get_computed_bill_fee((i_claim_details->>'claim_id')::bigint,chd.cpt_id,chd.modifier1_id,chd.modifier2_id,chd.modifier3_id,chd.modifier4_id,'allowed',i_claim_details->>'payer_type',NULL,NULL)
                           ELSE
                              chd.allowed_amount
                           END 
