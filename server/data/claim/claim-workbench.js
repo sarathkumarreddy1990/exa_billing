@@ -138,7 +138,7 @@ module.exports = {
                         (  CASE payer_type 
                         WHEN 'primary_insurance' THEN primary_patient_insurance_id
                         WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
-                        WHEN 'teritary_insurance' THEN tertiary_patient_insurance_id
+                        WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
                         END)
 
                 INNER JOIN patients ON claims.patient_id = patients.id 
