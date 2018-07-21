@@ -77,8 +77,6 @@ WITH claim_data as(
     LEFT JOIN public.provider_groups  pg on pg.id = bp.provider_group_id
     LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
     LEFT JOIN public.providers p on p.id = pc.provider_id
-    WHERE 1=1 
-    AND  <%= companyId %>
     ),
     main_detail_cte as (
     SELECT 
@@ -174,12 +172,12 @@ WITH claim_data as(
           FROM sum_encounter_cte
           GROUP BY pid
     ),
-    billing_messages as (SELECT (select description from billing.messages where company_id = 1 and CODE = '0-30') as msg0to30,
-                                (select description from billing.messages where company_id = 1 and CODE = '31-60') as msg31to60,
-                                (select description from billing.messages where company_id = 1 and CODE = '61-90') as msg61to90,
-                                (select description from billing.messages where company_id = 1 and CODE = '91-120') as msg91to120,
-                                (select description from billing.messages where company_id = 1 and CODE = '>120') as msggrater120,
-                                (select description from billing.messages where company_id = 1 and CODE = 'collections') as collection
+    billing_messages as (SELECT (select description from billing.messages where <%= companyId %> and CODE = '0-30') as msg0to30,
+                                (select description from billing.messages where <%= companyId %> and CODE = '31-60') as msg31to60,
+                                (select description from billing.messages where <%= companyId %> and CODE = '61-90') as msg61to90,
+                                (select description from billing.messages where <%= companyId %> and CODE = '91-120') as msg91to120,
+                                (select description from billing.messages where <%= companyId %> and CODE = '>120') as msggrater120,
+                                (select description from billing.messages where <%= companyId %> and CODE = 'collections') as collection
     ),
     statement_cte AS (
           SELECT 
@@ -790,7 +788,7 @@ const api = {
 
         // company id
         params.push(reportParams.companyId);
-        filters.companyId = queryBuilder.where('bc.id', '=', [params.length]);
+        filters.companyId = queryBuilder.where('company_id', '=', [params.length]);
 
         params.push(reportParams.patientIID);
         filters.patientIds = queryBuilder.where('bc.patient_id', '=', [params.length]);
