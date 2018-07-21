@@ -2998,6 +2998,85 @@ END;
 $BODY$
 LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION billing.get_era_charge_id(i_claim_id bigint, i_cpt_code text, i_service_date date, i_is_duplicate boolean, i_duplicate_index integer)
+  RETURNS bigint AS
+$BODY$
+DECLARE
+	o_charge_id bigint;
+BEGIN 
+	IF NOT i_is_duplicate THEN
+	BEGIN
+		SELECT	ch.id INTO o_charge_id
+		FROM	billing.charges ch	
+			INNER JOIN public.cpt_codes pcc on pcc.id = ch.cpt_id 
+		WHERE	ch.claim_id = i_claim_id 
+			--AND ch.charge_dt::DATE = i_service_date::DATE
+			AND pcc.display_code = i_cpt_code
+		ORDER 	BY id ASC LIMIT 1;
+
+		RETURN	o_charge_id;
+	END;
+	END IF;
+
+	WITH 
+		duplicate_charges AS (
+			SELECT 	bch.id,
+				pcc.display_code,
+				row_number() OVER ( PARTITION BY bc.id, pcc.display_code ORDER BY bch.id) duplicate_index
+			FROM	billing.claims bc
+				INNER JOIN billing.charges bch ON bch.claim_id = bc.id
+				INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id 
+			WHERE	bc.id = i_claim_id
+				--AND bch.charge_dt::DATE = i_service_date::DATE
+				AND pcc.display_code = i_cpt_code
+			ORDER	BY bch.id
+		),
+		charge_payments AS (
+			SELECT	row_number() OVER (ORDER BY dch1.id) charge_index,
+				dch1.*,
+				ch_payments.paid_amount
+			FROM	duplicate_charges dch1
+			INNER 	JOIN LATERAL (
+				SELECT	bpa.charge_id id, 
+					SUM(bpa.amount) paid_amount
+				FROM	duplicate_charges dch2
+					INNER JOIN	billing.payment_applications bpa ON bpa.charge_id = dch2.id
+					INNER JOIN	billing.payments bp ON bp.id = bpa.payment_id
+				GROUP	BY	bpa.charge_id
+				) ch_payments ON ch_payments.id = dch1.id
+		),
+		paid_charges AS (
+			SELECT	row_number() OVER (ORDER BY chp.id) charge_index,
+				chp.*
+			FROM	charge_payments chp
+			WHERE	chp.paid_amount > 0::money
+		),
+		unpaid_charges AS (
+			SELECT	row_number() OVER (ORDER BY chp.id) charge_index,
+				chp.*
+			FROM	charge_payments chp
+			WHERE	chp.paid_amount = 0::money
+		),
+		matched_charges AS (
+			SELECT	*
+			FROM	charge_payments
+			WHERE	charge_index = i_duplicate_index
+		)
+	
+		SELECT 	id INTO o_charge_id
+		FROM	matched_charges;
+
+		/*IF	o_charge_id IS NULL THEN
+			SELECT 	id INTO o_charge_id
+			FROM	paid_charges LIMIT 1;
+		END IF;*/
+	
+	RETURN o_charge_id;
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+-- --------------------------------------------------------------------------------------------------------------------
 -- Alter script For new Table changes 
 -- --------------------------------------------------------------------------------------------------------------------
 ALTER TABLE billing.claim_status ADD COLUMN IF NOT EXISTS display_order BIGINT;

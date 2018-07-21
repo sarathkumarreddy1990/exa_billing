@@ -186,7 +186,10 @@ module.exports = {
                         /**
                         *  DESC : Formatting lineItems (Added sequence index and flag:true ) if duplicate cpt code came
                         */
-                        let duplicateObj = _.findLast(lineItems, { claim_number: value.claimNumber, cpt_code: val.qualifierData.cptCode });
+                        let duplicateObj = _.findLast(lineItems, {
+                            claim_number: value.claimNumber, 
+                            cpt_code: val.qualifierData.cptCode });
+                            
                         let index = 1;
                         let duplicate_flag = false;
 
