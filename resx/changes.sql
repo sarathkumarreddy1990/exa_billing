@@ -410,6 +410,7 @@ END;
 $BODY$
   LANGUAGE plpgsql;
 -- --------------------------------------------------------------------------------------------------------------------
+DROP FUNCTION  IF EXISTS billing.create_claim_charge(json, json, json, json, json);
 CREATE OR REPLACE FUNCTION billing.create_claim_charge(
     i_claim_details json,
     i_insurances_details json,
@@ -1134,6 +1135,8 @@ SELECT COALESCE(NULLIF(AGE_0_30, 0::money),0::money) as AGE_0_30, COALESCE(NULLI
 $BODY$
   LANGUAGE sql;
 -- --------------------------------------------------------------------------------------------------------------------
+DROP FUNCTION  IF EXISTS billing.get_computed_bill_fee(bigint, bigint, bigint, bigint, bigint, bigint, text, text);
+DROP FUNCTION  IF EXISTS billing.get_computed_bill_fee(bigint, bigint, bigint, bigint, bigint, bigint, text, text, bigint, bigint);
 CREATE OR REPLACE FUNCTION billing.get_computed_bill_fee(
     p_claim_id bigint,
     p_cpt_id bigint,
@@ -1150,11 +1153,11 @@ $BODY$
         DECLARE
             l_payer_type TEXT;
             l_patient_id INTEGER;
-	    l_primary_insurance_id INTEGER;
+	        l_primary_insurance_id INTEGER;
             l_secondary_insurance_id INTEGER;
             l_tertiary_insurance_id INTEGER;
             l_ordering_facility_id INTEGER;
-	    l_referring_provider_contact_id INTEGER;
+	        l_referring_provider_contact_id INTEGER;
             l_facility_id INTEGER;
             l_ordering_physician_id INTEGER;
             l_claim_facility_id INTEGER;
@@ -2660,12 +2663,18 @@ WITH claim_details as (
 $BODY$
   LANGUAGE sql;
 -- --------------------------------------------------------------------------------------------------------------------
+DROP FUNCTION  IF EXISTS billing.get_batch_claim_details(bigint, bigint);
 CREATE OR REPLACE FUNCTION billing.get_batch_claim_details(
     IN i_study_id bigint,
     IN i_created_by bigint)
   RETURNS TABLE(claim_icds json, charges json, insurances json, claims json) AS
 $BODY$
+DECLARE
+	p_order_id BIGINT;
 BEGIN
+    
+    SELECT order_id INTO p_order_id FROM public.studies WHERE id = i_study_id;
+
 	RETURN QUERY
 	WITH study_details AS (
 		SELECT 
@@ -2918,7 +2927,7 @@ BEGIN
             orders
         LEFT JOIN provider_contacts ON COALESCE (NULLIF (order_info -> 'rendering_provider_id',''),'0') = provider_contacts.id::text
         LEFT JOIN providers ON providers.id = provider_contacts.provider_id
-        WHERE orders.id = ( SELECT COALESCE(NULLIF(order_id,'0'),'0')::numeric FROM study_details )
+        WHERE orders.id = p_order_id
 )
  
 SELECT
