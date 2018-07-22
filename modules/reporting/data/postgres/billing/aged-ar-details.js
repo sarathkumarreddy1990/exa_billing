@@ -35,7 +35,7 @@ get_claim_details AS(
         cc.age as age,
        (cc.charges_bill_fee_total - ( ac.payments_applied_total +  ac.ajdustments_applied_total )) AS balance
     FROM charges_cwt cc
-    INNER JOIN applications_cwt ac ON cc.claim_id = ac.claim_id  
+    LEFT JOIN applications_cwt ac ON cc.claim_id = ac.claim_id  
     WHERE (cc.charges_bill_fee_total - ( ac.payments_applied_total +  ac.ajdustments_applied_total )) != 0::money
  ),
  aging_details  AS( SELECT
