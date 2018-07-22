@@ -202,6 +202,15 @@ module.exports = {
                             }
                         }
 
+                        // Condition :: Check ERA file payment/Adjustment value is negative/postive to mark credit/debit paments
+                        let isDebit = false;
+                        let adjustment_code = 'ERA';
+                        
+                        if(parseFloat(val.paidamount) < 0 || adjustmentAmount < 0){
+                            isDebit = true;
+                            adjustment_code = 'ERAREC';
+                        }
+
                         lineItems.push({
                             claim_number: value.claimNumber,
                             cpt_code: val.qualifierData.cptCode,
@@ -218,7 +227,9 @@ module.exports = {
                             patient_prefix : value.patientName.prefix || '',
                             patient_suffix : value.patientName.suffix || '',
                             index : index,
-                            duplicate : duplicate_flag
+                            duplicate : duplicate_flag,
+                            is_debit : isDebit,
+                            code : adjustment_code
                         });
                     });
 

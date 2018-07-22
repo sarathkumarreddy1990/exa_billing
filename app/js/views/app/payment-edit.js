@@ -2324,7 +2324,7 @@ define(['jquery',
                             var valid_claims = data[0].valid_claims || 0;
                             var msg;
 
-                            if (total_claims == valid_claims) {
+                            if (total_claims == valid_claims && (total_claims != 0 && valid_claims != 0)) {
                                 msg = 'Overall (' + valid_claims + ') pending claims. Are you sure to process?';
                             }
                             else if (total_claims != 0 && valid_claims != 0) {
