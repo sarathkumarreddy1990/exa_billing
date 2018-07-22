@@ -71,9 +71,9 @@
                 <div id="ddlInsuranceGroupBox" class="ddl form-group form-inline" style="display: none; max-width: 200px;">
                     <label class="control-label" i18n="report.insuranceProvider"></label>
                     <a class="btn btn-primary" id="btnAddInsuranceProvider" title="Add Insurance">
-                            <i class="icon-ic-plus"></i>
-                        </a>
-                    <select id="txtInsuranceProviderName" style="width: 250px; border:1px solid;"> </select>                  
+                        <i class="icon-ic-plus"></i>
+                    </a>
+                    <select id="txtInsuranceProviderName" style="width: 250px; border:1px solid;"> </select>
                 </div>
                 <div id="ddlOptionBoxList" style="display:none; padding-left: 15px;">
                     <div id="divListInsurance">
@@ -101,10 +101,10 @@
                     <input id="chkServiceDateBill" type="checkbox" value="chkServiceDateBill" name="serviceDate">
                     <label for="chkServiceDateBill" class="field-chk" i18n="report.claimDate"> </label>
                     <div class="input-group">
-                        <span class="input-group-addon add-on">
+                        <input type="text" id="serviceDateBill" class="form-control" required="required" name="dateRange">
+                        <span class="input-group-addon add-on datePickerSpan">
                             <i class="fa fa-calendar"> </i>
                         </span>
-                        <input type="text" id="serviceDateBill" class="form-control" required="required" name="dateRange">
                     </div>
                 </div>
             </div>
@@ -115,7 +115,7 @@
 
         <div class="col" style="max-width: 320px;">
             <div class="form-group form-inline">
-                <label class="inline field-chk field-required"  i18n="report.claim" > </label>
+                <label class="inline field-chk field-required" i18n="report.claim"> </label>
                 <select id="ddlClaimSelectBoxes" multiple="multiple">
                     <option value="InsPaid" selected>Insurance Paid</option>
                     <option value="PatPaid">Patient Paid</option>
@@ -126,7 +126,7 @@
         <div class="col">
             <div class="form-group form-inline">
                 <div>
-                    <label class="inline field-chk ">Select Users *</label>
+                    <label class="inline field-chk ">Select Users</label>
                     <div class="input-group">
                         <select id="ddlUsersOption" class="form-control form-control-lg">
                             <option value="All">ALL</option>
@@ -135,15 +135,13 @@
                     </div>
                 </div>
 
-
                 <div id="ddlUsersBox" class="form-group form-inline" style="display:none;">
                     <div style="max-width: 200px;">
                         <label class="control-label" i18n="report.selectUsers"></label>
                         <a class="btn btn-primary" id="btnAddUsers" title="Add Users">
                             <i class="icon-ic-plus"></i>
                         </a>
-                        <select id="txtReferringPhysician"> </select>
-
+                        <select id="txtUsers"> </select>
                     </div>
                 </div>
                 <div id="divUsers" style="display: none; padding-left: 15px;">
@@ -164,10 +162,10 @@
                     <input id="chkServicePayDateCPT" type="checkbox" value="Service Pay Date" name="servicePayDate">
                     <label for="chkServicePayDateCPT" class="field-chk" i18n="report.payDate"></label>
                     <div class="input-group">
-                        <span class="input-group-addon add-on">
+                        <input type="text" id="serviceDateBillCPT" class="form-control" name="dateRange">
+                        <span class="input-group-addon add-on datePickerSpan">
                             <i class="fa fa-calendar"> </i>
                         </span>
-                        <input type="text" id="serviceDateBillCPT" class="form-control" name="dateRange">
                     </div>
                 </div>
             </div>
@@ -198,10 +196,10 @@
                     <input id="billCreatedDate" type="checkbox" value="billCreatedDate" name="billCreatedDate">
                     <label for="billCreatedDate" class="field-chk"> Bill Created Date </label>
                     <div class="input-group">
-                        <span class="input-group-addon add-on">
+                        <input type="text" id="serviceDateBillCreated" class="form-control" name="dateRange">
+                        <span class="input-group-addon add-on datePickerSpan">
                             <i class="fa fa-calendar"> </i>
                         </span>
-                        <input type="text" id="serviceDateBillCreated" class="form-control" name="dateRange">
                     </div>
                 </div>
             </div>
@@ -212,14 +210,13 @@
     </div>
 
 
-
     <div class="row">
         <div class="btn-toolbar" role="toolbar" style="margin-left: 15px;">
             <div class="btn-group">
                 <button type="button" class="btn btn-primary" id="btnViewReport" data-rformat="html">
                     <i class="fa fa-file"></i> View
                 </button>
-                <button type="button" class="btn btn-primary" id="btnViewReportNewTabClaimTransaction" data-rformat="html">
+                <button type="button" class="btn btn-primary" id="btnViewReportNewTabClaimInquiry" data-rformat="html">
                     <i class="fa fa-external-link"></i>
                 </button>
             </div>
@@ -227,6 +224,8 @@
                 <button type="button" class="btn btn-primary" id="btnPdfReport" data-rformat="pdf">
                     <i class="fa fa-file-pdf-o"></i> PDF
                 </button>
+                <button type="button" class="btn btn-primary" id="btnExcelReport" data-rformat="xlsx">
+                    <i class="fa fa-file-excel-o"></i> Excel</button>
             </div>
         </div>
 

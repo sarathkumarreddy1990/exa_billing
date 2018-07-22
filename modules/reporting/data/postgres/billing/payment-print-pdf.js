@@ -18,7 +18,7 @@ with payment_details AS(
         card_name as cardname,
         card_number as cardnumber,
         payer_type as payertype,         
-        amount as amount,
+        bpa.amount as amount,
         patients.id as patient_id,
                               (select payment_balance_total from billing.get_payment_totals(bp.id)) AS available_balance
                             , (select payments_applied_total from billing.get_payment_totals(bp.id)) AS applied       
@@ -30,29 +30,29 @@ with payment_details AS(
 	                            WHEN 'ordering_provider' THEN ref_provider.full_name
 	                            WHEN 'patient' THEN patients.full_name        END) AS payer_name    
      FROM billing.payments bp
+             INNER JOIN billing.payment_applications bpa ON  bpa.payment_id = bp.id
             LEFT JOIN public.patients ON patients.id = bp.patient_id    
             LEFT JOIN public.provider_groups ON provider_groups.id = bp.provider_group_id
             LEFT JOIN public.provider_contacts ON provider_contacts.id = bp.provider_contact_id
             LEFT JOIN public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
             LEFT JOIN public.insurance_providers  ON insurance_providers.id = bp.insurance_provider_id
             LEFT JOIN public.facilities ON facilities.id = bp.facility_id
-            where 1=1  AND <%= paymentId %> 
+            where 1=1  AND <%= paymentId %> AND bpa.amount_type = 'payment'
     ),
     patient_details AS(
     SELECT 
     to_char(claim_dt,'MM/DD/YYYY') as claim_date,
     pp.id as patient_id,
-    pp.account_no as account_no,
+    coalesce(pp.account_no, '─ ─ Total ─ ─') as account_no,
      pp.full_name as full_name,
      SUM(amount) as pay_amount,
     bc.claim_dt 
     FROM billing.claims bc 
     INNER JOIN public.patients pp ON pp.id = bc.patient_id 
-    INNER JOIN billing.charges bch on bch.id = bc.id 
-    INNER JOIN billing.payment_applications bpa on bpa.charge_id = bch.id    
-    where 1=1  AND <%= paymentApplicationId %>  
+    INNER JOIN billing.charges bch ON bch.claim_id = bc.id 
+    INNER JOIN billing.payment_applications bpa on bpa.charge_id = bch.id
+    where 1=1 AND <%= paymentApplicationId %> AND bpa.amount_type = 'payment'
     GROUP BY grouping sets ( (pp.full_name,pp.account_no,bc.claim_dt,pp.id),())
-
     )
     select 
         id,

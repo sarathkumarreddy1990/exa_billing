@@ -49,7 +49,10 @@ define([
                 allClaimSelection: false,
                 allInsGrpSelection: false,
                 insGroupOption: null,
-                cptCodeLists: null
+                cptCodeLists: null,
+                allUsers: false,
+                userIds: null,
+                userNames: null
             },
             defaultyFacilityId: null,
             drpStudyDt: null,
@@ -69,7 +72,7 @@ define([
                 'change #ddlReferringPhysicianOption': 'onOptionChangeSelect',
                 'change #ddlCPTCodeOption': 'onOptionChangeSelectCPT',
                 'click #btnViewReport': 'onReportViewClick',
-                'click #btnViewReportNewTabClaimTransaction': 'onReportViewClick',
+                'click #btnViewReportNewTabClaimInquiry': 'onReportViewClick',
                 'click #btnPdfReport': 'onReportViewClick',
                 'click #btnExcelReport': 'onReportViewClick',
                 'click #btnCsvReport': 'onReportViewClick',
@@ -125,7 +128,7 @@ define([
                 UI.bindBillingProvider();
                 UI.bindInsuranceAutocomplete('Select Insurance', 'btnAddInsurance', 'ulListInsurance');
                 UI.bindInsuranceProviderAutocomplete('Select Insurance Provider', 'btnAddInsuranceProvider', 'ulListInsuranceProvider');
-                UI.listUsersAutoComplete('Select User', 'btnAddUsers', 'ulListUsers');
+                UI.listUsersAutoComplete('txtUsers', 'btnAddUsers', 'ulListUsers');
                 UI.bindCPTCodeInformations('txtCPTCode', 'btnCPTCode', 'ulListCPTCodeDetails');
                 UI.bindReferringProviderAutoComplete('txtReferringPhysician', 'btnAddReferringPhysician', 'ulListReferringPhysicians');
 
@@ -210,7 +213,7 @@ define([
                     btnClicked = btnClicked.parent(); // in case FA icon 'inside'' button was clicked...
                 }
                 var rFormat = btnClicked ? btnClicked.attr('data-rformat') : null;
-                var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnViewReportNewTabClaimTransaction' : false;
+                var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnViewReportNewTabClaimInquiry' : false;
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = openInNewTab && rFormat === 'html';
 
@@ -276,6 +279,12 @@ define([
 
             // Binding Report Params
             getReportParams: function () {
+                var usersArray = [], userNameArray = [], usersRoleArray = [], userRoleNameArray = [];
+                $('#ulListUsers li a').each(function () {
+                    usersArray.push(~~$(this).attr('data-id'));
+                    userNameArray.push($(this).closest('li').find('span').text());
+                });
+
                 return urlParams = {
                     'allFacilities': this.viewModel.allFacilities,
                     'facilityIds': this.viewModel.facilityIds,
@@ -318,7 +327,10 @@ define([
                     cptCodeLists: this.viewModel.cptCodeLists ? this.viewModel.cptCodeLists : '',
 
                     orderBy: $('#ddlOrderBySelection').val() ? $('#ddlOrderBySelection').val() : '',
-                    insurancePayerTypeOption: $('#ddlClaimSelectBoxes').val() || ''
+                    insurancePayerTypeOption: $('#ddlClaimSelectBoxes').val() || '',
+
+                    'userIds': $('#ddlUsersOption').val() == 'S' ? usersArray : '',
+                    'userName': $('#ddlUsersOption').val() == 'S' ? userNameArray : ''
 
                 };
             },

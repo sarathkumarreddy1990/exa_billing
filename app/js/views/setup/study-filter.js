@@ -1626,12 +1626,13 @@ define([
 
             resetForm: function () {
                 var self = this;
-
-                $('#txtFilterName').val('');
-                $('#txtFilterOrder').val('');
-                $('#chkDisplayAsTab').prop('checked', false);
-                $('#chkDisplayAsDDL').prop('checked', true);
-
+                if (self.model && !self.model.id) {
+                    $('#txtFilterName').val('');
+                    $('#txtFilterOrder').val('');
+                    $('#chkDisplayAsTab').prop('checked', false);
+                    $('#chkDisplayAsDDL').prop('checked', true);
+                }
+            
                 $('#txtLastTime').val('');
 
                 $('#txtPatientName').val('');
@@ -1662,32 +1663,28 @@ define([
                 $('#listReadPhy option').remove();
                 $('#listRefPhy option').remove();
                 $('#listInsurance option').remove();
-                $('#lblSummaryDate').text('');
-                $('#lblSummaryPName').text('');
-                $('#lblSummaryPID').text('');
-                $('#lblSummaryReadPhy').text('');
-                $('#lblSummaryRefPhy').text('');
-                $('#lblSummaryInstitution').text('');
-                $('#lblSummaryModality').text('');
-                $('#lblFacility').text('');
-                $('#lblSummaryStatus').text('');
-                $('#lblSummaryVehicle').text('');
-                $('#lblSummaryBodyPart').text('');
-                $('#lblSummaryStat').text('');
-                $('#lblSummaryFlag').text('');
-                $('#lblSummaryAccession').text('');
-                $('#lblSummaryAttorney').text('');
-                $('#lblSummaryStudyDescription').text('');
+               $('#lblSummaryDate').text('');
+               $('#lblSummaryPName').text('');
+               $('#lblSummaryPID').text('');
+               $('#lblSummaryReadPhy').text('');
+               $('#lblSummaryRefPhy').text('');
+               $('#lblSummaryInstitution').text('');
+               $('#lblSummaryModality').text('');
+               $('#lblFacility').text('');
+               $('#lblSummaryStatus').text('');
+               $('#lblSummaryVehicle').text('');
+               $('#lblSummaryBodyPart').text('');
+               $('#lblSummaryStat').text('');
+               $('#lblSummaryFlag').text('');
+               $('#lblSummaryAccession').text('');
+               $('#lblSummaryAttorney').text('');
+               $('#lblSummaryStudyDescription').text('');
+               $('#lblSummaryInsurance').text('');
 
-                $('#lblSummaryStudyID').text('');
+               $('#lblSummaryStudyID').text('');
                 $('#txtAccession').val('');
                 $('#txtAttorney').val('');
                 $('#txtStudyID').val('');
-
-                $('#chkIsActive').prop('checked',false);
-                $('#chkIsGlobalFilter').prop('checked',false);
-                $('#chkDisplayAsTab').prop('checked',false);
-                $('#chkDisplayAsDDL').prop('checked',false);
 
                 toggleOption('rbtStudyDate', false);
                 toggleOption('rbtIsPatientName', false);
