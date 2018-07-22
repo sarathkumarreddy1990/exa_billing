@@ -175,6 +175,8 @@ module.exports = {
                                 ,service_date date
                                 ,index integer
                                 ,duplicate boolean
+                                ,code text
+                                ,is_debit boolean
                              )
                             ),
                            matched_claims AS (
@@ -184,11 +186,14 @@ module.exports = {
                                     application_details.payment,
                                     application_details.original_reference,
                                     application_details.service_date,
+                                    application_details.code,
                                     json_build_object(
                                         'charge_id',COALESCE(application_details.charge_id, billing.get_era_charge_id(application_details.claim_number, application_details.cpt_code, application_details.service_date::date, application_details.duplicate, application_details.index)),
                                         'payment',application_details.payment,
                                         'adjustment',application_details.adjustment,
-                                        'cas_details',application_details.cas_details)
+                                        'cas_details',application_details.cas_details,
+                                        'applied_dt',CASE WHEN application_details.is_debit THEN now() + INTERVAL '0.01' SECOND ELSE now() END
+                                    )
                                 FROM 
                                     application_details  
                                 INNER JOIN billing.claims c on c.id = application_details.claim_number
@@ -216,7 +221,7 @@ module.exports = {
                                     ,matched_claims.claim_status_code
                                     ,billing.create_payment_applications(
                                         ${paymentDetails.id}
-                                        ,( SELECT id FROM billing.adjustment_codes WHERE code =${paymentDetails.code} ORDER BY id ASC LIMIT 1 )
+                                        ,( SELECT id FROM billing.adjustment_codes WHERE code = matched_claims.code ORDER BY id ASC LIMIT 1 )
                                         ,${paymentDetails.created_by}
                                         ,json_build_array(matched_claims.json_build_object)::jsonb
                                         ,(${JSON.stringify(audit_details)})::json
@@ -307,7 +312,7 @@ module.exports = {
                         FROM
                             billing.charges ch
                         INNER JOIN billing.claims AS c ON ch.claim_id = c.id
-                        INNER JOIN claim_pamyent AS cp ON cp.claim_id = c.id
+                        INNER JOIN claim_payment AS cp ON cp.claim_id = c.id
                         WHERE ch.id NOT IN ( SELECT charge_id FROM  billing.payment_applications pa WHERE pa.charge_id = ch.id AND pa.payment_id = cp.payment_id )
                     ),insert_payment_adjustment AS (
                         SELECT
