@@ -190,7 +190,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             return app.report_queue_status[_.findIndex(app.report_queue_status, {code: cellvalue})] && app.report_queue_status[_.findIndex(app.report_queue_status, {code: cellvalue})].description;
         };
         var getStatus = function ( data ) {
-            var status = data.study_status ;
+            var status = data.study_status || data.order_status_code ;
             status = status === 'TE' ?
                      'INC' :
                      status;
