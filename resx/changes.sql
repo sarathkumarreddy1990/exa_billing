@@ -2903,7 +2903,7 @@ BEGIN
           ,CASE 
                 WHEN COALESCE(NULLIF(order_info->'frequency_code',''),'0')::numeric = 8 THEN 'void'
                 WHEN COALESCE(NULLIF(order_info->'frequency_code',''),'0')::numeric = 7 THEN 'corrected'
-                WHEN COALESCE(NULLIF(order_info->'frequency_code',''),'0')::numeric = 7 THEN 'original'
+                WHEN COALESCE(NULLIF(order_info->'frequency_code',''),'0')::numeric = 1 THEN 'original'
                 ELSE NULL
             END AS frequency
           ,COALESCE(NULLIF(order_info->'oa',''), 'false')::boolean AS is_other_accident
