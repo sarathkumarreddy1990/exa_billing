@@ -95,10 +95,10 @@ define([
                 this.excelExtended = btnClicked ? btnClicked.attr('id') === 'btnExcelReportExtended' : false;
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = (openInNewTab && rFormat === 'html') ? true : false;
-                if (this.hasValidViewModel()) {
+             //   if (this.hasValidViewModel()) {
                     var urlParams = this.getReportParams();
                     UI.showReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
-                }
+             //   }
             },
 
             bindDateRangePicker: function () {
