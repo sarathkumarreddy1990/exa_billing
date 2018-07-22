@@ -450,7 +450,7 @@ module.exports = {
 											provider_info->'NPI' as "NPINO",
 											provider_info->'LicenseNo' as "licenseNo"
 											FROM provider_contacts   rendering_pro_contact
-											LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.id
+											LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.provider_id
 											WHERE  rendering_pro_contact.id=claims.rendering_provider_contact_id) 
 											as renderingProvider)
 
@@ -489,7 +489,7 @@ module.exports = {
 											provider_info->'NPI' as "NPINO",
 											provider_info->'LicenseNo' as "licenseNo"
 											FROM provider_contacts 
-											LEFT JOIN providers as ref_provider ON ref_provider.id=provider_contacts.id
+											LEFT JOIN providers as ref_provider ON ref_provider.id=provider_contacts.provider_id
 											WHERE  provider_contacts.id=claims.referring_provider_contact_id) 
 											as referringProvider)
 								
@@ -577,7 +577,7 @@ module.exports = {
 					modifier4.code as "mod4",
 					authorization_no as "authorizationNo",
 					allowed_amount::numeric::text as "allowedAmount",
-					charges.id as "iterationIndex",
+					charges.id as "chargeID",	
 					display_description as "studyDescription",
 					additional_info->'ndc_code' as NDCCode,
 					additional_info->'ndc_measure' as NDCMeasure,
