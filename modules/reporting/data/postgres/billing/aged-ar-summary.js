@@ -490,9 +490,10 @@ const api = {
             dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
             // other data sets could be added here...
             (agedARSummaryDataSet, providerInfo) => {
-                // add report filters                
-                initialReportData.filters = api.createReportFilters(initialReportData);
+                // add report filters           
                 initialReportData.lookups.billingProviderInfo = providerInfo || [];
+                initialReportData.filters = api.createReportFilters(initialReportData);
+
 
                 // add report specific data sets
                 initialReportData.dataSets.push(agedARSummaryDataSet);
@@ -531,6 +532,8 @@ const api = {
         const lookups = initialReportData.lookups;
         const params = initialReportData.report.params;
         const filtersUsed = [];
+        filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
+
         if (params.allFacilities && params.facilityIds)
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
         else {
@@ -544,7 +547,7 @@ const api = {
             //const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
             const billingProviderInfo = _(lookups.billingProviderInfo).filter(f => params.billingProvider && params.billingProvider.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
-          
+
         }
         filtersUsed.push({ name: 'Cut Off Date', label: 'Date From', value: params.fromDate });
 
