@@ -809,14 +809,16 @@ BEGIN
 			amount_type,
 			amount,
 			adjustment_code_id,
-			created_by
+			created_by,
+            applied_dt
 		) (SELECT 
 			i_payment_id,
 			i_charge_id,
 			'adjustment' AS amount_type,
 			i_adjustment_amount,
 			i_adjustment_code_id,
-			i_created_by
+			i_created_by,
+            coalesce(i_applied_dt,now())
 		FROM payment_cte
 		WHERE p_is_recoupment OR i_adjustment_amount != 0::money OR i_cas_details != '[]'::jsonb)
 		RETURNING *, '{}'::jsonb old_values
@@ -2089,9 +2091,7 @@ BEGIN
 			ELSE
 			    CASE 
 			        WHEN claim_details.claim_balance_total > 0::money  THEN
-			            CASE WHEN is_other_ins_paid AND (primary_patient_insurance_id IS NOT NULL OR secondary_patient_insurance_id IS NOT NULL OR tertiary_patient_insurance_id IS NOT NULL )
-						THEN 'secondary_insurance'
-						WHEN (NOT is_primary_paid  and is_other_ins_paid ) AND primary_patient_insurance_id IS NOT NULL 
+			            CASE WHEN (NOT is_primary_paid  and is_other_ins_paid ) AND primary_patient_insurance_id IS NOT NULL 
 						THEN 'primary_insurance'
 					        WHEN NOT is_secondary_paid AND secondary_patient_insurance_id IS NOT NULL 
 						THEN 'secondary_insurance'
@@ -2601,7 +2601,7 @@ BEGIN
 					, modifier4_id bigint
 					, bill_fee money
 					, allowed_amount money
-					, units bigint
+					, units numeric(7,3)
 					, created_by bigint
 					, authorization_no text
 					, charge_dt timestamptz
