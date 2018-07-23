@@ -2744,39 +2744,75 @@ define(['jquery',
                 var mandatory_fields = {
                     primaryfields: [
                         $('#txtPriPolicyNo').val().trim(),
+                        $('#ddlPriRelationShip option:selected').val().trim() || '',
                         $('#txtPriSubFirstName').val().trim(),
                         $('#txtPriSubLastName').val().trim(),
+                        $('#txtPriDOB').val().trim().trim(),
                         $('#ddlPriGender').val() ? $('#ddlPriGender').val().trim() : '',
                         $('#txtPriSubPriAddr').val().trim(),
-                        $('#ddlPriRelationShip option:selected').val().trim() || '',
-                        $('#txtPriDOB').val().trim().trim(),
                         $('#txtPriCity').val().trim(),
                         $('#ddlPriState option:selected').val().trim() || '',
                         $('#txtPriZipCode').val().trim()
                     ],
+                    primaryfieldObjs: [
+                        {obj: $('#txtPriPolicyNo'), msg: 'Please select policy #'},
+                        {obj: $('#ddlPriRelationShip'),msg: 'Please select subscriber relationship'},
+                        {obj: $('#txtPriSubFirstName'), msg: 'Please enter subscriber first name'},
+                        {obj: $('#txtPriSubLastName'), msg: 'Please enter subscriber last name'},
+                        {obj: $('#txtPriDOB'), msg: 'Please enter subscriber DOB'},
+                        {obj: $('#ddlPriGender'), msg: 'Please select subscriber gender'},
+                        {obj: $('#txtPriSubPriAddr'), msg: 'Please enter subscriber address'},
+                        {obj: $('#txtPriCity'), msg: 'Please enter subscriber city'},
+                        {obj: $('#ddlPriState'), msg: 'Please select state #'},
+                        {obj: $('#txtPriZipCode'), msg: 'Please enter xip code'}
+                    ],
                     secondaryfields: [
                         $('#txtSecPolicyNo').val().trim(),
+                        $('#ddlSecRelationShip option:selected').val().trim() || '',
                         $('#txtSecSubFirstName').val().trim(),
                         $('#txtSecSubLastName').val().trim(),
                         $('#ddlSecGender').val() ? $('#ddlSecGender').val().trim() : '',
-                        $('#txtSecSubPriAddr').val().trim(),
-                        $('#ddlSecRelationShip option:selected').val().trim() || '',
                         $('#txtSecDOB').val().trim(),
+                        $('#txtSecSubPriAddr').val().trim(),
                         $('#txtSecCity').val().trim(),
                         $('#ddlSecState option:selected').val().trim() || '',
                         $('#txtSecZipCode').val().trim()
+                    ],                    
+                    secondaryfieldObjs: [
+                        {obj: $('#txtSecPolicyNo'), msg: 'Please enter policy #'},
+                        {obj: $('#ddlSecRelationShip'),msg: 'Please select subscriber relationship'},
+                        {obj: $('#txtSecSubFirstName'), msg: 'Please enter subscriber first name'},
+                        {obj: $('#txtSecSubLastName'), msg: 'Please enter subscriber last name'},
+                        {obj: $('#ddlSecGender'), msg: 'Please select subscriber gender'},
+                        {obj: $('#txtSecDOB'), msg: 'Please enter subscriber DOB'},
+                        {obj: $('#txtSecSubPriAddr'), msg: 'Please enter subscriber address'},
+                        {obj: $('#txtSecCity'), msg: 'Please enter subscriber city'},
+                        {obj: $('#ddlSecState'), msg: 'Please select state #'},
+                        {obj: $('#txtSecZipCode'), msg: 'Please enter xip code'}
                     ],
                     tertiaryfields: [
                         $('#txtTerPolicyNo').val().trim(),
+                        $('#ddlTerRelationShip option:selected').val().trim() || '',
                         $('#txtTerSubFirstName').val().trim(),
                         $('#txtTerSubLastName').val().trim(),
                         $('#ddlTerGender').val() ? $('#ddlTerGender').val().trim() : '',
-                        $('#txtTerSubPriAddr').val().trim(),
-                        $('#ddlTerRelationShip option:selected').val().trim() || '',
                         $('#txtTerDOB').val().trim(),
+                        $('#txtTerSubPriAddr').val().trim(),
                         $('#txtTerCity').val().trim(),
                         $('#ddlTerState option:selected').val().trim() || '',
                         $('#txtTerZipCode').val().trim()
+                    ],
+                    tertiaryfieldObjs: [
+                        {obj: $('#txtTerPolicyNo'), msg: 'Please enter policy #'},
+                        {obj: $('#ddlTerRelationShip'),msg: 'Please select subscriber relationship'},
+                        {obj: $('#txtTerSubFirstName'), msg: 'Please enter subscriber first name'},
+                        {obj: $('#txtTerSubLastName'), msg: 'Please enter subscriber last name'},
+                        {obj: $('#ddlTerGender'), msg: 'Please select subscriber gender'},
+                        {obj: $('#txtTerDOB'), msg: 'Please enter subscriber DOB'},
+                        {obj: $('#txtTerSubPriAddr'), msg: 'Please enter subscriber address'},
+                        {obj: $('#txtTerCity'), msg: 'Please enter subscriber city'},
+                        {obj: $('#ddlTerState'), msg: 'Please select state #'},
+                        {obj: $('#txtTerZipCode'), msg: 'Please enter xip code'}
                     ]
                 }
 
@@ -2787,7 +2823,9 @@ define(['jquery',
                 if (self.priInsID || !mandatory_fields.primaryfields.every(checkEmpty)) {
 
                     if (mandatory_fields.primaryfields.indexOf('') > -1 || mandatory_fields.primaryfields.indexOf(null) > -1) {
-                        commonjs.showWarning("shared.warning.priInsValidation");
+                        commonjs.showWarning(mandatory_fields.primaryfieldObjs[mandatory_fields.primaryfields.indexOf('')].msg);
+                        mandatory_fields.primaryfieldObjs[mandatory_fields.primaryfields.indexOf('')].obj.focus();
+                        // commonjs.showWarning("shared.warning.priInsValidation");
                         return false;
                     }
                     if ($('#ddlPriInsurance').val() == '') {
@@ -2806,9 +2844,10 @@ define(['jquery',
                     }
                     else {
 
-                        if (mandatory_fields.secondaryfields.indexOf('') > -1 || mandatory_fields.secondaryfields.indexOf(null) > -1) {
-
-                            commonjs.showWarning("shared.warning.secInsValidation");
+                        if (mandatory_fields.secondaryfields.indexOf('') > -1 || mandatory_fields.secondaryfields.indexOf(null) > -1) {                            
+                            commonjs.showWarning(mandatory_fields.secondaryfieldObjs[mandatory_fields.secondaryfields.indexOf('')].msg);
+                            mandatory_fields.secondaryfieldObjs[mandatory_fields.secondaryfields.indexOf('')].obj.focus();
+                            // commonjs.showWarning("shared.warning.secInsValidation");
                             return false;
                         }
                         if ($('#s2id_txtSecInsurance a span').html() == 'Search Carrier' || $('#s2id_txtSecInsurance a span').html() == '') {
@@ -2830,7 +2869,10 @@ define(['jquery',
 
                         if (mandatory_fields.tertiaryfields.indexOf('') > -1 || mandatory_fields.tertiaryfields.indexOf(null) > -1) {
 
-                            commonjs.showWarning("shared.warning.terInsValidation");
+                            commonjs.showWarning(mandatory_fields.tertiaryfieldObjs[mandatory_fields.tertiaryfields.indexOf('')].msg);
+                            mandatory_fields.tertiaryfieldObjs[mandatory_fields.tertiaryfields.indexOf('')].obj.focus();
+
+                            // commonjs.showWarning("shared.warning.terInsValidation");
                             return false;
                         }
                         if ($('#s2id_txtTerInsurance a span').html() == 'Search Carrier' || $('#s2id_txtTerInsurance a span').html() == '') {
