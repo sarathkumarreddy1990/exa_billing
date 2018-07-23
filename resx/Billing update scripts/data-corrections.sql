@@ -76,28 +76,6 @@ WHERE id = wrong_patient_insurance_id  ;
 update patient_insuarances_exception_data SET is_updated =true WHERE id=s_rec.id AND NOT is_exclude ;
 END LOOP;
 
-
-RAISE NOTICE '--- 2 insurance_provider_ids ----';
-
-/***
--- This script is only for MRI
-------------------------------------------------------------------------
-update orders set insurance_provider_ids= array_replace(insurance_provider_ids, '355919', '75206') WHERE id= 588653;
-update orders set insurance_provider_ids= array_replace(insurance_provider_ids, '355919', '75206') WHERE id= 588343;
-update orders set insurance_provider_ids= array_replace(insurance_provider_ids, '173551', null) WHERE id= 95372  ;
-update orders set insurance_provider_ids= array_replace(insurance_provider_ids, '173551', null) WHERE id= 537833 ;
-update orders set insurance_provider_ids= array_replace(insurance_provider_ids, '256739', '357610') WHERE id in( 235176 , 235195) ;
-update orders set insurance_provider_ids= array_replace(insurance_provider_ids, '256739', '357610') WHERE id= 235195 ;
-update orders set insurance_provider_ids= array_replace(insurance_provider_ids, '299400', '280902') WHERE id= 531548  ;
-update orders set insurance_provider_ids= array_replace(insurance_provider_ids, '283104', '77313') WHERE id in( 151717,147974,164591);
-update orders set insurance_provider_ids= array_replace(insurance_provider_ids, '276371', null) WHERE id= 537833 ;
-update orders set insurance_provider_ids= array_replace(insurance_provider_ids, '250202','132099') WHERE id= 543642 ;
-update orders set insurance_provider_ids= array_replace(insurance_provider_ids, '283005','282310') WHERE id= 536628 ;
-update orders set insurance_provider_ids= array_replace(insurance_provider_ids, '250202','132099') WHERE id= 543642 ; 
-update orders set insurance_provider_ids= array_replace(insurance_provider_ids, '382160',null) WHERE id= 785316;
-------------------------------------------------------------------------
-***/
-
 DROP TABLE patient_insuarances_exception_data;
 
 -- -----------------------------------------------------------------------------------------------------------------------
@@ -184,42 +162,6 @@ AND o.order_status NOT IN ('NOS', 'ABRT', 'ORD', 'CAN' );
 -- -----------------------------------------------------------------------------------------------------------------------
 -- Data fix for payer is facility or ordering physician
 -- SNO-6 and SNO-7 Kyle reply - If primary insurance is available switch to this else switch to patient.
--- -----------------------------------------------------------------------------------------------------------------------
-/*
-UPDATE
-    claims c
-SET
-    claim_info = claim_info || hstore (ARRAY [ 'payer',
-        'payer_id',
-        'payer_type','payer_name'],
-        ARRAY [ CASE WHEN o.insurance_provider_ids [ 1 ] IS NOT NULL THEN
-            'Insurance'
-          ELSE
-            'Patient'
-          END,
-          CASE WHEN o.insurance_provider_ids [ 1 ] IS NOT NULL THEN
-              (SELECT insurance_provider_id FROM patient_insuarances WHERE id = o.insurance_provider_ids [ 1 ])::text
-           ELSE
-              (c.patient_id)::text
-           END,
-	   CASE WHEN o.insurance_provider_ids [ 1 ] IS NOT NULL THEN
-                'PIP'
-           ELSE
-                'PPP'
-           END ,
-           CASE WHEN o.insurance_provider_ids [ 1 ] IS NOT NULL THEN
-               (select insurance_name from insurance_providers where id = (SELECT insurance_provider_id FROM patient_insuarances WHERE id = o.insurance_provider_ids [1]))::text
-           ELSE
-               (SELECT Full_name from patients where id = c.patient_id )::text
-           END])
-    FROM
-        orders o
-    WHERE
-        o.id = c.order_id
-        AND coalesce(c.has_expired, FALSE)
-        IS FALSE
-        AND claim_info -> 'payer' IN ('Facility', 'Ordering Physician');
-*/
 -- -----------------------------------------------------------------------------------------------------------------------
 
 RAISE NOTICE '--- 3 Data fix for duplicate claims.  ----';
@@ -576,10 +518,8 @@ FROM
 WHERE
     order_payments.id = op.id;
 -- --------------------------------------------------------------------------------------------------------------------
-
 RAISE NOTICE '---8     Data correction for paymeny status';
 -- Data correction for paymeny status
--- --------------------------------------------------------------------------------------------------------------------	
 -- -----------------------------------------------------------------------------------------------------------------------
 WITH total_applied_amount AS (
 SELECT 

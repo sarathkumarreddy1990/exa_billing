@@ -193,6 +193,12 @@ END IF;
 -- --------------------------------------------------------------------------------------------------------------------
 -- Claim status - Migrate remaining status from adjustment code table
 -- --------------------------------------------------------------------------------------------------------------------
+IF EXISTS (
+SELECT 1
+FROM information_schema.columns
+WHERE table_schema = 'public'
+  AND table_name   = 'adjustment_codes' )  THEN
+
 INSERT INTO billing.claim_status (company_id, code, description, is_system_status, display_order)
 WITH adj_cte as(
 select description  from public.adjustment_codes
@@ -216,6 +222,9 @@ update billing.claim_status
 set display_order = rnum
 from adj_qry
 where claim_status.id = adj_qry.id;
+
+END IF;
+
 -- --------------------------------------------------------------------------------------------------------------------
 -- Datamodel for Adjustment codes  <END>
 -- --------------------------------------------------------------------------------------------------------------------
@@ -855,6 +864,153 @@ CREATE TABLE IF NOT EXISTS billing.insurance_provider_details
   CONSTRAINT insurance_providers_ins_id_clear_house_id_uc UNIQUE (insurance_provider_id, billing_method),
   CONSTRAINT insurance_provider_details_billing_method_cc CHECK (billing_method IN ('patient_payment', 'direct_billing', 'electronic_billing', 'paper_claim'))
 );
+-- --------------------------------------------------------------------------------------------------------------------
+-- Creating default setup details
+-- --------------------------------------------------------------------------------------------------------------------
+IF NOT EXISTS(SELECT 1 FROM billing.status_color_codes) THEN 
+
+   RAISE NOTICE 'billing.status_color_codes ...';
+
+   INSERT INTO billing.status_color_codes (company_id, process_type, process_status, color_code)
+   values (1,'study','billed','#80ff00');
+
+   INSERT INTO billing.status_color_codes (company_id, process_type, process_status, color_code)
+   values (1,'study','unbilled','#80ffff');
+
+END IF;
+-- --------------------------------------------------------------------------------------------------------------------
+IF NOT EXISTS(SELECT 1 FROM billing.provider_id_code_qualifiers) THEN 
+RAISE NOTICE 'billing.provider_id_code_qualifiers ..';
+
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'0B','State License Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'1A','Blue Cross Provider Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'1B','Blue Shield Provider Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'1C','Medicare Provider Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'1D','Medicaid Provider Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'1G','Provider UPIN Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'1H','CHAMPUS Identification Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'G2','Provider Commercial Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'LU','Location Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'N5','Provider Plan Network Identification Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'TJ','Federal Taxpayer’s Identification Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'X4','Clinical Laboratory Improvement Amendment');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'X5','State Industrial Accident Provider Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'1J','Facility ID Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'B3','Preferred Provider Organization Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'BQ','Health Maintenance Organization Code Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'EI','Employer’s Identification Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'FH','Clinic Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'G5','Provider Site Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'SY','Social Security Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'U3','Unique Supplier Identification Number (USIN)');
+END IF;
+-- --------------------------------------------------------------------------------------------------------------------
+IF NOT EXISTS(SELECT 1 FROM billing.messages) THEN 
+
+INSERT INTO billing.messages(company_id, code, description)
+	VALUES (l_company_id, '0-30', (SELECT coalesce(company_info->'billing_msg_thirty_days',' ') from companies));
+INSERT INTO billing.messages(company_id,  code, description)
+	VALUES (l_company_id,  '31-60', (SELECT coalesce(company_info->'billing_msg_sixty_days0',' ') from companies));
+INSERT INTO billing.messages(company_id, code, description)
+	VALUES (l_company_id,  '61-90', (SELECT coalesce(company_info->'billing_msg_ninety_days',' ') from companies));
+INSERT INTO billing.messages(company_id, code, description)
+	VALUES (l_company_id,  '91-120', (SELECT coalesce(company_info->'billing_msg_one_twenty_days',' ') from companies));
+INSERT INTO billing.messages(company_id, code, description)
+	VALUES (l_company_id, '>120', (SELECT coalesce(company_info->'billing_msg_over_one_twenty_days',' ') from companies));
+INSERT INTO billing.messages(company_id, code, description)
+	VALUES (l_company_id,  'collections', (SELECT coalesce(company_info->'billing_msg_collections',' ') from companies));
+
+END IF;
+------------------------------------------------------------------------------------------------------------------------
+IF NOT EXISTS(SELECT 1 FROM billing.cas_group_codes) THEN 
+
+INSERT INTO billing.cas_group_codes(company_id,code,name,description)
+    VALUES(l_company_id,'CO','CO','CO');
+INSERT INTO billing.cas_group_codes(company_id,code,name,description)
+    VALUES(l_company_id,'OA','OA','OA');
+INSERT INTO billing.cas_group_codes(company_id,code,name,description)
+    VALUES(l_company_id,'PR','PR','PR');
+
+END IF;
+--------------------------------------------------------------------------------------------------------------------------
+IF NOT EXISTS(SELECT 1 FROM billing.cas_reason_codes ) THEN 
+
+INSERT INTO billing.cas_reason_codes
+(
+    company_id,
+    code,
+    description
+)
+SELECT
+    1,
+    unnest(ARRAY['45','59','97','119','131','137','172','199','222','223','237','253','A2','B10','96','170','16','18','B7','29','197','11','181','183','109','50','23','22','55','1','2','3']),
+	'CAS';
+
+END IF;
+--------------------------------------------------------------------------------------------------------------------------
+IF NOT EXISTS(SELECT 1 FROM billing.validations ) THEN 
+
+INSERT INTO billing.validations(
+  company_id
+  , edi_validation
+  , invoice_validation
+  , patient_validation
+)
+VALUES(
+1
+, '[{"field":"billing_pro_addressLine1","enabled":false},{"field":"billing_pro_city","enabled":true},{"field":"billing_pro_firstName","enabled":false},{"field":"billing_pro_npiNo","enabled":false},{"field":"billing_pro_state","enabled":false},{"field":"billing_pro_zip","enabled":false},{"field":"claim_icd_code1","enabled":true},{"field":"claim_place_of_service_code","enabled":false},{"field":"claim_totalCharge","enabled":false},{"field":"insurance_pro_address1","enabled":true},{"field":"insurance_pro_city","enabled":false},{"field":"insurance_pro_companyName","enabled":false},{"field":"insurance_pro_payerID","enabled":false},{"field":"insurance_pro_state","enabled":false},{"field":"insurance_pro_zipCode","enabled":false},{"field":"patient_address1","enabled":false},{"field":"patient_city","enabled":false},{"field":"patient_dob","enabled":false},{"field":"patient_firstName","enabled":false},{"field":"patient_lastName","enabled":false},{"field":"patient_state","enabled":false},{"field":"patient_zipCode","enabled":false},{"field":"reading_physician_full_name","enabled":false},{"field":"reading_pro_npiNo","enabled":false},{"field":"ref_full_name","enabled":false},{"field":"referring_pro_npiNo","enabled":false},{"field":"service_line_dig1","enabled":false},{"field":"service_facility_addressLine1","enabled":false},{"field":"service_facility_city","enabled":false},{"field":"service_facility_firstName","enabled":false},{"field":"service_facility_npiNo","enabled":false},{"field":"service_facility_state","enabled":false},{"field":"service_facility_zip","enabled":false},{"field":"subscriber_addressLine1","enabled":false},{"field":"subscriber_city","enabled":false},{"field":"subscriber_dob","enabled":false},{"field":"subscriber_firstName","enabled":false},{"field":"subscriber_lastName","enabled":false},{"field":"subscriber_state","enabled":false},{"field":"subscriber_zipCode","enabled":false},{"field":"payer_address1","enabled":false},{"field":"payer_city","enabled":false},{"field":"payer_name","enabled":false},{"field":"payer_state","enabled":false},{"field":"payer_zip_code","enabled":false}]'::JSONB
+, '[{"field":"billing_pro_addressLine1","enabled":false},{"field":"billing_pro_city","enabled":false},{"field":"billing_pro_firstName","enabled":false},{"field":"billing_pro_npiNo","enabled":false},{"field":"billing_pro_state","enabled":false},{"field":"billing_pro_zip","enabled":false},{"field":"claim_icd_code1","enabled":false},{"field":"claim_place_of_service_code","enabled":false},{"field":"claim_totalCharge","enabled":false},{"field":"insurance_pro_address1","enabled":false},{"field":"insurance_pro_city","enabled":false},{"field":"insurance_pro_companyName","enabled":false},{"field":"insurance_pro_payerID","enabled":false},{"field":"insurance_pro_state","enabled":false},{"field":"insurance_pro_zipCode","enabled":false},{"field":"patient_address1","enabled":false},{"field":"patient_city","enabled":false},{"field":"patient_dob","enabled":false},{"field":"patient_firstName","enabled":false},{"field":"patient_lastName","enabled":false},{"field":"patient_state","enabled":false},{"field":"patient_zipCode","enabled":false},{"field":"reading_physician_full_name","enabled":false},{"field":"reading_pro_npiNo","enabled":false},{"field":"ref_full_name","enabled":false},{"field":"referring_pro_npiNo","enabled":false},{"field":"service_line_dig1","enabled":false},{"field":"service_facility_addressLine1","enabled":false},{"field":"service_facility_city","enabled":false},{"field":"service_facility_firstName","enabled":false},{"field":"service_facility_npiNo","enabled":false},{"field":"service_facility_state","enabled":false},{"field":"service_facility_zip","enabled":false},{"field":"subscriber_addressLine1","enabled":false},{"field":"subscriber_city","enabled":false},{"field":"subscriber_dob","enabled":false},{"field":"subscriber_firstName","enabled":false},{"field":"subscriber_lastName","enabled":false},{"field":"subscriber_state","enabled":false},{"field":"subscriber_zipCode","enabled":false},{"field":"payer_address1","enabled":false},{"field":"payer_city","enabled":false},{"field":"payer_name","enabled":false},{"field":"payer_state","enabled":false},{"field":"payer_zip_code","enabled":false}]'::JSONB
+, '[{"field":"billing_pro_addressLine1","enabled":false},{"field":"billing_pro_city","enabled":false},{"field":"billing_pro_firstName","enabled":false},{"field":"billing_pro_npiNo","enabled":false},{"field":"billing_pro_state","enabled":false},{"field":"billing_pro_zip","enabled":false},{"field":"claim_icd_code1","enabled":false},{"field":"claim_place_of_service_code","enabled":false},{"field":"claim_totalCharge","enabled":false},{"field":"patient_address1","enabled":false},{"field":"patient_city","enabled":false},{"field":"patient_dob","enabled":false},{"field":"patient_firstName","enabled":false},{"field":"patient_lastName","enabled":false},{"field":"patient_state","enabled":false},{"field":"patient_zipCode","enabled":false},{"field":"reading_physician_full_name","enabled":false},{"field":"reading_pro_npiNo","enabled":false},{"field":"ref_full_name","enabled":false},{"field":"referring_pro_npiNo","enabled":false},{"field":"service_line_dig1","enabled":false},{"field":"service_facility_addressLine1","enabled":false},{"field":"service_facility_city","enabled":false},{"field":"service_facility_firstName","enabled":false},{"field":"service_facility_npiNo","enabled":false},{"field":"service_facility_state","enabled":false},{"field":"service_facility_zip","enabled":false}]'::JSONB);
+
+END IF;
+--------------------------------------------------------------------------------------------------------------------------
+IF NOT EXISTS(SELECT 1 FROM billing.printer_templates ) THEN 
+
+
+INSERT INTO billing.printer_templates
+( company_id, page_width, page_height, left_margin, right_margin, top_margin , bottom_margin ,name , template_type , template_content) 
+VALUES (1, 0,0,0.0,0.0,1.6,0.2,  'Default', 'paper_claim_full' ,'var dd = { content: "Need to setup" }'
+) ;
+
+INSERT INTO billing.printer_templates
+( company_id, page_width, page_height, left_margin, right_margin, top_margin , bottom_margin ,name , template_type, template_content) 
+VALUES (1, 692,712,2.0,2.0,2.0,2.0,  'Balck & White Final', 'paper_claim_full' , 'var dd = { content: "Need to setup" }' ) ;
+
+INSERT INTO billing.printer_templates
+( company_id, page_width, page_height, left_margin, right_margin, top_margin , bottom_margin ,name , template_type, template_content) 
+VALUES (1, -3,-2,-0.2,0.0,0.2,0.0,  'Patient Invoice', 'patient_invoice' ,'var dd = { content: "Need to setup" }') ;
+
+INSERT INTO billing.printer_templates
+( company_id, page_width, page_height, left_margin, right_margin, top_margin , bottom_margin ,name , template_type, template_content) 
+VALUES (1, -3,-2,-0.2,0.0,0.2,0.0,  'Invoice Template', 'direct_invoice','var dd = { content: "Need to setup" }' ) ;
+
+INSERT INTO billing.printer_templates
+( company_id, page_width, page_height, left_margin, right_margin, top_margin , bottom_margin ,name , template_type, template_content) 
+VALUES (1,692,712,2.0,2.0,2.0,2.0,  'Red form', 'paper_claim_original' ,'var dd = { content: "Need to setup" }') ;
+
+END IF;
+
 -- --------------------------------------------------------------------------------------------------------------------
 -- Creating functions
 -- --------------------------------------------------------------------------------------------------------------------
@@ -1666,14 +1822,16 @@ BEGIN
 			amount_type,
 			amount,
 			adjustment_code_id,
-			created_by
+			created_by,
+            applied_dt
 		) (SELECT 
 			i_payment_id,
 			i_charge_id,
 			'adjustment' AS amount_type,
 			i_adjustment_amount,
 			i_adjustment_code_id,
-			i_created_by
+			i_created_by,
+            coalesce(i_applied_dt,now())
 		FROM payment_cte
 		WHERE p_is_recoupment OR i_adjustment_amount != 0::money OR i_cas_details != '[]'::jsonb)
 		RETURNING *, '{}'::jsonb old_values
@@ -2946,9 +3104,7 @@ BEGIN
 			ELSE
 			    CASE 
 			        WHEN claim_details.claim_balance_total > 0::money  THEN
-			            CASE WHEN is_other_ins_paid AND (primary_patient_insurance_id IS NOT NULL OR secondary_patient_insurance_id IS NOT NULL OR tertiary_patient_insurance_id IS NOT NULL )
-						THEN 'secondary_insurance'
-						WHEN (NOT is_primary_paid  and is_other_ins_paid ) AND primary_patient_insurance_id IS NOT NULL 
+			            CASE WHEN (NOT is_primary_paid  and is_other_ins_paid ) AND primary_patient_insurance_id IS NOT NULL 
 						THEN 'primary_insurance'
 					        WHEN NOT is_secondary_paid AND secondary_patient_insurance_id IS NOT NULL 
 						THEN 'secondary_insurance'
@@ -3522,16 +3678,19 @@ $BODY$
   LANGUAGE sql;
 -- --------------------------------------------------------------------------------------------------------------------
 DROP FUNCTION  IF EXISTS billing.get_batch_claim_details(bigint, bigint);
+DROP FUNCTION  IF EXISTS billing.get_batch_claim_details(bigint, bigint, bigint);
 CREATE OR REPLACE FUNCTION billing.get_batch_claim_details(
     IN i_study_id bigint,
-    IN i_created_by bigint)
+    IN i_created_by bigint,
+    IN i_patient_id bigint)
   RETURNS TABLE(claim_icds json, charges json, insurances json, claims json) AS
 $BODY$
 DECLARE
 	p_order_id BIGINT;
+    p_charge_dt timestamptz;
 BEGIN
     
-    SELECT order_id INTO p_order_id FROM public.studies WHERE id = i_study_id;
+    SELECT order_id, COALESCE(study_dt,now()) INTO p_order_id, p_charge_dt FROM public.studies WHERE id = i_study_id;
 
 	RETURN QUERY
 	WITH study_details AS (
@@ -3561,22 +3720,50 @@ BEGIN
 		AND s.has_deleted = FALSE
 		order by order_no
 	)
+    beneficiary_details as (
+                            SELECT
+                                pi.id
+                            FROM 
+                                public.patient_insurances pi
+                            INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id 
+                            LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
+                            LEFT JOIN LATERAL ( 
+                                SELECT 
+                                    MIN(valid_to_date) as valid_to_date
+                                FROM 
+                                    public.patient_insurances
+                                WHERE
+                                    patient_id = i_patient_id AND (valid_to_date >= (p_charge_dt)::date  OR valid_to_date IS NULL)
+                                    AND (valid_from_date <= (p_charge_dt)::date OR valid_from_date IS NULL) AND coverage_level = 'primary'
+                            ) as expiry ON TRUE
+                                WHERE
+                                    pi.patient_id = i_patient_id AND (expiry.valid_to_date = pi.valid_to_date OR expiry.valid_to_date IS NULL) AND pi.coverage_level = 'primary'
+                                ORDER BY id ASC
+    ),
 	,claim_charges AS (
 
 		SELECT
                 null AS id
                 , null AS claim_id
                 , cpt_codes.id AS cpt_id
-                , (select order_no from billing_icds LIMIT 1 OFFSET 0) AS pointer1  
-                , (select order_no from billing_icds LIMIT 1 OFFSET 1) AS pointer2  
-                , (select order_no from billing_icds LIMIT 1 OFFSET 2) AS pointer3
-                , (select order_no from billing_icds LIMIT 1 OFFSET 3) AS pointer4
+                , (SELECT order_no FROM billing_icds LIMIT 1 OFFSET 0) AS pointer1  
+                , (SELECT order_no FROM billing_icds LIMIT 1 OFFSET 1) AS pointer2  
+                , (SELECT order_no FROM billing_icds LIMIT 1 OFFSET 2) AS pointer3
+                , (SELECT order_no FROM billing_icds LIMIT 1 OFFSET 3) AS pointer4
 				, atp.modifier1_id
                 , atp.modifier2_id
                 , atp.modifier3_id
                 , atp.modifier4_id
-                , COALESCE(sc.study_cpt_info->'bill_fee','0')::NUMERIC AS bill_fee
-                , COALESCE(sc.study_cpt_info->'allowed_fee','0')::NUMERIC AS allowed_amount
+                 , (CASE WHEN (SELECT id FROM beneficiary_details) IS NOT NULL THEN
+                    billing.get_computed_bill_fee(null,cpt_codes.id,atp.modifier2_id,atp.modifier2_id,atp.modifier3_id,atp.modifier4_id,'billing','primary_insurance',(SELECT id FROM beneficiary_details), o.facility_id)::NUMERIC
+                    ELSE
+                    billing.get_computed_bill_fee(null,cpt_codes.id,atp.modifier1_id,atp.modifier2_id,atp.modifier3_id,atp.modifier4_id,'billing','patient',i_patient_id,o.facility_id)::NUMERIC
+                END) as bill_fee
+                , (CASE WHEN (SELECT id FROM beneficiary_details) IS NOT NULL THEN
+                    billing.get_computed_bill_fee(null,cpt_codes.id,atp.modifier2_id,atp.modifier2_id,atp.modifier3_id,atp.modifier4_id,'allowed','primary_insurance',(SELECT id FROM beneficiary_details), o.facility_id)::NUMERIC
+                    ELSE
+                    billing.get_computed_bill_fee(null,cpt_codes.id,atp.modifier1_id,atp.modifier2_id,atp.modifier3_id,atp.modifier4_id,'allowed','patient',i_patient_id,o.facility_id)::NUMERIC
+                END) as allowed_amount
                 , COALESCE(sc.study_cpt_info->'units','1.00')::NUMERIC AS units
                 , null AS created_by
 				, sc.authorization_info->'authorization_no' AS authorization_no
@@ -3591,7 +3778,7 @@ BEGIN
             INNER JOIN public.orders o on o.id = s.order_id
             LEFT JOIN appointment_types at ON at.id = s.appointment_type_id
             LEFT JOIN appointment_type_procedures atp ON atp.procedure_id = sc.cpt_code_id AND atp.appointment_type_id = s.appointment_type_id
-        WHERE study_id = i_study_id 
+        WHERE study_id = i_study_id AND sc.has_deleted = FALSE
         ORDER BY s.id DESC 
  )
 , insurances AS (
@@ -3965,10 +4152,6 @@ BEGIN
 		SELECT 	id INTO o_charge_id
 		FROM	matched_charges;
 
-		/*IF	o_charge_id IS NULL THEN
-			SELECT 	id INTO o_charge_id
-			FROM	paid_charges LIMIT 1;
-		END IF;*/
 	
 	RETURN o_charge_id;
 END;

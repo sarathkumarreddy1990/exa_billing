@@ -809,14 +809,16 @@ BEGIN
 			amount_type,
 			amount,
 			adjustment_code_id,
-			created_by
+			created_by,
+            applied_dt
 		) (SELECT 
 			i_payment_id,
 			i_charge_id,
 			'adjustment' AS amount_type,
 			i_adjustment_amount,
 			i_adjustment_code_id,
-			i_created_by
+			i_created_by,
+            coalesce(i_applied_dt,now())
 		FROM payment_cte
 		WHERE p_is_recoupment OR i_adjustment_amount != 0::money OR i_cas_details != '[]'::jsonb)
 		RETURNING *, '{}'::jsonb old_values
@@ -2089,9 +2091,7 @@ BEGIN
 			ELSE
 			    CASE 
 			        WHEN claim_details.claim_balance_total > 0::money  THEN
-			            CASE WHEN is_other_ins_paid AND (primary_patient_insurance_id IS NOT NULL OR secondary_patient_insurance_id IS NOT NULL OR tertiary_patient_insurance_id IS NOT NULL )
-						THEN 'secondary_insurance'
-						WHEN (NOT is_primary_paid  and is_other_ins_paid ) AND primary_patient_insurance_id IS NOT NULL 
+			            CASE WHEN (NOT is_primary_paid  and is_other_ins_paid ) AND primary_patient_insurance_id IS NOT NULL 
 						THEN 'primary_insurance'
 					        WHEN NOT is_secondary_paid AND secondary_patient_insurance_id IS NOT NULL 
 						THEN 'secondary_insurance'
@@ -2601,7 +2601,7 @@ BEGIN
 					, modifier4_id bigint
 					, bill_fee money
 					, allowed_amount money
-					, units bigint
+					, units numeric(7,3)
 					, created_by bigint
 					, authorization_no text
 					, charge_dt timestamptz
@@ -2665,16 +2665,19 @@ $BODY$
   LANGUAGE sql;
 -- --------------------------------------------------------------------------------------------------------------------
 DROP FUNCTION  IF EXISTS billing.get_batch_claim_details(bigint, bigint);
+DROP FUNCTION  IF EXISTS billing.get_batch_claim_details(bigint, bigint, bigint);
 CREATE OR REPLACE FUNCTION billing.get_batch_claim_details(
     IN i_study_id bigint,
-    IN i_created_by bigint)
+    IN i_created_by bigint,
+    IN i_patient_id bigint)
   RETURNS TABLE(claim_icds json, charges json, insurances json, claims json) AS
 $BODY$
 DECLARE
 	p_order_id BIGINT;
+    p_charge_dt timestamptz;
 BEGIN
     
-    SELECT order_id INTO p_order_id FROM public.studies WHERE id = i_study_id;
+    SELECT order_id, COALESCE(study_dt,now()) INTO p_order_id, p_charge_dt FROM public.studies WHERE id = i_study_id;
 
 	RETURN QUERY
 	WITH study_details AS (
@@ -2704,22 +2707,50 @@ BEGIN
 		AND s.has_deleted = FALSE
 		order by order_no
 	)
+    beneficiary_details as (
+                            SELECT
+                                pi.id
+                            FROM 
+                                public.patient_insurances pi
+                            INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id 
+                            LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
+                            LEFT JOIN LATERAL ( 
+                                SELECT 
+                                    MIN(valid_to_date) as valid_to_date
+                                FROM 
+                                    public.patient_insurances
+                                WHERE
+                                    patient_id = i_patient_id AND (valid_to_date >= (p_charge_dt)::date  OR valid_to_date IS NULL)
+                                    AND (valid_from_date <= (p_charge_dt)::date OR valid_from_date IS NULL) AND coverage_level = 'primary'
+                            ) as expiry ON TRUE
+                                WHERE
+                                    pi.patient_id = i_patient_id AND (expiry.valid_to_date = pi.valid_to_date OR expiry.valid_to_date IS NULL) AND pi.coverage_level = 'primary'
+                                ORDER BY id ASC
+    ),
 	,claim_charges AS (
 
 		SELECT
                 null AS id
                 , null AS claim_id
                 , cpt_codes.id AS cpt_id
-                , (select order_no from billing_icds LIMIT 1 OFFSET 0) AS pointer1  
-                , (select order_no from billing_icds LIMIT 1 OFFSET 1) AS pointer2  
-                , (select order_no from billing_icds LIMIT 1 OFFSET 2) AS pointer3
-                , (select order_no from billing_icds LIMIT 1 OFFSET 3) AS pointer4
+                , (SELECT order_no FROM billing_icds LIMIT 1 OFFSET 0) AS pointer1  
+                , (SELECT order_no FROM billing_icds LIMIT 1 OFFSET 1) AS pointer2  
+                , (SELECT order_no FROM billing_icds LIMIT 1 OFFSET 2) AS pointer3
+                , (SELECT order_no FROM billing_icds LIMIT 1 OFFSET 3) AS pointer4
 				, atp.modifier1_id
                 , atp.modifier2_id
                 , atp.modifier3_id
                 , atp.modifier4_id
-                , COALESCE(sc.study_cpt_info->'bill_fee','0')::NUMERIC AS bill_fee
-                , COALESCE(sc.study_cpt_info->'allowed_fee','0')::NUMERIC AS allowed_amount
+                , (CASE WHEN (SELECT id FROM beneficiary_details) IS NOT NULL THEN
+                    billing.get_computed_bill_fee(null,cpt_codes.id,atp.modifier2_id,atp.modifier2_id,atp.modifier3_id,atp.modifier4_id,'billing','primary_insurance',(SELECT id FROM beneficiary_details), o.facility_id)::NUMERIC
+                    ELSE
+                    billing.get_computed_bill_fee(null,cpt_codes.id,atp.modifier1_id,atp.modifier2_id,atp.modifier3_id,atp.modifier4_id,'billing','patient',i_patient_id,o.facility_id)::NUMERIC
+                END) as bill_fee
+                , (CASE WHEN (SELECT id FROM beneficiary_details) IS NOT NULL THEN
+                    billing.get_computed_bill_fee(null,cpt_codes.id,atp.modifier2_id,atp.modifier2_id,atp.modifier3_id,atp.modifier4_id,'allowed','primary_insurance',(SELECT id FROM beneficiary_details), o.facility_id)::NUMERIC
+                    ELSE
+                    billing.get_computed_bill_fee(null,cpt_codes.id,atp.modifier1_id,atp.modifier2_id,atp.modifier3_id,atp.modifier4_id,'allowed','patient',i_patient_id,o.facility_id)::NUMERIC
+                END) as allowed_amount
                 , COALESCE(sc.study_cpt_info->'units','1.00')::NUMERIC AS units
                 , null AS created_by
 				, sc.authorization_info->'authorization_no' AS authorization_no
@@ -2734,7 +2765,7 @@ BEGIN
             INNER JOIN public.orders o on o.id = s.order_id
             LEFT JOIN appointment_types at ON at.id = s.appointment_type_id
             LEFT JOIN appointment_type_procedures atp ON atp.procedure_id = sc.cpt_code_id AND atp.appointment_type_id = s.appointment_type_id
-        WHERE study_id = i_study_id 
+        WHERE study_id = i_study_id AND sc.has_deleted = FALSE
         ORDER BY s.id DESC 
  )
 , insurances AS (

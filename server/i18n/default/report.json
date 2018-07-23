@@ -24,7 +24,7 @@
         "payertype": "Payer Type",
         "paymentMode": "Payment Mode",
         "summary": "Summary",
-        "statementstate": "Statement State",
+        "statementstate": "Statement Date",
         "statementmode": "Statement Mode",
         "minamount": "Min Amount",
         "patients": "Patients" ,
