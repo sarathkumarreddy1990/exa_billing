@@ -448,7 +448,9 @@ module.exports = {
 											'' as "prefix",
 											provider_info->'TXC' as "taxonomyCode",
 											provider_info->'NPI' as "NPINO",
-											provider_info->'LicenseNo' as "licenseNo"
+											provider_info->'LicenseNo' as "licenseNo",
+											insurance_provider_details.claim_filing_indicator_code as "claimFilingCode",
+											insurance_name as "payerName"
 											FROM provider_contacts   rendering_pro_contact
 											LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.provider_id
 											WHERE  rendering_pro_contact.id=claims.rendering_provider_contact_id) 
