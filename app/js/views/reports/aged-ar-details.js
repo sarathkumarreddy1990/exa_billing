@@ -70,7 +70,7 @@ define(['jquery',
                 // this.bindDateRangePicker();
                 // this.drpStudyDt.setStartDate(this.viewModel.dateFrom);
                 // this.drpStudyDt.setEndDate(this.viewModel.dateTo);
-                this.viewModel.fromDate = commonjs.bindDateTimePicker("divFromDate", { format: "L" });
+                this.viewModel.fromDate = commonjs.bindDateTimePicker("txtFromDate", { format: "L" });
                 this.viewModel.fromDate.date(commonjs.getFacilityCurrentDateTime(app.facilityID));
 
                 UI.bindBillingProvider();
@@ -97,10 +97,10 @@ define(['jquery',
                 this.excelExtended = btnClicked ? btnClicked.attr('id') === 'btnExcelReportExtended' : false;
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = (openInNewTab && rFormat === 'html') ? true : false;
-                if (this.hasValidViewModel()) {
+             //   if (this.hasValidViewModel()) {
                     var urlParams = this.getReportParams();
                     UI.showReport('aged-ar-details', 'billing', this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
-                }             
+             //   }             
             },
 
 

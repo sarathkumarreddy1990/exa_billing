@@ -17,7 +17,29 @@ module.exports = {
 
         const firstStudyId = studyIds.length > 0 ? studyIds[0] : null;
 
-        let sql = SQL`WITH claim_charges AS (
+        let sql = SQL`WITH 
+                        beneficiary_details as (
+                            SELECT
+                                pi.id
+                            FROM 
+                                public.patient_insurances pi
+                            INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id 
+                            LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
+                            LEFT JOIN LATERAL ( 
+                                SELECT 
+                                    MIN(valid_to_date) as valid_to_date
+                                FROM 
+                                    public.patient_insurances
+                                WHERE
+                                    patient_id = ${params.patient_id} AND (valid_to_date >= (${params.claim_date})::date  OR valid_to_date IS NULL)
+                                    AND (valid_from_date <= (${params.claim_date})::date OR valid_from_date IS NULL) AND coverage_level = 'primary'
+                            ) as expiry ON TRUE
+                                WHERE
+                                    pi.patient_id = ${params.patient_id}  AND (expiry.valid_to_date = pi.valid_to_date OR expiry.valid_to_date IS NULL) AND pi.coverage_level = 'primary'
+                                ORDER BY id ASC
+                                LIMIT 1
+                        ),
+                        claim_charges AS (
                             SELECT
                                   sc.id AS study_cpt_id
                                 , s.study_dt
@@ -30,8 +52,16 @@ module.exports = {
                                 , atp.modifier3_id AS m3
                                 , atp.modifier4_id AS m4
                                 , string_to_array(regexp_replace(study_cpt_info->'diagCodes_pointer', '[^0-9,]', '', 'g'),',')::int[] AS icd_pointers
-                                , COALESCE(sc.study_cpt_info->'bill_fee','0')::NUMERIC AS bill_fee
-                                , COALESCE(sc.study_cpt_info->'allowed_fee','0')::NUMERIC AS allowed_fee
+                                , (CASE WHEN (select id from beneficiary_details) IS NOT NULL THEN
+                                        billing.get_computed_bill_fee(null,cpt_codes.id,atp.modifier2_id,atp.modifier2_id,atp.modifier3_id,atp.modifier4_id,'billing','primary_insurance',(select id from beneficiary_details), o.facility_id)::NUMERIC
+                                  ELSE
+                                        billing.get_computed_bill_fee(null,cpt_codes.id,atp.modifier1_id,atp.modifier2_id,atp.modifier3_id,atp.modifier4_id,'billing','patient',${params.patient_id},o.facility_id)::NUMERIC
+                                  END) as bill_fee
+                                  , (CASE WHEN (select id from beneficiary_details) IS NOT NULL THEN
+                                        billing.get_computed_bill_fee(null,cpt_codes.id,atp.modifier2_id,atp.modifier2_id,atp.modifier3_id,atp.modifier4_id,'allowed','primary_insurance',(select id from beneficiary_details), o.facility_id)::NUMERIC
+                                  ELSE
+                                        billing.get_computed_bill_fee(null,cpt_codes.id,atp.modifier1_id,atp.modifier2_id,atp.modifier3_id,atp.modifier4_id,'allowed','patient',${params.patient_id},o.facility_id)::NUMERIC
+                                  END) as allowed_fee
                                 , COALESCE(sc.study_cpt_info->'units','1')::NUMERIC AS units
                                 , (COALESCE(sc.study_cpt_info->'bill_fee','0')::NUMERIC * COALESCE(sc.study_cpt_info->'units','1')::NUMERIC) AS total_bill_fee
                                 , (COALESCE(sc.study_cpt_info->'allowed_fee','0')::NUMERIC * COALESCE(sc.study_cpt_info->'units','1')::NUMERIC) AS total_allowed_fee
@@ -59,7 +89,6 @@ module.exports = {
                                         order_info->'wFrom' AS unable_to_work_from_date,
                                         order_info->'hTo' AS hospitalization_to_date,
                                         order_info->'hFrom' AS hospitalization_from_date,
-                                        order_info->'claim_notes' AS claim_notes,
                                         COALESCE(NULLIF(order_info->'outsideLab',''), 'false')::boolean AS service_by_outside_lab,
                                         order_info->'original_ref' AS original_reference,
                                         order_info->'authorization_no' AS authorization_no,
@@ -168,7 +197,7 @@ module.exports = {
                             , ip.insurance_info->'State' AS ins_state
                             , ip.insurance_info->'ZipCode' AS ins_zip_code
                             , ip.insurance_info->'Address1' AS ins_pri_address
-                            , ip.insurance_info->'PhoneNo' AS ins_phone_no
+                            , ip.insurance_info->'PhoneNo' AS ins_phone_no 
                             , ip.insurance_code
                             , pi.coverage_level
                             , pi.subscriber_relationship_id   

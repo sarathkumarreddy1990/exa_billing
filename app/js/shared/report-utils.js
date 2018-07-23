@@ -54,6 +54,12 @@ define([
                 if (openInNewTab) {
                     UI.clearIframe('reportFrame');
                     window.open(iframeUrl, '_blank');
+                    window.onbeforeunload  = function() {
+                        var opener = window.opener ? window.opener : null;
+                        if(opener && opener.$ && opener.$('#divPageLoading')) {
+                            opener.$('#divPageLoading').hide();
+                        }
+                    }
                 }
 
                 UI.clearIframe('reportFrame');
@@ -61,7 +67,7 @@ define([
                 iFrame.attr('src', iframeUrl);
 
                 // set the iframe height (to to height of available space) before iframe loads, otherwise PDF viewer fails to resize vertically
-                iFrame.height($(window).height() - iFrame.offset().top - 10);
+                iFrame.height($(window).height() - (iFrame && iFrame.offset() && iFrame.offset().top) - 10);
 
                 $('#divPageLoading').show();
                 // workaround to hide loading indicator when file is downloaded instead of being show in inframe

@@ -2388,8 +2388,14 @@ var commonjs = {
                 //$(this).jqGrid('setGridWidth', obj.width);
                 if (($(this).attr('id') && $(this).attr('id').indexOf('tblGridOD') == 0) || ($(this).attr('id') && $(this).attr('id').indexOf('tblGridPS') == 0)) // for home page pre-orders and qc grids having buttons under grid
                     $(this).jqGrid('setGridHeight', obj.height - 20);
-                else
-                    $(this).jqGrid('setGridHeight', obj.height);
+                else{
+                     if(($(this).attr('id') && ($(this).attr('id').indexOf('tblProviderIDCodesGrid')==-1 && $(this).attr('id').indexOf('tblPatientClaimsGrid')==-1 && $(this).attr('id').indexOf('tblInvoiceGrid')==-1 ))){
+                        $(this).jqGrid('setGridHeight', obj.height);
+                     }
+
+                } 
+               
+                   
 
                 if ($('.exa-left-nav')) {
                     $('.exa-left-nav').height(obj.navHeight);
@@ -3519,7 +3525,7 @@ var commonjs = {
             $('#showColor').hide();
         }
         else {
-            var statusCodes = app.status_color_codes && app.status_color_codes.length && app.status_color_codes || parent.app.status_color_codes;
+            var statusCodes = app.status_color_codes && app.status_color_codes.length && (app.status_color_codes || parent.app.status_color_codes);
             if (statusCodes && statusCodes.length) {
                 var paymentStatus = $.grep(statusCodes, function (currentObj) {
                     return ((currentObj.process_type == 'payment'));
@@ -4045,7 +4051,7 @@ var commonjs = {
     },
 
     getClaimColorCodeForStatus: function (code, processType) {
-        var statusCodes = app.status_color_codes && app.status_color_codes.length && app.status_color_codes || parent.app.status_color_codes;
+        var statusCodes = app.status_color_codes && app.status_color_codes.length && (app.status_color_codes || parent.app.status_color_codes);
         if (statusCodes && statusCodes.length > 0) {
             return $.grep(statusCodes, function (currentObj) {
                 return ((currentObj.process_type == processType) && (currentObj.process_status == code));
@@ -5019,7 +5025,7 @@ var commonjs = {
     },
 
     initHotkeys: function (events) {
-        if (Object.keys(app.hotkeys).length && Object.keys(events).length) {
+        if (app.hotkeys && Object.keys(app.hotkeys).length && Object.keys(events).length) {
             for (var key in events) {
                 this.initHotkey(key, events[key]);
             }

@@ -32,8 +32,13 @@ WITH transaction_summary_by_month as (
         sum(bill_fee*units) as charge
     FROM billing.charges bch
     INNER JOIN billing.claims bc on bc.id = bch.claim_id 
+    INNER JOIN facilities f on f.id = bc.facility_id
+    <% if (billingProID) { %> INNER JOIN billing.providers bbp ON bbp.id = bc.billing_provider_id <% } %>
     WHERE 1=1
     AND<%=claimDate%>
+    <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+    <% if(billingProID) { %> AND <% print(billingProID); } %>
+   
     GROUP BY (date_trunc('month', bc.claim_dt) ))
     SELECT
         COALESCE(to_char(ts.txn_month, 'MON-yy'), to_char(cs.txn_month, 'MON-yy') ) AS "Date",
@@ -79,8 +84,13 @@ WITH transaction_summary_by_day as (
         sum(bill_fee*units) as charge
         FROM billing.charges bch
         INNER JOIN billing.claims bc on bc.id = bch.claim_id 
+        INNER JOIN facilities f on f.id = bc.facility_id
+        <% if (billingProID) { %> INNER JOIN billing.providers bbp ON bbp.id = bc.billing_provider_id <% } %>
+
     WHERE 1=1
     AND<%=claimDate%>
+    <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+    <% if(billingProID) { %> AND <% print(billingProID); } %>
     GROUP BY (date_trunc('day', bc.claim_dt) ))
     SELECT
         COALESCE(to_char(ts.txn_month, 'MM/DD/YYYY'), to_char(cs.txn_month, 'MM/DD/YYYY') ) AS "Date",
@@ -108,9 +118,11 @@ const api = {
     getReportData: (initialReportData) => {
         return Promise.join(
             api.createtransactionSummaryDataSet(initialReportData.report.params),
+            dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
             // other data sets could be added here...
-            (transactionSummaryDataSet) => {
-                // add report filters                
+            (transactionSummaryDataSet, providerInfo) => {
+                // add report filters 
+                initialReportData.lookups.billingProviderInfo = providerInfo || [];               
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 // add report specific data sets
@@ -152,19 +164,19 @@ const api = {
         const filtersUsed = [];
         filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
 
-        if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
-            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
-        else {
-            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
-            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
-        }
-        // Billing provider Filter
-        if (params.allBillingProvider == 'true')
-            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
-        else {
-            const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
-            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
-        }
+        if (params.allFacilities && params.facilityIds)
+        filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
+    else {
+        const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
+        filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
+    }
+    // Billing provider Filter
+    if (params.allBillingProvider == 'true')
+        filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
+    else {
+        const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
+        filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
+    }
 
         filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
         filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });

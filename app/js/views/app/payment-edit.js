@@ -193,6 +193,7 @@ define(['jquery',
                 self.showPaymentsGrid(paymentId);
                 commonjs.processPostRender();
                 commonjs.validateControls();
+                commonjs.isMaskValidate();
                 if(self.screenCode.indexOf('APAY') > -1) {// for screen rights
                     $('#divPendingPay').addClass('maskPendingPay');
                     $('#btnPaymentApplyAll').attr('disabled', true);
@@ -1218,6 +1219,7 @@ define(['jquery',
 
                 commonjs.processPostRender();
                 commonjs.validateControls();
+                commonjs.isMaskValidate();
 
                 $('#btnCloseAppliedPendingPayments,#btnCloseApplyPaymentPopup').unbind().bind('click', function (e) {
                     $('#divPaymentApply').remove();
@@ -1351,7 +1353,7 @@ define(['jquery',
                                 $('#ddlResponsible').append($('<option/>', { value: payerType.secondary, text: payerType.secondary_ins_provider_name + '(' + payerType.secondary_ins_provider_code + ')(Secondary Insurance)', 'data-payerType': 'secondary_insurance' }));
 
                             if ((payerType.tertiary && payerType.tertiary != 'null') && payerType.tertiary_ins_provider_name != null)
-                                $('#ddlResponsible').append($('<option/>', { value: payerType.tertiary, text: payerType.tertiary_ins_provider_name + '(' + payerType.tertiary_ins_provider_code + ')(Tretiary Insurance)', 'data-payerType': 'tertiary_insurance' }));
+                                $('#ddlResponsible').append($('<option/>', { value: payerType.tertiary, text: payerType.tertiary_ins_provider_name + '(' + payerType.tertiary_ins_provider_code + ')(Tertiary Insurance)', 'data-payerType': 'tertiary_insurance' }));
 
                             if ((payerType.order_facility_id) && payerType.ordering_facility_name != null)
                                 $('#ddlResponsible').append($('<option/>', { value: payerType.order_facility_id, text: payerType.ordering_facility_name + '(Ordering Facility)', 'data-payerType': 'ordering_facility' }));
@@ -1634,6 +1636,7 @@ define(['jquery',
 
                             $('#divPaymentCAS').attr('data-charge_id', chargeId).show();
                             commonjs.validateControls();
+                            commonjs.isMaskValidate();
                         },
                         error: function (err, response) {
                             commonjs.handleXhrError(err, response);
@@ -1654,6 +1657,7 @@ define(['jquery',
                     }
                     $('#divPaymentCAS').attr('data-charge_id', chargeId).show();
                     commonjs.validateControls();
+                    commonjs.isMaskValidate();
                 }
             },
 
@@ -1772,6 +1776,7 @@ define(['jquery',
                             commonjs.hideLoading();
                             self.isRefundApplied = false;
                             self.casDeleted = [];
+                            self.casSegmentsSelected = [];
                             // if (paymentStatus != 'applied') {
                             //     self.casSegmentsSelected = [];
                             //     self.closeAppliedPendingPayments(e, paymentId);
@@ -2324,7 +2329,7 @@ define(['jquery',
                             var valid_claims = data[0].valid_claims || 0;
                             var msg;
 
-                            if (total_claims == valid_claims) {
+                            if (total_claims == valid_claims && (total_claims != 0 && valid_claims != 0)) {
                                 msg = 'Overall (' + valid_claims + ') pending claims. Are you sure to process?';
                             }
                             else if (total_claims != 0 && valid_claims != 0) {
@@ -2368,10 +2373,10 @@ define(['jquery',
                     },
                     success: function (data, response) {
                         if (data && data.length) {
+                            commonjs.showStatus('All payment has been applied successfully');
                             self.getAppliedBalance(self.payment_id);
                             $('#btnPaymentPendingRefresh').click();
                             $('#btnAppliedPayRefresh').click();
-                            commonjs.showStatus('Payment has been applied auccessfully');
                         }
                     },
                     error: function (err, response) {

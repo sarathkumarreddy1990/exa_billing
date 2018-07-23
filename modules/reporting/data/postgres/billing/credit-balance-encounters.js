@@ -43,7 +43,7 @@ get_insurance_balance As (
     pp.account_no AS account_number,
     bcs.description AS status,
     to_char(bc.claim_dt, 'MM/DD/YYYY') AS encounter_date,
-    round(bgct.claim_balance_total::numeric) AS total,
+    (bgct.claim_balance_total::numeric) AS total,
     bc.payer_type,
     CASE WHEN bc.payer_type = 'patient' THEN pat_balance ELSE 0::money END AS patient_balance,
     CASE WHEN bc.payer_type != 'patient' THEN ins_balance ELSE 0::money END AS insurance_balance
@@ -104,9 +104,11 @@ const api = {
     getReportData: (initialReportData) => {
         return Promise.join(
             api.createcreditBalanceEncounterDataSet(initialReportData.report.params),
+            dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
             // other data sets could be added here...
-            (creditBalanceEncounterDataSet) => {
-                // add report filters                
+            (creditBalanceEncounterDataSet, providerInfo) => {
+                // add report filters    
+                initialReportData.lookups.billingProviderInfo = providerInfo || [];
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 // add report specific data sets
@@ -148,14 +150,13 @@ const api = {
         const filtersUsed = [];
         filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
 
-        if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
+        if (params.allFacilities && params.facilityIds)
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
         else {
-            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
+            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
         }
-
-        // // Billing provider Filter
+        // Billing provider Filter
         if (params.allBillingProvider == 'true')
             filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
         else {

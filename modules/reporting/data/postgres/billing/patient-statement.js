@@ -2,7 +2,7 @@ const _ = require('lodash')
     , Promise = require('bluebird')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder')    
+    , queryBuilder = require('../queryBuilder')
     , logger = require('../../../../../logger');
 
 // generate query template ***only once*** !!!
@@ -614,23 +614,24 @@ const api = {
             initialReportData.report.params.minAmount = parseFloat(initialReportData.report.params.minAmount);
         }
 
-        
+
         if (initialReportData.report.params.payToProvider && initialReportData.report.params.payToProvider !== undefined) {
-          initialReportData.report.params.payToProvider = initialReportData.report.params.payToProvider === 'true';
+            initialReportData.report.params.payToProvider = initialReportData.report.params.payToProvider === 'true';
         } else {
-          initialReportData.report.params.payToProvider = false;
+            initialReportData.report.params.payToProvider = false;
         }
 
-        return Promise.join(            
+        return Promise.join(
             api.createpatientStatementDataSet(initialReportData.report.params),
             dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
             dataHelper.getPatientInfo(initialReportData.report.params.companyId, initialReportData.report.params.patientIds),
             // other data sets could be added here...
             (patientStatementDataSet, providerInfo, patientInfo) => {
-                // add report filters                
-                initialReportData.filters = api.createReportFilters(initialReportData);
+                // add report filters   
                 initialReportData.lookups.billingProviderInfo = providerInfo || [];
                 initialReportData.lookups.patients = patientInfo || [];
+                initialReportData.filters = api.createReportFilters(initialReportData);              
+
 
                 // add report specific data sets
                 initialReportData.dataSets.push(patientStatementDataSet);
@@ -653,15 +654,13 @@ const api = {
         const filtersUsed = [];
         filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
 
-       
-        // Facility Filter
-        if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
+
+        if (params.allFacilities && params.facilityIds)
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
         else {
-            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
+            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
         }
-
         // Billing provider Filter
         if (params.allBillingProvider == 'true')
             filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
@@ -669,7 +668,7 @@ const api = {
             const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
             filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
         }
-
+        
         // Min Amount 
         filtersUsed.push({ name: 'minAmount', label: 'Minumum Amount', value: params.minAmount });
 
@@ -705,41 +704,41 @@ const api = {
             billingProviderIds: null,
             facilityIds: null,
             statementDate: null
-           
+
         };
 
-          // patients
-          if (reportParams.patientOption === 'S' && reportParams.patientIds) {
+        // patients
+        if (reportParams.patientOption === 'S' && reportParams.patientIds) {
             params.push(reportParams.patientIds);
             filters.patientIds = queryBuilder.whereIn(`p.id`, [params.length]);
-          }
+        }
 
-          //claim facilities
+        //claim facilities
         if (!reportParams.allFacilities && reportParams.facilityIds) {
             params.push(reportParams.facilityIds);
             filters.facilityIds = queryBuilder.whereIn('bc.facility_id', [params.length]);
         }
 
-           // billing providers
+        // billing providers
         if (reportParams.billingProviderIds && reportParams.billingProviderIds.length > 0) {
             params.push(reportParams.billingProviderIds);
             filters.billingProviderIds = queryBuilder.whereIn(`bp.id`, [params.length]);
-          }
+        }
 
-           // Min Amount
+        // Min Amount
         filters.minAmount = reportParams.minAmount || 0;
 
         params.push(reportParams.sDate);
         filters.sDate = `$${params.length}::date`;
         filters.statementDate = `$${params.length}::date`;
-        
-        filters.whereDate = queryBuilder.whereDateInTz(` CASE  WHEN type = 'charge' THEN  bc.claim_dt ELSE pc.commented_dt END `, `<=`, [params.length], `f.time_zone`);   
-        filters.payToProvider = reportParams.payToProvider ;
-        
+
+        filters.whereDate = queryBuilder.whereDateInTz(` CASE  WHEN type = 'charge' THEN  bc.claim_dt ELSE pc.commented_dt END `, `<=`, [params.length], `f.time_zone`);
+        filters.payToProvider = reportParams.payToProvider;
+
 
         return {
             queryParams: params,
-            templateData: filters         
+            templateData: filters
         }
     }
 }

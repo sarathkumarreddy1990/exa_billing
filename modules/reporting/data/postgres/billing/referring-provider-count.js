@@ -45,12 +45,12 @@ const api = {
     getReportData: (initialReportData) => {
         return Promise.join(
             api.createreferringProividerCountDataSet(initialReportData.report.params),
-            dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId,initialReportData.report.params.billingProvider),
+            dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
             // other data sets could be added here...
-            (referringProividerCountDataSet,providerInfo) => {
-                // add report filters                
-                initialReportData.filters = api.createReportFilters(initialReportData);
-                initialReportData.lookups.billingProviderInfo = providerInfo || [];
+            (referringProividerCountDataSet, providerInfo) => {
+                // add report filters           
+                initialReportData.lookups.billingProviderInfo = providerInfo || [];     
+                initialReportData.filters = api.createReportFilters(initialReportData);                
 
                 // add report specific data sets
                 initialReportData.dataSets.push(referringProividerCountDataSet);
@@ -91,10 +91,10 @@ const api = {
         const filtersUsed = [];
         filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
 
-        if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
+        if (params.allFacilities && params.facilityIds)
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
         else {
-            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
+            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
         }
         // Billing provider Filter

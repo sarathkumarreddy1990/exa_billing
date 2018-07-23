@@ -274,10 +274,11 @@ const api = {
         filters.companyId = queryBuilder.where('bc.company_id', '=', [params.length]);
 
         //claim facilities
+
         if (!reportParams.allFacilities && reportParams.facilityIds) {
             params.push(reportParams.facilityIds);
             filters.facilityIds = queryBuilder.whereIn('bc.facility_id', [params.length]);
-        }
+        }       
 
         // //  Claim Date
         if (reportParams.fromDate === reportParams.toDate) {

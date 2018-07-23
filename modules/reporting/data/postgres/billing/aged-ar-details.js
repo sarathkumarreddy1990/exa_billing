@@ -11,12 +11,13 @@ const agedARDetailsDataSetQueryTemplate = _.template(`
 WITH charges_cwt AS (
     SELECT
           bc.id                           AS claim_id
-        , max(date_part('day', (<%= claimDate %> - bc.claim_dt))) as age
+        , max(date_part('day', ((timezone(f.time_zone,  <%= claimDate %>)))  - bc.claim_dt)) as age
         , sum(c.bill_fee * c.units)       AS charges_bill_fee_total
     FROM  billing.claims AS bc
         INNER JOIN billing.charges AS c ON c.claim_id = bc.id
+        INNER JOIN facilities f on f.id = bc.facility_id
     WHERE 1=1
-       AND (bc.claim_dt < <%= claimDate %>::DATE)  
+       AND (bc.claim_dt <  (timezone(f.time_zone,  <%= claimDate %>)))   
     GROUP BY bc.id
 ), 
 applications_cwt AS (
@@ -33,10 +34,10 @@ get_claim_details AS(
     SELECT 
         cc.claim_id as claim_id,
         cc.age as age,
-       (cc.charges_bill_fee_total - ( ac.payments_applied_total +  ac.ajdustments_applied_total )) AS balance
+       (cc.charges_bill_fee_total - ( coalesce(ac.payments_applied_total,0::money) +  coalesce(ac.ajdustments_applied_total,0::money) )) AS balance
     FROM charges_cwt cc
-    INNER JOIN applications_cwt ac ON cc.claim_id = ac.claim_id  
-    WHERE (cc.charges_bill_fee_total - ( ac.payments_applied_total +  ac.ajdustments_applied_total )) != 0::money
+    LEFT JOIN applications_cwt ac ON cc.claim_id = ac.claim_id  
+    WHERE (cc.charges_bill_fee_total - ( coalesce(ac.payments_applied_total,0::money) +  coalesce(ac.ajdustments_applied_total,0::money) )) != 0::money
  ),
  aging_details  AS( SELECT
  <% if (facilityIds) { %> (pf.facility_name) <% } else  { %> 'All'::text <% } %> as "Facility",
@@ -289,9 +290,11 @@ const api = {
     getReportData: (initialReportData) => {
         return Promise.join(
             api.createagedARDetailsDataSet(initialReportData.report.params),
+            dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
             // other data sets could be added here...
-            (agedARDetailsDataSet) => {
-                // add report filters                
+            (agedARDetailsDataSet, providerInfo) => {
+                // add report filters    
+                initialReportData.lookups.billingProviderInfo = providerInfo || [];
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 // add report specific data sets
@@ -333,19 +336,20 @@ const api = {
         const filtersUsed = [];
         filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
 
-        if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
+        if (params.allFacilities && params.facilityIds)
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
         else {
-            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
+            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
         }
-
-        // // Billing provider Filter
+        // Billing provider Filter
         if (params.allBillingProvider == 'true')
             filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
         else {
-            const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
+            //const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
+            const billingProviderInfo = _(lookups.billingProviderInfo).filter(f => params.billingProvider && params.billingProvider.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
+
         }
 
         filtersUsed.push({ name: 'Cut Off Date', label: 'Date From', value: params.fromDate });
@@ -382,13 +386,13 @@ const api = {
         params.push(reportParams.companyId);
         filters.companyId = queryBuilder.where('bc.company_id', '=', [params.length]);
 
-               if (!reportParams.allFacilities && reportParams.facilityIds) {
+        if (!reportParams.allFacilities && reportParams.facilityIds) {
             params.push(reportParams.facilityIds);
             filters.facilityIds = queryBuilder.whereIn('bc.facility_id', [params.length]);
         }
 
-         // billingProvider single or multiple
-         if (reportParams.billingProvider) {
+        // billingProvider single or multiple
+        if (reportParams.billingProvider) {
             params.push(reportParams.billingProvider);
             filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
         }
@@ -396,7 +400,7 @@ const api = {
 
         params.push(reportParams.fromDate);
         filters.claimDate = `$${params.length}::date`;
-      
+
         filters.excelExtented = reportParams.excelExtended;
         filters.excCreditBal = reportParams.excCreditBal
         filters.incPatDetail = reportParams.incPatDetail

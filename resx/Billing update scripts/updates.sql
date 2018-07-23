@@ -1,3 +1,1016 @@
+﻿-- ====================================================================================================================
+DO
+$$
+DECLARE
+    l_company_id BIGINT := 1; -- Default company_id
+    l_fee_schedule_duplicates RECORD;
+    l_fee_schedule_data RECORD;
+    l_fee_schedule_name TEXT;
+    l_fee_schedule_new_id BIGINT;
+BEGIN
+-- --------------------------------------------------------------------------------------------------------------------
+RAISE NOTICE '--- START SCRIPT ---';
+-- --------------------------------------------------------------------------------------------------------------------
+--Billing 2.0 Switch role to super user postgres for creating new user, schema, etc
+-- --------------------------------------------------------------------------------------------------------------------
+SET ROLE TO postgres;
+-- -------------------------------------------------------------------------------------------------------------------- 
+--Billing 2.0 User role creation
+-- --------------------------------------------------------------------------------------------------------------------
+IF NOT EXISTS (SELECT * FROM pg_roles WHERE rolname = 'exa_billing') THEN
+    CREATE ROLE exa_billing WITH
+    LOGIN
+    CONNECTION LIMIT -1
+    PASSWORD 'EXA1q2wbilling';          
+END IF;
+-- --------------------------------------------------------------------------------------------------------------------
+-- Billing 2.0 Schema creation
+-- --------------------------------------------------------------------------------------------------------------------
+    CREATE SCHEMA IF NOT EXISTS billing AUTHORIZATION exa_billing;
+    COMMENT ON SCHEMA billing  IS 'Schema for EXA Billing related DB objects';
+-- --------------------------------------------------------------------------------------------------------------------
+-- Billing 1.5 Grant priveleges for exa_billing
+-- --------------------------------------------------------------------------------------------------------------------
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO exa_billing;
+
+-- Following Tables used by RIS  are shared with Billing.
+GRANT ALL on public.user_log, public.users_online,public.user_log_id_seq,public.facilities,public.companies,public.insurance_providers,public.modifiers TO exa_billing;
+
+GRANT REFERENCES ON ALL TABLES IN SCHEMA public TO exa_billing;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA billing TO exa_billing;
+GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA billing TO exa_billing;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA billing TO exa_billing;
+GRANT ALL PRIVILEGES ON schema billing TO exa_billing;
+-- --------------------------------------------------------------------------------------------------------------------
+-- Billing 2.0  -Switch role to exa_billing, so objects of billing module about to be created have correct ownership
+-- --------------------------------------------------------------------------------------------------------------------
+-- SET ROLE TO exa_billing;
+-- --------------------------------------------------------------------------------------------------------------------
+--Billing 2.0  - New Setup tables - Create Script
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.edi_clearinghouses
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    company_id BIGINT NOT NULL,
+    inactivated_dt TIMESTAMPTZ DEFAULT NULL,
+    name TEXT NOT NULL,
+    code TEXT NOT NULL,
+    receiver_name TEXT,
+    receiver_id TEXT,
+    communication_info JSONB,
+    edi_template_name TEXT,
+    CONSTRAINT edi_clearinghouses_id_pk PRIMARY KEY (id),
+    CONSTRAINT edi_clearinghouses_company_id_fk FOREIGN KEY (company_id) REFERENCES public.companies(id),
+    CONSTRAINT edi_clearinghouses_company_name_uc UNIQUE(company_id,name),
+    CONSTRAINT edi_clearinghouses_company_code_uc UNIQUE(company_id,code)
+);
+
+COMMENT ON COLUMN billing.edi_clearinghouses.communication_info IS 'JSONB object that holds protocol (sftp, https, ftps),host (IP/URL/FQDN),port,username,password,upload_path,download_path,identity_file_path(path to private key file on server, used for authentication)';
+COMMENT ON COLUMN billing.edi_clearinghouses.code IS '.NET app identifier';
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.edi_templates
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    company_id BIGINT NOT NULL,
+    inactivated_dt TIMESTAMPTZ DEFAULT NULL,
+    name TEXT NOT NULL,
+    code TEXT NOT NULL,
+    template_type TEXT NOT NULL,
+    hipaa_version TEXT NOT NULL,
+    template_info XML NOT NULL,
+    CONSTRAINT edi_templates_id_pk PRIMARY KEY (id),
+    CONSTRAINT edi_templates_company_id_fk FOREIGN KEY (company_id) REFERENCES public.companies (id),
+    CONSTRAINT edi_templates_company_name_uc UNIQUE(company_id,name),
+    CONSTRAINT edi_templates_company_code_uc UNIQUE(company_id,code),
+    CONSTRAINT edi_templates_template_type_cc  CHECK (template_type in ('claim','eligibility','authorization')),
+    CONSTRAINT edi_templates_hipaa_version_cc  CHECK (hipaa_version in ('005010','004010X092A1'))
+);
+        
+COMMENT ON TABLE billing.edi_templates IS 'Template for Data source mapping in EDI 837. It has the blank template XML and the XML mapped with data source';       
+COMMENT ON COLUMN billing.edi_templates.template_info IS 'Standard EDI XML with mapped data sources';
+COMMENT ON COLUMN billing.edi_templates.code IS '.NET app identifier';
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.edi_template_rules
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    edi_template_id BIGINT NOT NULL,
+    element_id BIGINT NOT NULL,
+    segment_id TEXT NOT NULL,
+    action_type TEXT NOT NULL, 
+    rules_info JSONB NOT NULL,
+    contains_sub_segment BOOLEAN NOT NULL DEFAULT FALSE,   
+    CONSTRAINT edi_template_rules_id_pk PRIMARY KEY (id),
+    CONSTRAINT edi_template_rules_edi_template_id_fk FOREIGN KEY (edi_template_id) REFERENCES billing.edi_templates(id),
+    CONSTRAINT edi_template_rules_action_type_cc CHECK (action_type in ('dni','atv','mch')),
+    CONSTRAINT edi_template_rules_edi_template_element_segment_id_uc UNIQUE(edi_template_id,element_id,segment_id)
+);
+
+    COMMENT ON TABLE billing.edi_template_rules IS 'Rules for data source columns in EDI template';
+    COMMENT ON COLUMN billing.edi_template_rules.contains_sub_segment IS 'In billing 1.0, if sub_element_id is -1 then it means segment has a sub-segment. In Billing 2.0 respective value will be true ';
+    COMMENT ON COLUMN billing.edi_template_rules.action_type IS 'dni - Do not include the rule , atv - apply this rule , mch - make as no children';
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.edi_template_translations
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    edi_template_id BIGINT NOT NULL,
+    name TEXT NOT NULL,
+    translation_info JSONB,
+    CONSTRAINT edi_template_translations_id_pk PRIMARY KEY (id),
+    CONSTRAINT edi_template_translations_edi_template_id_fk FOREIGN KEY (edi_template_id) REFERENCES billing.edi_templates(id),
+    CONSTRAINT edi_template_translations_edi_template_id_name_uc UNIQUE(edi_template_id,name)
+); 
+
+COMMENT ON COLUMN billing.edi_template_translations.translation_info IS 'For the values in source system(EXA), the translated values in EDI 837 standards ';
+-- --------------------------------------------------------------------------------------------------------------------
+-- Datamodel for Adjustment codes  <START> 
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.adjustment_codes
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    company_id BIGINT NOT NULL,
+    inactivated_dt TIMESTAMPTZ DEFAULT NULL,
+    code TEXT NOT NULL,
+    description TEXT NOT NULL,
+    accounting_entry_type TEXT NOT NULL,
+    CONSTRAINT adjustment_codes_pk PRIMARY KEY(id),
+    CONSTRAINT adjustment_codes_company_id_fk FOREIGN KEY (company_id) REFERENCES public.companies (id),
+    CONSTRAINT adjustment_codes_company_code_uc UNIQUE(company_id,code),
+    CONSTRAINT adjustment_codes_accounting_entry_type_cc CHECK(accounting_entry_type in('credit','debit','refund_debit','recoupment_debit'))
+);
+
+COMMENT ON TABLE billing.adjustment_codes IS 'Adjustment codes for Billing';
+COMMENT ON COLUMN billing.adjustment_codes.accounting_entry_type IS 'An adjustment code can be associated either with a Credit entry transation or a Debit entry transaction. The associated accounting entry type(credit/debit) is represented here.';
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS  billing.billing_codes
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    company_id BIGINT NOT NULL,
+    inactivated_dt TIMESTAMPTZ DEFAULT NULL,
+    code TEXT NOT NULL,
+    description TEXT NOT NULL,
+    CONSTRAINT billing_codes_pk PRIMARY KEY(id),
+    CONSTRAINT billing_codes_company_id_fk FOREIGN KEY (company_id) REFERENCES public.companies (id),
+    CONSTRAINT billing_codes_company_code_uc UNIQUE(company_id,code)
+);
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS  billing.billing_classes
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    company_id BIGINT NOT NULL,
+    inactivated_dt TIMESTAMPTZ DEFAULT NULL,
+    code TEXT NOT NULL,
+    description TEXT NOT NULL,
+    CONSTRAINT billing_classes_pk PRIMARY KEY(id),
+    CONSTRAINT billing_classes_company_id_fk FOREIGN KEY (company_id) REFERENCES public.companies (id),
+    CONSTRAINT billing_classes_company_code_uc UNIQUE(company_id,code)
+);
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.claim_status
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    company_id BIGINT NOT NULL,
+    code TEXT NOT NULL,
+    description TEXT NOT NULL,
+    is_system_status BOOLEAN NOT NULL DEFAULT FALSE,
+    inactivated_dt TIMESTAMPTZ DEFAULT NULL,
+    display_order bigint NOT NULL,
+    CONSTRAINT claim_status_pk PRIMARY KEY(id),
+    CONSTRAINT claim_status_company_id_fk FOREIGN KEY (company_id) REFERENCES public.companies (id), 
+    CONSTRAINT claim_status_company_code_uc UNIQUE(company_id,code),
+    CONSTRAINT claim_status_company_display_order_uc UNIQUE(company_id,display_order)
+);
+-- --------------------------------------------------------------------------------------------------------------------
+IF NOT EXISTS(SELECT 1 FROM billing.claim_status) THEN 
+    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'PV','Pending Validation',true,1);
+    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'PS','Pending Submission',true,2);
+    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'PP','Pending Payment',true,3);
+    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'D','Denied',true,4);
+    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'PIF','Paid In Full',true,5);
+    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'OP','Over Payment',true,6);
+    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'CR','Collections Review',true,7);
+    INSERT INTO billing.claim_status(company_id,code,description,is_system_status,display_order) values(l_company_id,'CIC','Claim in Collections',true,8);
+END IF;
+-- --------------------------------------------------------------------------------------------------------------------
+-- Claim status - Migrate remaining status from adjustment code table
+-- --------------------------------------------------------------------------------------------------------------------
+IF EXISTS (
+SELECT 1
+FROM information_schema.columns
+WHERE table_schema = 'public'
+  AND table_name   = 'adjustment_codes' )  THEN
+
+INSERT INTO billing.claim_status (company_id, code, description, is_system_status, display_order)
+WITH adj_cte as(
+select description  from public.adjustment_codes
+where type = 'CLMSTS'
+and has_deleted is false
+except
+select description  from billing.claim_status 
+)
+select  1, ac.code, ac.description, false, ac.id+100 from public.adjustment_codes ac, adj_cte
+where ac.description = adj_cte.description
+and type = 'CLMSTS'
+and has_deleted is false;
+
+-- --------------------------------------------------------------------------------------------------------------------
+with adj_qry as (
+SELECT id, display_order, row_number() OVER (PARTITION BY 'GLOBAL' ORDER BY display_order)  AS rnum
+FROM billing.claim_status
+order by display_order
+    )
+update billing.claim_status
+set display_order = rnum
+from adj_qry
+where claim_status.id = adj_qry.id;
+
+END IF;
+
+-- --------------------------------------------------------------------------------------------------------------------
+-- Datamodel for Adjustment codes  <END>
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.printer_templates
+(
+  id bigserial NOT NULL,
+  company_id bigint NOT NULL,
+  page_width integer NOT NULL,
+  page_height integer NOT NULL,
+  left_margin numeric(3,1) NOT NULL,
+  right_margin numeric(3,1) NOT NULL,
+  top_margin numeric(3,1) NOT NULL,
+  bottom_margin numeric(3,1) NOT NULL,
+  inactivated_dt timestamp with time zone,
+  name text NOT NULL,
+  template_type text NOT NULL,
+  template_content text NOT NULL,
+  CONSTRAINT printer_templates_pk PRIMARY KEY (id),
+  CONSTRAINT printer_templates_company_id_fk FOREIGN KEY (company_id) REFERENCES companies (id),
+  CONSTRAINT printer_templates_company_name_uc UNIQUE (company_id, name)
+);
+COMMENT ON TABLE billing.printer_templates IS 'paper claim printer configurations';
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.providers
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    company_id BIGINT NOT NULL,
+    inactivated_dt TIMESTAMPTZ DEFAULT NULL,
+    name TEXT NOT NULL,
+    code TEXT NOT NULL,
+    short_description TEXT NOT NULL,
+    federal_tax_id TEXT NOT NULL,
+    npi_no TEXT NOT NULL,
+    taxonomy_code TEXT NOT NULL,
+    contact_person_name TEXT NOT NULL,
+    address_line1 TEXT NOT NULL,
+    address_line2 TEXT NOT NULL,
+    city TEXT NOT NULL,
+    state TEXT NOT NULL,
+    zip_code TEXT  NOT NULL,
+    zip_code_plus TEXT NOT NULL,
+    email TEXT,
+    phone_number TEXT NOT NULL,
+    fax_number TEXT NOT NULL,
+    web_url TEXT,
+    pay_to_address_line1 TEXT,
+    pay_to_address_line2 TEXT,
+    pay_to_city TEXT,
+    pay_to_state TEXT,
+    pay_to_zip_code TEXT,
+    pay_to_zip_code_plus TEXT,
+    pay_to_email TEXT,
+    pay_to_phone_number TEXT,
+    pay_to_fax_number TEXT,
+    communication_info JSONB,
+    CONSTRAINT billing_provider_id_pk PRIMARY KEY (id),
+    CONSTRAINT billing_provider_company_id_fk FOREIGN KEY (company_id) REFERENCES public.companies(id),
+    CONSTRAINT billing_provider_code_uc UNIQUE(company_id,code),
+    CONSTRAINT billing_provider_taxonomy_code_cc CHECK (LENGTH(taxonomy_code) = 10 and UPPER(taxonomy_code) = taxonomy_code)
+);
+
+COMMENT ON COLUMN billing.providers.communication_info IS 'JSONB object that holds protocol (sftp, https, ftps),host (IP/URL/FQDN),port,username,password,upload_path,download_path,identity_file_path(path to private key file on server, used for authentication)';
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.provider_id_code_qualifiers
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    company_id BIGINT NOT NULL,
+    inactivated_dt TIMESTAMPTZ DEFAULT NULL,
+    qualifier_code  TEXT NOT NULL,
+    description TEXT NOT NULL,
+    CONSTRAINT provider_id_code_qualifiers_pk PRIMARY KEY(id),
+    CONSTRAINT provider_id_code_qualifiers_company_id_fk FOREIGN KEY(company_id) REFERENCES public.companies (id)
+);
+
+COMMENT ON TABLE billing.provider_id_code_qualifiers IS 'Qualifiers and its description for the provider id codes';
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.provider_id_codes
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    qualifier_id BIGINT NOT NULL, 
+    billing_provider_id BIGINT NOT NULL,
+    insurance_provider_id BIGINT NOT NULL,
+    payer_assigned_provider_id TEXT NOT NULL ,
+    CONSTRAINT provider_id_codes_pk PRIMARY KEY (id),
+    CONSTRAINT provider_id_codes_provider_id_fk FOREIGN KEY(billing_provider_id) REFERENCES billing.providers(id),
+    CONSTRAINT provider_id_codes_qualifier_id_fk FOREIGN KEY(qualifier_id) REFERENCES billing.provider_id_code_qualifiers(id),
+    CONSTRAINT provider_id_codes_insurance_provider_id_fk FOREIGN KEY(insurance_provider_id) REFERENCES public.insurance_providers(id),
+    CONSTRAINT provider_id_codes_qualifier_id_uc UNIQUE( qualifier_id,billing_provider_id,insurance_provider_id),
+    CONSTRAINT provider_id_codes_payer_assigned_provider_id_length_cc CHECK( LENGTH(payer_assigned_provider_id) BETWEEN 1 and 17)
+);
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.messages
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    company_id BIGINT NOT NULL,
+    code TEXT NOT NULL,
+    description TEXT NOT NULL,
+    CONSTRAINT messages_pk PRIMARY KEY (id),
+    CONSTRAINT messages_company_code_uc UNIQUE (company_id,code),
+    CONSTRAINT messages_company_id_fk FOREIGN KEY (company_id) REFERENCES public.companies (id),
+    CONSTRAINT messages_code_cc CHECK ( code in ('0-30', '31-60', '61-90', '91-120', '>120', 'collections'))
+);
+
+COMMENT ON TABLE billing.messages IS 'Messages used in billing reports like patient statement, etc';
+
+COMMENT ON COLUMN billing.messages.code IS 'Unique short code that helps to identify a report message indicating aging';
+COMMENT ON COLUMN billing.messages.description IS 'Actual billing report message text used in billing aging reports';
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.payment_reasons
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    company_id BIGINT NOT NULL,
+    inactivated_dt TIMESTAMPTZ DEFAULT NULL,
+    code TEXT NOT NULL,
+    description TEXT NOT NULL,
+    CONSTRAINT payment_reasons_pk PRIMARY KEY (id),
+    CONSTRAINT payment_reasons_company_id_code_uc UNIQUE (company_id,code),
+    CONSTRAINT payment_reasons_company_id_fk FOREIGN KEY (company_id) REFERENCES public.companies (id)
+);
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.validations
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    company_id BIGINT NOT NULL,
+    edi_validation JSONB,
+    invoice_validation JSONB,
+    patient_validation JSONB,
+    CONSTRAINT validations_pk PRIMARY KEY (id),
+    CONSTRAINT validations_company_id_fk FOREIGN KEY (company_id) REFERENCES public.companies (id)
+);
+
+COMMENT ON TABLE billing.validations IS 'Validations used in  EDI and Invoice';
+
+COMMENT ON COLUMN billing.validations.edi_validation IS 'EDI validations like Billing provider EDI validations, refering provider EDI validations, rendering provider EDI validations, etc. This is used during claim validation.';
+COMMENT ON COLUMN billing.validations.invoice_validation IS 'Invoice validations like claim validations , payer validations, subscriber validations, etc.This is used during claim validation. ';
+COMMENT ON COLUMN billing.validations.patient_validation IS 'Patient validations like claim validations ,billing provider, rendering provider, etc except payer and subscriber validations. This is used during claim validation.';
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.cas_group_codes
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    company_id  BIGINT NOT NULL,
+    inactivated_dt TIMESTAMPTZ DEFAULT NULL,
+    code  TEXT NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    CONSTRAINT cas_group_codes_pk PRIMARY KEY (id),
+    CONSTRAINT cas_group_codes_group_code_uc UNIQUE (company_id,code),
+    CONSTRAINT cas_group_codes_company_id_fk FOREIGN KEY (company_id) REFERENCES public.companies (id),
+    CONSTRAINT cas_group_codes_code_cc  CHECK (TRIM(code) <> ''),
+    CONSTRAINT cas_group_codes_name_cc  CHECK (TRIM(name) <> ''),
+    CONSTRAINT cas_group_codes_description_cc  CHECK (TRIM(description) <> '')
+);
+
+COMMENT ON TABLE billing.cas_group_codes IS 'CAS group codes use in ERA/EOB processing';
+
+COMMENT ON COLUMN billing.cas_group_codes.code IS 'User enterable Group code (Like CO, PR, etc) for CAS';
+COMMENT ON COLUMN billing.cas_group_codes.name  IS 'Example : Contractual Obligation';
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.cas_reason_codes 
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    company_id  BIGINT NOT NULL,
+    inactivated_dt TIMESTAMPTZ DEFAULT NULL,
+    code TEXT NOT NULL,
+    description TEXT NOT NULL,
+    CONSTRAINT cas_reason_codes_pk PRIMARY KEY (id),
+    CONSTRAINT cas_reason_codes_code_uc UNIQUE (company_id,code),
+    CONSTRAINT cas_reason_codes_company_id_fk FOREIGN KEY (company_id) REFERENCES public.companies (id),
+    CONSTRAINT cas_reason_codes_code_cc  CHECK (TRIM(code) <> ''),
+    CONSTRAINT cas_reason_codes_description_cc  CHECK (TRIM(description) <> '')
+);
+-- --------------------------------------------------------------------------------------------------------------------
+-- Billing 2.0 - New Claim module tables -  Create Script
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.claims
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    company_id BIGINT NOT NULL,
+    facility_id BIGINT NOT NULL,
+    patient_id BIGINT NOT NULL,
+    billing_provider_id BIGINT NOT NULL,
+    rendering_provider_contact_id BIGINT,
+    referring_provider_contact_id BIGINT,
+    primary_patient_insurance_id BIGINT,
+    secondary_patient_insurance_id BIGINT,
+    tertiary_patient_insurance_id BIGINT,
+    ordering_facility_id BIGINT,
+    place_of_service_id BIGINT,
+    claim_status_id BIGINT NOT NULL,
+    billing_code_id BIGINT,
+    billing_class_id BIGINT,
+    created_by BIGINT NOT NULL,
+    claim_dt TIMESTAMPTZ NOT NULL,
+    submitted_dt TIMESTAMPTZ,
+    current_illness_date DATE,
+    same_illness_first_date DATE,
+    unable_to_work_from_date DATE,
+    unable_to_work_to_date DATE,
+    hospitalization_from_date DATE,
+    hospitalization_to_date DATE,
+    payer_type TEXT NOT NULL,
+    billing_method TEXT,
+    billing_notes TEXT,
+    claim_notes TEXT,
+    original_reference TEXT,
+    authorization_no TEXT,
+    frequency TEXT,
+    invoice_no TEXT,
+    is_auto_accident BOOLEAN DEFAULT FALSE,
+    is_other_accident BOOLEAN DEFAULT FALSE,
+    is_employed BOOLEAN DEFAULT FALSE,
+    service_by_outside_lab BOOLEAN DEFAULT FALSE,
+    CONSTRAINT claims_pk PRIMARY KEY (id),
+    CONSTRAINT claims_billing_code_id_fk FOREIGN KEY (billing_code_id) REFERENCES billing.billing_codes (id),
+    CONSTRAINT claims_billing_class_id_fk FOREIGN KEY (billing_class_id) REFERENCES billing.billing_classes (id),
+    CONSTRAINT claims_claim_status_id_fk FOREIGN KEY (claim_status_id) REFERENCES billing.claim_status(id),
+    CONSTRAINT claims_billing_provider_id_fk FOREIGN KEY (billing_provider_id) REFERENCES billing.providers (id),
+    CONSTRAINT claims_company_id_fk FOREIGN KEY (company_id) REFERENCES public.companies (id),
+    CONSTRAINT claims_patient_id_fk FOREIGN KEY (patient_id) REFERENCES public.patients (id),
+    CONSTRAINT claims_place_of_service_id_fk FOREIGN KEY (place_of_service_id) REFERENCES public.places_of_service (id),
+    CONSTRAINT claims_rendering_provider_contact_id_fk FOREIGN KEY (rendering_provider_contact_id) REFERENCES public.provider_contacts (id),
+    CONSTRAINT claims_referring_provider_contact_id_fk FOREIGN KEY (referring_provider_contact_id) REFERENCES public.provider_contacts (id),
+    CONSTRAINT claims_created_by_fk FOREIGN KEY (created_by) REFERENCES public.users(id),
+    CONSTRAINT claims_facility_id_fk FOREIGN KEY (facility_id) REFERENCES public.facilities (id),
+    CONSTRAINT claims_primary_patient_insurance_id_fk FOREIGN KEY (primary_patient_insurance_id, patient_id) REFERENCES public.patient_insurances (id, patient_id),
+    CONSTRAINT claims_secondary_patient_insurance_id_fk FOREIGN KEY (secondary_patient_insurance_id, patient_id) REFERENCES public.patient_insurances (id, patient_id),
+    CONSTRAINT claims_tertiary_patient_insurance_id_fk FOREIGN KEY (tertiary_patient_insurance_id, patient_id) REFERENCES public.patient_insurances (id, patient_id),
+    CONSTRAINT claims_ordering_facility_id_fk FOREIGN KEY (ordering_facility_id) REFERENCES public.provider_groups (id),
+    CONSTRAINT claims_billing_method_cc CHECK(billing_method in('patient_payment','direct_billing', 'electronic_billing','paper_claim')),
+    CONSTRAINT claims_frequency_cc CHECK ( frequency in ('original' ,'corrected' ,'void')),
+    CONSTRAINT claims_payer_type_cc CHECK ( payer_type IN ('patient', 'primary_insurance', 'secondary_insurance', 'tertiary_insurance', 'ordering_facility','referring_provider')),
+    CONSTRAINT claims_distinct_patient_insurance_ids_cc  CHECK (coalesce(primary_patient_insurance_id, -1) != coalesce(secondary_patient_insurance_id, -2) AND coalesce(primary_patient_insurance_id, -1)   != coalesce(tertiary_patient_insurance_id,  -3) AND coalesce(secondary_patient_insurance_id, -2) != coalesce(tertiary_patient_insurance_id, -3)),
+    CONSTRAINT claims_payer_id_cc CHECK (CASE payer_type
+                                        WHEN 'patient'    THEN true
+                                        WHEN 'primary_insurance'    THEN primary_patient_insurance_id IS NOT NULL
+                                        WHEN 'secondary_insurance'    THEN secondary_patient_insurance_id IS NOT NULL
+                                        WHEN 'tertiary_insurance'    THEN tertiary_patient_insurance_id IS NOT NULL
+                                        WHEN 'ordering_facility'    THEN ordering_facility_id IS NOT NULL
+                                        WHEN 'referring_provider'    THEN referring_provider_contact_id IS NOT NULL
+                                        ELSE false
+                                        END)
+);
+
+COMMENT ON TABLE billing.claims IS 'claims related information';
+
+--  COMMENT ON COLUMN billing.claims.claim_status_id IS 'claim status for a claim can be Patient over payment, insurance overpayment,etc';  - Comments will be provided after spec for claim status workflow is provided
+COMMENT ON COLUMN billing.claims.claim_dt IS 'Claim accounting date';
+COMMENT ON COLUMN billing.claims.submitted_dt IS 'Date when claim was submitted';
+COMMENT ON COLUMN billing.claims.authorization_no IS 'Claim authoriztion_no';
+COMMENT ON COLUMN billing.claims.frequency IS 'Frequecy of the claim like original, corrected, etc';
+COMMENT ON COLUMN billing.claims.is_other_accident IS 'Whether the accident was caused by other means(other than accident caused by vehicles)';
+COMMENT ON COLUMN billing.claims.current_illness_date IS 'Used on CMS Form 1500, box #14';
+COMMENT ON COLUMN billing.claims.same_illness_first_date IS 'Used on CMS Form 1500, box #15';
+COMMENT ON COLUMN billing.claims.hospitalization_from_date IS 'Used on CMS Form 1500, box #18';
+COMMENT ON COLUMN billing.claims.hospitalization_to_date IS 'Used on CMS Form 1500, box #18';
+COMMENT ON COLUMN billing.claims.claim_notes IS 'Used on CMS Form 1500, box #19';
+COMMENT ON COLUMN billing.claims.service_by_outside_lab IS 'Used on CMS Form 1500, box #20';
+COMMENT ON COLUMN billing.claims.authorization_no IS 'Used on CMS Form 1500, box #23';
+COMMENT ON COLUMN billing.claims.place_of_service_id IS 'Used on CMS Form 1500, box #24b';
+COMMENT ON COLUMN billing.claims.unable_to_work_from_date IS 'Used on CMS Form 1500, box #16';
+COMMENT ON COLUMN billing.claims.unable_to_work_to_date IS 'Used on CMS Form 1500, box #16';
+
+CREATE INDEX IF NOT EXISTS claims_facility_id_ix ON billing.claims(facility_id);
+CREATE INDEX IF NOT EXISTS claims_patient_id_ix ON billing.claims(patient_id);
+CREATE INDEX IF NOT EXISTS claims_billing_provider_id_ix ON billing.claims(billing_provider_id);
+CREATE INDEX IF NOT EXISTS claims_rendering_provider_contact_id_ix ON billing.claims(rendering_provider_contact_id);
+CREATE INDEX IF NOT EXISTS claims_referring_provider_contact_id_ix ON billing.claims(referring_provider_contact_id);
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.charges
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    claim_id BIGINT NOT NULL,
+    line_num  BIGINT,
+    cpt_id BIGINT NOT NULL,
+    modifier1_id BIGINT,
+    modifier2_id BIGINT,
+    modifier3_id BIGINT,
+    modifier4_id BIGINT,
+    bill_fee MONEY NOT NULL,
+    allowed_amount MONEY NOT NULL,
+    units NUMERIC(7,3) NOT NULL,
+    created_by BIGINT NOT NULL,
+    charge_dt TIMESTAMPTZ NOT NULL,
+    pointer1 TEXT,
+    pointer2 TEXT,
+    pointer3 TEXT,
+    pointer4 TEXT,
+    authorization_no TEXT,
+    note TEXT,
+    CONSTRAINT charges_pk PRIMARY KEY (id),
+    CONSTRAINT charges_claim_id_fk FOREIGN KEY (claim_id) REFERENCES billing.claims (id),
+    CONSTRAINT charges_cpt_id_fk FOREIGN KEY (cpt_id) REFERENCES public.cpt_codes (id),
+    CONSTRAINT charges_created_by_fk FOREIGN KEY (created_by) REFERENCES public.users (id),
+    CONSTRAINT charges_modifier1_id_fk FOREIGN KEY (modifier1_id) REFERENCES public.modifiers (id),
+    CONSTRAINT charges_modifier2_id_fk FOREIGN KEY (modifier2_id) REFERENCES public.modifiers (id),
+    CONSTRAINT charges_modifier3_id_fk FOREIGN KEY (modifier3_id) REFERENCES public.modifiers (id),
+    CONSTRAINT charges_modifier4_id_fk FOREIGN KEY (modifier4_id) REFERENCES public.modifiers (id),
+    CONSTRAINT charges_line_num_uc UNIQUE (claim_id,line_num)
+);
+
+COMMENT ON TABLE billing.charges IS 'charge lines for claims';
+
+COMMENT ON COLUMN billing.charges.note IS 'One charge line can have one charge comment';
+
+CREATE INDEX IF NOT EXISTS charges_claim_id_cpt_id_ix ON billing.charges(claim_id, cpt_id);
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.charges_studies
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    charge_id BIGINT NOT NULL,
+    study_id BIGINT NOT NULL,
+    CONSTRAINT charges_studies_pk PRIMARY KEY (id),
+    CONSTRAINT charges_studies_charge_id_study_id_uc UNIQUE (charge_id, study_id),
+    CONSTRAINT charges_studies_charge_id_fk FOREIGN KEY (charge_id) REFERENCES billing.charges (id),
+    CONSTRAINT charges_studies_study_id_fk FOREIGN KEY (study_id) REFERENCES public.studies (id)
+);
+
+COMMENT ON TABLE billing.charges_studies IS 'Charge originated from study';
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.claim_icds
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    claim_id BIGINT NOT NULL,
+    icd_id BIGINT NOT NULL,
+    CONSTRAINT claim_icds_pk PRIMARY KEY (id),
+    CONSTRAINT claim_icds_uc UNIQUE (claim_id, icd_id),
+    CONSTRAINT claim_icds_claim_id_fk FOREIGN KEY (claim_id) REFERENCES billing.claims (id),
+    CONSTRAINT claim_icd_id_fk FOREIGN KEY (icd_id) REFERENCES public.icd_codes (id)
+);
+
+COMMENT ON TABLE billing.claim_icds IS 'ICD codes for a claim';        
+
+CREATE INDEX IF NOT EXISTS claim_icds_ix ON billing.claim_icds(claim_id, icd_id);
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.claim_followups
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    claim_id BIGINT NOT NULL,
+    assigned_to BIGINT NOT NULL,
+    followup_date DATE NOT NULL,
+    CONSTRAINT claim_followups_pk PRIMARY KEY (id),
+    CONSTRAINT claim_followups_assigned_to_fk FOREIGN KEY (assigned_to) REFERENCES public.users (id),
+    CONSTRAINT claim_followups_claim_id_fk  FOREIGN KEY (claim_id) REFERENCES billing.claims (id),
+    CONSTRAINT claim_followups_claim_assigned_followp_uc UNIQUE(claim_id,assigned_to,followup_date)
+);
+
+COMMENT ON COLUMN billing.claim_followups.assigned_to IS 'Supervisor can asssign an user who will be responsible for a claim.This column stores the user who is responsible for claim follow-up';
+COMMENT ON COLUMN billing.claim_followups.followup_date IS 'Followup date for a claim assigned by the supervisor';
+
+CREATE INDEX IF NOT EXISTS claim_followup_claim_id_ix ON billing.claim_followups(claim_id);
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.claim_comments
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    claim_id BIGINT NOT NULL, 
+    note TEXT NOT NULL,
+    type TEXT NOT NULL,
+    is_internal BOOLEAN NOT NULL DEFAULT FALSE,
+    created_by BIGINT NOT NULL,
+    created_dt TIMESTAMPTZ NOT NULL DEFAULT NOW(), 
+    CONSTRAINT claim_comments_pk PRIMARY KEY (id),
+    CONSTRAINT claim_comments_created_by_fk FOREIGN KEY (created_by) REFERENCES users (id),
+    CONSTRAINT claim_comments_claim_id_fk FOREIGN KEY (claim_id) REFERENCES billing.claims (id),
+    CONSTRAINT claim_comments_type_cc CHECK ( type in ('manual','auto','co_pay','co_insurance','deductible'))
+);
+
+COMMENT ON TABLE billing.claim_comments IS 'Auto-generated comments and  user entered comments of a claim ';
+
+COMMENT ON COLUMN billing.claim_comments.note IS 'Auto generated comments for co-Pay, co-insurance, deductible entries of a claim. Also it has manually entered comments for a claim and manually entered payment comments for a claim.';
+
+COMMENT ON COLUMN billing.claim_comments.is_internal IS 'Whether the comments should be displayed in Billing reports';
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.edi_files
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    company_id BIGINT NOT NULL,
+    file_store_id BIGINT NOT NULL,
+    created_dt TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    processed_dt TIMESTAMPTZ DEFAULT NULL,
+    status TEXT NOT NULL,
+    file_type TEXT NOT NULL,
+    file_path TEXT NOT NULL,
+    file_size BIGINT NOT NULL,
+    file_md5 TEXT NOT NULL,
+    uploaded_file_name TEXT NOT NULL,
+    CONSTRAINT edi_files_pk PRIMARY KEY (id),
+    CONSTRAINT edi_files_company_id_fk FOREIGN KEY (company_id) REFERENCES public.companies (id),
+    CONSTRAINT edi_files_file_store_id_fk FOREIGN KEY (file_store_id) REFERENCES public.file_stores (id),
+    CONSTRAINT edi_files_status_cc CHECK ( status in ('pending', 'in_progress', 'success','failure')),
+    CONSTRAINT edi_files_file_type_cc CHECK ( file_type in ('835', '837')),
+    CONSTRAINT edi_files_file_path_cc CHECK (TRIM(file_path) <> '')
+);
+
+-- CREATE UNIQUE INDEX IF NOT EXISTS edi_files_file_path_ux ON billing.edi_files(lower(file_path));
+-- DROP INDEX IF EXISTS edi_files_file_path_ux;
+
+COMMENT ON TABLE billing.edi_files IS 'Details of 837(EDI electronic claim) and 835 (ERA response) files';
+
+COMMENT ON COLUMN billing.edi_files.file_store_id IS 'current file store  from companies table';
+COMMENT ON COLUMN billing.edi_files.processed_dt IS 'when 835 was processed or when 837 was uploaded';
+COMMENT ON COLUMN billing.edi_files.file_type IS '837 - EDI electronic claim or  835 - ERA response';
+COMMENT ON COLUMN billing.edi_files.file_path IS 'path relative to file store root';
+COMMENT ON COLUMN billing.edi_files.file_size IS 'file size in bytes';
+COMMENT ON COLUMN billing.edi_files.file_md5 IS 'MD5 checksum of file that can be used for integrity';
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION billing.is_edi_file_type (BIGINT, TEXT)
+    RETURNS boolean
+AS
+$BODY$
+    SELECT TRUE FROM billing.edi_files WHERE id = $1 AND file_type = $2;
+$BODY$
+LANGUAGE sql;
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.edi_file_claims
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    edi_file_id BIGINT NOT NULL,
+    claim_id BIGINT NOT NULL,
+    CONSTRAINT edi_file_claims_pk PRIMARY KEY (id),
+    CONSTRAINT edi_file_claims_edi_file_id_fk FOREIGN KEY (edi_file_id) REFERENCES billing.edi_files(id),
+    CONSTRAINT edi_file_claims_claim_id_fk FOREIGN KEY (claim_id) REFERENCES billing.claims(id),
+    CONSTRAINT edi_file_claims_is_837_edi_file_cc CHECK(billing.is_edi_file_type(edi_file_id, '837')),
+    CONSTRAINT edi_file_claims_edi_file_id_claim_id_uc UNIQUE (edi_file_id, claim_id)
+);
+
+COMMENT ON TABLE billing.edi_file_claims IS 'EDI Transaction batch can have multiple claims. This table holds all the claims in an EDI transaction batch';
+-- --------------------------------------------------------------------------------------------------------------------
+-- Billing 2.0 - New Payment module tables - Create Script
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.payments
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    company_id BIGINT NOT NULL,
+    facility_id BIGINT,
+    patient_id BIGINT,
+    insurance_provider_id BIGINT,
+    provider_group_id BIGINT,
+    provider_contact_id BIGINT,
+    payment_reason_id BIGINT,
+    amount MONEY NOT NULL,
+    accounting_dt TIMESTAMPTZ,
+    created_by BIGINT NOT NULL,
+    payment_dt TIMESTAMPTZ NOT NULL DEFAULT now(),
+    invoice_no TEXT,
+    alternate_payment_id TEXT,
+    payer_type TEXT NOT NULL,
+    notes  TEXT,
+    mode TEXT,
+    card_name TEXT,
+    card_number TEXT,
+    CONSTRAINT payments_pk PRIMARY KEY (id),
+    CONSTRAINT payments_company_id_fk FOREIGN KEY (company_id) REFERENCES public.companies(id),
+    CONSTRAINT payments_facility_id_fk FOREIGN KEY (facility_id) REFERENCES public.facilities(id),
+    CONSTRAINT payments_patient_id_fk FOREIGN KEY (Patient_id) REFERENCES public.patients (id),
+    CONSTRAINT payments_created_dt_fk FOREIGN KEY (created_by) REFERENCES public.users (id),
+    CONSTRAINT payments_insurance_provider_id_fk FOREIGN KEY (Insurance_provider_id) REFERENCES public.insurance_providers(id),
+    CONSTRAINT payments_provider_group_id_fk  FOREIGN KEY (provider_group_id) REFERENCES public.provider_groups (id),
+    CONSTRAINT payments_provider_contact_id_fk  FOREIGN KEY (Provider_contact_id) REFERENCES public.Provider_contacts (id),
+    CONSTRAINT payments_payment_reason_id_fk  FOREIGN KEY (payment_reason_id) REFERENCES billing.payment_reasons(id),
+    CONSTRAINT payments_payer_id_nullable_cc CHECK (
+        CASE payer_type 
+            WHEN 'patient' THEN patient_id IS NOT NULL
+            WHEN 'insurance' THEN insurance_provider_id IS NOT NULL
+            WHEN 'ordering_provider' THEN provider_contact_id IS NOT NULL
+            WHEN 'ordering_facility' THEN provider_group_id IS NOT NULL
+        END),   
+    CONSTRAINT payments_payer_type_cc CHECK (payer_type in('insurance','patient' ,'ordering_facility', 'ordering_provider')),
+    CONSTRAINT payments_mode_cc CHECK (mode in('eft','card' , 'cash' , 'check'))
+);
+
+
+COMMENT ON TABLE billing.payments IS 'Payment data for patients, insurance, ordering facility and provider';
+
+COMMENT ON COLUMN billing.payments.payer_type IS 'Payer type like  Patient, Insurance, Ordering Provider,  Ordering facility';
+COMMENT ON COLUMN billing.payments.accounting_dt IS 'Actual payment accounting date';
+COMMENT ON COLUMN billing.payments.mode IS 'Payment mode like eft, cash, card, etc';
+COMMENT ON COLUMN billing.payments.alternate_payment_id IS 'User entered payment id';
+
+CREATE INDEX IF NOT EXISTS payments_payer_type_patient_ix ON billing.payments( payer_type, patient_id) where payer_type = 'patient';
+CREATE INDEX IF NOT EXISTS payments_payer_type_insurance_provider_ix ON billing.payments( payer_type, insurance_provider_id) where payer_type = 'insurance';
+CREATE INDEX IF NOT EXISTS payments_payer_type_provider_group_ix ON billing.payments( payer_type, provider_group_id) where payer_type = 'ordering_facility';
+CREATE INDEX IF NOT EXISTS payments_payer_type_Provider_contact_ix ON billing.payments( payer_type, Provider_contact_id) where payer_type = 'ordering_provider';
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.payment_applications
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    payment_id BIGINT NOT NULL,
+    charge_id BIGINT NOT NULL,
+    adjustment_code_id BIGINT,
+    amount MONEY NOT NULL,
+    amount_type TEXT NOT NULL,
+    created_by BIGINT NOT NULL,
+    applied_dt TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT payment_applications_pk PRIMARY KEY (id),
+    CONSTRAINT payment_applications_payment_id_fk FOREIGN KEY (payment_id) REFERENCES billing.payments (id),
+    CONSTRAINT payment_applications_charge_id_fk FOREIGN KEY (charge_id) REFERENCES billing.charges (id),
+    CONSTRAINT payment_applications_adjustment_code_id_fk FOREIGN KEY (adjustment_code_id) REFERENCES billing.adjustment_codes (id),
+    CONSTRAINT payment_applications_created_by_fk FOREIGN KEY (created_by) REFERENCES public.users(id),
+    CONSTRAINT payment_applications_amount_type_cc CHECK (amount_type IN ('payment','adjustment'))
+);
+CREATE INDEX IF NOT EXISTS payment_applications_charge_id_ix ON billing.payment_applications USING btree (charge_id);
+CREATE INDEX IF NOT EXISTS payment_applications_payment_id_ix ON billing.payment_applications USING btree (payment_id);
+CREATE INDEX IF NOT EXISTS payment_applications_adjustment_code_id_ix ON billing.payment_applications USING btree (adjustment_code_id);
+CREATE INDEX IF NOT EXISTS payment_applications_created_by_ix ON billing.payment_applications USING btree (created_by);
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION billing.is_adjustment_payment_application(BIGINT)
+    RETURNS boolean
+AS
+$BODY$
+    SELECT EXISTS (SELECT 1 FROM billing.payment_applications WHERE id = $1 and amount_type = 'adjustment');
+$BODY$
+LANGUAGE sql;
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.cas_payment_application_details
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    payment_application_id BIGINT NOT NULL,
+    cas_group_code_id  BIGINT NOT NULL,
+    cas_reason_code_id BIGINT NOT NULL,
+    amount MONEY NOT NULL,
+    CONSTRAINT cas_payment_application_details_pk  PRIMARY KEY (id),
+    CONSTRAINT cas_payment_application_details_payment_application_id_fk FOREIGN KEY (payment_application_id) REFERENCES billing.payment_applications(id),
+    CONSTRAINT cas_payment_application_details_cas_group_code_id_fk FOREIGN KEY(cas_group_code_id) REFERENCES billing.cas_group_codes(id),
+    CONSTRAINT cas_payment_application_details_cas_reason_code_id_fk FOREIGN KEY(cas_reason_code_id) REFERENCES billing.cas_reason_codes(id),
+    CONSTRAINT cas_payment_application_details_pymt_appl_group_reason_code_uc UNIQUE (payment_application_id,cas_group_code_id,cas_reason_code_id),
+    CONSTRAINT cas_payment_application_details_is_adj_payment_application_cc CHECK (billing.is_adjustment_payment_application(payment_application_id))
+);
+
+COMMENT ON TABLE billing.cas_payment_application_details IS 'For CAS transaction data when processing ERA File';
+
+COMMENT ON COLUMN billing.cas_payment_application_details.amount IS 'User entered adjustment amount from ERA file';
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.edi_file_payments
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    edi_file_id BIGINT NOT NULL,
+    payment_id BIGINT NOT NULL,
+    CONSTRAINT edi_file_payments_pk PRIMARY KEY (id),
+    CONSTRAINT edi_file_payments_edi_file_id_fk FOREIGN KEY (edi_file_id) REFERENCES billing.edi_files(id),
+    CONSTRAINT edi_file_payments_payments_id_fk FOREIGN KEY (payment_id) REFERENCES billing.payments(id),
+    CONSTRAINT edi_file_payments_is_835_edi_file_cc CHECK(billing.is_edi_file_type(edi_file_id, '835')),
+    CONSTRAINT edi_file_payments_edi_file_id_payments_id_uc UNIQUE (edi_file_id, payment_id)
+);
+COMMENT ON TABLE billing.edi_file_payments IS 'Payments created from an ERA file';
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.grid_filters
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    user_id BIGINT NOT NULL,
+    filter_order INTEGER NOT NULL,
+    filter_type TEXT NOT NULL,
+    filter_name TEXT NOT NULL,
+    filter_info json NOT NULL,
+    display_as_tab BOOLEAN DEFAULT FALSE,
+    is_global_filter BOOLEAN DEFAULT FALSE,
+    display_in_ddl BOOLEAN DEFAULT FALSE,
+    inactivated_dt TIMESTAMPTZ,
+    CONSTRAINT grid_filters_id_pk PRIMARY KEY (id),
+    CONSTRAINT grid_filters_user_id_fk FOREIGN KEY (user_id) REFERENCES public.users(id),
+    CONSTRAINT grid_filters_filter_type_cc CHECK(filter_type IN ('studies','claims')),
+    CONSTRAINT grid_filters_filter_name_uc UNIQUE(filter_type,filter_name)
+);
+COMMENT ON TABLE billing.grid_filters IS 'To maintain Display filter tabs in billing home page (Billed/Unbilled studies) & claim work bench';
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.user_settings
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    company_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    default_tab TEXT NOT NULL,
+    grid_name TEXT NOT NULL,
+    default_column TEXT,
+    default_column_order_by TEXT,
+    field_order INTEGER[] NOT NULL,
+    default_date_range TEXT NOT NULL,
+    paper_claim_full_template_id bigint,
+    paper_claim_original_template_id bigint,
+    direct_invoice_template_id bigint,
+    patient_invoice_template_id bigint,
+    grid_field_settings json,
+    CONSTRAINT billing_user_settings_id_pk PRIMARY KEY (id),
+    CONSTRAINT billing_user_settings_user_id_fk FOREIGN KEY (user_id) REFERENCES public.users(id),
+    CONSTRAINT billing_user_settings_company_id_fk FOREIGN KEY (company_id) REFERENCES public.companies(id),
+    CONSTRAINT billing_user_settings_default_date_range_cc CHECK(default_date_range IN ('last_7_days', 'last_30_days', 'last_month','next_30_days','this_month','this_year')),
+    CONSTRAINT billing_user_settings_grid_name_cc CHECK(grid_name IN ('studies','claims'))
+);
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.status_color_codes
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    company_id BIGINT NOT NULL,
+    process_type TEXT NOT NULL ,
+    process_status TEXT NOT NULL,
+    color_code TEXT NOT NULL,
+    CONSTRAINT status_color_codes_id_pk PRIMARY KEY (id),
+    CONSTRAINT status_color_codes_company_id_fk FOREIGN KEY (company_id) REFERENCES public.companies(id),
+    CONSTRAINT status_color_codes_process_type_cc CHECK(process_type IN ('study','claim','payment')),
+    CONSTRAINT status_color_codes_process_type_process_status_uc UNIQUE(process_type,process_status),
+    CONSTRAINT status_color_codes_process_type_color_code_uc UNIQUE(process_type,color_code)
+);
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.audit_log
+(
+  id BIGINT GENERATED ALWAYS AS IDENTITY,
+  company_id INTEGER NOT NULL,
+  entity_key BIGINT NOT NULL,
+  created_by BIGINT NOT NULL,
+  client_ip INET NOT NULL,
+  created_dt TIMESTAMPTZ NOT NULL DEFAULT now(),
+  entity_name TEXT NOT NULL,
+  screen_name TEXT NOT NULL,
+  module_name TEXT NOT NULL,
+  description TEXT NOT NULL,
+  changes JSONB NOT NULL,
+  CONSTRAINT audit_log_pk PRIMARY KEY (id),
+  CONSTRAINT audit_log_created_by_fk FOREIGN KEY (created_by) REFERENCES public.users(id),
+  CONSTRAINT audit_log_module_name_cc CHECK(module_name in ('setup','claims','payments','era','edi','reports'))
+ ); 
+CREATE INDEX IF NOT EXISTS audit_log_entity_name_entity_key_idx ON billing.audit_log (entity_name,entity_key);
+
+COMMENT ON TABLE billing.audit_log IS 'To log all application level changes in each table from setup,claims and payments module of billing 1.5 application';
+
+COMMENT ON COLUMN billing.audit_log.entity_name IS 'It is the affected table name in billing schema';
+COMMENT ON COLUMN billing.audit_log.entity_key IS 'It is the primary key of the affected row';
+COMMENT ON COLUMN billing.audit_log.entity_key IS 'To store old and new values of the affected row ';
+-- --------------------------------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS billing.insurance_provider_details
+(
+  insurance_provider_id bigint NOT NULL,
+  clearing_house_id bigint,
+  billing_method text,
+  claim_filing_indicator_code text,
+  CONSTRAINT b_insurance_provider_id_pk PRIMARY KEY (insurance_provider_id),
+  CONSTRAINT b_insurance_providers_clearing_house_id_fk FOREIGN KEY (clearing_house_id) REFERENCES billing.edi_clearinghouses (id),
+  CONSTRAINT insurance_providers_insurance_provider_id_fk FOREIGN KEY (insurance_provider_id) REFERENCES insurance_providers (id),
+  CONSTRAINT insurance_provider_details_ins_id_clear_house_id_uc UNIQUE (insurance_provider_id, clearing_house_id),
+  CONSTRAINT insurance_providers_ins_id_clear_house_id_uc UNIQUE (insurance_provider_id, billing_method),
+  CONSTRAINT insurance_provider_details_billing_method_cc CHECK (billing_method IN ('patient_payment', 'direct_billing', 'electronic_billing', 'paper_claim'))
+);
+-- --------------------------------------------------------------------------------------------------------------------
+-- Creating default setup details
+-- --------------------------------------------------------------------------------------------------------------------
+IF NOT EXISTS(SELECT 1 FROM billing.status_color_codes) THEN 
+
+   RAISE NOTICE 'billing.status_color_codes ...';
+
+   INSERT INTO billing.status_color_codes (company_id, process_type, process_status, color_code)
+   values (1,'study','billed','#80ff00');
+
+   INSERT INTO billing.status_color_codes (company_id, process_type, process_status, color_code)
+   values (1,'study','unbilled','#80ffff');
+
+END IF;
+-- --------------------------------------------------------------------------------------------------------------------
+IF NOT EXISTS(SELECT 1 FROM billing.provider_id_code_qualifiers) THEN 
+RAISE NOTICE 'billing.provider_id_code_qualifiers ..';
+
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'0B','State License Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'1A','Blue Cross Provider Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'1B','Blue Shield Provider Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'1C','Medicare Provider Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'1D','Medicaid Provider Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'1G','Provider UPIN Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'1H','CHAMPUS Identification Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'G2','Provider Commercial Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'LU','Location Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'N5','Provider Plan Network Identification Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'TJ','Federal Taxpayer’s Identification Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'X4','Clinical Laboratory Improvement Amendment');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'X5','State Industrial Accident Provider Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'1J','Facility ID Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'B3','Preferred Provider Organization Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'BQ','Health Maintenance Organization Code Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'EI','Employer’s Identification Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'FH','Clinic Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'G5','Provider Site Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'SY','Social Security Number');
+INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
+    values (l_company_id,null,'U3','Unique Supplier Identification Number (USIN)');
+END IF;
+-- --------------------------------------------------------------------------------------------------------------------
+IF NOT EXISTS(SELECT 1 FROM billing.messages) THEN 
+
+INSERT INTO billing.messages(company_id, code, description)
+	VALUES (l_company_id, '0-30', (SELECT coalesce(company_info->'billing_msg_thirty_days',' ') from companies));
+INSERT INTO billing.messages(company_id,  code, description)
+	VALUES (l_company_id,  '31-60', (SELECT coalesce(company_info->'billing_msg_sixty_days0',' ') from companies));
+INSERT INTO billing.messages(company_id, code, description)
+	VALUES (l_company_id,  '61-90', (SELECT coalesce(company_info->'billing_msg_ninety_days',' ') from companies));
+INSERT INTO billing.messages(company_id, code, description)
+	VALUES (l_company_id,  '91-120', (SELECT coalesce(company_info->'billing_msg_one_twenty_days',' ') from companies));
+INSERT INTO billing.messages(company_id, code, description)
+	VALUES (l_company_id, '>120', (SELECT coalesce(company_info->'billing_msg_over_one_twenty_days',' ') from companies));
+INSERT INTO billing.messages(company_id, code, description)
+	VALUES (l_company_id,  'collections', (SELECT coalesce(company_info->'billing_msg_collections',' ') from companies));
+
+END IF;
+------------------------------------------------------------------------------------------------------------------------
+IF NOT EXISTS(SELECT 1 FROM billing.cas_group_codes) THEN 
+
+INSERT INTO billing.cas_group_codes(company_id,code,name,description)
+    VALUES(l_company_id,'CO','CO','CO');
+INSERT INTO billing.cas_group_codes(company_id,code,name,description)
+    VALUES(l_company_id,'OA','OA','OA');
+INSERT INTO billing.cas_group_codes(company_id,code,name,description)
+    VALUES(l_company_id,'PR','PR','PR');
+
+END IF;
+--------------------------------------------------------------------------------------------------------------------------
+IF NOT EXISTS(SELECT 1 FROM billing.cas_reason_codes ) THEN 
+
+INSERT INTO billing.cas_reason_codes
+(
+    company_id,
+    code,
+    description
+)
+SELECT
+    1,
+    unnest(ARRAY['45','59','97','119','131','137','172','199','222','223','237','253','A2','B10','96','170','16','18','B7','29','197','11','181','183','109','50','23','22','55','1','2','3']),
+	'CAS';
+
+END IF;
+--------------------------------------------------------------------------------------------------------------------------
+IF NOT EXISTS(SELECT 1 FROM billing.validations ) THEN 
+
+INSERT INTO billing.validations(
+  company_id
+  , edi_validation
+  , invoice_validation
+  , patient_validation
+)
+VALUES(
+1
+, '[{"field":"billing_pro_addressLine1","enabled":false},{"field":"billing_pro_city","enabled":true},{"field":"billing_pro_firstName","enabled":false},{"field":"billing_pro_npiNo","enabled":false},{"field":"billing_pro_state","enabled":false},{"field":"billing_pro_zip","enabled":false},{"field":"claim_icd_code1","enabled":true},{"field":"claim_place_of_service_code","enabled":false},{"field":"claim_totalCharge","enabled":false},{"field":"insurance_pro_address1","enabled":true},{"field":"insurance_pro_city","enabled":false},{"field":"insurance_pro_companyName","enabled":false},{"field":"insurance_pro_payerID","enabled":false},{"field":"insurance_pro_state","enabled":false},{"field":"insurance_pro_zipCode","enabled":false},{"field":"patient_address1","enabled":false},{"field":"patient_city","enabled":false},{"field":"patient_dob","enabled":false},{"field":"patient_firstName","enabled":false},{"field":"patient_lastName","enabled":false},{"field":"patient_state","enabled":false},{"field":"patient_zipCode","enabled":false},{"field":"reading_physician_full_name","enabled":false},{"field":"reading_pro_npiNo","enabled":false},{"field":"ref_full_name","enabled":false},{"field":"referring_pro_npiNo","enabled":false},{"field":"service_line_dig1","enabled":false},{"field":"service_facility_addressLine1","enabled":false},{"field":"service_facility_city","enabled":false},{"field":"service_facility_firstName","enabled":false},{"field":"service_facility_npiNo","enabled":false},{"field":"service_facility_state","enabled":false},{"field":"service_facility_zip","enabled":false},{"field":"subscriber_addressLine1","enabled":false},{"field":"subscriber_city","enabled":false},{"field":"subscriber_dob","enabled":false},{"field":"subscriber_firstName","enabled":false},{"field":"subscriber_lastName","enabled":false},{"field":"subscriber_state","enabled":false},{"field":"subscriber_zipCode","enabled":false},{"field":"payer_address1","enabled":false},{"field":"payer_city","enabled":false},{"field":"payer_name","enabled":false},{"field":"payer_state","enabled":false},{"field":"payer_zip_code","enabled":false}]'::JSONB
+, '[{"field":"billing_pro_addressLine1","enabled":false},{"field":"billing_pro_city","enabled":false},{"field":"billing_pro_firstName","enabled":false},{"field":"billing_pro_npiNo","enabled":false},{"field":"billing_pro_state","enabled":false},{"field":"billing_pro_zip","enabled":false},{"field":"claim_icd_code1","enabled":false},{"field":"claim_place_of_service_code","enabled":false},{"field":"claim_totalCharge","enabled":false},{"field":"insurance_pro_address1","enabled":false},{"field":"insurance_pro_city","enabled":false},{"field":"insurance_pro_companyName","enabled":false},{"field":"insurance_pro_payerID","enabled":false},{"field":"insurance_pro_state","enabled":false},{"field":"insurance_pro_zipCode","enabled":false},{"field":"patient_address1","enabled":false},{"field":"patient_city","enabled":false},{"field":"patient_dob","enabled":false},{"field":"patient_firstName","enabled":false},{"field":"patient_lastName","enabled":false},{"field":"patient_state","enabled":false},{"field":"patient_zipCode","enabled":false},{"field":"reading_physician_full_name","enabled":false},{"field":"reading_pro_npiNo","enabled":false},{"field":"ref_full_name","enabled":false},{"field":"referring_pro_npiNo","enabled":false},{"field":"service_line_dig1","enabled":false},{"field":"service_facility_addressLine1","enabled":false},{"field":"service_facility_city","enabled":false},{"field":"service_facility_firstName","enabled":false},{"field":"service_facility_npiNo","enabled":false},{"field":"service_facility_state","enabled":false},{"field":"service_facility_zip","enabled":false},{"field":"subscriber_addressLine1","enabled":false},{"field":"subscriber_city","enabled":false},{"field":"subscriber_dob","enabled":false},{"field":"subscriber_firstName","enabled":false},{"field":"subscriber_lastName","enabled":false},{"field":"subscriber_state","enabled":false},{"field":"subscriber_zipCode","enabled":false},{"field":"payer_address1","enabled":false},{"field":"payer_city","enabled":false},{"field":"payer_name","enabled":false},{"field":"payer_state","enabled":false},{"field":"payer_zip_code","enabled":false}]'::JSONB
+, '[{"field":"billing_pro_addressLine1","enabled":false},{"field":"billing_pro_city","enabled":false},{"field":"billing_pro_firstName","enabled":false},{"field":"billing_pro_npiNo","enabled":false},{"field":"billing_pro_state","enabled":false},{"field":"billing_pro_zip","enabled":false},{"field":"claim_icd_code1","enabled":false},{"field":"claim_place_of_service_code","enabled":false},{"field":"claim_totalCharge","enabled":false},{"field":"patient_address1","enabled":false},{"field":"patient_city","enabled":false},{"field":"patient_dob","enabled":false},{"field":"patient_firstName","enabled":false},{"field":"patient_lastName","enabled":false},{"field":"patient_state","enabled":false},{"field":"patient_zipCode","enabled":false},{"field":"reading_physician_full_name","enabled":false},{"field":"reading_pro_npiNo","enabled":false},{"field":"ref_full_name","enabled":false},{"field":"referring_pro_npiNo","enabled":false},{"field":"service_line_dig1","enabled":false},{"field":"service_facility_addressLine1","enabled":false},{"field":"service_facility_city","enabled":false},{"field":"service_facility_firstName","enabled":false},{"field":"service_facility_npiNo","enabled":false},{"field":"service_facility_state","enabled":false},{"field":"service_facility_zip","enabled":false}]'::JSONB);
+
+END IF;
+--------------------------------------------------------------------------------------------------------------------------
+IF NOT EXISTS(SELECT 1 FROM billing.printer_templates ) THEN 
+
+
+INSERT INTO billing.printer_templates
+( company_id, page_width, page_height, left_margin, right_margin, top_margin , bottom_margin ,name , template_type , template_content) 
+VALUES (1, 0,0,0.0,0.0,1.6,0.2,  'Default', 'paper_claim_full' ,'var dd = { content: "Need to setup" }'
+) ;
+
+INSERT INTO billing.printer_templates
+( company_id, page_width, page_height, left_margin, right_margin, top_margin , bottom_margin ,name , template_type, template_content) 
+VALUES (1, 692,712,2.0,2.0,2.0,2.0,  'Balck & White Final', 'paper_claim_full' , 'var dd = { content: "Need to setup" }' ) ;
+
+INSERT INTO billing.printer_templates
+( company_id, page_width, page_height, left_margin, right_margin, top_margin , bottom_margin ,name , template_type, template_content) 
+VALUES (1, -3,-2,-0.2,0.0,0.2,0.0,  'Patient Invoice', 'patient_invoice' ,'var dd = { content: "Need to setup" }') ;
+
+INSERT INTO billing.printer_templates
+( company_id, page_width, page_height, left_margin, right_margin, top_margin , bottom_margin ,name , template_type, template_content) 
+VALUES (1, -3,-2,-0.2,0.0,0.2,0.0,  'Invoice Template', 'direct_invoice','var dd = { content: "Need to setup" }' ) ;
+
+INSERT INTO billing.printer_templates
+( company_id, page_width, page_height, left_margin, right_margin, top_margin , bottom_margin ,name , template_type, template_content) 
+VALUES (1,692,712,2.0,2.0,2.0,2.0,  'Red form', 'paper_claim_original' ,'var dd = { content: "Need to setup" }') ;
+
+END IF;
+
 -- --------------------------------------------------------------------------------------------------------------------
 -- Creating functions
 -- --------------------------------------------------------------------------------------------------------------------
@@ -1156,11 +2169,11 @@ $BODY$
         DECLARE
             l_payer_type TEXT;
             l_patient_id INTEGER;
-	        l_primary_insurance_id INTEGER;
+	    l_primary_insurance_id INTEGER;
             l_secondary_insurance_id INTEGER;
             l_tertiary_insurance_id INTEGER;
             l_ordering_facility_id INTEGER;
-	        l_referring_provider_contact_id INTEGER;
+	    l_referring_provider_contact_id INTEGER;
             l_facility_id INTEGER;
             l_ordering_physician_id INTEGER;
             l_claim_facility_id INTEGER;
@@ -2097,7 +3110,7 @@ BEGIN
 						THEN 'secondary_insurance'
 					        WHEN NOT is_tertiary_paid AND tertiary_patient_insurance_id IS NOT NULL 
 						THEN 'tertiary_insurance'
-						WHEN is_other_ins_paid AND  secondary_patient_insurance_id IS NOT NULL 
+						WHEN is_other_ins_paid AND  secondary_patient_insurance_id IS NOT NULL
 						THEN 'secondary_insurance'
 					        ELSE 'patient' 
 					 END
@@ -2601,7 +3614,7 @@ BEGIN
 					, modifier4_id bigint
 					, bill_fee money
 					, allowed_amount money
-					, units numeric(7,3)
+					, units bigint
 					, created_by bigint
 					, authorization_no text
 					, charge_dt timestamptz
@@ -2741,7 +3754,7 @@ BEGIN
                 , atp.modifier2_id
                 , atp.modifier3_id
                 , atp.modifier4_id
-                , (CASE WHEN (SELECT id FROM beneficiary_details) IS NOT NULL THEN
+                 , (CASE WHEN (SELECT id FROM beneficiary_details) IS NOT NULL THEN
                     billing.get_computed_bill_fee(null,cpt_codes.id,atp.modifier2_id,atp.modifier2_id,atp.modifier3_id,atp.modifier4_id,'billing','primary_insurance',(SELECT id FROM beneficiary_details), o.facility_id)::NUMERIC
                     ELSE
                     billing.get_computed_bill_fee(null,cpt_codes.id,atp.modifier1_id,atp.modifier2_id,atp.modifier3_id,atp.modifier4_id,'billing','patient',i_patient_id,o.facility_id)::NUMERIC
@@ -3139,44 +4152,12 @@ BEGIN
 		SELECT 	id INTO o_charge_id
 		FROM	matched_charges;
 
-		/*IF	o_charge_id IS NULL THEN
-			SELECT 	id INTO o_charge_id
-			FROM	paid_charges LIMIT 1;
-		END IF;*/
 	
 	RETURN o_charge_id;
 END;
 $BODY$
   LANGUAGE plpgsql ;
 -- --------------------------------------------------------------------------------------------------------------------
--- Alter script For new Table changes 
--- --------------------------------------------------------------------------------------------------------------------
-ALTER TABLE billing.claim_status ADD COLUMN IF NOT EXISTS display_order BIGINT;
-ALTER TABLE billing.edi_clearinghouses ADD COLUMN IF NOT EXISTS edi_template_name TEXT;
-ALTER TABLE billing.edi_files ADD COLUMN IF NOT EXISTS uploaded_file_name TEXT;
-ALTER TABLE billing.grid_filters ADD COLUMN IF NOT EXISTS inactivated_dt TIMESTAMPTZ;
-DROP TABLE IF EXISTS billing.insurance_provider_clearinghouses;
-DROP TABLE IF EXISTS billing.paper_claim_printer_setup;
-ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS paper_claim_full_template_id BIGINT;
-ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS paper_claim_original_template_id BIGINT;
-ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS direct_invoice_template_id BIGINT;
-ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS patient_invoice_template_id BIGINT;
-ALTER TABLE billing.user_settings ADD COLUMN IF NOT EXISTS grid_field_settings JSON;
-ALTER TABLE billing.insurance_provider_details ADD COLUMN IF NOT EXISTS claim_filing_indicator_code text;
-ALTER TABLE billing.insurance_provider_details ADD COLUMN IF NOT EXISTS payer_edi_code text;
--- ALTER TABLE IF EXISTS billing.payment_applications DROP COLUMN IF EXISTS payment_application_id;
-DROP INDEX IF EXISTS edi_files_file_path_ux;
---ALTER TABLE billing.grid_filters ADD CONSTRAINT IF NOT EXISTS grid_filters_filter_name_uc UNIQUE(filter_type, filter_name);
--- --------------------------------------------------------------------------------------------------------------------
-CREATE INDEX IF NOT EXISTS charges_studies_idx1 ON billing.charges_studies(study_id);
-CREATE INDEX IF NOT EXISTS charges_studies_idx2 ON billing.charges_studies(charge_id);
-CREATE INDEX IF NOT EXISTS payment_applications_idx1 ON billing.payment_applications(charge_id);
-CREATE INDEX IF NOT EXISTS claims_claim_dt_ix on billing.claims(claim_dt, id);
--- --------------------------------------------------------------------------------------------------------------------
--- MAKE SURE THIS COMMENT STAYS AT THE BOTTOM - ADD YOUR CHANGES ABOVE !!!!
--- RULES:
---  * When run multiple times, the entire script should have no "side effects"
---  * When you delete a DB object (DROP TABLE, COLUMN, INDEX, etc, etc), remove/comment out prior uses (creation)
--- RAISE NOTICE '--- END OF THE SCRIPT ---';
--- --------------------------------------------------------------------------------------------------------------------
+END
+$$;
 -- ====================================================================================================================

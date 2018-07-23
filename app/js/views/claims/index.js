@@ -359,6 +359,9 @@ define(['jquery',
                 self.removedCharges = [];
                 self.chargeModel = [];
                 self.options = options || {};
+                if (isFrom && isFrom != 'reload') {
+                    self.openedFrom = isFrom
+                }
 
                 commonjs.showLoading();
 
@@ -385,7 +388,6 @@ define(['jquery',
 
                             self.facilityId = claimDetails.facility_id; // claim facility_date
                             self.studyDate = commonjs.getConvertedFacilityTime(claimDetails.claim_dt, '', 'L', claimDetails.facility_id); 
-                            self.studyDate = self.cur_study_date; // Assign claim data as studyDate variable to newly adding charges
                             /* Bind claim charge Details*/
                             $('#tBodyCharge').empty();
                             claimDetails.claim_charges = claimDetails.claim_charges || [];
@@ -450,7 +452,7 @@ define(['jquery',
                                 $('#txtModifier4_' + index).val(data.modifier1_id ? self.getModifierCode(data.modifier4_id) : "").attr('data-id',data.modifier4_id);
                             });
                            
-                            if (isFrom && isFrom == 'studies')
+                            if (isFrom && (isFrom == 'studies' || self.openedFrom == 'studies' || self.openedFrom == 'patient'))
                                 $('.claimProcess').hide(); // hide Next/Prev btn if opened from studies worklist
 
                             // trigger blur event for update Total bill fee, balance etc.
@@ -838,7 +840,7 @@ define(['jquery',
 
             },
 
-            showClaimForm: function (options) {
+            showClaimForm: function (options, isFrom) {
                 var self = this;
                 var selectedStudyIds = JSON.parse(window.localStorage.getItem('selected_studies'));
                 var primaryStudyDetails = JSON.parse(window.localStorage.getItem('primary_study_details'));
@@ -851,8 +853,12 @@ define(['jquery',
                 self.cur_study_id = primaryStudyDetails.study_id || null;
                 self.isEdit = self.claim_Id ? true : false;
                 self.facilityId = primaryStudyDetails.facility_id;
+                if (isFrom && isFrom != 'reload') {
+                    self.openedFrom = isFrom
+                }
+
                 if (!this.rendered)
-                    this.render('claim');
+                    this.render('studies');
 
                 self.studyDate = commonjs.getConvertedFacilityTime(primaryStudyDetails.study_date, '', 'L', primaryStudyDetails.facility_id);
                 self.getLineItemsAndBind(selectedStudyIds);
@@ -971,7 +977,9 @@ define(['jquery',
                         url: '/exa_modules/billing/claims/claim/line_items',
                         data: {
                             from: 'claimCreation',
-                            study_ids: selectedStudyIds
+                            study_ids: selectedStudyIds,
+                            patient_id: self.cur_patient_id || 0,
+                            claim_date: self.cur_study_date || 'now()'
                         },
                         success: function (model, response) {
                             if (model && model.length > 0) {
@@ -2618,8 +2626,15 @@ define(['jquery',
                         charge_dt: self.cur_study_date || null,
                         study_id: rowData.study_id || null,
                         is_deleted: false,
-                        isEdit: !!$('#txtBillFee_' + id).attr('edit')
+                        isEdit: $('#txtBillFee_' + id).attr('edit')
                     });
+                    var charges = claim_model.charges[claim_model.charges.length - 1];
+                    if(charges) {
+                        if(!self.isEdit && charges.isEdit == "false") {
+                            charges.bill_fee = 0.00;
+                            charges.allowed_amount = 0.00;
+                        } 
+                    }
                 });
 
                 // Assign If any charges removed
@@ -2656,6 +2671,12 @@ define(['jquery',
                                 saveButton.attr('disabled', false);
                             } else {
 
+                                if (self.isEdit) {
+                                    self.claim_row_version = response && response.length && response[0].result ? response[0].result : null;
+                                } else {
+                                    self.claim_Id = response && response.length && response[0].result ? response[0].result : null
+                                }
+
                                 var claimRefreshInterval = setTimeout(function () {
                                     clearTimeout(claimRefreshInterval);
 
@@ -2665,30 +2686,23 @@ define(['jquery',
                                     $("#btnStudiesRefresh").click();
                                 }, 200);
                                 
-                                var time = self.isEdit ? 800 : 100;
                                 var claimHideInterval = setTimeout(function () {
                                     clearTimeout(claimHideInterval);
-                                    if (self.isEdit) {
-                                        self.claim_row_version = response && response.length && response[0].result ? response[0].result : null;
-                                        saveButton.attr('disabled', false);
-                                        $('#chktblClaimGridAll_Claims_' + self.claim_Id).prop('checked', true);
-                                        // Call Edit claim API for rebind after save
-                                        commonjs.getClaimStudy(self.claim_Id, function (result) {
-                                            self.rendered = false;
-                                            self.clearDependentVariables();
-                                            self.showEditClaimForm(self.claim_Id, 'reload', {
-                                                'study_id': result && result.study_id ? result.study_id : 0,
-                                                'patient_name': self.cur_patient_name,
-                                                'patient_id': self.cur_patient_id,
-                                                'order_id': result && result.order_id ? result.order_id : 0
-                                            });
+                                    
+                                    saveButton.attr('disabled', false);
+                                    $('#chktblClaimGridAll_Claims_' + self.claim_Id).prop('checked', true);
+                                    // Call Edit claim API for rebind after save
+                                    commonjs.getClaimStudy(self.claim_Id, function (result) {
+                                        self.rendered = false;
+                                        self.clearDependentVariables();
+                                        self.showEditClaimForm(self.claim_Id, 'reload', {
+                                            'study_id': result && result.study_id ? result.study_id : 0,
+                                            'patient_name': self.cur_patient_name,
+                                            'patient_id': self.cur_patient_id,
+                                            'order_id': result && result.order_id ? result.order_id : 0
                                         });
-
-                                    } else {
-                                        commonjs.hideLoading();
-                                        commonjs.hideDialog();
-                                    }
-                                }, time);
+                                    });
+                                }, 800);
                             }
                         },
                         error: function (model, response) {
@@ -2730,39 +2744,75 @@ define(['jquery',
                 var mandatory_fields = {
                     primaryfields: [
                         $('#txtPriPolicyNo').val().trim(),
+                        $('#ddlPriRelationShip option:selected').val().trim() || '',
                         $('#txtPriSubFirstName').val().trim(),
                         $('#txtPriSubLastName').val().trim(),
+                        $('#txtPriDOB').val().trim().trim(),
                         $('#ddlPriGender').val() ? $('#ddlPriGender').val().trim() : '',
                         $('#txtPriSubPriAddr').val().trim(),
-                        $('#ddlPriRelationShip option:selected').val().trim() || '',
-                        $('#txtPriDOB').val().trim().trim(),
                         $('#txtPriCity').val().trim(),
                         $('#ddlPriState option:selected').val().trim() || '',
                         $('#txtPriZipCode').val().trim()
                     ],
+                    primaryfieldObjs: [
+                        {obj: $('#txtPriPolicyNo'), msg: 'Please select policy #'},
+                        {obj: $('#ddlPriRelationShip'),msg: 'Please select subscriber relationship'},
+                        {obj: $('#txtPriSubFirstName'), msg: 'Please enter subscriber first name'},
+                        {obj: $('#txtPriSubLastName'), msg: 'Please enter subscriber last name'},
+                        {obj: $('#txtPriDOB'), msg: 'Please enter subscriber DOB'},
+                        {obj: $('#ddlPriGender'), msg: 'Please select subscriber gender'},
+                        {obj: $('#txtPriSubPriAddr'), msg: 'Please enter subscriber address'},
+                        {obj: $('#txtPriCity'), msg: 'Please enter subscriber city'},
+                        {obj: $('#ddlPriState'), msg: 'Please select state #'},
+                        {obj: $('#txtPriZipCode'), msg: 'Please enter xip code'}
+                    ],
                     secondaryfields: [
                         $('#txtSecPolicyNo').val().trim(),
+                        $('#ddlSecRelationShip option:selected').val().trim() || '',
                         $('#txtSecSubFirstName').val().trim(),
                         $('#txtSecSubLastName').val().trim(),
                         $('#ddlSecGender').val() ? $('#ddlSecGender').val().trim() : '',
-                        $('#txtSecSubPriAddr').val().trim(),
-                        $('#ddlSecRelationShip option:selected').val().trim() || '',
                         $('#txtSecDOB').val().trim(),
+                        $('#txtSecSubPriAddr').val().trim(),
                         $('#txtSecCity').val().trim(),
                         $('#ddlSecState option:selected').val().trim() || '',
                         $('#txtSecZipCode').val().trim()
+                    ],                    
+                    secondaryfieldObjs: [
+                        {obj: $('#txtSecPolicyNo'), msg: 'Please enter policy #'},
+                        {obj: $('#ddlSecRelationShip'),msg: 'Please select subscriber relationship'},
+                        {obj: $('#txtSecSubFirstName'), msg: 'Please enter subscriber first name'},
+                        {obj: $('#txtSecSubLastName'), msg: 'Please enter subscriber last name'},
+                        {obj: $('#ddlSecGender'), msg: 'Please select subscriber gender'},
+                        {obj: $('#txtSecDOB'), msg: 'Please enter subscriber DOB'},
+                        {obj: $('#txtSecSubPriAddr'), msg: 'Please enter subscriber address'},
+                        {obj: $('#txtSecCity'), msg: 'Please enter subscriber city'},
+                        {obj: $('#ddlSecState'), msg: 'Please select state #'},
+                        {obj: $('#txtSecZipCode'), msg: 'Please enter xip code'}
                     ],
                     tertiaryfields: [
                         $('#txtTerPolicyNo').val().trim(),
+                        $('#ddlTerRelationShip option:selected').val().trim() || '',
                         $('#txtTerSubFirstName').val().trim(),
                         $('#txtTerSubLastName').val().trim(),
                         $('#ddlTerGender').val() ? $('#ddlTerGender').val().trim() : '',
-                        $('#txtTerSubPriAddr').val().trim(),
-                        $('#ddlTerRelationShip option:selected').val().trim() || '',
                         $('#txtTerDOB').val().trim(),
+                        $('#txtTerSubPriAddr').val().trim(),
                         $('#txtTerCity').val().trim(),
                         $('#ddlTerState option:selected').val().trim() || '',
                         $('#txtTerZipCode').val().trim()
+                    ],
+                    tertiaryfieldObjs: [
+                        {obj: $('#txtTerPolicyNo'), msg: 'Please enter policy #'},
+                        {obj: $('#ddlTerRelationShip'),msg: 'Please select subscriber relationship'},
+                        {obj: $('#txtTerSubFirstName'), msg: 'Please enter subscriber first name'},
+                        {obj: $('#txtTerSubLastName'), msg: 'Please enter subscriber last name'},
+                        {obj: $('#ddlTerGender'), msg: 'Please select subscriber gender'},
+                        {obj: $('#txtTerDOB'), msg: 'Please enter subscriber DOB'},
+                        {obj: $('#txtTerSubPriAddr'), msg: 'Please enter subscriber address'},
+                        {obj: $('#txtTerCity'), msg: 'Please enter subscriber city'},
+                        {obj: $('#ddlTerState'), msg: 'Please select state #'},
+                        {obj: $('#txtTerZipCode'), msg: 'Please enter xip code'}
                     ]
                 }
 
@@ -2773,7 +2823,9 @@ define(['jquery',
                 if (self.priInsID || !mandatory_fields.primaryfields.every(checkEmpty)) {
 
                     if (mandatory_fields.primaryfields.indexOf('') > -1 || mandatory_fields.primaryfields.indexOf(null) > -1) {
-                        commonjs.showWarning("shared.warning.priInsValidation");
+                        commonjs.showWarning(mandatory_fields.primaryfieldObjs[mandatory_fields.primaryfields.indexOf('')].msg);
+                        mandatory_fields.primaryfieldObjs[mandatory_fields.primaryfields.indexOf('')].obj.focus();
+                        // commonjs.showWarning("shared.warning.priInsValidation");
                         return false;
                     }
                     if ($('#ddlPriInsurance').val() == '') {
@@ -2792,9 +2844,10 @@ define(['jquery',
                     }
                     else {
 
-                        if (mandatory_fields.secondaryfields.indexOf('') > -1 || mandatory_fields.secondaryfields.indexOf(null) > -1) {
-
-                            commonjs.showWarning("shared.warning.secInsValidation");
+                        if (mandatory_fields.secondaryfields.indexOf('') > -1 || mandatory_fields.secondaryfields.indexOf(null) > -1) {                            
+                            commonjs.showWarning(mandatory_fields.secondaryfieldObjs[mandatory_fields.secondaryfields.indexOf('')].msg);
+                            mandatory_fields.secondaryfieldObjs[mandatory_fields.secondaryfields.indexOf('')].obj.focus();
+                            // commonjs.showWarning("shared.warning.secInsValidation");
                             return false;
                         }
                         if ($('#s2id_txtSecInsurance a span').html() == 'Search Carrier' || $('#s2id_txtSecInsurance a span').html() == '') {
@@ -2816,7 +2869,10 @@ define(['jquery',
 
                         if (mandatory_fields.tertiaryfields.indexOf('') > -1 || mandatory_fields.tertiaryfields.indexOf(null) > -1) {
 
-                            commonjs.showWarning("shared.warning.terInsValidation");
+                            commonjs.showWarning(mandatory_fields.tertiaryfieldObjs[mandatory_fields.tertiaryfields.indexOf('')].msg);
+                            mandatory_fields.tertiaryfieldObjs[mandatory_fields.tertiaryfields.indexOf('')].obj.focus();
+
+                            // commonjs.showWarning("shared.warning.terInsValidation");
                             return false;
                         }
                         if ($('#s2id_txtTerInsurance a span').html() == 'Search Carrier' || $('#s2id_txtTerInsurance a span').html() == '') {
@@ -3574,7 +3630,7 @@ define(['jquery',
                                             window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
 
                                             $('#divPageLoading').show();
-                                            self.showClaimForm('patientSearch');
+                                            self.showClaimForm('patientSearch', 'patient');
 
                                             setTimeout(function () {
                                                 $('#divPageLoading').hide();
@@ -3655,6 +3711,8 @@ define(['jquery',
                     $('.woClaimRelated').show();
                 }, 200);
 
+                self.openedFrom = 'patient';
+
             },
 
             showSelf: function() {
@@ -3669,7 +3727,10 @@ define(['jquery',
 
             setPriRelationShipSelf: function(e) {
                 if($('#chkPriSelf').is(":checked")) {
-                    var selfValue = $("#ddlPriRelationShip option:contains('Self')").val();
+                    var selfValue = $('#ddlPriRelationShip option').filter(function () { 
+                        return this.text.toLowerCase() == 'self'; 
+                    } ).attr('value');    
+
                     $('#ddlPriRelationShip').val(selfValue).attr('selected', true);
                     $('#showPriSelf').hide();
                     $('#chkPriSelf').prop('checked', false);
@@ -3682,7 +3743,10 @@ define(['jquery',
 
             setSecRelationShipSelf: function(e) {
                 if($('#chkSecSelf').is(":checked")) {
-                    var selfValue = $("#ddlSecRelationShip option:contains('Self')").val();
+                    var selfValue = $('#ddlSecRelationShip option').filter(function () { 
+                        return this.text.toLowerCase() == 'self'; 
+                    } ).attr('value');  
+
                     $('#ddlSecRelationShip').val(selfValue).attr('selected', true);
                     $('#showSecSelf').hide();
                     $('#chkSecSelf').prop('checked', false);
@@ -3694,7 +3758,10 @@ define(['jquery',
 
             setTerRelationShipSelf: function(e) {
                 if($('#chkTerSelf').is(":checked")) {
-                    var selfValue = $("#ddlTerRelationShip option:contains('Self')").val();
+                    var selfValue = $('#ddlTerRelationShip option').filter(function () { 
+                        return this.text.toLowerCase() == 'self'; 
+                    } ).attr('value');
+
                     $('#ddlTerRelationShip').val(selfValue).attr('selected', true);
                     $('#showTerSelf').hide();
                     $('#chkTerSelf').prop('checked', false);

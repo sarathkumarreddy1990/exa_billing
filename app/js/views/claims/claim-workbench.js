@@ -593,6 +593,8 @@ define(['jquery',
                                 document.body.removeChild(element);
                             });
                             $("#btnClaimsRefresh").click();
+                        } else {
+                            commonjs.showWarning('NO_DATA');
                         }
                     },
                     error: function (err) {
@@ -1170,7 +1172,10 @@ define(['jquery',
 
                             $('#btnValidateExport').one().click(function (e) {
                                 $('#btnValidateExport').css('display', 'none');
-                                table.renderStudy(true);
+                                var filter = commonjs.loadedStudyFilters.get(filterID)
+                                filterData= JSON.stringify(filter.pager.get('FilterData')),
+                                filterCol =JSON.stringify(filter.pager.get('FilterCol'));
+                                table.renderStudy(true, filterData, filterCol);
                             });
                         };
 
@@ -1460,9 +1465,13 @@ define(['jquery',
                                     if (filter.pager.get('PageNo') === 1 && filter.pager.get('PageSize') === 100) {
                                         filter.pager.set({"PageNo": 4});
                                         filter.pager.set({"PageSize": 25});
+                                        // Reset scroll position
+                                        $bdiv.scrollTop(curScroll);
                                     }
-                                    // Reset scroll position
-                                    $bdiv.scrollTop(curScroll);
+                                    else {
+                                        filter.pager.set({"PageNo": filter.pager.get("PageNo")});
+                                        filter.pager.set({"PageSize": 25}); 
+                                    }
                                     // Reset selected rows
 
                                     if ($bdiv.scrollTop() === curScroll) {
@@ -1539,10 +1548,10 @@ define(['jquery',
                 var self = this;
                 // commonjs.isHomePageVisited = false;
                 var filter = commonjs.loadedStudyFilters.get(commonjs.currentStudyFilter);
-                if (!filter) {
-                    self.loadTabContents();
-                    return;
-                }
+                // if (!filter) {
+                //     self.loadTabContents();
+                //     return;
+                // }
 
                 var $loading = $(document.getElementById('divPageLoading'));
                 $loading.show();
@@ -1571,7 +1580,7 @@ define(['jquery',
                             filter.options.showEncOnly = showEncOnly;
                             $('input:checkbox[name=showDicom]').prop('checked', isDicomSearch);
                             $('input:checkbox[name=showRis]').prop('checked', isRisOrderSearch);
-                           // filter.customGridTable.jqGrid('GridUnload');
+                            filter.customGridTable.jqGrid('GridUnload');
                             commonjs.setFilter(null, null);
                             self.setTabContents(fid, isprior, isDicomSearch, isRisOrderSearch, showEncOnly);
                         }

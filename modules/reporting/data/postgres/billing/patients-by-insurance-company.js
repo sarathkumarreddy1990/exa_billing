@@ -104,25 +104,16 @@ const api = {
         else {
             const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
-        }
+        }     
 
-        // insurance Providers
-        if (params.allRefProList == 'false') {
+       
             if (params.insuranceProviderIds) {
                 const insuranceProviderNames = _(lookups.insuranceProviders).map(f => f.name).value();
                 filtersUsed.push({ name: 'insuranceProviderNames', label: 'Insurance Provider', value: insuranceProviderNames });
             }
             else
                 filtersUsed.push({ name: 'insuranceProviderNames', label: 'Insurance Provider', value: 'All' });
-        }
-
-        // Billing provider Filter
-        // if (params.allBillingProvider == 'true')
-        //     filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
-        // else {
-        //     const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
-        //     filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
-        // }
+           
 
         filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
         filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });

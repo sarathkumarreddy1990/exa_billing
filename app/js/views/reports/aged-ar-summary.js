@@ -69,7 +69,7 @@ define([
                 // this.drpStudyDt.setStartDate(this.viewModel.dateFrom);
                 // this.drpStudyDt.setEndDate(this.viewModel.dateTo);              
 
-                this.viewModel.fromDate = commonjs.bindDateTimePicker("divFromDate", { format: "L" });
+                this.viewModel.fromDate = commonjs.bindDateTimePicker("txtFromDate", { format: "L" });
                 this.viewModel.fromDate.date(commonjs.getFacilityCurrentDateTime(app.facilityID));
 
                 UI.bindBillingProvider();
@@ -95,10 +95,10 @@ define([
                 this.excelExtended = btnClicked ? btnClicked.attr('id') === 'btnExcelReportExtended' : false;
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = (openInNewTab && rFormat === 'html') ? true : false;
-                if (this.hasValidViewModel()) {
+             //   if (this.hasValidViewModel()) {
                     var urlParams = this.getReportParams();
                     UI.showReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
-                }
+             //   }
             },
 
             bindDateRangePicker: function () {
@@ -156,11 +156,10 @@ define([
                 var urlParams = {
                     'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
                     'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
-                    // 'fromDate': this.viewModel.dateFrom.format('YYYY-MM-DD'),
                     'fromDate': this.viewModel.fromDate.date().format('YYYY-MM-DD'),
                     'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
-                    billingProFlag: this.viewModel.allBillingProvider == 'true' ? true : false,
+                     'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
                     'incPatDetail': $('#incPat').prop('checked'),
                     'excCreditBal': $('#excCreBal').prop('checked'),
                     'excelExtended': this.excelExtended ? this.excelExtended : ''

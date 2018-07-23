@@ -281,7 +281,8 @@ module.exports = {
                     patient_lname: item.patient_lname || '',
                     patient_mname: item.patient_mname || '',
                     patient_prefix: item.patient_prefix || '',
-                    patient_suffix: item.patient_suffix || ''
+                    patient_suffix: item.patient_suffix || '',
+                    code: null  // ERA purpose adjustment code value is null
                 });
             }
         });
@@ -290,7 +291,6 @@ module.exports = {
         params.claimComments = [];
         params.audit_details = auditDetails;
         paymentDetails.id = params.paymentId;
-        paymentDetails.code = null;
         paymentDetails.isFrom = 'PAYMENT';
         paymentDetails.created_by = parseInt(params.userId);
         paymentDetails.company_id = parseInt(params.companyId);

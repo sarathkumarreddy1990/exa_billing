@@ -448,9 +448,11 @@ module.exports = {
 											'' as "prefix",
 											provider_info->'TXC' as "taxonomyCode",
 											provider_info->'NPI' as "NPINO",
-											provider_info->'LicenseNo' as "licenseNo"
+											provider_info->'LicenseNo' as "licenseNo",
+											insurance_provider_details.claim_filing_indicator_code as "claimFilingCode",
+											insurance_name as "payerName"
 											FROM provider_contacts   rendering_pro_contact
-											LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.id
+											LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.provider_id
 											WHERE  rendering_pro_contact.id=claims.rendering_provider_contact_id) 
 											as renderingProvider)
 
@@ -489,7 +491,7 @@ module.exports = {
 											provider_info->'NPI' as "NPINO",
 											provider_info->'LicenseNo' as "licenseNo"
 											FROM provider_contacts 
-											LEFT JOIN providers as ref_provider ON ref_provider.id=provider_contacts.id
+											LEFT JOIN providers as ref_provider ON ref_provider.id=provider_contacts.provider_id
 											WHERE  provider_contacts.id=claims.referring_provider_contact_id) 
 											as referringProvider)
 								
@@ -577,7 +579,7 @@ module.exports = {
 					modifier4.code as "mod4",
 					authorization_no as "authorizationNo",
 					allowed_amount::numeric::text as "allowedAmount",
-					charges.id as "iterationIndex",
+					charges.id as "chargeID",	
 					display_description as "studyDescription",
 					additional_info->'ndc_code' as NDCCode,
 					additional_info->'ndc_measure' as NDCMeasure,
@@ -601,6 +603,7 @@ module.exports = {
 					modifier3.code as "modifier3",
 					modifier4.code as "modifier4",
 					sum(pa.amount)::numeric::text as "paidAmount",
+					max(to_char(timezone(public.get_facility_tz(payments.facility_id::int),payments.accounting_dt::TIMESTAMP), 'YYYYMMDD')) as "accountingDt",
 					charges.units as "unit"
 					,(SELECT Json_agg(Row_to_json(lineAdjustment)) "lineAdjustment"
 									FROM 
@@ -615,7 +618,7 @@ module.exports = {
 											INNER JOIN   billing.cas_reason_codes ON cas_reason_codes.id=cas_reason_code_id
 											INNER JOIN 	billing.payment_applications	 ON payment_applications.id=cas_payment_application_details.payment_application_id			
 											INNER JOIN billing.payments ON  billing.payments.id=payment_applications.payment_id and payer_type='insurance' AND 
-											payment_applications.charge_id = charges.id 		AND payment_applications.amount_type = 'payment' 
+											payment_applications.charge_id = charges.id 		AND payment_applications.amount_type = 'adjustment' 
 											WHERE 
 												   cas_group_codes.code= gc.code	 ) as CAS )
 						
@@ -624,7 +627,7 @@ module.exports = {
 											INNER JOIN   billing.cas_group_codes ON cas_group_codes.id=cas_group_code_id
 											INNER JOIN 	billing.payment_applications	 ON payment_applications.id=cas_payment_application_details.payment_application_id			
 												INNER JOIN billing.payments ON  billing.payments.id=payment_applications.payment_id and payer_type='insurance' AND 
-							payment_applications.charge_id = charges.id 		AND payment_applications.amount_type = 'payment' 
+							payment_applications.charge_id = charges.id 		AND payment_applications.amount_type = 'adjustment' 
 							group by cas_group_codes.code ) 
 					as lineAdjustment)
 
