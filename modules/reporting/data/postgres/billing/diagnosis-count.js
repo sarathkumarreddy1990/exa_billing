@@ -99,6 +99,8 @@ const api = {
         const lookups = initialReportData.lookups;
         const params = initialReportData.report.params;
         const filtersUsed = [];
+        filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
+        
         if (params.allFacilities && params.facilityIds)
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
         else {

@@ -23,7 +23,8 @@ define([
                 reportFormat: null,
                 facilities: null,
                 allFacilities: null,
-                fromDate: null
+                fromDate: null,
+                allBillingProvider: false
             },
             selectedFacilityList: [],
             events: {
@@ -102,6 +103,16 @@ define([
                 this.selectedFacilityList = facilities
                 this.viewModel.allFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlFacilityFilter option").length;
             },
+
+            getBillingProvider: function (e) {
+                var billing_pro = []
+                var selected = $("#ddlBillingProvider option:selected");
+                selected.each(function () {
+                    billing_pro.push($(this).val());
+                });
+                this.selectedBillingProList = billing_pro;
+                this.viewModel.allBillingProvider = this.selectedBillingProList && this.selectedBillingProList.length === $("#ddlBillingProvider option").length;
+            },
             /**
              * Initialize date pickers for the from and to dates
              */
@@ -111,6 +122,7 @@ define([
 
             onReportViewClick: function (e) {
                 this.getSelectedFacility();
+                this.getBillingProvider();
                 $('#minAmount').val() == "" ? $('#minAmount').val('0') : $('#minAmount').val();
                 var btnClicked = e && e.target ? $(e.target) : null;
                 if (btnClicked && btnClicked.prop('tagName') === 'I') {
@@ -153,7 +165,8 @@ define([
                     billingProviderIds: this.viewModel.billingProvider,
                     minAmount: this.viewModel.minAmount || "0",
                     payToProvider: $('#chkPayToProvider').prop('checked'),
-                    sDate: this.viewModel.fromDate.date().format('YYYY-MM-DD')
+                    sDate: this.viewModel.fromDate.date().format('YYYY-MM-DD'),
+                    'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : ''
                 };
             },
 

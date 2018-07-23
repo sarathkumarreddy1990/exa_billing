@@ -51,16 +51,19 @@ const api = {
     getReportData: (initialReportData) => {
         return Promise.join(
             api.createreferringProviderSummaryDataSet(initialReportData.report.params),
-            // other data sets could be added here...
-            (referringProviderSummaryDataSet) => {
-                // add report filters                
-                initialReportData.filters = api.createReportFilters(initialReportData);
+            dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
 
-                // add report specific data sets
-                initialReportData.dataSets.push(referringProviderSummaryDataSet);
-                initialReportData.dataSetCount = initialReportData.dataSets.length;
-                return initialReportData;
-            });
+            // other data sets could be added here...
+        (referringProviderSummaryDataSet, providerInfo) => {
+            // add report filters    
+            initialReportData.lookups.billingProviderInfo = providerInfo || [];            
+            initialReportData.filters = api.createReportFilters(initialReportData);
+
+            // add report specific data sets
+            initialReportData.dataSets.push(referringProviderSummaryDataSet);
+            initialReportData.dataSetCount = initialReportData.dataSets.length;
+            return initialReportData;
+        });
     },
 
     /**
@@ -95,10 +98,10 @@ const api = {
         const filtersUsed = [];
         filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
 
-        if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
+        if (params.allFacilities && params.facilityIds)
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
         else {
-            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
+            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
         }
         // Billing provider Filter
@@ -136,7 +139,7 @@ const api = {
             companyId: null,
             claimDate: null,
             facilityIds: null,
-            billingProID : null
+            billingProID: null
 
         };
 
