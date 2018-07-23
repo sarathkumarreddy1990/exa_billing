@@ -2954,7 +2954,7 @@ BEGIN
 						THEN 'secondary_insurance'
 					        WHEN NOT is_tertiary_paid AND tertiary_patient_insurance_id IS NOT NULL 
 						THEN 'tertiary_insurance'
-						WHEN is_other_ins_paid AND (primary_patient_insurance_id IS NOT NULL OR secondary_patient_insurance_id IS NOT NULL OR tertiary_patient_insurance_id IS NOT NULL )
+						WHEN is_other_ins_paid AND  secondary_patient_insurance_id IS NOT NULL
 						THEN 'secondary_insurance'
 					        ELSE 'patient' 
 					 END
@@ -3760,7 +3760,7 @@ BEGIN
           ,CASE 
                 WHEN COALESCE(NULLIF(order_info->'frequency_code',''),'0')::numeric = 8 THEN 'void'
                 WHEN COALESCE(NULLIF(order_info->'frequency_code',''),'0')::numeric = 7 THEN 'corrected'
-                WHEN COALESCE(NULLIF(order_info->'frequency_code',''),'0')::numeric = 7 THEN 'original'
+                WHEN COALESCE(NULLIF(order_info->'frequency_code',''),'0')::numeric = 1 THEN 'original'
                 ELSE NULL
             END AS frequency
           ,COALESCE(NULLIF(order_info->'oa',''), 'false')::boolean AS is_other_accident
