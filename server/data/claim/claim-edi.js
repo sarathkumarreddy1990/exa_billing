@@ -603,6 +603,7 @@ module.exports = {
 					modifier3.code as "modifier3",
 					modifier4.code as "modifier4",
 					sum(pa.amount)::numeric::text as "paidAmount",
+					max(to_char(timezone(public.get_facility_tz(payments.facility_id::int),payments.accounting_dt::TIMESTAMP), 'YYYYMMDD')) as "accountingDt",
 					charges.units as "unit"
 					,(SELECT Json_agg(Row_to_json(lineAdjustment)) "lineAdjustment"
 									FROM 
