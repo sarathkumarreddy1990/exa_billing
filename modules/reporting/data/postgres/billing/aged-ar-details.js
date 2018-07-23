@@ -290,9 +290,11 @@ const api = {
     getReportData: (initialReportData) => {
         return Promise.join(
             api.createagedARDetailsDataSet(initialReportData.report.params),
+            dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
             // other data sets could be added here...
-            (agedARDetailsDataSet) => {
-                // add report filters                
+            (agedARDetailsDataSet, providerInfo) => {
+                // add report filters    
+                initialReportData.lookups.billingProviderInfo = providerInfo || [];
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 // add report specific data sets
@@ -334,19 +336,20 @@ const api = {
         const filtersUsed = [];
         filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
 
-        if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
+        if (params.allFacilities && params.facilityIds)
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
         else {
-            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
+            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
         }
-
-        // // Billing provider Filter
+        // Billing provider Filter
         if (params.allBillingProvider == 'true')
             filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
         else {
-            const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
+            //const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
+            const billingProviderInfo = _(lookups.billingProviderInfo).filter(f => params.billingProvider && params.billingProvider.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
+
         }
 
         filtersUsed.push({ name: 'Cut Off Date', label: 'Date From', value: params.fromDate });
@@ -383,13 +386,13 @@ const api = {
         params.push(reportParams.companyId);
         filters.companyId = queryBuilder.where('bc.company_id', '=', [params.length]);
 
-               if (!reportParams.allFacilities && reportParams.facilityIds) {
+        if (!reportParams.allFacilities && reportParams.facilityIds) {
             params.push(reportParams.facilityIds);
             filters.facilityIds = queryBuilder.whereIn('bc.facility_id', [params.length]);
         }
 
-         // billingProvider single or multiple
-         if (reportParams.billingProvider) {
+        // billingProvider single or multiple
+        if (reportParams.billingProvider) {
             params.push(reportParams.billingProvider);
             filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
         }
@@ -397,7 +400,7 @@ const api = {
 
         params.push(reportParams.fromDate);
         filters.claimDate = `$${params.length}::date`;
-      
+
         filters.excelExtented = reportParams.excelExtended;
         filters.excCreditBal = reportParams.excCreditBal
         filters.incPatDetail = reportParams.incPatDetail
