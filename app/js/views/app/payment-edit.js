@@ -193,6 +193,7 @@ define(['jquery',
                 self.showPaymentsGrid(paymentId);
                 commonjs.processPostRender();
                 commonjs.validateControls();
+                commonjs.isMaskValidate();
                 if(self.screenCode.indexOf('APAY') > -1) {// for screen rights
                     $('#divPendingPay').addClass('maskPendingPay');
                     $('#btnPaymentApplyAll').attr('disabled', true);
@@ -1218,6 +1219,7 @@ define(['jquery',
 
                 commonjs.processPostRender();
                 commonjs.validateControls();
+                commonjs.isMaskValidate();
 
                 $('#btnCloseAppliedPendingPayments,#btnCloseApplyPaymentPopup').unbind().bind('click', function (e) {
                     $('#divPaymentApply').remove();
@@ -1634,6 +1636,7 @@ define(['jquery',
 
                             $('#divPaymentCAS').attr('data-charge_id', chargeId).show();
                             commonjs.validateControls();
+                            commonjs.isMaskValidate();
                         },
                         error: function (err, response) {
                             commonjs.handleXhrError(err, response);
@@ -1654,6 +1657,7 @@ define(['jquery',
                     }
                     $('#divPaymentCAS').attr('data-charge_id', chargeId).show();
                     commonjs.validateControls();
+                    commonjs.isMaskValidate();
                 }
             },
 
@@ -1772,6 +1776,7 @@ define(['jquery',
                             commonjs.hideLoading();
                             self.isRefundApplied = false;
                             self.casDeleted = [];
+                            self.casSegmentsSelected = [];
                             // if (paymentStatus != 'applied') {
                             //     self.casSegmentsSelected = [];
                             //     self.closeAppliedPendingPayments(e, paymentId);
