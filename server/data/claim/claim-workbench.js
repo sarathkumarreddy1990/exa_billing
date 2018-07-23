@@ -429,7 +429,7 @@ module.exports = {
                         SELECT bcd.study_id, d.* 
                         FROM 
                            batch_claim_details bcd 
-                        LEFT JOIN LATERAL (select * from billing.get_batch_claim_details(bcd.study_id, ${params.created_by})) d ON true
+                        LEFT JOIN LATERAL (select * from billing.get_batch_claim_details(bcd.study_id, ${params.created_by}, bcd.patient_id)) d ON true
                       )
                       SELECT 
                         billing.create_claim_charge(
