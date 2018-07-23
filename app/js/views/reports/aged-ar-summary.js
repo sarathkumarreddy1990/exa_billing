@@ -156,11 +156,10 @@ define([
                 var urlParams = {
                     'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
                     'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
-                    // 'fromDate': this.viewModel.dateFrom.format('YYYY-MM-DD'),
                     'fromDate': this.viewModel.fromDate.date().format('YYYY-MM-DD'),
                     'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
-                    billingProFlag: this.viewModel.allBillingProvider == 'true' ? true : false,
+                     'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
                     'incPatDetail': $('#incPat').prop('checked'),
                     'excCreditBal': $('#excCreBal').prop('checked'),
                     'excelExtended': this.excelExtended ? this.excelExtended : ''

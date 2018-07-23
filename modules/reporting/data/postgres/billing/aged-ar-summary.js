@@ -12,12 +12,13 @@ const agedARSummaryDataSetQueryTemplate = _.template(`
 WITH charges_cwt AS (
     SELECT
           bc.id                           AS claim_id
-        , max(date_part('day', (<%= claimDate %> - bc.claim_dt))) as age
+        , max(date_part('day', ((timezone(f.time_zone,  <%= claimDate %>)))  - bc.claim_dt)) as age
         , sum(c.bill_fee * c.units)       AS charges_bill_fee_total
     FROM  billing.claims AS bc
         INNER JOIN billing.charges AS c ON c.claim_id = bc.id
+        INNER JOIN facilities f on f.id = bc.facility_id
     WHERE 1=1
-       AND (bc.claim_dt < <%= claimDate %>::DATE)  
+       AND (bc.claim_dt < (timezone(f.time_zone,  <%= claimDate %>)))  
     GROUP BY bc.id
 ), 
 applications_cwt AS (
@@ -486,10 +487,12 @@ const api = {
     getReportData: (initialReportData) => {
         return Promise.join(
             api.createagedARSummaryDataSet(initialReportData.report.params),
+            dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
             // other data sets could be added here...
-            (agedARSummaryDataSet) => {
+            (agedARSummaryDataSet, providerInfo) => {
                 // add report filters                
                 initialReportData.filters = api.createReportFilters(initialReportData);
+                initialReportData.lookups.billingProviderInfo = providerInfo || [];
 
                 // add report specific data sets
                 initialReportData.dataSets.push(agedARSummaryDataSet);
@@ -528,23 +531,21 @@ const api = {
         const lookups = initialReportData.lookups;
         const params = initialReportData.report.params;
         const filtersUsed = [];
-        filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
-
-        if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
+        if (params.allFacilities && params.facilityIds)
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
         else {
-            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
+            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
         }
-
-        // // Billing provider Filter
+        // Billing provider Filter
         if (params.allBillingProvider == 'true')
             filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
         else {
-            const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
+            //const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
+            const billingProviderInfo = _(lookups.billingProviderInfo).filter(f => params.billingProvider && params.billingProvider.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
+          
         }
-
         filtersUsed.push({ name: 'Cut Off Date', label: 'Date From', value: params.fromDate });
 
         return filtersUsed;

@@ -657,7 +657,7 @@
     {
         "id": "claim-inquiry",
         "category": "billing",
-        "title": "Claim Transaction",
+        "title": "Claim Inquiry",
         "description": "Report shows all submitted claims and order payment/balance.",
         "jsreport": {
             "html": {             
