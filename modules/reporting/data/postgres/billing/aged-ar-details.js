@@ -17,7 +17,7 @@ WITH charges_cwt AS (
         INNER JOIN billing.charges AS c ON c.claim_id = bc.id
         INNER JOIN facilities f on f.id = bc.facility_id
     WHERE 1=1
-      AND (bc.claim_dt <  (timezone(f.time_zone,  <%= claimDate %>))) 
+       AND (bc.claim_dt <  (timezone(f.time_zone,  <%= claimDate %>)))   
     GROUP BY bc.id
 ), 
 applications_cwt AS (

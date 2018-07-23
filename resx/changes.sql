@@ -2601,7 +2601,7 @@ BEGIN
 					, modifier4_id bigint
 					, bill_fee money
 					, allowed_amount money
-					, units bigint
+					, units numeric(7,3)
 					, created_by bigint
 					, authorization_no text
 					, charge_dt timestamptz
