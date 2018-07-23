@@ -54,6 +54,12 @@ define([
                 if (openInNewTab) {
                     UI.clearIframe('reportFrame');
                     window.open(iframeUrl, '_blank');
+                    window.onbeforeunload  = function() {
+                        var opener = window.opener ? window.opener : null;
+                        if(opener && opener.$ && opener.$('#divPageLoading')) {
+                            opener.$('#divPageLoading').hide();
+                        }
+                    }
                 }
 
                 UI.clearIframe('reportFrame');
