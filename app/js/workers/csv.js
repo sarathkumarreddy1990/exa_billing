@@ -3,6 +3,7 @@ importScripts('/exa_modules/billing/static/node_modules/moment/min/moment-with-l
 importScripts('/exa_modules/billing/static/node_modules/moment-timezone/builds/moment-timezone-with-data.js');
 
 var claimColumns = {
+    "Claim #" : "claim_id",
     "Claim Date": "claim_dt",
     "Patient Name": "patient_name",
     "Clearing House": "clearing_house",
