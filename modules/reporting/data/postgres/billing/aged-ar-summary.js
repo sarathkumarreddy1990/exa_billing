@@ -35,10 +35,10 @@ get_claim_details AS(
     SELECT 
         cc.claim_id as claim_id,
         cc.age as age,
-       (cc.charges_bill_fee_total - ( ac.payments_applied_total +  ac.ajdustments_applied_total )) AS balance
+       (cc.charges_bill_fee_total - ( coalesce(ac.payments_applied_total,0::money) +  coalesce(ac.ajdustments_applied_total,0::money))) AS balance
     FROM charges_cwt cc
     LEFT JOIN applications_cwt ac ON cc.claim_id = ac.claim_id  
-    WHERE (cc.charges_bill_fee_total - ( ac.payments_applied_total +  ac.ajdustments_applied_total )) != 0::money
+    WHERE (cc.charges_bill_fee_total - ( coalesce(ac.payments_applied_total,0::money) +  coalesce(ac.ajdustments_applied_total,0::money) )) != 0::money
  ),
 aged_ar_summary_details AS( 
  SELECT

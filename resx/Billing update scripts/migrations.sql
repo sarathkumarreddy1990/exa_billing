@@ -103,22 +103,6 @@ ELSE
       SELECT id into l_user_id from users where username = 'newbilling';
 END IF;
 -- -------------------------------------------------------------------------------------------------------------
-IF NOT EXISTS (SELECT 1 from billing.migration_log where table_name = 'status_color_codes ') THEN
-
-   RAISE NOTICE 'billing.status_color_codes ...';
-
-   INSERT INTO billing.status_color_codes (company_id, process_type, process_status, color_code)
-   values (1,'study','billed','#80ff00');
-
-   INSERT INTO billing.status_color_codes (company_id, process_type, process_status, color_code)
-   values (1,'study','unbilled','#80ffff');
-
-   -- Insering a row in migration_log table
-   INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('status_color_codes' ,now());
-ELSE 
-      RAISE NOTICE 'Billing.status_color_codes  table migration already finished';
-END IF;
--- -------------------------------------------------------------------------------------------------------------
 
 IF NOT EXISTS (SELECT 1 from billing.migration_log where table_name = 'edi_clearinghouses') THEN
 
@@ -411,7 +395,8 @@ SELECT
     0,
     'paper_claim_full',
     'var dd = { content: "Test Data" }'
-FROM public.paper_claim_templates;
+FROM public.paper_claim_templates
+where 1=2; -- Not required, this is part of updates.sql
 -- Insering a row in migration_log table
 INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('printer_templates',now());
 ELSE 
@@ -532,59 +517,6 @@ ELSE
       RAISE NOTICE 'Billing.providers table migration already finished';
 END IF;
 -- --------------------------------------------------------------------------------------------------------
-IF NOT EXISTS (SELECT 1 from billing.migration_log where table_name = 'provider_id_code_qualifiers') THEN
-
-
-RAISE NOTICE 'billing.provider_id_code_qualifiers ..';
-
-INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
-    values (l_company_id,null,'0B','State License Number');
-INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
-    values (l_company_id,null,'1A','Blue Cross Provider Number');
-INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
-    values (l_company_id,null,'1B','Blue Shield Provider Number');
-INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
-    values (l_company_id,null,'1C','Medicare Provider Number');
-INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
-    values (l_company_id,null,'1D','Medicaid Provider Number');
-INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
-    values (l_company_id,null,'1G','Provider UPIN Number');
-INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
-    values (l_company_id,null,'1H','CHAMPUS Identification Number');
-INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
-    values (l_company_id,null,'G2','Provider Commercial Number');
-INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
-    values (l_company_id,null,'LU','Location Number');
-INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
-    values (l_company_id,null,'N5','Provider Plan Network Identification Number');
-INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
-    values (l_company_id,null,'TJ','Federal Taxpayer’s Identification Number');
-INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
-    values (l_company_id,null,'X4','Clinical Laboratory Improvement Amendment');
-INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
-    values (l_company_id,null,'X5','State Industrial Accident Provider Number');
-INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
-    values (l_company_id,null,'1J','Facility ID Number');
-INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
-    values (l_company_id,null,'B3','Preferred Provider Organization Number');
-INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
-    values (l_company_id,null,'BQ','Health Maintenance Organization Code Number');
-INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
-    values (l_company_id,null,'EI','Employer’s Identification Number');
-INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
-    values (l_company_id,null,'FH','Clinic Number');
-INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
-    values (l_company_id,null,'G5','Provider Site Number');
-INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
-    values (l_company_id,null,'SY','Social Security Number');
-INSERT INTO billing.provider_id_code_qualifiers(company_id,inactivated_dt,qualifier_code,description)
-    values (l_company_id,null,'U3','Unique Supplier Identification Number (USIN)');
--- Insering a row in migration_log table
-INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('provider_id_code_qualifiers',now());
-ELSE 
-      RAISE NOTICE 'Billing.provider_id_code_qualifiers table migration already finished';
-END IF;
--- --------------------------------------------------------------------------------------------------------
 IF NOT EXISTS (SELECT 1 from billing.migration_log where table_name = 'provider_id_codes') THEN
 
 RAISE NOTICE 'billing.provider_id_codes ..';
@@ -612,29 +544,6 @@ ELSE
       RAISE NOTICE 'Billing.provider_id_codes table migration already finished';
 END IF;
 -- --------------------------------------------------------------------------------------------------------
-IF NOT EXISTS (SELECT 1 from billing.migration_log where table_name = 'messages') THEN
-
-
-RAISE NOTICE 'billing.messages ..';
-
-INSERT INTO billing.messages(company_id, code, description)
-	VALUES (l_company_id, '0-30', (SELECT coalesce(company_info->'billing_msg_thirty_days',' ') from companies));
-INSERT INTO billing.messages(company_id,  code, description)
-	VALUES (l_company_id,  '31-60', (SELECT coalesce(company_info->'billing_msg_sixty_days0',' ') from companies));
-INSERT INTO billing.messages(company_id, code, description)
-	VALUES (l_company_id,  '61-90', (SELECT coalesce(company_info->'billing_msg_ninety_days',' ') from companies));
-INSERT INTO billing.messages(company_id, code, description)
-	VALUES (l_company_id,  '91-120', (SELECT coalesce(company_info->'billing_msg_one_twenty_days',' ') from companies));
-INSERT INTO billing.messages(company_id, code, description)
-	VALUES (l_company_id, '>120', (SELECT coalesce(company_info->'billing_msg_over_one_twenty_days',' ') from companies));
-INSERT INTO billing.messages(company_id, code, description)
-	VALUES (l_company_id,  'collections', (SELECT coalesce(company_info->'billing_msg_collections',' ') from companies));
--- Insering a row in migration_log table
-INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('messages',now());
-ELSE 
-      RAISE NOTICE 'Billing.messages table migration already finished';
-END IF;
--- --------------------------------------------------------------------------------------------------------
 IF NOT EXISTS (SELECT 1 from billing.migration_log where table_name = 'payment_reasons') THEN
 
 RAISE NOTICE 'billing.payment_reasons ..';
@@ -653,65 +562,6 @@ FROM   reports r, json_array_elements(r.data#>'{payment_reason}') obj;
 INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('payment_reasons',now());
 ELSE 
       RAISE NOTICE 'Billing.payment_reasons table migration already finished';
-END IF;
--- --------------------------------------------------------------------------------------------------------
-/*
-IF NOT EXISTS (SELECT 1 from billing.migration_log where table_name = 'validations') THEN
-
-
-RAISE NOTICE 'billing.validations ..';
-
-INSERT INTO billing.validations
-(
-    company_id,
-    edi_validation,
-    invoice_validation
-)
-SELECT
-    l_company_id,
-    billing.get_paper_claim_or_invoice_json_for_migration(paper_claim_validation_fields),
-    billing.get_paper_claim_or_invoice_json_for_migration(invoice_validation_fields)
-FROM public.companies;
--- Insering a row in migration_log table
-INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('validations',now());
-ELSE 
-      RAISE NOTICE 'Billing.validations table migration already finished';
-END IF;
-*/
--- --------------------------------------------------------------------------------------------------------
-IF NOT EXISTS (SELECT 1 from billing.migration_log where table_name = 'cas_group_codes') THEN
-RAISE NOTICE 'billing.cas_group_codes ..';
-
-INSERT INTO billing.cas_group_codes(company_id,code,name,description)
-    VALUES(l_company_id,'CO','Migration Data','Migration Data');
-INSERT INTO billing.cas_group_codes(company_id,code,name,description)
-    VALUES(l_company_id,'OA','Migration Data','Migration Data');
-INSERT INTO billing.cas_group_codes(company_id,code,name,description)
-    VALUES(l_company_id,'PR','Migration Data','Migration Data');
--- Insering a row in migration_log table
-INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('cas_group_codes',now());
-ELSE 
-      RAISE NOTICE 'Billing.cas_group_codes table migration already finished';
-END IF;
--- --------------------------------------------------------------------------------------------------------
-IF NOT EXISTS (SELECT 1 from billing.migration_log where table_name = 'cas_reason_codes') THEN
-
-RAISE NOTICE 'billing.cas_reason_codes ..';
-
-INSERT INTO billing.cas_reason_codes
-(
-    company_id,
-    code,
-    description
-)
-SELECT
-    1,
-    unnest(ARRAY['45','59','97','119','131','137','172','199','222','223','237','253','A2','B10','96','170','16','18','B7','29','197','11','181','183','109','50','23','22','55','1','2','3']),
-	'Migration Data';
--- Insering a row in migration_log table
-INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('cas_reason_codes',now());
-ELSE 
-      RAISE NOTICE 'Billing.cas_reason_codes table migration already finished';
 END IF;
 -----------------------------------------------------------------------------------------------------------------
 IF NOT EXISTS (SELECT 1 from billing.migration_log where table_name = 'insurance_provider_details') THEN
@@ -742,23 +592,6 @@ LEFT JOIN clearing_houses ch ON ch.old_id = TRIM(insurance_info-> 'claimClearing
 INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('insurance_provider_details',now());
 ELSE 
       RAISE NOTICE 'Billing.insurance_provider_details table migration already finished';
-END IF;
--- -------------------------------------------------------------------------------------------------------------
-IF NOT EXISTS (SELECT 1 from billing.migration_log where table_name = 'validations') THEN
-INSERT INTO billing.validations(
-  company_id
-  , edi_validation
-  , invoice_validation
-  , patient_validation
-)
-VALUES(
-1
-, '[{"field":"billing_pro_addressLine1","enabled":false},{"field":"billing_pro_city","enabled":true},{"field":"billing_pro_firstName","enabled":false},{"field":"billing_pro_npiNo","enabled":false},{"field":"billing_pro_state","enabled":false},{"field":"billing_pro_zip","enabled":false},{"field":"claim_icd_code1","enabled":true},{"field":"claim_place_of_service_code","enabled":false},{"field":"claim_totalCharge","enabled":false},{"field":"insurance_pro_address1","enabled":true},{"field":"insurance_pro_city","enabled":false},{"field":"insurance_pro_companyName","enabled":false},{"field":"insurance_pro_payerID","enabled":false},{"field":"insurance_pro_state","enabled":false},{"field":"insurance_pro_zipCode","enabled":false},{"field":"patient_address1","enabled":false},{"field":"patient_city","enabled":false},{"field":"patient_dob","enabled":false},{"field":"patient_firstName","enabled":false},{"field":"patient_lastName","enabled":false},{"field":"patient_state","enabled":false},{"field":"patient_zipCode","enabled":false},{"field":"reading_physician_full_name","enabled":false},{"field":"reading_pro_npiNo","enabled":false},{"field":"ref_full_name","enabled":false},{"field":"referring_pro_npiNo","enabled":false},{"field":"service_line_dig1","enabled":false},{"field":"service_facility_addressLine1","enabled":false},{"field":"service_facility_city","enabled":false},{"field":"service_facility_firstName","enabled":false},{"field":"service_facility_npiNo","enabled":false},{"field":"service_facility_state","enabled":false},{"field":"service_facility_zip","enabled":false},{"field":"subscriber_addressLine1","enabled":false},{"field":"subscriber_city","enabled":false},{"field":"subscriber_dob","enabled":false},{"field":"subscriber_firstName","enabled":false},{"field":"subscriber_lastName","enabled":false},{"field":"subscriber_state","enabled":false},{"field":"subscriber_zipCode","enabled":false},{"field":"payer_address1","enabled":false},{"field":"payer_city","enabled":false},{"field":"payer_name","enabled":false},{"field":"payer_state","enabled":false},{"field":"payer_zip_code","enabled":false}]'::JSONB
-, '[{"field":"billing_pro_addressLine1","enabled":false},{"field":"billing_pro_city","enabled":false},{"field":"billing_pro_firstName","enabled":false},{"field":"billing_pro_npiNo","enabled":false},{"field":"billing_pro_state","enabled":false},{"field":"billing_pro_zip","enabled":false},{"field":"claim_icd_code1","enabled":false},{"field":"claim_place_of_service_code","enabled":false},{"field":"claim_totalCharge","enabled":false},{"field":"insurance_pro_address1","enabled":false},{"field":"insurance_pro_city","enabled":false},{"field":"insurance_pro_companyName","enabled":false},{"field":"insurance_pro_payerID","enabled":false},{"field":"insurance_pro_state","enabled":false},{"field":"insurance_pro_zipCode","enabled":false},{"field":"patient_address1","enabled":false},{"field":"patient_city","enabled":false},{"field":"patient_dob","enabled":false},{"field":"patient_firstName","enabled":false},{"field":"patient_lastName","enabled":false},{"field":"patient_state","enabled":false},{"field":"patient_zipCode","enabled":false},{"field":"reading_physician_full_name","enabled":false},{"field":"reading_pro_npiNo","enabled":false},{"field":"ref_full_name","enabled":false},{"field":"referring_pro_npiNo","enabled":false},{"field":"service_line_dig1","enabled":false},{"field":"service_facility_addressLine1","enabled":false},{"field":"service_facility_city","enabled":false},{"field":"service_facility_firstName","enabled":false},{"field":"service_facility_npiNo","enabled":false},{"field":"service_facility_state","enabled":false},{"field":"service_facility_zip","enabled":false},{"field":"subscriber_addressLine1","enabled":false},{"field":"subscriber_city","enabled":false},{"field":"subscriber_dob","enabled":false},{"field":"subscriber_firstName","enabled":false},{"field":"subscriber_lastName","enabled":false},{"field":"subscriber_state","enabled":false},{"field":"subscriber_zipCode","enabled":false},{"field":"payer_address1","enabled":false},{"field":"payer_city","enabled":false},{"field":"payer_name","enabled":false},{"field":"payer_state","enabled":false},{"field":"payer_zip_code","enabled":false}]'::JSONB
-, '[{"field":"billing_pro_addressLine1","enabled":false},{"field":"billing_pro_city","enabled":false},{"field":"billing_pro_firstName","enabled":false},{"field":"billing_pro_npiNo","enabled":false},{"field":"billing_pro_state","enabled":false},{"field":"billing_pro_zip","enabled":false},{"field":"claim_icd_code1","enabled":false},{"field":"claim_place_of_service_code","enabled":false},{"field":"claim_totalCharge","enabled":false},{"field":"patient_address1","enabled":false},{"field":"patient_city","enabled":false},{"field":"patient_dob","enabled":false},{"field":"patient_firstName","enabled":false},{"field":"patient_lastName","enabled":false},{"field":"patient_state","enabled":false},{"field":"patient_zipCode","enabled":false},{"field":"reading_physician_full_name","enabled":false},{"field":"reading_pro_npiNo","enabled":false},{"field":"ref_full_name","enabled":false},{"field":"referring_pro_npiNo","enabled":false},{"field":"service_line_dig1","enabled":false},{"field":"service_facility_addressLine1","enabled":false},{"field":"service_facility_city","enabled":false},{"field":"service_facility_firstName","enabled":false},{"field":"service_facility_npiNo","enabled":false},{"field":"service_facility_state","enabled":false},{"field":"service_facility_zip","enabled":false}]'::JSONB);
-INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('validations',now());
-ELSE 
-      RAISE NOTICE 'Billing.validations table migration already finished';
 END IF;
 -- -------------------------------------------------------------------------------------------------------------
 -- Claims module migration script 
@@ -872,7 +705,6 @@ AND c.id != q_claim_id;
 -- -------------------------------------------------------------------------------------------------------------
 CREATE INDEX IF NOT EXISTS temp_providers_v15 on billing.providers(old_id);
 CREATE INDEX IF NOT EXISTS temp_patient_insurances_v15 on public.patient_insurances(old_id);
-
 -- ------------------------------------------------------------------------------------------------------------
 RAISE NOTICE 'Claims5';
 
@@ -956,13 +788,6 @@ SELECT
     tpi.id,
     nullif(nullif(po.order_info->'ordering_facility_id',''),'0')::BIGINT,
     pos.id,
-/****************************************
-    CASE WHEN pc.claim_status = 'RD' THEN
-            sps.id
-         WHEN pc.claim_status = 'ST' THEN
-            pps.id
-    END,
-*****************************************/
     bcs.id,
     bco.id,
     bcl.id,
@@ -1038,13 +863,6 @@ FROM public.claims pc
 INNER JOIN public.orders po on po.id = pc.order_id
 INNER JOIN public.facilities f on f.id = po.facility_id
 INNER JOIN billing.providers bp on bp.old_id = (coalesce((coalesce(nullif(po.order_info->'billing_provider',''),nullif(facility_info->'billing_provider_id','')))::bigint, '0'))::bigint
-/**
-INNER JOIN billing.providers bp on bp.old_id = 
-(coalesce(
-(coalesce(nullif(po.order_info->'billing_provider',''),facility_info->'billing_provider_id'))::bigint
-, '0')
-)::bigint
-**/  -- Commented by Edward (July 16th 2018)
 INNER JOIN sub_pend_status sps on true 
 INNER JOIN pymt_pend_status pps on true 
 INNER JOIN public.adjustment_codes ac on ac.id::TEXT = order_info->'claim_status' AND ac.type =  'CLMSTS'
@@ -1120,7 +938,6 @@ select max(id) into l_max_claim_id from billing.claims;
 PERFORM  setval(pg_get_serial_sequence('billing.claims', 'id'), l_max_claim_id +1, false) ;
 
 ALTER TABLE billing.claims alter column id set GENERATED ALWAYS;
---------------------------------------------------------------------------------------------------------------
 -- -----------------------------------------------------------------------------------------------------------
       RAISE NOTICE 'Charges Migration Started';
 -- -----------------------------------------------------------------------------------------------------------
@@ -1512,8 +1329,6 @@ ELSE
       RAISE NOTICE 'Billing.payment_applications table  migration already finished';
 END IF;
 -- -------------------------------------------------------------------------------------------------------------
--- ------------------------------------------------------------------------------------------------------------
-
 IF NOT EXISTS (SELECT 1 from billing.migration_log where table_name = 'cas_payment_application_details') THEN
 RAISE NOTICE 'CAS Payment Application details';
 
