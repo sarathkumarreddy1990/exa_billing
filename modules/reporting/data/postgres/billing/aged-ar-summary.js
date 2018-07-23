@@ -12,12 +12,13 @@ const agedARSummaryDataSetQueryTemplate = _.template(`
 WITH charges_cwt AS (
     SELECT
           bc.id                           AS claim_id
-        , max(date_part('day', (<%= claimDate %> - bc.claim_dt))) as age
+        , max(date_part('day', ((timezone(f.time_zone,  <%= claimDate %>)))  - bc.claim_dt)) as age
         , sum(c.bill_fee * c.units)       AS charges_bill_fee_total
     FROM  billing.claims AS bc
         INNER JOIN billing.charges AS c ON c.claim_id = bc.id
+        INNER JOIN facilities f on f.id = bc.facility_id
     WHERE 1=1
-       AND (bc.claim_dt < <%= claimDate %>::DATE)  
+       AND (bc.claim_dt <  (timezone(f.time_zone,  <%= claimDate %>))) 
     GROUP BY bc.id
 ), 
 applications_cwt AS (
@@ -34,10 +35,10 @@ get_claim_details AS(
     SELECT 
         cc.claim_id as claim_id,
         cc.age as age,
-       (cc.charges_bill_fee_total - ( ac.payments_applied_total +  ac.ajdustments_applied_total )) AS balance
+       (cc.charges_bill_fee_total - ( coalesce(ac.payments_applied_total,0::money) +  coalesce(ac.ajdustments_applied_total,0::money))) AS balance
     FROM charges_cwt cc
     LEFT JOIN applications_cwt ac ON cc.claim_id = ac.claim_id  
-    WHERE (cc.charges_bill_fee_total - ( ac.payments_applied_total +  ac.ajdustments_applied_total )) != 0::money
+    WHERE (cc.charges_bill_fee_total - ( coalesce(ac.payments_applied_total,0::money) +  coalesce(ac.ajdustments_applied_total,0::money) )) != 0::money
  ),
 aged_ar_summary_details AS( 
  SELECT

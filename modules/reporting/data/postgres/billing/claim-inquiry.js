@@ -38,7 +38,7 @@ const _ = require('lodash')
              WHEN bc.payer_type = 'referring_provider' THEN null
              ELSE  NULL
            END AS carrier,
-           json_build_object('coverage_level',pi.coverage_level,'insurance_name',ip.insurance_name,'expire_date',pi.valid_to_date,'PolicyNo',pi.policy_number, 'GroupNo',pi.group_number),
+           json_build_object('coverage_level',pi.coverage_level,'insurance_name',ip.insurance_name,'expire_date',to_char(pi.valid_to_date,'MM/DD/YYYY'),'PolicyNo',pi.policy_number, 'GroupNo',pi.group_number),
            bp.name,
            (SELECT 
                 claim_balance_total 
@@ -110,43 +110,11 @@ const _ = require('lodash')
     const claimInquiryDataSetQueryTemplate1 = _.template(`
     with claim_data_comments as (
         SELECT 
-        bc.id as claim_id,
-        p.full_name as patient_name,
-        p.account_no,
-        COALESCE(p.patient_info->'ssn','') AS ssn,
-        COALESCE(to_char(p.birth_date,'MM/DD/YYYY'),'') AS dob,
-        COALESCE(p.patient_info->'c1HomePhone','') AS phone,
-        claim_totals.claim_balance_total,
-        bc.payer_type,
-        NULLIF(ip.insurance_name,'')  AS insurance_name,
-        NULLIF(ip.insurance_code,'')  AS insurance_code,
-        NULLIF(ip.insurance_info->'Address1','')  AS address1,
-        NULLIF(ip.insurance_info->'Address2','')  AS address2,
-        NULLIF(ip.insurance_info->'City','') AS city,
-        NULLIF(ip.insurance_info->'State','')  AS state,
-        NULLIF(ip.insurance_info->'ZipCode','')  AS zip,
-        NULLIF(ip.insurance_info->'ZipPlus','')  AS zip_plus,
-        NULLIF(ip.insurance_info->'PhoneNo','')  AS phone_no,
-        NULLIF(ip.insurance_info->'FaxNo','')  AS fax_no,
-        bc.claim_dt,
-        CASE
-          WHEN bc.payer_type = 'primary_insurance' THEN ip.insurance_name
-          WHEN bc.payer_type = 'secondary_insurance'  THEN ip.insurance_name
-          WHEN bc.payer_type = 'tertiary_insurance' THEN ip.insurance_name
-          WHEN bc.payer_type = 'patient'  THEN p.full_name
-          WHEN bc.payer_type = 'ordering_facility' THEN f.facility_name
-          WHEN bc.payer_type = 'referring_provider' THEN null
-          ELSE  NULL
-        END AS carrier,
-        json_build_object('coverage_level',pi.coverage_level,'insurance_name',ip.insurance_name,'expire_date',pi.valid_to_date,'PolicyNo',pi.policy_number, 'GroupNo',pi.group_number),
-        bp.name,
-        (SELECT 
-             claim_balance_total 
-         FROM 
-             billing.get_claim_totals(bc.id)) AS claim_balance
+        bc.id as claim_id
+        , p.full_name
+        ,p.account_no
      FROM 
          billing.claims bc
-     INNER JOIN LATERAL billing.get_claim_totals(bc.id) AS claim_totals ON TRUE
      INNER JOIN public.patients p on p.id = bc.patient_id
      INNER JOIN public.facilities f on f.id = bc.facility_id
      INNER JOIN billing.providers bp on bp.id = bc.billing_provider_id
@@ -175,6 +143,7 @@ const _ = require('lodash')
         <% if(billingProID) { %> AND <% print(billingProID); } %> 
         <% if(insuranceIds) { %> AND <%=insuranceIds%> <%}%>
         <% if(insGroups) { %> AND <%=insGroups%> <%}%>
+      GROUP BY bc.id , p.full_name,p.account_no 
       ORDER BY p.full_name,p.account_no ASC),  
       
       billing_comments as 
