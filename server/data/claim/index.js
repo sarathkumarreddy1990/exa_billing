@@ -37,6 +37,7 @@ module.exports = {
                                 WHERE
                                     pi.patient_id = ${params.patient_id}  AND (expiry.valid_to_date = pi.valid_to_date OR expiry.valid_to_date IS NULL) AND pi.coverage_level = 'primary'
                                 ORDER BY id ASC
+                                LIMIT 1
                         ),
                         claim_charges AS (
                             SELECT
