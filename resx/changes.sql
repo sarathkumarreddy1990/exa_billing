@@ -2707,7 +2707,7 @@ BEGIN
 		AND s.has_deleted = FALSE
 		order by order_no
 	)
-    beneficiary_details as (
+    , beneficiary_details as (
                             SELECT
                                 pi.id
                             FROM 
@@ -2726,7 +2726,7 @@ BEGIN
                                 WHERE
                                     pi.patient_id = i_patient_id AND (expiry.valid_to_date = pi.valid_to_date OR expiry.valid_to_date IS NULL) AND pi.coverage_level = 'primary'
                                 ORDER BY id ASC
-    ),
+    )
 	,claim_charges AS (
 
 		SELECT
