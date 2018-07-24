@@ -8,22 +8,22 @@
 * ``` "dbConnectionBilling": "tcp://[user]:[pwd]@192.168.1.1:5434/[db_name]" ```
 
 ### Install dependencies
-* ``` yarn install-node_modules ```
+* ``` npm run install-node_modules ```
 
 ### Debugging
-* ``` yarn start ```
+* ``` npm run start ```
 
 ### Production deployment
-* ``` yarn start-production ```
+* ``` npm run start-production ```
 
 ### Test
-* ``` yarn test ```
+* ``` npm run test ```
 
 ### Build
-* ``` yarn build ```
+* ``` npm run build ```
 
 ### Build - FTP Deployment
-* ``` yarn deploy ```
+* ``` npm run deploy ```
 
 ## Who do I talk to? ##
 

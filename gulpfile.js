@@ -17,10 +17,14 @@ const git = require('gulp-git');
 const gutil = require('gulp-util');
 const ftp = require('vinyl-ftp');
 
+const moment = require('moment');
+
 const fs = require('fs');
 const path = require('path');
 
-let currentBranch = 'develop';
+let currentBranch = 'development';
+let nodejsversion = process.version;
+let timestamp = moment().format("YYYYMMDDhhmm");
 let buildFileName = '';
 let requirejsConfig = require('./app/js/main').rjsConfig;
 
@@ -48,12 +52,12 @@ gulp.task('copy', ['clean'], () => {
 gulp.task('install', ['copy'], () => {
     return gulp.src(['./build/package.json', './build/app/package.json'])
         .pipe(install({
-            //npm: '--production'
+            // npm: '--production',
             production: true,
-            commands: {
-                'package.json': 'yarn'
-            },
-            yarn: ['--prod', '--silent']
+            // commands: {
+            //     'package.json': 'yarn'
+            // },
+            // yarn: ['--prod', '--silent']
         }));
 });
 
@@ -153,7 +157,7 @@ gulp.task('replace', ['copy-package-json'], () => {
 gulp.task('zip', ['replace'], () => {
     let version = getCurrentVersion();
 
-    buildFileName = `exa-billing-${currentBranch}-${version}.zip`;
+    buildFileName = `exa_billing_${version}_${currentBranch}_node-${nodejsversion}_${timestamp}.zip`;
 
     return gulp.src('./build/**')
         .pipe(zip(buildFileName))

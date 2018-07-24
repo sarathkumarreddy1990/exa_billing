@@ -1,6 +1,7 @@
 {
     "name": "exa-billing",
     "version": "1.4.11",
+    "private": true,
     "description": "EXA Billing Module",
     "main": "server/app.js",
     "scripts": {
@@ -10,16 +11,12 @@
         "gulp-build": "gulp build",
         "gulp-deploy": "gulp deploy",
         "gulp-build-from-repo": "gulp build-from-repo",
-        "install-node_modules": "yarn install && cd app && yarn install && cd..",
+        "install-node_modules": "npm install && cd app && npm install && cd..",
         "build": "npm-run-all install-node_modules gulp-build",
         "deploy": "npm-run-all install-node_modules gulp-deploy",
         "build-from-repo": "npm-run-all install-node_modules gulp-build-from-repo",
         "start-production": "nodemon ./bin/www-cluster",
         "test": "mocha --recursive test/unit"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://ramesh_git@bitbucket.org/viztek/exa-billing.git"
     },
     "dependencies": {
         "bcrypt-nodejs": "0.0.3",
@@ -83,6 +80,9 @@
         "EXA",
         "Billing"
     ],
+    "engines": {
+        "node": ">=6.10"
+    },
     "author": "Konica Minolta",
     "license": "SEE LICENSE IN LICENSE.txt",
     "homepage": "https://bitbucket.org/viztek/exa-billing#readme"
