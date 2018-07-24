@@ -29,11 +29,11 @@ const createDir = function (fileStorePath, filePath) {
             message: 'Root directory not found in file store'
         };
     }
-    
+
     if (fileStorePath) {
         const folderExist = fs.existsSync(dirPath);
 
-        if (folderExist) {            
+        if (folderExist) {
             return { status: true };
         }
 
@@ -142,7 +142,7 @@ module.exports = {
 
         logger.info('ERA Process MODE');
 
-        const dirResponse =  createDir(fileStorePath, fileRootPath);
+        const dirResponse = createDir(fileStorePath, fileRootPath);
 
         if (!dirResponse.status) {
             return {

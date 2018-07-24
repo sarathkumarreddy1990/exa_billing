@@ -144,18 +144,18 @@
             "addFields": "Add Fields",
             "ascOrder": "Ascending Order",
             "descOrder": "Descending Order",
-            "processPayement":"Process Payments",
+            "processPayement": "Process Payments",
             "exportToExcel": "Export To Excel",
             "paperclaimOrg": "Paper Claim (RED)",
             "paperclaimFull": "Paper Claim (B & W)"
         },
         "screens": {},
         "fields": {
-            "inactive" : "Inactive",
+            "inactive": "Inactive",
             "isSystemStatus": "System Status",
-            "dateofBirth":"Date of Birth ",
-            "cptDescription":"cpt Description",
-            "billingProvider":"Billing Provider",
+            "dateofBirth": "Date of Birth ",
+            "cptDescription": "cpt Description",
+            "billingProvider": "Billing Provider",
             "id": "ID",
             "studyDate": "Study Date",
             "series": "Series"

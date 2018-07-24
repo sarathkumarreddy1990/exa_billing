@@ -28,5 +28,5 @@ module.exports = {
     getFeeDetails: function (params) {
         return data.getFeeDetails(params);
     }
-    
+
 };

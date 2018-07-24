@@ -10,8 +10,8 @@
             "serversideerror": "Server error",
             "someerror": "Internal error",
             "accessdenied": "No rights"
-		},
-		"warning": {
+        },
+        "warning": {
             "claims": {
                 "selectfacility": "Please select facility",
                 "selectbillingProvider": "Please select billing provider",
@@ -29,14 +29,14 @@
                 "problemAlreadyExists": "Problem already exists",
                 "icdLimitExists": "Cannot add more than 12 ICD"
             },
-          "setup": {
-            "selectitemstodelete": "Select Message To Delete",
-            "entertextandselect": "Enter Text and Select",
-            "enter": "Enter",
-            "entertotime": "Enter ToTime",
-            "enterfromtime": "Enter FromTime",
-            "selectfromtodate": "Select From Date"
-          }
+            "setup": {
+                "selectitemstodelete": "Select Message To Delete",
+                "entertextandselect": "Enter Text and Select",
+                "enter": "Enter",
+                "entertotime": "Enter ToTime",
+                "enterfromtime": "Enter FromTime",
+                "selectfromtodate": "Select From Date"
+            }
         },
         "loadingMsg": {
             "default": "Loading ...",
@@ -59,11 +59,11 @@
             "billing": {
                 "problemReferenced": "Problem Referenced",
                 "problemReferencedAreYouSure": "Problem is being referenced in Charge Payments.  Are you sure that you want to delete?",
-                "mediCarePayer":"Please select medicare payer type",
-                "ruleNode":"This node does not contain any rule",
-                "ruleSaved":"Rule Saved successfully",
-                "ruleUpdated":"Rule Updated successfully",
-                "ruleDeleted":"Rule deleted successfully"
+                "mediCarePayer": "Please select medicare payer type",
+                "ruleNode": "This node does not contain any rule",
+                "ruleSaved": "Rule Saved successfully",
+                "ruleUpdated": "Rule Updated successfully",
+                "ruleDeleted": "Rule deleted successfully"
             },
             "payments": {
                 "overwriteRefund": "Overwrite Refund",

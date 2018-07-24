@@ -63,7 +63,7 @@ router.get('/claim_study', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
-router.get('/billing_payers', async function(req, res){
+router.get('/billing_payers', async function (req, res) {
     const data = await claimWorkbenchController.getBillingPayers(req.query);
     httpHandler.sendRows(req, res, data);
 });
@@ -73,12 +73,12 @@ router.put('/billing_payers', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
-router.put('/follow_ups', async function(req, res){
+router.put('/follow_ups', async function (req, res) {
     const data = await claimWorkbenchController.updateFollowUp(req.body);
     httpHandler.sendRows(req, res, data);
 });
 
-router.post('/claims/batch', async function(req, res){
+router.post('/claims/batch', async function (req, res) {
     const data = await claimWorkbenchController.createBatchClaims(req.body);
     httpHandler.sendRows(req, res, data);
 });
