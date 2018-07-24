@@ -102,13 +102,13 @@ module.exports = {
     get: async function (args) {
         args.sortOrder = args.sortOrder || ' ASC';
         let whereQuery = [];
-        let {   filter_name,   filter_order,  filter_type,  sortOrder,    sortField,  pageNo,   pageSize,  userId } = args;
+        let { filter_name, filter_order, filter_type, sortOrder, sortField, pageNo, pageSize, userId } = args;
 
-        if(filter_name){
+        if (filter_name) {
             whereQuery.push(` filter_name ILIKE '%${filter_name}%'`);
         }
 
-        if(filter_order){
+        if (filter_order) {
             whereQuery.push(` filter_order :: TEXT ILIKE '%${filter_order}%'`);
         }
 
@@ -141,8 +141,8 @@ module.exports = {
 
     getById: async function (params) {
 
-        let get_data = SQL` 
-            SELECT 
+        let get_data = SQL`
+            SELECT
                 id
                 ,filter_order
                 ,filter_type
@@ -161,7 +161,7 @@ module.exports = {
         let delete_data = SQL` DELETE FROM billing.grid_filters WHERE id = ${params.id} RETURNING  * ,'{}'::jsonb old_values `;
         return await queryWithAudit(delete_data, {
             ...params,
-            logDescription: `Deleted. ${ params.name} `
+            logDescription: `Deleted. ${params.name} `
         });
     }
 };

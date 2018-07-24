@@ -107,15 +107,16 @@ const colModel = [
     },
     {
         name: 'payer_name',
-        searchFlag:'%',
-        searchColumns: [`(  CASE payer_type 
+        searchFlag: '%',
+        searchColumns: [`(  CASE payer_type
                 WHEN 'primary_insurance' THEN insurance_providers.insurance_name
                 WHEN 'secondary_insurance' THEN insurance_providers.insurance_name
                 WHEN 'tertiary_insurance' THEN insurance_providers.insurance_name
 	            WHEN 'ordering_facility' THEN provider_groups.group_name
 	            WHEN 'referring_provider' THEN ref_provider.full_name
 	            WHEN 'rendering_provider' THEN render_provider.full_name
-	            WHEN 'patient' THEN patients.full_name        END) `] },
+	            WHEN 'patient' THEN patients.full_name        END) `]
+    },
     {
         name: 'clearing_house',
         searchColumns: [`edi_clearinghouses.name`],
@@ -125,7 +126,7 @@ const colModel = [
         name: 'edi_template',
         searchColumns: [`insurance_providers.insurance_info->'edi_template'`],
         searchFlag: '%'
-    },   
+    },
     {
         name: 'claim_balance',
         searchColumns: ['(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) from BILLING.get_claim_totals(claims.id)) '],
@@ -199,8 +200,8 @@ const api = {
             case 'study_dt':
             case 'study_received_dt': return 'claims.claim_dt';
             case 'claim_status': return 'claim_status.description';
-            case 'claim_id': 
-            case 'id': return 'claims.id';           
+            case 'claim_id':
+            case 'id': return 'claims.id';
             case 'patient_name': return 'patients.full_name';
             case 'birth_date': return 'patients.birth_date::text';
             case 'account_no': return 'patients.account_no';
@@ -219,16 +220,16 @@ const api = {
             case 'group_number': return 'patient_insurances.group_number';
             case 'payer_type':
             case 'ref_phy': return 'claims.payer_type';
-            case 'assigned_to' : return 'users.username';
+            case 'assigned_to': return 'users.username';
             case 'payer_name':
-                return `(  CASE payer_type 
+                return `(  CASE payer_type
                 WHEN 'primary_insurance' THEN insurance_providers.insurance_name
                 WHEN 'secondary_insurance' THEN insurance_providers.insurance_name
                 WHEN 'tertiary_insurance' THEN insurance_providers.insurance_name
 	            WHEN 'ordering_facility' THEN provider_groups.group_name
 	            WHEN 'referring_provider' THEN ref_provider.full_name
 	            WHEN 'rendering_provider' THEN render_provider.full_name
-	            WHEN 'patient' THEN patients.full_name        END) 
+	            WHEN 'patient' THEN patients.full_name        END)
                     `;
             case 'clearing_house': return 'edi_clearinghouses.name';
             case 'claim_balance': return '(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) FROM BILLING.get_claim_totals(claims.id))';
@@ -265,7 +266,7 @@ const api = {
     getWLQueryJoin: function (columns, isInnerQuery, filterID) {
         let tables = isInnerQuery ? columns : api.getTables(columns);
         let r = '';
-        
+
         if (tables.patients) { r += ' INNER JOIN patients ON claims.patient_id = patients.id '; }
 
         if (tables.facilities) { r += ' INNER JOIN facilities ON facilities.id=claims.facility_id '; }
@@ -277,7 +278,7 @@ const api = {
         if (tables.places_of_service) { r += ' LEFT JOIN places_of_service  ON places_of_service.id=claims.place_of_service_id '; }
 
         if (tables.ref_provider) {
-            r += ` LEFT JOIN provider_contacts  ON provider_contacts.id=claims.referring_provider_contact_id 
+            r += ` LEFT JOIN provider_contacts  ON provider_contacts.id=claims.referring_provider_contact_id
                                         LEFT JOIN providers as ref_provider ON ref_provider.id=provider_contacts.provider_id`;
         } // This should be inner
 
@@ -286,16 +287,16 @@ const api = {
                                            LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.provider_id`;
         }
 
-        if(filterID=='Follow_up_queue'){
+        if (filterID == 'Follow_up_queue') {
             r += ' INNER JOIN billing.claim_followups ON  claim_followups.claim_id=claims.id left join users on users.id=assigned_to';
-        }else if (tables.claim_followups) {
+        } else if (tables.claim_followups) {
             r += ' LEFT JOIN billing.claim_followups  ON claim_followups.claim_id=claims.id left join users on users.id=assigned_to';
         }
 
         if (tables.patient_insurances || tables.insurance_providers || tables.edi_clearinghouses) {
             r += `
-                LEFT JOIN patient_insurances ON patient_insurances.id = 
-                (  CASE payer_type 
+                LEFT JOIN patient_insurances ON patient_insurances.id =
+                (  CASE payer_type
                 WHEN 'primary_insurance' THEN primary_patient_insurance_id
                 WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
                 WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
@@ -304,9 +305,9 @@ const api = {
             r += ' LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id ';
             r += ' LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id ';
             r += ' LEFT JOIN   billing.edi_clearinghouses ON  billing.edi_clearinghouses.id=insurance_provider_details.clearing_house_id';
-             
+
         }
-       
+
         if (tables.provider_groups) { r += '  LEFT JOIN provider_groups ON claims.ordering_facility_id = provider_groups.id '; }
 
         if (tables.billing_codes) { r += '  LEFT JOIN billing.billing_codes ON claims.billing_code_id = billing_codes.id '; }
@@ -330,7 +331,7 @@ const api = {
             'patients.account_no',
             'patients.birth_date::text as birth_date',
             'claims.submitted_dt',
-            `patients.patient_info->'ssn' 
+            `patients.patient_info->'ssn'
             as patient_ssn`,
             'billing_providers.name as billing_provider',
             'places_of_service.description AS place_of_service',
@@ -346,9 +347,9 @@ const api = {
             'claims.payer_type',
             'claims.billing_method',
             `edi_clearinghouses.name as clearing_house`,
-            `insurance_providers.insurance_info->'edi_template' 
-            as edi_template`,           
-            `(  CASE payer_type 
+            `insurance_providers.insurance_info->'edi_template'
+            as edi_template`,
+            `(  CASE payer_type
             WHEN 'primary_insurance' THEN insurance_providers.insurance_name
             WHEN 'secondary_insurance' THEN insurance_providers.insurance_name
             WHEN 'tertiary_insurance' THEN insurance_providers.insurance_name
@@ -404,7 +405,7 @@ const api = {
             ;
 
         //if(args.customArgs.filter_id=='Follow_up_queue'){
-            //args.filterQuery += ` AND claim_followups.assigned_to = ${args.userId} `;
+        //args.filterQuery += ` AND claim_followups.assigned_to = ${args.userId} `;
         //}
 
         let innerQuery = api.getWLQuery(`
@@ -417,13 +418,13 @@ const api = {
         // optimization! convert INNER to LEFT OUTER joins and add relevant WHERE clauses
         //args.filterQuery += ` AND claims.company_id = ${args.comapny_id} `;
 
-        
+
 
         // TODO: switch these function calls into JOINS (perhaps)
         let columns = api.getWLQueryColumns();
         let sql = `
             SELECT
-            ${columns}            
+            ${columns}
             FROM (${innerQuery}) as FinalClaims
             INNER JOIN billing.claims ON FinalClaims.claim_id = claims.id
             ${api.getWLQueryJoin(columns, '', args.customArgs.filter_id)}
@@ -464,7 +465,7 @@ const api = {
                             colModel[i].searchFlag = '='; //Equals by default
                             break;
                     }
-                    
+
                     data[colIndex] = '0';
                     args.filterData = JSON.stringify(data);
                     break;
@@ -501,7 +502,7 @@ const api = {
         const response = await studyfilterdata.getUserWLFilters(filter_options);
 
         //studyfilterdata.getUserWLFilters(filter_options, function (err, response) {
-        const filter = response.rows&&response.rows.length>0?response.rows[0]:{};
+        const filter = response.rows && response.rows.length > 0 ? response.rows[0] : {};
 
         // const {
         //     joined_filter_info
@@ -510,7 +511,7 @@ const api = {
         // const filter_query = joined_filter_info && api.getCombinedQuery(joined_filter_info) || '';
         const newFilter = {};
 
-        newFilter.perms_filter= util.getClaimFilterQuery(filter.perm_filter, args.user_id, args.statOverride);
+        newFilter.perms_filter = util.getClaimFilterQuery(filter.perm_filter, args.user_id, args.statOverride);
         let responseUserSetting = [newFilter];
 
         let permission_query = SQL`
@@ -571,10 +572,10 @@ const api = {
                 statOverride: statOverride
             };
 
-            if(args.filterCol && args.filterData){
+            if (args.filterCol && args.filterData) {
                 api.setBalanceFilterFlag(args, colModel);
             }
-            
+
             const response = await filterValidator.generateQuery(colModel, args.filterCol, args.filterData, query_options);
             args.filterQuery = response;
 
@@ -585,16 +586,16 @@ const api = {
                     args.permissionFacilities = typeof (flist) === 'number' ? [flist] : Array.isArray(flist.map(Number)) ? flist : flist.split(',').map(Number);
                 }
             }
-            
+
             let result;
 
             if (args.isCount) {
 
-                result= await api.getWorkListCount(args);
+                result = await api.getWorkListCount(args);
 
             } else {
 
-                result =await api.getWorkList(args);
+                result = await api.getWorkList(args);
             }
 
             return result;
