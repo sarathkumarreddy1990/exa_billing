@@ -15,7 +15,7 @@
         "build": "npm-run-all install-node_modules gulp-build",
         "deploy": "npm-run-all install-node_modules gulp-deploy",
         "build-from-repo": "npm-run-all install-node_modules gulp-build-from-repo",
-        "start-production": "nodemon ./bin/www-cluster",
+        "start-production": "node ./bin/www-cluster",
         "test": "mocha --recursive test/unit"
     },
     "dependencies": {
