@@ -54,8 +54,8 @@ module.exports = {
         }
 
         let sql = SQL`with update_cte as (UPDATE
-                             billing.claims 
-                        SET                          
+                             billing.claims
+                        SET
                     `;
 
         sql.append(updateData);
@@ -74,7 +74,7 @@ module.exports = {
                                     'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_cte LIMIT 1 ) temp_row)
                                     )::jsonb
                                 , ${userId}
-                                ) AS id 
+                                ) AS id
                                 FROM update_cte
                                 WHERE id IS NOT NULL
                             `);
@@ -84,17 +84,17 @@ module.exports = {
 
     /// TODO: bad fn name -- need to rename
     updateValidateClaimStatus: async (params) => {
-        params.screenName = params.entityName = params.moduleName = 'claims';    
-        params.logDescriptions= `Validate claims for `;    
-        let sql = SQL`WITH getStatus AS 
+        params.screenName = params.entityName = params.moduleName = 'claims';
+        params.logDescriptions = ' Validate claims for ';
+        let sql = SQL`WITH getStatus AS
 						(
-							SELECT 
+							SELECT
 								id
-							FROM 
+							FROM
 								billing.claim_status
 							WHERE code  = 'PS'
-						)	
-						,update_cte AS (UPDATE 
+						)
+						,update_cte AS (UPDATE
 							billing.claims bc
 						SET claim_status_id = (SELECT id FROM getStatus)
 						WHERE bc.id = ANY(${params.success_claimID})
@@ -112,7 +112,7 @@ module.exports = {
                               'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_cte LIMIT 1 ) temp_row)
                               )::jsonb
                           , ${params.userId}
-                          ) AS id 
+                          ) AS id
                           FROM update_cte
                           WHERE id IS NOT NULL`;
 
@@ -123,78 +123,78 @@ module.exports = {
 
         //let success_claimID = params.success_claimID.split(',');
 
-        let getClaimsDetails = SQL` ,getClaimsDetails as (                
-                SELECT claims.id,payer_type, (  CASE payer_type 
+        let getClaimsDetails = SQL` ,getClaimsDetails as (
+                SELECT claims.id,payer_type, (  CASE payer_type
                     WHEN 'primary_insurance' THEN insurance_providers.insurance_name
                     WHEN 'secondary_insurance' THEN insurance_providers.insurance_name
                     WHEN 'tertiary_insurance' THEN insurance_providers.insurance_name
                     WHEN 'ordering_facility' THEN provider_groups.group_name
                     WHEN 'referring_provider' THEN ref_provider.full_name
                     WHEN 'rendering_provider' THEN render_provider.full_name
-                    WHEN 'patient' THEN patients.full_name        END)   || '(' ||  payer_type  ||')' as payer_name 
-                FROM billing.claims 
+                    WHEN 'patient' THEN patients.full_name        END)   || '(' ||  payer_type  ||')' as payer_name
+                FROM billing.claims
 
-                LEFT JOIN patient_insurances ON patient_insurances.id = 
-                        (  CASE payer_type 
+                LEFT JOIN patient_insurances ON patient_insurances.id =
+                        (  CASE payer_type
                         WHEN 'primary_insurance' THEN primary_patient_insurance_id
                         WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
                         WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
                         END)
 
-                INNER JOIN patients ON claims.patient_id = patients.id 
+                INNER JOIN patients ON claims.patient_id = patients.id
                 LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id
-                LEFT JOIN provider_contacts  ON provider_contacts.id=claims.referring_provider_contact_id 
+                LEFT JOIN provider_contacts  ON provider_contacts.id=claims.referring_provider_contact_id
                 LEFT JOIN providers as ref_provider ON ref_provider.id=provider_contacts.provider_id
-                LEFT JOIN provider_groups ON claims.ordering_facility_id = provider_groups.id 
+                LEFT JOIN provider_groups ON claims.ordering_facility_id = provider_groups.id
                 LEFT JOIN provider_contacts as rendering_pro_contact ON rendering_pro_contact.id=claims.rendering_provider_contact_id
                 LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.provider_id
 
-                WHERE claims.id=${params.success_claimID[0]} ) 
+                WHERE claims.id=${params.success_claimID[0]} )
         `;
 
         let insertClaimComments =
             SQL` , claim_details AS (
-            SELECT 
+            SELECT
                   "claim_id",
-                 "note"  
-            FROM json_to_recordset(${params.claimDetails}) AS claimDetails 
+                 "note"
+            FROM json_to_recordset(${params.claimDetails}) AS claimDetails
             (
                 "claim_id" bigint,
                 "note" text
             )
         ),
-        insert_claim_comments as ( 
-                INSERT INTO billing.claim_comments 
-                ( 
-                    claim_id , 
-                    type , 
-                    note , 
-                    created_by, 
-                    created_dt 
-                )              
+        insert_claim_comments as (
+                INSERT INTO billing.claim_comments
+                (
+                    claim_id ,
+                    type ,
+                    note ,
+                    created_by,
+                    created_dt
+                )
                 `;
         let getpaymentComments = SQL`  SELECT
                         claim_id,
                         ${params.type},
                         note || ( SELECT payer_name FROM getClaimsDetails),
-                        ${params.userId},   
+                        ${params.userId},
                         now()
-                    FROM 
+                    FROM
                     claim_details )`;
 
         let getEDIpaymentComments = SQL`SELECT
                                         claim_id,
                                         ${params.type},
                                         note,
-                                        ${params.userId},   
+                                        ${params.userId},
                                         now()
-                                        FROM 
+                                        FROM
                                     claim_details )`;
-        let sql = SQL`WITH getStatus AS 
+        let sql = SQL`WITH getStatus AS
 						(
-							SELECT 
+							SELECT
 								id
-							FROM 
+							FROM
 								billing.claim_status
 							WHERE code  = ${params.claim_status}
                         )`;
@@ -213,7 +213,7 @@ module.exports = {
             }
         }
 
-        let updateData = SQL`UPDATE 
+        let updateData = SQL`UPDATE
 							billing.claims bc
                         SET claim_status_id = (SELECT id FROM getStatus),
                             invoice_no = (SELECT billing.get_invoice_no(${params.success_claimID})),
@@ -221,10 +221,10 @@ module.exports = {
 						WHERE bc.id = ANY(${params.success_claimID})
                         RETURNING bc.id,invoice_no`;
 
-        let updateEDIData = SQL`UPDATE 
+        let updateEDIData = SQL`UPDATE
                             billing.claims bc
                         SET claim_status_id = (SELECT id FROM getStatus) ,
-                        submitted_dt=timezone(get_facility_tz(bc.facility_id::int), now()::timestamp)                
+                        submitted_dt=timezone(get_facility_tz(bc.facility_id::int), now()::timestamp)
                         WHERE bc.id = ANY(${params.success_claimID})
                         RETURNING bc.id`;
 
@@ -244,12 +244,12 @@ module.exports = {
             claim_id
         } = params;
 
-        let sql = SQL`				
+        let sql = SQL`
                     SELECT  study_id,
-                            studies.order_id 
-					FROM    billing.charges_studies 
-                            INNER JOIN billing.charges ON billing.charges.id = billing.charges_studies.charge_id 
-                            INNER JOIN public.studies ON public.studies.id = billing.charges_studies.study_id 
+                            studies.order_id
+					FROM    billing.charges_studies
+                            INNER JOIN billing.charges ON billing.charges.id = billing.charges_studies.charge_id
+                            INNER JOIN public.studies ON public.studies.id = billing.charges_studies.study_id
 					WHERE   billing.charges.claim_id = ${claim_id}
 					LIMIT   1`;
 
@@ -258,9 +258,9 @@ module.exports = {
 
     getBillingPayers: async function (params) {
         const sql = SQL`
-                        SELECT 
+                        SELECT
                             c.patient_id
-                            , c.facility_id 
+                            , c.facility_id
                             , c.referring_provider_contact_id
                             , c.primary_patient_insurance_id
                             , c.secondary_patient_insurance_id
@@ -272,7 +272,7 @@ module.exports = {
                             , ipt.insurance_name AS t_insurance_name
                             , ref_pr.full_name AS ref_prov_full_name
                             , p.full_name AS patient_full_name
-                            , f.facility_name 
+                            , f.facility_name
                         FROM
                             billing.claims c
                         INNER JOIN public.patients p ON p.id = c.patient_id
@@ -287,7 +287,7 @@ module.exports = {
                         LEFT JOIN public.provider_contacts rend_pc ON rend_pc.id = c.rendering_provider_contact_id
                         LEFT JOIN public.provider_groups pg ON pg.id = c.ordering_facility_id
                         LEFT JOIN public.facilities f ON f.id = c.facility_id
-                        WHERE 
+                        WHERE
                             c.id = ${params.id}`;
 
         return await query(sql);
@@ -295,7 +295,7 @@ module.exports = {
     },
 
     updateBillingPayers: async function (params) {
-        params.screenName = params.entityName = params.moduleName = 'claims';        
+        params.screenName = params.entityName = params.moduleName = 'claims';
         const sql = SQL`
                         SELECT id,
                         billing.change_payer_type(claims.id,${params.payer_type})
@@ -324,28 +324,28 @@ module.exports = {
 
         if (followupDate == '') {
             sql = SQL`
-                    DELETE FROM 
+                    DELETE FROM
                         billing.claim_followups
-                    WHERE 
+                    WHERE
                         claim_id = ANY(${claimIDs}) RETURNING * `;
         }
         else {
             sql = SQL`WITH update_followup AS(
-                UPDATE 
-                    billing.claim_followups 
-                SET 
+                UPDATE
+                    billing.claim_followups
+                SET
                       followup_date = ${followupDate}
-                    , assigned_to= ${assignedTo} 
-                WHERE 
+                    , assigned_to= ${assignedTo}
+                WHERE
                     claim_id = ANY(${claimIDs})
                 RETURNING * , '{}'::jsonb old_values
-            ), 
+            ),
             followup_details AS (
-                SELECT 
+                SELECT
                       "claimID" AS claim_id
                     , "assignedTo" AS assigned_to
                     , "followupDate" AS followup_date
-                FROM json_to_recordset(${followUpDetails}) AS followup 
+                FROM json_to_recordset(${followUpDetails}) AS followup
                 (
                     "claimID" bigint,
                     "assignedTo" integer,
@@ -360,9 +360,9 @@ module.exports = {
                 )
                 SELECT
                       claim_id
-                    , followup_date  
+                    , followup_date
                     , assigned_to
-                FROM 
+                FROM
                     followup_details
                 WHERE NOT EXISTS ( SELECT claim_id FROM billing.claim_followups  WHERE billing.claim_followups.claim_id = followup_details.claim_id )
                 RETURNING *, '{}'::jsonb old_values
@@ -381,10 +381,10 @@ module.exports = {
                         'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM insert_followup limit 1) temp_row)
                       )::jsonb
                     , ${userId}
-                  ) AS id 
+                  ) AS id
                 FROM insert_followup
                 WHERE id IS NOT NULL
-            ), 
+            ),
             update_audit_followup AS (
                 SELECT billing.create_audit(
                       ${companyId}
@@ -399,7 +399,7 @@ module.exports = {
                         'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_followup limit 1 ) temp_row)
                       )::jsonb
                     , ${userId}
-                  ) AS id 
+                  ) AS id
                 FROM update_followup
                 WHERE id IS NOT NULL
             )
@@ -417,27 +417,27 @@ module.exports = {
 
         const sql = SQL`
                     WITH batch_claim_details AS (
-                        SELECT 
-		                    patient_id, study_id 
+                        SELECT
+		                    patient_id, study_id
 	                    FROM
-	                        json_to_recordset(${study_ids}) AS study_ids 
-		                    ( 
+	                        json_to_recordset(${study_ids}) AS study_ids
+		                    (
 		                        patient_id bigint,
 		                        study_id bigint
                             )
                     ), details AS (
-                        SELECT bcd.study_id, d.* 
-                        FROM 
-                           batch_claim_details bcd 
+                        SELECT bcd.study_id, d.*
+                        FROM
+                           batch_claim_details bcd
                         LEFT JOIN LATERAL (select * from billing.get_batch_claim_details(bcd.study_id, ${params.created_by}, bcd.patient_id)) d ON true
                       )
-                      SELECT 
+                      SELECT
                         billing.create_claim_charge(
-                            details.claims, 
-                            details.insurances, 
-                            details.claim_icds, 
-                            (${JSON.stringify(auditDetails)})::json, 
-                            details.charges)  
+                            details.claims,
+                            details.insurances,
+                            details.claim_icds,
+                            (${JSON.stringify(auditDetails)})::json,
+                            details.charges)
                       FROM details
                         `;
 
@@ -447,9 +447,9 @@ module.exports = {
     getClaimDataInvoice: function (params) {
         let { claimIDs } = params;
 
-        let sql = SQL` SELECT 
+        let sql = SQL` SELECT
                           array_length (array_agg(DISTINCT bc.id), 1) AS claim_count
-                        , array_to_string(array_agg(DISTINCT bc.id), '_')  AS claimids 
+                        , array_to_string(array_agg(DISTINCT bc.id), '_')  AS claimids
                         , CASE WHEN bc.payer_type = 'patient' THEN
                                         p.full_name
                                 WHEN bc.payer_type = 'primary_insurance' THEN
@@ -458,7 +458,7 @@ module.exports = {
                                         sip.insurance_name
                                 WHEN bc.payer_type = 'tertiary_insurance' THEN
                                         tip.insurance_name
-                                WHEN bc.payer_type = 'ordering_facility' THEN  
+                                WHEN bc.payer_type = 'ordering_facility' THEN
                                         pg.group_name
                                 WHEN bc.payer_type = 'referring_provider' THEN
                                         pr.full_name
@@ -472,7 +472,7 @@ module.exports = {
                                         'SIP'
                                 WHEN bc.payer_type = 'tertiary_insurance' THEN
                                         'SIP'
-                                WHEN bc.payer_type = 'ordering_facility' THEN  
+                                WHEN bc.payer_type = 'ordering_facility' THEN
                                         'POF'
                                 WHEN bc.payer_type = 'referring_provider' THEN
                                         'PR'
@@ -486,12 +486,12 @@ module.exports = {
                     LEFT JOIN public.insurance_providers sip on sip.id = spi.insurance_provider_id
                     LEFT JOIN public.patient_insurances tpi ON tpi.id = bc.tertiary_patient_insurance_id
                     LEFT JOIN public.insurance_providers tip on tip.id = tpi.insurance_provider_id
-                    LEFT JOIN public.provider_groups  pg on pg.id = bc.ordering_facility_id  
+                    LEFT JOIN public.provider_groups  pg on pg.id = bc.ordering_facility_id
                     LEFT JOIN public.provider_contacts  pc on pc.id = bc.referring_provider_contact_id
-                    LEFT JOIN public.providers pr on pr.id = pc.provider_id 
+                    LEFT JOIN public.providers pr on pr.id = pc.provider_id
                     WHERE bc.id = ANY(${claimIDs})
-                    GROUP BY 
-                          payer_name 
+                    GROUP BY
+                          payer_name
                         , payer`;
 
         return query(sql);
@@ -507,7 +507,7 @@ module.exports = {
         } = params;
 
         let sql = SQL`WITH reset_invoice_no AS (
-                    UPDATE 
+                    UPDATE
                         billing.claims bc
                     SET
                         invoice_no = null,
@@ -516,10 +516,10 @@ module.exports = {
                         bc.invoice_no = ${invoiceNo}
                     RETURNING * ,
                         (
-                            SELECT row_to_json(old_row) 
-                            FROM   (SELECT * 
-                                    FROM   billing.claims 
-                                    WHERE  invoice_no = ${invoiceNo} LIMIT 1) old_row 
+                            SELECT row_to_json(old_row)
+                            FROM   (SELECT *
+                                    FROM   billing.claims
+                                    WHERE  invoice_no = ${invoiceNo} LIMIT 1) old_row
                         ) old_values
                     ),
                     update_audit_invoice AS (
@@ -529,14 +529,14 @@ module.exports = {
                             , id
                             , ${screenName}
                             , 'claims'
-                            , 'Invoice Number Resetted  Claim ID  '|| reset_invoice_no.id 
+                            , 'Invoice Number Resetted  Claim ID  '|| reset_invoice_no.id
                             , ${clientIp}
                             , json_build_object(
                                 'old_values', COALESCE(old_values, '{}'),
                                 'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM reset_invoice_no limit 1 ) temp_row)
                               )::jsonb
                             , ${userId}
-                          ) AS id 
+                          ) AS id
                         FROM reset_invoice_no
                         WHERE id IS NOT NULL
                     )

@@ -16,13 +16,15 @@ module.exports = function (app, express) {
 
     app.use(responseTime());
 
-    app.use(bodyParser.json({ 
-        limit: '500mb', 
-        parameterLimit: 100000 }));
+    app.use(bodyParser.json({
+        limit: '500mb',
+        parameterLimit: 100000
+    }));
 
-    app.use(bodyParser.urlencoded({ 
-        limit: '500mb', 
-        extended: true }));
+    app.use(bodyParser.urlencoded({
+        limit: '500mb',
+        extended: true
+    }));
 
     if (process.env.NODE_ENV != 'production') {
         //app.use(logger(':date[iso] :remote-addr :method :url', {immediate: true}));

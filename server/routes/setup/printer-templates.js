@@ -29,7 +29,7 @@ router.delete('/:id', async function (req, res) {
         ...req.params,
         ...req.body,
         ...req.audit
-    } ;
+    };
     const data = await paperController.delete(params);
     httpHandler.sendRows(req, res, data);
 

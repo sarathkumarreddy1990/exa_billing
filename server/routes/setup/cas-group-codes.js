@@ -33,7 +33,7 @@ router.delete('/:id', async function (req, res) {
 
     const data = await casGroupCodeControllers.delete(params);
     httpHandler.sendRows(req, res, data);
-    
+
 });
 
 module.exports = router;

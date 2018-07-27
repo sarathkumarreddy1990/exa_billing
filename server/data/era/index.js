@@ -3,11 +3,11 @@ const { query, SQL } = require('./../index');
 module.exports = {
 
     getEraFiles: async function (params) {
-        
+
         let whereQuery = [];
         params.sortOrder = params.sortOrder || ' ASC';
         params.sortField = params.sortField == 'id' ? ' edi_files.id ' : params.sortField;
-        let { 
+        let {
             id,
             size,
             updated_date_time,
@@ -22,7 +22,7 @@ module.exports = {
         if (id) {
             whereQuery.push(` id = ${id} `);
         }
-        
+
         if (uploaded_file_name) {
             whereQuery.push(` uploaded_file_name ILIKE '%${uploaded_file_name}%' `);
         }
@@ -30,16 +30,16 @@ module.exports = {
         if (size) {
             whereQuery.push(` file_size = ${size}`);
         }
-        
+
         if (updated_date_time) {
             whereQuery.push(` created_dt::date = '${updated_date_time}'::date`);
         }
-        
-        if (current_status) {   
+
+        if (current_status) {
             whereQuery.push(` status = replace('${current_status}', '\\', '')`);
         }
 
-        const sql = SQL`        
+        const sql = SQL`
             SELECT
                 id,
                 id AS file_name,
@@ -56,10 +56,10 @@ module.exports = {
                 billing.edi_files
             WHERE
                 company_id =  ${params.customArgs.companyID}
-                
+
         `;
 
-        if (whereQuery.length) {               
+        if (whereQuery.length) {
             sql.append(SQL` AND `);
         }
 
@@ -79,14 +79,14 @@ module.exports = {
 
     selectInsuranceEOB: async function (params) {
 
-        const paymentSQL = SQL`WITH 
+        const paymentSQL = SQL`WITH
                     is_payer_exists AS (
-                        SELECT 
+                        SELECT
                             ip.id
                             ,ip.insurance_code
                             ,ip.insurance_name
                             ,ip.insurance_info->'PayerID' AS payer_id
-                        FROM 
+                        FROM
                            billing.edi_file_payments efp
                         INNER JOIN billing.payments p ON p.id = efp.payment_id
                         INNER JOIN insurance_providers ip ON ip.id = p.insurance_provider_id
@@ -98,31 +98,31 @@ module.exports = {
                              ,insurance_code
                              ,insurance_name
                              ,insurance_info->'PayerID' AS payer_id
-                         FROM 
-                             insurance_providers 
-                         WHERE 
-                             has_deleted = false AND 
-                             company_id = ${params.company_id} AND 
-                             insurance_info->'PayerID' = ${params.payer_id}::text 
+                         FROM
+                             insurance_providers
+                         WHERE
+                             has_deleted = false AND
+                             company_id = ${params.company_id} AND
+                             insurance_info->'PayerID' = ${params.payer_id}::text
                     )
                     SELECT * FROM is_payer_exists
-                    UNION 
+                    UNION
                     SELECT * FROM current_payer `;
 
         return await query(paymentSQL);
     },
 
-    createEdiPayment: async function(params){
+    createEdiPayment: async function (params) {
 
-        const sql =SQL`WITH 
+        const sql = SQL`WITH
                             is_payment_exists AS (
-                                SELECT 
+                                SELECT
                                     id
-                                FROM 
-                                    billing.edi_file_payments 
+                                FROM
+                                    billing.edi_file_payments
                                 WHERE edi_file_id = ${params.file_id}
                             ),
-                            edi_file_payments AS ( 
+                            edi_file_payments AS (
                                 INSERT INTO billing.edi_file_payments
                                     (   edi_file_id
                                         ,payment_id
@@ -145,7 +145,7 @@ module.exports = {
         return await query(sql);
     },
 
-    createPaymentApplication: async function(params, paymentDetails){
+    createPaymentApplication: async function (params, paymentDetails) {
 
         let {
             lineItems
@@ -153,10 +153,10 @@ module.exports = {
             , audit_details
         } = params;
 
-        let conditionalJoin = paymentDetails.isFrom && paymentDetails.isFrom == 'EOB' ? ` AND ch.charge_dt::date = application_details.service_date ` : ` `;
+        let conditionalJoin = paymentDetails.isFrom && paymentDetails.isFrom == 'EOB' ? ' AND ch.charge_dt::date = application_details.service_date ' : ' ';
 
-        const sql =SQL` WITH application_details AS (
-                             SELECT 
+        const sql = SQL` WITH application_details AS (
+                             SELECT
                                   *
                              FROM json_to_recordset(${JSON.stringify(lineItems)}) AS (
                                  claim_number bigint
@@ -180,7 +180,7 @@ module.exports = {
                              )
                             ),
                            matched_claims AS (
-                                SELECT 
+                                SELECT
                                     application_details.claim_number AS claim_id,
                                     application_details.claim_status_code,
                                     application_details.payment,
@@ -194,27 +194,27 @@ module.exports = {
                                         'cas_details',application_details.cas_details,
                                         'applied_dt',CASE WHEN application_details.is_debit THEN now() + INTERVAL '0.01' SECOND ELSE now() END
                                     )
-                                FROM 
-                                    application_details  
+                                FROM
+                                    application_details
                                 INNER JOIN billing.claims c on c.id = application_details.claim_number
                                 INNER JOIN public.patients p on p.id = c.patient_id
                                 INNER JOIN billing.charges ch on ch.id = COALESCE(application_details.charge_id, (SELECT billing.get_era_charge_id(application_details.claim_number, application_details.cpt_code, application_details.service_date::date, application_details.duplicate, application_details.index))) `;
 
-        sql.append(SQL`         WHERE 
-			                    	(   CASE 
-                                        WHEN    ( application_details.patient_fname != '' ) 
-			                    		    AND ( application_details.patient_lname != '' ) 
-                                            AND ( CASE WHEN application_details.patient_mname  != ''  THEN lower(p.middle_name) = lower(application_details.patient_mname)  else '1' END) 
-			                    		    AND ( CASE WHEN application_details.patient_prefix != ''  THEN lower(p.prefix_name) = lower(application_details.patient_prefix) else '1' END) 
-			                    		    AND ( CASE WHEN application_details.patient_suffix != ''  THEN lower(p.suffix_name) = lower(application_details.patient_suffix) else '1' END) 
+        sql.append(SQL`         WHERE
+			                    	(   CASE
+                                        WHEN    ( application_details.patient_fname != '' )
+			                    		    AND ( application_details.patient_lname != '' )
+                                            AND ( CASE WHEN application_details.patient_mname  != ''  THEN lower(p.middle_name) = lower(application_details.patient_mname)  else '1' END)
+			                    		    AND ( CASE WHEN application_details.patient_prefix != ''  THEN lower(p.prefix_name) = lower(application_details.patient_prefix) else '1' END)
+			                    		    AND ( CASE WHEN application_details.patient_suffix != ''  THEN lower(p.suffix_name) = lower(application_details.patient_suffix) else '1' END)
                                         THEN ( lower(p.first_name) = lower(application_details.patient_fname) AND lower(p.last_name) = lower(application_details.patient_lname) )
     			                    	    ELSE '0'
-                                        END 
+                                        END
                                     ) `);
 
         sql.append(conditionalJoin);
 
-        sql.append(SQL`    ), 
+        sql.append(SQL`    ),
                            insert_payment_adjustment AS (
                                 SELECT
                                     matched_claims.claim_id
@@ -231,10 +231,10 @@ module.exports = {
                             )
                             ,update_payment AS (
                                UPDATE billing.payments
-                                SET 
+                                SET
                                     amount = ( SELECT COALESCE(sum(payment),'0')::numeric FROM matched_claims ),
                                     notes =  notes || E'\n' || 'Amount received for matching orders : ' || ( SELECT COALESCE(sum(payment),'0')::numeric FROM matched_claims ) || E'\n\n' || ${paymentDetails.uploaded_file_name}
-                                WHERE id = ${paymentDetails.id} 
+                                WHERE id = ${paymentDetails.id}
                                 AND 'EOB' = ${paymentDetails.isFrom}
                             )
                             ,insert_claim_comments AS (
@@ -246,13 +246,13 @@ module.exports = {
                                     ,created_by
                                     ,created_dt
                                 )
-                                SELECT 
-                                    claim_number 
+                                SELECT
+                                    claim_number
                                     ,note
                                     ,type
                                     ,${paymentDetails.created_by}
                                     ,'now()'
-                                FROM 
+                                FROM
                                     json_to_recordset(${JSON.stringify(claimComments)}) AS claim_notes
                                     (
                                         claim_number bigint
@@ -263,10 +263,10 @@ module.exports = {
                                 RETURNING id AS claim_comment_id
                                 ),
                                 update_claim_status_and_payer AS (
-                                    SELECT  
+                                    SELECT
                                         claim_id
-                                        ,billing.change_responsible_party(claim_id, claim_status_code, ${paymentDetails.company_id}, original_reference) 
-                                    FROM 
+                                        ,billing.change_responsible_party(claim_id, claim_status_code, ${paymentDetails.company_id}, original_reference)
+                                    FROM
                                         matched_claims
                                 )
                                 SELECT
@@ -277,15 +277,15 @@ module.exports = {
                                                           , ( SELECT array_agg(claim_id) FROM update_claim_status_and_payer LIMIT 1 )
                                                     FROM
                                                     insert_payment_adjustment
-                                            
+
                                                 ) AS insert_payment_adjustment
                                      ) AS insert_payment_adjustment
                             `);
-        
+
         return await query(sql);
     },
 
-    applyPaymentApplication: async function(audit_details, params){
+    applyPaymentApplication: async function (audit_details, params) {
         let {
             file_id,
             created_by,
@@ -302,8 +302,8 @@ module.exports = {
                                 billing.charges AS ch
                             INNER JOIN billing.payment_applications AS pa ON pa.charge_id = ch.id
                             INNER JOIN billing.payments AS p ON pa.payment_id  = p.id
-                            INNER JOIN billing.edi_file_payments AS efp ON pa.payment_id = efp.payment_id 
-                            WHERE efp.edi_file_id = ${file_id}  AND mode = 'eft' 
+                            INNER JOIN billing.edi_file_payments AS efp ON pa.payment_id = efp.payment_id
+                            WHERE efp.edi_file_id = ${file_id}  AND mode = 'eft'
                             ORDER BY pa.applied_dt DESC
                     )
                     ,unapplied_charges AS (
@@ -333,7 +333,7 @@ module.exports = {
 
     isProcessed: async function (file_md5, company_id) {
         const sql = `
-        
+
             WITH upload_info AS
                 (
                     SELECT Json_agg(file_exists) file_exists
@@ -352,10 +352,10 @@ module.exports = {
             file_store_info AS(
                 SELECT Json_agg(Row_to_json(file_store_info)) file_store_info
                     FROM(
-                        Select  
+                        Select
                             root_directory,
                             companies.file_store_id
-                        FROM 
+                        FROM
                             file_stores
                             LEFT JOIN companies ON companies.file_store_id = file_stores.id
                         WHERE
@@ -365,16 +365,16 @@ module.exports = {
             SELECT *
                 FROM
                     upload_info,
-                    file_store_info   
+                    file_store_info
         `;
-        
-        return await query(sql); 
+
+        return await query(sql);
     },
 
     saveERAFile: async function (params) {
-        const sql = `        
-            INSERT INTO   
-                billing.edi_files        
+        const sql = `
+            INSERT INTO
+                billing.edi_files
                     (company_id,
                      file_store_id,
                      created_dt,
@@ -398,20 +398,20 @@ module.exports = {
                         )
                         RETURNING id
         `;
-        
-        return await query(sql); 
+
+        return await query(sql);
     },
 
     getFileStorePath: async function (params) {
-        const sql = `          
-                Select 
-                    root_directory 
-                FROM file_stores 
+        const sql = `
+                Select
+                    root_directory
+                FROM file_stores
                     LEFT JOIN companies ON companies.file_store_id = file_stores.id
-                WHERE companies.id = ${params.company_id} 
+                WHERE companies.id = ${params.company_id}
         `;
-        
-        return await query(sql); 
+
+        return await query(sql);
     },
 
     getcasReasonGroupCodes: async function (params) {
@@ -449,35 +449,35 @@ module.exports = {
             company_id
         } = params;
 
-        const sql = `          
-                Select 
+        const sql = `
+                Select
                     ef.id
 				    ,ef.status
 				    ,ef.file_type
-				    ,ef.file_path 
+				    ,ef.file_path
 				    ,fs.root_directory
 				    ,ef.uploaded_file_name
-                FROM 
+                FROM
                     billing.edi_files ef
                 INNER JOIN file_stores fs on fs.id = ef.file_store_id
                 WHERE ef.id = ${file_id} AND ef.company_id = ${company_id}
         `;
-        
-        return await query(sql); 
+
+        return await query(sql);
     },
 
-    checkExistsERAPayment : async function(params){
+    checkExistsERAPayment: async function (params) {
 
-        const sql =SQL`SELECT 
+        const sql = SQL`SELECT
                             efp.payment_id AS id
                             ,p.created_by
-                        FROM 
-                            billing.edi_file_payments efp 
+                        FROM
+                            billing.edi_file_payments efp
                         INNER JOIN billing.payments p ON p.id = efp.payment_id
                         WHERE edi_file_id = ${params.file_id} `;
 
         return await query(sql);
-         
+
     },
 
     updateERAFileStatus: async function (params) {
@@ -485,7 +485,7 @@ module.exports = {
         const sql = SQL` UPDATE billing.edi_files
                         SET
                             status = (
-                                CASE 
+                                CASE
                                     WHEN EXISTS ( SELECT 1 FROM billing.edi_file_payments WHERE edi_file_id = ${params.file_id} ) THEN 'success'
                                     WHEN NOT EXISTS ( SELECT 1 FROM billing.edi_file_payments WHERE edi_file_id = ${params.file_id} ) THEN 'failure'
                                     ELSE
@@ -504,9 +504,9 @@ module.exports = {
         } = params;
 
         const sql = SQL`
-        
+
             WITH insurance_details AS(
-                SELECT 
+                SELECT
                     bp.id as payment_id ,
                     pip.id ,
                     pip.insurance_name ,
@@ -519,46 +519,46 @@ module.exports = {
                     pip.insurance_info->'PhoneNo' AS phone_no,
                     pip.insurance_info->'ZipCode' AS zip,
 				    fs.root_directory,
-				    bef.id as file_name, 
+				    bef.id as file_name,
 				    bef.file_path
-                FROM 
-                    billing.edi_files bef 
+                FROM
+                    billing.edi_files bef
                     INNER JOIN file_stores fs on fs.id = bef.file_store_id
-                    INNER JOIN billing.edi_file_payments befp ON befp.edi_file_id = bef.id 
-                    INNER JOIN billing.payments bp on bp.id = befp.payment_id 
-                    INNER JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id 
+                    INNER JOIN billing.edi_file_payments befp ON befp.edi_file_id = bef.id
+                    INNER JOIN billing.payments bp on bp.id = befp.payment_id
+                    INNER JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id
                     where bef.id = ${file_id} AND bp.mode = 'eft'
                 ),
-                charge_details AS (         
+                charge_details AS (
                     (SELECT Json_agg(Row_to_json(chargeDetails)) "chargeDetails"
-                    FROM 
+                    FROM
                    (
-                    SELECT 
-                    bch.claim_id, 
+                    SELECT
+                    bch.claim_id,
                     bch.charge_dt::date,
                     pcc.display_code AS cpt_decsription,
                     (bch.bill_fee * bch.units) AS bill_fee,
                     bpa.amount_type,
                     (bch.allowed_amount * bch.units) AS allowed_fee ,
                     (
-                        SELECT 
+                        SELECT
                          ('[' || modifier1.code || ',
                          ' || modifier2.code || ',
                          ' || modifier3.code ||  ',
                          ' || modifier4.code || ']')
-                        FROM billing.charges 
+                        FROM billing.charges
                         LEFT JOIN modifiers AS modifier1 on modifier1.id = modifier1_id
                         LEFT join modifiers AS modifier2 on modifier2.id = modifier2_id
                         LEFT join modifiers AS modifier3 on modifier3.id = modifier3_id
-                        LEFT join modifiers AS modifier4 on modifier4.id = modifier4_id     
-                            WHERE charges.id = bpa.charge_id                        
+                        LEFT join modifiers AS modifier4 on modifier4.id = modifier4_id
+                            WHERE charges.id = bpa.charge_id
                         ) as modifiers
-                    FROM  
-                    billing.edi_files bef 
-                    LEFT JOIN billing.edi_file_payments befp ON befp.edi_file_id = bef.id 
-                    LEFT JOIN billing.payments bp on bp.id = befp.payment_id 
-                    --LEFT JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id 
-                    
+                    FROM
+                    billing.edi_files bef
+                    LEFT JOIN billing.edi_file_payments befp ON befp.edi_file_id = bef.id
+                    LEFT JOIN billing.payments bp on bp.id = befp.payment_id
+                    --LEFT JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id
+
                     LEFT JOIN billing.payment_applications bpa on bpa.payment_id = bp .id
                     LEFT JOIN billing.charges bch on bch.id = bpa.charge_id
                     LEFT JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
@@ -566,15 +566,15 @@ module.exports = {
                     WHERE bef.id = ${file_id} AND bch.claim_id IS NOT NULL AND bp.mode = 'eft'
                 ) AS chargeDetails )
                     ),
-                claim_details AS (              
+                claim_details AS (
                     (SELECT Json_agg(Row_to_json(claimsDetails)) "claimsDetails"
-                     FROM 
-                    (  SELECT 
+                     FROM
+                    (  SELECT
                         patients.id,
                         patients.account_no,
                         get_full_name (patients.last_name,patients.first_name) AS pat_name,
                         claim_id
-                        FROM 
+                        FROM
                         (
                             SELECT DISTINCT
                             bch.claim_id
@@ -582,13 +582,13 @@ module.exports = {
                             INNER JOIN billing.edi_file_payments efp on efp.edi_file_id  = edi_files.id
                             LEFT JOIN billing.payments pay on pay.id = efp.payment_id
                             LEFT  JOIN billing.payment_applications bpa on bpa.payment_id = pay.id
-                            LEFT  JOIN billing.charges bch on bch.id = bpa.charge_id 
+                            LEFT  JOIN billing.charges bch on bch.id = bpa.charge_id
                             where edi_files.id = ${file_id} AND pay.mode = 'eft'
                         ) AS claim_details
 
                         inner join billing.claims on claims.id = claim_details.claim_id
-                        inner join patients on patients.id = claims.patient_id    
-                    ) AS claimsDetails      )       
+                        inner join patients on patients.id = claims.patient_id
+                    ) AS claimsDetails      )
                 )
                 SELECT * FROM insurance_details, charge_details, claim_details
         `;

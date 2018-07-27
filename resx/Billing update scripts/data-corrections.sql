@@ -2,17 +2,17 @@
 $$
 DECLARE
 
-s_rec RECORD; 
+s_rec RECORD;
 coverage_level_wrong character varying := '';
 originalProvider json ;
 wrong_patient_insurance_id int := 0;
 patient_insuarances_id int :=0;
 policy_no character varying := '';
-wrong_insuarances_id int :=0; 
+wrong_insuarances_id int :=0;
 
 BEGIN
 -- -----------------------------------------------------------------------------------------------------------------------
--- FOR SNO -11 ,SNO-12 for we have same migration script 
+-- FOR SNO -11 ,SNO-12 for we have same migration script
 -- SNO-11 Patient id in orders and patient id in  "patient insurances" are  not matching-- 64 Row
 -- SNO-11 Kyle Reply :Look up and assign these orders to the corresponding patient insurance profile.  ie Primary, Secondary, Tertiary "
 -- SNO-12 Patient Insurances in Order ID don’t have matching patient id of orders- 1 Row
@@ -47,7 +47,7 @@ WHERE
             orders.id
         FROM orders
         INNER JOIN patient_insuarances ON patient_insuarances.id = ANY (insurance_provider_ids)
-        WHERE 1=1 
+        WHERE 1=1
         AND orders.patient_id = patient_insuarances.patient_id
         AND orders.id IN ((SELECT
                                orders.id FROM orders
@@ -58,7 +58,7 @@ WHERE
 FOR s_rec IN SELECT * FROM patient_insuarances_exception_data WHERE NOT is_updated  AND NOT is_exclude LOOP
 SELECT coverage_level,id as patient_insuarances_id,subscriber_info->'PolicyNo' as policy_no,insurance_provider_id INTO coverage_level_wrong, patient_insuarances_id,policy_no,wrong_insuarances_id FROM patient_insuarances
  WHERE s_rec.patient_insuarances_id = patient_insuarances.id ;
-wrong_patient_insurance_id =(SELECT id FROM patient_insuarances WHERE s_rec.patient_id = patient_insuarances.patient_id 
+wrong_patient_insurance_id =(SELECT id FROM patient_insuarances WHERE s_rec.patient_id = patient_insuarances.patient_id
 AND coverage_level_wrong=patient_insuarances.coverage_level AND patient_insuarances.insurance_provider_id = wrong_insuarances_id AND policy_no=subscriber_info->'PolicyNo' LIMIT 1);
  RAISE notice 'row = % coverage_level_wrong',coverage_level_wrong;
  RAISE notice 'row = % patient_insuarances_id',patient_insuarances_id;
@@ -83,7 +83,7 @@ DROP TABLE patient_insuarances_exception_data;
 -- Kyle Reply :  If there is no primary coverage available then do not populate any insurance profiles and set the claim to patient responsibility.
 -- -----------------------------------------------------------------------------------------------------------------------
 UPDATE orders ic SET insurance_provider_ids = null , order_info = ic.order_info || hstore(ARRAY['payer', 'payer_id', 'payer_type', 'payer_name'], ARRAY['Patient', o.patient_id::text, 'PPP', patients.full_name::text])
-FROM 
+FROM
     orders o
 INNER JOIN patient_insuarances pi ON pi.id = insurance_provider_ids[1]
 INNER JOIN patients ON patients.id = pi.patient_id
@@ -96,7 +96,7 @@ AND array_length(o.insurance_provider_ids, 1) <= 3
 AND o.order_status NOT IN ('NOS', 'ABRT', 'ORD', 'CAN' );
 -- -----------------------------------------------------------------------------------------------------------------------
 UPDATE orders ic SET insurance_provider_ids = ARRAY(SELECT o.insurance_provider_ids[1])
-FROM 
+FROM
     orders o
 INNER JOIN patient_insuarances pip ON pip.id = insurance_provider_ids[1] AND pip.coverage_level = 'P'
 INNER JOIN patient_insuarances pis ON pis.id = insurance_provider_ids[2] AND pis.coverage_level != 'S'
@@ -108,7 +108,7 @@ AND array_length(o.insurance_provider_ids, 1) <= 3
 AND o.order_status NOT IN ('NOS', 'ABRT', 'ORD', 'CAN' );
 -- -----------------------------------------------------------------------------------------------------------------------
 UPDATE orders ic SET insurance_provider_ids =   ARRAY[o.insurance_provider_ids[1], o.insurance_provider_ids[2]]
-FROM 
+FROM
     orders o
 INNER JOIN patient_insuarances pip ON pip.id = insurance_provider_ids[1] AND pip.coverage_level = 'P'
 INNER JOIN patient_insuarances pis ON pis.id = insurance_provider_ids[2] AND pis.coverage_level = 'S'
@@ -121,7 +121,7 @@ AND array_length(o.insurance_provider_ids, 1) <= 3
 AND o.order_status NOT IN ('NOS', 'ABRT', 'ORD', 'CAN' );
 -- -----------------------------------------------------------------------------------------------------------------------
 UPDATE orders ic SET insurance_provider_ids =  null, order_info = ic.order_info || hstore(ARRAY['payer', 'payer_id', 'payer_type', 'payer_name'], ARRAY['Patient', o.patient_id::text, 'PPP', patients.full_name::text])
-FROM 
+FROM
     orders o
 INNER JOIN patients ON patients.id = o.patient_id
 INNER JOIN patient_insuarances pip ON pip.id = insurance_provider_ids[1] AND pip.coverage_level != 'P'
@@ -133,7 +133,7 @@ AND array_length(o.insurance_provider_ids, 1) > 3
 AND o.order_status NOT IN ('NOS', 'ABRT', 'ORD', 'CAN' );
 -- -----------------------------------------------------------------------------------------------------------------------
 UPDATE orders ic SET insurance_provider_ids =  ARRAY[o.insurance_provider_ids[1]]
-FROM 
+FROM
     orders o
 INNER JOIN patients ON patients.id = o.patient_id
 INNER JOIN patient_insuarances pip ON pip.id = insurance_provider_ids[1] AND pip.coverage_level = 'P'
@@ -146,7 +146,7 @@ AND array_length(o.insurance_provider_ids, 1) > 3
 AND o.order_status NOT IN ('NOS', 'ABRT', 'ORD', 'CAN' );
 -- -----------------------------------------------------------------------------------------------------------------------
 UPDATE orders ic SET insurance_provider_ids =  ARRAY[o.insurance_provider_ids[1], o.insurance_provider_ids[2]]
-FROM 
+FROM
     orders o
 INNER JOIN patients ON patients.id = o.patient_id
 INNER JOIN patient_insuarances pip ON pip.id = insurance_provider_ids[1] AND pip.coverage_level = 'P'
@@ -184,7 +184,7 @@ WHERE 1=1
 AND c.order_id = Dup_claims.order_id
 AND c.submitted_dt != q_submitted_dt;
 -- -------------------------------------------------------------------------------------------------------------
--- Data fix for duplicate claims with same submission date/time  other than Electronic Billing 
+-- Data fix for duplicate claims with same submission date/time  other than Electronic Billing
 WITH Dup_claims as
 (
     SELECT
@@ -193,14 +193,14 @@ WITH Dup_claims as
         max(id) as q_claim_id
     FROM public.claims c
     WHERE  1=1
-    AND has_expired is null 
+    AND has_expired is null
     AND billing_method != 'EB'
     GROUP BY order_id
     HAVING count(order_id) >1
 )
 UPDATE public.claims c
     SET  has_expired = true
-FROM Dup_claims 
+FROM Dup_claims
 WHERE 1=1
 AND c.order_id = Dup_claims.order_id
 AND c.submitted_dt = q_submitted_dt
@@ -248,9 +248,9 @@ SET
         o.id = c.order_id
         AND coalesce(c.has_expired, FALSE) IS FALSE
 )
-UPDATE 
-  orders o 
-SET order_info = order_info|| hstore (ARRAY 
+UPDATE
+  orders o
+SET order_info = order_info|| hstore (ARRAY
          ['payer','payer_id','payer_type','payer_name' ],
          ARRAY [CASE WHEN o.insurance_provider_ids [ 1 ] IS NOT NULL THEN
             'Insurance'
@@ -272,8 +272,8 @@ SET order_info = order_info|| hstore (ARRAY
            ELSE
                (SELECT Full_name from patients where id = o.patient_id )::text
            END])
-FROM 
-   order_ids os 
+FROM
+   order_ids os
 WHERE 1=1
 AND o.id = os.order_id
 AND NOT has_deleted;
@@ -325,7 +325,7 @@ AND NOT (CASE order_info->'payer' WHEN 'Patient'    THEN true
 -- -----------------------------------------------------------------------------------------------------------------------
 
 RAISE NOTICE '--- 5    SNO-15 Payer is Empty OR Null data fix';
---SNO-15 Payer is Empty OR Null data fix 
+--SNO-15 Payer is Empty OR Null data fix
 -- -----------------------------------------------------------------------------------------------------------------------
 UPDATE
     claims
@@ -368,7 +368,7 @@ AND coalesce(o.has_deleted, FALSE) IS FALSE;
 -- -----------------------------------------------------------------------------------------------------------------------
 RAISE NOTICE '--- 6    SNO-5 Data fix for billing provider is null';
 -- Data fix for billing provider is null
--- SNO-5 Kyle reply - Default the billing providers from facility . 
+-- SNO-5 Kyle reply - Default the billing providers from facility .
 -- -----------------------------------------------------------------------------------------------------------------------
 UPDATE
     orders o
@@ -522,14 +522,14 @@ RAISE NOTICE '---8     Data correction for paymeny status';
 -- Data correction for paymeny status
 -- -----------------------------------------------------------------------------------------------------------------------
 WITH total_applied_amount AS (
-SELECT 
+SELECT
     payment_id,
     sum(amount_paid) as applied_amount
 FROM order_payments
 WHERE NOT coalesce(has_deleted,false)
 group by payment_id
 )
-UPDATE payments p 
+UPDATE payments p
 SET
   applied = tam.applied_amount,
   available_balance = (p.amount - tam.applied_amount),
@@ -539,7 +539,7 @@ SET
 			WHEN (p.amount < tam.applied_amount) THEN 'OverApplied'
 	           END
 FROM total_applied_amount tam
-WHERE 
+WHERE
      p.id = tam.payment_id
      AND coalesce(p.has_deleted,FALSE) is false
 AND p.current_status != 'Refund';

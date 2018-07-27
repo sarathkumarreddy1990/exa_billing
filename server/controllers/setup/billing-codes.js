@@ -2,7 +2,7 @@ const data = require('../../data/setup/billing-codes');
 
 module.exports = {
 
-    getData: (params) => {        
+    getData: (params) => {
         if (params.id) {
             return data.getDataById(params);
         }

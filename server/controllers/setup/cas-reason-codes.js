@@ -6,7 +6,7 @@ module.exports = {
         if (params.id) {
             return data.getDataById(params);
         }
-        
+
         return data.getData(params);
     },
 

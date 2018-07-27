@@ -10,8 +10,8 @@ router.get('/', async function (req, res) {
     req.params.userID = req.query.userId;
     req.params.siteID = 1;
     const data = await appSettingsController.getData(req.params);
-    
-    if(data.rows && data.rows.length > 0){
+
+    if (data.rows && data.rows.length > 0) {
         data.rows[0].screens = req.session.screens;
     }
 

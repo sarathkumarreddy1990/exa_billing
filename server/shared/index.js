@@ -30,7 +30,7 @@ module.exports = {
 
         if (moduleName == 'reports') {
             const reportName = apiPath[3].replace(/\.[^.*]*$/, '');
-            
+
             screenNameInternal = reportName;
             screenName = screenNames[reportName];
             entityName = entityNames[apiPath[1]] || entityNames[apiPath[0]] || apiPath[1] || screenName;

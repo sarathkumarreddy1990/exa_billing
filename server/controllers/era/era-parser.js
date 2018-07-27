@@ -45,7 +45,7 @@ const commentsDetails = [
 ];
 
 module.exports = {
-    
+
     getFormatedLineItemsAndClaims: async function (claimLists, params) {
 
         let claimComments = [];
@@ -75,7 +75,7 @@ module.exports = {
                         */
                         let PatientResponsibility = _.filter(val.serviceAdjustment, { groupCode: 'PR' });
 
-                        if(PatientResponsibility && PatientResponsibility.length){
+                        if (PatientResponsibility && PatientResponsibility.length) {
                             PatientResponsibility = PatientResponsibility[0] ? PatientResponsibility[0] : '{}';
                         }
 
@@ -134,7 +134,7 @@ module.exports = {
                         *  DESC : Primary payers are defined via the claim status of 1 or 19
                         */
                         adjustmentAmount = ['1', '19'].indexOf(value.claimStatusCode) == -1 ? 0 : adjustmentAmount[0];
-                        
+
                         /**
                         *  Condition : Check Is Valid CAS or Not
                         *  DESC : Is any one of CAS is not Valid, Then assigne adjustment amount = 0
@@ -144,7 +144,7 @@ module.exports = {
                         }
 
                         /**
-                        *  Condition : ERA- Payment=0, adjustment == bill fee means should not apply adjustment 
+                        *  Condition : ERA- Payment=0, adjustment == bill fee means should not apply adjustment
                         *  DESC : Assign Adjustment amount is zero
                         */
 
@@ -187,9 +187,10 @@ module.exports = {
                         *  DESC : Formatting lineItems (Added sequence index and flag:true ) if duplicate cpt code came
                         */
                         let duplicateObj = _.findLast(lineItems, {
-                            claim_number: value.claimNumber, 
-                            cpt_code: val.qualifierData.cptCode });
-                            
+                            claim_number: value.claimNumber,
+                            cpt_code: val.qualifierData.cptCode
+                        });
+
                         let index = 1;
                         let duplicate_flag = false;
 
@@ -205,8 +206,8 @@ module.exports = {
                         // Condition :: Check ERA file payment/Adjustment value is negative/postive to mark credit/debit paments
                         let isDebit = false;
                         let adjustment_code = 'ERA';
-                        
-                        if(parseFloat(val.paidamount) < 0 || adjustmentAmount < 0){
+
+                        if (parseFloat(val.paidamount) < 0 || adjustmentAmount < 0) {
                             isDebit = true;
                             adjustment_code = 'ERAREC';
                         }
@@ -221,15 +222,15 @@ module.exports = {
                             cas_details: cas_obj,
                             charge_id: charge_id,
                             service_date: val.serviceDate && val.serviceDate.serviceDate || null,
-                            patient_fname : value.patientName.firstName || '',
-                            patient_lname : value.patientName.lastName || '',
-                            patient_mname : value.patientName.middleName || '',
-                            patient_prefix : value.patientName.prefix || '',
-                            patient_suffix : value.patientName.suffix || '',
-                            index : index,
-                            duplicate : duplicate_flag,
-                            is_debit : isDebit,
-                            code : adjustment_code
+                            patient_fname: value.patientName.firstName || '',
+                            patient_lname: value.patientName.lastName || '',
+                            patient_mname: value.patientName.middleName || '',
+                            patient_prefix: value.patientName.prefix || '',
+                            patient_suffix: value.patientName.suffix || '',
+                            index: index,
+                            duplicate: duplicate_flag,
+                            is_debit: isDebit,
+                            code: adjustment_code
                         });
                     });
 
@@ -273,14 +274,14 @@ module.exports = {
                     }
 
                     if (value.outpatientAdjudicationInformation && Object.keys(value.outpatientAdjudicationInformation).length) {
-                        
+
                         _.each(Object.keys(value.outpatientAdjudicationInformation), function (key) {
                             let note = _.find(remarkCodes, (desc, k) => { if (k === value.outpatientAdjudicationInformation[key]) { return desc; } });
 
                             if (note) {
                                 claimComments.push({
                                     claim_number: value.claimNumber,
-                                    note: value.outpatientAdjudicationInformation[key] +': '+ note,
+                                    note: value.outpatientAdjudicationInformation[key] + ': ' + note,
                                     type: 'auto'
                                 });
                             }

@@ -9,7 +9,7 @@ module.exports = {
         if (args.id) {
             return await data.getById(args);
         }
-        
+
         return await data.get(args);
     },
 

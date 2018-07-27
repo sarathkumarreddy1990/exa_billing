@@ -178,9 +178,9 @@ const util = {
 
         return dateRange;
     },
-    getClaimFilterQuery:function(filterObj){
+    getClaimFilterQuery: function (filterObj) {
         let query = '';
-        
+
         if (filterObj) {
 
             if (typeof filterObj != 'object') {
@@ -194,21 +194,21 @@ const util = {
             if (filterObj.ClaimInformation) {
                 if (filterObj.ClaimInformation.claimStatus) {
                     let obj = filterObj.ClaimInformation.claimStatus;
-                    let statusQuery = '',   
+                    let statusQuery = '',
                         l = obj.list.length;
-                       
+
 
                     if (l > 0) {
 
                         for (let i = 0; i < l; i++) {
 
                             if (i == 0) {
-                                
+
                                 statusQuery += ' claims.claim_status_id' + util.getConditionalOperator(obj.condition, obj.list[i].value, false, '');
-                                
+
 
                             } else {
-                                
+
                                 statusQuery += util.getConditionalRelationOperator(obj.condition) + 'claims.claim_status_id' + util.getConditionalOperator(obj.condition, obj.list[i].value, false, '');
                             }
 
@@ -219,10 +219,10 @@ const util = {
                         }
 
                         query += util.getRelationOperator(query) + '(' + statusQuery + ')';
-                    }                    
-                   
-                } 
-				
+                    }
+
+                }
+
                 if (filterObj.ClaimInformation.billingMethod) {
                     let obj = filterObj.ClaimInformation.billingMethod;
                     let l = obj.list.length;
@@ -267,18 +267,18 @@ const util = {
                         query += util.getRelationOperator(query) + (l == 1 && !obj.condition ? PayerTypeQuery : '(' + PayerTypeQuery + ')');
 
                     }
-                }  
+                }
 
-                if (filterObj.ClaimInformation.balance&&filterObj.ClaimInformation.balance.value) {
+                if (filterObj.ClaimInformation.balance && filterObj.ClaimInformation.balance.value) {
                     let obj = filterObj.ClaimInformation.balance;
                     let BalanceQuery = '';
 
 
-                    BalanceQuery += '  (select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from BILLING.get_claim_totals(claims.id))::numeric' + obj.value +'::numeric';
+                    BalanceQuery += '  (select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from BILLING.get_claim_totals(claims.id))::numeric' + obj.value + '::numeric';
 
-                    query += util.getRelationOperator(query) + BalanceQuery ;
+                    query += util.getRelationOperator(query) + BalanceQuery;
 
-                   
+
                 }
             }
         }
@@ -396,14 +396,14 @@ const util = {
                                 //refPhyQuery2 += ` ${util.getConditionalRelationOperator(condition)} `
                             }
 
-                            const list = refPhyBlocks[condition].reduce(function (z, v) { 
-                                if(z) {
-                                    z += ','; 
-                                }  else {
+                            const list = refPhyBlocks[condition].reduce(function (z, v) {
+                                if (z) {
+                                    z += ',';
+                                } else {
                                     z = '';
-                                } 
+                                }
 
-                                return z += `'${v}'`; 
+                                return z += `'${v}'`;
                             }, null);
 
                             refPhyQuery1 += `
@@ -574,9 +574,9 @@ const util = {
                             let l = obj.list.length;
 
                             for (let i = 0; i < l; i++) {
-                                if (i == 0){
+                                if (i == 0) {
                                     studyDescQuery = ' studies.study_description' + util.getConditionalOperator(obj.condition, obj.list[i].text, false, 'study_desc');
-                                }else{
+                                } else {
                                     studyDescQuery += util.getConditionalRelationOperator(obj.condition) + ' studies.study_description' + util.getConditionalOperator(obj.condition, obj.list[i].text, false, 'study_desc');
                                 }
                             }
@@ -646,7 +646,7 @@ const util = {
 
                 if (filterObj.studyInformation.status) {
                     let obj = filterObj.studyInformation.status;
-                    let l = obj.list.length, 
+                    let l = obj.list.length,
                         isVisit = false;
                     let statusQuery = '',
                         byMeQuery = '';
@@ -748,7 +748,7 @@ const util = {
 
                         for (let i = 0; i < l; i++) {
                             let nameSql = ' get_full_name(attorneys.last_name, attorneys.first_name, attorneys.middle_initial, NULL, attorneys.suffix)';
-                            
+
                             if (i === 0) {
                                 attorneyQuery += nameSql + util.getConditionalOperator(obj[i].condition, obj[i].value, false, 'attorney');
                             } else {
@@ -756,7 +756,7 @@ const util = {
                             }
                         }
 
-                        attorneyQuery += `) 
+                        attorneyQuery += `)
                         AND attorneys.provider_type = 'AT'`;
 
                         query += util.getRelationOperator(query) + '(' + attorneyQuery + ')';
@@ -863,7 +863,7 @@ const util = {
 
             }
 
-            if (filterObj.options&&!filterObj.options.statOverride && statOverride && query) {
+            if (filterObj.options && !filterObj.options.statOverride && statOverride && query) {
                 query = ' (( ' + query + ' ) OR studies.stat_level > 0 ) ';
             }
         }
@@ -939,16 +939,16 @@ const util = {
         let drQuery,
             scheduleDtColumn,
             preformatted,
-            duration, 
-            fromDate, 
+            duration,
+            fromDate,
             fromTime,
-            toDate, 
+            toDate,
             toTime = '';
         // NOTE:
         // When timestamp contains time zone info, there is no need for TZ conversion !!!
         // Just compare date+time+tz string directly. For example:
         //      (studies.study_received_dt BETWEEN '2017-03-08T00:00:00-05:00' AND '2017-03-08T23:59:59-05:00')   -- preformatted, today
-        
+
         if (filterObj.date && filterObj.date.dateType) {
             //scheduleDtColumn = "timezone(facilities.time_zone, " + orders.ordersData.getSortFields(filterObj.date.dateType) + ")";
             switch (filterObj.date.dateType) {
@@ -1020,7 +1020,7 @@ const util = {
             drQuery = '';
         }
         //console.log("STUDY FILTER: getDateRangeQuery: '%s'", drQuery);
-        
+
         return drQuery;
     }
 

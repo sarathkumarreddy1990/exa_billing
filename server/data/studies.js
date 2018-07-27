@@ -1,5 +1,5 @@
 const { query, SQL } = require('./index');
-const  SearchFilter = require('./search-filter');
+const SearchFilter = require('./search-filter');
 
 module.exports = {
 
@@ -12,9 +12,9 @@ module.exports = {
         let { fromDate, toDate } = params;
 
         let sql = SQL`
-                    SELECT   * 
-                    FROM     studies 
-                    WHERE    study_dt BETWEEN ${fromDate}::date AND      ${toDate}::date 
+                    SELECT   *
+                    FROM     studies
+                    WHERE    study_dt BETWEEN ${fromDate}::date AND      ${toDate}::date
                     ORDER BY id DESC limit 10
                     `;
 
