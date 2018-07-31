@@ -4,10 +4,10 @@ module.exports = {
 
     getData: async function (params) {
 
-        if(params.sortField == 'phoneNumber') {
+        if (params.sortField == 'phoneNumber') {
             params.sortField = 'phone_number';
         }
-        
+
         params.sortOrder = params.sortOrder || ' DESC';
         let {
             code,
@@ -39,7 +39,7 @@ module.exports = {
         }
 
         const sql = SQL`
-            SELECT 
+            SELECT
                     id
                     , company_id
                     , inactivated_dt
@@ -95,7 +95,7 @@ module.exports = {
         let { id } = params;
 
         const sql = SQL`
-            SELECT 
+            SELECT
                     id
                     , company_id
                     , inactivated_dt
@@ -127,7 +127,7 @@ module.exports = {
                     , pay_to_fax_number
                     , communication_info
                 FROM   billing.providers
-                WHERE 
+                WHERE
                     id = ${id} `;
 
         return await query(sql);
@@ -168,7 +168,7 @@ module.exports = {
         } = params;
         let inactivated_dt = isActive ? null : 'now()';
 
-        const sql = SQL` 
+        const sql = SQL`
             INSERT INTO billing.providers
                     ( name
                     , code
@@ -273,7 +273,7 @@ module.exports = {
         } = params;
         let inactivated_dt = isActive ? null : 'now()';
 
-        const sql = SQL` 
+        const sql = SQL`
             UPDATE
                     billing.providers
                 SET
@@ -309,10 +309,10 @@ module.exports = {
                     id = ${id}
                     RETURNING *,
                     (
-                        SELECT row_to_json(old_row) 
-                        FROM   (SELECT * 
-                                FROM   billing.providers 
-                                WHERE  id = ${id}) old_row 
+                        SELECT row_to_json(old_row)
+                        FROM   (SELECT *
+                                FROM   billing.providers
+                                WHERE  id = ${id}) old_row
                     ) old_values`;
 
         return await queryWithAudit(sql, {
@@ -336,7 +336,7 @@ module.exports = {
 
         logDescription = `Deleted ${description}(${code})`;
 
-        const sql = SQL` 
+        const sql = SQL`
             WITH delete_billing_provider AS(
                 DELETE FROM
                     billing.provider_id_codes

@@ -6,12 +6,12 @@ module.exports = {
 
     getData: async function (args) {
 
-        const sqlQuery =`
-                    SELECT id AS filter_id, * 
-                    FROM   billing.grid_filters 
-                    WHERE  filter_type = 'studies' 
-                            AND user_id = $1 
-                            AND inactivated_dt is null 
+        const sqlQuery = `
+                    SELECT id AS filter_id, *
+                    FROM   billing.grid_filters
+                    WHERE  filter_type = 'studies'
+                            AND user_id = $1
+                            AND inactivated_dt is null
                     ORDER  BY filter_order
                         `;
 

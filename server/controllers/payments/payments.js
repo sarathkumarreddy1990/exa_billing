@@ -20,7 +20,7 @@ module.exports = {
             client_ip: params.clientIp,
             user_id: parseInt(params.userId)
         };
-        
+
         params.auditDetails = auditDetails;
         return data.deletePayment(params);
     },
@@ -57,7 +57,7 @@ module.exports = {
                     created_by: user_id
                 });
 
-                claimCommentDetails.coInsurance = coInsurance; 
+                claimCommentDetails.coInsurance = coInsurance;
             }
 
             if (coPay > 0) {
@@ -68,7 +68,7 @@ module.exports = {
                     created_by: user_id
                 });
 
-                claimCommentDetails.coPay = coPay; 
+                claimCommentDetails.coPay = coPay;
             }
 
             if (deductible > 0) {
@@ -79,7 +79,7 @@ module.exports = {
                     created_by: user_id
                 });
 
-                claimCommentDetails.deductible = deductible; 
+                claimCommentDetails.deductible = deductible;
             }
 
             params.coPaycoInsDeductdetails = coPaycoInsDeductdetails;
@@ -116,8 +116,8 @@ module.exports = {
                     charge_id: value.charge_id,
                     amount: value.adjustment || 0.00,
                     adjustment_id: adjustmentId || null,
-                    parent_application_id:value.paymentApplicationId, 
-                    parent_applied_dt:value.paymentAppliedDt 
+                    parent_application_id: value.paymentApplicationId,
+                    parent_applied_dt: value.paymentAppliedDt
                 });
 
 
@@ -125,10 +125,10 @@ module.exports = {
                     save_cas_details.push({
                         payment_application_id: value.adjustmentApplicationId != '' ? value.adjustmentApplicationId : null,
                         parent_application_id: value.paymentApplicationId || null,
-                        group_code_id : details.group_code_id,
-                        reason_code_id : details.reason_code_id,
-                        amount : details.amount,
-                        cas_id : details.cas_id || null
+                        group_code_id: details.group_code_id,
+                        reason_code_id: details.reason_code_id,
+                        amount: details.amount,
+                        cas_id: details.cas_id || null
                     });
                 });
             });
@@ -141,7 +141,7 @@ module.exports = {
                     created_by: user_id
                 });
 
-                claimCommentDetails.coInsurance = coInsurance; 
+                claimCommentDetails.coInsurance = coInsurance;
             }
 
             if (coPay > 0) {
@@ -152,7 +152,7 @@ module.exports = {
                     created_by: user_id
                 });
 
-                claimCommentDetails.coPay = coPay; 
+                claimCommentDetails.coPay = coPay;
             }
 
             if (deductible > 0) {
@@ -163,7 +163,7 @@ module.exports = {
                     created_by: user_id
                 });
 
-                claimCommentDetails.deductible = deductible; 
+                claimCommentDetails.deductible = deductible;
             }
 
             params.coPaycoInsDeductdetails = coPaycoInsDeductdetails;
@@ -174,13 +174,13 @@ module.exports = {
         }
 
     },
-    
+
     getAppliedAmount: function (paymentId) {
         return data.getAppliedAmount(paymentId);
     },
 
     getInvoiceDetails: async function (params) {
-        
+
         let claimIds = [];
         let flag = true;
         let result = [];
@@ -225,7 +225,7 @@ module.exports = {
     },
 
     createInvoicePaymentapplications: async function (params) {
-        
+
         let auditDetails = {
             company_id: params.companyId,
             screen_name: params.screenName,
@@ -233,28 +233,28 @@ module.exports = {
             client_ip: params.clientIp,
             user_id: parseInt(params.userId)
         };
-        let paymentDetails ={};
+        let paymentDetails = {};
         let claimIds = [];
         let flag = true;
         let lineItems = [];
         let totalPaymentAmount = 0;
 
-        let claimCharges =  await data.getClaimCharges(params);
-       
+        let claimCharges = await data.getClaimCharges(params);
+
         claimCharges = claimCharges.rows && claimCharges.rows.length ? claimCharges.rows : [];
         let paymentAmount = claimCharges.length && claimCharges[0].payment_balance_total || 0;
-        
+
         _.each(claimCharges, function (item) {
 
             let claimNumber = parseInt(item.claim_id);
-            
+
             if (!_.includes(claimIds, claimNumber) && !flag) {
                 return false;
-            } 
+            }
 
-            if ((totalPaymentAmount < paymentAmount) || _.includes(claimIds, claimNumber) ) {
+            if ((totalPaymentAmount < paymentAmount) || _.includes(claimIds, claimNumber)) {
 
-                if (!_.includes(claimIds, claimNumber)){
+                if (!_.includes(claimIds, claimNumber)) {
                     claimIds.push(parseInt(item.claim_id));
                 }
 
@@ -286,7 +286,7 @@ module.exports = {
                 });
             }
         });
- 
+
         params.lineItems = lineItems;
         params.claimComments = [];
         params.audit_details = auditDetails;

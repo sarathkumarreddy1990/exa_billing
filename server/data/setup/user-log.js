@@ -29,19 +29,19 @@ module.exports = {
             whereQuery.push(` logged_in_dt::date =  '${logged_in_dt}'::date`);
         }
 
-        if(logged_out_dt){
+        if (logged_out_dt) {
             whereQuery.push(` logged_out_dt::date =  '${logged_out_dt}'::date`);
         }
 
-        if(last_access_dt){
+        if (last_access_dt) {
             whereQuery.push(` last_access_dt::date =  '${last_access_dt}'::date`);
         }
 
-        if(login_source){
+        if (login_source) {
             whereQuery.push(` login_source = '${login_source}'`);
         }
 
-        const sql = SQL`SELECT 
+        const sql = SQL`SELECT
                               ul.id
                             , client_info
                             , ul.client_info->'ip' AS ip_address
@@ -54,7 +54,7 @@ module.exports = {
                             , ul.last_access_dt
                             , ul.login_source
                             , COUNT(1) OVER (range unbounded preceding) AS total_records
-                        FROM 
+                        FROM
                             users u
                         INNER JOIN user_log ul ON ul.user_id = u.id `;
 
@@ -76,7 +76,7 @@ module.exports = {
     getDataById: async (params) => {
         const { id } = params;
 
-        const sql = SQL`SELECT 
+        const sql = SQL`SELECT
                               user_id
                             , client_info
                             , session_id
@@ -89,9 +89,9 @@ module.exports = {
                             , ul.logged_out_dt
                             , ul.last_access_dt
                             , ul.login_source
-                        FROM 
+                        FROM
                             users u
-                        INNER JOIN user_log ul ON ul.user_id = u.id 
+                        INNER JOIN user_log ul ON ul.user_id = u.id
                         WHERE ul.id = ${id} `;
 
         return await query(sql);

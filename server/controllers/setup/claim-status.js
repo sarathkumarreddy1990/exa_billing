@@ -2,11 +2,11 @@ const data = require('../../data/setup/claim-status');
 
 module.exports = {
 
-    getData: (params) => {        
+    getData: (params) => {
         if (params.id) {
             return data.getDataById(params);
         }
-        
+
         return data.getData(params);
     },
 

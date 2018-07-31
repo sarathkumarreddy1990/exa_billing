@@ -9,7 +9,7 @@ module.exports = {
         }
 
         /// Handled Error
-        if(responseData && responseData instanceof Error) {
+        if (responseData && responseData instanceof Error) {
             responseData.status = 'HANDLED_EXCEPTION';
             return this.sendError(req, res, responseData);
         }
@@ -28,7 +28,7 @@ module.exports = {
         }
 
         /// Handled Error
-        if(responseData && responseData instanceof Error) {
+        if (responseData && responseData instanceof Error) {
             responseData.status = 'HANDLED_EXCEPTION';
             return this.sendError(req, res, responseData);
         }

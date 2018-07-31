@@ -34,7 +34,7 @@ router.delete('/:id', async function (req, res) {
 
     const data = await codesController.delete(params);
     httpHandler.sendRows(req, res, data);
-    
+
 });
 
 

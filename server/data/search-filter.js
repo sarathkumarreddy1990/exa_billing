@@ -274,7 +274,7 @@ const colModel = [
         name: 'image_delivery',
         searchColumns: ['provider_contacts.contact_info'],
         searchFlag: 'hstore_bool_multi'
-    },    
+    },
     {
         name: 'tat_level',
         searchColumns: ['tat.level'],
@@ -331,11 +331,11 @@ const api = {
     `,
 
     getSettingsFilter: function () {
-        return ` COALESCE(dicom_status,'') 
+        return ` COALESCE(dicom_status,'')
         in ('CO','IP','NA','') `;
     },
 
-    
+
     getTables: function ( filter ) {
         // This assumes all columns are prefixed with their table name table.column
         let tables = {};
@@ -377,7 +377,7 @@ const api = {
                 COALESCE( (SELECT insurance_name FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = orders.secondary_patient_insurance_id) LIMIT 1), null),
                 COALESCE( (SELECT insurance_name FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = orders.tertiary_patient_insurance_id) LIMIT 1), null)
                 ])`;
-            case 'image_delivery': return 'imagedelivery.image_delivery';            
+            case 'image_delivery': return 'imagedelivery.image_delivery';
             case 'station': return "study_info->'station'";
             case 'has_deleted': return 'studies.has_deleted';
             case 'send_status': return "studies.study_info->'send_status'";
@@ -487,11 +487,11 @@ const api = {
             case 'tat_level': return 'tat.level';
             case 'patient_room': return `orders.order_info->'patientRoom'`; //***For EXA-7148 -- Add Room Number colum to Facility Portal***//
             case 'visit_no': return `orders.order_info->'visit_no'`;
-            case 'billed_status': return `(SELECT  CASE WHEN (SELECT 1 FROM billing.charges_studies inner JOIN billing.charges ON charges.id= 
+            case 'billed_status': return `(SELECT  CASE WHEN (SELECT 1 FROM billing.charges_studies inner JOIN billing.charges ON charges.id=
                                                 charges_studies.charge_id  WHERE study_id = studies.id LIMIT 1) >0 THEN 'billed'
                                                 ELSE 'unbilled' END)`;
-            case 'study_cpt_id': return 'study_cpt.study_cpt_id';   
-            case 'ins_provider_type': return 'insurance_providers.provider_types';        
+            case 'study_cpt_id': return 'study_cpt.study_cpt_id';
+            case 'ins_provider_type': return 'insurance_providers.provider_types';
             case "eligibility_verified": return `(COALESCE(eligibility.verified, false) OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)`;
 
         }
@@ -503,7 +503,7 @@ const api = {
     // row_number() over( order by "column" ) as number
     getWLQuery: function (columns, args, params) {
         args.sortField = api.getSortFields(args.sortField, 'Study');
-        
+
 
         if (args.filterQuery){
             args.filterQuery += ' AND ';
@@ -511,13 +511,13 @@ const api = {
             args.filterQuery = ' WHERE ';
         }
 
-        args.filterQuery += ` studies.study_dt IS NOT NULL  
-                                AND  studies.order_id IS NOT NULL AND studies.patient_id IS NOT NULL   `;     
+        args.filterQuery += ` studies.study_dt IS NOT NULL
+                                AND  studies.order_id IS NOT NULL AND studies.patient_id IS NOT NULL   `;
 
-        
+
 
         if (args.customArgs && args.customArgs.isOrdingFacility == 'true' && args.customArgs.provider_group_id && args.customArgs.provider_group_id > 0) {
-            
+
             args.filterQuery += ` AND studies.provider_group_id = $${params.length + 1} AND `;
 
             params.push(args.customArgs.provider_group_id);
@@ -526,7 +526,7 @@ const api = {
                 args.filterQuery += ' (orders.vehicle_id > 0 OR orders.technologist_id > 0) '; // TODO: why not null
             }else{
                 args.filterQuery += ' ((orders.vehicle_id IS NULL OR orders.vehicle_id = 0) AND (orders.technologist_id IS NULL OR orders.technologist_id = 0) ) ';
-       
+
             }
         }
 
@@ -552,20 +552,20 @@ const api = {
         let r = '';
 
         if (tables.facilities || imp_facilities) {r += ' INNER JOIN facilities ON studies.facility_id = facilities.id ';}//AND (facilities.is_active = true OR facilities.facility_info->'show_studies' = 'true') `;
-        
+
         if (tables.patients) {r += ' INNER JOIN patients ON studies.patient_id = patients.id ';}
 
         if (tables.orders || imp_orders){ r += ' INNER JOIN orders ON studies.order_id = orders.id ';}
 
-        if (tables.tat) {r += ` 
+        if (tables.tat) {r += `
                             LEFT JOIN LATERAL (
-                                SELECT get_study_tat_level(studies.study_unread_dt,facilities.max_tat) AS level)  tat ON studies.study_unread_dt IS NOT NULL 
+                                SELECT get_study_tat_level(studies.study_unread_dt,facilities.max_tat) AS level)  tat ON studies.study_unread_dt IS NOT NULL
                                 AND studies.study_status NOT IN ('RE','APP','APCD','INC') `;}
-        
+
         if (tables.modalities){ r += ' LEFT JOIN modalities ON studies.modality_id = modalities.id '; }// This should be inner
-        
+
         if (tables.cpt_codes) {r += ' LEFT JOIN cpt_codes ON studies.procedure_id = cpt_codes.id ';}
-        
+
         if (tables.auth){
             r += `
                 LEFT JOIN LATERAL (
@@ -579,8 +579,8 @@ const api = {
                 SELECT study_cpt.id as study_cpt_id FROM study_cpt INNER JOIN cpt_codes cpt ON  cpt.id=study_cpt.cpt_code_id    WHERE study_id = studies.id AND NOT study_cpt.has_deleted   AND NOT cpt.has_deleted   LIMIT 1
             ) AS study_cpt ON true `;
         }
-       
-       
+
+
         if (tables.insurance_providers){
             r += `
                   LEFT JOIN LATERAL(
@@ -602,7 +602,7 @@ const api = {
         if (tables.providers){ r += ' LEFT JOIN providers ON orders.technologist_id = providers.id ';}
 
         if (tables.attorneys) {r += ' LEFT JOIN providers AS attorneys ON attorneys.id = studies.attorney_provider_id ';}
-        
+
         if (tables.users){ r += ' LEFT JOIN users ON orders.ordered_by = users.id ';}
 
         if (tables.approving_provider_ref) {
@@ -613,9 +613,9 @@ const api = {
         }
 
         if (tables.provider_contacts || imp_provider_contacts){ r += ' LEFT JOIN provider_contacts ON studies.referring_physician_id = provider_contacts.id ';}
-        
+
         if (tables.providers_ref){ r += ' LEFT JOIN providers AS providers_ref ON provider_contacts.provider_id = providers_ref.id ';}
-        
+
         if (tables.imagedelivery){
             r += `
                 LEFT JOIN LATERAL (
@@ -636,7 +636,7 @@ const api = {
                 `;
         }
 
-        if (tables.eligibility){        
+        if (tables.eligibility){
             r += `
                 LEFT JOIN LATERAL (
                     SELECT
@@ -657,10 +657,10 @@ const api = {
         }
 
         if (tables.study_status){ r += ` LEFT JOIN study_status ON (
-            CASE studies.study_status WHEN 'TE' THEN 'INC' 
-            ELSE studies.study_status END = study_status.status_code AND studies.facility_id = study_status.facility_id) `;}        
-        
-        if (tables.study_flags){ r += ` LEFT JOIN study_flags 
+            CASE studies.study_status WHEN 'TE' THEN 'INC'
+            ELSE studies.study_status END = study_status.status_code AND studies.facility_id = study_status.facility_id) `;}
+
+        if (tables.study_flags){ r += ` LEFT JOIN study_flags
         ON study_flags.id = (studies.study_info->'study_flag_id')::int `;}
 
         if (tables.report_delivery){
@@ -676,7 +676,7 @@ const api = {
         }
         //if (tables.user_study_assignments && user_id) r += ` LEFT JOIN user_study_assignments ON (user_study_assignments.study_id = studies.id AND user_study_assignments.user_id = ${user_id}) `;
         //if (tables.user_patient_assignments && user_id) r += ` LEFT JOIN user_patient_assignments ON (user_patient_assignments.patient_id = studies.patient_id AND user_patient_assignments.user_id = ${user_id}) `;
-       
+
         return r;
     },
 
@@ -690,26 +690,26 @@ const api = {
             // Studies Table
             'studies.id as study_id',
             'studies.linked_study_id',
-            `studies.study_info-> 'Check-InDt' 
+            `studies.study_info-> 'Check-InDt'
                 AS check_indate`,
             `studies.study_info-> 'current_status_waiting_time'
                 AS current_status_waiting_time`,
             'providers_ref.full_name AS refphy_name',
-            `studies.study_info-> 'readDescription' 
+            `studies.study_info-> 'readDescription'
                 AS readphy_name`,
-            `studies.study_info-> 'station' 
+            `studies.study_info-> 'station'
                 AS station`,
-            `studies.study_info-> 'study_description' 
+            `studies.study_info-> 'study_description'
                 AS study_status_description`, // TODO: what is this ?? why is it different then study_description ?!
-            `studies.study_info-> 'department' 
+            `studies.study_info-> 'department'
                 AS department`,
-            `studies.study_info-> 'send_status' 
+            `studies.study_info-> 'send_status'
                 AS send_status`,
-            `studies.study_info-> 'fax_status' 
+            `studies.study_info-> 'fax_status'
                 AS fax_status`,
             `(select ae_info->'is_sde' AS is_sde from application_entities
                 WHERE id::varchar= studies.study_info-> 'ae_title_id') AS is_sde`, // TODO: move this into join possibly
-            `study_info->'sde_study' 
+            `study_info->'sde_study'
                 AS sde_study`, // TODO: why do we need 2 of these fields separately instead of one ?!?
             'studies.study_info', // TODO: Why do we need this !!! (its an hstore ??? we already extract data from it)
             'studies.study_uid as study_uid',
@@ -718,13 +718,13 @@ const api = {
             'studies.no_of_series',
             'studies.stat_level',
             //'studies.patient_age', // TODO: remove column from db
-            `dicom_age(extract(days from (studies.study_dt - patients.birth_date))::integer) 
+            `dicom_age(extract(days from (studies.study_dt - patients.birth_date))::integer)
                 AS patient_age`,
             'studies.modalities',
             'studies.has_unread_dicoms', // TODO: What is this !!
             'studies.dictation_started', // TODO: this is "was live" flag, shouldnt we just use study status and not this !!
             'studies.modality_id as modality_id', // TODO: Why do we need this ?? we should just need modality code
-            `(SELECT  CASE WHEN (SELECT claim_id FROM billing.charges_studies inner JOIN billing.charges ON charges.id= 
+            `(SELECT  CASE WHEN (SELECT claim_id FROM billing.charges_studies inner JOIN billing.charges ON charges.id=
                 charges_studies.charge_id  WHERE study_id = studies.id LIMIT 1) >0 THEN 'billed'
             ELSE 'unbilled' END) as billed_status `,
             'studies.facility_id as facility_id',
@@ -739,14 +739,14 @@ const api = {
             'studies.notes as notes', // TODO: this should not be returned as column (maybe has_notes but now whole notes)
             'studies.has_deleted', // TODO: this column should not be deleted Status should be deleted and if its really purged it shouldnt be there
             'studies.study_description',
-            'studies.institution as institution',                      
+            'studies.institution as institution',
             '(SELECT claim_id FROM billing.charges_studies inner JOIN billing.charges ON charges.id= charges_studies.charge_id  WHERE study_id = studies.id LIMIT 1) as claim_id',
             'studies.approved_dt as approved_dt',
             'studies.study_received_dt',
             'studies.body_part',
             'studies.reason_for_study',
             'studies.study_dt::text',
-            `to_char(studies.study_created_dt, 'YYYY-MM-DD') 
+            `to_char(studies.study_created_dt, 'YYYY-MM-DD')
                 AS study_created_dt`,
             'studies.status_last_changed_dt::text',
             'studies.patient_id as patient_id',
@@ -758,13 +758,13 @@ const api = {
                                 FROM users
                                 WHERE COALESCE(orders.order_info->'manually_verified_by', '0')::bigint = users.id
                             ), '') AS manually_verified_by`,
-            `timezone(facilities.time_zone, COALESCE(orders.order_info->'manually_verified_dt', NULL)::timestamp)::text 
+            `timezone(facilities.time_zone, COALESCE(orders.order_info->'manually_verified_dt', NULL)::timestamp)::text
                 AS manually_verified_dt`,
-            `orders.order_info-> 'ordering_facility' 
+            `orders.order_info-> 'ordering_facility'
                 AS ordering_facility`,
-            `orders.order_info-> 'requestingDate' 
+            `orders.order_info-> 'requestingDate'
                 AS requesting_date`,
-            `orders.order_info-> 'visit_no' 
+            `orders.order_info-> 'visit_no'
                 AS visit_no`,
             'orders.order_status',
             'orders.order_status AS order_status_code', // TODO: why is this ? suplicated in similar fashion as study_status
@@ -774,9 +774,9 @@ const api = {
             'orders.icd_codes',
             'orders.modality_room_id', // TODO: this MUST be part of study and not order, order has no ROOM
             'studies.schedule_dt::text as scheduled_dt',
-            `array_to_string(orders.referring_provider_ids, '~') 
+            `array_to_string(orders.referring_provider_ids, '~')
             AS referring_provider_ids`, // TODO: why do we need this !!
-            `array_to_string(orders.referring_providers, '~') 
+            `array_to_string(orders.referring_providers, '~')
             AS referring_providers`, // TODO: why do we need this !!
             // Patients
             'patients.account_no as account_no',
@@ -795,7 +795,7 @@ const api = {
             // TODO: this seems to be used only in mobile (maybe move it to mobile configuration if so)
             'providers.full_name as technologist_name',
             // TODO: why are we returning alerts for a study in worklist ?!?
-            `provider_contacts.contact_info->'providerAlerts' 
+            `provider_contacts.contact_info->'providerAlerts'
                 AS "providerAlerts"`,
             // TODO: move this into JOIN
             `
@@ -809,14 +809,14 @@ const api = {
                                 ) AS attorney_name
                             `,
             'approving_provider_ref.full_name AS approving_provider',
-            `imagedelivery.image_delivery 
+            `imagedelivery.image_delivery
                 AS image_delivery`,
-            `auth.as_authorization 
+            `auth.as_authorization
                 AS as_authorization`,
-            'report_delivery.report_queue_status', 
-            `are_notes_empty(studies.notes, patients.notes, orders.order_notes) 
+            'report_delivery.report_queue_status',
+            `are_notes_empty(studies.notes, patients.notes, orders.order_notes)
                 AS empty_notes_flag`,
-            `study_cpt.study_cpt_id`,    
+            `study_cpt.study_cpt_id`,
             // Lock
             // TODO: move this out of postgres (or at least as JOIN for now)
             `(
@@ -829,20 +829,20 @@ const api = {
             `studies.stat_level AS stat_level`,
             `order_info->'patientRoom' AS patient_room`,
             `insurance_providers.provider_types AS ins_provider_type`,
-            `(SELECT array_agg(insurance_name) FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = orders.primary_patient_insurance_id OR id = orders.secondary_patient_insurance_id OR id = orders.tertiary_patient_insurance_id )) AS insurance_providers`,       
+            `(SELECT array_agg(insurance_name) FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = orders.primary_patient_insurance_id OR id = orders.secondary_patient_insurance_id OR id = orders.tertiary_patient_insurance_id )) AS insurance_providers`,
             `(COALESCE(eligibility.verified, false) OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)   AS eligibility_verified`,
             `eligibility.dt AS eligibility_dt`
         ];
 
         return stdcolumns.concat(
             product('TAT') && [
-                `COALESCE(tat.level,-1) 
+                `COALESCE(tat.level,-1)
                     AS tat_level`
             ],
             product('BILLING') && [
-                `orders.order_info-> 'payer_name' 
+                `orders.order_info-> 'payer_name'
                     AS payer_name`, // Billing
-                `orders.order_info-> 'payer_type' 
+                `orders.order_info-> 'payer_type'
                     AS payer_type`, // Billing
                 'orders.id as claim_no', // Billing
                 ` '' AS claim_status`,
@@ -851,9 +851,9 @@ const api = {
             ],
             product('MU') && [
                 'orders.mu_last_updated',
-                `orders.order_info-> 'lastMuUpdatedBy' 
+                `orders.order_info-> 'lastMuUpdatedBy'
                     AS mu_last_updated_by`,
-                `orders.order_info-> 'muDataCaptured' 
+                `orders.order_info-> 'muDataCaptured'
                     AS muDataCaptured`,
                 'orders.mu_passed'
             ],
@@ -886,7 +886,7 @@ const api = {
 
         if (tables.studies){
             sorting.push('coalesce(studies.stat_level,0) DESC');
-        }   
+        }
 
         if (sortField){
             sorting.push(`${sortField} ${sortOrder}`);
@@ -941,7 +941,7 @@ const api = {
 
     getWL: async function (args) {
         const AND = (a, q) => a + ((a.length > 0) ? '\nAND ' : '') + q;
-        
+
         let whereClause = {
             default: '',
             query: '',
@@ -955,7 +955,7 @@ const api = {
         }
 
         let statOverride = args.customArgs && args.customArgs.statOverride === 'true';
-        
+
         let includeDeleted_study = false;
 
         let includeDeleted_perms = null;
@@ -995,7 +995,7 @@ const api = {
         -- permission query
         `;
 
-        if (responseUserSetting.length > 0) {                
+        if (responseUserSetting.length > 0) {
             let userSetting = responseUserSetting[0];
 
             const perms_filter = userSetting.perms_filter;
@@ -1071,7 +1071,7 @@ const api = {
                 }
 
                 permission_query.append(whereClause.permission_filter);
-                
+
                 whereClause.permission_query = permission_query.text;
             }
             //END PERMISSION QUERY
@@ -1117,7 +1117,7 @@ const api = {
                 statOverride: statOverride
             };
             const response = await filterValidator.generateQuery(colModel, args.filterCol, args.filterData, query_options);
-            args.filterQuery = response;              
+            args.filterQuery = response;
 
             if (userSetting.user_details) {
                 if (userSetting.user_details.user_type != 'SU' && userSetting.user_details.all_facilities != true) {
@@ -1128,9 +1128,9 @@ const api = {
             }
 
             if(args.isCount){
-                return await api.getWorkListCount(args); 
+                return await api.getWorkListCount(args);
             }
-            
+
             return await api.getWorkList(args);
         }
     }
