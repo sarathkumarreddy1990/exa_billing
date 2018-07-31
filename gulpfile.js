@@ -157,7 +157,7 @@ gulp.task('replace', ['copy-package-json'], () => {
 gulp.task('zip', ['replace'], () => {
     let version = getCurrentVersion();
 
-    buildFileName = `exa_billing_${version}_${currentBranch}_node-${nodejsversion}_${timestamp}.zip`;
+    buildFileName = `exa-billing_${version}_${currentBranch}_node-${nodejsversion}_${timestamp}.zip`;
 
     return gulp.src('./build/**')
         .pipe(zip(buildFileName))
