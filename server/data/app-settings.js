@@ -261,8 +261,37 @@ module.exports = {
                 cte_currentDate as (
                     SELECT 
                         now() as currentDate
+                ), 
+                cte_insurance_provider_payer_types AS(
+                    SELECT Json_agg(Row_to_json(insurance_provider_payer_types)) insurance_provider_payer_types
+                   FROM  (
+                       SELECT id,
+                       description,
+                       code
+                       FROM   insurance_provider_payer_types
+                       WHERE  company_id=${companyID} AND inactivated_dt IS NULL ) AS insurance_provider_payer_types
+                ),
+                cte_modality_rooms AS(
+                    SELECT Json_agg(Row_to_json(modality_room)) modality_room
+                   FROM  (
+                    SELECT
+                    id,
+                    modality_room_code,
+                    modality_room_name,
+                    display_order,
+                    color_code,
+                    modalities
+                FROM modality_rooms
+                WHERE
+                    is_active
+                    AND NOT has_deleted
+                    AND facility_id IN (
+                        SELECT id AS facility_id
+                        FROM facilities
+                        WHERE company_id = ${companyID} AND NOT has_deleted
+                    )
+                ORDER BY modality_room_name ) AS modality_room
                 )
-
                SELECT *
                FROM   cte_company,
                       cte_facilities,
@@ -288,7 +317,9 @@ module.exports = {
                       cte_payment_reasons_list,
                       cte_modifiers,
                       cte_user_facilities,
-                      cte_currentDate
+                      cte_currentDate,
+                      cte_insurance_provider_payer_types,
+                      cte_modality_rooms
                `;
 
         return await query(sql);

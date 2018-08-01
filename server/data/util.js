@@ -697,6 +697,16 @@ const util = {
 
                 }
 
+                if (filterObj.studyInformation.billedstatus) {
+
+                    let obj = filterObj.studyInformation.billedstatus;
+                    let billedstatusQuery = '';     
+
+                    billedstatusQuery +=( obj == 'billed' ? ' EXISTS (SELECT  1 FROM billing.charges_studies where studies.id = charges_studies.study_id) ' : '  NOT EXISTS (SELECT  1 FROM billing.charges_studies where studies.id = charges_studies.study_id)');
+                    
+                    query += util.getRelationOperator(query) + '(' + billedstatusQuery + ')';
+                }
+
                 if (filterObj.studyInformation.bodyPart) {
                     let obj = filterObj.studyInformation.bodyPart;
                     let l = obj.list.length;
