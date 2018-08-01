@@ -725,21 +725,21 @@ pymt_pend_status as
 patient_insurance_not_matched_in_claim as(
 select c.id as claim_id from  claims c
 INNER JOIN orders o on o.id = c.order_id
-INNER JOIN patient_insuarances pi on pi.id = o.insurance_provider_ids[1]
+INNER JOIN patient_insurances pi on pi.old_id = o.insurance_provider_ids[1]
 where 1=1
 AND has_expired is null
 and  pi.patient_id != c.patient_id
 UNION ALL
 select c.id as claim_id from  claims c
 INNER JOIN orders o on o.id = c.order_id
-INNER JOIN patient_insuarances pi on pi.id = o.insurance_provider_ids[2]
+INNER JOIN patient_insurances pi on pi.old_id = o.insurance_provider_ids[2]
 where 1=1
 AND has_expired is null
 and  pi.patient_id != c.patient_id
 UNION ALL
 select c.id as claim_id from  claims c
 INNER JOIN orders o on o.id = c.order_id
-INNER JOIN patient_insuarances pi on pi.id = o.insurance_provider_ids[3]
+INNER JOIN patient_insurances pi on pi.old_id = o.insurance_provider_ids[3]
 where 1=1
 AND has_expired is null
 and  pi.patient_id != c.patient_id)
@@ -888,7 +888,7 @@ AND NOT po.is_quick_appt
 AND po.order_status NOT IN ('NOS', 'ABRT', 'ORD', 'CAN' )
 AND has_expired is null
 AND (po.has_deleted is NULL or po.has_deleted is FALSE )
-AND claim_info->'payer' in ('Ordering Facility','Insurance','Primary Insurance','Secondary Insurance','Teritary Insurance','Patient','Provider')
+AND order_info->'payer' in ('Ordering Facility','Insurance','Primary Insurance','Secondary Insurance','Teritary Insurance','Patient','Provider')
 AND pc.claim_status in('RD','ST')
 AND (coalesce(ppi.id, -1) != coalesce(spi.id, -2)
 AND coalesce(ppi.id, -1)   != coalesce(tpi.id,  -3)
