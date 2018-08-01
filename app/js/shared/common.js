@@ -4757,6 +4757,11 @@ var commonjs = {
         return modality.modality_code || ''
     },
 
+    getModalityRoomFromId: function (id) {
+        var modality_room = _.find(app.modality_room, { 'id': id }) ||{};
+        return modality_room.modality_room_name || '';
+    },
+
     getlayoutFormat: function (modality) {
         var options = this.getModalityOptions(modality);
         return (options && options.layout && options.layout.screen_layout) || '2*2';

@@ -389,6 +389,9 @@
             "insuranceAuthorization": "Insurance Authorization",
             "entertextandselect": "Please enter text and select condition",
             "mu": "MU",
+            "select": "Select",
+            "billed": "Billed",
+            "unbilled": "Unbilled",
             "globalFilter": "Global Filter",
             "ddlLastMetric": {
                 "hours": "Hour(s)",
