@@ -1,5 +1,4 @@
 const logger = require('../../../../logger')
-    , bcrypt = require('../../../../node_modules/bcrypt-nodejs/bCrypt')
     , db = require('.//db')
     , Promise = require('bluebird')
     , _ = require('lodash')
@@ -93,8 +92,7 @@ const api = {
     addReportAuditRecord: (reportData) => {
         const auditInfo = `"username"=>"${reportData.lookups.user.lastName}, ${reportData.lookups.user.firstName}", "user_level"=>"user"`; //hstore
         const logMessage = `Query: Report ${reportData.report.title} generated (id: ${reportData.report.id}, category: ${reportData.report.category}, format: ${reportData.report.format})`;
-        const salt = bcrypt.genSaltSync(8);
-        const hash = bcrypt.hashSync(logMessage, salt);
+
         // audit log viewer displays flat list of 'old values' when report is viewed...
         // in order to keep the entry compatible, detailed_info has to be in a certain 'flattened' format...
         const detailedInfo = {
@@ -114,11 +112,11 @@ const api = {
             entityName :'reports',
             entitykey: 1,
             screenName:  reportData.report.title,
-            moduleName: 'reports', 
+            moduleName: 'reports',
             clientIp: reportData.lookups.user.clientIpAddress || '127.0.0.1',
             logDescriptions: logMessage,
             detailedInfo: JSON.stringify(detailedInfo),
-            userId: reportData.lookups.user.id            
+            userId: reportData.lookups.user.id
         }
 
         let sql = SQL`
@@ -467,9 +465,9 @@ const api = {
                 AND NOT s.has_deleted
                 AND ((timezone(f.time_zone, s.study_dt))::date = current_date)
                 )
-        
-                SELECT 
-                    ',' || string_agg('"' || f.facility_name || '" int', ',') AS cross_tab, 
+
+                SELECT
+                    ',' || string_agg('"' || f.facility_name || '" int', ',') AS cross_tab,
                     ',' || string_agg('"' || f.facility_name || '"', ',') AS sel_col,
                     ',' || string_agg('sum("' || f.facility_name || '")', ',') AS sel_sum,
                     ',' || string_agg('coalesce("' || f.facility_name || '",0) AS "' || f.facility_name || '"', ',') AS sel_coalesce
