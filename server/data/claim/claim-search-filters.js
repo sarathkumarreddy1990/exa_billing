@@ -63,7 +63,7 @@ const colModel = [
     {
         name: 'billing_fee',
         searchFlag: 'money',
-        searchColumns: ['(select charges_bill_fee_total from BILLING.get_claim_totals(claims.id))']
+        searchColumns: ['bgct.charges_bill_fee_total']
     },
     {
         name: 'invoice_no',
@@ -129,7 +129,7 @@ const colModel = [
     },
     {
         name: 'claim_balance',
-        searchColumns: ['(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) from BILLING.get_claim_totals(claims.id)) '],
+        searchColumns: ['bgct.claim_balance_total'],
         searchFlag: 'money'
     },
     {
@@ -210,7 +210,7 @@ const api = {
             case 'place_of_service': return 'places_of_service.description';
             case 'referring_providers': return 'ref_provider.full_name';
             case 'rendering_provider': return 'render_provider.full_name';
-            case 'billing_fee': return '(select charges_bill_fee_total from BILLING.get_claim_totals(claims.id))';
+            case 'billing_fee': return 'bgct.charges_bill_fee_total';
             case 'invoice_no': return 'claims.invoice_no';
             case 'billing_method': return 'claims.billing_method';
             case 'followup_date': return 'claim_followups.followup_date::text';
@@ -232,7 +232,7 @@ const api = {
 	            WHEN 'patient' THEN patients.full_name        END)
                     `;
             case 'clearing_house': return 'edi_clearinghouses.name';
-            case 'claim_balance': return '(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) FROM BILLING.get_claim_totals(claims.id))';
+            case 'claim_balance': return 'bgct.claim_balance_total';
             case 'billing_code': return 'billing_codes.description';
             case 'billing_class': return 'billing_classes.description';
             case 'gender': return 'patients.gender';
@@ -265,15 +265,15 @@ const api = {
     },
     getWLQueryJoin: function (columns, isInnerQuery, filterID) {
         let tables = isInnerQuery ? columns : api.getTables(columns);
-        let r = '';
+        let r = ' INNER JOIN LATERAL billing.get_claim_totals(claims.id) bgct ON TRUE ';
 
         if (tables.patients) { r += ' INNER JOIN patients ON claims.patient_id = patients.id '; }
 
         if (tables.facilities) { r += ' INNER JOIN facilities ON facilities.id=claims.facility_id '; }
 
-        if (tables.claim_status) { r += ' LEFT JOIN billing.claim_status  ON claim_status.id=claims.claim_status_id'; }
+        if (tables.claim_status) { r += ' INNER JOIN billing.claim_status  ON claim_status.id=claims.claim_status_id'; }
 
-        if (tables.billing_providers) { r += ' LEFT JOIN billing.providers AS billing_providers ON billing_providers.id=claims.billing_provider_id'; }
+        if (tables.billing_providers) { r += ' INNER JOIN billing.providers AS billing_providers ON billing_providers.id=claims.billing_provider_id'; }
 
         if (tables.places_of_service) { r += ' LEFT JOIN places_of_service  ON places_of_service.id=claims.place_of_service_id '; }
 
@@ -337,7 +337,7 @@ const api = {
             'places_of_service.description AS place_of_service',
             'ref_provider.full_name as   referring_providers',
             'render_provider.full_name as   rendering_provider',
-            '(select charges_bill_fee_total from BILLING.get_claim_totals(claims.id)) as billing_fee',
+            'bgct.charges_bill_fee_total as billing_fee',
             'claim_followups.followup_date::text as followup_date',
             'users.username as assigned_to',
             'claims.current_illness_date::text as current_illness_date',
@@ -357,7 +357,7 @@ const api = {
             WHEN 'referring_provider' THEN ref_provider.full_name
             WHEN 'rendering_provider' THEN render_provider.full_name
             WHEN 'patient' THEN patients.full_name        END) as payer_name`,
-            '(select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) from BILLING.get_claim_totals(claims.id)) as claim_balance',
+            'bgct.claim_balance_total as claim_balance',
             'billing_codes.description as billing_code',
             'billing_classes.description as billing_class',
             'claims.claim_notes',

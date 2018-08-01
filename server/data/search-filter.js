@@ -546,7 +546,7 @@ const api = {
     },
     getWLQueryJoin: function (columns) {
         let tables = columns instanceof Object && columns || api.getTables(columns);
-        let imp_orders = tables.vehicles || tables.users || tables.providers || tables.adj1 || tables.adj2 || tables.adj3  || tables.auth || tables.eligibility;
+        let imp_orders = tables.vehicles || tables.users || tables.providers || tables.auth || tables.eligibility;
         let imp_provider_contacts = tables.imagedelivery || tables.providers_ref;
         let imp_facilities = tables.tat;
         let r = '';

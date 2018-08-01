@@ -353,6 +353,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "i18n_name": "billing.claims.balance",
                     "field_info": {
                         "name": "claim_balance",
+                        "sortable": false,
                         "width": 100,
                         "stype": "select",
                         "searchoptions": {

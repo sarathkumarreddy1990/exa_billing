@@ -143,6 +143,7 @@
                 "name": "balance",
                 "width": 100,
                 "searchFlag": "%",
+                "sortable": "false",
                 "formatter": "self.balanceFormatter",
                 "stype": "select",
                 "searchoptions": {
