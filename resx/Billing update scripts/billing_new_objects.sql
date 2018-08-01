@@ -34,17 +34,23 @@ END IF;
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO exa_billing;
 
 -- Following Tables used by RIS  are shared with Billing.
-GRANT ALL on public.user_log, public.users_online,public.user_log_id_seq,public.facilities,public.companies,public.insurance_providers,public.modifiers TO exa_billing;
+-- GRANT ALL on public.user_log, public.users_online,public.user_log_id_seq,public.facilities,public.companies,public.insurance_providers,public.modifiers TO exa_billing;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO exa_billing;
 
 GRANT REFERENCES ON ALL TABLES IN SCHEMA public TO exa_billing;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA billing TO exa_billing;
 GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA billing TO exa_billing;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA billing TO exa_billing;
 GRANT ALL PRIVILEGES ON schema billing TO exa_billing;
+
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA extensions TO exa_billing;
+GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA extensions TO exa_billing;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA extensions TO exa_billing;
+GRANT ALL PRIVILEGES ON schema extensions TO exa_billing;
 -- --------------------------------------------------------------------------------------------------------------------
 -- Billing 2.0  -Switch role to exa_billing, so objects of billing module about to be created have correct ownership
 -- --------------------------------------------------------------------------------------------------------------------
--- SET ROLE TO exa_billing;
+SET ROLE TO exa_billing;
 -- --------------------------------------------------------------------------------------------------------------------
 --Billing 2.0  - New Setup tables - Create Script
 -- --------------------------------------------------------------------------------------------------------------------
@@ -4178,6 +4184,8 @@ BEGIN
 END;
 $BODY$
   LANGUAGE plpgsql ;
+-- --------------------------------------------------------------------------------------------------------------------
+SET ROLE TO postgres;
 -- --------------------------------------------------------------------------------------------------------------------
 END
 $$;
