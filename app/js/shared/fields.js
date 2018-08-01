@@ -52,7 +52,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var facilities = [];
         var facilityValue = commonjs.makeValue(commonjs.getCurrentUsersFacilitiesFromAppSettings(), ":All;", "id", "facility_name");
         var bodyPartValue = commonjs.makeValue(commonjs.bindArray(app.bodyParts, false), ":All;");
-        var insProviderTypeValue = commonjs.makeValue(app.insProviderTypes, ":All;", "description", "description");
+        var insProviderTypeValue = commonjs.makeValue(app.insurance_provider_payer_types, ":All;", "id", "description");
         var billingCodeValue = commonjs.makeValue(app.billing_codes, ":All;", "id", "description");
         var billingClassesValue = commonjs.makeValue(app.billing_classes, ":All;", "id", "description");
         var claimStatusValue = commonjs.makeValue(app.claim_status, ":All;", "id", "description");
@@ -126,7 +126,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                                                        ":All;None:None;" :
                                                        ":All;","id", "description");
 
-        var modalityRoomValue = commonjs.makeValue(app.modalityRooms, ":All;", "id", "modality_room_name");
+        var modalityRoomValue = commonjs.makeValue(app.modality_room, ":All;", "id", "modality_room_name");
         var reportQueueValue = commonjs.makeValue(app.report_queue_status, ":All;", "code", "description");       
 
         var imageDeliveryOptions = [{
@@ -1329,9 +1329,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "custom_name": "Modality Room",
                     "name": "modality_room_id",
                     "width": 150,
-                    "formatter": function ( cellvalue ) {
-                        var room = app.modalityRoomsMap.get(cellvalue);
-                        return room ? room.modality_room_name : '';
+                    "formatter": function ( cellvalue ) {                       
+                        return commonjs.getModalityRoomFromId(cellvalue);
                     },
                     "stype": "select",
                     "defaultValue": "",
