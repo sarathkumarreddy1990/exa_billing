@@ -1,4 +1,3 @@
-y
 const _ = require('lodash')
     , Promise = require('bluebird')
     , db = require('../db')
