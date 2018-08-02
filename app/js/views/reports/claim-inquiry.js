@@ -571,7 +571,7 @@ define([
                 // Show OR Hide accounting date and payment date
                 if ($('#chkServicePayDateCPT').prop('checked')) {
                     $('#accountingAndActualPaymentInfo').show();
-                    $('#divAccountingDate').css('visibility', 'visible');
+                    $('#divAccountingDate').css('visibility', 'hidden');
                     $('#accountingDate').prop('checked', true);
                 }
                 else {
