@@ -63,7 +63,7 @@ var settingsReceived = false
     , $body = $('body');
 
 var commonjs = {
-    requestTimeout: 25000,
+    requestTimeout: 80000,
     currentModule: '',
     currentTargetID: null,
     hasLoaded: false,
@@ -4755,6 +4755,11 @@ var commonjs = {
     getModalityCodeFromId: function (id) {
         var modality = _.find(app.modalities, { 'id': id }) || '';
         return modality.modality_code || ''
+    },
+
+    getModalityRoomFromId: function (id) {
+        var modality_room = _.find(app.modality_room, { 'id': id }) ||{};
+        return modality_room.modality_room_name || '';
     },
 
     getlayoutFormat: function (modality) {

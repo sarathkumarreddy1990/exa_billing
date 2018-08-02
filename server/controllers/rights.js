@@ -5,7 +5,7 @@ const _ = require('lodash');
 module.exports = {
 
     checkRights: function (args) {
-        const defaultAPIs =   ['/exa_modules/billing/app_settings', '/exa_modules/billing/user_settings', '/exa_modules/billing/setup/study_filters', '/exa_modules/billing/study_filters'];
+        const defaultAPIs = ['/exa_modules/billing/app_settings', '/exa_modules/billing/user_settings', '/exa_modules/billing/setup/study_filters', '/exa_modules/billing/study_filters'];
         let {
             screens,
             userType,
@@ -21,24 +21,24 @@ module.exports = {
             return true;
         }
 
-        if(defaultAPIs.indexOf(route) > -1){
+        if (defaultAPIs.indexOf(route) > -1) {
             return true;
         }
-        
+
         if (!moduleNameInternal) {
             return false;
         }
 
         if (!screenNameInternal) {
             return false;
-        }   
+        }
 
-        if( _.includes(route, 'i18n')) {
+        if (_.includes(route, 'i18n')) {
             return true;
-        }    
+        }
 
-        if( _.includes(route, 'claim_patient')) {
-            screenNameInternal =  'claim_patient';
+        if (_.includes(route, 'claim_patient')) {
+            screenNameInternal = 'claim_patient';
         }
 
         let permissionName = permissionsMap[screenNameInternal];

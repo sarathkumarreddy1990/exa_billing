@@ -28,6 +28,7 @@ poolConfig.application_name = 'exa-billing';
 poolConfig.max = 4;
 poolConfig.min = 2;
 poolConfig.idleTimeoutMillis = 120000;     // close idle clients after 2 minute (default is 30 seconds)
+poolConfig.connectionTimeoutMillis = 75000;
 
 const pool = new Pool(poolConfig);
 

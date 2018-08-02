@@ -31,7 +31,7 @@ router.delete('/:id', async function (req, res) {
         ...req.body,
         ...req.audit
     };
-    
+
     const data = await providerIdCodeQualifierControllers.delete(params);
     httpHandler.sendRows(req, res, data);
 

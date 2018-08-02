@@ -9,12 +9,12 @@ const _ = require('lodash');
 module.exports = {
 
     getData: function (params) {
-        params.isCount=false;
+        params.isCount = false;
         return data.getData(params);
     },
 
     getDataCount: function (params) {
-        params.isCount=true;
+        params.isCount = true;
         return data.getData(params);
     },
 
@@ -40,41 +40,41 @@ module.exports = {
         return claimPrintData.getPrinterTemplate(params);
     },
 
-    getEDIClaim: async (params) => {    
+    getEDIClaim: async (params) => {
         const result = await ediData.getClaimData(params);
-        let ediResponse ={};
-        let claimDetails=[];
-        
+        let ediResponse = {};
+        let claimDetails = [];
+
         if (result && result instanceof Error) {
             return result;
         }
-        
+
         if (result && result.rows && !result.rows.length) {
             return new Error('NO_DATA');
         }
 
-        if (result.rows && result.rows.length) { 
+        if (result.rows && result.rows.length) {
 
-            if(!result.rows[0].header) {
+            if (!result.rows[0].header) {
                 return new Error('Clearinghouse not yet mapped with payer');
             }
 
-            if(!result.rows[0].header.edi_template_name) {
+            if (!result.rows[0].header.edi_template_name) {
                 return new Error('EDI Template not yet mapped with Clearinghouse');
             }
-            
-            let ediData = _.map( result.rows, function (obj) {
+
+            let ediData = _.map(result.rows, function (obj) {
 
                 claimDetails.push(
                     {
                         coverage_level: obj.coverage_level,
                         claim_id: obj.claim_id,
                         insuranceName: obj.insurance_name,
-                        note: 'Electronic claim to ' + obj.insurance_name + ' (' + obj.coverage_level +' )'
+                        note: 'Electronic claim to ' + obj.insurance_name + ' (' + obj.coverage_level + ' )'
                     }
                 );
 
-                if((obj.subscriper_relationship).toUpperCase()!='SELF'){
+                if ((obj.subscriper_relationship).toUpperCase() != 'SELF') {
                     obj.data[0].subscriber[0].patient[0].claim = obj.data[0].subscriber[0].claim;
                     delete obj.data[0].subscriber[0].claim;
                 }
@@ -82,25 +82,25 @@ module.exports = {
                 return obj.data[0];
             });
 
-            let ediRequestJson ={
+            let ediRequestJson = {
                 'config': {
                     'ALLOW_EMPTY_SEGMENT': true
                 },
-                header:result.rows[0].header,
+                header: result.rows[0].header,
                 'bht': {
                     'requestID': '1',
                     'tsCreationDate': result.rows[0].header.fgDate,
-                    'tsCreationTime':  result.rows[0].header.fgTime
+                    'tsCreationTime': result.rows[0].header.fgTime
                 },
-                data:ediData
+                data: ediData
             };
 
             ediResponse = await ediConnect.generateEdi(result.rows[0].header.edi_template_name, ediRequestJson);
             params.claim_status = 'PP';
             params.type = 'auto';
             params.success_claimID = params.claimIds.split(',');
-            params.isClaim=true;
-            params.claimDetails=JSON.stringify(claimDetails);
+            params.isClaim = true;
+            params.claimDetails = JSON.stringify(claimDetails);
             await data.changeClaimStatus(params);
         } else {
             ediResponse = result;
@@ -109,14 +109,14 @@ module.exports = {
         return ediResponse;
     },
 
-    updateStatus:async function (params) {
+    updateStatus: async function (params) {
         params.claim_status = 'PP';
         params.type = 'auto';
-        params.isClaim =true;
+        params.isClaim = true;
         let claimIds = params.claimIds.split(',');
-        params.success_claimID = claimIds; 
+        params.success_claimID = claimIds;
         let claimDetails = [];
-        let notes='';
+        let notes = '';
 
         switch (params.templateType) {
             case 'direct_invoice':
@@ -139,7 +139,7 @@ module.exports = {
                 {
                     claim_id: obj,
                     note: notes
-                    
+
                 }
             );
 
@@ -153,13 +153,15 @@ module.exports = {
     validateClaim: async function (params) {
         let claimDetails = await ediData.validateClaim(params);
 
-        if(claimDetails && claimDetails.constructor.name === 'Error') {
+        if (claimDetails && claimDetails.constructor.name === 'Error') {
             return claimDetails;
         }
 
         claimDetails = claimDetails.rows;
-        let validation_result = { invalidClaim_data: [], 
-            validClaim_data: [] };
+        let validation_result = {
+            invalidClaim_data: [],
+            validClaim_data: []
+        };
         let error_data;
         params.success_claimID = [];
         let pointers;
@@ -175,7 +177,7 @@ module.exports = {
                 errorMessages.push('Cannot validate without billing method..');
             }
 
-            if(currentClaim.billing_method && currentClaim.billing_method != 'patient_payment') {
+            if (currentClaim.billing_method && currentClaim.billing_method != 'patient_payment') {
                 currentClaim.payer_name = currentClaim.payer_info.payer_name;
                 currentClaim.payer_address1 = currentClaim.payer_info.payer_address1;
                 currentClaim.payer_city = currentClaim.payer_info.payer_city;
@@ -185,20 +187,20 @@ module.exports = {
 
             if (currentClaim.billing_method == 'electronic_billing') {
                 !currentClaim.payer_info.claimClearingHouse ? errorMessages.push('Claim - Clearing house does not exists ') : null;
-                (!currentClaim.payer_info.edi_request_templates_id || currentClaim.payer_info.edi_request_templates_id == '-1') ? errorMessages.push('Claim - Request Template does not exists ') : null;                
+                (!currentClaim.payer_info.edi_request_templates_id || currentClaim.payer_info.edi_request_templates_id == '-1') ? errorMessages.push('Claim - Request Template does not exists ') : null;
             }
 
             if (currentClaim.primary_patient_insurance_id != null && currentClaim.primary_patient_insurance_id != '') {
-                if(currentClaim.is_pri_relationship_self) {
+                if (currentClaim.is_pri_relationship_self) {
                     currentClaim.p_subscriber_firstName != '' ? currentClaim.patient_firstName === currentClaim.p_subscriber_firstName ? '' : errorMessages.push('Claim - Primary Subscriber First Name (Self) and Patient First Name Not Matched') : '';
                     currentClaim.p_subscriber_lastName != '' ? currentClaim.patient_lastName === currentClaim.p_subscriber_lastName ? '' : errorMessages.push('Claim - Primary Subscriber Last Name (Self) and Patient Last Name Not Matched') : '';
                     currentClaim.p_subscriber_middleName != '' ? currentClaim.patient_middleName === currentClaim.p_subscriber_middleName ? '' : errorMessages.push('Claim - Primary Subscriber Middle Name (Self) and Patient Middle Name Not Matched') : '';
                     currentClaim.p_subscriber_suffixName != '' ? currentClaim.patient_suffixName === currentClaim.p_subscriber_suffixName ? '' : errorMessages.push('Claim - Primary Subscriber Suffix Name (Self) and Patient Suffix Name Not Matched') : '';
-                } 
+                }
             }
 
             if (currentClaim.secondary_patient_insurance_id != null && currentClaim.secondary_patient_insurance_id != '') {
-                if(currentClaim.is_sec_relationship_self) {
+                if (currentClaim.is_sec_relationship_self) {
                     currentClaim.s_subscriber_firstName != '' ? currentClaim.patient_firstName === currentClaim.s_subscriber_firstName ? '' : errorMessages.push('Claim - Secondary Subscriber First Name (Self) and Patient First Name Not Matched') : '';
                     currentClaim.s_subscriber_lastName != '' ? currentClaim.patient_lastName === currentClaim.s_subscriber_lastName ? '' : errorMessages.push('Claim - Secondary Subscriber Last Name (Self) and Patient Last Name Not Matched') : '';
                     currentClaim.s_subscriber_middleName != '' ? currentClaim.patient_middleName === currentClaim.s_subscriber_middleName ? '' : errorMessages.push('Claim - Secondary Subscriber Middle Name (Self) and Patient Suffix Name Not Matched') : '';
@@ -207,11 +209,11 @@ module.exports = {
             }
 
             if (currentClaim.tertiary_patient_insurance_id != null && currentClaim.tertiary_patient_insurance_id != '') {
-                if(currentClaim.is_ter_relationship_self) {
+                if (currentClaim.is_ter_relationship_self) {
                     currentClaim.t_subscriber_firstName != '' ? currentClaim.patient_firstName === currentClaim.t_subscriber_firstName ? '' : errorMessages.push('Claim - Tertiary Subscriber Fisrt Name (Self) and Patient First Name Not Matched') : '';
                     currentClaim.t_subscriber_lastName != '' ? currentClaim.patient_lastName === currentClaim.t_subscriber_lastName ? '' : errorMessages.push('Claim - Tertiary Subscriber Last Name (Self) and Patient Last Name Not Matched') : '';
                     currentClaim.t_subscriber_middleName != '' ? currentClaim.patient_middleName === currentClaim.t_subscriber_middleName ? '' : errorMessages.push('Claim - Tertiary Subscriber Middle Name (Self) and Patient Middle Name Not Matched') : '';
-                    currentClaim.t_subscriber_suffixName != '' ? currentClaim.patient_suffixName === currentClaim.t_subscriber_suffixName ? '' : errorMessages.push('Claim - Tertiary Subscriber Suffix Name (Self) and Patient Suffix Name Not Matched'): '';
+                    currentClaim.t_subscriber_suffixName != '' ? currentClaim.patient_suffixName === currentClaim.t_subscriber_suffixName ? '' : errorMessages.push('Claim - Tertiary Subscriber Suffix Name (Self) and Patient Suffix Name Not Matched') : '';
                 }
             }
 
@@ -219,11 +221,11 @@ module.exports = {
                 if (defaultSubsInsValidationFields.includes(validationField)) {
                     insSubsValidationFields.push(validationField);
                 }
-                else if(validationField == 'service_line_dig1'){
+                else if (validationField == 'service_line_dig1') {
                     pointers = currentClaim.charge_pointer;
 
                     if (pointers && pointers.length > 0) {
-                        _.each(pointers, function(pointer){
+                        _.each(pointers, function (pointer) {
 
                             if (pointer && pointer.pointer1 == null) {
                                 errorMessages.push(`Claim ID ( ${currentClaim.id} ) - Charge ${pointer.ref_code} - ${pointer.display_description} Serice Line-Dig1 does not exists`);
@@ -251,7 +253,7 @@ module.exports = {
                 error_data = {
                     'id': currentClaim.id,
                     'patient_name': currentClaim.patient_name,
-                    'payer_name': currentClaim.billing_method == 'patient_payment' ?currentClaim.patient_name : currentClaim.payer_name,
+                    'payer_name': currentClaim.billing_method == 'patient_payment' ? currentClaim.patient_name : currentClaim.payer_name,
                     'claim_notes': currentClaim.claim_notes,
                     'errorMessages': errorMessages
                 };
@@ -264,16 +266,16 @@ module.exports = {
             validation_result.validClaim_data = await data.updateValidateClaimStatus(params);
         }
 
-        return validation_result;           
+        return validation_result;
     },
 
     checkClaimSubsInsValidation: (validationFields, currentClaim) => {
         let insSubsInvalidFields = [];
 
-        _.each(validationFields, (validationField) => {              
+        _.each(validationFields, (validationField) => {
             !currentClaim['p_' + validationField] || currentClaim['p_' + validationField].length == 0 ? insSubsInvalidFields.push('p_' + validationField) : null;
         });
-        
+
         if (currentClaim.secondary_patient_insurance_id != null && currentClaim.secondary_patient_insurance_id != '') {
             _.each(validationFields, (validationField) => {
                 !currentClaim['s_' + validationField] || currentClaim['s_' + validationField].length == 0 ? insSubsInvalidFields.push('s_' + validationField) : null;
@@ -289,15 +291,15 @@ module.exports = {
         return insSubsInvalidFields;
     },
 
-    deleteClaimOrCharge:function (params) {
+    deleteClaimOrCharge: function (params) {
         return data.deleteClaimOrCharge(params);
     },
 
-    getClaimStudy: function(params) {
+    getClaimStudy: function (params) {
         return data.getClaimStudy(params);
     },
 
-    getBillingPayers: function(params) {
+    getBillingPayers: function (params) {
         return data.getBillingPayers(params);
     },
 

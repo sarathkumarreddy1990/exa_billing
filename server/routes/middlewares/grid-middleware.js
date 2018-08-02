@@ -18,11 +18,11 @@ app.use(function (req, res, next) {
             req.query[field] = fieldValues[index];
         });
 
-        if(customArgs) {
+        if (customArgs) {
             Object.assign(req.query, customArgs);
         }
     }
-    
+
     next();
 });
 

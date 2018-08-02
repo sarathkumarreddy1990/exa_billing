@@ -33,7 +33,7 @@ router.delete('/:id', async function (req, res) {
 
     const data = await ediClearinghousesControllers.delete(params);
     httpHandler.sendRows(req, res, data);
-    
+
 });
 
 module.exports = router;

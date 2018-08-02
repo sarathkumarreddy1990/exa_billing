@@ -29,14 +29,14 @@ module.exports = {
             whereQuery.push(` bip.billing_method ILIKE '%${billing_method}%'`);
         }
 
-        const sql = SQL`SELECT 
+        const sql = SQL`SELECT
                               ip.id
-                            , ip.insurance_name 
+                            , ip.insurance_name
                             , ch.id AS claimclearinghouse
                             , billing_method
                             , ip.is_active
                             , COUNT(1) OVER (range unbounded preceding) AS total_records
-                        FROM 
+                        FROM
                             public.insurance_providers ip
                         LEFT JOIN billing.insurance_provider_details bip ON bip.insurance_provider_id  = ip.id
                         LEFT JOIN billing.edi_clearinghouses ch ON ch.id = bip.clearing_house_id `;
@@ -61,18 +61,18 @@ module.exports = {
 
         let { id } = params;
 
-        const sql = SQL`SELECT 
+        const sql = SQL`SELECT
                               ip.id
-                            , ip.insurance_name 
+                            , ip.insurance_name
                             , ch.id AS claimclearinghouse
                             , billing_method
                             , claim_filing_indicator_code AS indicator_code
                             , payer_edi_code AS edi_code
-                        FROM 
+                        FROM
                             public.insurance_providers ip
                         LEFT JOIN billing.insurance_provider_details bip ON bip.insurance_provider_id  = ip.id
                         LEFT JOIN billing.edi_clearinghouses ch ON ch.id = bip.clearing_house_id
-                        WHERE 
+                        WHERE
                             ip.id = ${id} `;
 
         return await query(sql);
@@ -80,7 +80,7 @@ module.exports = {
 
     update: async function (params) {
 
-        let { 
+        let {
             id,
             claimClearingHouse,
             companyId,
@@ -115,14 +115,14 @@ module.exports = {
                                     , claim_filing_indicator_code = ${indicatorCode}
                                     , payer_edi_code = ${ediCode}
                                 WHERE
-                                    insurance_provider_id = ${id} 
+                                    insurance_provider_id = ${id}
                                     AND NOT EXISTS (SELECT 1 FROM insert_house)
                                 RETURNING *,
                                 (
-                                    SELECT row_to_json(old_row) 
-                                    FROM   (SELECT * 
-                                            FROM   billing.insurance_provider_details 
-                                            WHERE  insurance_provider_id = ${id}) old_row 
+                                    SELECT row_to_json(old_row)
+                                    FROM   (SELECT *
+                                            FROM   billing.insurance_provider_details
+                                            WHERE  insurance_provider_id = ${id}) old_row
                                 ) old_values
                             ),
                             insert_audit_cte AS(
@@ -159,7 +159,7 @@ module.exports = {
                                 ) id
                                 from update_house
                             )
-                            SELECT id FROM insert_audit_cte 
+                            SELECT id FROM insert_audit_cte
                             UNION
                             SELECT id FROM update_audit_cte `;
 

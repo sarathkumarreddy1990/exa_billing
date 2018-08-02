@@ -46,6 +46,41 @@
             </div>
         </div>
 
+        <div class="col" style="max-width: 320px;">
+            <div class="form-group form-inline">
+                <label class="inline field-chk field-required" i18n="report.claim"> </label>
+                <div class="input-group"></div>
+                    <select id="ddlClaimSelectBoxes" multiple="multiple">
+                        <option value="InsPaid" selected>Insurance Paid</option>
+                        <option value="PatPaid">Patient Paid</option>
+                        <option value="UnPaid">UnPaid</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <!-- Date filter colomn-->
+        <!-- 1st column -->
+        <div class="col" style="max-width: 180px;">
+            <!--  Service Date -->
+            <div class="form-group form-inline">
+                <div>
+                    <input id="chkServiceDateBill" type="checkbox" value="chkServiceDateBill" name="serviceDate">
+                    <label for="chkServiceDateBill" class="field-chk" i18n="report.claimDate"> </label>
+                </div>
+            </div>
+        </div>
+        <div class="col" style="max-width: 240px;">
+            <div class="input-group">
+                <input type="text" id="serviceDateBill" class="form-control" required="required" name="dateRange">
+                <span class="input-group-addon add-on datePickerSpan">
+                    <i class="fa fa-calendar"> </i>
+                </span>
+            </div>
+        </div>
+        <!--  Pay Date( payment/accounting) -->
+        <div class="col" style="max-width:320px"></div>
         <div class="col">
             <div class="form-group form-inline">
                 <div>
@@ -91,38 +126,25 @@
             </div>
         </div>
     </div>
+
     <div class="row">
-        <!-- Date filter colomn-->
-        <!-- 1st column -->
-        <div class="col" style="max-width: 420px;">
-            <!--  Service Date -->
+        <div class="col" style="max-width: 180px;">
             <div class="form-group form-inline">
                 <div>
-                    <input id="chkServiceDateBill" type="checkbox" value="chkServiceDateBill" name="serviceDate">
-                    <label for="chkServiceDateBill" class="field-chk" i18n="report.claimDate"> </label>
-                    <div class="input-group">
-                        <input type="text" id="serviceDateBill" class="form-control" required="required" name="dateRange">
-                        <span class="input-group-addon add-on datePickerSpan">
-                            <i class="fa fa-calendar"> </i>
-                        </span>
-                    </div>
+                    <input id="chkServicePayDateCPT" type="checkbox" value="Service Pay Date" name="servicePayDate">
+                    <label for="chkServicePayDateCPT" class="field-chk" i18n="report.commentDate"></label>
                 </div>
             </div>
         </div>
-
-        <!--  Pay Date( payment/accounting) -->
-
-
-        <div class="col" style="max-width: 320px;">
-            <div class="form-group form-inline">
-                <label class="inline field-chk field-required" i18n="report.claim"> </label>
-                <select id="ddlClaimSelectBoxes" multiple="multiple">
-                    <option value="InsPaid" selected>Insurance Paid</option>
-                    <option value="PatPaid">Patient Paid</option>
-                    <option value="UnPaid">UnPaid</option>
-                </select>
+        <div class="col" style="max-width: 240px;">
+            <div class="input-group">
+                <input type="text" id="serviceDateBillCPT" class="form-control" name="dateRange">
+                <span class="input-group-addon add-on datePickerSpan">
+                    <i class="fa fa-calendar"> </i>
+                </span>
             </div>
         </div>
+        <div class="col" style="max-width:320px"></div>
         <div class="col">
             <div class="form-group form-inline">
                 <div>
@@ -145,43 +167,9 @@
                     </div>
                 </div>
                 <div id="divUsers" style="display: none; padding-left: 15px;">
-                    <label class="inline field-chk">Users</label>
                     <div>
                         <ul id="ulListUsers" class="ulSelectionList tagList" style="overflow: auto;width: 330px;height:50px; border: 1px solid;">
                         </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col" style="max-width: 420px;">
-            <div class="form-group form-inline">
-                <div>
-                    <input id="chkServicePayDateCPT" type="checkbox" value="Service Pay Date" name="servicePayDate">
-                    <label for="chkServicePayDateCPT" class="field-chk" i18n="report.payDate"></label>
-                    <div class="input-group">
-                        <input type="text" id="serviceDateBillCPT" class="form-control" name="dateRange">
-                        <span class="input-group-addon add-on datePickerSpan">
-                            <i class="fa fa-calendar"> </i>
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col" id="divAccountingDate" style="visibility: hidden; max-width: 320px;">
-            <div class="form-group form-inline">
-                <div class="col-form-label" id='accountingAndActualPaymentInfo'>
-                    <div class="col-form-label">
-                        <input type="radio" class="cptDateOption" id="accountingDate" name="accountingAndActualPayment" value="accounting_dt" style="padding-right:1px;">
-                        <label for="accountingDate" class="inline field-chk"> Accounting Date</label>
-                    </div>
-                </div>
-                <div class="col-form-label" id='accountingAndActualPaymentInfo'>
-                    <div class="col-form-label">
-                        <input type="radio" class="cptDateOption" id="paymentDate" name="accountingAndActualPayment" value="payment_dt">
-                        <label for="paymentDate" class="inline field-chk" style="padding-right:1px;"> Payment Date</label>
                     </div>
                 </div>
             </div>
@@ -190,22 +178,39 @@
 
     </div>
     <div class="row">
-        <div class="col" style="max-width: 420px;">
+        <div class="col" style="max-width: 180px;">
             <div class="form-group form-inline">
                 <div>
                     <input id="billCreatedDate" type="checkbox" value="billCreatedDate" name="billCreatedDate">
                     <label for="billCreatedDate" class="field-chk"> Bill Created Date </label>
-                    <div class="input-group">
-                        <input type="text" id="serviceDateBillCreated" class="form-control" name="dateRange">
-                        <span class="input-group-addon add-on datePickerSpan">
-                            <i class="fa fa-calendar"> </i>
-                        </span>
-                    </div>
                 </div>
             </div>
         </div>
+        <div class="col" style="max-width: 240px;">
+            <div class="input-group">
+                    <input type="text" id="serviceDateBillCreated" class="form-control" name="dateRange">
+                    <span class="input-group-addon add-on datePickerSpan">
+                        <i class="fa fa-calendar"> </i>
+                    </span>
+            </div>
+        </div>
         <div class="col">
-
+            <div class="col" id="divAccountingDate" style="visibility: hidden; max-width: 320px;">
+                <div class="form-group form-inline">
+                    <div class="col-form-label" id='accountingAndActualPaymentInfo'>
+                        <div class="col-form-label">
+                            <input type="radio" class="cptDateOption" id="accountingDate" name="accountingAndActualPayment" value="accounting_dt" style="padding-right:1px;">
+                            <label for="accountingDate" class="inline field-chk"> Accounting Date</label>
+                        </div>
+                    </div>
+                    <div class="col-form-label" id='accountingAndActualPaymentInfo'>
+                        <div class="col-form-label">
+                            <input type="radio" class="cptDateOption" id="paymentDate" name="accountingAndActualPayment" value="payment_dt">
+                            <label for="paymentDate" class="inline field-chk" style="padding-right:1px;"> Payment Date</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 

@@ -2,7 +2,7 @@ const data = require('../../data/setup/audit-log');
 
 module.exports = {
 
-    getData: async(params) => {
+    getData: async (params) => {
 
         if (params.id) {
             return await data.getDataById(params);

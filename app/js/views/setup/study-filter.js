@@ -681,6 +681,7 @@ define([
                                     $("input:radio[name=Accession][value=" + studyInfoJson.accession.condition + "]").prop('checked', true);
                                     $('#txtAccession').val(studyInfoJson.accession.value);
                                     $("input:radio[name=Institution][value=" + studyInfoJson.institution.condition + "]").prop('checked', true);
+                                    $('#ddlBilledStatus').val(studyInfoJson.billedstatus);
 
                                     if (studyInfoJson.study_description && studyInfoJson.study_description.condition !== undefined && studyInfoJson.study_description.condition != "" && studyInfoJson.study_description.list.length && studyInfoJson.study_description.list !== undefined) {
                                         $("input:radio[name=StudyDescription][value=" + studyInfoJson.study_description.condition.replace('Contains', '') + "]").prop("checked", true);
@@ -1227,6 +1228,7 @@ define([
                                 condition: $('input[name=StudyDescription]:checked').val() !== undefined ? $('input[name=StudyDescription]:checked').val() : $('#chkContainsStudyDescription').is(":checked") ? $('#chkContainsStudyDescription').val() : '',
                                 list: arrStudyDescriptions
                             },
+                            billedstatus: $('#ddlBilledStatus').val(),
                             attorney: attorneys,
                             ordering_facility: {
                                 condition: $('input[name=ordFacility]:checked').val(),
@@ -1712,6 +1714,7 @@ define([
                 $('#chkContainsStudyDescription').prop('checked', false);
 
                 $('#listImageDelivery').val('');
+                $('#ddlBilledStatus').val('');
             },
 
             uncheckRadioButtons: function () {

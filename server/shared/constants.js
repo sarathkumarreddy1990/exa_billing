@@ -32,13 +32,13 @@ module.exports = {
         'status_color_codes': 'Status Color Codes',
         'x12': 'EDI Templates',
         'insurance_x12_mapping': 'Insurance X12 Mapping',
-        'user_log' : 'User Log',
+        'user_log': 'User Log',
         'audit_log': 'Audit Log',
         'printer_templates': 'Printer Templates',
         'payments': 'Payments',
-        'applyPayments':'Applied Payments',
-        'claim_inquiry':'Claim Inquiry',
-        'claim':'Claims',
+        'applyPayments': 'Applied Payments',
+        'claim_inquiry': 'Claim Inquiry',
+        'claim': 'Claims',
         'studies': 'Studies',
         'Payments': 'Edit Claim',
         'split_claim': 'Split Claim',
@@ -88,11 +88,11 @@ module.exports = {
         insurance_x12_mapping: 'insurance_x12_mapping',
         printer_templates: 'printer_templates',
         payments: 'payments',
-        applyPayments:'payment_applications',
-        claim_inquiry:'claim_comments',
+        applyPayments: 'payment_applications',
+        claim_inquiry: 'claim_comments',
         audit_log: 'Audit Log',
         user_log: 'User Log',
-        claims:'Claims'
+        claims: 'Claims'
     },
 
     permissionsMap: {
@@ -120,7 +120,7 @@ module.exports = {
         'create_claim': 'CLIM',
         'claim_filters': 'CLIM',
         'providers': 'CLIM', // AS OF NOW ---->  providers Auto Complete if claim have right then all drop will get rights
-        'icd_codes':'CLIM', //Auto Cpmplete
+        'icd_codes': 'CLIM', //Auto Cpmplete
         'provider_group': 'CLIM', //Auto Cpmplete
         'insurances': 'CLIM', //Auto Cpmplete
         'orderingFacility': 'CLIM', //Auto Cpmplete
@@ -129,12 +129,12 @@ module.exports = {
         'autoCompleteRouter': 'CLIM', //Auto Cpmplete cpt code
         'getUserRoles': 'CLIM', //Auto Cpmplete
         'printer_template': 'CLIM', //when claim
-        'invoice_data':'CLIM', //when claim
-        'claim_json':'CLIM', //when claim
+        'invoice_data': 'CLIM', //when claim
+        'claim_json': 'CLIM', //when claim
         'patient_insurances': 'CLIM', //create claim
         'line_items': 'CLIM', //create claim
         'invoice_no': 'CLIM', // Reset Invoice No
-        'studies': 'HSTY', 
+        'studies': 'HSTY',
         'studies_total_records': 'HSTY',
         'payments': 'PAYM',
         'payment': 'PAYM',
@@ -153,7 +153,7 @@ module.exports = {
         'patient-statement': 'PATS',
         'payer-mix': 'PYMX',
         'patient-activity-statement': 'PACT',
-        'payment-report':'PAYT',
+        'payment-report': 'PAYT',
         'claim-inquiry': 'CLIN',
         'insurance-vs-lop': 'IVSL',
         'patients-by-insurance-company': 'PAIC',
@@ -172,7 +172,7 @@ module.exports = {
         'all': 'PAYM',
         'patient_count': 'PAYM',
         'patient_search': 'PAYM',
-        'payment-receipt-pdf':'PAYM',
+        'payment-receipt-pdf': 'PAYM',
         'payment-print-pdf': 'PAYM',
         'applyPayments': 'PAYM',
         'applied_amount': 'APAY',
@@ -181,7 +181,7 @@ module.exports = {
         'claim': 'ECLM',
         'billing_payers': 'ECLM',
         'service_facilities': 'ECLM',
-        'claim_charge': 'ECLM', //delete Claim Rmenu 
+        'claim_charge': 'ECLM', //delete Claim Rmenu
         'era_list': 'ERAI',
         'upload': 'ERAI',
         'era_file_preview': 'ERAI',

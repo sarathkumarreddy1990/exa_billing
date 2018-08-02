@@ -2,7 +2,7 @@ const data = require('../../data/setup/user-log');
 
 module.exports = {
 
-    getData: async(params) => {
+    getData: async (params) => {
 
         if (params.id) {
             return await data.getDataById(params);
@@ -11,7 +11,7 @@ module.exports = {
         return await data.getData(params);
     },
 
-    getDataById: async(params) => {
+    getDataById: async (params) => {
         return await data.getDataById(params);
     }
 };

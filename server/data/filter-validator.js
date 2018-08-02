@@ -137,7 +137,7 @@ const validator = () => {
                     }
 
                     if (filter && filter.length > 0) {
-                        if (searchQuery !== ''){
+                        if (searchQuery !== '') {
                             searchQuery += ' AND ';
                         }
 
@@ -147,14 +147,14 @@ const validator = () => {
             }
         }
 
-        if (searchQuery === '()'){
+        if (searchQuery === '()') {
             return '';
         }
 
         return searchQuery;
     };
 
-    const generateQuery = (colModel, filterElements, filterData, options)=>{
+    const generateQuery = (colModel, filterElements, filterData, options) => {
         if (colModel && filterElements && filterData) {
             filterElements = JSON.parse(filterElements);
             filterData = JSON.parse(filterData);

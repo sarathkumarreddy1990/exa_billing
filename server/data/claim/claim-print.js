@@ -6,15 +6,15 @@ module.exports = {
         params.claimIds = params.claimIds.split(',');
         params.sortBy = params.sortBy || 'bc.id';
 
-        if(params.sortBy === 'patient_name') {
+        if (params.sortBy === 'patient_name') {
             params.sortBy = 'pp.last_name';
-        } else if(params.sortBy === 'service_date') {
+        } else if (params.sortBy === 'service_date') {
             params.sortBy = 'bc.claim_dt';
         }
 
         let sql = SQL`
 			WITH claim_details AS(
-                SELECT 
+                SELECT
                     bc.invoice_no,
                     submitted_dt AS invoice_date,
                     ppr.full_name as referring_physician_name,
@@ -52,7 +52,7 @@ module.exports = {
                 FROM billing.claims bc
                 INNER JOIN public.facilities f ON f.id = bc.facility_id
                 INNER JOIN public.patients pp ON pp.id = bc.patient_id
-                INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id 
+                INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
                 LEFT JOIN public.patient_insurances ppi ON ppi.id = CASE WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
                                                                 WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
                                                                 WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
@@ -63,7 +63,7 @@ module.exports = {
                 LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
                 WHERE  CASE WHEN ${params.flag}='new' THEN  bc.id = ANY(${params.claimIds})
                             WHEN ${params.flag}='invoice'  THEN  bc.id in(SELECT claims.id FROM billing.claims WHERE invoice_no=${params.invoiceNo})  END
-               
+
                 ORDER BY ${params.sortBy}
             ),
 			charge_details as(
@@ -72,7 +72,7 @@ module.exports = {
                     pcc.display_code,
                     pcc.display_description,
                     charge_dt as "service_date",
-                    billing.get_charge_icds(bch.id),                    
+                    billing.get_charge_icds(bch.id),
                     modifier1.code as "modifier1",
 					modifier2.code as "modifier2",
 					modifier3.code as "modifier3",
@@ -87,13 +87,13 @@ module.exports = {
                 LEFT join modifiers as modifier4 on modifier4.id=modifier4_id
                 WHERE  CASE WHEN ${params.flag}='new' THEN  bch.claim_id = ANY(${params.claimIds})
                             WHEN ${params.flag}='invoice'  THEN  bch.claim_id in(SELECT claims.id FROM billing.claims WHERE invoice_no=${params.invoiceNo}) END
-               
+
             ),
             payment_details as(
-                SELECT 
+                SELECT
                     bp.payment_dt
                     ,bp.payer_type
-                    , (  CASE bp.payer_type 
+                    , (  CASE bp.payer_type
                             WHEN 'insurance' THEN pip.insurance_name
                             WHEN 'ordering_facility' THEN ppg.group_name
                             WHEN 'ordering_provider' THEN ppr.full_name
@@ -105,7 +105,7 @@ module.exports = {
 
                 FROM billing.claims bc
                 INNER JOIN billing.charges ch ON ch.claim_id = bc.id
-                INNER JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id 
+                INNER JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id
                 LEFT JOIN billing.payments bp ON bp.id = bpa.payment_id
                 LEFT JOIN public.patients ON patients.id = bp.patient_id
                 LEFT JOIN public.insurance_providers pip ON pip.id = bp.insurance_provider_id
@@ -126,7 +126,7 @@ module.exports = {
                         ) AS pa ON pa.payment_id = bp.id
                             WHERE  CASE WHEN ${params.flag}='new' THEN  bc.id = ANY(${params.claimIds})
                             WHEN ${params.flag}='invoice'  THEN  bc.id in(SELECT claims.id FROM billing.claims WHERE invoice_no=${params.invoiceNo}) END
-               
+
             )
 			SELECT (SELECT json_agg(row_to_json(claim_details)) AS claim_details FROM (SELECT * FROM claim_details) AS claim_details),
                     (SELECT json_agg(row_to_json(charge_details)) AS charge_details FROM (SELECT * FROM charge_details) AS charge_details),
@@ -153,9 +153,9 @@ module.exports = {
             return new Error('Invalid template type..');
         }
 
-        let sql = SQL`				
+        let sql = SQL`
                 SELECT *
-                FROM   billing.printer_templates 
+                FROM   billing.printer_templates
                 WHERE  template_type = ${templateType}
                         AND id IN (
                 `;

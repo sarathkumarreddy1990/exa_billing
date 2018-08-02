@@ -23,7 +23,7 @@ module.exports = {
     },
 
     updateTemplate: async (params1, params2) => {
-        let result = await  ediConnect.updateTemplate(params1.flag, params1.name, params2.templateBody);
+        let result = await ediConnect.updateTemplate(params1.flag, params1.name, params2.templateBody);
 
         await data.createAudit({
             logDescription: `Update: EDI Template ${params1.name} updated`,
@@ -34,7 +34,7 @@ module.exports = {
     },
 
     deleteTemplate: async (params, audit) => {
-        let result = await  ediConnect.deleteTemplate(params.flag, params.name);
+        let result = await ediConnect.deleteTemplate(params.flag, params.name);
 
         await data.createAudit({
             logDescription: `Delete: EDI Template ${params.name} deleted`,

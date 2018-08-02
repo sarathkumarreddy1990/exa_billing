@@ -31,26 +31,26 @@ module.exports = {
     },
 
     viewPaymentDetails: (params) => {
-        return data.viewPaymentDetails(params); 
+        return data.viewPaymentDetails(params);
     },
 
     viewChargePaymentDetails: (params) => {
-        return data.viewChargePaymentDetails(params); 
+        return data.viewChargePaymentDetails(params);
     },
 
     getclaimPatient: (params) => {
-        return data.getclaimPatient(params); 
+        return data.getclaimPatient(params);
     },
 
     getInvoicePayments: (params) => {
-        return data.getInvoicePayments(params); 
+        return data.getInvoicePayments(params);
     },
 
     getInvoicePaymentsAge: (params) => {
-        return data.getInvoicePaymentsAge(params); 
+        return data.getInvoicePaymentsAge(params);
     },
 
     getclaimPatientLog: (params) => {
-        return data.getclaimPatientLog(params); 
+        return data.getclaimPatientLog(params);
     }
 };

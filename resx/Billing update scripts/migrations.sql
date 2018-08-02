@@ -7,13 +7,14 @@ DECLARE
       l_user_id BIGINT; -- need to remove for o help the migration
       l_recoup_id BIGINT;
       l_max_claim_id BIGINT;
+      l_max_payment_id BIGINT;
 BEGIN
 -- -------------------------------------------------------------------------------------------------------------
  RAISE NOTICE 'Start migration...';
 
  SET CONSTRAINTS ALL DEFERRED;   -- let the migration go faster and apply constraints later during commit
 -- -------------------------------------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS billing.migration_log 
+CREATE TABLE IF NOT EXISTS billing.migration_log
 (
     id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
 	table_name TEXT NOT NULL,
@@ -22,28 +23,28 @@ CREATE TABLE IF NOT EXISTS billing.migration_log
 	CONSTRAINT migration_log_table_name_uc UNIQUE (table_name)
 );
 -- -------------------------------------------------------------------------------------------------------------
--- Adding old referencce column as "old_id" in every table until end of the migration Then end of the 
+-- Adding old referencce column as "old_id" in every table until end of the migration Then end of the
 -- script we will drop "old_id" columns .
 -- -------------------------------------------------------------------------------------------------------------
       RAISE NOTICE 'Creating Reference columns for migration';
 -- -------------------------------------------------------------------------------------------------------------
-    
-      ALTER TABLE billing.edi_clearinghouses ADD COLUMN IF NOT EXISTS old_id BIGINT;
-      ALTER TABLE billing.edi_templates ADD COLUMN IF NOT EXISTS old_id BIGINT;
-      ALTER TABLE billing.edi_template_rules ADD COLUMN IF NOT EXISTS old_id BIGINT;
-      ALTER TABLE billing.adjustment_codes ADD COLUMN IF NOT EXISTS old_id BIGINT;
-      ALTER TABLE billing.billing_codes ADD COLUMN IF NOT EXISTS old_id BIGINT;
-      ALTER TABLE billing.billing_classes ADD COLUMN IF NOT EXISTS old_id BIGINT;
-    
-      ALTER TABLE billing.printer_templates ADD COLUMN IF NOT EXISTS old_id BIGINT;
-      ALTER TABLE billing.providers ADD COLUMN IF NOT EXISTS old_id BIGINT;
-      ALTER TABLE billing.provider_id_codes ADD COLUMN IF NOT EXISTS old_id BIGINT;
-      ALTER TABLE billing.claims ADD COLUMN IF NOT EXISTS old_id BIGINT;
-      ALTER TABLE billing.charges ADD COLUMN IF NOT EXISTS old_id BIGINT;
-      ALTER TABLE billing.payments ADD COLUMN IF NOT EXISTS old_id BIGINT;
-      ALTER TABLE billing.payment_applications ADD COLUMN IF NOT EXISTS old_ord_pymt_id BIGINT;
-      ALTER TABLE billing.payment_applications ADD COLUMN IF NOT EXISTS  old_pymt_recon_id BIGINT;
-     
+
+      ALTER TABLE IF EXISTS billing.edi_clearinghouses ADD COLUMN IF NOT EXISTS old_id BIGINT;
+      ALTER TABLE IF EXISTS billing.edi_templates ADD COLUMN IF NOT EXISTS old_id BIGINT;
+      ALTER TABLE IF EXISTS billing.edi_template_rules ADD COLUMN IF NOT EXISTS old_id BIGINT;
+      ALTER TABLE IF EXISTS billing.adjustment_codes ADD COLUMN IF NOT EXISTS old_id BIGINT;
+      ALTER TABLE IF EXISTS billing.billing_codes ADD COLUMN IF NOT EXISTS old_id BIGINT;
+      ALTER TABLE IF EXISTS billing.billing_classes ADD COLUMN IF NOT EXISTS old_id BIGINT;
+
+      ALTER TABLE IF EXISTS billing.printer_templates ADD COLUMN IF NOT EXISTS old_id BIGINT;
+      ALTER TABLE IF EXISTS billing.providers ADD COLUMN IF NOT EXISTS old_id BIGINT;
+      ALTER TABLE IF EXISTS billing.provider_id_codes ADD COLUMN IF NOT EXISTS old_id BIGINT;
+      ALTER TABLE IF EXISTS billing.claims ADD COLUMN IF NOT EXISTS old_id BIGINT;
+      ALTER TABLE IF EXISTS billing.charges ADD COLUMN IF NOT EXISTS old_id BIGINT;
+      ALTER TABLE IF EXISTS billing.payments ADD COLUMN IF NOT EXISTS old_id BIGINT;
+      ALTER TABLE IF EXISTS billing.payment_applications ADD COLUMN IF NOT EXISTS old_ord_pymt_id BIGINT;
+      ALTER TABLE IF EXISTS billing.payment_applications ADD COLUMN IF NOT EXISTS  old_pymt_recon_id BIGINT;
+
 -- -------------------------------------------------------------------------------------------------------------
       RAISE NOTICE 'Creating Support Functions for migration';
 -- -------------------------------------------------------------------------------------------------------------
@@ -99,7 +100,7 @@ LANGUAGE sql;
 IF NOT EXISTS (SELECT 1 from users where username = 'newbilling') THEN
       INSERT INTO public.users(username, salt, password, first_name, last_name)
       VALUES ('newbilling','$2a$08$7AS7v7MysGrHdMtvVQ6JP.','$2a$08$7AS7v7MysGrHdMtvVQ6JP.ixfir6dljxGqN/khFWMoy/a9zT7kpJ2','newbilling','newbilling') returning id into l_user_id;
-ELSE 
+ELSE
       SELECT id into l_user_id from users where username = 'newbilling';
 END IF;
 -- -------------------------------------------------------------------------------------------------------------
@@ -114,7 +115,7 @@ INSERT INTO billing.edi_clearinghouses
     company_id,
     inactivated_dt,
     name,
-    code, 
+    code,
     receiver_name,
     receiver_id,
     communication_info
@@ -122,11 +123,11 @@ INSERT INTO billing.edi_clearinghouses
 SELECT
     id as old_id,
     company_id,
-    CASE WHEN is_active is false THEN 
+    CASE WHEN is_active is false THEN
         now()
     ELSE
         NULL
-    END AS inactivated_dt, 
+    END AS inactivated_dt,
     description,
     code,
     receiver_name,
@@ -136,7 +137,7 @@ From public.edi_clearinghouses
 WHERE NOT has_deleted;
 -- Insering a row in migration_log table
 INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('edi_clearinghouses',now());
-ELSE 
+ELSE
       RAISE NOTICE 'Billing.edi_clearinghouses table migration already finished';
 END IF;
 -- -------------------------------------------------------------------------------------------------------------
@@ -147,7 +148,7 @@ RAISE NOTICE 'billing.edi_templates...';
 INSERT INTO billing.edi_templates
 (
     old_id,
-    company_id, 
+    company_id,
     inactivated_dt,
     name,
     code,
@@ -158,7 +159,7 @@ INSERT INTO billing.edi_templates
 SELECT
     id as old_id,
     company_id ,
-    CASE WHEN is_active is false THEN 
+    CASE WHEN is_active is false THEN
         now()
     ELSE
         NULL
@@ -171,7 +172,7 @@ SELECT
 From public.edi_request_templates;
 -- Insering a row in migration_log table
 INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('edi_templates',now());
-ELSE 
+ELSE
       RAISE NOTICE 'Billing.edi_templates table migration already finished';
 END IF;
 -- -------------------------------------------------------------------------------------------------------------
@@ -210,7 +211,7 @@ ORDER BY
     id;
 -- Insering a row in migration_log table
 INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('edi_template_rules',now());
-ELSE 
+ELSE
       RAISE NOTICE 'Billing.edi_template_rules table migration already finished';
 END IF;
 -- -------------------------------------------------------------------------------------------------------------
@@ -222,7 +223,7 @@ INSERT INTO billing.edi_template_translations
 (
     edi_template_id,
     name,
-    translation_info 
+    translation_info
 )
 SELECT
     et.id,
@@ -231,7 +232,7 @@ SELECT
 From public.edi_template_translations ett,billing.edi_templates et order by ett.id;
 -- Insering a row in migration_log table
 INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('edi_template_translations',now());
-ELSE 
+ELSE
       RAISE NOTICE 'Billing.edi_template_translations table migration already finished';
 END IF;
 -- -------------------------------------------------------------------------------------------------------------
@@ -259,7 +260,7 @@ SELECT
     code,
     description,
     'credit'
-From public.adjustment_codes WHERE 
+From public.adjustment_codes WHERE
     type = 'ADJCDE' and
 	has_deleted is not true ;
 -- ---------------------------------------------------------------------------------------------------------
@@ -283,15 +284,18 @@ SELECT
     code,
     description,
     'refund_debit'
-From public.adjustment_codes WHERE 
+From public.adjustment_codes WHERE
     type = 'REFADJ' and
 	has_deleted is not true ;
 -- ---------------------------------------------------------------------------------------------------------
-INSERT INTO billing.adjustment_codes(company_id,inactivated_dt,code ,description,accounting_entry_type) VALUES (l_company_id,null,'RECOUP','Recoupment','recoupment_debit') ;
+IF NOT EXISTS (SELECT 1 from billing.adjustment_codes where code = 'RECOUP') THEN
+INSERT INTO billing.adjustment_codes(company_id,inactivated_dt,code ,description,accounting_entry_type)
+VALUES (l_company_id,null,'RECOUP','Recoupment','recoupment_debit') ;
+END IF;
 -- ---------------------------------------------------------------------------------------------------------
 -- Insering a row in migration_log table
 INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('adjustment_codes',now());
-ELSE 
+ELSE
       RAISE NOTICE 'Billing.adjustment_codes table migration already finished';
 END IF;
 -- ---------------------------------------------------------------------------------------------------------
@@ -317,12 +321,12 @@ SELECT
     END,
     code,
     description
-From public.adjustment_codes WHERE 
-    type = 'BILCDE' and 
+From public.adjustment_codes WHERE
+    type = 'BILCDE' and
     has_deleted is not true;
 -- Insering a row in migration_log table
 INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('billing_codes',now());
-ELSE 
+ELSE
       RAISE NOTICE 'Billing.billing_codes table migration already finished';
 END IF;
 -- --------------------------------------------------------------------------------------------------------
@@ -348,16 +352,16 @@ SELECT
     END,
     code,
     description
-From public.adjustment_codes WHERE 
-    type = 'BILCLS' and 
+From public.adjustment_codes WHERE
+    type = 'BILCLS' and
     has_deleted is not true;
 -- Insering a row in migration_log table
 INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('billing_classes',now());
-ELSE 
+ELSE
       RAISE NOTICE 'Billing.billing_classes table migration already finished';
 END IF;
 -- --------------------------------------------------------------------------------------------------------
--- Claim status migration finished while creating a table 
+-- Claim status migration finished while creating a table
 -- --------------------------------------------------------------------------------------------------------
 IF NOT EXISTS (SELECT 1 from billing.migration_log where table_name = 'printer_templates') THEN
 
@@ -385,7 +389,7 @@ SELECT
     (template_info ->'right')::NUMERIC,
     (template_info ->'top')::NUMERIC,
     (template_info ->'bottom')::NUMERIC,
-    CASE WHEN is_active is false THEN 
+    CASE WHEN is_active is false THEN
         current_date
 	else
         null
@@ -399,7 +403,7 @@ FROM public.paper_claim_templates
 where 1=2; -- Not required, this is part of updates.sql
 -- Insering a row in migration_log table
 INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('printer_templates',now());
-ELSE 
+ELSE
       RAISE NOTICE 'Billing.paper_claim_printer_setup table migration already finished';
 END IF;
 -- --------------------------------------------------------------------------------------------------------
@@ -513,7 +517,7 @@ FROM public.billing_providers bp
 INNER JOIN public.companies c on c.id = bp.company_id;
 -- Insering a row in migration_log table
 INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('providers',now());
-ELSE 
+ELSE
       RAISE NOTICE 'Billing.providers table migration already finished';
 END IF;
 -- --------------------------------------------------------------------------------------------------------
@@ -540,7 +544,7 @@ INNER JOIN billing.providers p on p.old_id = bpc.billing_provider_id
 INNER JOIN billing.provider_id_code_qualifiers pcq on pcq.qualifier_code = bpc.id_code_qualifier;
 -- Insering a row in migration_log table
 INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('provider_id_codes',now());
-ELSE 
+ELSE
       RAISE NOTICE 'Billing.provider_id_codes table migration already finished';
 END IF;
 -- --------------------------------------------------------------------------------------------------------
@@ -560,7 +564,7 @@ SELECT
 FROM   reports r, json_array_elements(r.data#>'{payment_reason}') obj;
 -- Insering a row in migration_log table
 INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('payment_reasons',now());
-ELSE 
+ELSE
       RAISE NOTICE 'Billing.payment_reasons table migration already finished';
 END IF;
 -----------------------------------------------------------------------------------------------------------------
@@ -573,7 +577,7 @@ INSERT INTO billing.insurance_provider_details (
 )
 WITH clearing_houses  as
 ( SELECT id, (old_id)::TEXT old_id FROM billing.edi_clearinghouses )
-SELECT 
+SELECT
  insurance_providers.id  INSURANCE_provider_id,
  ch.id clearing_house_id,
  CASE WHEN insurance_info-> 'billingMethod' = 'PP' THEN
@@ -590,11 +594,11 @@ SELECT
 from insurance_providers
 LEFT JOIN clearing_houses ch ON ch.old_id = TRIM(insurance_info-> 'claimClearingHouse');
 INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('insurance_provider_details',now());
-ELSE 
+ELSE
       RAISE NOTICE 'Billing.insurance_provider_details table migration already finished';
 END IF;
 -- -------------------------------------------------------------------------------------------------------------
--- Claims module migration script 
+-- Claims module migration script
 -- -------------------------------------------------------------------------------------------------------------
       RAISE NOTICE 'Claims Migration Started';
 -- -------------------------------------------------------------------------------------------------------------
@@ -680,7 +684,7 @@ WHERE 1=1
 AND c.order_id = Dup_claims.order_id
 AND c.submitted_dt != q_submitted_dt;
 -- -------------------------------------------------------------------------------------------------------------
--- Data fix for duplicate claims with same submission date/time  other than Electronic Billing 
+-- Data fix for duplicate claims with same submission date/time  other than Electronic Billing
 RAISE NOTICE 'Claims4';
 WITH Dup_claims as
 (
@@ -690,14 +694,14 @@ WITH Dup_claims as
         max(id) as q_claim_id
     FROM public.claims c
     WHERE  1=1
-    AND has_expired is null 
+    AND has_expired is null
     AND billing_method != 'EB'
     GROUP BY order_id
     HAVING count(order_id) >1
 )
 UPDATE public.claims c
     SET  has_expired = true
-FROM Dup_claims 
+FROM Dup_claims
 WHERE 1=1
 AND c.order_id = Dup_claims.order_id
 AND c.submitted_dt = q_submitted_dt
@@ -707,6 +711,8 @@ CREATE INDEX IF NOT EXISTS temp_providers_v15 on billing.providers(old_id);
 CREATE INDEX IF NOT EXISTS temp_patient_insurances_v15 on public.patient_insurances(old_id);
 -- ------------------------------------------------------------------------------------------------------------
 RAISE NOTICE 'Claims5';
+
+ALTER TABLE billing.claims alter column id set GENERATED BY DEFAULT ;
 
 WITH sub_pend_status as
 (
@@ -718,27 +724,28 @@ pymt_pend_status as
 ),
 patient_insurance_not_matched_in_claim as(
 select c.id as claim_id from  claims c
-INNER JOIN orders o on o.id = c.order_id 
-INNER JOIN patient_insuarances pi on pi.id = o.insurance_provider_ids[1] 
-where 1=1 
-AND has_expired is null 
+INNER JOIN orders o on o.id = c.order_id
+INNER JOIN patient_insurances pi on pi.old_id = o.insurance_provider_ids[1]
+where 1=1
+AND has_expired is null
 and  pi.patient_id != c.patient_id
 UNION ALL
 select c.id as claim_id from  claims c
-INNER JOIN orders o on o.id = c.order_id 
-INNER JOIN patient_insuarances pi on pi.id = o.insurance_provider_ids[2] 
-where 1=1 
-AND has_expired is null 
+INNER JOIN orders o on o.id = c.order_id
+INNER JOIN patient_insurances pi on pi.old_id = o.insurance_provider_ids[2]
+where 1=1
+AND has_expired is null
 and  pi.patient_id != c.patient_id
 UNION ALL
 select c.id as claim_id from  claims c
-INNER JOIN orders o on o.id = c.order_id 
-INNER JOIN patient_insuarances pi on pi.id = o.insurance_provider_ids[3] 
-where 1=1 
-AND has_expired is null 
+INNER JOIN orders o on o.id = c.order_id
+INNER JOIN patient_insurances pi on pi.old_id = o.insurance_provider_ids[3]
+where 1=1
+AND has_expired is null
 and  pi.patient_id != c.patient_id)
 INSERT INTO billing.claims
 (
+    id,
     company_id,
     facility_id,
     patient_id,
@@ -777,7 +784,8 @@ INSERT INTO billing.claims
     created_by
 )
 SELECT
-    pc.company_id, 
+    po.id,
+    pc.company_id,
     pc.facility_id,
     pc.patient_id,
     bp.id,
@@ -811,7 +819,7 @@ SELECT
              'patient'
          WHEN order_info->'payer' = 'Provider' THEN
              'referring_provider'
-    END,  
+    END,
     CASE WHEN pc.billing_method = 'PP' THEN
              'patient_payment'
          WHEN pc.billing_method = 'EB' THEN
@@ -832,7 +840,7 @@ SELECT
          WHEN po.order_info->'frequency_code' = '7' THEN
              'corrected'
          WHEN po.order_info->'frequency_code' = '8' THEN
-             'corrected' 
+             'corrected'
     ELSE
         null
     END,
@@ -863,8 +871,8 @@ FROM public.claims pc
 INNER JOIN public.orders po on po.id = pc.order_id
 INNER JOIN public.facilities f on f.id = po.facility_id
 INNER JOIN billing.providers bp on bp.old_id = (coalesce((coalesce(nullif(po.order_info->'billing_provider',''),nullif(facility_info->'billing_provider_id','')))::bigint, '0'))::bigint
-INNER JOIN sub_pend_status sps on true 
-INNER JOIN pymt_pend_status pps on true 
+INNER JOIN sub_pend_status sps on true
+INNER JOIN pymt_pend_status pps on true
 INNER JOIN public.adjustment_codes ac on ac.id::TEXT = order_info->'claim_status' AND ac.type =  'CLMSTS'
 INNER JOIN billing.claim_status bcs  ON bcs.description = ac.description
 LEFT JOIN public.places_of_service pos on pos.code = po.order_info->'pos_type_code'
@@ -874,15 +882,15 @@ LEFT JOIN public.patient_insurances ppi on ppi.old_id = po.insurance_provider_id
 LEFT JOIN public.patient_insurances spi on spi.old_id = po.insurance_provider_ids[2]
 LEFT JOIN public.patient_insurances tpi on tpi.old_id = po.insurance_provider_ids[3]
 WHERE 1=1
-AND coalesce(nullif(pc.billing_method,''),'x')  in ('PP','EB','DB','PC','x') 
+AND coalesce(nullif(pc.billing_method,''),'x')  in ('PP','EB','DB','PC','x')
 AND NOT po.is_quick_appt
   AND po.order_type!='E'
 AND po.order_status NOT IN ('NOS', 'ABRT', 'ORD', 'CAN' )
 AND has_expired is null
-AND (po.has_deleted is NULL or po.has_deleted is FALSE ) 
-AND claim_info->'payer' in ('Ordering Facility','Insurance','Primary Insurance','Secondary Insurance','Teritary Insurance','Patient','Provider')
+AND (po.has_deleted is NULL or po.has_deleted is FALSE )
+AND order_info->'payer' in ('Ordering Facility','Insurance','Primary Insurance','Secondary Insurance','Teritary Insurance','Patient','Provider')
 AND pc.claim_status in('RD','ST')
-AND (coalesce(ppi.id, -1) != coalesce(spi.id, -2) 
+AND (coalesce(ppi.id, -1) != coalesce(spi.id, -2)
 AND coalesce(ppi.id, -1)   != coalesce(tpi.id,  -3)
 AND coalesce(spi.id, -2) != coalesce(tpi.id, -3))
 AND (CASE claim_info->'payer' WHEN 'Patient'    THEN true
@@ -914,11 +922,6 @@ UPDATE billing.claims cl
     SET claim_dt =  upd.study_dt
 FROM upd
 WHERE cl.old_id = upd.old_id;
--- Insering a row in migration_log table
-INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('claims',now());
-ELSE 
-      RAISE NOTICE 'Billing.claims table migration already finished';
-END IF;
 
 RAISE NOTICE '-- Data Correction - Claims';
 update billing.claims
@@ -926,18 +929,19 @@ set billing_method ='patient_payment'
 where payer_type = 'patient'
 and  billing_method !='patient_payment';
 
-RAISE NOTICE '-- Primary Key Pointing to old Key';
 -------------------------------------------------------------------------------------------------------------
-ALTER TABLE billing.claims alter column id set GENERATED BY DEFAULT ;
-
-update billing.claims
-set id = old_id;
-
 select max(id) into l_max_claim_id from billing.claims;
 
 PERFORM  setval(pg_get_serial_sequence('billing.claims', 'id'), l_max_claim_id +1, false) ;
 
 ALTER TABLE billing.claims alter column id set GENERATED ALWAYS;
+
+-- Insering a row in migration_log table
+INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('claims',now());
+ELSE
+      RAISE NOTICE 'Billing.claims table migration already finished';
+END IF;
+
 -- -----------------------------------------------------------------------------------------------------------
       RAISE NOTICE 'Charges Migration Started';
 -- -----------------------------------------------------------------------------------------------------------
@@ -1001,7 +1005,7 @@ from charges_qry
 where charges.id = charges_qry.id;
 -- Insering a row in migration_log table
 INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('charges',now());
-ELSE 
+ELSE
       RAISE NOTICE 'Billing.charges table migration already finished';
 END IF;
 -- -------------------------------------------------------------------------------------------------------------
@@ -1013,14 +1017,14 @@ INSERT INTO billing.charges_studies
     charge_id,
     study_id
 )
-SELECT 
+SELECT
     ch.id,
     sc.study_id
 FROM billing.charges ch
 INNER JOIN public.study_cpt sc on sc.id = ch.old_id;
 -- Insering a row in migration_log table
 INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('charges_studies',now());
-ELSE 
+ELSE
       RAISE NOTICE 'Billing.charges_studies table migration already finished';
 END IF;
 -- -------------------------------------------------------------------------------------------------------------
@@ -1031,15 +1035,15 @@ INSERT INTO billing.claim_icds
     claim_id,
     icd_id
 )
-SELECT 
+SELECT
     ch.id,
-    unnest(o.icd_code_ids_billing) 
+    unnest(o.icd_code_ids_billing)
 FROM billing.claims ch
 INNER JOIN orders o on o.id = ch.old_id
 WHERE (o.has_deleted is NULL or o.has_deleted is FALSE );
 -- Insering a row in migration_log table
 INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('claim_icds',now());
-ELSE 
+ELSE
       RAISE NOTICE 'Billing.claim_icds table migration already finished';
 END IF;
 -- -------------------------------------------------------------------------------------------------------------
@@ -1063,7 +1067,7 @@ WHERE bp.has_deleted is false;
 
 -- Insering a row in migration_log table
 INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('claim_followups',now());
-ELSE 
+ELSE
       RAISE NOTICE 'Billing.claim_followups table migration already finished';
 END IF;
 -- -------------------------------------------------------------------------------------------------------------
@@ -1078,19 +1082,19 @@ INSERT INTO billing.claim_comments
     created_by,
     created_dt
 )
-SELECT 
+SELECT
     c.id,
-    CASE more_info->'type' 
+    CASE more_info->'type'
 		WHEN 'Claim management' THEN pc.comment
 		WHEN 'new' THEN pc.comment
 		WHEN 'co_pay' THEN 'Co pay of '||(coalesce(more_info->'co_pay','$0.00'))::money||'is due'
         WHEN 'co_insurance' THEN 'co-insurance of '||(coalesce(more_info->'co_insurance','$0.00'))::money||'is due'
 		WHEN 'deduction' THEN 'deductible of '||(coalesce(more_info->'deduction','$0.00'))::money||'is due'
     END,
-	CASE more_info->'type' 
+	CASE more_info->'type'
 	     WHEN 'Claim management' THEN 'auto'
-		 WHEN 'new' THEN 'manual' 
-		 WHEN 'co_pay' THEN 'co_pay' 
+		 WHEN 'new' THEN 'manual'
+		 WHEN 'co_pay' THEN 'co_pay'
 		 WHEN 'co_insurance' THEN 'co_insurance'
 		 WHEN 'deduction' THEN 'deductible'
 	END,
@@ -1109,7 +1113,7 @@ AND (pc.has_deleted is false or pc.has_deleted is null)
 ORDER BY pc.id;
 -- Insering a row in migration_log table
 INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('claim_comments',now());
-ELSE 
+ELSE
       RAISE NOTICE 'Billing.claim_comments table migration already finished';
 END IF;
 
@@ -1120,16 +1124,16 @@ END IF;
 -- -------------------------------------------------------------------------------------------------------------
 IF NOT EXISTS (SELECT 1 from billing.migration_log where table_name = 'payments') THEN
 RAISE NOTICE 'Payments1';
--- Data fix for applied amount in payments table 
+-- Data fix for applied amount in payments table
 WITH total_applied_amount AS (
-SELECT 
+SELECT
     payment_id,
     sum(amount_paid) as applied_amount
 FROM order_payments
 WHERE NOT coalesce(has_deleted,false)
 group by payment_id
 )
-UPDATE payments p 
+UPDATE payments p
 SET
   applied = tam.applied_amount,
   available_balance = (p.amount - tam.applied_amount),
@@ -1139,14 +1143,18 @@ SET
 			WHEN (p.amount < tam.applied_amount) THEN 'OverApplied'
 	           END
 FROM total_applied_amount tam
-WHERE 
+WHERE
      p.id = tam.payment_id
      AND coalesce(p.has_deleted,FALSE) is false
 AND p.current_status != 'Refund';
 -- -------------------------------------------------------------------------------------------------------------
 RAISE NOTICE 'Payments2';
+
+ALTER TABLE billing.payments alter column id set GENERATED BY DEFAULT ;
+
 INSERT INTO billing.payments
 (
+    id,
     company_id,
     facility_id,
     alternate_payment_id,
@@ -1168,6 +1176,7 @@ INSERT INTO billing.payments
     old_id
 )
 SELECT
+    p.id,
     p.company_id,
     CASE when paid_facility_id is null then f.id
     ELSE paid_facility_id END,
@@ -1203,17 +1212,26 @@ SELECT
 FROM public.payments p
 INNER JOIN users u on u.id = p.created_by
 INNER JOIN facilities f on f.id = u.default_facility_id
-LEFT JOIN billing.payment_reasons pr on p.payment_info->'reason' = pr.code 
+LEFT JOIN billing.payment_reasons pr on p.payment_info->'reason' = pr.code
 WHERE 1=1
 AND  coalesce(p.has_deleted,FALSE) is false
 AND current_status != 'Refund';
+
+select max(id) into l_max_payment_id
+from billing.payments;
+
+PERFORM  setval(pg_get_serial_sequence('billing.payments', 'id'), l_max_payment_id +1, false) ;
+
+ALTER TABLE billing.payments alter column id set GENERATED ALWAYS;
+
 -- Insering a row in migration_log table
 INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('payments',now());
-ELSE 
+
+ELSE
       RAISE NOTICE 'Billing.payments table migration already finished';
 END IF;
 -- -------------------------------------------------------------------------------------------------------------
--- New script for payment applications 
+-- New script for payment applications
 -- -------------------------------------------------------------------------------------------------------------
 IF NOT EXISTS (SELECT 1 from billing.migration_log where table_name = 'payment_applications') THEN
 
@@ -1227,7 +1245,7 @@ AS
 	INNER JOIN study_cpt sc on sc.id = pr.study_cpt_id
 	INNER JOIN studies s on s.id = sc.study_id
 	where 1=1
-	    AND NOT pr.has_deleted 
+	    AND NOT pr.has_deleted
 	    AND o.order_type != 'E'
 	    AND NOT o.has_deleted
 	    AND o.order_status NOT IN ('ABRT', 'CAN')
@@ -1239,7 +1257,8 @@ AS
 -- -------------------------------------------------------------------------------------------------------------
 CREATE INDEX IF NOT EXISTS temp_orders_15_idx on billing.temp_orders_15(order_id);
 -- -------------------------------------------------------------------------------------------------------------
-SELECT id into l_recoup_id FROM  billing.adjustment_codes where code = 'RECOUP';
+
+SELECT MAX(id) into l_recoup_id FROM  billing.adjustment_codes where code = 'RECOUP';
 
 RAISE NOTICE 'Payment applications2';
 INSERT INTO billing.payment_applications
@@ -1254,7 +1273,7 @@ INSERT INTO billing.payment_applications
     old_pymt_recon_id
 )
 
-SELECT 
+SELECT
    bp.id payment_id,
    bc.id charge_id,
    NULL  adjustment_code_id,
@@ -1269,7 +1288,7 @@ INNER JOIN billing.temp_orders_15  to15 on  to15.order_id = pr.order_id
 INNER JOIN order_payments op on op.id  = pr.order_payment_id
 INNER JOIN billing.charges bc on bc.old_id = pr.study_cpt_id
 WHERE 1=1
-AND NOT pr.has_deleted 
+AND NOT pr.has_deleted
 AND NOT op.has_deleted
 GROUP BY bp.id,bc.id,pr.order_payment_id,bp.payment_dt,pr.created_by,pr.id
 UNION ALL
@@ -1289,7 +1308,7 @@ INNER JOIN order_payments op on op.id  = pr.order_payment_id
 INNER JOIN billing.charges bc on bc.old_id = pr.study_cpt_id
 LEFT JOIN billing.adjustment_codes bac on bac.old_id = nullif(trim(op.more_info->'adjustment_code'),'')::bigint
 WHERE 1=1
-AND NOT pr.has_deleted 
+AND NOT pr.has_deleted
 AND NOT op.has_deleted
 GROUP BY bp.id,bc.id,pr.order_payment_id,bp.payment_dt,pr.created_by,bac.id,pr.id
 ORDER BY 8 asc, 5 desc;
@@ -1302,30 +1321,29 @@ CREATE TABLE IF NOT EXISTS  billing.temp_pr_15
 );
 -- -------------------------------------------------------------------------------------------------------------
 RAISE NOTICE 'Payment applications3';
-WITH PR AS (  SELECT old_pymt_recon_id
+WITH PR AS (  SELECT old_ord_pymt_id
               FROM billing.payment_applications
-              GROUP BY old_pymt_recon_id
+              WHERE old_ord_pymt_id is not null
+              GROUP BY old_ord_pymt_id
             )
- INSERT INTO billing.temp_pr_15(pr_id, applied_pymt_dt) 
- SELECT old_pymt_recon_id, clock_timestamp()  FROM PR  
- ORDER BY  old_pymt_recon_id    ;  
+ INSERT INTO billing.temp_pr_15(pr_id, applied_pymt_dt)
+ SELECT old_ord_pymt_id, clock_timestamp()  FROM PR
+ ORDER BY  old_ord_pymt_id    ;
 -- -------------------------------------------------------------------------------------------------------------
 RAISE NOTICE 'Payment applications4';
-
-
 
 UPDATE billing.payment_applications
 SET applied_dt = applied_pymt_dt
 FROM billing.temp_pr_15 tp
-WHERE pr_id = old_pymt_recon_id;
+WHERE pr_id = old_ord_pymt_id;
 
 -- -------------------------------------------------------------------------------------------------------------
-DROP TABLE billing.temp_orders_15;
-DROP TABLE billing.temp_pr_15;
+DROP TABLE IF EXISTS billing.temp_orders_15;
+DROP TABLE IF EXISTS billing.temp_pr_15;
 
 
 INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('payment_applications',now());
-ELSE 
+ELSE
       RAISE NOTICE 'Billing.payment_applications table  migration already finished';
 END IF;
 -- -------------------------------------------------------------------------------------------------------------
@@ -1337,19 +1355,18 @@ CREATE INDEX IF NOT EXISTS temp_payment_appl_v15 on billing.payment_applications
 CREATE INDEX IF NOT EXISTS temp_pymt_appl_1 on billing.payment_applications(old_pymt_recon_id) where amount_type = 'adjustment';
 
 
-
 DO
 $BEGIN$
 DECLARE
     l_cas_data record;
 BEGIN
-  FOR l_cas_data IN   ( SELECT pr.id AS pr_id, more_info->'cas_arr_obj' AS cas_obj 
+  FOR l_cas_data IN   ( SELECT pr.id AS pr_id, more_info->'cas_arr_obj' AS cas_obj
 			from billing.payment_applications bpa
 			INNER JOIN payment_reconciliations pr ON pr.id = old_pymt_recon_id
 			WHERE amount_type = 'adjustment'
 			AND  amount > 0::money
 			AND more_info->'cas_arr_obj' is not null
-			AND more_info->'cas_arr_obj' != '[]' 
+			AND more_info->'cas_arr_obj' != '[]'
 			AND more_info->'cas_arr_obj' != ''
 			AND (coalesce(has_deleted, FALSE) is FALSE)
 			)
@@ -1381,22 +1398,22 @@ BEGIN
         and pal.amount_type = 'adjustment'
         GROUP BY pal.id, cgc.id , crc.id;
 
-END LOOP; 
+END LOOP;
 END $BEGIN$;
 INSERT INTO  billing.migration_log (table_name,migration_dt) VALUES ('cas_payment_application_details',now());
-ELSE 
+ELSE
       RAISE NOTICE 'Billing.cas_payment_application_details table migration already finished';
 END IF;
 -- -------------------------------------------------------------------------------------------------------------
       RAISE NOTICE 'Dropping Support Functions for migration';
 -- -------------------------------------------------------------------------------------------------------------
-      DROP FUNCTION public.get_modifier_id(TEXT);
-      DROP FUNCTION billing.get_paper_claim_or_invoice_json_for_migration (INPUT CHARACTER VARYING [ ]);
-      DROP FUNCTION billing.get_charge_created_by(BIGINT,BIGINT);
+      DROP FUNCTION IF EXISTS public.get_modifier_id(TEXT);
+      DROP FUNCTION IF EXISTS billing.get_paper_claim_or_invoice_json_for_migration (INPUT CHARACTER VARYING [ ]);
+      DROP FUNCTION IF EXISTS billing.get_charge_created_by(BIGINT,BIGINT);
 
       DROP INDEX IF EXISTS  billing.temp_providers_v15 ;
       DROP INDEX IF EXISTS  temp_patient_insurances_v15 ;
-      DROP INDEX IF EXISTS  billing.temp_claims_v15; 
+      DROP INDEX IF EXISTS  billing.temp_claims_v15;
       DROP INDEX IF EXISTS  billing.temp_payment_appl_v15;
       DROP INDEX IF EXISTS  billing.temp_pymt_appl_1;
 

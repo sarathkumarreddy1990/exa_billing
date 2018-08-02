@@ -25,11 +25,11 @@ module.exports = {
             whereQuery.push(` al.screen_name ILIKE '%${screen_name}%'`);
         }
 
-        if(description){
-            whereQuery.push( `al.description ILIKE  '%${description}%'`);
+        if (description) {
+            whereQuery.push(`al.description ILIKE  '%${description}%'`);
         }
 
-        if(from_date && to_date){
+        if (from_date && to_date) {
             whereQuery.push(` al.created_dt BETWEEN  '${from_date}' AND '${to_date}'`);
         }
 
@@ -39,15 +39,15 @@ module.exports = {
                             , CASE WHEN LENGTH(TRIM(u.last_name)) > 0
                                     THEN COALESCE(TRIM(u.last_name),'') ||' '|| COALESCE(TRIM(u.first_name),'')
                                 ELSE TRIM(u.first_name)
-                                END  as username 
-                            , al.client_ip 
+                                END  as username
+                            , al.client_ip
                             , al.created_dt
-                            , al.entity_name 
+                            , al.entity_name
                             , al.screen_name
-                            , al.module_name 
-                            , al.description 
+                            , al.module_name
+                            , al.description
                             , COUNT(1) OVER (range unbounded preceding) AS total_records
-                        FROM billing.audit_log al    
+                        FROM billing.audit_log al
                         INNER JOIN public.users u ON u.id = al.created_by`;
 
         if (whereQuery.length) {
@@ -68,23 +68,23 @@ module.exports = {
     getDataById: async (params) => {
         const { id } = params;
 
-        const sql = SQL`SELECT 
-                              al.company_id 
+        const sql = SQL`SELECT
+                              al.company_id
                             , CASE WHEN LENGTH(TRIM(u.last_name)) > 0
                                     THEN COALESCE(TRIM(u.last_name),'') ||' '|| COALESCE(TRIM(u.first_name),'')
                                     ELSE TRIM(u.first_name)
-                                END  as username 
-                            , al.client_ip 
+                                END  as username
+                            , al.client_ip
                             , al.created_dt
-                            , al.entity_name 
+                            , al.entity_name
                             , al.screen_name
-                            , al.module_name 
-                            , al.description 
+                            , al.module_name
+                            , al.description
                             , p.full_name
                             , al.changes
-                        FROM billing.audit_log al    
+                        FROM billing.audit_log al
                         INNER JOIN public.users u ON u.id = al.created_by
-                        LEFT JOIN public.patients p ON p.id = CASE WHEN entity_name = 'claims' THEN al.entity_key ELSE null END 
+                        LEFT JOIN public.patients p ON p.id = CASE WHEN entity_name = 'claims' THEN al.entity_key ELSE null END
                         WHERE al.id = ${id} `;
 
         return await query(sql);

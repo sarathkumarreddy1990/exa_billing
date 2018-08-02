@@ -42,11 +42,11 @@ module.exports = {
             WHERE NOT EXISTS (
                 SELECT * FROM billing.user_settings WHERE user_id = ${args.userId} AND grid_name = ${args.flag}
             )
-            RETURNING * , '{}'::jsonb old_values 
+            RETURNING * , '{}'::jsonb old_values
         ),
-        update_user_setting AS 
+        update_user_setting AS
         (
-            UPDATE 
+            UPDATE
                 billing.user_settings
             SET field_order = ${args.claimSettingFields}
                 ,grid_name = ${args.flag}
@@ -57,15 +57,15 @@ module.exports = {
                 ,paper_claim_original_template_id = ${args.paper_claim_original}
                 ,direct_invoice_template_id = ${args.direct_invoice}
                 ,patient_invoice_template_id = ${args.patient_invoice}
-            WHERE 
+            WHERE
                 user_id = ${args.userId}
                 AND grid_name = ${args.flag}
-            RETURNING *, 
+            RETURNING *,
             (
-                SELECT row_to_json(old_row) 
-                FROM   (SELECT * 
+                SELECT row_to_json(old_row)
+                FROM   (SELECT *
                         FROM   billing.user_settings
-                        WHERE  user_id = ${args.userId}  AND grid_name = ${args.flag} ) old_row 
+                        WHERE  user_id = ${args.userId}  AND grid_name = ${args.flag} ) old_row
             ) old_values
         ),
         insert_audit_usersettings AS (
@@ -75,17 +75,17 @@ module.exports = {
                 , id
                 , ${args.screenName}
                 , 'setup'
-                , insert_user_setting.default_tab || '   User Settings created ' 
+                , insert_user_setting.default_tab || '   User Settings created '
                 , ${args.clientIp}
                 , json_build_object(
                     'old_values', COALESCE(old_values, '{}'),
                     'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM insert_user_setting) temp_row)
                   )::jsonb
                 , ${args.userId}
-              ) AS id 
+              ) AS id
             FROM insert_user_setting
             WHERE id IS NOT NULL
-        ), 
+        ),
         update_audit_usersettings AS (
             SELECT billing.create_audit(
                   ${args.companyId}
@@ -100,7 +100,7 @@ module.exports = {
                     'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_user_setting ) temp_row)
                   )::jsonb
                 , ${args.userId}
-              ) AS id 
+              ) AS id
             FROM update_user_setting
             WHERE id IS NOT NULL
         )
@@ -108,38 +108,38 @@ module.exports = {
         UNION
         SELECT id FROM update_audit_usersettings`;
 
-        return await query(querySetting); 
+        return await query(querySetting);
 
     },
 
-    getGridFieldById:async function(params){
+    getGridFieldById: async function (params) {
 
-        let select_field = SQL` 
+        let select_field = SQL`
         SELECT
               field_order
-            , grid_name 
-            , default_column 
+            , grid_name
+            , default_column
             , default_column_order_by
             , id AS user_setting_id
-            , default_column 
+            , default_column
             , paper_claim_full_template_id AS "paper_claim_full"
             , paper_claim_original_template_id AS "paper_claim_original"
             , direct_invoice_template_id AS "direct_invoice"
             , patient_invoice_template_id AS "patient_invoice"
 
-        FROM 
-           billing.user_settings WHERE user_id = ${params.userId} 
+        FROM
+           billing.user_settings WHERE user_id = ${params.userId}
            AND grid_name = ${params.gridName} `;
 
-                
+
         return await query(select_field);
     },
 
-    getGridFields:async function(){
+    getGridFields: async function () {
 
         let file_path = path.join(__dirname, '../resx/grid-fields.json');
         let gridFields = readFileAsync(file_path, 'utf8');
-        
+
         return await gridFields;
     }
 };

@@ -1,718 +1,718 @@
 [
-	{
-		"service_types": {
-			"eligibility_service_types": [
-				{
-					"id": "servicetype_0",
-					"code": "1",
-					"description": "Medical Care"
-				},
-				{
-					"id": "servicetype_1",
-					"code": "2",
-					"description": "Surgical"
-				},
-				{
-					"id": "servicetype_2",
-					"code": "3",
-					"description": "Consultation"
-				},
-				{
-					"id": "servicetype_3",
-					"code": "4",
-					"description": "Diagnostic X-Ray"
-				},
-				{
-					"id": "servicetype_4",
-					"code": "5",
-					"description": "Diagnostic Lab"
-				},
-				{
-					"id": "servicetype_5",
-					"code": "6",
-					"description": "Radiation Therapy"
-				},
-				{
-					"id": "servicetype_6",
-					"code": "7",
-					"description": "Anesthesia"
-				},
-				{
-					"id": "servicetype_7",
-					"code": "8",
-					"description": "Surgical Assistance"
-				},
-				{
-					"id": "servicetype_8",
-					"code": "9",
-					"description": "Other Medical"
-				},
-				{
-					"id": "servicetype_9",
-					"code": "10",
-					"description": "Blood Charges"
-				},
-				{
-					"id": "servicetype_10",
-					"code": "12",
-					"description": "Durable Medical Equipment Purchase"
-				},
-				{
-					"id": "servicetype_11",
-					"code": "13",
-					"description": "Ambulatory Service Center Facility"
-				},
-				{
-					"id": "servicetype_12",
-					"code": "14",
-					"description": "Renal Supplies in the Home"
-				},
-				{
-					"id": "servicetype_13",
-					"code": "15",
-					"description": "Alternate Method Dialysis"
-				},
-				{
-					"id": "servicetype_14",
-					"code": "16",
-					"description": "Chronic Renal Disease (CRD) Equipment"
-				},
-				{
-					"id": "servicetype_15",
-					"code": "17",
-					"description": "Pre-Admission Testing"
-				},
-				{
-					"id": "servicetype_16",
-					"code": "18",
-					"description": "Durable Medical Equipment Rental"
-				},
-				{
-					"id": "servicetype_17",
-					"code": "19",
-					"description": "Pneumonia Vaccine"
-				},
-				{
-					"id": "servicetype_18",
-					"code": "20",
-					"description": "Second Surgical Opinion"
-				},
-				{
-					"id": "servicetype_19",
-					"code": "21",
-					"description": "Third Surgical Opinion"
-				},
-				{
-					"id": "servicetype_20",
-					"code": "22",
-					"description": "Social Work"
-				},
-				{
-					"id": "servicetype_21",
-					"code": "23",
-					"description": "Diagnostic Dental"
-				},
-				{
-					"id": "servicetype_22",
-					"code": "24",
-					"description": "Periodontics"
-				},
-				{
-					"id": "servicetype_23",
-					"code": "25",
-					"description": "Restorative"
-				},
-				{
-					"id": "servicetype_24",
-					"code": "26",
-					"description": "Endodontics"
-				},
-				{
-					"id": "servicetype_25",
-					"code": "27",
-					"description": "Maxillofacial Prosthetics"
-				},
-				{
-					"id": "servicetype_26",
-					"code": "28",
-					"description": "Adjunctive Dental Services"
-				},
-				{
-					"id": "servicetype_27",
-					"code": "30",
-					"description": "Health Benefit Plan Coverage"
-				},
-				{
-					"id": "servicetype_28",
-					"code": "32",
-					"description": "Plan Waiting Period"
-				},
-				{
-					"id": "servicetype_29",
-					"code": "33",
-					"description": "Chiropractic"
-				},
-				{
-					"id": "servicetype_30",
-					"code": "34",
-					"description": "Chiropractic Office Visits"
-				},
-				{
-					"id": "servicetype_31",
-					"code": "35",
-					"description": "Dental Care"
-				},
-				{
-					"id": "servicetype_32",
-					"code": "36",
-					"description": "Dental Crowns"
-				},
-				{
-					"id": "servicetype_33",
-					"code": "37",
-					"description": "Dental Accident"
-				},
-				{
-					"id": "servicetype_34",
-					"code": "38",
-					"description": "Orthodontics"
-				},
-				{
-					"id": "servicetype_35",
-					"code": "39",
-					"description": "Prosthodontics"
-				},
-				{
-					"id": "servicetype_36",
-					"code": "40",
-					"description": "Oral Surgery"
-				},
-				{
-					"id": "servicetype_37",
-					"code": "41",
-					"description": "Routine (Preventive) Dental"
-				},
-				{
-					"id": "servicetype_38",
-					"code": "42",
-					"description": "Home Health Care"
-				},
-				{
-					"id": "servicetype_39",
-					"code": "43",
-					"description": "Home Health Prescriptions"
-				},
-				{
-					"id": "servicetype_40",
-					"code": "44",
-					"description": "Home Health Visits"
-				},
-				{
-					"id": "servicetype_41",
-					"code": "45",
-					"description": "Hospice"
-				},
-				{
-					"id": "servicetype_42",
-					"code": "46",
-					"description": "Respite Care"
-				},
-				{
-					"id": "servicetype_43",
-					"code": "47",
-					"description": "Hospital"
-				},
-				{
-					"id": "servicetype_44",
-					"code": "48",
-					"description": "Hospital - Inpatient"
-				},
-				{
-					"id": "servicetype_45",
-					"code": "49",
-					"description": "Hospital - Room and Board"
-				},
-				{
-					"id": "servicetype_46",
-					"code": "50",
-					"description": "Hospital - Outpatient"
-				},
-				{
-					"id": "servicetype_47",
-					"code": "51",
-					"description": "Hospital - Emergency Accident"
-				},
-				{
-					"id": "servicetype_48",
-					"code": "52",
-					"description": "Hospital - Emergency Medical"
-				},
-				{
-					"id": "servicetype_49",
-					"code": "53",
-					"description": "Hospital - Ambulatory Surgical"
-				},
-				{
-					"id": "servicetype_50",
-					"code": "54",
-					"description": "Long Term Care"
-				},
-				{
-					"id": "servicetype_51",
-					"code": "55",
-					"description": "Major Medical"
-				},
-				{
-					"id": "servicetype_52",
-					"code": "56",
-					"description": "Medically Related Transportation"
-				},
-				{
-					"id": "servicetype_53",
-					"code": "57",
-					"description": "Air Transportation"
-				},
-				{
-					"id": "servicetype_54",
-					"code": "58",
-					"description": "Cabulance"
-				},
-				{
-					"id": "servicetype_55",
-					"code": "59",
-					"description": "Licensed Ambulance"
-				},
-				{
-					"id": "servicetype_56",
-					"code": "60",
-					"description": "General Benefits"
-				},
-				{
-					"id": "servicetype_57",
-					"code": "61",
-					"description": "In-vitro Fertilization"
-				},
-				{
-					"id": "servicetype_58",
-					"code": "62",
-					"description": "MRI/CAT Scan"
-				},
-				{
-					"id": "servicetype_59",
-					"code": "63",
-					"description": "Donor Procedures"
-				},
-				{
-					"id": "servicetype_60",
-					"code": "64",
-					"description": "Acupuncture"
-				},
-				{
-					"id": "servicetype_61",
-					"code": "65",
-					"description": "Newborn Care"
-				},
-				{
-					"id": "servicetype_62",
-					"code": "66",
-					"description": "Pathology"
-				},
-				{
-					"id": "servicetype_63",
-					"code": "67",
-					"description": "Smoking Cessation"
-				},
-				{
-					"id": "servicetype_64",
-					"code": "68",
-					"description": "Well Baby Care"
-				},
-				{
-					"id": "servicetype_65",
-					"code": "69",
-					"description": "Maternity"
-				},
-				{
-					"id": "servicetype_66",
-					"code": "70",
-					"description": "Transplants"
-				},
-				{
-					"id": "servicetype_67",
-					"code": "71",
-					"description": "Audiology Exam"
-				},
-				{
-					"id": "servicetype_68",
-					"code": "72",
-					"description": "Inhalation Therapy"
-				},
-				{
-					"id": "servicetype_69",
-					"code": "73",
-					"description": "Diagnostic Medical"
-				},
-				{
-					"id": "servicetype_70",
-					"code": "74",
-					"description": "Private Duty Nursing"
-				},
-				{
-					"id": "servicetype_71",
-					"code": "75",
-					"description": "Prosthetic Device"
-				},
-				{
-					"id": "servicetype_72",
-					"code": "76",
-					"description": "Dialysis"
-				},
-				{
-					"id": "servicetype_73",
-					"code": "77",
-					"description": "Otological Exam"
-				},
-				{
-					"id": "servicetype_74",
-					"code": "78",
-					"description": "Chemotherapy"
-				},
-				{
-					"id": "servicetype_75",
-					"code": "79",
-					"description": "Allergy Testing"
-				},
-				{
-					"id": "servicetype_76",
-					"code": "80",
-					"description": "Immunizations"
-				},
-				{
-					"id": "servicetype_77",
-					"code": "81",
-					"description": "Routine Physical"
-				},
-				{
-					"id": "servicetype_78",
-					"code": "82",
-					"description": "Family Planning"
-				},
-				{
-					"id": "servicetype_79",
-					"code": "83",
-					"description": "Infertility"
-				},
-				{
-					"id": "servicetype_80",
-					"code": "84",
-					"description": "Abortion"
-				},
-				{
-					"id": "servicetype_81",
-					"code": "85",
-					"description": "AIDS"
-				},
-				{
-					"id": "servicetype_82",
-					"code": "86",
-					"description": "Emergency Services"
-				},
-				{
-					"id": "servicetype_83",
-					"code": "87",
-					"description": "Cancer"
-				},
-				{
-					"id": "servicetype_84",
-					"code": "88",
-					"description": "Pharmacy"
-				},
-				{
-					"id": "servicetype_85",
-					"code": "89",
-					"description": "Free Standing Prescription Drug"
-				},
-				{
-					"id": "servicetype_86",
-					"code": "90",
-					"description": "Mail Order Prescription Drug"
-				},
-				{
-					"id": "servicetype_87",
-					"code": "91",
-					"description": "Brand Name Prescription Drug"
-				},
-				{
-					"id": "servicetype_88",
-					"code": "92",
-					"description": "Generic Prescription Drug"
-				},
-				{
-					"id": "servicetype_89",
-					"code": "93",
-					"description": "Podiatry"
-				},
-				{
-					"id": "servicetype_90",
-					"code": "94",
-					"description": "Podiatry - Office Visits"
-				},
-				{
-					"id": "servicetype_91",
-					"code": "95",
-					"description": "Podiatry - Nursing Home Visits"
-				},
-				{
-					"id": "servicetype_92",
-					"code": "96",
-					"description": "Professional (Physician)"
-				},
-				{
-					"id": "servicetype_93",
-					"code": "97",
-					"description": "Anesthesiologist"
-				},
-				{
-					"id": "servicetype_94",
-					"code": "98",
-					"description": "Professional (Physician) Visit - Office"
-				},
-				{
-					"id": "servicetype_95",
-					"code": "99",
-					"description": "Professional (Physician) Visit - Inpatient"
-				},
-				{
-					"id": "servicetype_96",
-					"code": "A0",
-					"description": "Professional (Physician) Visit - Outpatient"
-				},
-				{
-					"id": "servicetype_97",
-					"code": "A1",
-					"description": "Professional (Physician) Visit - Nursing Home"
-				},
-				{
-					"id": "servicetype_98",
-					"code": "A2",
-					"description": "Professional (Physician) Visit - Skilled Nursing Facility"
-				},
-				{
-					"id": "servicetype_99",
-					"code": "A3",
-					"description": "Professional (Physician) Visit - Home"
-				},
-				{
-					"id": "servicetype_100",
-					"code": "A4",
-					"description": "Psychiatric"
-				},
-				{
-					"id": "servicetype_101",
-					"code": "A5",
-					"description": "Psychiatric - Room and Board"
-				},
-				{
-					"id": "servicetype_102",
-					"code": "A6",
-					"description": "Psychotherapy"
-				},
-				{
-					"id": "servicetype_103",
-					"code": "A7",
-					"description": "Psychiatric - Inpatient"
-				},
-				{
-					"id": "servicetype_104",
-					"code": "A8",
-					"description": "Psychiatric - Outpatient"
-				},
-				{
-					"id": "servicetype_105",
-					"code": "A9",
-					"description": "Rehabilitation"
-				},
-				{
-					"id": "servicetype_106",
-					"code": "AA",
-					"description": "Rehabilitation - Room and Board"
-				},
-				{
-					"id": "servicetype_107",
-					"code": "AB",
-					"description": "Rehabilitation - Inpatient"
-				},
-				{
-					"id": "servicetype_108",
-					"code": "AC",
-					"description": "Rehabilitation - Outpatient"
-				},
-				{
-					"id": "servicetype_109",
-					"code": "AD",
-					"description": "Occupational Therapy"
-				},
-				{
-					"id": "servicetype_110",
-					"code": "AE",
-					"description": "Physical Medicine"
-				},
-				{
-					"id": "servicetype_111",
-					"code": "AF",
-					"description": "Speech Therapy"
-				},
-				{
-					"id": "servicetype_112",
-					"code": "AG",
-					"description": "Skilled Nursing Care"
-				},
-				{
-					"id": "servicetype_113",
-					"code": "AH",
-					"description": "Skilled Nursing Care - Room and Board"
-				},
-				{
-					"id": "servicetype_114",
-					"code": "AI",
-					"description": "Substance Abuse"
-				},
-				{
-					"id": "servicetype_115",
-					"code": "AJ",
-					"description": "Alcoholism"
-				},
-				{
-					"id": "servicetype_116",
-					"code": "AK",
-					"description": "Drug Addiction"
-				},
-				{
-					"id": "servicetype_117",
-					"code": "AL",
-					"description": "Vision (Optometry)"
-				},
-				{
-					"id": "servicetype_118",
-					"code": "AM",
-					"description": "Frames"
-				},
-				{
-					"id": "servicetype_119",
-					"code": "AN",
-					"description": "Routine Exam"
-				},
-				{
-					"id": "servicetype_120",
-					"code": "AO",
-					"description": "Lenses"
-				},
-				{
-					"id": "servicetype_121",
-					"code": "AQ",
-					"description": "Nonmedically Necessary Physical"
-				},
-				{
-					"id": "servicetype_122",
-					"code": "AR",
-					"description": "Experimental Drug Therapy"
-				},
-				{
-					"id": "servicetype_123",
-					"code": "BA",
-					"description": "Independent Medical Evaluation"
-				},
-				{
-					"id": "servicetype_124",
-					"code": "BB",
-					"description": "Partial Hospitalization (Psychiatric)"
-				},
-				{
-					"id": "servicetype_125",
-					"code": "BC",
-					"description": "Day Care (Psychiatric)"
-				},
-				{
-					"id": "servicetype_126",
-					"code": "BD",
-					"description": "Cognitive Therapy"
-				},
-				{
-					"id": "servicetype_127",
-					"code": "BE",
-					"description": "Massage Therapy"
-				},
-				{
-					"id": "servicetype_128",
-					"code": "BF",
-					"description": "Pulmonary Rehabilitation"
-				},
-				{
-					"id": "servicetype_129",
-					"code": "BG",
-					"description": "Cardiac Rehabilitation"
-				},
-				{
-					"id": "servicetype_130",
-					"code": "BH",
-					"description": "Pediatric"
-				},
-				{
-					"id": "servicetype_131",
-					"code": "BI",
-					"description": "Nursery"
-				},
-				{
-					"id": "servicetype_132",
-					"code": "BJ",
-					"description": "Skin"
-				},
-				{
-					"id": "servicetype_133",
-					"code": "BK",
-					"description": "Orthopedic"
-				},
-				{
-					"id": "servicetype_134",
-					"code": "BL",
-					"description": "Cardiac"
-				},
-				{
-					"id": "servicetype_135",
-					"code": "BM",
-					"description": "Lymphatic"
-				},
-				{
-					"id": "servicetype_136",
-					"code": "BN",
-					"description": "Gastrointestinal"
-				},
-				{
-					"id": "servicetype_137",
-					"code": "BP",
-					"description": "Endocrine"
-				},
-				{
-					"id": "servicetype_138",
-					"code": "BQ",
-					"description": "Neurology"
-				},
-				{
-					"id": "servicetype_139",
-					"code": "BS",
-					"description": "Invasive Procedures"
-				},
-				{
-					"id": "servicetype_140",
-					"code": "11",
-					"description": "Used Durable Medical Equipment"
-				},
-				{
-					"id": "servicetype_141",
-					"code": "BR",
-					"description": "Eye"
-				}
-			]
-		}
-	}
+    {
+        "service_types": {
+            "eligibility_service_types": [
+                {
+                    "id": "servicetype_0",
+                    "code": "1",
+                    "description": "Medical Care"
+                },
+                {
+                    "id": "servicetype_1",
+                    "code": "2",
+                    "description": "Surgical"
+                },
+                {
+                    "id": "servicetype_2",
+                    "code": "3",
+                    "description": "Consultation"
+                },
+                {
+                    "id": "servicetype_3",
+                    "code": "4",
+                    "description": "Diagnostic X-Ray"
+                },
+                {
+                    "id": "servicetype_4",
+                    "code": "5",
+                    "description": "Diagnostic Lab"
+                },
+                {
+                    "id": "servicetype_5",
+                    "code": "6",
+                    "description": "Radiation Therapy"
+                },
+                {
+                    "id": "servicetype_6",
+                    "code": "7",
+                    "description": "Anesthesia"
+                },
+                {
+                    "id": "servicetype_7",
+                    "code": "8",
+                    "description": "Surgical Assistance"
+                },
+                {
+                    "id": "servicetype_8",
+                    "code": "9",
+                    "description": "Other Medical"
+                },
+                {
+                    "id": "servicetype_9",
+                    "code": "10",
+                    "description": "Blood Charges"
+                },
+                {
+                    "id": "servicetype_10",
+                    "code": "12",
+                    "description": "Durable Medical Equipment Purchase"
+                },
+                {
+                    "id": "servicetype_11",
+                    "code": "13",
+                    "description": "Ambulatory Service Center Facility"
+                },
+                {
+                    "id": "servicetype_12",
+                    "code": "14",
+                    "description": "Renal Supplies in the Home"
+                },
+                {
+                    "id": "servicetype_13",
+                    "code": "15",
+                    "description": "Alternate Method Dialysis"
+                },
+                {
+                    "id": "servicetype_14",
+                    "code": "16",
+                    "description": "Chronic Renal Disease (CRD) Equipment"
+                },
+                {
+                    "id": "servicetype_15",
+                    "code": "17",
+                    "description": "Pre-Admission Testing"
+                },
+                {
+                    "id": "servicetype_16",
+                    "code": "18",
+                    "description": "Durable Medical Equipment Rental"
+                },
+                {
+                    "id": "servicetype_17",
+                    "code": "19",
+                    "description": "Pneumonia Vaccine"
+                },
+                {
+                    "id": "servicetype_18",
+                    "code": "20",
+                    "description": "Second Surgical Opinion"
+                },
+                {
+                    "id": "servicetype_19",
+                    "code": "21",
+                    "description": "Third Surgical Opinion"
+                },
+                {
+                    "id": "servicetype_20",
+                    "code": "22",
+                    "description": "Social Work"
+                },
+                {
+                    "id": "servicetype_21",
+                    "code": "23",
+                    "description": "Diagnostic Dental"
+                },
+                {
+                    "id": "servicetype_22",
+                    "code": "24",
+                    "description": "Periodontics"
+                },
+                {
+                    "id": "servicetype_23",
+                    "code": "25",
+                    "description": "Restorative"
+                },
+                {
+                    "id": "servicetype_24",
+                    "code": "26",
+                    "description": "Endodontics"
+                },
+                {
+                    "id": "servicetype_25",
+                    "code": "27",
+                    "description": "Maxillofacial Prosthetics"
+                },
+                {
+                    "id": "servicetype_26",
+                    "code": "28",
+                    "description": "Adjunctive Dental Services"
+                },
+                {
+                    "id": "servicetype_27",
+                    "code": "30",
+                    "description": "Health Benefit Plan Coverage"
+                },
+                {
+                    "id": "servicetype_28",
+                    "code": "32",
+                    "description": "Plan Waiting Period"
+                },
+                {
+                    "id": "servicetype_29",
+                    "code": "33",
+                    "description": "Chiropractic"
+                },
+                {
+                    "id": "servicetype_30",
+                    "code": "34",
+                    "description": "Chiropractic Office Visits"
+                },
+                {
+                    "id": "servicetype_31",
+                    "code": "35",
+                    "description": "Dental Care"
+                },
+                {
+                    "id": "servicetype_32",
+                    "code": "36",
+                    "description": "Dental Crowns"
+                },
+                {
+                    "id": "servicetype_33",
+                    "code": "37",
+                    "description": "Dental Accident"
+                },
+                {
+                    "id": "servicetype_34",
+                    "code": "38",
+                    "description": "Orthodontics"
+                },
+                {
+                    "id": "servicetype_35",
+                    "code": "39",
+                    "description": "Prosthodontics"
+                },
+                {
+                    "id": "servicetype_36",
+                    "code": "40",
+                    "description": "Oral Surgery"
+                },
+                {
+                    "id": "servicetype_37",
+                    "code": "41",
+                    "description": "Routine (Preventive) Dental"
+                },
+                {
+                    "id": "servicetype_38",
+                    "code": "42",
+                    "description": "Home Health Care"
+                },
+                {
+                    "id": "servicetype_39",
+                    "code": "43",
+                    "description": "Home Health Prescriptions"
+                },
+                {
+                    "id": "servicetype_40",
+                    "code": "44",
+                    "description": "Home Health Visits"
+                },
+                {
+                    "id": "servicetype_41",
+                    "code": "45",
+                    "description": "Hospice"
+                },
+                {
+                    "id": "servicetype_42",
+                    "code": "46",
+                    "description": "Respite Care"
+                },
+                {
+                    "id": "servicetype_43",
+                    "code": "47",
+                    "description": "Hospital"
+                },
+                {
+                    "id": "servicetype_44",
+                    "code": "48",
+                    "description": "Hospital - Inpatient"
+                },
+                {
+                    "id": "servicetype_45",
+                    "code": "49",
+                    "description": "Hospital - Room and Board"
+                },
+                {
+                    "id": "servicetype_46",
+                    "code": "50",
+                    "description": "Hospital - Outpatient"
+                },
+                {
+                    "id": "servicetype_47",
+                    "code": "51",
+                    "description": "Hospital - Emergency Accident"
+                },
+                {
+                    "id": "servicetype_48",
+                    "code": "52",
+                    "description": "Hospital - Emergency Medical"
+                },
+                {
+                    "id": "servicetype_49",
+                    "code": "53",
+                    "description": "Hospital - Ambulatory Surgical"
+                },
+                {
+                    "id": "servicetype_50",
+                    "code": "54",
+                    "description": "Long Term Care"
+                },
+                {
+                    "id": "servicetype_51",
+                    "code": "55",
+                    "description": "Major Medical"
+                },
+                {
+                    "id": "servicetype_52",
+                    "code": "56",
+                    "description": "Medically Related Transportation"
+                },
+                {
+                    "id": "servicetype_53",
+                    "code": "57",
+                    "description": "Air Transportation"
+                },
+                {
+                    "id": "servicetype_54",
+                    "code": "58",
+                    "description": "Cabulance"
+                },
+                {
+                    "id": "servicetype_55",
+                    "code": "59",
+                    "description": "Licensed Ambulance"
+                },
+                {
+                    "id": "servicetype_56",
+                    "code": "60",
+                    "description": "General Benefits"
+                },
+                {
+                    "id": "servicetype_57",
+                    "code": "61",
+                    "description": "In-vitro Fertilization"
+                },
+                {
+                    "id": "servicetype_58",
+                    "code": "62",
+                    "description": "MRI/CAT Scan"
+                },
+                {
+                    "id": "servicetype_59",
+                    "code": "63",
+                    "description": "Donor Procedures"
+                },
+                {
+                    "id": "servicetype_60",
+                    "code": "64",
+                    "description": "Acupuncture"
+                },
+                {
+                    "id": "servicetype_61",
+                    "code": "65",
+                    "description": "Newborn Care"
+                },
+                {
+                    "id": "servicetype_62",
+                    "code": "66",
+                    "description": "Pathology"
+                },
+                {
+                    "id": "servicetype_63",
+                    "code": "67",
+                    "description": "Smoking Cessation"
+                },
+                {
+                    "id": "servicetype_64",
+                    "code": "68",
+                    "description": "Well Baby Care"
+                },
+                {
+                    "id": "servicetype_65",
+                    "code": "69",
+                    "description": "Maternity"
+                },
+                {
+                    "id": "servicetype_66",
+                    "code": "70",
+                    "description": "Transplants"
+                },
+                {
+                    "id": "servicetype_67",
+                    "code": "71",
+                    "description": "Audiology Exam"
+                },
+                {
+                    "id": "servicetype_68",
+                    "code": "72",
+                    "description": "Inhalation Therapy"
+                },
+                {
+                    "id": "servicetype_69",
+                    "code": "73",
+                    "description": "Diagnostic Medical"
+                },
+                {
+                    "id": "servicetype_70",
+                    "code": "74",
+                    "description": "Private Duty Nursing"
+                },
+                {
+                    "id": "servicetype_71",
+                    "code": "75",
+                    "description": "Prosthetic Device"
+                },
+                {
+                    "id": "servicetype_72",
+                    "code": "76",
+                    "description": "Dialysis"
+                },
+                {
+                    "id": "servicetype_73",
+                    "code": "77",
+                    "description": "Otological Exam"
+                },
+                {
+                    "id": "servicetype_74",
+                    "code": "78",
+                    "description": "Chemotherapy"
+                },
+                {
+                    "id": "servicetype_75",
+                    "code": "79",
+                    "description": "Allergy Testing"
+                },
+                {
+                    "id": "servicetype_76",
+                    "code": "80",
+                    "description": "Immunizations"
+                },
+                {
+                    "id": "servicetype_77",
+                    "code": "81",
+                    "description": "Routine Physical"
+                },
+                {
+                    "id": "servicetype_78",
+                    "code": "82",
+                    "description": "Family Planning"
+                },
+                {
+                    "id": "servicetype_79",
+                    "code": "83",
+                    "description": "Infertility"
+                },
+                {
+                    "id": "servicetype_80",
+                    "code": "84",
+                    "description": "Abortion"
+                },
+                {
+                    "id": "servicetype_81",
+                    "code": "85",
+                    "description": "AIDS"
+                },
+                {
+                    "id": "servicetype_82",
+                    "code": "86",
+                    "description": "Emergency Services"
+                },
+                {
+                    "id": "servicetype_83",
+                    "code": "87",
+                    "description": "Cancer"
+                },
+                {
+                    "id": "servicetype_84",
+                    "code": "88",
+                    "description": "Pharmacy"
+                },
+                {
+                    "id": "servicetype_85",
+                    "code": "89",
+                    "description": "Free Standing Prescription Drug"
+                },
+                {
+                    "id": "servicetype_86",
+                    "code": "90",
+                    "description": "Mail Order Prescription Drug"
+                },
+                {
+                    "id": "servicetype_87",
+                    "code": "91",
+                    "description": "Brand Name Prescription Drug"
+                },
+                {
+                    "id": "servicetype_88",
+                    "code": "92",
+                    "description": "Generic Prescription Drug"
+                },
+                {
+                    "id": "servicetype_89",
+                    "code": "93",
+                    "description": "Podiatry"
+                },
+                {
+                    "id": "servicetype_90",
+                    "code": "94",
+                    "description": "Podiatry - Office Visits"
+                },
+                {
+                    "id": "servicetype_91",
+                    "code": "95",
+                    "description": "Podiatry - Nursing Home Visits"
+                },
+                {
+                    "id": "servicetype_92",
+                    "code": "96",
+                    "description": "Professional (Physician)"
+                },
+                {
+                    "id": "servicetype_93",
+                    "code": "97",
+                    "description": "Anesthesiologist"
+                },
+                {
+                    "id": "servicetype_94",
+                    "code": "98",
+                    "description": "Professional (Physician) Visit - Office"
+                },
+                {
+                    "id": "servicetype_95",
+                    "code": "99",
+                    "description": "Professional (Physician) Visit - Inpatient"
+                },
+                {
+                    "id": "servicetype_96",
+                    "code": "A0",
+                    "description": "Professional (Physician) Visit - Outpatient"
+                },
+                {
+                    "id": "servicetype_97",
+                    "code": "A1",
+                    "description": "Professional (Physician) Visit - Nursing Home"
+                },
+                {
+                    "id": "servicetype_98",
+                    "code": "A2",
+                    "description": "Professional (Physician) Visit - Skilled Nursing Facility"
+                },
+                {
+                    "id": "servicetype_99",
+                    "code": "A3",
+                    "description": "Professional (Physician) Visit - Home"
+                },
+                {
+                    "id": "servicetype_100",
+                    "code": "A4",
+                    "description": "Psychiatric"
+                },
+                {
+                    "id": "servicetype_101",
+                    "code": "A5",
+                    "description": "Psychiatric - Room and Board"
+                },
+                {
+                    "id": "servicetype_102",
+                    "code": "A6",
+                    "description": "Psychotherapy"
+                },
+                {
+                    "id": "servicetype_103",
+                    "code": "A7",
+                    "description": "Psychiatric - Inpatient"
+                },
+                {
+                    "id": "servicetype_104",
+                    "code": "A8",
+                    "description": "Psychiatric - Outpatient"
+                },
+                {
+                    "id": "servicetype_105",
+                    "code": "A9",
+                    "description": "Rehabilitation"
+                },
+                {
+                    "id": "servicetype_106",
+                    "code": "AA",
+                    "description": "Rehabilitation - Room and Board"
+                },
+                {
+                    "id": "servicetype_107",
+                    "code": "AB",
+                    "description": "Rehabilitation - Inpatient"
+                },
+                {
+                    "id": "servicetype_108",
+                    "code": "AC",
+                    "description": "Rehabilitation - Outpatient"
+                },
+                {
+                    "id": "servicetype_109",
+                    "code": "AD",
+                    "description": "Occupational Therapy"
+                },
+                {
+                    "id": "servicetype_110",
+                    "code": "AE",
+                    "description": "Physical Medicine"
+                },
+                {
+                    "id": "servicetype_111",
+                    "code": "AF",
+                    "description": "Speech Therapy"
+                },
+                {
+                    "id": "servicetype_112",
+                    "code": "AG",
+                    "description": "Skilled Nursing Care"
+                },
+                {
+                    "id": "servicetype_113",
+                    "code": "AH",
+                    "description": "Skilled Nursing Care - Room and Board"
+                },
+                {
+                    "id": "servicetype_114",
+                    "code": "AI",
+                    "description": "Substance Abuse"
+                },
+                {
+                    "id": "servicetype_115",
+                    "code": "AJ",
+                    "description": "Alcoholism"
+                },
+                {
+                    "id": "servicetype_116",
+                    "code": "AK",
+                    "description": "Drug Addiction"
+                },
+                {
+                    "id": "servicetype_117",
+                    "code": "AL",
+                    "description": "Vision (Optometry)"
+                },
+                {
+                    "id": "servicetype_118",
+                    "code": "AM",
+                    "description": "Frames"
+                },
+                {
+                    "id": "servicetype_119",
+                    "code": "AN",
+                    "description": "Routine Exam"
+                },
+                {
+                    "id": "servicetype_120",
+                    "code": "AO",
+                    "description": "Lenses"
+                },
+                {
+                    "id": "servicetype_121",
+                    "code": "AQ",
+                    "description": "Nonmedically Necessary Physical"
+                },
+                {
+                    "id": "servicetype_122",
+                    "code": "AR",
+                    "description": "Experimental Drug Therapy"
+                },
+                {
+                    "id": "servicetype_123",
+                    "code": "BA",
+                    "description": "Independent Medical Evaluation"
+                },
+                {
+                    "id": "servicetype_124",
+                    "code": "BB",
+                    "description": "Partial Hospitalization (Psychiatric)"
+                },
+                {
+                    "id": "servicetype_125",
+                    "code": "BC",
+                    "description": "Day Care (Psychiatric)"
+                },
+                {
+                    "id": "servicetype_126",
+                    "code": "BD",
+                    "description": "Cognitive Therapy"
+                },
+                {
+                    "id": "servicetype_127",
+                    "code": "BE",
+                    "description": "Massage Therapy"
+                },
+                {
+                    "id": "servicetype_128",
+                    "code": "BF",
+                    "description": "Pulmonary Rehabilitation"
+                },
+                {
+                    "id": "servicetype_129",
+                    "code": "BG",
+                    "description": "Cardiac Rehabilitation"
+                },
+                {
+                    "id": "servicetype_130",
+                    "code": "BH",
+                    "description": "Pediatric"
+                },
+                {
+                    "id": "servicetype_131",
+                    "code": "BI",
+                    "description": "Nursery"
+                },
+                {
+                    "id": "servicetype_132",
+                    "code": "BJ",
+                    "description": "Skin"
+                },
+                {
+                    "id": "servicetype_133",
+                    "code": "BK",
+                    "description": "Orthopedic"
+                },
+                {
+                    "id": "servicetype_134",
+                    "code": "BL",
+                    "description": "Cardiac"
+                },
+                {
+                    "id": "servicetype_135",
+                    "code": "BM",
+                    "description": "Lymphatic"
+                },
+                {
+                    "id": "servicetype_136",
+                    "code": "BN",
+                    "description": "Gastrointestinal"
+                },
+                {
+                    "id": "servicetype_137",
+                    "code": "BP",
+                    "description": "Endocrine"
+                },
+                {
+                    "id": "servicetype_138",
+                    "code": "BQ",
+                    "description": "Neurology"
+                },
+                {
+                    "id": "servicetype_139",
+                    "code": "BS",
+                    "description": "Invasive Procedures"
+                },
+                {
+                    "id": "servicetype_140",
+                    "code": "11",
+                    "description": "Used Durable Medical Equipment"
+                },
+                {
+                    "id": "servicetype_141",
+                    "code": "BR",
+                    "description": "Eye"
+                }
+            ]
+        }
+    }
 ]

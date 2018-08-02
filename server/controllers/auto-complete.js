@@ -11,10 +11,10 @@ module.exports = {
     getICDcodes: function (params) {
         return data.getICDcodes(params);
     },
-    getProviderGroups:function(params){
+    getProviderGroups: function (params) {
         return data.getProviderGroups(params);
     },
-    getInsurances:function(params){
+    getInsurances: function (params) {
         return data.getInsurances(params);
     },
     getPatients: function (params) {
