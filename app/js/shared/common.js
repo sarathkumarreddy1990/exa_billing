@@ -63,7 +63,7 @@ var settingsReceived = false
     , $body = $('body');
 
 var commonjs = {
-    requestTimeout: 25000,
+    requestTimeout: 80000,
     currentModule: '',
     currentTargetID: null,
     hasLoaded: false,
