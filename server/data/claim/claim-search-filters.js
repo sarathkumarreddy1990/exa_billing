@@ -257,6 +257,7 @@ const api = {
                 ${columns}
             FROM
                 billing.claims
+                INNER JOIN facilities ON facilities.id=claims.facility_id
             ${permissionQuery}
             ${api.getWLQueryJoin(tables, true, args.customArgs.filter_id) + args.filterQuery}
             `;
@@ -268,7 +269,7 @@ const api = {
         
         if (tables.patients) { r += ' INNER JOIN patients ON claims.patient_id = patients.id '; }
 
-        if (tables.facilities) { r += ' INNER JOIN facilities ON facilities.id=claims.facility_id '; }
+        //  if (tables.facilities) { r += ' INNER JOIN facilities ON facilities.id=claims.facility_id '; }
 
         if (tables.claim_status) { r += ' LEFT JOIN billing.claim_status  ON claim_status.id=claims.claim_status_id'; }
 

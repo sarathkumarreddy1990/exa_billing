@@ -56,11 +56,11 @@ module.exports = {
         if (result.rows && result.rows.length) { 
 
             if(!result.rows[0].header) {
-                return new Error('Clearinghouse not yet mapped with payer :(');
+                return new Error('Clearinghouse not yet mapped with payer');
             }
 
             if(!result.rows[0].header.edi_template_name) {
-                return new Error('EDI Template not yet mapped with Clearinghouse :(');
+                return new Error('EDI Template not yet mapped with Clearinghouse');
             }
             
             let ediData = _.map( result.rows, function (obj) {

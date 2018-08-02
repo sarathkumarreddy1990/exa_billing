@@ -8,7 +8,7 @@ module.exports = (fieldID, fieldValue) => {
     }
 
     const fromToDates = fieldValue.split(/\s-\s/);
-    const useToFacilityDate = ['accounting_dt', 'payment_dt', 'studies.study_dt', 'studies.schedule_dt', 'studies.study_received_dt', 'studies.approved_dt'].includes(fieldID);  // This is a hack to force query planner to use specific index which is much faster
+    const useToFacilityDate = ['claim_dt', 'accounting_dt', 'payment_dt', 'studies.study_dt', 'studies.schedule_dt', 'studies.study_received_dt', 'studies.approved_dt'].includes(fieldID);  // This is a hack to force query planner to use specific index which is much faster
 
     if (fromToDates.length === 1) {
         const date = moment(fromToDates[0], 'YYYY-MM-DD');
