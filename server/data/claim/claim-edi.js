@@ -602,6 +602,11 @@ module.exports = {
 									FROM 
 					(SELECT 
 					display_code as "cpt",
+					charges.id as "chargeID",	
+					(CASE coverage_level 
+						WHEN 'primary' THEN 'P'
+						WHEN 'secondary' THEN 'S'
+						WHEN 'tertiary' THEN 'T' END) as "claimResponsibleParty",
 					insurance_info->'PayerID' as "payerID",
 					modifier1.code as "modifier1",
 					modifier2.code as "modifier2",

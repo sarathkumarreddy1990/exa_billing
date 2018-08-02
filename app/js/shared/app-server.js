@@ -16,7 +16,7 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                 default_column: 'claim_dt',
                 default_column_order_by: "Asc",
                 default_tab: 'All Claims',
-                field_order: [1,2,12,22,27],
+                field_order: [1,19,2,12,22,27],
                 grid_name: "claims"
             };
             
