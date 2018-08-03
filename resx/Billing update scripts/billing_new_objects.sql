@@ -3127,9 +3127,9 @@ BEGIN
 			ELSE
 			    CASE
 			        WHEN claim_details.claim_balance_total > 0::money  THEN
-			            CASE WHEN (NOT is_primary_paid  and is_other_ins_paid ) AND primary_patient_insurance_id IS NOT NULL
+			            CASE WHEN (NOT is_primary_paid  and is_other_ins_paid ) AND secondary_patient_insurance_id IS NOT NULL
 						    THEN 'secondary_insurance'
-						WHEN NOT is_primary_paid AND  primary_patient_insurance_id IS NOT NULL
+						WHEN (NOT is_primary_paid AND  NOT is_other_ins_paid) AND primary_patient_insurance_id IS NOT NULL
 						THEN 'primary_insurance'
 					        WHEN NOT is_secondary_paid AND secondary_patient_insurance_id IS NOT NULL
 						THEN 'secondary_insurance'
