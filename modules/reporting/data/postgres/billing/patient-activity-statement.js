@@ -11,29 +11,30 @@ const patientStatementDataSetQueryTemplate = _.template(`
 
 
 WITH claim_data as(
-    SELECT 
-       bc.id as claim_id 
+    SELECT
+       bc.id as claim_id
     FROM billing.claims bc
     <% if (billingProviderIds) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
-    WHERE 1=1 
-    AND <%= patientIds %>  
-    <% if(billingProviderIds) { %> AND <% print(billingProviderIds); } %>   
+    WHERE 1=1
+    AND <%= patientIds %>
+    <% if(billingProviderIds) { %> AND <% print(billingProviderIds); } %>
     ),
     patient_insurance AS (
-        select 
+        select
         coverage_level as cov_level,
         to_char(valid_from_date, 'MM/DD/YYYY') as valid_from_date,
         to_char(valid_to_date, 'MM/DD/YYYY') AS valid_to_date,
         policy_number AS policy_no,
         group_number AS group_no,
-        subscriber_firstname AS company_name    
-  from   
-     patient_insurances pis  
-          WHERE 1=1           
-          AND <%= patientInsIds %>                         
-        ORDER BY cov_level      
+        ip.insurance_name    AS company_name
+  from
+     patient_insurances pis
+     INNER JOIN insurance_providers AS ip ON ip.id = pis.insurance_provider_id
+          WHERE 1=1
+          AND <%= patientInsIds %>
+        ORDER BY cov_level
       ),
-     billing_comments as 
+     billing_comments as
     (
     <% if (billingComments == "true")  { %>
     select cc.claim_id as id,'claim' as type ,note as comments ,created_dt::date as commented_dt,null as amount,u.username as commented_by,null as code from  billing.claim_comments cc
@@ -43,9 +44,9 @@ WITH claim_data as(
     <% } %>
     select  c.claim_id as id,'charge' as type,cc.short_description as comments,c.charge_dt::date as commented_dt,(c.bill_fee*c.units) as amount,u.username as commented_by,cc.display_code as code from billing.charges c
     INNER JOIN claim_data cd on cd.claim_id = c.claim_id
-    inner join cpt_codes cc on cc.id = c.cpt_id 
+    inner join cpt_codes cc on cc.id = c.cpt_id
     inner join users u  on u.id = c.created_by
-    UNION ALL
+    UNION
     select  bc.claim_id as id,amount_type as type,
     CASE WHEN bp.payer_type = 'patient' THEN
                pp.full_name
@@ -59,9 +60,9 @@ WITH claim_data as(
     bp.accounting_dt::date as commented_dt,
     pa.amount as amount,
     u.username as commented_by,
-    CASE amount_type 
+    CASE amount_type
          WHEN 'adjustment' THEN 'Adj'
-         WHEN 'payment' THEN (CASE bp.payer_type  
+         WHEN 'payment' THEN (CASE bp.payer_type
                              WHEN 'patient' THEN 'Patient'
                              WHEN 'insurance' THEN 'Insurance'
                              WHEN 'ordering_facility' THEN 'Ordering facility'
@@ -70,7 +71,7 @@ WITH claim_data as(
     END as code
     from billing.payments bp
     inner join billing.payment_applications pa on pa.payment_id = bp.id
-    inner join billing.charges bc on bc.id = pa.charge_id 
+    inner join billing.charges bc on bc.id = pa.charge_id
     INNER JOIN claim_data cd on cd.claim_id = bc.claim_id
     inner join users u  on u.id = bp.created_by
     LEFT JOIN public.patients pp on pp.id = bp.patient_id
@@ -80,7 +81,7 @@ WITH claim_data as(
     LEFT JOIN public.providers p on p.id = pc.provider_id
     ),
     main_detail_cte as (
-    SELECT 
+    SELECT
         p.id as pid,
         sum((CASE type WHEN 'charge' then amount
                       WHEN 'payment' then amount
@@ -128,9 +129,9 @@ WITH claim_data as(
         bp.phone_number as billing_phoneno,
         type as payment_type,
         CASE type WHEN 'charge' THEN 1 ELSE 2 END AS sort_order
-    FROM public.patients p 
+    FROM public.patients p
          INNER JOIN billing.claims bc on bc.patient_id = p.id
-         INNER JOIN billing_comments pc on pc.id = bc.id 
+         INNER JOIN billing_comments pc on pc.id = bc.id
          INNER JOIN billing.providers bp on bp.id = bc.billing_provider_id
          INNER JOIN facilities f on f.id = bc.facility_id
          LEFT JOIN public.patient_insurances pi on pi.id = (CASE WHEN  bc.payer_type = 'primary_insurance' THEN
@@ -139,9 +140,9 @@ WITH claim_data as(
          secondary_patient_insurance_id
    WHEN  bc.payer_type = 'tertiary_insurance' THEN
          tertiary_patient_insurance_id
-   END)   
+   END)
    WHERE 1 = 1
-   <% if(reportBy == "false") { %> AND <% print(claimDate); } %>   
+   <% if(reportBy == "false") { %> AND <% print(claimDate); } %>
 
     order by first_name),
     detail_cte AS(
@@ -150,26 +151,26 @@ WITH claim_data as(
     AND sum_amount >=  <%= minAmount  %>::money
     ),
     sum_encounter_cte AS (
-    SELECT 
+    SELECT
             pid
           , enc_id
           , max(enc_date::date) AS bucket_date
           , sum(amount)         AS enc_total_amount
           FROM detail_cte
-          GROUP BY 
+          GROUP BY
             pid
           , enc_id
     ),
     sum_statement_credit_cte AS (
-          SELECT 
-            pid          
+          SELECT
+            pid
           , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '30 days' and  <%= sDate %>) as current_amount
           , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '60 days' and  <%= sDate %>- interval '31 days') as over30_amount
           , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '90 days' and  <%= sDate %>- interval '61 days') as over60_amount
           , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '120 days' and <%= sDate %> - interval '91 days') as over90_amount
           , sum(enc_total_amount) FILTER (WHERE bucket_date <= <%= sDate %> - interval '121 days') as over120_amount
-          , sum(enc_total_amount) AS statement_total_amount      
-          
+          , sum(enc_total_amount) AS statement_total_amount
+
           FROM sum_encounter_cte
           GROUP BY pid
     ),
@@ -181,7 +182,7 @@ WITH claim_data as(
                                 (select description from billing.messages where <%= companyId %> and CODE = 'collections') as collection
     ),
     statement_cte AS (
-          SELECT 
+          SELECT
             statement_total_amount
           , current_amount
           , over30_amount
@@ -235,7 +236,7 @@ WITH claim_data as(
           , 'Policy#'            AS c29
           , 'Group#'             AS c30
           , 'Company Name'       AS c31
-          , -1                   AS pid  
+          , -1                   AS pid
           , -1                   AS enc_id
           , null::date           AS enc_date
           , -1                   AS row_flag
@@ -243,7 +244,7 @@ WITH claim_data as(
           , -1                   AS statement_flag
           UNION
           -- Coverage Info
-          
+
           SELECT
            null
           ,null
@@ -277,7 +278,7 @@ WITH claim_data as(
           , group_no
           , company_name
           , null
-        
+
       , 0
       , null
       , 0
@@ -286,7 +287,7 @@ WITH claim_data as(
       FROM patient_insurance
       UNION
           -- Billing Information
-          
+
               SELECT
                 billing_provider_name
               , billing_proaddress1
@@ -320,7 +321,7 @@ WITH claim_data as(
               , null
               , null
               , pid
-            
+
           , 0
           , null
           , 0
@@ -328,8 +329,8 @@ WITH claim_data as(
           , 0
           FROM detail_cte
           UNION
-    
-          
+
+
               -- Statement Amount
               SELECT
                 null
@@ -371,8 +372,8 @@ WITH claim_data as(
               , 1
               FROM sum_statement_credit_cte
               UNION
-              
-          
+
+
               -- Patient Info
               SELECT
                 null
@@ -414,10 +415,10 @@ WITH claim_data as(
               , 2
               FROM detail_cte
               UNION
-              
-    
+
+
           -- Details
-          SELECT 
+          SELECT
             pid::text
           , first_name
           , middle_name
@@ -457,7 +458,7 @@ WITH claim_data as(
           , null
           FROM detail_cte
           UNION
-    
+
           -- Encounter Total, sum per pid and enc_id, both should be in select
           SELECT
             pid::text
@@ -499,7 +500,7 @@ WITH claim_data as(
           , null
           FROM sum_encounter_cte
           UNION
-    
+
           -- Statement Totals, 30, 60, 90, 120, Balance
           SELECT
             null
@@ -540,8 +541,8 @@ WITH claim_data as(
           , 99   AS sort_order
           , 0
           FROM statement_cte
-    
-          UNION 
+
+          UNION
               SELECT
                 billing_provider_name
               , billing_proaddress1
@@ -574,17 +575,17 @@ WITH claim_data as(
               , null
               , null
               , null
-              , pid            
+              , pid
               , null
               , null
               , 6
               , 99   AS sort_order
               , 1
               FROM detail_cte
-              
-          
+
+
               UNION
-    
+
               SELECT
                 null
               , null
@@ -624,12 +625,12 @@ WITH claim_data as(
               , 99   AS sort_order
               , 2
               FROM statement_cte
-              
+
           )
-    
+
           -- Main Query, added rowFlag and encounterAmount for HTML and PDF
           SELECT
-            CASE 
+            CASE
             WHEN row_flag = 5 THEN null
             ELSE c1
             END
@@ -666,16 +667,17 @@ WITH claim_data as(
           , row_flag
           , CASE row_flag WHEN 1 THEN c15 WHEN 2 THEN c16 WHEN 3 THEN c17 ELSE '' END AS enc_amount
           ,  CASE  WHEN c28 IS NOT NULL then 12 else statement_flag end as statement_flag
-          FROM all_cte          
-          ORDER BY 
+          FROM all_cte
+          ORDER BY
             pid
           , enc_id
           , sort_order
           , enc_date
           , row_flag
           , statement_flag
-          , c13;
-        
+          , c13
+          , c28;
+
 `);
 
 const api = {
@@ -709,7 +711,7 @@ const api = {
             dataHelper.getPatientInfo(initialReportData.report.params.companyId, initialReportData.report.params.patientIds),
             // other data sets could be added here...
             (patientStatementDataSet, providerInfo, patientInfo) => {
-                // add report filters                
+                // add report filters
                 initialReportData.filters = api.createReportFilters(initialReportData);
                 initialReportData.lookups.billingProviderInfo = providerInfo || [];
                 initialReportData.lookups.patients = patientInfo || [];
@@ -744,7 +746,7 @@ const api = {
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
         }
 
-        // Min Amount 
+        // Min Amount
         filtersUsed.push({ name: 'minAmount', label: 'Minumum Amount', value: params.minAmount });
 
         filtersUsed.push({ name: 'sDate', label: 'Statement Date', value: params.sDate });

@@ -31,10 +31,6 @@ END IF;
 -- --------------------------------------------------------------------------------------------------------------------
 -- Billing 1.5 Grant priveleges for exa_billing
 -- --------------------------------------------------------------------------------------------------------------------
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO exa_billing;
-
--- Following Tables used by RIS  are shared with Billing.
--- GRANT ALL on public.user_log, public.users_online,public.user_log_id_seq,public.facilities,public.companies,public.insurance_providers,public.modifiers TO exa_billing;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO exa_billing;
 
 GRANT REFERENCES ON ALL TABLES IN SCHEMA public TO exa_billing;
@@ -3122,7 +3118,7 @@ BEGIN
 		 (SELECT count(1) > 0 FROM ins_paid WHERE is_primary) is_primary_paid,
 		 (SELECT count(1) > 0 FROM ins_paid WHERE is_secondary) is_secondary_paid,
 		 (SELECT count(1) > 0 FROM ins_paid WHERE is_tertiary) is_tertiary_paid,
-		 (SELECT count(1) = count(1) Filter (WHERE is_ins_other_paid is false) FROM is_other_paid WHERE is_ins_other_paid) is_other_ins_paid
+		 (SELECT (CASE when count(1) = 0 THEN 1 ELSE count(1) END) = count(1) Filter (WHERE is_ins_other_paid is false) FROM is_other_paid) is_other_ins_paid
 		)
 	UPDATE billing.claims
 	SET payer_type = (
@@ -3131,7 +3127,9 @@ BEGIN
 			ELSE
 			    CASE
 			        WHEN claim_details.claim_balance_total > 0::money  THEN
-			            CASE WHEN (NOT is_primary_paid  and is_other_ins_paid ) AND primary_patient_insurance_id IS NOT NULL
+			            CASE WHEN (NOT is_primary_paid  and is_other_ins_paid ) AND secondary_patient_insurance_id IS NOT NULL
+						    THEN 'secondary_insurance'
+						WHEN (NOT is_primary_paid AND  NOT is_other_ins_paid) AND primary_patient_insurance_id IS NOT NULL
 						THEN 'primary_insurance'
 					        WHEN NOT is_secondary_paid AND secondary_patient_insurance_id IS NOT NULL
 						THEN 'secondary_insurance'

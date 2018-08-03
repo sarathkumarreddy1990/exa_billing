@@ -10,15 +10,15 @@ const _ = require('lodash')
 const diagnosisCountDataSetQueryTemplate = _.template(`
 WITH diagnosisCount as (
   SELECT
-    icd.code  AS code,    
-    CASE 
-        WHEN f.facility_name IS  NULL AND  icd.code IS NOT NULL THEN '--Total--'
-        WHEN f.facility_name IS NULL AND icd.code IS NULL THEN ' --Grand Total--'   
-        ELSE f.facility_name
-    END AS "facility_name",
-    MAX(icd.description) description ,
+    icd.code  AS code,
+    f.facility_name AS "facility_name",
+    CASE
+    WHEN icd.description IS  NULL AND  icd.code IS NOT NULL THEN '--Total--'
+    WHEN icd.description IS  NULL AND  icd.code IS  NULL AND f.facility_name IS NULL THEN '--Grand Total--'
+    ELSE   icd.description
+END AS "description",
     COUNT(1) AS icd_code_count
-  FROM 
+  FROM
      billing.claim_icds claim_icd
     INNER JOIN billing.claims cl ON cl.id = claim_icd.claim_id
     INNER JOIN public.icd_codes icd ON icd.id = claim_icd.icd_id
@@ -28,16 +28,16 @@ WITH diagnosisCount as (
     WHERE 1 = 1
     AND <%=companyId%>
     AND <%= claimDate %>
-    <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+    <% if (facilityIds) { %>AND <% print(facilityIds); } %>
     <% if(billingProID) { %> AND <% print(billingProID); } %>
     GROUP BY
-        ROLLUP(icd.code, f.facility_name)
+      GROUPING SETS ((icd.code, f.facility_name), (icd.code, f.facility_name,icd.description), ())
     ORDER BY
          icd.code
         , f.facility_name
         , icd_code_count
   )
-  SELECT 
+  SELECT
         code AS "ICD Code",
         facility_name AS "Facility Name",
         description AS "Description",
@@ -58,7 +58,7 @@ const api = {
             dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
             // other data sets could be added here...
             (diagnosisCountDataSet, providerInfo) => {
-                // add report filters            
+                // add report filters
                 initialReportData.lookups.billingProviderInfo = providerInfo || [];
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
@@ -100,7 +100,7 @@ const api = {
         const params = initialReportData.report.params;
         const filtersUsed = [];
         filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
-        
+
         if (params.allFacilities && params.facilityIds)
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
         else {

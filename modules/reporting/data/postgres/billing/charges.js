@@ -10,22 +10,22 @@ const summaryQueryTemplate = _.template(`
 WITH chargeReport AS (
     SELECT
         get_full_name(p.last_name, p.first_name,p.middle_name, p.prefix_name, p.suffix_name) AS patient_name,
-        SUM(bill_fee*units) AS total_charge, 
+        SUM(bill_fee*units) AS total_charge,
         SUM(allowed_amount*units) AS total_contract
-    FROM 
+    FROM
         billing.charges bch
-    INNER JOIN billing.claims bc on bc.id = bch.claim_id 
+    INNER JOIN billing.claims bc on bc.id = bch.claim_id
     <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
-    INNER JOIN public.patients p on p.id = bc.patient_id 
+    INNER JOIN public.patients p on p.id = bc.patient_id
     INNER JOIN facilities f on f.id = bc.facility_id
-    where 1=1 
+    where 1=1
     AND  <%= companyId %>
     AND <%= claimDate %>
-    <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+    <% if (facilityIds) { %>AND <% print(facilityIds); } %>
     <% if(billingProID) { %> AND <% print(billingProID); } %>
-    GROUP BY 
+    GROUP BY
         ROLLUP (patient_name)
-    ORDER BY 
+    ORDER BY
         patient_name
   )
   SELECT
@@ -37,10 +37,10 @@ WITH chargeReport AS (
         `);
 // Data set #2, detailed query
 const detailQueryTemplate = _.template(`
-          WITH detail_data as 
+          WITH detail_data as
          (
-            SELECT 
-      get_full_name(pp.last_name, pp.first_name,pp.middle_name, pp.prefix_name, pp.suffix_name) 
+            SELECT
+      get_full_name(pp.last_name, pp.first_name,pp.middle_name, pp.prefix_name, pp.suffix_name)
                                                       	    AS "Patient Name"
 	, pp.account_no 										AS "Account #"
 	, bc.id 											    AS "Claim #"
@@ -50,24 +50,27 @@ const detailQueryTemplate = _.template(`
 	, pm1.code                                             	AS "M1"
 	, pm2.code                                              AS "M2"
 	, pm3.code                                              AS "M3"
-    , pm4.code                                              AS "M4"  
+    , pm4.code                                              AS "M4"
     , (bch.bill_fee*bch.units)								AS "Charge"
-	, (bch.allowed_amount*bch.units)						AS "Contract" 
-	
-FROM billing.charges bch 
+	, (bch.allowed_amount*bch.units)						AS "Contract"
+
+FROM billing.charges bch
 INNER JOIN billing.claims bc on bc.id = bch.claim_id
 <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
-INNER JOIN public.patients pp on pp.id = bc.patient_id 
+INNER JOIN public.patients pp on pp.id = bc.patient_id
 INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
 LEFT JOIN public.modifiers pm1 on pm1.id = bch.modifier1_id
 LEFT JOIN public.modifiers pm2 on pm2.id = bch.modifier2_id
 LEFT JOIN public.modifiers pm3 on pm3.id = bch.modifier3_id
-LEFT JOIN public.modifiers pm4 on pm4.id = bch.modifier4_id 
-where 1=1 
+LEFT JOIN public.modifiers pm4 on pm4.id = bch.modifier4_id
+where 1=1
 AND  <%= companyId %>
 AND <%= claimDate %>
-<% if (facilityIds) { %>AND <% print(facilityIds); } %>        
-<% if(billingProID) { %> AND <% print(billingProID); } %>)
+<% if (facilityIds) { %>AND <% print(facilityIds); } %>
+<% if(billingProID) { %> AND <% print(billingProID); } %>
+ORDER BY
+        "Patient Name"
+ )
 
                 SELECT
        * from detail_data
@@ -114,7 +117,7 @@ const api = {
         const params = initialReportData.report.params;
         const filtersUsed = [];
         filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
-        
+
         if (params.allFacilities && params.facilityIds)
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
         else {
