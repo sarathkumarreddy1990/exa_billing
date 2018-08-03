@@ -75,14 +75,14 @@ define([
                         processedIDs = processedIDs.map(Number);
 
                         discardedIDs = _.difference(claimIDs, processedIDs);
-                        if (discardedIDs.length > 0) {
+                        if (discardedIDs.length > 0 && !options.isOrdFac) {
                             commonjs.showWarning('Unable to process few claims - ' + discardedIDs.toString());
                         }
 
                         if (options && options.invoiceNo) {
                             var invoiceNo = options.invoiceNo;
                             claimData[0].invoiceNo = invoiceNo;
-                            return self.preparePdfWorker(templateType, template, claimData);
+                            return self.preparePdfWorker(templateType, template, claimData,options);
                         }
 
                         self.updateClaimStatus(processedIDs, templateType, function (err, response) {
@@ -96,7 +96,7 @@ define([
                 });
             };
 
-            this.preparePdfWorker = function (templateType, template, claimData) {
+            this.preparePdfWorker = function (templateType, template, claimData,options) {
                 var pdfWorker;
                 var self = this;
                 var docDefinition = this.mergeTemplate(templateType, template, claimData);
@@ -118,12 +118,17 @@ define([
                         showDialog = commonjs.showNestedDialog;
                     }
 
-                    showDialog({
-                        header: self.pdfDetails[templateType].header,
-                        width: '90%',
-                        height: '75%',
-                        url: res.data.pdfBlob
-                    });
+                    if(options.isOrdFac){                     
+                        document.write("<iframe width='100%' height='100%' src='"+ res.data.pdfBlob+"'></iframe>");
+                    }else{
+                       showDialog({
+                            header: self.pdfDetails[templateType].header,
+                            width: '90%',
+                            height: '75%',
+                            url: res.data.pdfBlob
+                        });
+                    }
+                   
 
                     // const anchor = document.createElement('a');
                     // document.body.appendChild(anchor);

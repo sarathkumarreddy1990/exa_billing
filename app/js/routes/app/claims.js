@@ -2,22 +2,35 @@ define([
     'jquery',
     'backbone',
     'backbonesubroute',
-    'views/claims/claim-workbench'
+    'views/claims/claim-workbench',
+    'shared/paper-claim'
 ],
     function (
         $,
         Backbone,
         SubRoute,
-        claimWorkbenchView
+        claimWorkbenchView,
+        PaperClaim
         ) {
         var StudiesRouter = Backbone.SubRoute.extend({
             routes: {
-                'list': 'showGrid'
+                'list': 'showGrid',
+                ':id':'showInvoiceReport'
             },
 
             showGrid: function () {
                 this.initializeRouter();
                 this.claimWorkbenchScreen.render();
+            },
+
+            showInvoiceReport:function (invoiceNo) {
+                $('.navbar').hide();
+                var paperClaim = new PaperClaim();                
+                paperClaim.print('direct_invoice', [1], {
+                    sortBy: 'service_date',
+                    invoiceNo: invoiceNo,
+                    isOrdFac:true
+                });
             },
 
             initialize: function (options) {
