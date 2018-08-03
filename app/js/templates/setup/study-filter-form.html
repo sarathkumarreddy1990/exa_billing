@@ -653,19 +653,146 @@
                             </li>
                             <li>
                                 <div>
+                                    <div><b><label for="txtStudyDescription"
+                                                    i18n="setup.studyFilters.studyDescription"></label></b></div>
                                     <table style="width:100%;">
                                         <tr>
                                             <td>
-                                                    <div><b><label for="listFlag" i18n="setup.userSettings.billedStatus"></label></b></div>
-                                            </td><td>
-                                                <select class="form-control fc-short" id='ddlBilledStatus'>
-                                                    <option i18n="setup.studyFilters.select" value=''></option>
-                                                    <option i18n="setup.studyFilters.billed" value="billed"></option>
-                                                    <option i18n="setup.studyFilters.unbilled" value="unbilled"></option>
-                                                </select>
+                                                <div>
+                                                    <div class="row form-inline">
+                                                        <div class="form-list col-md-2 col-sm-2">
+                                                            <input type="radio" id="rbtStudyDescription" name="StudyDescription"
+                                                                    value="Is" class="form-check-input">
+                                                            <label for="rbtStudyDescription" class="field-chk studyfilterLabel"
+                                                                    i18n="setup.studyFilters.is"></label>
+                                                        </div>
+                                                        <div class="form-list col-md-3 col-sm-3">
+                                                            <input type="radio" id="rbtIsNotStudyDescription" name="StudyDescription"
+                                                                    value="IsNot" class="form-check-input">
+                                                            <label for="rbtIsNotStudyDescription" class="field-chk studyfilterLabel"
+                                                                    i18n="setup.studyFilters.isNot"></label>
+                                                        </div>
+                                                        <div class="form-list col-md-4 col-sm-4">
+                                                            <input type="checkbox" id="chkContainsStudyDescription"
+                                                                    name="StudyDescription" value="Contains" class="form-check-input">
+                                                            <label for="chkContainsStudyDescription" class="field-chk studyfilterLabel"
+                                                                    i18n="setup.studyFilters.contains"></label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row form-inline">
+                                                    <div class="form-list col-md-12" id="divStudyDescription" style="margin-top:5px;">
+                                                        <ul id="ulListStudyDescriptions" class="tagList tagListMedium"></ul>
+                                                    </div>
+                                                    <div class="form-list col-md-12">
+                                                        <input type="text" id="txtStudyDescription" placeholder="Study Description"
+                                                                class="form-control">
+                                                            <a class="btn btn-primary" id="btnAddStudyDescription"
+                                                                title="Add Study Description"
+                                                                style="padding-left: 10px; padding-right: 10px;"><i class="icon-ic-plus"></i></a>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                &nbsp;
+                                            </td>
+                                            <td>
+
+                                            </td>
+                                            <td>
+
                                             </td>
                                         </tr>
                                     </table>
+                                </div>
+                            </li>
+
+                            <li>            
+                                <div>
+                                    <div><b><label for="txtAttorney" i18n="setup.studyFilters.attorney"></label></b></div>
+                                    <table style="width:100%;">
+                                        <tr>
+                                            <td>
+                                                <div>
+                                                    <div class="row form-inline">
+                                                        <div class="form-list col-md-2 col-sm-2">
+                                                            <input type="radio" id="rbtAttorney" name="Attorney" value="Is"
+                                                                    class="form-check-input">
+                                                            <label for="rbtAttorney" class="field-chk studyfilterLabel"
+                                                                    i18n="setup.studyFilters.is"></label>
+                                                        </div>
+                                                        <div class="form-list col-md-3 col-sm-3">
+                                                            <input type="radio" id="rbtIsNotAttorney" name="Attorney" value="IsNot"
+                                                                class="form-check-input">
+                                                            <label for="rbtIsNotAttorney" class="field-chk studyfilterLabel"
+                                                                i18n="setup.studyFilters.isNot"></label>
+                                                        </div>
+                                                        <div class="form-list col-md-4 col-sm-4">
+                                                            <input type="radio" id="rbtContainsAttorney" name="Attorney"
+                                                                value="Contains" class="form-check-input">
+                                                            <label for="rbtContainsAttorney" class="field-chk studyfilterLabel"
+                                                                i18n="setup.studyFilters.contains"></label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row form-inline">
+                                                    <div class="form-list col-md-12" id="divAttorney" style="margin-top:5px;">
+                                                        <ul id="ulListAttorneys" class="tagList tagListMedium"></ul>
+                                                    </div>
+                                                    <div class="form-list col-md-12">
+                                                        <input type="text" id="txtAttorney" placeholder="Attorney" class="form-control">
+                                                            <a class="btn btn-primary" id="btnAddAttorney" title="Add Attorney"
+                                                            style="padding-left: 10px; padding-right: 10px;"><i class="icon-ic-plus"></i></a>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                &nbsp;
+                                            </td>
+                                            <td>
+
+                                            </td>
+                                            <td>
+
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </li>
+
+                            <li>
+                                <div>
+                                    <div>
+                                        <div><b><label for="listVehicle" i18n="setup.studyFilters.vehicle"></label></b></div>
+                                        <table style="width:100%;">
+                                            <tr>
+                                                <td>
+                                                    <div class="row form-inline">
+                                                        <div class="form-list col-md-3 col-sm-3">
+                                                            <input type="radio" id="rbtIsVehicle" name="Vehicle" value="Is"
+                                                                   class="form-check-input">
+                                                            <label for="rbtIsVehicle" class="field-chk studyfilterLabel"
+                                                                   i18n="setup.studyFilters.is"></label>
+                                                        </div>
+                                                        <div class="form-list col-md-3 col-sm-3">
+                                                            <input type="radio" id="rbtIsNotVehicle" name="Vehicle"
+                                                                   value="IsNot" class="form-check-input">
+                                                            <label for="rbtIsNotVehicle" class="field-chk studyfilterLabel"
+                                                                   i18n="setup.studyFilters.isNot"></label>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <select class="lstBox form-control" multiple="multiple" id="listVehicle" style="height:80px;;width:220px">
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
                                 </div>
                             </li>
                         </ul>
@@ -919,116 +1046,24 @@
                                 </div>
 
                             </li>
+                            
+                            <li>
+                                <div>
+                                    <table style="width:100%;">
+                                        <tr>
+                                            <div><b><label for="listbilledStatus" i18n="setup.userSettings.billedStatus"></label></b></div>
+                                            <td>
+                                                <select class="form-control fc-short" id='ddlBilledStatus'>
+                                                    <option i18n="setup.studyFilters.select" value=''></option>
+                                                    <option i18n="setup.studyFilters.billed" value="billed"></option>
+                                                    <option i18n="setup.studyFilters.unbilled" value="unbilled"></option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </li>
                         </ul>
-                    </div>
-                    <div class="row">
-                        <div class="form-list col-md-5 col-sm-5">
-
-                            <div>
-                                <div><b><label for="txtStudyDescription"
-                                               i18n="setup.studyFilters.studyDescription"></label></b></div>
-
-                                <div>
-                                    <div class="row form-inline">
-                                        <div class="form-list col-md-2 col-sm-2">
-                                            <input type="radio" id="rbtStudyDescription" name="StudyDescription"
-                                                   value="Is" class="form-check-input">
-                                            <label for="rbtStudyDescription" class="field-chk studyfilterLabel"
-                                                   i18n="setup.studyFilters.is"></label>
-                                        </div>
-                                        <div class="form-list col-md-3 col-sm-3">
-                                            <input type="radio" id="rbtIsNotStudyDescription" name="StudyDescription"
-                                                   value="IsNot" class="form-check-input">
-                                            <label for="rbtIsNotStudyDescription" class="field-chk studyfilterLabel"
-                                                   i18n="setup.studyFilters.isNot"></label>
-                                        </div>
-                                        <div class="form-list col-md-4 col-sm-4">
-                                            <input type="checkbox" id="chkContainsStudyDescription"
-                                                   name="StudyDescription" value="Contains" class="form-check-input">
-                                            <label for="chkContainsStudyDescription" class="field-chk studyfilterLabel"
-                                                   i18n="setup.studyFilters.contains"></label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row form-inline">
-                                    <div class="form-list col-md-12" id="divStudyDescription" style="margin-top:5px;">
-                                        <ul id="ulListStudyDescriptions" class="tagList tagListMedium"></ul>
-                                    </div>
-                                    <div class="form-list col-md-12">
-                                        <input type="text" id="txtStudyDescription" placeholder="Study Description"
-                                               class="form-control">
-                                        <a class="btn btn-primary" id="btnAddStudyDescription"
-                                           title="Add Study Description"
-                                           style="padding-left: 10px; padding-right: 10px;"><i class="icon-ic-plus"></i></a>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div><b><label for="txtAttorney" i18n="setup.studyFilters.attorney"></label></b></div>
-                                <div>
-                                    <div class="row form-inline">
-                                        <div class="form-list col-md-2 col-sm-2">
-                                            <input type="radio" id="rbtAttorney" name="Attorney" value="Is"
-                                                   class="form-check-input">
-                                            <label for="rbtAttorney" class="field-chk studyfilterLabel"
-                                                   i18n="setup.studyFilters.is"></label>
-                                        </div>
-                                        <div class="form-list col-md-3 col-sm-3">
-                                            <input type="radio" id="rbtIsNotAttorney" name="Attorney" value="IsNot"
-                                                   class="form-check-input">
-                                            <label for="rbtIsNotAttorney" class="field-chk studyfilterLabel"
-                                                   i18n="setup.studyFilters.isNot"></label>
-                                        </div>
-                                        <div class="form-list col-md-4 col-sm-4">
-                                            <input type="radio" id="rbtContainsAttorney" name="Attorney"
-                                                   value="Contains" class="form-check-input">
-                                            <label for="rbtContainsAttorney" class="field-chk studyfilterLabel"
-                                                   i18n="setup.studyFilters.contains"></label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row form-inline">
-                                    <div class="form-list col-md-12" id="divAttorney" style="margin-top:5px;">
-                                        <ul id="ulListAttorneys" class="tagList tagListMedium"></ul>
-                                    </div>
-                                    <div class="form-list col-md-12">
-                                        <input type="text" id="txtAttorney" placeholder="Attorney" class="form-control">
-                                        <a class="btn btn-primary" id="btnAddAttorney" title="Add Attorney"
-                                           style="padding-left: 10px; padding-right: 10px;"><i class="icon-ic-plus"></i></a>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div><b><label for="listVehicle" i18n="setup.studyFilters.vehicle"></label></b></div>
-                                <table style="width:100%;">
-                                    <tr>
-                                        <td>
-                                            <div class="row form-inline">
-                                                <div class="form-list col-md-3 col-sm-3">
-                                                    <input type="radio" id="rbtIsVehicle" name="Vehicle" value="Is"
-                                                           class="form-check-input">
-                                                    <label for="rbtIsVehicle" class="field-chk studyfilterLabel"
-                                                           i18n="setup.studyFilters.is"></label>
-                                                </div>
-                                                <div class="form-list col-md-3 col-sm-3">
-                                                    <input type="radio" id="rbtIsNotVehicle" name="Vehicle"
-                                                           value="IsNot" class="form-check-input">
-                                                    <label for="rbtIsNotVehicle" class="field-chk studyfilterLabel"
-                                                           i18n="setup.studyFilters.isNot"></label>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <select class="lstBox form-control" multiple="multiple" id="listVehicle" style="height:80px;;width:220px">
-                                            </select>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-
-                        </div>
                     </div>
                 </div>
 
