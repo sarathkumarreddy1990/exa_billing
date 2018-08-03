@@ -16,7 +16,8 @@
         "deploy": "npm-run-all install-node_modules gulp-deploy",
         "build-from-repo": "npm-run-all install-node_modules gulp-build-from-repo",
         "start-production": "node ./bin/www-cluster",
-        "test": "mocha --recursive test/unit"
+        "test": "mocha --recursive test/unit",
+        "migrate_db": "node resx/dbManager.js migrate"
     },
     "dependencies": {
         "bluebird": "^3.5.1",
@@ -37,6 +38,7 @@
         "nconf": "^0.10.0",
         "passport": "^0.4.0",
         "pg": "^7.4.3",
+        "pg-connection-string": "^2.0.0",
         "pokitdok-nodejs": "0.0.11",
         "pug": "2.0.0-beta11",
         "pump": "^3.0.0",

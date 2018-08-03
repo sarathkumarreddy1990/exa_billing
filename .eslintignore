@@ -5,3 +5,4 @@
 /modules/reporting/**
 .eslintrc.js
 gulpfile.js
+dbManager.js
