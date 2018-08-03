@@ -4,12 +4,12 @@ const _ = require('lodash')
         , dataHelper = require('../dataHelper')
         , queryBuilder = require('../queryBuilder')
         , logger = require('../../../../../logger');
-    
+
     // generate query template ***only once*** !!!
-    
+
     const claimInquiryDataSetQueryTemplate = _.template(`
     WITH claim_data as (
-        SELECT 
+        SELECT
            bc.id as claim_id,
            p.full_name as patient_name,
            p.account_no,
@@ -40,15 +40,15 @@ const _ = require('lodash')
            END AS carrier,
            json_build_object('coverage_level',pi.coverage_level,'insurance_name',ip.insurance_name,'expire_date',to_char(pi.valid_to_date,'MM/DD/YYYY'),'PolicyNo',pi.policy_number, 'GroupNo',pi.group_number),
            bp.name,
-           (SELECT 
-                claim_balance_total 
-            FROM 
+           (SELECT
+                claim_balance_total
+            FROM
                 billing.get_claim_totals(bc.id)) AS claim_balance
-        FROM 
+        FROM
             billing.claims bc
         INNER JOIN LATERAL billing.get_claim_totals(bc.id) AS claim_totals ON TRUE
         INNER JOIN public.patients p on p.id = bc.patient_id
-     
+
         INNER JOIN public.facilities f on f.id = bc.facility_id
         INNER JOIN billing.providers bp on bp.id = bc.billing_provider_id
         LEFT JOIN public.patient_insurances pi on pi.id = (
@@ -60,7 +60,7 @@ const _ = require('lodash')
                                                        tertiary_patient_insurance_id
                                                     END
                                                 )
-        <% if (billingProID) { %> INNER JOIN billing.providers bpp ON bpp.id = bc.billing_provider_id <% } %>      
+        <% if (billingProID) { %> INNER JOIN billing.providers bpp ON bpp.id = bc.billing_provider_id <% } %>
 
         LEFT JOIN public.patient_insurances ppi ON ppi.id =  bc.primary_patient_insurance_id
         LEFT JOIN public.insurance_providers ip ON ip.id = ppi.insurance_provider_id
@@ -69,16 +69,16 @@ const _ = require('lodash')
         LEFT JOIN public.providers pr ON  pr.id = ppc.provider_id
 
         JOIN LATERAL (
-            SELECT 
+            SELECT
                         DISTINCT bch.claim_id
-                    FROM billing.payments bp     
+                    FROM billing.payments bp
                    INNER JOIN billing.payment_applications bpa ON bpa.payment_id = bp.id
                    INNER JOIN billing.charges bch ON bch.id = bpa.charge_id
                    <% if (userIds) { %>  INNER join public.users on users.id = bp.created_by    <% } %>
-                   WHERE bch.claim_id = bc.id    
-                   <% if(CPTDate) { %> AND <%=CPTDate%> <%}%>      
-                   <% if (userIds) { %>AND <% print(userIds); } %>      
-       
+                   WHERE bch.claim_id = bc.id
+                   <% if(CPTDate) { %> AND <%=CPTDate%> <%}%>
+                   <% if (userIds) { %>AND <% print(userIds); } %>
+
                    <%
         if(patPaid) { %> AND ( bp.payer_type = 'patient')   <% }
         else if(insPaid) { %> AND ( bp.payer_type = 'insurance') <% }
@@ -87,38 +87,38 @@ const _ = require('lodash')
         else if(patPaid &&  unPaid)  { %> AND ( bp.payer_type = 'patient' OR bp.id is null ) <% }
         else if(unPaid && insPaid)  { %> AND ( bp.payer_type = 'insurance' OR bp.id is null) <% }
         else if(unPaid && insPaid && patPaid)  { %> AND ( bp.payer_type = 'patient' OR bp.payer_type = 'insurance' OR bp.id is null ) <% }
-        %>  
+        %>
 
-                                   
-        ) payments  on true 
+
+        ) payments  on true
         WHERE 1=1
         AND  <%= companyId %>
         <% if(claimDate) { %> AND <%=claimDate%> <%}%>
         <% if(sumbittedDt) { %> AND <%=sumbittedDt%> <%}%>
-        <% if(insuranceIds) { %> AND <%=insuranceIds%> <%}%> 
-        <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
-        <% if(billingProID) { %> AND <% print(billingProID); } %>   
+        <% if(insuranceIds) { %> AND <%=insuranceIds%> <%}%>
+        <% if (facilityIds) { %>AND <% print(facilityIds); } %>
+        <% if(billingProID) { %> AND <% print(billingProID); } %>
         <% if(insGroups) { %> AND <%=insGroups%> <%}%>
-       
-         ORDER BY p.full_name,p.account_no ASC)    
+
+         ORDER BY p.full_name,p.account_no ASC)
         SELECT
              *
         FROM
-             claim_data 
+             claim_data
     `);
-    
+
     const claimInquiryDataSetQueryTemplate1 = _.template(`
     with claim_data_comments as (
-        SELECT 
+        SELECT
         bc.id as claim_id
         , p.full_name
         ,p.account_no
-     FROM 
+     FROM
          billing.claims bc
      INNER JOIN public.patients p on p.id = bc.patient_id
      INNER JOIN public.facilities f on f.id = bc.facility_id
      INNER JOIN billing.providers bp on bp.id = bc.billing_provider_id
-     INNER JOIN billing.charges bch ON bch.claim_id = bc.id 
+     INNER JOIN billing.charges bch ON bch.claim_id = bc.id
      LEFT JOIN public.patient_insurances pi on pi.id = (
                                                  CASE WHEN  bc.payer_type = 'primary_insurance' THEN
                                                     primary_patient_insurance_id
@@ -128,7 +128,7 @@ const _ = require('lodash')
                                                     tertiary_patient_insurance_id
                                                  END
                                              )
-                                             <% if (billingProID) { %> INNER JOIN billing.providers bpp ON bpp.id = bc.billing_provider_id <% } %> 
+                                             <% if (billingProID) { %> INNER JOIN billing.providers bpp ON bpp.id = bc.billing_provider_id <% } %>
                                              LEFT JOIN public.patient_insurances ppi ON ppi.id =  bc.primary_patient_insurance_id
                                              LEFT JOIN public.insurance_providers ip ON ip.id = ppi.insurance_provider_id
                                              LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = ip.provider_payer_type_id
@@ -138,31 +138,31 @@ const _ = require('lodash')
      AND  <%= companyId %>
      <% if(claimDate) { %> AND <%=claimDate%> <%}%>
         <% if(sumbittedDt) { %> AND <%=sumbittedDt%> <%}%>
-        <% if(insuranceIds) { %> AND <%=insuranceIds%> <%}%> 
-        <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
-        <% if(billingProID) { %> AND <% print(billingProID); } %> 
+        <% if(insuranceIds) { %> AND <%=insuranceIds%> <%}%>
+        <% if (facilityIds) { %>AND <% print(facilityIds); } %>
+        <% if(billingProID) { %> AND <% print(billingProID); } %>
         <% if(insuranceIds) { %> AND <%=insuranceIds%> <%}%>
         <% if(insGroups) { %> AND <%=insGroups%> <%}%>
-      GROUP BY bc.id , p.full_name,p.account_no 
-      ORDER BY p.full_name,p.account_no ASC),  
-      
-      billing_comments as 
+      GROUP BY bc.id , p.full_name,p.account_no
+      ORDER BY p.full_name,p.account_no ASC),
+
+      billing_comments as
         (
-        SELECT 
+        SELECT
                  cc.claim_id AS id
-                ,'claim' AS type 
-                , note   AS comments 
+                ,'claim' AS type
+                , note   AS comments
                 , created_dt::date AS commented_dt
                 , null AS charges
                 , u.username AS commented_by
-                , null::money AS adjustment_amount 
+                , null::money AS adjustment_amount
                 , null::money AS payment_amount
-                , null::bigint AS payment_id 
-                , null AS cpt_codes  
+                , null::bigint AS payment_id
+                , null AS cpt_codes
         FROM
               billing.claim_comments cc
         INNER JOIN claim_data_comments cd on cd.claim_id = cc.claim_id
-        INNER join users u  on u.id = cc.created_by 
+        INNER join users u  on u.id = cc.created_by
         UNION ALL
         SELECT
                 c.claim_id AS id
@@ -174,17 +174,17 @@ const _ = require('lodash')
               , null::money AS adjustment_amount
               , null::money AS payment_amount
               , null::bigint AS payment_id
-              , cc.display_code as cpt_codes 
+              , cc.display_code as cpt_codes
         FROM
              billing.charges c
         INNER JOIN claim_data_comments cd on cd.claim_id = c.claim_id
-        INNER JOIN cpt_codes cc on cc.id = c.cpt_id 
+        INNER JOIN cpt_codes cc on cc.id = c.cpt_id
         INNER JOIN users u  on u.id = c.created_by
         UNION ALL
         SELECT
                 bc.claim_id AS id
               , amount_type AS type,
-                CASE 
+                CASE
                     WHEN bp.payer_type = 'patient' THEN
                         pp.full_name
                     WHEN bp.payer_type = 'insurance' THEN
@@ -197,14 +197,14 @@ const _ = require('lodash')
                 bp.accounting_dt::date as commented_dt,
                 pa.amount as amount,
                 u.username as commented_by,
-                (bp.amount) AS total_payment, 
+                (bp.amount) AS total_payment,
                 (SELECT adjustments_applied_total FROM billing.get_payment_totals(bp.id)) AS adjustments,
                 bp.id as payment_id,
-                null      
-        FROM 
+                null
+        FROM
                     billing.payments bp
         INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
-        INNER JOIN billing.charges bc on bc.id = pa.charge_id 
+        INNER JOIN billing.charges bc on bc.id = pa.charge_id
         INNER JOIN claim_data_comments cd on cd.claim_id = bc.claim_id
         INNER JOIN users u  on u.id = bp.created_by
         LEFT JOIN public.patients pp on pp.id = bp.patient_id
@@ -217,25 +217,33 @@ const _ = require('lodash')
         WHERE 1 =1
         <% if(CPTDate) { %> AND <%=CPTDate%> <%}%>
         <%
-        if(patPaid) { %> AND ( bp.payer_type = 'patient')   <% }
-        else if(insPaid) { %> AND ( bp.payer_type = 'insurance') <% }
-        else if(unPaid)  { %> AND ( bp.id is null ) <% }
-        else if(insPaid && patPaid )  { %> AND ( bp.payer_type = 'patient' ) OR ( bp.payer_type = 'insurance' ) <% }
-        else if(patPaid &&  unPaid)  { %> AND ( bp.payer_type = 'patient' OR bp.id is null ) <% }
-        else if(unPaid && insPaid)  { %> AND ( bp.payer_type = 'insurance' OR bp.id is null) <% }
-        else if(unPaid && insPaid && patPaid)  { %> AND ( bp.payer_type = 'patient' OR bp.payer_type = 'insurance' OR bp.id is null ) <% }
-        %>  
-          
-        <% if (userIds) { %>AND <% print(userIds); } %>   
+        if(patPaid && !insPaid && !unPaid) { %> AND ( bp.payer_type = 'patient')   <% }
+        else if(!patPaid && insPaid && !unPaid) { %> AND ( bp.payer_type = 'insurance') <% }
+        else if(!patPaid && !insPaid && unPaid)  { %> AND  NOT EXISTS (select 1  From billing.charges  ibch
+			INNER JOIN billing.payment_applications ibpa on ibch.id = ibpa.charge_id
+			WHERE ibch.claim_id = bc.id) <% }
+        else if(insPaid && patPaid && !unPaid)  { %> AND ( bp.payer_type = 'patient'  OR  bp.payer_type = 'insurance' ) <% }
+        else if(patPaid &&  unPaid && !insPaid)  { %> AND ( bp.payer_type = 'patient' OR NOT EXISTS (select 1  From billing.charges  ibch
+			INNER JOIN billing.payment_applications ibpa on ibch.id = ibpa.charge_id
+			WHERE ibch.claim_id = bc.id) ) <% }
+        else if(unPaid && insPaid && !patPaid)  { %> AND ( bp.payer_type = 'insurance' OR NOT EXISTS (select 1  From billing.charges  ibch
+			INNER JOIN billing.payment_applications ibpa on ibch.id = ibpa.charge_id
+			WHERE ibch.claim_id = bc.id)) <% }
+        else if(unPaid && insPaid && patPaid)  { %> AND ( bp.payer_type = 'patient' OR bp.payer_type = 'insurance' OR NOT EXISTS (select 1  From billing.charges  ibch
+			INNER JOIN billing.payment_applications ibpa on ibch.id = ibpa.charge_id
+			WHERE ibch.claim_id = bc.id) ) <% }
+        %>
+
+        <% if (userIds) { %>AND <% print(userIds); } %>
         )
-        SELECT 
+        SELECT
             *
         FROM
            billing_comments
     `);
-    
+
     const api = {
-    
+
         /**
          * STAGE 2
          * This method is called by controller pipline after report data is initialized (common lookups are available).
@@ -252,7 +260,7 @@ const _ = require('lodash')
             if (initialReportData.report.params.insuranceIds) {
                 initialReportData.report.params.insuranceIds = initialReportData.report.params.insuranceIds.map(Number);
             }
-    
+
             if (initialReportData.report.params.insuranceGroupList) {
                 initialReportData.report.params.insuranceGroupList = initialReportData.report.params.insuranceGroupList.map(Number);
             }
@@ -264,7 +272,7 @@ const _ = require('lodash')
             if (initialReportData.report.params.cptCodeLists) {
                 initialReportData.report.params.cptCodeLists = initialReportData.report.params.cptCodeLists.map(Number);
             }
-    
+
             // convert adjustmentCodeIds array of string to integer
             if (initialReportData.report.params.adjustmentCodeIds) {
                 initialReportData.report.params.adjustmentCodeIds = initialReportData.report.params.adjustmentCodeIds.map(Number);
@@ -300,7 +308,7 @@ const _ = require('lodash')
                             }
                         }
                         claimInquiryDataSet.rows[i].push(comments);
-    
+
                     }
                     // add report specific data sets
                     initialReportData.dataSets.push(claimInquiryDataSet);
@@ -308,7 +316,7 @@ const _ = require('lodash')
                     return initialReportData;
                 });
         },
-    
+
         /**
          * STAGE 3
          * This method is called by controller pipeline after getReportData().
@@ -319,7 +327,7 @@ const _ = require('lodash')
         transformReportData: (rawReportData) => {
             return Promise.resolve(rawReportData);
         },
-    
+
         /**
          * Report specific jsreport options, which will be merged with default ones in the controller.
          * Allows each report to add its own, or override default settings.
@@ -331,10 +339,10 @@ const _ = require('lodash')
             // if options defined in report definition are all that is needed, then just select them based on report format
             return reportDefinition.jsreport[reportParams.reportFormat];
         },
-    
+
         // ================================================================================================================
         // PRIVATE ;) functions
-    
+
         createReportFilters: (initialReportData) => {
             const lookups = initialReportData.lookups;
         const params = initialReportData.report.params;
@@ -387,10 +395,10 @@ const _ = require('lodash')
             filtersUsed.push({ name: 'referringPhysicianInfo', label: 'Referring Provider', value: 'All' });
             return filtersUsed;
         },
-    
+
         // ================================================================================================================
         // --- DATA SET - claimInquiry count
-    
+
         createclaimInquiryDataSet: (reportParams) => {
             // 1 - build the query context. Each report will 'know' how to do this, based on report params and query/queries to be executed...
             const queryContext = api.getclaimInquiryDataSetQueryContext(reportParams);
@@ -400,13 +408,13 @@ const _ = require('lodash')
             // 3a - get the report data and return a promise
             return db.queryForReportData(query, queryContext.queryParams);
         },
-    
+
         createclaimInquiryDataSet1: (reportParams) => {
             const queryContext = api.getclaimInquiryDataSetQueryContext(reportParams);
-            const query = claimInquiryDataSetQueryTemplate1(queryContext.templateData);            
+            const query = claimInquiryDataSetQueryTemplate1(queryContext.templateData);
             return db.queryForReportData(query, queryContext.queryParams);
-        },    
-      
+        },
+
         getclaimInquiryDataSetQueryContext: (reportParams) => {
             const params = [];
             const filters = {
@@ -431,9 +439,9 @@ const _ = require('lodash')
             cptCodeLists: null,
             CPTDate_count: null,
             orderBy: null   ,
-            userIds: null         
+            userIds: null
             };
-    
+
             // company id
             params.push(reportParams.companyId);
             filters.companyId = queryBuilder.where('bc.company_id', '=', [params.length]);
@@ -450,7 +458,7 @@ const _ = require('lodash')
                 filters.unPaid = _.includes(reportParams.insurancePayerTypeOption, 'UnPaid');
             }
 
-             //  claim Date 
+             //  claim Date
         if (reportParams.fromDate != '' && reportParams.toDate != '') {
             if (reportParams.fromDate === reportParams.toDate) {
                 params.push(reportParams.fromDate);
@@ -535,12 +543,12 @@ const _ = require('lodash')
                 filters.userIds = queryBuilder.whereIn('bp.created_by', [params.length]);
             }
         }
-    
+
             return {
                 queryParams: params,
                 templateData: filters
             }
         }
     }
-    
+
     module.exports = api;
