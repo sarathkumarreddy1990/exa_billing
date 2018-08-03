@@ -1153,7 +1153,7 @@ define('grid', [
                     var order_id = 0;
 
                     if ($('#chk' + gridID.slice(1) + '_' + rowID).length > 0) {
-                        $('#chk' + gridID.slice(1) + '_' + rowID).attr('checked', true);
+                        $('#chk' + gridID.slice(1) + '_' + rowID).prop('checked', true);
                     }
                     if (options.isClaimGrid || (gridData.claim_id && gridData.claim_id != '')) {
                         self.claimView = new claimsView();
@@ -1239,7 +1239,7 @@ define('grid', [
                 beforeSelectRow: function (rowID, e, options) {
                     var _selectEle = $(e.currentTarget).find('#' + rowID).find('input:checkbox');
                     var enableField = _selectEle.is(':checked')
-                    _selectEle.prop('checked', !enableField);
+                  //  _selectEle.prop('checked', !enableField);
 
                     if (!options.isClaimGrid) {
                         enableField = _selectEle.is(':checked');

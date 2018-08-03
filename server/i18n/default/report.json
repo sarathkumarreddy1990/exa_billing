@@ -33,6 +33,7 @@
         "payToProvider": "Pay-To-Provider",
         "insurances": "Insurance",
         "insuranceProvider": "Insurance Provider",
-        "cpt": "CPT"
+        "cpt": "CPT",
+        "commentDate" : "Comment Date"
     }
 }

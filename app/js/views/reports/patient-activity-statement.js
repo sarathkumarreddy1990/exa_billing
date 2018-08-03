@@ -76,7 +76,7 @@ define([
                     var urlParams = {
                         claimIds: claimInfo.claimID,
                         sDate: '2018-06-23'
-                       
+
                     }
                 }
                 else if (claimInfo.flag == "paymentInvoice"){
@@ -99,6 +99,7 @@ define([
                     }
                 }
                 UI.showReport(reportName, this.viewModel.reportCategory, 'pdf', urlParams, true);
+                $('#divPageLoading').hide();
             },
 
             getSelectedFacility: function (e) {

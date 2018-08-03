@@ -124,7 +124,7 @@ function customGrid ( datastore, gridID ) {
             beforeSelectRow: function ( rowid, e ) {
                 var regScreenFrom = /report|familyHistory|newOrder|editOrder/;
                 var regGridID = /tableProvider|tbl(?:GridCpt|InsuranceProvidersGrid|ProviderGroups|VehicleRegionGrid)/;
-                var $chkSendStudy = $tblGrid.find('#chkSendStudy_' + rowid);
+                var $chkSendStudy = $tblGrid.find('#chk'+self.options.gridelementid.slice(1)+'_'+ rowid);
                 self.options.colModel = $tblGrid.jqGrid('getGridParam', 'colModel');
                 var rowObj = $(e.target).closest("tr");
                 var eitherTarget = $(e.target || e.srcElement);
