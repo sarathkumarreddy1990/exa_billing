@@ -1087,7 +1087,7 @@
         {
             "field_code": "billed_status",
             "field_name": "Billed Status",
-            "i18n_name": "setup.userSettings.billedstatus",
+            "i18n_name": "setup.userSettings.billedStatus",
             "field_info": {
                 "custom_name": "Billed Status",
                 "custom_id": 65,
