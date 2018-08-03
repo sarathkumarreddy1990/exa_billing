@@ -1,8 +1,18 @@
+const fs = require('fs');
+const path = require('path');
+const logger = require('../../../logger');
+
 const data = require('../../data/claim/claim-workbench');
 const ediData = require('../../data/claim/claim-edi');
 const claimPrintData = require('../../data/claim/claim-print');
 const ediConnect = require('../../../modules/edi');
+const {
+    constants,
+    OHIPEncoderV03,
+    EDIQueryAdapter
+} = require('../../../modules/ohip');
 
+const helper = require('../../data');
 const _ = require('lodash');
 //const PdfPrinter = require('pdfmake');
 
@@ -95,13 +105,53 @@ module.exports = {
                 data: ediData
             };
 
-            ediResponse = await ediConnect.generateEdi(result.rows[0].header.edi_template_name, ediRequestJson);
-            params.claim_status = 'PP';
-            params.type = 'auto';
-            params.success_claimID = params.claimIds.split(',');
-            params.isClaim = true;
-            params.claimDetails = JSON.stringify(claimDetails);
-            await data.changeClaimStatus(params);
+            const country_alpha_3_code = (await helper.query(`
+                SELECT
+                    country_alpha_3_code
+                FROM sites
+                WHERE
+                    id = 1
+            `, [])).rows[0].country_alpha_3_code;
+            if (country_alpha_3_code === 'can') {
+
+                const enc = new OHIPEncoderV03();
+                const queryAdapter = new EDIQueryAdapter(ediData);
+                const mappedData = queryAdapter.getMappedData();
+
+                ediResponse = '';
+                mappedData.forEach((batch) => {
+
+                    const context = {
+                        batchDate: new Date(),
+                        batchSequenceNumber: '441'  // TODO: needs to be dynamically generated
+                    };
+
+                    const filename = enc.getFilename(batch, context);
+
+                    // for each claim
+                    let claimStr = enc.encode(batch, context);
+                    ediResponse += claimStr;
+                    const fullOHIPFilepath = path.join('ohip-out', filename);
+                    fs.writeFile(fullOHIPFilepath, claimStr, constants.encoding, (err, response) => {
+                        if (err) {
+                            logger.error('While generating OHIP Claim Submission file', err);
+                        }
+                        else {
+                            logger.info('Created OHIP Claim Submission file: ' + fullOHIPFilepath);
+                        }
+                    });
+                });
+            }
+            else {
+
+	        ediResponse = await ediConnect.generateEdi(result.rows[0].header.edi_template_name, ediRequestJson);
+	        params.claim_status = 'PP';
+	        params.type = 'auto';
+	        params.success_claimID = params.claimIds.split(',');
+	        params.isClaim = true;
+	        params.claimDetails = JSON.stringify(claimDetails);
+	        await data.changeClaimStatus(params);
+            }
         } else {
             ediResponse = result;
         }
