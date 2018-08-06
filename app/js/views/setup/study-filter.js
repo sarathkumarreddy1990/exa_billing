@@ -1678,6 +1678,7 @@ define([
                $('#lblSummaryBodyPart').text('');
                $('#lblSummaryStat').text('');
                $('#lblSummaryFlag').text('');
+               $('#lblSummaryBilledStatus').text('');
                $('#lblSummaryAccession').text('');
                $('#lblSummaryAttorney').text('');
                $('#lblSummaryStudyDescription').text('');
@@ -1795,6 +1796,9 @@ define([
                 $('#lblSummaryAttorney').text('Attorney :' + ($.trim($('#txtAttorney').val()).length > 0 ? $('input[name=Attorney]:checked').val() + " " + $.trim($('#txtAttorney').val()) : ""));
                 $('#lblSummaryStudyDescription').text('Study Description :' + ($.trim($('#txtStudyDescription').val()).length > 0 ? $('input[name=StudyDescription]:checked').val() + " " + $.trim($('#txtStudyDescription').val()) : ""));
                 $('#lblSummaryStudyID').text('StudyID :' + ($.trim($('#txtStudyID').val()).length > 0 ? $('input[name=StudyID]:checked').val() + " " + $.trim($('#txtStudyID').val()) : ""));
+                if ($('#ddlBilledStatus').val().length > 0) {
+                    $('#lblSummaryBilledStatus').text('BilledStatus : ' + (($('#ddlBilledStatus').val() == "billed") ? "Billed" : ($('#ddlBilledStatus').val() == "unbilled") ? "Unbilled" : ""));
+                }
                 this.removeEmpty();
                 this.hideSummaryLabel();
             },
@@ -1823,6 +1827,9 @@ define([
                             break;
                         case 'liFlag':
                             ($('#lblSummaryFlag').text().length > 6) ? $('#liFlag').show() : $('#liFlag').hide();
+                            break;
+                        case 'liBilledStatus':
+                            ($('#lblSummaryBilledStatus').text().length > 0) ? $('#liBilledStatus').show() : $('#liBilledStatus').hide();
                             break;
                         case 'liInstitution':
                             ($('#lblSummaryInstitution').text().length > 13) ? $('#liInstitution').show() : $('#liInstitution').hide();

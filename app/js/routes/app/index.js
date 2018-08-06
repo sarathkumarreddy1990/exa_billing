@@ -22,7 +22,8 @@ define([
                 "studies/*subroute": "startStudies",
                 "claim_workbench/*subroute": "startClaimWorkbench",
                 "payments/*subroute": "startPayments",
-                "era/*subroute": "startEra"
+                "era/*subroute": "startEra",
+                "invoice_report/*subroute": "startInvoiceReports"
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -53,6 +54,11 @@ define([
                 } else {
                     this.accessDenied();
                 }
+            },
+
+            startInvoiceReports: function (subroute) {
+                this.defaultArgs.routePrefix = 'billing/invoice_report/';
+                this.claimWorkbenchRouter = new ClaimWorkBenchRoute(this.defaultArgs.routePrefix, this.defaultArgs);
             },
 
             startPayments: function (subroute) {
