@@ -472,6 +472,16 @@ FROM
 WHERE
     prt.id = ped.pr_id;
 -- ----------------------------------------------------------------------------------
+UPDATE order_payments
+    SET more_info = more_info|| ('"adjustment_amount"=>"0"')
+WHERE
+	more_info -> 'adjustment_amount' LIKE 'N%';
+-- ----------------------------------------------------------------------------------
+UPDATE order_payments
+	SET more_info = more_info|| ('"adjustment_unapplied"=>"0"')
+WHERE
+	more_info -> 'adjustment_unapplied' LIKE 'N%';
+-- ----------------------------------------------------------------------------------
 WITH sum_amount AS (
     SELECT
         order_payment_id,
