@@ -21,7 +21,10 @@ WITH claim_data as(
     ),
     patient_insurance AS (
         select
-        coverage_level as cov_level,
+        CASE coverage_level
+						WHEN 'primary' THEN 'P'
+						WHEN 'secondary' THEN 'S'
+                        WHEN 'tertiary' THEN 'T' END AS cov_level,
         to_char(valid_from_date, 'MM/DD/YYYY') as valid_from_date,
         to_char(valid_to_date, 'MM/DD/YYYY') AS valid_to_date,
         policy_number AS policy_no,
@@ -245,7 +248,7 @@ WITH claim_data as(
           UNION
           -- Coverage Info
 
-          SELECT
+        SELECT
            null
           ,null
           ,null
@@ -285,6 +288,7 @@ WITH claim_data as(
       , 0                              AS sort_order
       , 0
       FROM patient_insurance
+
       UNION
           -- Billing Information
 
