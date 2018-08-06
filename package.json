@@ -1,6 +1,6 @@
 {
     "name": "exa-billing",
-    "version": "1.4.12",
+    "version": "1.4.14",
     "private": true,
     "description": "EXA Billing Module",
     "main": "server/app.js",
@@ -11,7 +11,7 @@
         "gulp-build": "gulp build",
         "gulp-deploy": "gulp deploy",
         "gulp-build-from-repo": "gulp build-from-repo",
-        "install-node_modules": "npm install && cd app && npm install && cd..",
+        "install-node_modules": "npm install && cd app && npm install && cd ..",
         "build": "npm-run-all install-node_modules gulp-build",
         "deploy": "npm-run-all install-node_modules gulp-deploy",
         "build-from-repo": "npm-run-all install-node_modules gulp-build-from-repo",
@@ -45,6 +45,7 @@
         "request": "^2.87.0",
         "request-promise-native": "^1.0.5",
         "response-time": "^2.3.2",
+        "sprintf": "^0.1.5",
         "sql-template-strings": "^2.2.2"
     },
     "devDependencies": {
