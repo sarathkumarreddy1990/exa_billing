@@ -2,9 +2,7 @@
     "messages": {
         "status": {
             "validatedSuccessfully": "Validated Successfully",
-            "successfullyCompleted": "Successfully completed",
-            "successfullyUpdated": "Successfully updated",
-            "responseUpdated": "Responsible and Billing method changed to default"
+            "successfullyCompleted": "Successfully completed"
         },
         "errors": {
             "notconnected": "Not connected",
@@ -61,7 +59,6 @@
             "billing": {
                 "problemReferenced": "Problem Referenced",
                 "problemReferencedAreYouSure": "Problem is being referenced in Charge Payments.  Are you sure that you want to delete?",
-                "insuranceReferencedAreYouSure": "This insurance assigned as current Responsible.  Are you sure that you want to delete?",
                 "mediCarePayer": "Please select medicare payer type",
                 "ruleNode": "This node does not contain any rule",
                 "ruleSaved": "Rule Saved successfully",

@@ -87,9 +87,4 @@ router.get('/getApprovedReportsByPatient', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
-router.post('/remove_insurance_provider', async function (req, res) {
-    const data = await claimsController.deleteProvider(req.body);
-    httpHandler.sendRows(req, res, data);
-});
-
 module.exports = router;

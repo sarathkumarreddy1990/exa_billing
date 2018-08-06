@@ -4,8 +4,8 @@ module.exports = {
 
     getKeys: async function () {
         const sql = SQL`SELECT * FROM
-         (
-             SELECT json_array_elements(web_config) AS info from sites)AS info_tab
+         ( 
+             SELECT json_array_elements(web_config) AS info from sites)AS info_tab 
             WHERE info->>'id' IN('insPokitdok' , 'pokitdok_client_id' , 'pokitdok_client_secret') `;
 
         return await query(sql);
@@ -17,18 +17,18 @@ module.exports = {
 
         const firstStudyId = studyIds.length > 0 ? studyIds[0] : null;
 
-        let sql = SQL`WITH
+        let sql = SQL`WITH 
                         beneficiary_details as (
                             SELECT
                                 pi.id
-                            FROM
+                            FROM 
                                 public.patient_insurances pi
-                            INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id
+                            INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id 
                             LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
-                            LEFT JOIN LATERAL (
-                                SELECT
+                            LEFT JOIN LATERAL ( 
+                                SELECT 
                                     MIN(valid_to_date) as valid_to_date
-                                FROM
+                                FROM 
                                     public.patient_insurances
                                 WHERE
                                     patient_id = ${params.patient_id} AND (valid_to_date >= (${params.claim_date})::date  OR valid_to_date IS NULL)
@@ -45,7 +45,7 @@ module.exports = {
                                 , s.study_dt
                                 , s.facility_id
                                 , s.accession_no
-                                , sc.study_id
+                                , sc.study_id            
                                 , sc.cpt_code
                                 , atp.modifier1_id AS m1
                                 , atp.modifier2_id AS m2
@@ -78,8 +78,8 @@ module.exports = {
                             WHERE
                                 study_id = ANY(${studyIds}) AND sc.has_deleted = FALSE
                             ORDER BY s.accession_no DESC
-
-                        )
+                            
+                        ) 
                         ,claim_details AS (
                                     SELECT
                                         orders.facility_id,
@@ -127,7 +127,7 @@ module.exports = {
                                         p.birth_date AS patient_dob,
                                         p.gender AS patient_gender
                                     FROM
-                                        orders
+                                        orders                                      
                                         INNER JOIN facilities ON  facilities.id= orders.facility_id
                                         INNER JOIN patients p ON p.id= orders.patient_id
                                         LEFT JOIN LATERAL (
@@ -135,24 +135,24 @@ module.exports = {
                                                 INNER JOIN providers p ON p.id = pc.provider_id
                                             WHERE	pc.id = nullif(facility_info->'rendering_provider_id', '')::integer limit 1
                                         ) providers ON true
-                                        JOIN LATERAL (
-                                            SELECT
+                                        JOIN LATERAL ( 
+                                            SELECT 
                                                 providers.full_name AS reading_phy_full_name,
                                                 reading_physician_id as rendering_provider_contact_id
-                                                FROM
+                                                FROM 
                                                 public.studies s LEFT JOIN provider_contacts ON   provider_contacts.id = s.reading_physician_id
                                                 LEFT JOIN providers ON providers.id = provider_contacts.provider_id
                                                 WHERE s.id = ${firstStudyId} LIMIT 1
-                                        ) as studies_details ON TRUE
+                                        ) as studies_details ON TRUE   
                                     WHERE orders.id IN (SELECT order_id FROM public.studies s WHERE s.id = ${firstStudyId})
-                            )
+                            ) 
                             ,claim_problems AS (
-                                        SELECT
+                                        SELECT 
                                             DISTINCT icd_codes.id
                                             ,code
                                             ,icd_codes.description
                                             ,order_no
-                                        FROM public.icd_codes
+                                        FROM public.icd_codes 
                                         INNER JOIN patient_icds pi ON pi.icd_id = icd_codes.id
                                         INNER JOIN public.orders o on o.id = pi.order_id
                                         INNER JOIN public.studies s ON s.order_id = o.id
@@ -164,21 +164,21 @@ module.exports = {
 		                                FROM (
                                                 SELECT
 		                                	    *
-                                                FROM claim_charges
+                                                FROM claim_charges 
                                             ) AS charge
                                     ) AS charges
                                     ,( SELECT COALESCE(json_agg(row_to_json(claims)),'[]') claim_details
 		                                FROM (
                                                 SELECT
 		                                	    *
-                                                FROM claim_details
+                                                FROM claim_details 
                                             ) AS claims
                                     ) AS claim_details
 	                                ,( SELECT COALESCE(json_agg(row_to_json(claim_problems)),'[]') problems
 		                                FROM (
                                                 SELECT
-			                                    *
-                                                FROM claim_problems
+			                                    *   
+                                                FROM claim_problems 
                                             ) AS claim_problems
                                     ) AS problems `;
 
@@ -187,7 +187,7 @@ module.exports = {
 
     getPatientInsurances: async function (params) {
 
-        const sql = SQL`WITH
+        const sql = SQL`WITH 
                 beneficiary_details as (
                         SELECT
                               pi.id
@@ -197,13 +197,13 @@ module.exports = {
                             , ip.insurance_info->'State' AS ins_state
                             , ip.insurance_info->'ZipCode' AS ins_zip_code
                             , ip.insurance_info->'Address1' AS ins_pri_address
-                            , ip.insurance_info->'PhoneNo' AS ins_phone_no
+                            , ip.insurance_info->'PhoneNo' AS ins_phone_no 
                             , ip.insurance_code
                             , pi.coverage_level
-                            , pi.subscriber_relationship_id
+                            , pi.subscriber_relationship_id   
                             , pi.valid_from_date
                             , pi.valid_to_date
-                            , pi.subscriber_employment_status_id
+                            , pi.subscriber_employment_status_id                     
                             , pi.subscriber_dob
                             , pi.medicare_insurance_type_code
                             , pi.coverage_level
@@ -224,15 +224,15 @@ module.exports = {
                             , pi.subscriber_zipcode
                             , pi.assign_benefits_to_patient
                             , ipd.billing_method
-                        FROM
+                        FROM 
                             public.patient_insurances pi
-                        INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id
+                        INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id 
                         LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
-                        LEFT JOIN LATERAL (
-                            SELECT
+                        LEFT JOIN LATERAL ( 
+                            SELECT 
                                 coverage_level,
                                 MIN(valid_to_date) as valid_to_date
-                            FROM
+                            FROM 
                                 public.patient_insurances
                             WHERE
                                 patient_id = ${params.patient_id} AND (valid_to_date >= (${params.claim_date})::date  OR valid_to_date IS NULL)
@@ -256,10 +256,10 @@ module.exports = {
                             , ip.insurance_info->'partner_id' AS ins_partner_id
                             , ip.insurance_info->'PhoneNo' AS ins_phone_no
                             , pi.coverage_level
-                            , pi.subscriber_relationship_id
+                            , pi.subscriber_relationship_id   
                             , pi.valid_from_date
                             , pi.valid_to_date
-                            , pi.subscriber_employment_status_id
+                            , pi.subscriber_employment_status_id                     
                             , pi.subscriber_dob
                             , pi.medicare_insurance_type_code
                             , pi.coverage_level
@@ -284,11 +284,11 @@ module.exports = {
                             , f.facility_info -> 'enable_insurance_eligibility' as enable_insurance_eligibility
                             , ipd.billing_method
                         FROM public.patient_insurances pi
-                        INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id
-                        LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
+                        INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id    
+                        LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id                                                      
                         LEFT JOIN public.patients p ON p.id= pi.patient_id
                         LEFT JOIN public.facilities f ON p.facility_id = f.id
-                        WHERE
+                        WHERE 
                             pi.patient_id = ${params.patient_id}
                         ORDER BY pi.id asc
                 )
@@ -330,10 +330,10 @@ module.exports = {
                             , ip.insurance_info->'PhoneNo' AS ins_phone_no
                             , ip.insurance_code
                             , pi.coverage_level
-                            , pi.subscriber_relationship_id
-                            , pi.valid_from_date
+                            , pi.subscriber_relationship_id 
+                            , pi.valid_from_date  
                             , pi.valid_to_date
-                            , pi.subscriber_employment_status_id
+                            , pi.subscriber_employment_status_id                     
                             , pi.subscriber_dob
                             , pi.medicare_insurance_type_code
                             , pi.coverage_level
@@ -355,9 +355,9 @@ module.exports = {
                             , pi.assign_benefits_to_patient
                             , ipd.billing_method
                            FROM public.patient_insurances pi
-                           INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id
-                           LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
-                           WHERE
+                           INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id 
+                           LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id                           
+                           WHERE 
                                 pi.id = ${id}  `;
 
         return await query(sql);
@@ -390,7 +390,7 @@ module.exports = {
         } = params;
 
         const get_claim_sql = SQL`
-                SELECT
+                SELECT 
                       c.company_id
                     , c.facility_id
                     , c.patient_id
@@ -476,7 +476,7 @@ module.exports = {
                     , cpi.medicare_insurance_type_code AS p_medicare_insurance_type_code
                     , ips.insurance_info->'Address1' AS s_address1
                     , ips.insurance_info->'PayerID' AS s_payer_id
-                    , ips.insurance_info->'City' AS s_city
+                    , ips.insurance_info->'City' AS s_city                    
                     , ips.insurance_info->'PhoneNo' AS s_phone_no
                     , ips.insurance_info->'State' AS s_state
                     , ips.insurance_info->'ZipCode' AS s_zip
@@ -505,7 +505,7 @@ module.exports = {
                     , csi.medicare_insurance_type_code AS s_medicare_insurance_type_code
                     , ipt.insurance_info->'Address1' AS t_address1
                     , ipt.insurance_info->'PayerID' AS t_payer_id
-                    , ipt.insurance_info->'City' AS t_city
+                    , ipt.insurance_info->'City' AS t_city             
                     , ipt.insurance_info->'PhoneNo' AS t_phone_no
                     , ipt.insurance_info->'State' AS t_state
                     , ipt.insurance_info->'ZipCode' AS t_zip
@@ -536,21 +536,21 @@ module.exports = {
                     , f.facility_info -> 'federal_tax_id' as federal_tax_id
                     , f.facility_info -> 'enable_insurance_eligibility' as enable_insurance_eligibility
                     , (
-                        SELECT array_agg(row_to_json(pointer)) AS claim_charges
+                        SELECT array_agg(row_to_json(pointer)) AS claim_charges 
                         FROM (
-                            SELECT
-                                  ch.id
+                            SELECT 
+                                  ch.id 
                                 , claim_id
                                 , cpt_id
                                 , modifier1_id
                                 , modifier2_id
                                 , modifier3_id
                                 , modifier4_id
-                                , pointer1
-                                , pointer2
-                                , pointer3
-                                , pointer4
-                                , cpt.display_code AS cpt_code
+                                , pointer1 
+                                , pointer2 
+                                , pointer3 
+                                , pointer4 
+                                , cpt.display_code AS cpt_code 
                                 , cpt.display_description
                                 , ch.units
                                 , ch.charge_dt
@@ -561,29 +561,29 @@ module.exports = {
                                 , (ch.units * ch.allowed_amount)::numeric as total_allowed_fee
                                 , chs.study_id
                                 , (SELECT EXISTS (SELECT * FROM billing.payment_applications WHERE charge_id = ch.id )) as payment_exists
-                            FROM billing.charges ch
-                                INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id
+                            FROM billing.charges ch 
+                                INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id 
                                 LEFT JOIN billing.charges_studies chs ON chs.charge_id = ch.id
-                            WHERE claim_id = c.id
+                            WHERE claim_id = c.id 
                             ORDER BY ch.id, ch.line_num ASC
                       ) pointer) AS claim_charges
                     , (
-                        SELECT array_agg(row_to_json(icd_query)) AS icd_data
+                        SELECT array_agg(row_to_json(icd_query)) AS icd_data 
                         FROM (
-                            SELECT
-                                  ci.id
+                            SELECT 
+                                  ci.id 
                                 , icd_id
                                 , icd.code
                                 , icd.description
                                 , icd.code_type
                                 , icd.is_active
-                            FROM billing.claim_icds ci
-                            INNER JOIN public.icd_codes icd ON ci.icd_id = icd.id
+                            FROM billing.claim_icds ci 
+                            INNER JOIN public.icd_codes icd ON ci.icd_id = icd.id 
                             WHERE claim_id = c.id
                             ORDER BY id ASC
                       ) icd_query) AS claim_icd_data
                     , (
-                        SELECT json_agg(row_to_json(existing_insurance)) AS existing_insurance
+                        SELECT json_agg(row_to_json(existing_insurance)) AS existing_insurance 
                         FROM (
                             SELECT
                               pi.id
@@ -593,7 +593,7 @@ module.exports = {
                             , ip.insurance_info->'partner_id' AS ins_partner_id
                             , pi.coverage_level
                         FROM public.patient_insurances pi
-                        INNER JOIN public.insurance_providers ip ON ip.id = pi.insurance_provider_id
+                        INNER JOIN public.insurance_providers ip ON ip.id = pi.insurance_provider_id                                                          
                         WHERE
                             pi.patient_id = c.patient_id
                         ORDER BY pi.coverage_level,pi.id ASC
@@ -601,7 +601,7 @@ module.exports = {
                     , (
                         SELECT json_agg(row_to_json(claim_fee_details)) AS claim_fee_details
                         FROM (
-                            SELECT
+                            SELECT 
                                   COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient' AND amount_type = 'payment'),0::money)::numeric AS patient_paid
                                 , COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient' AND amount_type = 'payment'),0::money)::numeric AS others_paid
                                 , SUM(CASE WHEN (amount_type = 'adjustment' AND (accounting_entry_type != 'refund_debit' OR adjustment_code_id IS NULL)) THEN bpa.amount ELSE 0::money END)::numeric AS adjustment
@@ -610,10 +610,10 @@ module.exports = {
                                 , (SELECT charges_bill_fee_total from billing.get_claim_totals(c.id))::numeric AS bill_fee
                             FROM billing.claims bc
                             INNER JOIN billing.charges ch ON ch.claim_id = bc.id
-                            LEFT JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id
+                            LEFT JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id 
                             LEFT JOIN billing.payments bp ON bp.id = bpa.payment_id
                             LEFT JOIN billing.adjustment_codes adj ON adj.id = bpa.adjustment_code_id
-                         WHERE
+                         WHERE 
                             bc.id = c.id
                       ) claim_fee_details) AS claim_fee_details
                     FROM
@@ -631,7 +631,7 @@ module.exports = {
                         LEFT JOIN public.providers rend_pr ON rend_pc.provider_id = rend_pr.id
                         LEFT JOIN public.provider_groups pg ON pg.id = c.ordering_facility_id
                         LEFT JOIN public.facilities f ON p.facility_id = f.id
-                    WHERE
+                    WHERE 
                         c.id = ${id}`;
 
         return await query(get_claim_sql);
@@ -660,11 +660,11 @@ module.exports = {
     getProviderInfo: async (billingProviderId, insuranceProviderId) => {
 
         let sqlQry = SQL`
-                SELECT name,
-                    npi_no,
-                    (SELECT insurance_info -> 'partner_id'
-                    FROM   insurance_providers
-                    WHERE  id = ${insuranceProviderId}) AS trading_partner_id
+                SELECT name, 
+                    npi_no, 
+                    (SELECT insurance_info -> 'partner_id' 
+                    FROM   insurance_providers 
+                    WHERE  id = ${insuranceProviderId}) AS trading_partner_id 
                 FROM   billing.providers
                 WHERE  id = ${billingProviderId}
         `;
@@ -694,7 +694,7 @@ module.exports = {
 
         const sql = SQL`
         SELECT * FROM (
-            SELECT json_agg(row_to_json(charge)) "charges"
+            SELECT json_agg(row_to_json(charge)) "charges" 
                     FROM (
                             SELECT
                                  studies.id
@@ -709,17 +709,17 @@ module.exports = {
                             FROM studies
                             LEFT JOIN orders ON orders.id=studies.order_id
                             INNER JOIN facilities ON studies.facility_id=facilities.id
-                            WHERE
+                            WHERE  
                             studies.has_deleted=False AND studies.patient_id = ${id}
                             AND NOT EXISTS ( SELECT 1 FROM billing.charges_studies WHERE study_id = studies.id )
                             ORDER BY id ASC
                     ) AS charge
             ) charge_details
             ,(
-                SELECT (row_to_json(patient_default_details)) "patient_details"
+                SELECT (row_to_json(patient_default_details)) "patient_details" 
                     FROM
                         (
-                        SELECT
+                        SELECT 
                             p.id AS patient_id
                             ,p.full_name AS patient_name
 				            ,p.birth_date AS patient_dob
@@ -728,7 +728,7 @@ module.exports = {
                             ,f.id AS facility_id
                             ,COALESCE(NULLIF(f.facility_info->'billing_provider_id',''),'0')::numeric AS billing_provider_id
                             ,COALESCE(NULLIF(f.facility_info->'service_facility_id',''),'0')::numeric AS service_facility_id
-                            ,COALESCE(NULLIF(f.facility_info->'rendering_provider_id',''),'0')::numeric AS rendering_provider_id
+                            ,COALESCE(NULLIF(f.facility_info->'rendering_provider_id',''),'0')::numeric AS rendering_provider_id 
                             ,facility_info->'service_facility_name' as service_facility_name
                             ,fac_prov_cont.id AS rendering_provider_contact_id
                             ,fac_prov.full_name AS rendering_provider_full_name
@@ -748,11 +748,11 @@ module.exports = {
     getExistingPayer: async (params) => {
 
         let sqlQry = SQL`
-                SELECT
-                    payer_type
-                FROM
+                SELECT 
+                    payer_type 
+                FROM 
                     billing.claims
-                WHERE
+                WHERE 
                     id = ${params.id}`;
 
         return await query(sqlQry);
@@ -787,10 +787,10 @@ module.exports = {
 
     getICD: async (params) => {
         let sqlQry = SQL`
-            SELECT
-                *
-            FROM
-                public.icd_codes
+            SELECT 
+                * 
+            FROM 
+                public.icd_codes  
            WHERE code ILIKE ${params.code}  AND company_id = ${params.companyId} AND NOT has_deleted
         `;
 
@@ -799,45 +799,15 @@ module.exports = {
 
     getApprovedReportsByPatient: async (params) => {
         let sqlQry = SQL`
-            SELECT
+            SELECT 
              id
-            FROM
-                public.studies
+            FROM 
+                public.studies  
                 WHERE
                 patient_id = ${params.patient_id}
                 AND study_status='APP'
                 AND NOT has_deleted
             ORDER BY study_dt
-        `;
-
-        return await query(sqlQry);
-    },
-
-    deleteProvider: async (params) => {
-        const {
-            payer_type,
-            claim_id
-        } = params;
-
-        let sqlQry = SQL`
-                UPDATE billing.claims
-                    SET
-                    primary_patient_insurance_id =
-                        CASE ${payer_type}
-                         WHEN 'primary_insurance' THEN NULL ELSE primary_patient_insurance_id
-                        END,
-                    secondary_patient_insurance_id =
-                        CASE ${payer_type}
-                            WHEN 'secondary_insurance' THEN NULL ELSE secondary_patient_insurance_id
-                        END,
-                    tertiary_patient_insurance_id =
-                        CASE ${payer_type}
-                            WHEN 'tertiary_insurance' THEN NULL ELSE tertiary_patient_insurance_id
-                        END,
-                    payer_type = 'patient',
-                    billing_method = 'patient_payment'
-                WHERE id = ${claim_id}
-                RETURNING id, xmin as claim_row_version
         `;
 
         return await query(sqlQry);
