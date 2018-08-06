@@ -666,6 +666,7 @@ define(['jquery',
                     self.bindEditClaimInsuranceDetails(claim_data);
                     var responsibleIndex = _.find(self.responsible_list, function (item) { return item.payer_type_name == claim_data.payer_type; });
                     $('#ddlResponsible').val(responsibleIndex.payer_type);
+                    $('#ddlResponsible').data('current-payer',claim_data.payer_type);
                     $('#ddlClaimStatus').val(claim_data.claim_status_id || '');
                     $('#ddlFrequencyCode').val(claim_data.frequency || '')
                     $('#ddlPOSType').val(claim_data.place_of_service_id || '');
@@ -924,7 +925,7 @@ define(['jquery',
                 });
 
                 $("#btnResetPriInsurance, #btnResetSecInsurance, #btnResetTerInsurance").off().click(function (e) {
-                    self.resetInsurances(e);
+                    self.insurancesUpdate(e);
                 });
 
                 $("#btnValidateClaim").off().click(function (e) {
@@ -2681,7 +2682,6 @@ define(['jquery',
                                     clearTimeout(claimRefreshInterval);
 
                                     commonjs.showStatus("messages.status.successfullyCompleted");
-                                    console.log(self.claim_Id);
                                     $("#btnClaimsRefresh").click();
                                     $("#btnStudiesRefresh").click();
                                 }, 200);
@@ -3790,6 +3790,60 @@ define(['jquery',
                     { payer_type: "POF", payer_type_name: "ordering_facility", payer_id: null, payer_name: null },
                     { payer_type: "RF", payer_type_name: "referring_provider", payer_id: null, payer_name: null }
                 ]
+            },
+
+            insurancesUpdate:function(e){
+                var self =this;
+
+                // before clear check is that current responsible/Not.
+                var _currentPayerType = $('#ddlResponsible').data('current-payer') || '';
+                var id = e.target.id || '';
+
+                var _currentPayer = id == 'btnResetPriInsurance' && _currentPayerType == 'primary_insurance' ? self.priInsID
+                    : id == 'btnResetSecInsurance' && _currentPayerType == 'secondary_insurance' ? self.secInsID
+                        : id == 'btnResetTerInsurance' && _currentPayerType == 'tertiary_insurance' ? self.terInsID
+                            : 0;
+
+                if (_currentPayer && self.isEdit) {
+
+                    if (confirm(commonjs.geti18NString("messages.confirm.billing.insuranceReferencedAreYouSure"))) {
+                        $.ajax({
+                            url: '/exa_modules/billing/claims/claim/remove_insurance_provider',
+                            type: 'POST',
+                            data: {
+                                claim_id: self.claim_Id,
+                                provider_id: _currentPayer,
+                                payer_type: _currentPayerType
+                            },
+                            success: function (result) {
+                                if (result.length) {
+                                    commonjs.showStatus(commonjs.geti18NString("messages.status.successfullyUpdated"));
+                                    self.resetInsurances(e);
+                                    $('#ddlResponsible').val('PPP');
+                                    commonjs.showStatus("messages.status.responseUpdated");
+                                    self.claim_row_version = result[0].claim_row_version || self.claim_row_version;
+                                    $("#btnClaimsRefresh").click();
+                                    $("#btnStudiesRefresh").click();
+                                    if (_currentPayerType == 'primary_insurance') {
+                                        self.is_primary_available = false; self.priClaimInsID = null;
+                                    }
+                                    else if (_currentPayerType == 'secondary_insurance') {
+                                        self.is_secondary_available = false; self.secClaimInsID = null;
+                                    }
+                                    else if (_currentPayerType == 'tertiary_insurance') {
+                                        self.is_tertiary_available = false; self.terClaimInsID = null;
+                                    }
+                                }
+                            },
+                            error: function (err, response) {
+                                commonjs.handleXhrError(err, response);
+                            }
+                        });
+                    }
+
+                } else {
+                    self.resetInsurances(e);
+                }
             }
 
         });

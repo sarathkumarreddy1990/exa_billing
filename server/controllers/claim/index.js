@@ -163,5 +163,9 @@ module.exports = {
 
     getApprovedReportsByPatient: async (params) => {
         return await data.getApprovedReportsByPatient(params);
+    },
+
+    deleteProvider: async (params) => {
+        return await data.deleteProvider(params);
     }
 };
