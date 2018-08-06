@@ -142,7 +142,7 @@ WITH claim_data as(
          tertiary_patient_insurance_id
    END)
    WHERE 1 = 1
-   <% if(reportBy == "false") { %> AND <% print(claimDate); } %>
+   <% if(reportBy == 'false') { %> AND <% print(claimDate); } %>
 
     order by first_name),
     detail_cte AS(
@@ -825,6 +825,8 @@ const api = {
             params.push(reportParams.billingProviderIds);
             filters.billingProviderIds = queryBuilder.whereIn(`bp.id`, [params.length]);
         }
+
+        filters.reportBy =  reportParams.reportBy;
 
         return {
             queryParams: params,
