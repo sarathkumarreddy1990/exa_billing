@@ -108,7 +108,7 @@ if (!fs.existsSync(sqlUpdatesFilePath)) {
 // ----------------------------------------------------------------------------
 // common config
 const webConfig = require(webConfigFilePath);
-const dbConfig = pgConnStringParser(webConfig.dbConnectionBilling || webConfig.Connection.conStr);
+const dbConfig = pgConnStringParser(webConfig.dbConnection || webConfig.Connection.conStr);
 dbConfig.application_name = 'exa_dbmanager';
 // ----------------------------------------------------------------------------
 // command execution
