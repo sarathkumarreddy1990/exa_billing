@@ -75,7 +75,7 @@ define([
                         processedIDs = processedIDs.map(Number);
 
                         discardedIDs = _.difference(claimIDs, processedIDs);
-                        if (discardedIDs.length > 0 && !options.isOrdFac) {
+                        if (discardedIDs.length > 0 && !options.showInline) {
                             commonjs.showWarning('Unable to process few claims - ' + discardedIDs.toString());
                         }
 
@@ -118,16 +118,17 @@ define([
                         showDialog = commonjs.showNestedDialog;
                     }
 
-                    if(options.isOrdFac){                     
-                        document.write("<iframe width='100%' height='100%' src='"+ res.data.pdfBlob+"'></iframe>");
-                    }else{
-                       showDialog({
-                            header: self.pdfDetails[templateType].header,
-                            width: '90%',
-                            height: '75%',
-                            url: res.data.pdfBlob
-                        });
+                    if (options.showInline) {
+                        return document.write("<iframe width='100%' height='100%' src='" + res.data.pdfBlob + "'></iframe>");
                     }
+
+                    showDialog({
+                        header: self.pdfDetails[templateType].header,
+                        width: '90%',
+                        height: '75%',
+                        url: res.data.pdfBlob
+                    });
+                    
                    
 
                     // const anchor = document.createElement('a');
