@@ -8,18 +8,18 @@ const _ = require('lodash')
 
 const summaryQueryTemplate = _.template(`
           WITH paymentsSummaryQuery as (
-                SELECT     
+                SELECT
                     bp.payer_type as payer_type,
                     bp.id as payment_id,
                     bp.mode as payment_mode,
-                    SUM(CASE 
+                    SUM(CASE
                             WHEN bpa.amount_type ='payment' THEN
                                  bpa.amount
                             ELSE
                                  0.00::MONEY
                         END
                        ) AS payment_applied,
-                    SUM(CASE 
+                    SUM(CASE
                             WHEN bpa.amount_type ='adjustment' THEN
                                 bpa.amount
                             ELSE
@@ -27,52 +27,52 @@ const summaryQueryTemplate = _.template(`
                             END
                         ) AS adjustment,
                     MAX(bp.amount) AS total_payment
-                FROM 
+                FROM
                     billing.payments bp
                 LEFT JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
                 LEFT JOIN facilities f on f.id = bp.facility_id
-                <% if (billingProID) { %>  
+                <% if (billingProID) { %>
                     INNER JOIN billing.charges bch on bch.id = bpa.charge_id
                     INNER JOIN billing.claims bc on bc.id = bch.claim_id
                     INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id <% } %>
                 <% if (userIds) { %>  INNER join public.users on users.id = bp.created_by    <% } %>
-                <% if (userRoleIds) { %>    
-                    <% if (userIds) { %>  
-                         INNER JOIN  public.user_groups ON users.user_group_id = public.user_groups.id AND public.user_groups.is_active 
-                         INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active                        
+                <% if (userRoleIds) { %>
+                    <% if (userIds) { %>
+                         INNER JOIN  public.user_groups ON users.user_group_id = public.user_groups.id AND public.user_groups.is_active
+                         INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active
                        <% } else { %>
-                         INNER join public.users  on users.id = bp.created_by 
-                         INNER JOIN  public.user_groups ON users.user_group_id = public.user_groups.id AND public.user_groups.is_active 
-                         INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active                        
+                         INNER join public.users  on users.id = bp.created_by
+                         INNER JOIN  public.user_groups ON users.user_group_id = public.user_groups.id AND public.user_groups.is_active
+                         INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active
                       <% } %>
                    <%  } %>
-                WHERE 1=1 
+                WHERE 1=1
                 AND <%= claimDate %>
-                <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+                <% if (facilityIds) { %>AND <% print(facilityIds); } %>
                 <% if(billingProID) { %> AND <% print(billingProID); } %>
                 <% if (userIds) { %>AND <% print(userIds); } %>
                 <% if (userRoleIds) { %>AND <% print(userRoleIds); } %>
                 GROUP BY
                      bp.payer_type, bp.id
           )
-          SELECT                   
+          SELECT
                 <% if (summaryType == "Payment Mode")  { %>
 
-                    CASE  
-                    WHEN payment_mode IS NULL THEN 'Total' 
-                    ELSE 
-                    payment_mode 
-                    END             AS "Payment Mode",                       
-           
+                    CASE
+                    WHEN payment_mode IS NULL THEN 'Total'
+                    ELSE
+                    payment_mode
+                    END             AS "Payment Mode",
+
                 <% } else { %>
-                    CASE  
-                    WHEN payer_type IS NULL THEN 'Payer Type Total' 
-                    ELSE 
-                        
+                    CASE
+                    WHEN payer_type IS NULL THEN 'Payer Type Total'
+                    ELSE
+
                     CASE
                     WHEN
                        payer_type = 'patient' THEN  'Patient'
-                      
+
                      WHEN
                       payer_type = 'insurance' THEN 'Insurance'
                      WHEN
@@ -80,53 +80,54 @@ const summaryQueryTemplate = _.template(`
                       WHEN
                        payer_type = 'ordering_provider' THEN 'Provider'
 
-                    END         
-                    END  AS "Payer Type", 
-                <% } %>        
-                    SUM(payment_applied)    AS "Total Payment Applied",
+                    END
+                    END  AS "Payer Type",
+                <% } %>
+                    SUM(payment_applied)  AS "Total Payment Applied",
+                    SUM(total_payment - payment_applied) AS "Total Payment UnApplied",
                     SUM(adjustment) AS "Total Adjustment",
                     SUM(total_payment) AS "Total Payment Amount"
-            FROM 
+            FROM
                 paymentsSummaryQuery
-          
+
                 <% if (summaryType == "Payment Mode")  { %>
                     GROUP BY
-                    ROLLUP (payment_mode) ORDER BY payment_mode 
+                    ROLLUP (payment_mode) ORDER BY payment_mode
                     <% } else { %>
                         GROUP BY
-                        ROLLUP (payer_type) ORDER BY payer_type 
-                        <% } %> 
+                        ROLLUP (payer_type) ORDER BY payer_type
+                        <% } %>
         `);
 // Data set #2, detailed query
 const detailQueryTemplate = _.template(`
-         WITH payment_data as 
+         WITH payment_data as
          (
-            SELECT 
+            SELECT
                 bp.id payment_id,
                 bc.id  claim_id,
                 SUM(CASE WHEN amount_type= 'payment' then bpa.amount  else 0::money end) as applied_amount,
                 SUM(CASE WHEN amount_type= 'adjustment' then bpa.amount  else 0::money end) as adjustment
                 <% if (userIds) { %> , MAX(users.username) AS user_name    <% } %>
-            FROM 
-                billing.payments bp 
+            FROM
+                billing.payments bp
             LEFT JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
             LEFT JOIN billing.charges bch on bch.id = bpa.charge_id
             LEFT Join billing.claims  bc on bc.id = bch.claim_id
             <% if (billingProID) { %>  INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id <% } %>
             <% if (userIds) { %>  INNER join public.users  users on users.id = bp.created_by    <% } %>
-            <% if (userRoleIds) { %>    
-                <% if (userIds) { %>  
-                     INNER JOIN  public.user_groups ON users.user_group_id = public.user_groups.id AND public.user_groups.is_active 
-                     INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active                        
+            <% if (userRoleIds) { %>
+                <% if (userIds) { %>
+                     INNER JOIN  public.user_groups ON users.user_group_id = public.user_groups.id AND public.user_groups.is_active
+                     INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active
                    <% } else { %>
-                     INNER join public.users users on users.id = bp.created_by 
-                     INNER JOIN  public.user_groups ON users.user_group_id = public.user_groups.id AND public.user_groups.is_active 
-                     INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active                        
+                     INNER join public.users users on users.id = bp.created_by
+                     INNER JOIN  public.user_groups ON users.user_group_id = public.user_groups.id AND public.user_groups.is_active
+                     INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active
                   <% } %>
                <%  } %>
-            WHERE 1=1   
+            WHERE 1=1
             AND <%= claimDate %>
-            <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+            <% if (facilityIds) { %>AND <% print(facilityIds); } %>
             <% if(billingProID) { %> AND <% print(billingProID); } %>
             <% if (userIds) { %>AND <% print(userIds); } %>
             <% if (userRoleIds) { %>AND <% print(userRoleIds); } %>
@@ -139,12 +140,12 @@ const detailQueryTemplate = _.template(`
          	        get_full_name(pp.last_name, pp.first_name, pp.middle_name, pp.prefix_name, pp.suffix_name) AS "Patient Name",
          	        pp.account_no "Account #" ,
          	        to_char(c.claim_dt, 'MM/DD/YYYY') "Claim Date",
-                    
-                     
+
+
                      CASE
                       WHEN
                          p.payer_type = 'patient' THEN  'Patient'
-                        
+
                        WHEN
                         p.payer_type = 'insurance' THEN 'Insurance'
                        WHEN
@@ -152,16 +153,16 @@ const detailQueryTemplate = _.template(`
                         WHEN
                          p.payer_type = 'ordering_provider' THEN 'Provider'
                          END  AS "Payer Type",
-                         
+
                      CASE
                       WHEN
-                         p.payer_type = 'patient' THEN 
-                         get_full_name(pp.last_name, 
+                         p.payer_type = 'patient' THEN
+                         get_full_name(pp.last_name,
                                     pp.first_name,
                                     pp.middle_name,
                                     pp.prefix_name,
                                     pp.suffix_name
-                                ) 
+                                )
                        WHEN
                         p.payer_type = 'insurance' THEN ip.insurance_name
                        WHEN
@@ -173,17 +174,17 @@ const detailQueryTemplate = _.template(`
          	        p.card_number AS "Check #",
          	        payment_totals.payments_applied_total AS "Applied Total",
          	        p.amount "Payment Amount",
-                    (p.amount - payment_totals.payments_applied_total) AS "Balance",                  
+                    (p.amount - payment_totals.payments_applied_total) AS "Balance",
                     pd.applied_amount AS "Applied Amount",
                     pd.adjustment AS "Adjustment Amount"
                     <% if (userIds) { %>, user_name AS "User Name"   <% } %>
-                FROM 
+                FROM
                     payment_data pd
                 INNER join billing.payments p on p.id = pd.payment_id
                 INNER JOIN LATERAL billing.get_payment_totals(p.id) AS payment_totals ON TRUE
                 LEFT join facilities f on f.id = p.facility_id
                 LEFT join billing.claims c on c.id = pd.claim_id
-                LEFT join billing.claim_status cs on cs.id = c.claim_status_id 
+                LEFT join billing.claim_status cs on cs.id = c.claim_status_id
                 LEFT join public.insurance_providers ip on ip.id = p.insurance_provider_id
                 LEFT join public.Provider_contacts pc on pc.id = provider_contact_id
                 LEFT join public.Providers pr on pr.id = pc.provider_id
