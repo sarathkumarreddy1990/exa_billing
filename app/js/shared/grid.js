@@ -432,7 +432,7 @@ define('grid', [
                                 });
                                 }
                                 else{
-                                    alert('Claim has payment, Please unapply before delete!');
+                                    alert('Claim has payment, Please unapply before delete');
                                 }
 
                         },

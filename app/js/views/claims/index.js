@@ -1404,7 +1404,7 @@ define(['jquery',
 
                                 if (confirm('Are you sure to delete charge ?')) {
                                     if (rowData.payment_exists && data.rows[0].is_payment_available != 0 ) {
-                                        alert('Charge has payment, please unapply before delete!');
+                                        alert('Charge has payment, please unapply before delete');
                                     } else {
                                         self.removeChargeFromDB(rowData.id, function (response) {
                                             if (response && response.status)
@@ -1414,7 +1414,7 @@ define(['jquery',
                                         });
                                     }
                                 }
-                                
+
                             },
                             error: function (err, response) {
                                 commonjs.handleXhrError(err, response);
