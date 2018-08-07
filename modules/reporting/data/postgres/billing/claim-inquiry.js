@@ -369,8 +369,8 @@ const _ = require('lodash')
         }
 
         if (params.cptDateFrom != '' && params.cptDateTo != '') {
-            filtersUsed.push({ name: 'FromPayDate', label: 'PayDate From', value: params.cptDateFrom });
-            filtersUsed.push({ name: 'ToPayDate', label: 'PayDate To', value: params.cptDateTo });
+            filtersUsed.push({ name: 'FromPayDate', label: 'CommentDate From', value: params.cmtFromDate });
+            filtersUsed.push({ name: 'ToPayDate', label: 'CommentDate To', value: params.cmtToDate });
         }
 
         if (params.billCreatedDateFrom != '' && params.billCreatedDateTo != '') {

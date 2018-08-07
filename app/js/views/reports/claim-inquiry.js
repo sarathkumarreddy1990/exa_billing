@@ -79,7 +79,7 @@ define([
                 'click #btnXmlReport': 'onReportViewClick',
                 "click #chkAllClaims": "selectAllClaims",
                 "click #chkAllInsGroup": "selectAllInsGroup",
-                "change .insGrpChk": "chkInsGroup",               
+                "change .insGrpChk": "chkInsGroup",
                 "click #chkAllFacility": "selectAllFacility",
                 "click #showCheckboxesClaim": "showCheckboxesClaim",
                 "click #showInsGroupCheckboxes": "showInsuranceGroupList",
@@ -134,7 +134,7 @@ define([
 
                 // pre-select default facility
                 this.selectDefaultFacility();
-                self.bindDateRangePicker();  //  Binding date range pickers                
+                self.bindDateRangePicker();  //  Binding date range pickers
                 self.bindUserAutocomplete();   // Referring Docotor Auto complete
 
                 //   Service date (Bill) Date Picker
@@ -162,11 +162,11 @@ define([
                     includeSelectAllOption: true,
                     enableCaseInsensitiveFiltering: true
                 });
-               
+
                 $('#ddlClaimSelectBoxes').multiselect({
                     maxHeight: 170,
-                    buttonWidth: '200px'                  
-                });            
+                    buttonWidth: '250px'
+                });
             },
 
             // Date Range Binding
@@ -273,7 +273,7 @@ define([
                    // commonjs.showWarning('Please Select Service / Pay / Bill Created Date');
                     return;
                 }
-               
+
                 return true;
             },
 
@@ -313,7 +313,7 @@ define([
                     insuranceOption: this.viewModel.insuranceOption ? this.viewModel.insuranceOption : '',
                     'insuranceGroupList': this.viewModel.insuranceGroupList,
 
-                    allInsuranceGroup: this.viewModel.allInsGrpSelection ? this.viewModel.allInsGrpSelection : '',                    
+                    allInsuranceGroup: this.viewModel.allInsGrpSelection ? this.viewModel.allInsGrpSelection : '',
 
                     userIds: this.viewModel.userIds ? this.viewModel.userIds : '',
                     referringProIds: this.viewModel.refPhyId ? this.viewModel.refPhyId : '',
@@ -461,7 +461,7 @@ define([
                 $('#ddlFacilityFilter').multiselect("deselectAll", false).multiselect("refresh");
                 this.viewModel.allFacilities = false;
             },
-            
+
             // Facility Changes -- worked
             onFacilityChange: function () {
                 $('#billingProDropdown').hide();
@@ -480,7 +480,7 @@ define([
                 selected.each(function () {
                     claimSelections.push($(this).val());
                 });
-                this.selectedClaimList = claimSelections;             
+                this.selectedClaimList = claimSelections;
                 // this.viewModel.allClaimSelection = this.selectedClaimList && this.selectedClaimList.length === $('#ddlClaimSelectBoxes option').length;
 
             },
