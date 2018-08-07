@@ -7,6 +7,28 @@ module.exports = {
         return await SearchFilter.getWL(args);
     },
 
+    checkPaymentDetails: async function (args) {
+
+        const sql = SQL` SELECT
+                              sum(payments_applied_total)::numeric as claim_applied
+                            , sum(adjustments_applied_total)::numeric as claim_adjustment
+                            , sum(refund_amount)::numeric as claim_refund
+                        FROM billing.get_claim_totals(${args.target_id})`;
+
+        return await query(sql);
+    },
+
+    checkChargePaymentDetails: async function (args) {
+
+        const sql = SQL` SELECT
+                            COUNT(1) AS is_payment_available
+                        FROM billing.payment_applications
+                        WHERE charge_id = ${args.charge_id}
+                        AND amount != 0::money`;
+
+        return await query(sql);
+    },
+
     deleteClaimOrCharge: async (params) => {
         const { target_id, clientIp, entityName, userId, companyId, type } = params;
         const screenName = 'claims';
