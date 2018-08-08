@@ -1394,25 +1394,32 @@ define(['jquery',
                         return false;
                     }
                     if (rowData.id) {
-                        if (confirm('Are you sure to delete charge ?')) {
-                            if (rowData.payment_exists) {
-                                if (confirm('Payment exists for this charge, Confirm to delete')) {
-                                    self.removeChargeFromDB(rowData.id, function (response) {
-                                        if (response && response.status)
-                                            removeCharge(rowData, rowId, rowObj);
-                                        else
-                                            commonjs.showWarning('Error on deleting charge');
-                                    });
+                        $.ajax({
+                            url: '/exa_modules/billing/claim_workbench/charge/check_payment_details',
+                            type: 'GET',
+                            data: {
+                                charge_id: rowData.id,
+                            },
+                            success: function (data, response) {
+
+                                if (confirm('Are you sure to delete charge ?')) {
+                                    if (rowData.payment_exists && data.rows[0].is_payment_available != 0 ) {
+                                        alert('Charge has payment, please unapply before delete');
+                                    } else {
+                                        self.removeChargeFromDB(rowData.id, function (response) {
+                                            if (response && response.status)
+                                                removeCharge(rowData, rowId, rowObj);
+                                            else
+                                                commonjs.showWarning('Error on deleting charge');
+                                        });
+                                    }
                                 }
-                            } else {
-                                self.removeChargeFromDB(rowData.id, function (response) {
-                                    if (response && response.status)
-                                        removeCharge(rowData, rowId, rowObj);
-                                    else
-                                        commonjs.showWarning('Error on deleting charge');
-                                });
+
+                            },
+                            error: function (err, response) {
+                                commonjs.handleXhrError(err, response);
                             }
-                        }
+                        });
                     } else {
                         removeCharge(rowData, rowId, rowObj);
                     }
