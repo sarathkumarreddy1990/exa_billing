@@ -130,7 +130,10 @@ module.exports = {
 
                     // for each claim
                     let claimStr = enc.encode(batch, context);
-                    ediResponse += claimStr;
+                    ediResponse = {
+                        ohipText: claimStr,
+                        ohipFilename: filename
+                    };
                     const fullOHIPFilepath = path.join('ohip-out', filename);
                     fs.writeFile(fullOHIPFilepath, claimStr, constants.encoding, (err, response) => {
                         if (err) {
@@ -144,13 +147,13 @@ module.exports = {
             }
             else {
 
-	        ediResponse = await ediConnect.generateEdi(result.rows[0].header.edi_template_name, ediRequestJson);
-	        params.claim_status = 'PP';
-	        params.type = 'auto';
-	        params.success_claimID = params.claimIds.split(',');
-	        params.isClaim = true;
-	        params.claimDetails = JSON.stringify(claimDetails);
-	        await data.changeClaimStatus(params);
+    	        ediResponse = await ediConnect.generateEdi(result.rows[0].header.edi_template_name, ediRequestJson);
+    	        params.claim_status = 'PP';
+    	        params.type = 'auto';
+    	        params.success_claimID = params.claimIds.split(',');
+    	        params.isClaim = true;
+    	        params.claimDetails = JSON.stringify(claimDetails);
+    	        await data.changeClaimStatus(params);
             }
         } else {
             ediResponse = result;
