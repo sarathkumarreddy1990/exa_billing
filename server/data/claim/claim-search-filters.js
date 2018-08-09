@@ -340,7 +340,7 @@ const api = {
             'render_provider.full_name as   rendering_provider',
             'bgct.charges_bill_fee_total as billing_fee',
             'claim_followups.followup_date::text as followup_date',
-            'users.username as assigned_to',
+            `users.username||'('||get_full_name(users.first_name,users.last_name)||')' as assigned_to`,
             'claims.current_illness_date::text as current_illness_date',
             'claims.id As claim_no',
             'patient_insurances.policy_number',
