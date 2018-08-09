@@ -339,17 +339,40 @@ module.exports = {
             companyId,
             screenName,
             clientIp,
-            userId
+            userId,
+            entityName,
+            moduleName
         } = params;
         let sql;
         claimIDs = claimIDs.split(',');
 
         if (followupDate == '') {
             sql = SQL`
-                    DELETE FROM
-                        billing.claim_followups
-                    WHERE
-                        claim_id = ANY(${claimIDs}) RETURNING * `;
+                    WITH cancle_followups AS(
+                        DELETE FROM billing.claim_followups
+                        WHERE
+                            claim_id = ANY(${claimIDs})
+                        RETURNING *, '{}'::jsonb old_values),
+                        audit_cte AS (
+                            SELECT billing.create_audit(
+                                ${companyId},
+                                ${entityName || screenName},
+                                cancle_followups.id,
+                                ${screenName},
+                                ${moduleName},
+                                'Claim followup canceled for claim Id: '|| cancle_followups.claim_id || ' User Id : ' || cancle_followups.assigned_to ,
+                                ${clientIp || '127.0.0.1'},
+                                json_build_object(
+                                    'old_values', (SELECT COALESCE(old_values, '{}') FROM cancle_followups limit 1),
+                                    'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM cancle_followups limit 1) temp_row)
+                                )::jsonb,
+                                ${userId || 0}
+                            ) id
+                            from cancle_followups
+                        )
+
+                        SELECT  *
+                        FROM    audit_cte`;
         }
         else {
             sql = SQL`WITH update_followup AS(
