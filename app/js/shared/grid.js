@@ -758,12 +758,12 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 (options.isClaimGrid ? '<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />' : ''),
-                '', '', '', '', '','','','','','','','','','','','','','','AssignedTo'
+                '', '', '', '', '','','','','','','','','','','','','','','Assigned To'
 
             ]);
 
             i18nName = i18nName.concat([
-                '', '', '', '', '', '','','','','','','','','','','','','','','billing.claims.assignedTo'
+                '', '', '', '', '', '','','','','','','','','','','','','','','billing.claims.assigned To'
             ]);
 
             colModel = colModel.concat([
@@ -991,12 +991,6 @@ define('grid', [
                     "searchoptions": {
                         "value": billingUserList,
                         "defaultValue":billingUserList
-                    },
-                    formatter: function (cellvalue, options, rowObject) {
-                        var users = commonjs.getBillingUserName(rowObject.assigned_to);
-                        if (users && users.length)
-                            return users[0].username + ' ( ' + users[0].last_name + ', ' + users[0].first_name + ' ) ';
-                        else ''
                     }
                 },
             ]);
