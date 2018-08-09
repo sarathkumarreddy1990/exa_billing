@@ -763,7 +763,7 @@ define('grid', [
             ]);
 
             i18nName = i18nName.concat([
-                '', '', '', '', '', '','','','','','','','','','','','','','','billing.claims.assigned To'
+                '', '', '', '', '', '','','','','','','','','','','','','','','billing.claims.assignedTo'
             ]);
 
             colModel = colModel.concat([
