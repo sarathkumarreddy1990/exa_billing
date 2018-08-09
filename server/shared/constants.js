@@ -11,6 +11,7 @@ module.exports = {
         pending_payments: 'payments',
         era: 'era',
         edi: 'edi',
+        claim_workbench:'claims'
     },
 
     screenNames: {
