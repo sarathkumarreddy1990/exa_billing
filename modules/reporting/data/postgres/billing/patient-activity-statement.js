@@ -33,8 +33,11 @@ WITH claim_data as(
   from
      patient_insurances pis
      INNER JOIN insurance_providers AS ip ON ip.id = pis.insurance_provider_id
+     INNER JOIN billing.claims bc ON bc.patient_id = pis.patient_id
+     INNER JOIN facilities f on f.id = bc.facility_id
           WHERE 1=1
           AND <%= patientInsIds %>
+          <% if(reportBy == 'false') { %> AND <% print(claimDate); } %>
         ORDER BY cov_level
       ),
      billing_comments as
@@ -275,7 +278,7 @@ WITH claim_data as(
           , null
           , null
           , null
-          , valid_from_date
+          , valid_to_date
           , cov_level
           , policy_no
           , group_no
