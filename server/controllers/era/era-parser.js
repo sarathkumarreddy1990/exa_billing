@@ -176,11 +176,12 @@ module.exports = {
 
                         });
 
+                        // Condition :: Check lineitem have segment REF*6R*[charge id] in ERA file. Otherwise assign 0
                         let serviceIdentification = _.filter(val.serviceIdentification, { referenceIdentQual: '6R' });
-                        let charge_id = null;
+                        let charge_id = 0;
 
                         if (serviceIdentification && serviceIdentification.length) {
-                            charge_id = serviceIdentification[0].assingedNumber && !isNaN(serviceIdentification[0].assingedNumber) ? serviceIdentification[0].assingedNumber : null;
+                            charge_id = serviceIdentification[0].assingedNumber && !isNaN(serviceIdentification[0].assingedNumber) ? serviceIdentification[0].assingedNumber : 0;
                         }
 
                         /**
