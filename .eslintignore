@@ -3,6 +3,7 @@
 /dist/**
 /test/**
 /modules/reporting/**
+/modules/ohip/**
 .eslintrc.js
 gulpfile.js
 dbManager.js

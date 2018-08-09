@@ -1083,7 +1083,7 @@ var commonjs = {
         $siteModal.modal('dispose');
         //commonjs.docResize();
 
-         //Report window close 
+         //Report window close
          this.closeReportWindow();
     },
 
@@ -1266,6 +1266,10 @@ var commonjs = {
             case '23514':
                 errorMessage = errorMessage.replace(/new row for relation/g, '');
                 commonjs.showError(errorMessage || 'Constraint violation');
+                break;
+
+            case '22007':
+                commonjs.showError('messages.errors.invalidDateTimeError');
                 break;
 
             case '55801':
@@ -1713,7 +1717,7 @@ var commonjs = {
         catch(err){
             commonjs.showWarning(err);
         }
-       
+
         return date;
     },
 
@@ -2393,9 +2397,9 @@ var commonjs = {
                         $(this).jqGrid('setGridHeight', obj.height);
                      }
 
-                } 
-               
-                   
+                }
+
+
 
                 if ($('.exa-left-nav')) {
                     $('.exa-left-nav').height(obj.navHeight);
@@ -4004,7 +4008,7 @@ var commonjs = {
     setMultiselectSearchIcon: function () {
         $.each($('.multiselect-item span'), function (index, obj) {
             $(this).find('.glyphicon-search').removeClass('glyphicon').removeClass('glyphicon-search').addClass('fa fa-search').css('margin', '10px');
-            $(this).find('.glyphicon-remove-circle').removeClass('glyphicon').removeClass('glyphicon-remove-circle').addClass('fa fa-times');                        
+            $(this).find('.glyphicon-remove-circle').removeClass('glyphicon').removeClass('glyphicon-remove-circle').addClass('fa fa-times');
         });
     },
 
@@ -5058,7 +5062,7 @@ var commonjs = {
 
             var fileName = requestData.fileName.replace(/ /g, "_");
             commonjs.downloadCsv(fileName + ".csv", workerResponse.csvData);
-           
+
             if(typeof options.afterDownload === 'function') {
                 options.afterDownload();
             }

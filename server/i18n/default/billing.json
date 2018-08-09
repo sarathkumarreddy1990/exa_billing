@@ -83,7 +83,11 @@
             "next": "Next",
             "self": "Self",
             "serviceFacility": "Service Facility",
-            "adjustments": "Adjustments"
+            "adjustments": "Adjustments",
+            "SegmentID": "Segment ID",
+            "SegmentName": "Segment Name",
+            "fieldName": "Field Name",
+            "Message": "Message"
         },
         "payments": {
             "postingDate": "Posting Date",
@@ -385,7 +389,7 @@
             "patientResponsible": "Patient Responsible",
             "insuranceResponsible": "Insurance Responsible",
             "total": "Total",
-            "assignedTo": "AssignedTo",
+            "assignedTo": "Assigned To",
             "30days": "30 Days",
             "60days": "60 Days",
             "90days": "90 Days",
