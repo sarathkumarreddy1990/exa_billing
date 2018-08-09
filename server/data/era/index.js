@@ -153,7 +153,7 @@ module.exports = {
             , audit_details
         } = params;
 
-        let conditionalJoin = paymentDetails.isFrom && paymentDetails.isFrom == 'EOB' ? ' WHERE ch.charge_dt::date = application_details.service_date ' : ' ';
+        let conditionalJoin = paymentDetails.isFrom && paymentDetails.isFrom == 'EOB' ? ' AND ch.charge_dt::date = application_details.service_date ' : ' ';
 
         const sql = SQL` WITH
                         application_details AS (
@@ -227,7 +227,8 @@ module.exports = {
                             FROM
                                 application_details
                             INNER JOIN billing.claims c on c.id = application_details.claim_number
-                            INNER JOIN billing.charges ch on ch.id = application_details.charge_id AND ch.claim_id = application_details.claim_number `);
+                            INNER JOIN billing.charges ch on ch.id = application_details.charge_id AND ch.claim_id = application_details.claim_number
+                            WHERE 1=1 `);
 
         sql.append(conditionalJoin);
 
