@@ -28,7 +28,7 @@ const _ = require('lodash')
            NULLIF(ip.insurance_info->'ZipPlus','')  AS zip_plus,
            NULLIF(ip.insurance_info->'PhoneNo','')  AS phone_no,
            NULLIF(ip.insurance_info->'FaxNo','')  AS fax_no,
-           bc.claim_dt,
+           to_char(bc.claim_dt, 'MM/DD/YYYY'),
            CASE
              WHEN bc.payer_type = 'primary_insurance' THEN ip.insurance_name
              WHEN bc.payer_type = 'secondary_insurance'  THEN ip.insurance_name
@@ -48,7 +48,6 @@ const _ = require('lodash')
             billing.claims bc
         INNER JOIN LATERAL billing.get_claim_totals(bc.id) AS claim_totals ON TRUE
         INNER JOIN public.patients p on p.id = bc.patient_id
-
         INNER JOIN public.facilities f on f.id = bc.facility_id
         INNER JOIN billing.providers bp on bp.id = bc.billing_provider_id
         LEFT JOIN public.patient_insurances pi on pi.id = (
@@ -78,16 +77,23 @@ const _ = require('lodash')
                    WHERE bch.claim_id = bc.id
                    <% if(CPTDate) { %> AND <%=CPTDate%> <%}%>
                    <% if (userIds) { %>AND <% print(userIds); } %>
-
                    <%
-        if(patPaid) { %> AND ( bp.payer_type = 'patient')   <% }
-        else if(insPaid) { %> AND ( bp.payer_type = 'insurance') <% }
-        else if(unPaid)  { %> AND ( bp.id is null ) <% }
-        else if(insPaid && patPaid )  { %> AND ( bp.payer_type = 'patient' ) OR ( bp.payer_type = 'insurance' ) <% }
-        else if(patPaid &&  unPaid)  { %> AND ( bp.payer_type = 'patient' OR bp.id is null ) <% }
-        else if(unPaid && insPaid)  { %> AND ( bp.payer_type = 'insurance' OR bp.id is null) <% }
-        else if(unPaid && insPaid && patPaid)  { %> AND ( bp.payer_type = 'patient' OR bp.payer_type = 'insurance' OR bp.id is null ) <% }
-        %>
+                   if(patPaid && !insPaid && !unPaid) { %> AND ( bp.payer_type = 'patient')   <% }
+                   else if(!patPaid && insPaid && !unPaid) { %> AND ( bp.payer_type = 'insurance') <% }
+                   else if(!patPaid && !insPaid && unPaid)  { %> AND  NOT EXISTS (select 1  From billing.charges  ibch
+                       INNER JOIN billing.payment_applications ibpa on ibch.id = ibpa.charge_id
+                       WHERE ibch.claim_id = bc.id) <% }
+                   else if(insPaid && patPaid && !unPaid)  { %> AND ( bp.payer_type = 'patient'  OR  bp.payer_type = 'insurance' ) <% }
+                   else if(patPaid &&  unPaid && !insPaid)  { %> AND ( bp.payer_type = 'patient' OR NOT EXISTS (select 1  From billing.charges  ibch
+                       INNER JOIN billing.payment_applications ibpa on ibch.id = ibpa.charge_id
+                       WHERE ibch.claim_id = bc.id) ) <% }
+                   else if(unPaid && insPaid && !patPaid)  { %> AND ( bp.payer_type = 'insurance' OR NOT EXISTS (select 1  From billing.charges  ibch
+                       INNER JOIN billing.payment_applications ibpa on ibch.id = ibpa.charge_id
+                       WHERE ibch.claim_id = bc.id)) <% }
+                   else if(unPaid && insPaid && patPaid)  { %> AND ( bp.payer_type = 'patient' OR bp.payer_type = 'insurance' OR NOT EXISTS (select 1  From billing.charges  ibch
+                       INNER JOIN billing.payment_applications ibpa on ibch.id = ibpa.charge_id
+                       WHERE ibch.claim_id = bc.id) ) <% }
+                   %>
 
 
         ) payments  on true
@@ -152,7 +158,7 @@ const _ = require('lodash')
                  cc.claim_id AS id
                 ,'claim' AS type
                 , note   AS comments
-                , created_dt::date AS commented_dt
+                , to_char(created_dt, 'MM/DD/YYYY') AS commented_dt
                 , null AS charges
                 , u.username AS commented_by
                 , null::money AS adjustment_amount
@@ -168,7 +174,7 @@ const _ = require('lodash')
                 c.claim_id AS id
               , 'charge' AS type
               , cc.short_description AS comments
-              , c.charge_dt::date AS commented_dt
+              , to_char(c.charge_dt,'MM/DD/YYYY') AS commented_dt
               , (c.bill_fee*c.units) AS amount
               , u.username AS commented_by
               , null::money AS adjustment_amount
@@ -194,7 +200,7 @@ const _ = require('lodash')
                     WHEN bp.payer_type = 'ordering_provider' THEN
                         p.full_name
                     END     AS comments,
-                bp.accounting_dt::date as commented_dt,
+                to_char(bp.accounting_dt,'MM/DD/YYYY') as commented_dt,
                 pa.amount as amount,
                 u.username as commented_by,
                 (bp.amount) AS total_payment,
@@ -240,6 +246,13 @@ const _ = require('lodash')
             *
         FROM
            billing_comments
+        ORDER BY
+         CASE type
+            WHEN 'charge' THEN 1
+            WHEN 'payment' THEN 2
+            WHEN 'adjustment' THEN 3
+            ELSE 4
+         END
     `);
 
     const api = {

@@ -85,8 +85,8 @@ const summaryQueryTemplate = _.template(`
                 <% } %>
                     SUM(payment_applied)  AS "Total Payment Applied",
                     SUM(total_payment - payment_applied) AS "Total Payment UnApplied",
-                    SUM(adjustment) AS "Total Adjustment",
-                    SUM(total_payment) AS "Total Payment Amount"
+                    SUM(total_payment) AS "Total Payment Amount",
+                    SUM(adjustment) AS "Total Adjustment"
             FROM
                 paymentsSummaryQuery
 
