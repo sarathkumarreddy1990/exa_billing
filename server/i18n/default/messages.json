@@ -9,7 +9,8 @@
             "requestnotfound": "Request not found",
             "serversideerror": "Server error",
             "someerror": "Internal error",
-            "accessdenied": "No rights"
+            "accessdenied": "No rights",
+            "invalidDateTimeError": "Invalid datetime format in selected records"
         },
         "warning": {
             "claims": {
