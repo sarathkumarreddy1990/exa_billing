@@ -12,6 +12,7 @@ define(['jquery',
     'grid',
     'shared/fields',
     'text!templates/claims/ediResult.html',
+    'text!templates/claims/ohipResult.html',
     'text!templates/claims/claim-validation.html',
     'text!templates/claims/invoice-claim.html',
     'text!templates/claims/edi-warning.html'
@@ -30,6 +31,7 @@ define(['jquery',
               ClaimsGrid,
               ListFields,
               ediResultHTML,
+              ohipResultHTML,
               claimValidation,
               invoiceClaim,
               ediWarning) {
@@ -320,7 +322,7 @@ define(['jquery',
             bindDateRangeOnSearchBox: function (gridObj, tabtype) {
                 var self = this;
                 var drpTabColumnSet = [
-                    {                        
+                    {
                         forTab: "claims",
                         columns: ["current_illness_date", "claim_dt", "followup_date", "birth_date", 'submitted_dt']
                     }
@@ -410,14 +412,14 @@ define(['jquery',
                             localStorage.setItem('default_paperclaim_format',  $(e.target).attr('data-format'));
                             localStorage.setItem('default_paperclaim',  $(e.target).attr('data-value'));
                             $("#btnClaimFormat").attr('data-format',  $(e.target).attr('data-format'));
-                        
-                        }     
-                        
+
+                        }
+
                         if(billingMethodFormat=='direct_billing'){
                             localStorage.setItem('default_directbilling_format',  $(e.target).attr('data-format'));
                             localStorage.setItem('default_directbilling',  $(e.target).attr('data-value'));
-                            $("#btnClaimFormat").attr('data-format',  $(e.target).attr('data-format'));              
-                        }                        
+                            $("#btnClaimFormat").attr('data-format',  $(e.target).attr('data-format'));
+                        }
 
 
                         $("#btnClaimFormat").attr('data-method', billingMethodFormat);
@@ -429,11 +431,11 @@ define(['jquery',
                 var filterID = commonjs.currentStudyFilter;
                 var filter = commonjs.loadedStudyFilters.get(filterID);
 
-                var claimIds = [], invoiceNo = [], existingBillingMethod = '', existingClearingHouse = '', existingEdiTemplate = '', selectedPayerName = [];      
+                var claimIds = [], invoiceNo = [], existingBillingMethod = '', existingClearingHouse = '', existingEdiTemplate = '', selectedPayerName = [];
 
                 for (var i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
                     var rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;
-                   
+
                     var claimStatus = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'claim_status_code');
 
                     if (claimStatus == "PV") {
@@ -449,7 +451,7 @@ define(['jquery',
                             return false;
                         }
                     }
-                    
+
                     if (existingBillingMethod == '') existingBillingMethod = billingMethod
                     if (existingBillingMethod != billingMethod) {
                         commonjs.showWarning('Please select claims with same type of billing method');
@@ -467,7 +469,7 @@ define(['jquery',
                         existingClearingHouse = clearingHouse;
                     }
 
-                    var payerName = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'payer_name'); 
+                    var payerName = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'payer_name');
                     selectedPayerName.push(payerName)
 
                     // var ediTemplate = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'edi_template');
@@ -488,7 +490,7 @@ define(['jquery',
                     commonjs.showWarning('Please select claims with same type of billing method ');
                     return false;
                 }
-                
+
                 if (existingBillingMethod === 'direct_billing' && _.uniq(invoiceNo).length > 1) {
                     commonjs.showWarning('Please select claims with same invoice no ');
                     return false;
@@ -517,7 +519,7 @@ define(['jquery',
                     }
                 }
                 var uniquePayerName = $.unique(selectedPayerName);
-                
+
                 if (existingBillingMethod === 'direct_billing' && _.uniq(invoiceNo).length == 1) {
                     if (invoiceNo && invoiceNo[0] && invoiceNo[0].length > 0) {
                         paperClaim.print('direct_invoice', claimIds, {
@@ -538,15 +540,16 @@ define(['jquery',
                         return;
                     }
                 }
-                
+
                 if(existingBillingMethod === 'patient_payment') {
                         paperClaim.print('patient_invoice', claimIds, {
                             sortBy: sortBy
                         });
-                        return; 
+                        return;
                 }
 
                 self.ediResultTemplate = _.template(ediResultHTML);
+                self.ohipResultTemplate = _.template(ohipResultHTML);
 
                 commonjs.showLoading();
 
@@ -575,9 +578,8 @@ define(['jquery',
                                     }
                                 }
                             });
-
                             commonjs.showDialog({
-                                header: 'EDI Claim', 
+                                header: 'EDI Claim',
                                 width: '95%',
                                 height: '75%',
                                 html: self.ediResultTemplate()
@@ -620,10 +622,27 @@ define(['jquery',
                                 element.click();
 
                                 document.body.removeChild(element);
+                            $('#modal_div_container .downloadEDI').on('click', function() {
+                                self.downloadClaimSubmission(data.ediText, 'edi.txt', 'utf-8');
                             });
 
                             $("#btnClaimsRefresh").click();
-                        } else {
+                        });
+                        } else if (data && data.ohipText && data.ohipText.length) {
+                            var str = data.ohipText.replace(/\r/g, '<br/>').replace('\x1A', '');
+
+                            commonjs.showDialog({
+                                header: 'OHIP Claim',
+                                width: '95%',
+                                height: '75%',
+                                html: self.ohipResultTemplate()
+                            });
+                            $('#divOHIPResp').append(str);
+                            $('#modal_div_container .downloadOHIP').on('click', function() {
+                                self.downloadClaimSubmission(data.ohipText, data.ohipFilename, 'acsii');
+                            });
+                        }
+                        else {
                             commonjs.showWarning('NO_DATA');
                         }
                     },
@@ -631,6 +650,19 @@ define(['jquery',
                         commonjs.handleXhrError(err);
                     }
                 });
+            },
+
+            downloadClaimSubmission: function(fileText, fileName, encoding) {
+                var element = document.createElement('a');
+                element.setAttribute('href', 'data:text/plain;charset=' + encoding + ',' + encodeURIComponent(fileText));
+                element.setAttribute('download', fileName);
+
+                element.style.display = 'none';
+                document.body.appendChild(element);
+
+                element.click();
+
+                document.body.removeChild(element);
             },
 
             printInvoiceClaim: function (invoice_type, claimIds, sortBy) {
@@ -641,14 +673,14 @@ define(['jquery',
                     url: '/exa_modules/billing/claim_workbench/invoice_claims',
                     type: 'GET',
                     data: {
-                        claimIDs: claimIds 
+                        claimIDs: claimIds
                     },
                     success: function(data, response){
                         if (data) {
                             commonjs.hideLoading();
 
                             if (data && data.length) {
-                                commonjs.showDialog({ header: 'Invoice Claim', i18nHeader: 'billing.fileInsurance.invoiceClaim', width: '60%', height: '40%', html: self.invoiceClaim({ response_data: data }) });  
+                                commonjs.showDialog({ header: 'Invoice Claim', i18nHeader: 'billing.fileInsurance.invoiceClaim', width: '60%', height: '40%', html: self.invoiceClaim({ response_data: data }) });
 
                                 $(".spnInvoicePrint").click(function (e) {
                                     $(e.target).removeClass("icon-ic-print");
@@ -665,8 +697,8 @@ define(['jquery',
                                     paperClaimNested.print(invoice_type, printerClaimids, {
                                         sortBy: sortBy
                                     });
-                                });  
-                            }                                                                                                            
+                                });
+                            }
                         }
                     },
                     error: function (err, response) {
@@ -1500,7 +1532,7 @@ define(['jquery',
                                     }
                                     else {
                                         filter.pager.set({"PageNo": filter.pager.get("PageNo")});
-                                        filter.pager.set({"PageSize": 25}); 
+                                        filter.pager.set({"PageSize": 25});
                                     }
                                     // Reset selected rows
 
@@ -1743,22 +1775,22 @@ define(['jquery',
                 var filterID = commonjs.currentStudyFilter;
                 var filter = commonjs.loadedStudyFilters.get(filterID);
 
-                var claimIds =[],existingBillingMethod=''; 
+                var claimIds =[],existingBillingMethod='';
                 for (var i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
-                    var rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;                   
+                    var rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;
                     claimIds.push(rowId);
                 }
 
                 if(claimIds&&claimIds.length==0){
                     commonjs.showWarning('Please select claims');
                     return false;
-                } 
-                
+                }
+
                 $.ajax({
                     url: '/exa_modules/billing/claim_workbench/validate_claims',
                     type: 'POST',
                     data: {
-                        claim_ids: claimIds 
+                        claim_ids: claimIds
                     },
                     success: function(data, response){
                         $("#btnValidateOrder").attr("disabled", false);
@@ -1770,7 +1802,7 @@ define(['jquery',
                                 $("#btnClaimsRefresh").click();
                             }
                             else
-                                commonjs.showDialog({ header: 'Validation Results', i18nHeader: 'billing.claims.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });  
+                                commonjs.showDialog({ header: 'Validation Results', i18nHeader: 'billing.claims.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });
                         }
                     },
                     error: function (err, response) {

@@ -191,7 +191,7 @@ define(['jquery',
                 "change #chkAllStatus": "chooseStatusForFilter",
                 "change #chkAppointmentStatus": "chooseStatusForFilter",
                 "change #chkRadStatus": "chooseStatusForFilter",
-                "change #chkStudyProgress": "chooseStatusForFilter", 
+                "change #chkStudyProgress": "chooseStatusForFilter",
                 "click #btnStudiesRefresh": "refreshStudies",
                 "click #btnValidateExport": "underConstruction",
                 "click #btnCreateNew": "createNewClaim",
@@ -254,7 +254,7 @@ define(['jquery',
                 }));
 
                 $("#btnInsuranceClaim, #btnValidateOrder, #btnValidateExport, #btnClaimsRefresh, #btnClaimRefreshAll, #diveHomeIndex, #divStudyFooter").hide();
-                
+
                 if (queryString && !queryString.target && commonjs.getParameterByName(queryString).admin && commonjs.getParameterByName(queryString).admin == 1) {
                     self.isAdmin = true;
                 }
@@ -276,7 +276,7 @@ define(['jquery',
                             filter_name: "All Studies",
                             filter_order: 0,
                             id: "All_Studies"
-                        });                       
+                        });
                         studyFilters = studyFilters.concat(response)
                         commonjs.studyFilters = Immutable.List(studyFilters);
                         self.setFiltertabs(studyFilters);
@@ -927,9 +927,9 @@ define(['jquery',
                                 '$container': self.$el,
                                 'updateStudiesPager': updateStudiesPager
                             });
-                            table.renderStudy();                        
-                            
-                            $("#btnbatchClaim").click(function (e) {
+                            table.renderStudy();
+
+                            $("#btnbatchClaim").off().click(function (e) {
                                 table.batchClaim();
                             });
 
@@ -972,7 +972,7 @@ define(['jquery',
                 var self = this;
                 filterObj.options.filterid = filterID;
 
-                if (filterObj.options.isSearch) {                   
+                if (filterObj.options.isSearch) {
                     var url ="/exa_modules/billing/studies/studies_total_records";
                     var flag = /ExceedStudy/.test(filterID);
                     jQuery.ajax({

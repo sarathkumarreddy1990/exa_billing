@@ -9,17 +9,17 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                 default_column: 'study_status',
                 default_column_order_by: "Asc",
                 default_tab: 'All Studies',
-                field_order: [1,10,15,50],
+                field_order: [1, 10, 15, 50],
                 grid_name: "studies"
             };
             var claimSetting = {
                 default_column: 'claim_dt',
                 default_column_order_by: "Asc",
                 default_tab: 'All Claims',
-                field_order: [1,19,2,12,22,27],
+                field_order: [1, 19, 2, 12, 22, 27],
                 grid_name: "claims"
             };
-            
+
             new AppCollection().fetch({
                 data: settingsData,
                 processData: true,
@@ -39,7 +39,7 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                             app.usersettings.push(claimSetting)
                         }
                     }
- 
+
                     app.study_user_settings = _.where(app.usersettings, { grid_name: 'studies' })[0];
                     app.claim_user_settings = _.where(app.usersettings, { grid_name: 'claims' })[0];
                     var sys_config = app.company.sys_config;
@@ -52,14 +52,19 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                     app.companyID = app.company.id;
                     app.fileStoreId = app.company.file_store_id;
                     app.facilityID = app.userInfo.default_facility_id;
-                    
+
+                    if (app.userInfo.user_settings) {
+                        app.sessionTimeout = app.userInfo.user_settings.sessionInterval || app.sessionTimeout;
+                        app.sessionTimeout = parseInt(app.sessionTimeout);
+                    }
+
                     _.extend(window.app, app);
 
                     commonjs.setAppSettingsReportQueueStatus();
                     callback();
                 },
                 error: function (model, response) {
-                    commonjs.handleXhrError(model, response); 
+                    commonjs.handleXhrError(model, response);
                 }
             });
         }
