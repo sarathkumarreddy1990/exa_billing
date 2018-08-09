@@ -2,7 +2,7 @@ var app = {
 
     saID: 0,
     lettersTobeSearched: 0,
-    sessionTimeout: 20,
+    sessionTimeout: 60,
     autoRefreshInterval: 20,
     enableLDAP: '',
     sessionID: '',
