@@ -201,7 +201,6 @@ module.exports = {
                             FROM
                                 application_details
                             INNER JOIN billing.claims c on c.id = application_details.claim_number
-                            -- INNER JOIN billing.charges ch on ch.id = application_details.charge_id AND ch.claim_id != application_details.claim_number
                             WHERE application_details.charge_id NOT IN ( SELECT id FROM billing.charges WHERE claim_id = application_details.claim_number ) `;
 
         sql.append(conditionalJoin);
@@ -267,6 +266,7 @@ module.exports = {
                                         ELSE '0'
                                     END
                                 )
+                            ORDER BY  fcc.claim_id
                         ),
                         insert_payment_adjustment AS (
                             SELECT
