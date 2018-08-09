@@ -20,7 +20,8 @@ define([
                 'click #btnCancel': 'cancel',
                 'click #btnSaveDefinitionData': 'saveDefinitionData',
                 'click #aShowEdiTemplates': 'showEDITemplates',
-                'click #aShowEraTemplates': 'showERATemplates'
+                'click #aShowEraTemplates': 'showERATemplates',
+                'click #btnLoadDefaultTemplate' : 'loadDefaultTemplate'
             },
 
             initialize: function (options) {
@@ -98,7 +99,7 @@ define([
                             } else {
                                 $('#btnCreateNewTemplate').show();
                                 $('#dropdownMenuButton').hide();
-                                ace.edit('editor').setValue("{}");
+                                ace.edit('editor').setValue("{}", -1);
                                 if(data && data.error) {
                                     commonjs.showWarning("Unable To Connect EDI Server");
                                 }
@@ -130,7 +131,7 @@ define([
                 return localStorage.getItem(flag);
             },
 
-            getEDITemplate: function (templateName) {
+            getEDITemplate: function (templateName, isDefault) {
                 var self = this;
                 if (templateName) {
                     $.ajax({
@@ -138,8 +139,8 @@ define([
                         type: 'GET',
                         success: function (data, response) {
                             if (data) {
-                                ace.edit('editor').setValue(JSON.stringify(data, null, '\t'));
-                                if(self.templateFlag == 'edi') {
+                                ace.edit('editor').setValue(JSON.stringify(data, null, '\t'), -1);
+                                if(self.templateFlag == 'edi' && !isDefault) {
                                     self.setTemplateInLocalStorage('EDITEMPLATE', templateName);
                                 }
                                 $('#dropdownMenuButton').html(templateName);
@@ -152,8 +153,18 @@ define([
                 } else {
                     var data = {};
                     $('#dropdownMenuButton').html("");
-                    ace.edit('editor').setValue(JSON.stringify(data, null, '\t'));
+                    ace.edit('editor').setValue(JSON.stringify(data, null, '\t'), -1);
                     commonjs.showWarning("No more templates to load");
+                }
+            },
+
+            loadDefaultTemplate: function() {
+                if($('#divTemlateList a').length) {
+                    if(confirm("Are you want to load Default Template")) {
+                        this.getEDITemplate("default", true);
+                    }
+                } else {
+                    this.getEDITemplate("default", true);
                 }
             },
 
