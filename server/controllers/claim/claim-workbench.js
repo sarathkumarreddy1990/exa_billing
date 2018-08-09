@@ -84,7 +84,8 @@ module.exports = {
 
             let ediRequestJson = {
                 'config': {
-                    'ALLOW_EMPTY_SEGMENT': true
+                    'ALLOW_EMPTY_SEGMENT': true,
+                    'VALIDATION_SET':'Default'
                 },
                 header: result.rows[0].header,
                 'bht': {
@@ -96,12 +97,16 @@ module.exports = {
             };
 
             ediResponse = await ediConnect.generateEdi(result.rows[0].header.edi_template_name, ediRequestJson);
-            params.claim_status = 'PP';
-            params.type = 'auto';
-            params.success_claimID = params.claimIds.split(',');
-            params.isClaim = true;
-            params.claimDetails = JSON.stringify(claimDetails);
-            await data.changeClaimStatus(params);
+
+            if (!ediResponse.errMsg && !ediResponse.validations) {
+                params.claim_status = 'PP';
+                params.type = 'auto';
+                params.success_claimID = params.claimIds.split(',');
+                params.isClaim = true;
+                params.claimDetails = JSON.stringify(claimDetails);
+                await data.changeClaimStatus(params);
+            }
+
         } else {
             ediResponse = result;
         }

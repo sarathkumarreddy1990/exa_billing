@@ -1,7 +1,22 @@
-<div id="divEDIResult">
-        <input type="button" id="aDownloadEDI" class="downloadEDI btn btn-default btn-primary"
-        title="Download Response XML" i18n="billing.fileInsurance.download"
-        style="float: right;cursor: pointer;" value="Download">
+<div><input type="button" id="aDownloadEDI" class="downloadEDI btn btn-default btn-primary"
+title="Download Response XML" i18n="billing.fileInsurance.download"
+style="float: right;cursor: pointer;position:fixed;right:20px;z-index:1;" value="Download"></div>
+<ul class="nav tn-menu tn-menu-a" id="tabsEDIResponses"
+style="margin-bottom: 5px !important;position: fixed;width: 98%;">
+<li id="liEDI" class="active"><a id="aEDIResp" href="#divEDIResult"
+                                 data-toggle="tab" class="nav-link"
+                                 i18n="billing.fileInsurance.EDIResponse"></a></li>
+<li id="liErrorMessages"><a id="aEDIErrorMsgs" href="#divErrorMsgs" data-toggle="tab" class="nav-link"
+                            i18n="billing.fileInsurance.warningMessages">
+</a></li>
+</ul>
+<div class="tab-content" style="margin-top: 50px;">       
+    <div id="divEDIResult">       
     <table id="tblEDIResp" class="table table-bordered">
     </table>
+    </div>    
+    <div id="divErrorMsgs" class="tab-pane" style="visibility: visible !important;">
+        <div id="divEDIErrorMsgs"></div>
+    </div>
 </div>
+

@@ -13,7 +13,8 @@ define(['jquery',
     'shared/fields',
     'text!templates/claims/ediResult.html',
     'text!templates/claims/claim-validation.html',
-    'text!templates/claims/invoice-claim.html'
+    'text!templates/claims/invoice-claim.html',
+    'text!templates/claims/edi-warning.html'
 ],
     function ($,
               Immutable,
@@ -30,7 +31,8 @@ define(['jquery',
               ListFields,
               ediResultHTML,
               claimValidation,
-              invoiceClaim) {
+              invoiceClaim,
+              ediWarning) {
 
         var paperClaim = new PaperClaim();
         var paperClaimNested = new PaperClaim(true);
@@ -260,6 +262,7 @@ define(['jquery',
                 self.indexTemplate = _.template(IndexHTML);
                 self.claimValidation = _.template(claimValidation);
                 self.invoiceClaim = _.template(invoiceClaim);
+                self.ediWarning = _.template(ediWarning);
                 self.$el.html(self.indexTemplate({
                     gadget: '',
                     customStudyStatus: []
@@ -571,15 +574,41 @@ define(['jquery',
                                         str += "<tr><td style='width: 20px; padding: 5px;'>" + (index - 1) + "</td><td style='padding: 5px; border-right: none;'>" + val + "</td></tr>";
                                     }
                                 }
-                            })
-                            
+                            });
+
                             commonjs.showDialog({
                                 header: 'EDI Claim', 
                                 width: '95%',
                                 height: '75%',
                                 html: self.ediResultTemplate()
                             });
+
                             $('#tblEDIResp').append(str);
+
+                            if (data.validations && data.validations.length) {
+                                $('#divEDIErrorMsgs').empty();
+
+                                var result = _.groupBy(data.validations, "dataID");
+
+                                $('#divEDIErrorMsgs').append(self.ediWarning({ result: result }));
+                                commonjs.initializeScreen({buttons:[]});
+                            }
+
+                            $('#tabsEDIResponses li').click(function (e) {
+                                if (e.target.id == 'aEDIResp') {
+                                    $('#liEDI').addClass('active');
+                                    $('#liErrorMessages').removeClass('active');
+                                    $('#divEDIResult').show();
+                                    $('#divErrorMsgs').hide();
+                                }
+                                else {
+                                    $('#liEDI,#aEDIResp').removeClass('active');
+                                    $('#liErrorMessages').addClass('active');
+                                    $('#divEDIResult').hide();
+                                    $('#divErrorMsgs').show()
+                                }
+                            });
+
                             $('#modal_div_container .downloadEDI').on('click', function () {
                                 var element = document.createElement('a');
                                 element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data.ediText));
@@ -592,6 +621,7 @@ define(['jquery',
 
                                 document.body.removeChild(element);
                             });
+
                             $("#btnClaimsRefresh").click();
                         } else {
                             commonjs.showWarning('NO_DATA');
