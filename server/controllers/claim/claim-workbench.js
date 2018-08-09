@@ -295,6 +295,14 @@ module.exports = {
         return data.deleteClaimOrCharge(params);
     },
 
+    checkChargePaymentDetails: function (params) {
+        return data.checkChargePaymentDetails(params);
+    },
+
+    checkPaymentDetails: function (params) {
+        return data.checkPaymentDetails(params);
+    },
+
     getClaimStudy: function (params) {
         return data.getClaimStudy(params);
     },
