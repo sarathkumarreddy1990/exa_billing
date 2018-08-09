@@ -240,7 +240,7 @@ module.exports = {
 					(SELECT Json_agg(Row_to_json(data1)) "data"
 
 												FROM (
-
+												
 					WITH cte_billing_providers AS (
 					SELECT (Row_to_json(billingProvider1)) "billingProvider"
 												FROM   (
@@ -656,7 +656,7 @@ module.exports = {
 					)AS claim
 					)
 					) AS subscriber)
-					SELECT *
+					SELECT claims.id,*
 					FROM
 						cte_billing_providers,cte_pay_to_providers,cte_subscriber
 					)

@@ -120,7 +120,7 @@ module.exports = {
                                     id
                                 FROM
                                     billing.edi_file_payments
-                                WHERE edi_file_id = ${params.file_id}
+                                WHERE edi_file_id = ${params.file_id} AND payment_id = ${params.id}
                             ),
                             edi_file_payments AS (
                                 INSERT INTO billing.edi_file_payments
@@ -155,11 +155,12 @@ module.exports = {
 
         let conditionalJoin = paymentDetails.isFrom && paymentDetails.isFrom == 'EOB' ? ' AND ch.charge_dt::date = application_details.service_date ' : ' ';
 
-        const sql = SQL` WITH application_details AS (
-                             SELECT
-                                  *
-                             FROM json_to_recordset(${JSON.stringify(lineItems)}) AS (
-                                 claim_number bigint
+        const sql = SQL` WITH
+                        application_details AS (
+                            SELECT
+                                *
+                            FROM json_to_recordset(${JSON.stringify(lineItems)}) AS (
+                                claim_number bigint
                                 ,charge_id bigint
                                 ,payment money
                                 ,adjustment money
@@ -177,58 +178,111 @@ module.exports = {
                                 ,duplicate boolean
                                 ,code text
                                 ,is_debit boolean
-                             )
-                            ),
-                           matched_claims AS (
-                                SELECT
-                                    application_details.claim_number AS claim_id,
-                                    application_details.claim_status_code,
-                                    application_details.payment,
-                                    application_details.original_reference,
-                                    application_details.service_date,
-                                    application_details.code,
-                                    json_build_object(
-                                        'charge_id',COALESCE(application_details.charge_id, billing.get_era_charge_id(application_details.claim_number, application_details.cpt_code, application_details.service_date::date, application_details.duplicate, application_details.index)),
-                                        'payment',application_details.payment,
-                                        'adjustment',application_details.adjustment,
-                                        'cas_details',application_details.cas_details,
-                                        'applied_dt',CASE WHEN application_details.is_debit THEN now() + INTERVAL '0.01' SECOND ELSE now() END
-                                    )
-                                FROM
-                                    application_details
-                                INNER JOIN billing.claims c on c.id = application_details.claim_number
-                                INNER JOIN public.patients p on p.id = c.patient_id
-                                INNER JOIN billing.charges ch on ch.id = COALESCE(application_details.charge_id, (SELECT billing.get_era_charge_id(application_details.claim_number, application_details.cpt_code, application_details.service_date::date, application_details.duplicate, application_details.index))) `;
-
-        sql.append(SQL`         WHERE
-			                    	(   CASE
-                                        WHEN    ( application_details.patient_fname != '' )
-			                    		    AND ( application_details.patient_lname != '' )
-                                            AND ( CASE WHEN application_details.patient_mname  != ''  THEN lower(p.middle_name) = lower(application_details.patient_mname)  else '1' END)
-			                    		    AND ( CASE WHEN application_details.patient_prefix != ''  THEN lower(p.prefix_name) = lower(application_details.patient_prefix) else '1' END)
-			                    		    AND ( CASE WHEN application_details.patient_suffix != ''  THEN lower(p.suffix_name) = lower(application_details.patient_suffix) else '1' END)
-                                        THEN ( lower(p.first_name) = lower(application_details.patient_fname) AND lower(p.last_name) = lower(application_details.patient_lname) )
-    			                    	    ELSE '0'
-                                        END
-                                    ) `);
+                            )
+                        )
+                        ,un_matched_charges AS (
+                            SELECT
+                                application_details.claim_number AS claim_id,
+                                application_details.claim_status_code,
+                                application_details.original_reference,
+                                application_details.service_date,
+                                application_details.code,
+                                billing.get_era_charge_id(application_details.claim_number, application_details.cpt_code, application_details.service_date::date, application_details.duplicate, application_details.index, false) as charge_id,
+                                application_details.payment,
+                                application_details.adjustment,
+                                application_details.cas_details,
+                                application_details.is_debit,
+                                application_details.patient_fname,
+                                application_details.patient_lname,
+                                application_details.patient_mname,
+                                application_details.patient_prefix,
+                                application_details.patient_suffix,
+                                c.patient_id
+                            FROM
+                                application_details
+                            INNER JOIN billing.claims c on c.id = application_details.claim_number
+                            WHERE application_details.charge_id NOT IN ( SELECT id FROM billing.charges WHERE claim_id = application_details.claim_number ) `;
 
         sql.append(conditionalJoin);
 
-        sql.append(SQL`    ),
-                           insert_payment_adjustment AS (
-                                SELECT
-                                    matched_claims.claim_id
-                                    ,matched_claims.claim_status_code
-                                    ,billing.create_payment_applications(
-                                        ${paymentDetails.id}
-                                        ,( SELECT id FROM billing.adjustment_codes WHERE code = matched_claims.code ORDER BY id ASC LIMIT 1 )
-                                        ,${paymentDetails.created_by}
-                                        ,json_build_array(matched_claims.json_build_object)::jsonb
-                                        ,(${JSON.stringify(audit_details)})::json
-                                    )
-                                FROM
-	                                matched_claims
-                            )
+        sql.append(SQL` )
+                        ,matched_charges AS (
+                            SELECT
+                                application_details.claim_number AS claim_id,
+                                application_details.claim_status_code,
+                                application_details.original_reference,
+                                application_details.service_date,
+                                application_details.code,
+                                application_details.charge_id,
+                                application_details.payment,
+                                application_details.adjustment,
+                                application_details.cas_details,
+                                application_details.is_debit,
+                                application_details.patient_fname,
+                                application_details.patient_lname,
+                                application_details.patient_mname,
+                                application_details.patient_prefix,
+                                application_details.patient_suffix,
+                                c.patient_id
+                            FROM
+                                application_details
+                            INNER JOIN billing.claims c on c.id = application_details.claim_number
+                            INNER JOIN billing.charges ch on ch.id = application_details.charge_id AND ch.claim_id = application_details.claim_number
+                            WHERE 1=1 `);
+
+        sql.append(conditionalJoin);
+
+        sql.append(SQL` )
+                        ,final_claim_charges AS (
+                            SELECT * FROM matched_charges
+                                UNION ALL
+                            SELECT * FROM un_matched_charges
+                        )
+                        ,matched_claims AS (
+                            SELECT
+                                fcc.claim_id,
+                                fcc.claim_status_code,
+                                fcc.payment,
+                                fcc.original_reference,
+                                fcc.service_date,
+                                fcc.code,
+                                json_build_object(
+                                    'payment'       ,fcc.payment,
+                                    'charge_id'     ,fcc.charge_id,
+                                    'adjustment'    ,fcc.adjustment,
+                                    'cas_details'   ,fcc.cas_details,
+                                    'applied_dt'    ,CASE WHEN fcc.is_debit THEN now() + INTERVAL '0.01' SECOND ELSE now() END
+                                )
+                            FROM
+                                final_claim_charges fcc
+                            INNER JOIN public.patients p on p.id = fcc.patient_id
+                            WHERE
+                                (   CASE
+                                    WHEN    ( fcc.patient_fname != '' )
+                                        AND ( fcc.patient_lname != '' )
+                                        AND ( CASE WHEN fcc.patient_mname  != ''  THEN lower(p.middle_name) = lower(fcc.patient_mname)  else '1' END)
+                                        AND ( CASE WHEN fcc.patient_prefix != ''  THEN lower(p.prefix_name) = lower(fcc.patient_prefix) else '1' END)
+                                        AND ( CASE WHEN fcc.patient_suffix != ''  THEN lower(p.suffix_name) = lower(fcc.patient_suffix) else '1' END)
+                                    THEN ( lower(p.first_name) = lower(fcc.patient_fname) AND lower(p.last_name) = lower(fcc.patient_lname) )
+                                        ELSE '0'
+                                    END
+                                )
+                            ORDER BY  fcc.claim_id
+                        ),
+                        insert_payment_adjustment AS (
+                            SELECT
+                                matched_claims.claim_id
+                                ,matched_claims.claim_status_code
+                                ,billing.create_payment_applications(
+                                    ${paymentDetails.id}
+                                    ,( SELECT id FROM billing.adjustment_codes WHERE code = matched_claims.code ORDER BY id ASC LIMIT 1 )
+                                    ,${paymentDetails.created_by}
+                                    ,json_build_array(matched_claims.json_build_object)::jsonb
+                                    ,(${JSON.stringify(audit_details)})::json
+                                )
+                            FROM
+                                matched_claims
+                        )
                             ,update_payment AS (
                                UPDATE billing.payments
                                 SET
@@ -261,7 +315,7 @@ module.exports = {
                                     )
                                 INNER JOIN matched_claims mc on mc.claim_id = claim_notes.claim_number
                                 RETURNING id AS claim_comment_id
-                                ),
+                            ),
                                 update_claim_status_and_payer AS (
                                     SELECT
                                         claim_id
@@ -279,7 +333,7 @@ module.exports = {
                                                     insert_payment_adjustment
 
                                                 ) AS insert_payment_adjustment
-                                     ) AS insert_payment_adjustment
+                                ) AS insert_payment_adjustment
                             `);
 
         return await query(sql);
