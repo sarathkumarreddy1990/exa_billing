@@ -158,7 +158,8 @@
             "billingProvider": "Billing Provider",
             "id": "ID",
             "studyDate": "Study Date",
-            "series": "Series"
+            "series": "Series",
+            "default": "Default"
         },
         "status": {
             "approved": "APPROVED",

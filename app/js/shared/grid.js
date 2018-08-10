@@ -410,9 +410,9 @@ define('grid', [
                             type: 'claim'
                         },
                         success: function (data, response) {
-                            let claim_adjustment = data.rows[0].claim_adjustment;
-                            let claim_applied = data.rows[0].claim_applied;
-                            let claim_refund = data.rows[0].claim_refund;
+                            var claim_adjustment = data.rows[0].claim_adjustment;
+                            var claim_applied = data.rows[0].claim_applied;
+                            var claim_refund = data.rows[0].claim_refund;
 
                             if(parseInt(claim_applied) === 0 && parseInt(claim_adjustment) === 0 && parseInt(claim_refund) === 0){
                                 $.ajax({

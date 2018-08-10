@@ -200,6 +200,7 @@ define(['jquery',
                                 if (data) {
                                     $('#txtTemplateName').val(data.name ? data.name : '');
                                     $('#chkActive').prop('checked', data.inactivated_dt ? true : false);
+                                    $('#chkDefault').prop('checked', data.is_default ? true : false);
                                     $('#txtRightMargin').val(data.right_margin ? data.right_margin : 0);
                                     $('#txtLeftMargin').val(data.left_margin ? data.left_margin : 0),
                                         $('#txtTopMargin').val(data.top_margin ? data.top_margin : 0),
@@ -369,6 +370,7 @@ define(['jquery',
                 this.model.set({
                     "name": $('#txtTemplateName').val(),
                     "isActive": !$('#chkActive').prop('checked'),
+                    "isDefault": $('#chkDefault').prop('checked'),
                     "marginRight": $('#txtRightMargin').val() ? $('#txtRightMargin').val() : 0,
                     "marginLeft": $('#txtLeftMargin').val() ? $('#txtLeftMargin').val() : 0,
                     "marginTop": $('#txtTopMargin').val() ? $('#txtTopMargin').val() : 0,
