@@ -157,7 +157,7 @@ module.exports = {
                 SELECT *
                 FROM   billing.printer_templates
                 WHERE  template_type = ${templateType}
-                        AND id IN (
+                        AND (id IN (
                 `;
 
         sql.append(`SELECT	COALESCE(${colName[templateType]},`);
@@ -171,7 +171,7 @@ module.exports = {
                             ) AS id
                         FROM	billing.user_settings
                         WHERE	user_id = ${userId} AND grid_name = 'claims'
-                    )
+                    ) OR is_default)
                 `);
 
         return await query(sql);
