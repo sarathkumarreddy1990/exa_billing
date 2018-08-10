@@ -1,6 +1,7 @@
 body {
     font-size: 14px;
     cursor: default;
+    background: @page-bg;
 }
 
 * {
@@ -12,9 +13,13 @@ body {
     user-select: none;
 }
 
+.page-bg {
+    background: @page-bg;
+}
+
 .settings-nav {
     padding-top: 55px;
-    border-right: 4px solid #ececec;
+    border-right: 4px solid @nav-right-border;
     text-transform: uppercase;
 }
 
@@ -47,7 +52,7 @@ body {
 .bg-primary {
 	background: @header_bg !important;
 }
- 
+
 .ui-jqgrid .ui-jqgrid-bdiv {
     //overflow: hidden;
 }
@@ -143,7 +148,7 @@ input[type="text"], select {
 }
 
 .exa-left-nav {
-    background-color: #f4f5f7;
+    background-color: @nav-left-background;
 }
 
 .exa-left-nav .nav-link.active {

@@ -5,10 +5,16 @@ const httpHandler = require('../shared/http');
 const pkg = require('../../package.json');
 const { staticAssetsRoot } = require('../shared/constants');
 
-/* GET home page. */
 router.get('/', function (req, res) {
+    let currentTheme = 'default';
+
+    if (req.session && req.session.currentTheme && ['default', 'dark'].indexOf(req.session.currentTheme) > -1) {
+        currentTheme = req.session.currentTheme;
+    }
+
     res.render('index', {
         title: 'EXA-Billing',
+        cssPath: staticAssetsRoot + '/skins/' + currentTheme,
         staticAssetsRoot
     });
 });

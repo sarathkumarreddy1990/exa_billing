@@ -33,7 +33,7 @@ define(['jquery',
 
         bindEvents: function (claimIDs) {
             var self = this;
-            
+
             $('#saveFollowup').off().click(function () {
                 self.saveFollowup(claimIDs);
             });
@@ -44,13 +44,13 @@ define(['jquery',
                     self.setUserAutoComplete();
                 }
             }
-            
+
         },
 
         saveFollowup: function (claimIDs) {
             var followUpDate = $('#txtFollowUpDate').val() ? moment($('#txtFollowUpDate').val()).format('L') : '';
             var followUPUserID = $('#txtFollowupUsers').val();
-            
+
             if(followUpDate == '') {
                 commonjs.showWarning('Please Select Follow-up Date');
                 return;
@@ -62,7 +62,7 @@ define(['jquery',
             _.each(claimIDs, function (id) {
                 followUpDetails.push({ claimID: id, assignedTo: app.userID, followupDate: followUpDate, followUPUserID: followUPUserID })
             });
-            
+
             $.ajax({
                 url: '/exa_modules/billing/claim_workbench/follow_ups',
                 type: 'PUT',
@@ -119,7 +119,7 @@ define(['jquery',
                 templateResult: formatRepo,
                 templateSelection: formatRepoSelection
             });
-            
+
             function formatRepo(repo) {
                 if (repo.loading) {
                     return repo.user_name;
@@ -134,20 +134,20 @@ define(['jquery',
                 if (res && res.id) {
                     return res.user_name;
                 }
-            }            
-            
+            }
+
         },
 
         resetFollowUp: function(claimIDs) {
             claimIDs = claimIDs.split(',');
-
+            var assigned_id = $('#tblClaimGridFollow_up_queue').getRowData(claimIDs).assigned_id;
             $.ajax({
                 url: '/exa_modules/billing/claim_workbench/follow_ups',
                 type: 'PUT',
                 data: {
                     'claimIDs': claimIDs.join(','),
                     'followupDate': '',
-                    'assignedTo': '',
+                    'assignedTo': assigned_id,
                     'followUpDetails': ''
                 },
                 success: function (data, response) {
