@@ -65,6 +65,7 @@ module.exports = {
                         , page_width
                         , page_height
                         , template_type
+                        , is_default
                     FROM   
                         billing.printer_templates 
                     WHERE 
@@ -85,7 +86,8 @@ module.exports = {
             height,
             width,
             type,
-            templateContent
+            templateContent,
+            isDefault
         } = params;
 
         let inactivated_date = isActive ? null : ' now() ';
@@ -103,7 +105,8 @@ module.exports = {
                         bottom_margin,
                         page_height,
                         page_width,
-                        template_type
+                        template_type,
+                        is_default
                     ) 
                     VALUES 
                     ( 
@@ -117,7 +120,8 @@ module.exports = {
                         ${marginBottom},
                         ${height},
                         ${width},
-                        ${type} 
+                        ${type},
+                        ${isDefault}
                     )
                     RETURNING *, '{}'::jsonb old_values
         `;
@@ -142,7 +146,8 @@ module.exports = {
             height,
             width,
             type,
-            templateContent
+            templateContent,
+            isDefault
         } = params;
 
         let inactivated_date = isActive ? null : ' now() ';
@@ -160,6 +165,7 @@ module.exports = {
                               , page_height = ${height}
                               , page_width = ${width}
                               , template_type = ${type}
+                              , is_default = ${isDefault}
                         WHERE
                             id = ${id} 
                         RETURNING *,
