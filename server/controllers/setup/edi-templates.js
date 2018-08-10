@@ -11,6 +11,10 @@ module.exports = {
         return ediConnect.getTemplate(params.flag, params.name);
     },
 
+    getDefaultTemplate: (params) => {
+        return ediConnect.getDefaultTemplate(params.flag);
+    },
+
     createTemplate: async (params, audit) => {
         let result = await ediConnect.createTemplate(params.flag, params.name);
 

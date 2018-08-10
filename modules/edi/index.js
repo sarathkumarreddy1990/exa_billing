@@ -9,7 +9,7 @@ const doRequest = async function (options) {
         return await request(options);
     } catch (err) {
         logger.error(err);
-        
+
         err.status = '55801';
         return err;
     }
@@ -66,6 +66,16 @@ const ediProxyServer = {
 
         let options = {
             uri: this.apiUri + '/template/' + flag + '/' + templateName,
+            json: true
+        };
+
+        return await doRequest(options);
+    },
+
+    getDefaultTemplate: async function (flag) {
+
+        let options = {
+            uri: this.apiUri + '/default_template/' + flag,
             json: true
         };
 
