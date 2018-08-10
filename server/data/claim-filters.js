@@ -7,7 +7,7 @@ module.exports = {
         const sqlQuery = (`
                         SELECT id as filter_id,*
                         FROM   billing.grid_filters
-                        WHERE filter_type = 'claims' AND user_id=$1 AND inactivated_dt is null
+                        WHERE filter_type = 'claims' AND (user_id=$1 OR is_global_filter)AND inactivated_dt is null
                         order by filter_order  `);
 
         return await query(sqlQuery, [args.userId]);
