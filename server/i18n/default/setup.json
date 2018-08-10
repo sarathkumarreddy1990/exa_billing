@@ -450,7 +450,8 @@
             "chooseTemplate": "Choose Template",
             "ediTemplate": "EDI Template",
             "eraTemplate": "ERA Template",
-            "saveDefinitionData": "Save Definition Data"
+            "saveDefinitionData": "Save Definition Data",
+            "isLoadDefaultTemplate" : "Are you sure you want to overwrite?"
         },
         "insuranceX12Mapping": {
             "insuranceName": "Insurance Name",
