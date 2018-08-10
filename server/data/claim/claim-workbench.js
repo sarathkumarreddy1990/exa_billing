@@ -340,7 +340,8 @@ module.exports = {
             clientIp,
             userId,
             entityName,
-            moduleName
+            moduleName,
+            assignedTo
         } = params;
         let sql;
         claimIDs = claimIDs.split(',');
@@ -351,6 +352,7 @@ module.exports = {
                         DELETE FROM billing.claim_followups
                         WHERE
                             claim_id = ANY(${claimIDs})
+                            AND assigned_to = ${assignedTo}
                         RETURNING *, '{}'::jsonb old_values),
                         audit_cte AS (
                             SELECT billing.create_audit(
@@ -392,7 +394,7 @@ module.exports = {
                     billing.claim_followups bcf
                 SET
                       followup_date = fd.followup_dt
-                    , assigned_to= fd.assigned_to
+                    , assigned_to = fd.assigned_to
                 FROM followup_details fd
                 WHERE
                     bcf.claim_id = fd.followup_claim_id
@@ -408,7 +410,7 @@ module.exports = {
                 SELECT
                       followup_claim_id
                     , followup_dt
-                    , assigned_to
+                    , coalesce(assigned_to,${userId})
                 FROM
                     followup_details
                 WHERE NOT EXISTS ( SELECT 1 FROM update_followup  WHERE update_followup.claim_id = followup_details.followup_claim_id )
