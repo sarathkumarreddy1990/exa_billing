@@ -159,7 +159,8 @@ define([
             },
 
             loadDefaultTemplate: function() {
-                if($('#divTemlateList a').length) {
+                var editerData = ace.edit('editor').getValue();
+                if(editerData) {
                     if(confirm(commonjs.geti18NString('setup.ediTemplates.isLoadDefaultTemplate'))) {
                         this.getDefaultTemplate();
                     }
@@ -175,7 +176,6 @@ define([
                     success: function (data) {
                         if (data) {
                             ace.edit('editor').setValue(JSON.stringify(data, null, '\t'), 1);
-                            $('#dropdownMenuButton').html("default");
                         }
                     },
                     error: function (err) {
