@@ -139,7 +139,7 @@ define(['jquery',
             },
 
             searchPayments: function () {
-                var self = this;                
+                var self = this;
                 $("#divAmountTotal").html(' <i class="fa fa-spinner loading-spinner"></i>');
                 $("#divAppliedTotal").html(' <i class="fa fa-spinner loading-spinner"></i>');
                 $("#divAdjTotal").html(' <i class="fa fa-spinner loading-spinner"></i>');
@@ -254,7 +254,7 @@ define(['jquery',
                                 self.bindDateRangeOnSearchBox(gridObj);
                                 self.setMoneyMask();
                                 self.getTotalAmount();
-                            }    
+                            }
                             else {
                                 $("#divAmountTotal").html('');
                                 $("#divAppliedTotal").html('');
@@ -298,6 +298,7 @@ define(['jquery',
                     filterCol: JSON.stringify(self.pager.get("FilterCol")),
                     sortField: self.pager.get("SortField"),
                     sortOrder: self.pager.get("SortOrder"),
+                    default_facility_id: app.userInfo.default_facility_id,
                 };
 
                 jQuery.ajax({
@@ -409,7 +410,7 @@ define(['jquery',
                 var self = this;
                 var searchFilterFlag = grid.getGridParam("postData")._search;
                 $('#btnGenerateExcel').prop('disabled', true);
-                
+
                 commonjs.showLoading();
 
                 $.ajax({

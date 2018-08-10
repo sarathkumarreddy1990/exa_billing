@@ -16,7 +16,7 @@ module.exports = (fieldID, fieldValue) => {
         if (date.isValid()) {
             if (useToFacilityDate) {
                 if (`${fieldID}` === 'accounting_dt' || `${fieldID}` === 'payment_dt') {
-                    return ` (to_facility_date(billing.payments.facility_id, ${fieldID}) = ('${date.format('YYYY-MM-DD')}'):: date AND ${fieldID} IS NOT NULL)`;
+                    return ` (to_facility_date(facilities.id, ${fieldID}) = ('${date.format('YYYY-MM-DD')}'):: date AND ${fieldID} IS NOT NULL)`;
                 }
 
                 return ` (to_facility_date(studies.facility_id, ${fieldID}) = ('${date.format('YYYY-MM-DD')}')::date AND ${fieldID} IS NOT NULL)`;
@@ -31,7 +31,7 @@ module.exports = (fieldID, fieldValue) => {
         if (from.isValid() && to.isValid()) {
             if (useToFacilityDate) {
                 if (`${fieldID}` === 'accounting_dt' || `${fieldID}` === 'payment_dt') {
-                    return ` (to_facility_date(billing.payments.facility_id, ${fieldID}) BETWEEN ('${from.format('YYYY-MM-DD')}')::date AND ('${to.format('YYYY-MM-DD')}')::date AND ${fieldID} IS NOT NULL)`;
+                    return ` (to_facility_date(facilities.id, ${fieldID}) BETWEEN ('${from.format('YYYY-MM-DD')}')::date AND ('${to.format('YYYY-MM-DD')}')::date AND ${fieldID} IS NOT NULL)`;
                 }
 
                 return ` (to_facility_date(studies.facility_id, ${fieldID}) BETWEEN ('${from.format('YYYY-MM-DD')}')::date AND ('${to.format('YYYY-MM-DD')}')::date AND ${fieldID} IS NOT NULL)`;
