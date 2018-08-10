@@ -8,13 +8,11 @@ module.exports = {
     },
 
     getTemplate: (params) => {
-        if(params.name === 'default') {
-
-            return ediConnect.getDefaultTemplate(params.flag);
-
-        }
-
         return ediConnect.getTemplate(params.flag, params.name);
+    },
+
+    getDefaultTemplate: (params) => {
+        return ediConnect.getDefaultTemplate(params.flag);
     },
 
     createTemplate: async (params, audit) => {

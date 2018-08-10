@@ -99,7 +99,7 @@ define([
                             } else {
                                 $('#btnCreateNewTemplate').show();
                                 $('#dropdownMenuButton').hide();
-                                ace.edit('editor').setValue("{}", -1);
+                                ace.edit('editor').setValue("{}", 1);
                                 if(data && data.error) {
                                     commonjs.showWarning("Unable To Connect EDI Server");
                                 }
@@ -131,7 +131,7 @@ define([
                 return localStorage.getItem(flag);
             },
 
-            getEDITemplate: function (templateName, isDefault) {
+            getEDITemplate: function (templateName) {
                 var self = this;
                 if (templateName) {
                     $.ajax({
@@ -139,8 +139,8 @@ define([
                         type: 'GET',
                         success: function (data, response) {
                             if (data) {
-                                ace.edit('editor').setValue(JSON.stringify(data, null, '\t'), -1);
-                                if(self.templateFlag == 'edi' && !isDefault) {
+                                ace.edit('editor').setValue(JSON.stringify(data, null, '\t'), 1);
+                                if(self.templateFlag == 'edi') {
                                     self.setTemplateInLocalStorage('EDITEMPLATE', templateName);
                                 }
                                 $('#dropdownMenuButton').html(templateName);
@@ -153,19 +153,35 @@ define([
                 } else {
                     var data = {};
                     $('#dropdownMenuButton').html("");
-                    ace.edit('editor').setValue(JSON.stringify(data, null, '\t'), -1);
+                    ace.edit('editor').setValue(JSON.stringify(data, null, '\t'), 1);
                     commonjs.showWarning("No more templates to load");
                 }
             },
 
             loadDefaultTemplate: function() {
                 if($('#divTemlateList a').length) {
-                    if(confirm("Are you want to load Default Template")) {
-                        this.getEDITemplate("default", true);
+                    if(confirm(commonjs.geti18NString('setup.ediTemplates.isLoadDefaultTemplate'))) {
+                        this.getDefaultTemplate();
                     }
                 } else {
-                    this.getEDITemplate("default", true);
+                    this.getDefaultTemplate();
                 }
+            },
+
+            getDefaultTemplate: function() {
+                $.ajax({
+                    url: `/exa_modules/billing/setup/x12/default/${this.templateFlag}`,
+                    type: 'GET',
+                    success: function (data) {
+                        if (data) {
+                            ace.edit('editor').setValue(JSON.stringify(data, null, '\t'), 1);
+                            $('#dropdownMenuButton').html("default");
+                        }
+                    },
+                    error: function (err) {
+                        commonjs.handleXhrError(err);
+                    }
+                });
             },
 
             showEDITemplates: function () {
