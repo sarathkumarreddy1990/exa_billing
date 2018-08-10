@@ -159,7 +159,12 @@ define([
             },
 
             loadDefaultTemplate: function() {
-                if(confirm(commonjs.geti18NString('setup.ediTemplates.isLoadDefaultTemplate'))) {
+                var editerData = ace.edit('editor').getValue();
+                if(editerData) {
+                    if(confirm(commonjs.geti18NString('setup.ediTemplates.isLoadDefaultTemplate'))) {
+                        this.getDefaultTemplate();
+                    }
+                } else {
                     this.getDefaultTemplate();
                 }
             },
