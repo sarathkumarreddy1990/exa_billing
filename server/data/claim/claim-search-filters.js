@@ -318,7 +318,7 @@ const api = {
         return r;
     },
 
-    getWLQueryColumns: function () {
+    getWLQueryColumns: function (args) {
 
         // ADDING A NEW WORKLIST COLUMN <-- Search for this
         let stdcolumns = [
@@ -339,8 +339,6 @@ const api = {
             'ref_provider.full_name as   referring_providers',
             'render_provider.full_name as   rendering_provider',
             'bgct.charges_bill_fee_total as billing_fee',
-            'claim_followups.followup_date::text as followup_date',
-            `users.username||'('||get_full_name(users.first_name,users.last_name)||')' as assigned_to`,
             'claims.current_illness_date::text as current_illness_date',
             'claims.id As claim_no',
             'patient_insurances.policy_number',
@@ -366,7 +364,25 @@ const api = {
             'patients.id as patient_id',
             'invoice_no'
         ];
+
+        if(args.customArgs.filter_id=='Follow_up_queue'){
+
+            stdcolumns.push( ' FinalClaims.assigned_dt::text as followup_date ');
+            stdcolumns.push( ' FinalClaims.assigned_user_id as assigned_id ');
+            stdcolumns.push( ' FinalClaims.assigned_user as assigned_to ');
+
+        }
+        else
+        {
+
+            stdcolumns.push( ' claim_followups.followup_date::text as followup_date ');
+            stdcolumns.push( ' users.id as assigned_id ');
+            stdcolumns.push( ' users.username as assigned_to ');
+
+        }
+
         return stdcolumns;
+
     },
 
     getWorkList: async function (args) {
@@ -408,10 +424,16 @@ const api = {
         //if(args.customArgs.filter_id=='Follow_up_queue'){
         //args.filterQuery += ` AND claim_followups.assigned_to = ${args.userId} `;
         //}
+        let followupselect = '';
+
+        if(args.customArgs.filter_id=='Follow_up_queue'){
+            followupselect = ', users.id as assigned_user_id , users.username as assigned_user,claim_followups.followup_date::text as assigned_dt ';
+        }
 
         let innerQuery = api.getWLQuery(`
                             row_number() over(${sort}) as number
                             , claims.id AS claim_id
+                            ${followupselect}
                             `, args, params);
 
         innerQuery += limit + offset;
@@ -422,7 +444,7 @@ const api = {
 
 
         // TODO: switch these function calls into JOINS (perhaps)
-        let columns = api.getWLQueryColumns();
+        let columns = api.getWLQueryColumns(args);
         let sql = `
             SELECT
             ${columns}
