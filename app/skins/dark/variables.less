@@ -5,7 +5,7 @@
 @page-color: #fff;
 @nav-left-background: #1b282d;
 @nav-right-border: #20333a;
-@menu-hover-color: #253137;
+@body-bg-color: #253137;
 
 @blue: @green;
 @blue-50: @green-50;
@@ -43,7 +43,11 @@
 
 body{
 	color: @green-100;
-	background: #253137;
+	background: @body-bg-color;
+}
+
+.modal-content {
+	background: @green-800;
 }
 
 .btn{
@@ -140,12 +144,12 @@ input, textarea{
 }
 
 .dropdown-menu > li.selected a, .dropdown-menu > li.selected label, .dropdown-menu > li:hover a, .dropdown-menu > li:hover label{
-	background: @menu-hover-color !important;
+	background: @body-bg-color !important;
 	color: @page-color !important;
 }
 
 .dropdown-menu > .dropdown-item.selected a, .dropdown-menu > .dropdown-item.selected label, .dropdown-menu > .dropdown-item:hover, .dropdown-menu > .dropdown-item:hover label{
-	background: @menu-hover-color !important;
+	background: @body-bg-color !important;
 	color: @page-color !important;
 }
 
