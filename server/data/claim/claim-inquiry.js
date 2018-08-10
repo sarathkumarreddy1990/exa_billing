@@ -363,7 +363,9 @@ module.exports = {
                 sql.append(`update_followup AS (DELETE FROM
                             billing.claim_followups
                         WHERE
-                            claim_id = ${claim_id} RETURNING *, '{}'::jsonb old_values  ),
+                            claim_id = ${claim_id}
+                            AND assigned_to = ${userId}
+                            RETURNING *, '{}'::jsonb old_values  ),
                             update_audit_followup AS (
                                 SELECT billing.create_audit(
                                       ${companyId}
@@ -395,6 +397,7 @@ module.exports = {
                         , assigned_to= ${assignedTo}
                     WHERE
                         claim_id = ${claim_id}
+                        AND assigned_to= ${userId}
                     RETURNING *,
                     (
                         SELECT row_to_json(old_row)
@@ -414,7 +417,7 @@ module.exports = {
                         , '${followupDate}'::DATE
                         , ${assignedTo}
                     WHERE
-                    NOT EXISTS(SELECT * FROM update_followup)
+                    NOT EXISTS(SELECT 1 FROM update_followup)
                     RETURNING *, '{}'::jsonb old_values
                 ),
                 insert_audit_followup AS (
@@ -547,14 +550,16 @@ module.exports = {
 
     getFollowupDate: async (params) => {
         let {
-            claim_id
+            claim_id,
+            userId
         } = params;
 
         return await query(SQL`SELECT
                                 followup_date
                             FROM
                                 billing.claim_followups
-                            WHERE claim_id = ${claim_id}`);
+                            WHERE claim_id = ${claim_id}
+                            AND assigned_to = ${userId}`);
     },
 
     viewPaymentDetails: async (params) => {

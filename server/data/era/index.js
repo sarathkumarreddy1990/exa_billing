@@ -153,7 +153,7 @@ module.exports = {
             , audit_details
         } = params;
 
-        let conditionalJoin = paymentDetails.isFrom && paymentDetails.isFrom == 'EOB' ? ' AND ch.charge_dt::date = application_details.service_date ' : ' ';
+        let conditionalJoin = paymentDetails.isFrom && paymentDetails.isFrom == 'EOB' ? ' AND ch.charge_dt::date = fcc.service_date ' : ' ';
 
         const sql = SQL` WITH
                         application_details AS (
@@ -187,7 +187,7 @@ module.exports = {
                                 application_details.original_reference,
                                 application_details.service_date,
                                 application_details.code,
-                                billing.get_era_charge_id(application_details.claim_number, application_details.cpt_code, application_details.service_date::date, application_details.duplicate, application_details.index, false) as charge_id,
+                                billing.get_era_charge_id(application_details.claim_number, application_details.cpt_code, application_details.service_date::date, application_details.duplicate, application_details.index) as charge_id,
                                 application_details.payment,
                                 application_details.adjustment,
                                 application_details.cas_details,
@@ -201,11 +201,8 @@ module.exports = {
                             FROM
                                 application_details
                             INNER JOIN billing.claims c on c.id = application_details.claim_number
-                            WHERE application_details.charge_id NOT IN ( SELECT id FROM billing.charges WHERE claim_id = application_details.claim_number ) `;
-
-        sql.append(conditionalJoin);
-
-        sql.append(SQL` )
+                            WHERE application_details.charge_id NOT IN ( SELECT id FROM billing.charges WHERE claim_id = application_details.claim_number )
+                        )
                         ,matched_charges AS (
                             SELECT
                                 application_details.claim_number AS claim_id,
@@ -228,11 +225,7 @@ module.exports = {
                                 application_details
                             INNER JOIN billing.claims c on c.id = application_details.claim_number
                             INNER JOIN billing.charges ch on ch.id = application_details.charge_id AND ch.claim_id = application_details.claim_number
-                            WHERE 1=1 `);
-
-        sql.append(conditionalJoin);
-
-        sql.append(SQL` )
+                        )
                         ,final_claim_charges AS (
                             SELECT * FROM matched_charges
                                 UNION ALL
@@ -256,6 +249,7 @@ module.exports = {
                             FROM
                                 final_claim_charges fcc
                             INNER JOIN public.patients p on p.id = fcc.patient_id
+                            INNER JOIN billing.charges ch on ch.id = fcc.charge_id
                             WHERE
                                 (   CASE
                                     WHEN    ( fcc.patient_fname != '' )
@@ -266,7 +260,10 @@ module.exports = {
                                     THEN ( lower(p.first_name) = lower(fcc.patient_fname) AND lower(p.last_name) = lower(fcc.patient_lname) )
                                         ELSE '0'
                                     END
-                                )
+                                ) `;
+        sql.append(conditionalJoin);
+
+        sql.append(SQL`
                             ORDER BY  fcc.claim_id
                         ),
                         insert_payment_adjustment AS (

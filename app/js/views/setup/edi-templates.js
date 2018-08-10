@@ -159,7 +159,8 @@ define([
             },
 
             loadDefaultTemplate: function() {
-                if($('#divTemlateList a').length) {
+                var editerData = ace.edit('editor').getValue();
+                if(editerData) {
                     if(confirm(commonjs.geti18NString('setup.ediTemplates.isLoadDefaultTemplate'))) {
                         this.getDefaultTemplate();
                     }
@@ -170,12 +171,11 @@ define([
 
             getDefaultTemplate: function() {
                 $.ajax({
-                    url: `/exa_modules/billing/setup/x12/default/${this.templateFlag}`,
+                    url: '/exa_modules/billing/setup/x12/default/' + this.templateFlag,
                     type: 'GET',
                     success: function (data) {
                         if (data) {
                             ace.edit('editor').setValue(JSON.stringify(data, null, '\t'), 1);
-                            $('#dropdownMenuButton').html("default");
                         }
                     },
                     error: function (err) {

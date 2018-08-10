@@ -451,6 +451,7 @@
             "ediTemplate": "EDI Template",
             "eraTemplate": "ERA Template",
             "saveDefinitionData": "Save Definition Data",
+            "loadDefaultTemplate": "Load Default Template",
             "isLoadDefaultTemplate" : "Are you sure you want to overwrite?"
         },
         "insuranceX12Mapping": {
