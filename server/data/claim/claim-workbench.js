@@ -333,7 +333,6 @@ module.exports = {
     updateFollowUp: async (params) => {
         let {
             claimIDs,
-            assignedTo,
             followupDate,
             followUpDetails,
             companyId,
@@ -375,27 +374,30 @@ module.exports = {
                         FROM    audit_cte`;
         }
         else {
-            sql = SQL`WITH update_followup AS(
-                UPDATE
-                    billing.claim_followups
-                SET
-                      followup_date = ${followupDate}
-                    , assigned_to= ${assignedTo}
-                WHERE
-                    claim_id = ANY(${claimIDs})
-                RETURNING * , '{}'::jsonb old_values
-            ),
-            followup_details AS (
+            sql = SQL`
+            WITH followup_details AS (
                 SELECT
-                      "claimID" AS claim_id
-                    , "assignedTo" AS assigned_to
-                    , "followupDate" AS followup_date
+                      "claimID" AS followup_claim_id
+                    , "followUPUserID" AS assigned_to
+                    , "followupDate" AS followup_dt
                 FROM json_to_recordset(${followUpDetails}) AS followup
                 (
                     "claimID" bigint,
-                    "assignedTo" integer,
+                    "followUPUserID" integer,
                     "followupDate" date
                 )
+            ),
+            update_followup AS(
+                UPDATE
+                    billing.claim_followups bcf
+                SET
+                      followup_date = fd.followup_dt
+                    , assigned_to= fd.assigned_to
+                FROM followup_details fd
+                WHERE
+                    bcf.claim_id = fd.followup_claim_id
+                    AND bcf.assigned_to = fd.assigned_to
+                RETURNING * , '{}'::jsonb old_values
             ),
             insert_followup AS(
                 INSERT INTO billing.claim_followups(
@@ -404,12 +406,12 @@ module.exports = {
                     , assigned_to
                 )
                 SELECT
-                      claim_id
-                    , followup_date
+                      followup_claim_id
+                    , followup_dt
                     , assigned_to
                 FROM
                     followup_details
-                WHERE NOT EXISTS ( SELECT claim_id FROM billing.claim_followups  WHERE billing.claim_followups.claim_id = followup_details.claim_id )
+                WHERE NOT EXISTS ( SELECT 1 FROM update_followup  WHERE update_followup.claim_id = followup_details.followup_claim_id )
                 RETURNING *, '{}'::jsonb old_values
             ),
             insert_audit_followup AS (
@@ -437,7 +439,7 @@ module.exports = {
                     , id
                     , ${screenName}
                     , 'claims'
-                    , 'Follow Up Updated  ' || update_followup.id ||' Date ' || update_followup.followup_date || ' Claim ID  ' || update_followup.claim_id
+                    , 'Follow Up Updated  ' || update_followup.id ||' Date ' || update_followup.followup_dt || ' Claim ID  ' || update_followup.claim_id
                     , ${clientIp}
                     , json_build_object(
                         'old_values', COALESCE(old_values, '{}'),

@@ -547,14 +547,16 @@ module.exports = {
 
     getFollowupDate: async (params) => {
         let {
-            claim_id
+            claim_id,
+            userId
         } = params;
 
         return await query(SQL`SELECT
                                 followup_date
                             FROM
                                 billing.claim_followups
-                            WHERE claim_id = ${claim_id}`);
+                            WHERE claim_id = ${claim_id}
+                            AND assigned_to = ${userId}`);
     },
 
     viewPaymentDetails: async (params) => {
