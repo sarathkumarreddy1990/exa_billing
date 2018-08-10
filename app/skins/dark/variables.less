@@ -2,10 +2,10 @@
 * Variables
 */
 
-@page-background: #253137;
 @page-color: #fff;
 @nav-left-background: #1b282d;
 @nav-right-border: #20333a;
+@menu-hover-color: #253137;
 
 @blue: @green;
 @blue-50: @green-50;
@@ -69,11 +69,24 @@ body{
 }
 
 input, select, textarea{
-	background: @green-800;
+	background: @green-800 !important;
 }
 
 input, textarea{
 	border-color: @green-800 !important;
+}
+
+.form-control:focus {
+    color: inherit;
+}
+
+.ui-jqgrid-hdiv, .ui-jqgrid-htable th, .ui-th-column {
+    background: @green-800 !important;
+}
+
+.ui-pager-control, .ui-corner-bottom {
+    color: #fff;
+    background-color: @green-800 !important;
 }
 
 .bootstrap-select > .btn{
@@ -127,8 +140,13 @@ input, textarea{
 }
 
 .dropdown-menu > li.selected a, .dropdown-menu > li.selected label, .dropdown-menu > li:hover a, .dropdown-menu > li:hover label{
-	background: @dropdown-highlight;
-	color: #fff;
+	background: @menu-hover-color !important;
+	color: @page-color !important;
+}
+
+.dropdown-menu > .dropdown-item.selected a, .dropdown-menu > .dropdown-item.selected label, .dropdown-menu > .dropdown-item:hover, .dropdown-menu > .dropdown-item:hover label{
+	background: @menu-hover-color !important;
+	color: @page-color !important;
 }
 
 .dropdown-menu{
