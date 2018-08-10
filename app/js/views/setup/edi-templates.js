@@ -171,7 +171,7 @@ define([
 
             getDefaultTemplate: function() {
                 $.ajax({
-                    url: `/exa_modules/billing/setup/x12/default/${this.templateFlag}`,
+                    url: '/exa_modules/billing/setup/x12/default/' + this.templateFlag,
                     type: 'GET',
                     success: function (data) {
                         if (data) {
