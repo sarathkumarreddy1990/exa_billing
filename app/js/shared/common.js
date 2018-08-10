@@ -1083,8 +1083,8 @@ var commonjs = {
         $siteModal.modal('dispose');
         //commonjs.docResize();
 
-         //Report window close
-         this.closeReportWindow();
+        //Report window close
+        this.closeReportWindow();
     },
 
     closeReportWindow: function () {
@@ -1256,7 +1256,7 @@ var commonjs = {
 
             case '23505':
                 var errMessage = 'Duplicate record found';
-                if(exaInternalErrors && exaInternalErrors.constraints && exaInternalErrors.constraints[err.constraint]) {
+                if (exaInternalErrors && exaInternalErrors.constraints && exaInternalErrors.constraints[err.constraint]) {
                     errMessage = exaInternalErrors.constraints[err.constraint];
                 }
 
@@ -1714,7 +1714,7 @@ var commonjs = {
                 date = this.convertToFacilityTimeZone(facility_id, dt2).format(f);
             }
         }
-        catch(err){
+        catch (err) {
             commonjs.showWarning(err);
         }
 
@@ -2151,6 +2151,8 @@ var commonjs = {
             clearTimeout(tickTimer);
         }
 
+        $('#divPageLoading').show();
+
         commonjs.loadingTime = 2;
         commonjs.hasLoaded = false;
         commonjs.tickLoading(msg, true);
@@ -2392,10 +2394,10 @@ var commonjs = {
                 //$(this).jqGrid('setGridWidth', obj.width);
                 if (($(this).attr('id') && $(this).attr('id').indexOf('tblGridOD') == 0) || ($(this).attr('id') && $(this).attr('id').indexOf('tblGridPS') == 0)) // for home page pre-orders and qc grids having buttons under grid
                     $(this).jqGrid('setGridHeight', obj.height - 20);
-                else{
-                     if(($(this).attr('id') && ($(this).attr('id').indexOf('tblProviderIDCodesGrid')==-1 && $(this).attr('id').indexOf('tblPatientClaimsGrid')==-1 && $(this).attr('id').indexOf('tblInvoiceGrid')==-1 ))){
+                else {
+                    if (($(this).attr('id') && ($(this).attr('id').indexOf('tblProviderIDCodesGrid') == -1 && $(this).attr('id').indexOf('tblPatientClaimsGrid') == -1 && $(this).attr('id').indexOf('tblInvoiceGrid') == -1))) {
                         $(this).jqGrid('setGridHeight', obj.height);
-                     }
+                    }
 
                 }
 
@@ -4762,7 +4764,7 @@ var commonjs = {
     },
 
     getModalityRoomFromId: function (id) {
-        var modality_room = _.find(app.modality_room, { 'id': id }) ||{};
+        var modality_room = _.find(app.modality_room, { 'id': id }) || {};
         return modality_room.modality_room_name || '';
     },
 
@@ -5063,7 +5065,7 @@ var commonjs = {
             var fileName = requestData.fileName.replace(/ /g, "_");
             commonjs.downloadCsv(fileName + ".csv", workerResponse.csvData);
 
-            if(typeof options.afterDownload === 'function') {
+            if (typeof options.afterDownload === 'function') {
                 options.afterDownload();
             }
 
