@@ -29,9 +29,9 @@ module.exports = {
                                  , exam_prep_instructions
                                  , rvu
                                  , COUNT(1) OVER (range unbounded preceding) as total_records
-                                FROM 
+                                FROM
                                     cpt_codes
-                                WHERE           
+                                WHERE
                                     NOT has_deleted AND company_id = ${params.company_id} AND is_active `;
 
         if (params.q != '') {
@@ -59,7 +59,7 @@ module.exports = {
                                     , p.full_name
                                     , p.provider_code
                                     , hstore_to_json(contact_info) AS contact_info
-                                    , COUNT(1) OVER (range unbounded preceding) AS total_records 
+                                    , COUNT(1) OVER (range unbounded preceding) AS total_records
                             FROM public.providers p
                                 INNER JOIN
                                     provider_contacts pc ON pc.provider_id = p.id
@@ -87,7 +87,7 @@ module.exports = {
                                      , code_type
                                      , COUNT(1) OVER (range unbounded preceding) AS total_records
                                 FROM icd_codes AS icd
-                                WHERE 
+                                WHERE
                                     icd.is_active AND NOT icd.has_deleted AND icd.company_id = ${params.company_id} `;
 
         if (params.q != '') {
@@ -115,8 +115,8 @@ module.exports = {
                                      ,company_id
                                      ,COUNT(1) OVER (range unbounded preceding) AS total_records
                                 FROM provider_groups
-                                WHERE 
-                                    NOT provider_groups.has_deleted AND (provider_groups.group_type = ${params.groupType}  OR provider_groups.group_type IS NULL) 
+                                WHERE
+                                    NOT provider_groups.has_deleted AND (provider_groups.group_type = ${params.groupType}  OR provider_groups.group_type IS NULL)
                                     AND provider_groups.company_id = ${params.company_id} AND is_active `;
 
         if (params.q != '') {
@@ -141,10 +141,10 @@ module.exports = {
                                 , hstore_to_json(insurance_info) AS insurance_info
                                 , ipd.billing_method
                                 , COUNT(1) OVER (range unbounded preceding) as total_records
-                            FROM 
+                            FROM
                                 insurance_providers
-                            LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = insurance_providers.id                                
-                            WHERE 
+                            LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = insurance_providers.id
+                            WHERE
                                 NOT has_deleted AND company_id = ${params.company_id} AND is_active `;
 
         if (params.q != '') {
@@ -171,24 +171,24 @@ module.exports = {
               patients.id,
               full_name,
               patients.owner_id,
-              total_records         
+              total_records
             FROM (
                 SELECT
                     distinct(patients.id) as patients_id,
                     COUNT(1) OVER (RANGE UNBOUNDED PRECEDING) AS total_records
                 FROM
-                    patients                
-                WHERE  
-                    NOT patients.has_deleted 
+                    patients
+                WHERE
+                    NOT patients.has_deleted
                     AND patients.company_id =  ${params.company_id} `;
 
         if (params.q != '') {
             sql_patient.append(patient_q);
         }
 
-        sql_patient.append(SQL` AND is_active          
-                ORDER BY patients.id ASC 
-                ) 
+        sql_patient.append(SQL` AND is_active
+                ORDER BY patients.id ASC
+                )
             AS finalPatients INNER JOIN patients ON finalPatients.patients_id = patients.id `)
             .append(SQL` ORDER BY full_name `)
             .append(params.sortOrder)
@@ -211,14 +211,14 @@ module.exports = {
                 ,group_info
                 ,is_active
                 ,company_id
-                ,(SELECT COUNT(1) FROM provider_groups 
+                ,(SELECT COUNT(1) FROM provider_groups
                 WHERE
                     provider_groups.has_deleted = false
                     AND (provider_groups.group_type = 'OF'  OR provider_groups.group_type IS NULL)
                     AND provider_groups.company_id = 1 AND is_active = TRUE
                 ) AS total_records
-            
-            FROM provider_groups    
+
+            FROM provider_groups
             WHERE
                 provider_groups.has_deleted = false
                 AND (provider_groups.group_type = 'OF'  OR provider_groups.group_type IS NULL)
@@ -241,21 +241,24 @@ module.exports = {
         let users_q = ` AND (username ILIKE '%${params.q}%' ) `;
 
         const user_sql = SQL`SELECT
-                            users.id AS id, 
-                            username AS user_name, 
-                            first_name AS first_name, 
+                            users.id AS id,
+                            username AS user_name,
+                            first_name AS first_name,
                             last_name AS last_name,
-                            middle_initial AS middle_name, 
-                            suffix AS suffix, 
+                            middle_initial AS middle_name,
+                            suffix AS suffix,
                             users.user_group_id AS users_group_id,
-                            users.user_type AS users_type, 
+                            users.user_type AS users_type,
                             users.password_changed_dt AS change_pwd_dt,
                             COUNT(1) OVER (range unbounded preceding) AS total_records
                          FROM
                             public.users
+                            INNER JOIN public.user_groups on user_groups.id = users.user_group_id
+                            INNER JOIN public.user_roles AS ur ON ur.id = ANY (user_groups.user_roles)
                         WHERE
-                             users.has_deleted=FALSE AND
+                             ( LOWER(user_groups.group_name) = 'billing' OR LOWER(ur.role_name) = 'billing' OR LOWER(ur.role_name) = 'billing1.5') AND                             users.has_deleted=FALSE AND
                              users.is_active AND
+                             users.has_deleted = false AND
                              users.company_id= ${params.company_id} `;
 
         if (params.q != '') {
@@ -275,9 +278,9 @@ module.exports = {
         let users_role_q = ` AND (role_name ILIKE '%${params.q}%' ) `;
 
         const user_role_sql = SQL`SELECT
-                                user_roles.id AS id, 
-                                role_name AS role_name, 
-                                role_description AS role_decriptions,        
+                                user_roles.id AS id,
+                                role_name AS role_name,
+                                role_description AS role_decriptions,
                                 COUNT(1) OVER (range unbounded preceding) AS total_records
                             FROM
                                     public.user_roles
@@ -307,10 +310,10 @@ module.exports = {
             SELECT
                 id
                 , code
-                , description              
+                , description
                 ,company_id
-                ,(SELECT COUNT(1) FROM insurance_provider_payer_types  ) AS total_records            
-            FROM insurance_provider_payer_types    
+                ,(SELECT COUNT(1) FROM insurance_provider_payer_types  ) AS total_records
+            FROM insurance_provider_payer_types
             WHERE
             inactivated_dt IS  NULL `;
 

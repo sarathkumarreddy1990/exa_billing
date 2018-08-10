@@ -18,8 +18,8 @@ module.exports = {
                                     FROM   facilities
                                     WHERE  company_id=${companyID}
                                     AND    NOT has_deleted
-                                    AND    is_active 
-                                    ORDER BY 
+                                    AND    is_active
+                                    ORDER BY
                                         facility_name )AS facilities )
                     , cte_company AS(
                             SELECT (Row_to_json(company)) company
@@ -126,7 +126,7 @@ module.exports = {
                                         description
                                     FROM   study_flags
                                     WHERE  company_id=${companyID} AND NOT has_deleted) AS studyflag)
-                , cte_sites AS(                                   
+                , cte_sites AS(
                                 SELECT id as siteID,
                                     stat_level_config,
                                     tat_config
@@ -149,14 +149,14 @@ module.exports = {
                 , cte_states AS(
                                     SELECT Json_agg(Row_to_json(states)) states
                                     FROM  (
-                                    SELECT 
+                                    SELECT
                                     app_states
                                     FROM   companies
                                     WHERE  id=${companyID} ) AS states)
                 , cte_status_color_codes AS(
                                     SELECT Json_agg(Row_to_json(status_color_codes)) status_color_codes
                                     FROM  (
-                                    SELECT 
+                                    SELECT
                                     id,
                                     process_type,
                                     process_status,
@@ -166,7 +166,7 @@ module.exports = {
                 , cte_printer_templates AS(
                                     SELECT Json_agg(Row_to_json(printer_templates)) printer_templates
                                     FROM  (
-                                    SELECT 
+                                    SELECT
                                     id,
                                     name,
                                     template_type,
@@ -187,7 +187,7 @@ module.exports = {
                                     SELECT
                                     id
                                     , code
-                                    , description 
+                                    , description
                                     FROM public.places_of_service
                                     WHERE company_id = ${companyID} AND inactivated_dt IS NULL ) AS places_of_service)
                 , cte_adjustment_code_list AS(
@@ -195,32 +195,34 @@ module.exports = {
                                     FROM  (
                                     SELECT
                                     id
-                                    , code 
+                                    , code
                                     , description
-                                    , accounting_entry_type  
-                                    FROM billing.adjustment_codes 
+                                    , accounting_entry_type
+                                    FROM billing.adjustment_codes
                                     WHERE company_id = ${companyID} AND inactivated_dt IS NULL ) AS adjustment_code_list)
                 , cte_user_group_list AS(
                                     SELECT Json_agg(Row_to_json(billing_user_list)) billing_user_list
                                     FROM  (
-                                    SELECT 
+                                    SELECT
                                     username,
                                     first_name,
                                     last_name,
                                     user_type,
                                     users.id
-                                    FROM users inner join user_groups on user_groups.id=user_group_id 
-                                    WHERE (group_name='Billing' OR user_type='SU')        
+                                    FROM public.users inner join public.user_groups on user_groups.id=user_group_id
+                                    INNER JOIN public.user_roles AS ur ON ur.id = ANY (user_groups.user_roles)
+                                    WHERE
+                                    ( LOWER(user_groups.group_name) = 'billing' OR LOWER(ur.role_name) = 'billing' OR LOWER(ur.role_name) = 'billing1.5')
                                     AND users.has_deleted=false and users.is_active = true
                                     AND users.company_id = ${companyID} ) AS billing_user_list)
                 , cte_payment_reasons_list AS(
                                     SELECT Json_agg(Row_to_json(payment_reasons)) payment_reasons
                                     FROM  (
-                                    SELECT 
+                                    SELECT
                                         id,
                                         code,
                                         description
-                                    FROM 
+                                    FROM
                                         billing.payment_reasons
                                     WHERE
                                         company_id = ${companyID} AND inactivated_dt IS NULL) AS payment_reasons)
@@ -251,17 +253,17 @@ module.exports = {
                                                 file_store_id
                                             FROM   facilities
                                             INNER JOIN users ON users.id=${userID}
-                                            WHERE  facilities.company_id=${companyID} 
+                                            WHERE  facilities.company_id=${companyID}
                                             AND    NOT facilities.has_deleted
-                                            AND    facilities.is_active 
+                                            AND    facilities.is_active
                                             AND (facilities.id) = ANY(users.facilities )
-                                            ORDER BY 
-                                            facility_name )AS userFacilities 
+                                            ORDER BY
+                                            facility_name )AS userFacilities
                 ),
                 cte_currentDate as (
-                    SELECT 
+                    SELECT
                         now() as currentDate
-                ), 
+                ),
                 cte_insurance_provider_payer_types AS(
                     SELECT Json_agg(Row_to_json(insurance_provider_payer_types)) insurance_provider_payer_types
                    FROM  (
