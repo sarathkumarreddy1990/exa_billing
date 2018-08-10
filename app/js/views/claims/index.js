@@ -2232,7 +2232,8 @@ define(['jquery',
                         payer_type = 'PIP_P';
                         coverage_level = 'Primary Insurance';
                         // it's remove the existing selected insurances
-                        $('#ddlExistPriIns').val(0);
+                        $('#ddlExistPriIns').val('');
+                        self.primaryPatientInsuranceId = null;
                         self.updateInsAddress('Pri', res);
                         self.is_primary_available = true;
                         if($('#ddlPriInsurance').val() !='') {
@@ -2246,7 +2247,8 @@ define(['jquery',
                         payer_type = 'PIP_S';
                         coverage_level = 'Secondary Insurance';
                         // it's remove the existing selected insurances
-                        $('#ddlExistSecIns').val(0);
+                        $('#ddlExistSecIns').val('');
+                        self.secondaryPatientInsuranceId = null;
                         self.updateInsAddress('Sec', res);
                         self.is_secondary_available = true;
                         if($('#ddlSecInsurance').val() !='') {
@@ -2260,7 +2262,8 @@ define(['jquery',
                         payer_type = 'PIP_T';
                         coverage_level = 'Tertiary Insurance';
                         // it's remove the existing selected insurances
-                        $('#ddlExistTerIns').val(0);
+                        $('#ddlExistTerIns').val('');
+                        self.tertiaryPatientInsuranceId = null;
                         self.updateInsAddress('Ter', res);
                         self.is_tertiary_available = true;
                         if($('#ddlTerInsurance').val() !='') {
@@ -2383,6 +2386,7 @@ define(['jquery',
                                 billing_method: result.billing_method
                             });
                             self.is_primary_available = true;
+                            self.priClaimInsID = null;
                             break;
 
                         case 'secondary':
@@ -2399,6 +2403,7 @@ define(['jquery',
                                 billing_method: result.billing_method
                             });
                             self.is_secondary_available = true;
+                            self.secClaimInsID = null;
                             break;
 
                         case 'tertiary':
@@ -2415,6 +2420,7 @@ define(['jquery',
                                 billing_method: result.billing_method
                             });
                             self.is_tertiary_available = true;
+                            self.terClaimInsID = null;
                             break;
                     }
 
@@ -2478,8 +2484,8 @@ define(['jquery',
                 else
                     billingMethod = 'direct_billing';
                 var primary_insurance_details = {
-                    claim_patient_insurance_id: self.primaryPatientInsuranceId || null,
-                    claim_insurance_id: self.priClaimInsID ? parseInt(self.priClaimInsID) : null,
+                    claim_patient_insurance_id: parseInt(self.primaryPatientInsuranceId) || null,
+                    claim_insurance_id: parseInt(self.priClaimInsID) || null,
                     patient_id: self.cur_patient_id || null,
                     insurance_provider_id: self.priInsID ? parseInt(self.priInsID) : null,
                     subscriber_relationship_id: $('#ddlPriRelationShip option:selected').val() != '' ? parseInt($('#ddlPriRelationShip option:selected').val()) : null,
@@ -2501,11 +2507,12 @@ define(['jquery',
                     medicare_insurance_type_code: null,
                     valid_from_date: $('#txtPriStartDate').val() != '' ? $('#txtPriStartDate').val() : null,
                     valid_to_date: $('#txtPriExpDate').val() != '' ? $('#txtPriExpDate').val() :null,
-                    is_deleted: self.priClaimInsID && self.priInsID == '' ? true : false
+                    is_deleted: self.priClaimInsID && self.priInsID == '' ? true : false,
+                    is_new: !self.priClaimInsID ? !(self.primaryPatientInsuranceId) : false
                 },
                 secondary_insurance_details = {
-                    claim_patient_insurance_id: self.secondaryPatientInsuranceId || null,
-                    claim_insurance_id: self.secClaimInsID ? parseInt(self.secClaimInsID) : null,
+                    claim_patient_insurance_id: parseInt(self.secondaryPatientInsuranceId) || null,
+                    claim_insurance_id: parseInt(self.secClaimInsID) || null,
                     patient_id: self.cur_patient_id || null,
                     insurance_provider_id: self.secInsID ? parseInt(self.secInsID) : null,
                     subscriber_relationship_id: $('#ddlSecRelationShip option:selected').val() != '' ? parseInt($('#ddlSecRelationShip option:selected').val()) : null,
@@ -2527,11 +2534,12 @@ define(['jquery',
                     medicare_insurance_type_code: $('#selectMedicalPayer option:selected').val() != '' ? parseInt($('#selectMedicalPayer option:selected').val()) : null,
                     valid_from_date: $('#txtSecStartDate').val() != '' ? $('#txtSecStartDate').val() : null,
                     valid_to_date: $('#txtSecExpDate').val() != '' ? $('#txtSecExpDate').val() : null,
-                    is_deleted: self.secClaimInsID && self.secInsID == '' ? true : false
+                    is_deleted: self.secClaimInsID && self.secInsID == '' ? true : false,
+                    is_new: !self.secClaimInsID ? !(self.secondaryPatientInsuranceId) : false
                 },
                 teritiary_insurance_details = {
-                    claim_patient_insurance_id: self.tertiaryPatientInsuranceId || null,
-                    claim_insurance_id: self.terClaimInsID ? parseInt(self.terClaimInsID) : null,
+                    claim_patient_insurance_id: parseInt(self.tertiaryPatientInsuranceId) || null,
+                    claim_insurance_id: parseInt(self.terClaimInsID) || null,
                     patient_id: self.cur_patient_id || null,
                     insurance_provider_id: self.terInsID ? parseInt(self.terInsID) : null,
                     coverage_level: 'tertiary',
@@ -2553,7 +2561,8 @@ define(['jquery',
                     medicare_insurance_type_code: null,
                     valid_from_date: $('#txtTerStartDate').val() != '' ? $('#txtTerStartDate').val() : null,
                     valid_to_date: $('#txtTerExpDate').val() != '' ? $('#txtTerExpDate').val() : null,
-                    is_deleted: self.terClaimInsID && self.terInsID == '' ? true : false
+                    is_deleted: self.terClaimInsID && self.terInsID == '' ? true : false,
+                    is_new: !self.terClaimInsID ? !(self.tertiaryPatientInsuranceId) : false
                 }
                 if (self.is_primary_available || self.priClaimInsID)
                     claim_model.insurances.push(primary_insurance_details);
@@ -2593,9 +2602,9 @@ define(['jquery',
                     is_employed: $('#chkEmployment').is(':checked'),
                     service_by_outside_lab: $('#chkOutSideLab').is(':checked'),
                     claim_status_id: $('#ddlClaimStatus option:selected').val() != '' ? parseInt($('#ddlClaimStatus option:selected').val()) : null,
-                    primary_patient_insurance_id: self.is_primary_available && self.priClaimInsID ? parseInt(self.priClaimInsID) : null,
-                    secondary_patient_insurance_id: self.is_secondary_available && self.secClaimInsID ? parseInt(self.secClaimInsID) : null,
-                    tertiary_patient_insurance_id: self.is_tertiary_available && self.terClaimInsID ? parseInt(self.terClaimInsID) : null
+                    primary_patient_insurance_id: self.is_primary_available && parseInt(self.primaryPatientInsuranceId) || ( self.is_primary_available && parseInt(self.priClaimInsID) || null ),
+                    secondary_patient_insurance_id: self.is_secondary_available && parseInt(self.secondaryPatientInsuranceId) || ( self.is_secondary_available && parseInt(self.secClaimInsID) || null ),
+                    tertiary_patient_insurance_id: self.is_tertiary_available && parseInt(self.tertiaryPatientInsuranceId) || ( self.is_tertiary_available && parseInt(self.terClaimInsID) || null )
 
                 }
 
