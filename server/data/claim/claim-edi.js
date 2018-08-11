@@ -240,7 +240,7 @@ module.exports = {
 					(SELECT Json_agg(Row_to_json(data1)) "data"
 
 												FROM (
-												
+
 					WITH cte_billing_providers AS (
 					SELECT (Row_to_json(billingProvider1)) "billingProvider"
 												FROM   (
@@ -299,17 +299,19 @@ module.exports = {
 														( SELECT
 
 										(  CASE UPPER(description)
-											WHEN 'SELF' THEN 18
-											WHEN 'FATHER' THEN 33
-											WHEN 'MOTHER' THEN 32
-											WHEN 'SIBLING' THEN 32
-											WHEN 'GRANDPARENT' THEN 04
-											WHEN 'GREAT GRANDPARENT' THEN 04
-											WHEN 'UNKNOWN' THEN 21
-											WHEN 'SPOUSE' THEN 21
-											WHEN 'CHILD' THEN 19
-											WHEN 'BROTHER' THEN 23
-											WHEN 'SISTER' THEN 20
+											WHEN 'SELF' THEN '18'
+											WHEN 'FATHER' THEN '33'
+											WHEN 'MOTHER' THEN '32'
+											WHEN 'SIBLING' THEN '32'
+											WHEN 'GRANDPARENT' THEN '04'
+											WHEN 'GREAT GRANDPARENT' THEN '04'
+											WHEN 'UNKNOWN' THEN '21'
+											WHEN 'SPOUSE' THEN '21'
+											WHEN 'CHILD' THEN '19'
+											WHEN 'BROTHER' THEN '23'
+                                            WHEN 'SISTER' THEN '20'
+                                            WHEN 'OTHER RELATIONSHIP' THEN 'G8'
+                                            WHEN 'LIFE PARTNER' THEN '53'
 											END)
 										FROM  relationship_status WHERE  subscriber_relationship_id =relationship_status.id ) as  relationship,
 
@@ -330,8 +332,8 @@ module.exports = {
 										assign_benefits_to_patient as "acceptAssignment",
 										subscriber_dob as "dob",
 										to_char(subscriber_dob, 'YYYYMMDD')  as "dobFormat",
-										(  CASE subscriber_gender 
-											WHEN 'Male' THEN 'M'						
+										(  CASE subscriber_gender
+											WHEN 'Male' THEN 'M'
 											WHEN 'Female' THEN 'F'
 											WHEN 'Unknown' THEN 'U'
 											WHEN 'Others' THEN 'O'
@@ -380,19 +382,21 @@ module.exports = {
 																END) as gender,
 
 															( SELECT
-																(  CASE UPPER(description)
-																	WHEN 'SELF' THEN 18
-																	WHEN 'FATHER' THEN 33
-																	WHEN 'MOTHER' THEN 32
-																	WHEN 'SIBLING' THEN 32
-																	WHEN 'GRANDPARENT' THEN 04
-																	WHEN 'GREAT GRANDPARENT' THEN 04
-																	WHEN 'UNKNOWN' THEN 21
-																	WHEN 'SPOUSE' THEN 21
-																	WHEN 'CHILD' THEN 19
-																	WHEN 'BROTHER' THEN 23
-																	WHEN 'SISTER' THEN 20
-																END)
+                                                                (  CASE UPPER(description)
+                                                                    WHEN 'SELF' THEN '18'
+                                                                    WHEN 'FATHER' THEN '33'
+                                                                    WHEN 'MOTHER' THEN '32'
+                                                                    WHEN 'SIBLING' THEN '32'
+                                                                    WHEN 'GRANDPARENT' THEN '04'
+                                                                    WHEN 'GREAT GRANDPARENT' THEN '04'
+                                                                    WHEN 'UNKNOWN' THEN '21'
+                                                                    WHEN 'SPOUSE' THEN '21'
+                                                                    WHEN 'CHILD' THEN '19'
+                                                                    WHEN 'BROTHER' THEN '23'
+                                                                    WHEN 'SISTER' THEN '20'
+                                                                    WHEN 'OTHER RELATIONSHIP' THEN 'G8'
+                                                                    WHEN 'LIFE PARTNER' THEN '53'
+                                                                END)
 															FROM  relationship_status WHERE  subscriber_relationship_id =relationship_status.id ) as  relationship
 										)AS patient)
 							,( SELECT Json_agg(Row_to_json(claim)) "claim"
@@ -507,19 +511,21 @@ module.exports = {
 												WHEN 'tertiary' THEN 'T' END) as "otherClaimResponsibleParty",
 									( SELECT
 
-										(  CASE UPPER(description) 
-																	WHEN 'SELF' THEN 18
-																	WHEN 'FATHER' THEN 33
-																	WHEN 'MOTHER' THEN 32
-																	WHEN 'SIBLING' THEN 32
-																	WHEN 'GRANDPARENT' THEN 04
-																	WHEN 'GREAT GRANDPARENT' THEN 04
-																	WHEN 'UNKNOWN' THEN 21
-																	WHEN 'SPOUSE' THEN 21
-																	WHEN 'CHILD' THEN 19
-																	WHEN 'BROTHER' THEN 23
-																	WHEN 'SISTER' THEN 20
-																END)  
+										(  CASE UPPER(description)
+                                                    WHEN 'SELF' THEN '18'
+                                                    WHEN 'FATHER' THEN '33'
+                                                    WHEN 'MOTHER' THEN '32'
+                                                    WHEN 'SIBLING' THEN '32'
+                                                    WHEN 'GRANDPARENT' THEN '04'
+                                                    WHEN 'GREAT GRANDPARENT' THEN '04'
+                                                    WHEN 'UNKNOWN' THEN '21'
+                                                    WHEN 'SPOUSE' THEN '21'
+                                                    WHEN 'CHILD' THEN '19'
+                                                    WHEN 'BROTHER' THEN '23'
+                                                    WHEN 'SISTER' THEN '20'
+                                                    WHEN 'OTHER RELATIONSHIP' THEN 'G8'
+                                                    WHEN 'LIFE PARTNER' THEN '53'
+										END)
 												FROM  relationship_status WHERE  subscriber_relationship_id =relationship_status.id ) as  relationship,
 
 											policy_number  as "policyNo",
@@ -537,10 +543,10 @@ module.exports = {
 					subscriber_city as "city",
 					subscriber_state as "state",
 					subscriber_zipcode as "zipCode",
-					assign_benefits_to_patient as "acceptAssignment",					
+					assign_benefits_to_patient as "acceptAssignment",
 					subscriber_dob as "dob",
 					to_char(subscriber_dob, 'YYYYMMDD')  as "dobFormat"
-					FROM   patient_insurances 
+					FROM   patient_insurances
 					LEFT JOIN billing.insurance_provider_details  other_ins_details ON other_ins_details.insurance_provider_id = patient_insurances.insurance_provider_id
 									WHERE  patient_insurances.id =
 						(  CASE payer_type
@@ -602,8 +608,8 @@ module.exports = {
 									FROM
 					(SELECT
 					display_code as "cpt",
-					charges.id as "chargeID",	
-					(CASE coverage_level 
+					charges.id as "chargeID",
+					(CASE coverage_level
 						WHEN 'primary' THEN 'P'
 						WHEN 'secondary' THEN 'S'
 						WHEN 'tertiary' THEN 'T' END) as "claimResponsibleParty",
