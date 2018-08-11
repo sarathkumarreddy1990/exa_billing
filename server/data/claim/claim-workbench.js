@@ -238,7 +238,7 @@ module.exports = {
         let updateData = SQL`UPDATE
 							billing.claims bc
                         SET claim_status_id = (SELECT id FROM getStatus),
-                            invoice_no = (SELECT billing.get_invoice_no(${params.success_claimID})),
+                            invoice_no = (SELECT NEXTVAL('billing.invoice_no_seq')),
                             submitted_dt=timezone(get_facility_tz(bc.facility_id::int), now()::timestamp)
 						WHERE bc.id = ANY(${params.success_claimID})
                         RETURNING bc.id,invoice_no`;
