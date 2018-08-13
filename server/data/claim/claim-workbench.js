@@ -44,7 +44,7 @@ module.exports = {
 
         params.audit_json = JSON.stringify(audit_json);
 
-        const sql = SQL` SELECT billing.purge_claim_or_charge(${target_id}, ${type}, ${params.audit_json}::json)`;
+        const sql = SQL` SELECT billing.purge_claim_or_charge(${target_id}, ${type}, ${params.audit_json}::jsonb)`;
 
         return await query(sql);
     },
@@ -485,7 +485,7 @@ module.exports = {
                             details.claims,
                             details.insurances,
                             details.claim_icds,
-                            (${JSON.stringify(auditDetails)})::json,
+                            (${JSON.stringify(auditDetails)})::jsonb,
                             details.charges)
                       FROM details
                         `;

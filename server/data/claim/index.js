@@ -374,11 +374,11 @@ module.exports = {
 
 
         const sql = SQL`SELECT billing.create_claim_charge (
-                    (${JSON.stringify(claims)})::json,
-                    (${JSON.stringify(insurances)})::json,
-                    (${JSON.stringify(claim_icds)})::json,
-                    (${JSON.stringify(auditDetails)})::json,
-                    (${JSON.stringify(charges)})::json) as result `;
+                    (${JSON.stringify(claims)})::jsonb,
+                    (${JSON.stringify(insurances)})::jsonb,
+                    (${JSON.stringify(claim_icds)})::jsonb,
+                    (${JSON.stringify(auditDetails)})::jsonb,
+                    (${JSON.stringify(charges)})::jsonb) as result `;
 
         return await query(sql);
     },
@@ -648,11 +648,11 @@ module.exports = {
 
 
         const sqlQry = SQL`SELECT billing.update_claim_charge (
-            (${JSON.stringify(claims)})::json,
-            (${JSON.stringify(insurances)})::json,
-            (${JSON.stringify(claim_icds)})::json,
-            (${JSON.stringify(auditDetails)})::json,
-            (${JSON.stringify(charges)})::json) as result`;
+            (${JSON.stringify(claims)})::jsonb,
+            (${JSON.stringify(insurances)})::jsonb,
+            (${JSON.stringify(claim_icds)})::jsonb,
+            (${JSON.stringify(auditDetails)})::jsonb,
+            (${JSON.stringify(charges)})::jsonb) as result`;
 
         return await query(sqlQry);
     },
