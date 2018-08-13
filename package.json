@@ -16,8 +16,7 @@
         "deploy": "npm-run-all install-node_modules gulp-deploy",
         "build-from-repo": "npm-run-all install-node_modules gulp-build-from-repo",
         "start-production": "node ./bin/www-cluster",
-        "test": "mocha --recursive test/unit",
-        "migrate_db": "node resx/dbManager.js migrate"
+        "test": "mocha --recursive test/unit"
     },
     "dependencies": {
         "bluebird": "^3.5.1",
