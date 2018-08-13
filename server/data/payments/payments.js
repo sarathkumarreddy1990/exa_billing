@@ -444,7 +444,7 @@ module.exports = {
             payment_id,
             auditDetails } = params;
 
-        const sql = SQL` SELECT billing.purge_payment (${payment_id}, (${JSON.stringify(auditDetails)})::json) AS details`;
+        const sql = SQL` SELECT billing.purge_payment (${payment_id}, (${JSON.stringify(auditDetails)})::jsonb) AS details`;
 
         return await query(sql);
     },
@@ -472,7 +472,7 @@ module.exports = {
                                         , created_by BIGINT)
                                     ),
                              insert_application AS(
-                                SELECT billing.create_payment_applications(${paymentId},${adjustmentId},${user_id},(${line_items})::jsonb,(${JSON.stringify(auditDetails)})::json) AS details
+                                SELECT billing.create_payment_applications(${paymentId},${adjustmentId},${user_id},(${line_items})::jsonb,(${JSON.stringify(auditDetails)})::jsonb) AS details
                              ),
                              update_claims AS(
                                     UPDATE billing.claims

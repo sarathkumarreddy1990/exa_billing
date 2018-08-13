@@ -275,7 +275,7 @@ module.exports = {
                                     ,( SELECT id FROM billing.adjustment_codes WHERE code = matched_claims.code ORDER BY id ASC LIMIT 1 )
                                     ,${paymentDetails.created_by}
                                     ,json_build_array(matched_claims.json_build_object)::jsonb
-                                    ,(${JSON.stringify(audit_details)})::json
+                                    ,(${JSON.stringify(audit_details)})::jsonb
                                 )
                             FROM
                                 matched_claims
@@ -372,7 +372,7 @@ module.exports = {
                                 ,( SELECT id FROM billing.adjustment_codes WHERE code = ${code} ORDER BY id ASC LIMIT 1 )
                                 ,${created_by}
                                 ,json_build_array(uc.json_build_object)::jsonb
-                                ,(${audit_details})::json
+                                ,(${audit_details})::jsonb
                             )
                         FROM
                             unapplied_charges uc
