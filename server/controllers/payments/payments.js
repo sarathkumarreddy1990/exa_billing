@@ -12,6 +12,10 @@ module.exports = {
         return data.createOrUpdatePayment(params);
     },
 
+    getStudyCpt: function (params) {
+        return data.getStudyCpt(params);
+    },
+
     deletePayment: function (params) {
         let auditDetails = {
             company_id: params.companyId,

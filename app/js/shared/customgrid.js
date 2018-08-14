@@ -779,6 +779,13 @@ function customGrid ( datastore, gridID ) {
             .find('select, input');
 
         $.each(elements, function (index, element) {
+            if(self.options.gridelementid === "#tblpaymentsGrid") {
+                if(self.options.customargs.from === 'ris') {
+                    $('#gs_payer_type').val('patient');
+                    $("#gs_payer_type").attr('disabled', true);
+                }
+            }
+
             if (element && element.id == 'gs_assigned_to' && !$(element).val() && self.options.isClaimGrid) {
                 $("#gs_assigned_to").val(app.userID);
                 if (app.userInfo && app.userInfo.user_settings && (app.userInfo.user_settings.assignClaimsToFollowUpQueue == "true" || app.userInfo.user_type == 'SU')) {

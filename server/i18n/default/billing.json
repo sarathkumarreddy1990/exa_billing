@@ -181,6 +181,7 @@
             "lastName": "Last Name",
             "firstName": "First Name",
             "mrn": "MRN",
+            "patientMRN": "Patient MRN",
             "patientSearchResults": "Patient Search Results",
             "yourSearch": "Your Search",
             "didNotMatchAnyPatients": "Did not match any patient",
