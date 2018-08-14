@@ -96,50 +96,49 @@ module.exports = {
         let inactivated_date = isActive ? null : ' now() ';
 
         const sql = SQL`
-                    WITH create_template AS (
+                    WITH update_template AS (
+                        UPDATE billing.printer_templates
+                        SET
+                            is_default = false
+                        WHERE
+                            is_default
+                            AND template_type = ${type}
+                            AND ${isDefault}
+                        RETURNING *, '{}'::jsonb old_values
+                    )
+                    , create_template AS (
                         INSERT INTO billing.printer_templates
-                    (
-                        company_id,
-                        name,
-                        template_content,
-                        inactivated_dt,
-                        left_margin,
-                        right_margin,
-                        top_margin,
-                        bottom_margin,
-                        page_height,
-                        page_width,
-                        template_type,
-                        is_default
+                        (
+                            company_id,
+                            name,
+                            template_content,
+                            inactivated_dt,
+                            left_margin,
+                            right_margin,
+                            top_margin,
+                            bottom_margin,
+                            page_height,
+                            page_width,
+                            template_type,
+                            is_default
+                        )
+                        VALUES
+                        (
+                            ${companyId},
+                            ${name},
+                            ${templateContent},
+                            ${inactivated_date},
+                            ${marginLeft},
+                            ${marginRight},
+                            ${marginTop},
+                            ${marginBottom},
+                            ${height},
+                            ${width},
+                            ${type},
+                            ${isDefault}
+                        )
+                        RETURNING *, '{}'::jsonb old_values
                     )
-                    VALUES
-                    (
-                        ${companyId},
-                        ${name},
-                        ${templateContent},
-                        ${inactivated_date},
-                        ${marginLeft},
-                        ${marginRight},
-                        ${marginTop},
-                        ${marginBottom},
-                        ${height},
-                        ${width},
-                        ${type},
-                        ${isDefault}
-                    )
-                    RETURNING *, '{}'::jsonb old_values
-                )
-                , update_template AS (
-                    UPDATE billing.printer_templates
-                    SET
-                        is_default = false
-                    WHERE
-                        id != (SELECT id FROM create_template)
-                        AND is_default
-                        AND template_type = ${type}
-                        AND (SELECT is_default FROM create_template)
-                    RETURNING *, '{}'::jsonb old_values
-            )
             , insert_audit_template AS (
                 SELECT billing.create_audit(
                       ${companyId}
@@ -206,32 +205,7 @@ module.exports = {
 
         let inactivated_date = isActive ? null : ' now() ';
 
-        let sql = SQL` WITH update_template AS (
-                        UPDATE
-                             billing.printer_templates
-                        SET
-                                name = ${name}
-                              , template_content = ${templateContent}
-                              , inactivated_dt = ${inactivated_date}
-                              , left_margin = ${marginLeft}
-                              , right_margin = ${marginRight}
-                              , top_margin = ${marginTop}
-                              , bottom_margin = ${marginBottom}
-                              , page_height = ${height}
-                              , page_width = ${width}
-                              , template_type = ${type}
-                              , is_default = ${isDefault}
-                        WHERE
-                            id = ${id}
-                        RETURNING *,
-                            (
-                                SELECT row_to_json(old_row)
-                                FROM   (SELECT *
-                                        FROM   billing.printer_templates
-                                        WHERE  id = ${id}) old_row
-                            ) old_values
-                        )
-                        , update_default AS (
+        let sql = SQL` WITH update_default AS (
                             UPDATE billing.printer_templates
                             SET
                                 is_default = false
@@ -239,8 +213,33 @@ module.exports = {
                                 id != ${id}
                                 AND is_default
                                 AND template_type = ${type}
-                                AND ( SELECT is_default FROM update_template )
+                                AND ${isDefault}
                             RETURNING * ,'{}'::jsonb old_values
+                        )
+                        , update_template AS (
+                            UPDATE
+                                billing.printer_templates
+                            SET
+                                    name = ${name}
+                                , template_content = ${templateContent}
+                                , inactivated_dt = ${inactivated_date}
+                                , left_margin = ${marginLeft}
+                                , right_margin = ${marginRight}
+                                , top_margin = ${marginTop}
+                                , bottom_margin = ${marginBottom}
+                                , page_height = ${height}
+                                , page_width = ${width}
+                                , template_type = ${type}
+                                , is_default = ${isDefault}
+                            WHERE
+                                id = ${id}
+                            RETURNING *,
+                                (
+                                    SELECT row_to_json(old_row)
+                                    FROM   (SELECT *
+                                            FROM   billing.printer_templates
+                                            WHERE  id = ${id}) old_row
+                                ) old_values
                         )
                         , update_audit_template AS (
                             SELECT billing.create_audit(
