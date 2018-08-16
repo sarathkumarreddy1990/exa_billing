@@ -12,23 +12,57 @@ const bump = require('gulp-bump');
 const git = require('gulp-git');
 const gutil = require('gulp-util');
 const ftp = require('vinyl-ftp');
-
 const moment = require('moment');
-
 const fs = require('fs');
 const path = require('path');
+const childProcess = require('child_process');
+const semver = require('semver');
 
 let currentBranch = 'development';
-let nodejsversion = process.version;
 let timestamp = moment().format("YYYYMMDDhhmm");
-let buildFileName = '';
 let requirejsConfig = require('./app/js/main').rjsConfig;
 
-let getCurrentVersion = function () {
+const getPackageJson = () => {
     const package = JSON.parse(fs.readFileSync('./package.json'));
-    return package.version;
+    if (!package) {
+        gutil.log('package.json | unable to read file');
+        process.exit(1);
+    }
+    return package;
 };
 
+gulp.task('check-build-environment', () => {
+    const pkg = getPackageJson();
+    const engines = pkg.engines;
+    if (!engines) {
+        gutil.log('package.json | engines is missing');
+        process.exit(1);
+    }
+    //gutil.log('engines: ' + JSON.stringify(engines, null, 2));
+    const requiredNodeVersion = engines.node;
+    const requiredNpmVersion = engines.npm;
+    if (!requiredNodeVersion) {
+        gutil.log('package.json | engines.node is missing!');
+        process.exit(1);
+    }
+    if (!requiredNpmVersion) {
+        gutil.log('package.json | engines.npm is missing!');
+        process.exit(1);
+    }
+    const currentNodeVersion = process.version;
+    const currentNpmVersion = childProcess.execSync('npm -v').toString('utf-8').trim();
+    //gutil.log(`node -> required: ${requiredNodeVersion}, current: ${currentNodeVersion}`);
+    //gutil.log(`npm  -> required: ${requiredNpmVersion}, current: ${currentNpmVersion}`);
+    if (!semver.satisfies(currentNodeVersion, requiredNodeVersion)) {
+        gutil.log(`Invalid build environment - required node version: ${requiredNodeVersion}, current version: ${currentNodeVersion}`);
+        process.exit(1);
+    }
+    if (!semver.satisfies(currentNpmVersion, requiredNpmVersion)) {
+        gutil.log(`Invalid build environment - required npm version: ${requiredNpmVersion}, current version: ${currentNpmVersion}`);
+        process.exit(1);
+    }
+    gutil.log('Build environment is valid!');
+});
 
 gulp.task('clean', () => {
     return gulp.src(['./build', './build2', './dist'])
@@ -40,9 +74,12 @@ gulp.task('copy', ['clean'], () => {
         './**',
         '!./test/**',
         '!./node_modules/**',
-        '!./app/node_modules/**'
+        '!./app/node_modules/**',
+        '!./yarn.lock',
+        '!./app/yarn.lock',
+        '!./*.code-workspace'
     ])
-        .pipe(gulp.dest('./build'));
+    .pipe(gulp.dest('./build'));
 });
 
 gulp.task('install', ['copy'], () => {
@@ -67,7 +104,6 @@ gulp.task('less', ['install'], () => {
 });
 
 gulp.task('requirejsBuild', ['less'], (done) => {
-
     requirejsConfig = {
         ...requirejsConfig,
         name: 'main',
@@ -123,22 +159,22 @@ gulp.task('copy-package-json', ['bump'], () => {
     return gulp.src([
         './package.json'
     ])
-        .pipe(gulp.dest('./build'));
+    .pipe(gulp.dest('./build'));
 });
 
 gulp.task('replace', ['copy-package-json'], () => {
-    let version = getCurrentVersion();
+    const pkg = getPackageJson();
 
     return gulp.src('./build/server/**/*.pug')
-        .pipe(replace(/(\.js|\.css)(\s*'\s*)/g, `$1?v=${version}'`))
+        .pipe(replace(/(\.js|\.css)(\s*'\s*)/g, `$1?v=${pkg.version}'`))
         .pipe(gulp.dest('./build/server/'));
 });
 
 gulp.task('zip', ['replace'], () => {
-    let version = getCurrentVersion();
+    const pkg = getPackageJson();
+    const buildFileName = `${pkg.name}_${pkg.version}_${currentBranch}_node-${process.version}_${timestamp}.zip`;
 
-    buildFileName = `exa-billing_${version}_${currentBranch}_node-${nodejsversion}_${timestamp}.zip`;
-
+    gutil.log(`Compressing to "dist\\${buildFileName}" ...`);
     return gulp.src('./build/**')
         .pipe(zip(buildFileName))
         .pipe(gulp.dest('./dist'));
@@ -185,10 +221,10 @@ gulp.task('git-add', ['git-init'], () => {
 });
 
 gulp.task('git-commit', ['git-add'], () => {
-    let version = getCurrentVersion();
+    const pkg = getPackageJson();
 
     return gulp.src('./package.json')
-        .pipe(git.commit(`Build v${version}`));
+        .pipe(git.commit(`Build v${pkg.version}`));
 });
 
 gulp.task('git-pull', ['git-commit'], (done) => {
@@ -206,6 +242,7 @@ gulp.task('git-push', (done) => {
 });
 
 gulp.task('build', [
+    'check-build-environment',
     'clean',
     'copy',
     'requirejsBuild',
@@ -225,5 +262,5 @@ gulp.task('build-from-repo', (done) => {
 
 
 gulp.task('default', ['requirejsBuild'], () => {
-    //console.log('done');
+    //gutil.log('done');
 });
