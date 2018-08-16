@@ -17,7 +17,11 @@ define([
                 "edit/:id": "editPayment",
                 "new": "newPayment",
                 "list": "showAllPayments",
-                "filter": "filterPayments"
+                "filter": "filterPayments",
+                "filter/:from": "filterPatientPayments",
+                "list/:from": "showAllPayments",
+                "edit/:from/:id": "editPatientPayment",
+                "new/:from": "newPayment",
             },
 
             editPayment: function (id) {
@@ -25,19 +29,29 @@ define([
                 this.editPaymentsScreen.render(id);
             },
 
-            newPayment: function () {
+            editPatientPayment: function (from, id) {
                 this.initializeEditRouter();
-                this.editPaymentsScreen.render(0);
+                this.editPaymentsScreen.render(id, from);
             },
 
-            showAllPayments: function () {
-                this.initializeRouter();
-                this.paymentsScreen.showGrid();
+            newPayment: function (from) {
+                this.initializeEditRouter();
+                this.editPaymentsScreen.render(0, from);
             },
-            
+
+            showAllPayments: function (from) {
+                this.initializeRouter();
+                this.paymentsScreen.showGrid(false, from);
+            },
+
             filterPayments: function () {
                 this.initializeRouter();
                 this.paymentsScreen.showGrid(true);
+            },
+
+            filterPatientPayments: function (from) {
+                this.initializeRouter();
+                this.paymentsScreen.showGrid(true, from);
             },
 
             initialize: function (options) {
