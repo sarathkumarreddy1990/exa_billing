@@ -333,6 +333,7 @@ define(['jquery',
                     $('#divPayerInsurnace').show();
                     $('#lblIpEob').show();
                     $('#divPayerInsurnace').show();
+                    $('#lblInputType').text('Input Type');
                 }
                 else if (val === 'patient') {
                     $('#select2-txtautoPayerPP-container').html('Select Patient');
@@ -340,16 +341,19 @@ define(['jquery',
                     $('#lblIpEob').hide();
                     $('#divInputType span').hide();
                     $('#txtInvoice').hide();
+                    $('#lblInputType').text('');
                 }
                 else if (val === 'ordering_facility') {
                     $('#select2-txtautoPayerPOF-container').html('Select Ordering facility');
                     $('#divPayerOrderFacility').show();
                     $('#lblIpEob').hide();
+                    $('#lblInputType').text('Input Type');
                 }
                 else if (val === 'ordering_provider') {
                     $('#select2-txtautoPayerPR-container').html('Select Provider');
                     $('#divPayerProvider').show();
                     $('#lblIpEob').hide();
+                    $('#lblInputType').text('Input Type');
                 }
             },
 
@@ -654,6 +658,7 @@ define(['jquery',
                 }
                 else if (response.payer_type === "patient" && response.patient_id) {
                     from !== 'ris'  ? $('#btnPaymentApplyAll').show() : '';
+                    $('#lblInputType').text('');
                     $('#txtInvoice').hide();
                     $('#commonMsg').text('Pending payments for the patient : ');
                     var e = $.Event('keyup');

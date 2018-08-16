@@ -91,6 +91,7 @@ module.exports = {
                 billing.claim_icds ci
             INNER JOIN public.icd_codes icd ON icd.id = ci.icd_id
             WHERE ci.claim_id = ${claim_id}
+            ORDER BY ci.id ASC
             ) AS icd
         )
     , pat_ins_ids AS (
