@@ -63,8 +63,6 @@ module.exports = {
                                     billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'allowed','patient',${params.patient_id},o.facility_id)::NUMERIC
                                   END) as allowed_fee
                                 , COALESCE(sc.units,'1')::NUMERIC AS units
-                                , (COALESCE(sc.bill_fee,'0')::NUMERIC * COALESCE(sc.units,'1')::NUMERIC) AS total_bill_fee
-                                , (COALESCE(sc.bill_fee,'0')::NUMERIC * COALESCE(sc.units,'1')::NUMERIC) AS total_allowed_fee
                                 , sc.authorization_info->'authorization_no' AS authorization_no
                                 , display_description
                                 , additional_info
