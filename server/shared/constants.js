@@ -179,6 +179,7 @@ module.exports = {
         'applied_amount': 'APAY',
         'claim-charges': 'APAY',
         'fee_details': 'APAY',
+        'study_cpt_details': 'APAY',
         'claim': 'ECLM',
         'billing_payers': 'ECLM',
         'service_facilities': 'ECLM',
