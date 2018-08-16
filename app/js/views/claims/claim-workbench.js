@@ -594,6 +594,9 @@ define(['jquery',
 
                                 $('#divEDIErrorMsgs').append(self.ediWarning({ result: result }));
                                 commonjs.initializeScreen({buttons:[]});
+                            }else {
+                                $('#liErrorMessages').hide();
+                                $("#btnClaimsRefresh").click();
                             }
 
                             $('#tabsEDIResponses li').click(function (e) {
@@ -625,9 +628,7 @@ define(['jquery',
                             $('#modal_div_container .downloadEDI').on('click', function() {
                                 self.downloadClaimSubmission(data.ediText, 'edi.txt', 'utf-8');
                             });
-
-                            $("#btnClaimsRefresh").click();
-                        });
+                        });                        
                         } else if (data && data.ohipText && data.ohipText.length) {
                             var str = data.ohipText.replace(/\r/g, '<br/>').replace('\x1A', '');
 
