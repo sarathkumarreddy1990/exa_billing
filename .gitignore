@@ -2,7 +2,10 @@ node_modules/
 *.css
 build/
 dist/
-*.code-workspace
 yarn.lock
 .vscode/
 build2/
+
+# ignore project files
+.idea
+*.code-workspace
