@@ -57,4 +57,9 @@ router.post('/apply_invoice_payments', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/study_cpt_details', async function (req, res) {
+    const data = await paymentsController.getStudyCpt(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;

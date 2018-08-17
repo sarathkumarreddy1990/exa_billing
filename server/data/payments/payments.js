@@ -41,7 +41,9 @@ module.exports = {
             from,
             patientID,
             countFlag,
-            default_facility_id
+            default_facility_id,
+            notes,
+            account_no
         } = params;
 
         if (fromDate && toDate) {
@@ -112,6 +114,18 @@ module.exports = {
             whereQuery.push(` patient_id = ${patientID} AND ( SELECT payment_status from billing.get_payment_totals(payments.id)) = 'unapplied' `);
         }
 
+        if (from === 'ris') {
+            whereQuery.push(` payer_type = 'patient'`);
+        }
+
+        if (notes) {
+            whereQuery.push(` billing.payments.notes ILIKE '%${notes}%'`);
+        }
+
+        if (account_no) {
+            whereQuery.push(` account_no ILIKE '%${account_no}%'`);
+        }
+
         let joinQuery = `
             INNER JOIN public.users ON users.id = payments.created_by
             LEFT JOIN public.patients ON patients.id = payments.patient_id
@@ -167,6 +181,7 @@ module.exports = {
 
         sql = SQL`SELECT
                         payments.id
+                    , account_no
                     , payments.id as payment_id
                     , payments.facility_id
                     , patient_id
@@ -444,7 +459,7 @@ module.exports = {
             payment_id,
             auditDetails } = params;
 
-        const sql = SQL` SELECT billing.purge_payment (${payment_id}, (${JSON.stringify(auditDetails)})::json) AS details`;
+        const sql = SQL` SELECT billing.purge_payment (${payment_id}, (${JSON.stringify(auditDetails)})::jsonb) AS details`;
 
         return await query(sql);
     },
@@ -472,7 +487,7 @@ module.exports = {
                                         , created_by BIGINT)
                                     ),
                              insert_application AS(
-                                SELECT billing.create_payment_applications(${paymentId},${adjustmentId},${user_id},(${line_items})::jsonb,(${JSON.stringify(auditDetails)})::json) AS details
+                                SELECT billing.create_payment_applications(${paymentId},${adjustmentId},${user_id},(${line_items})::jsonb,(${JSON.stringify(auditDetails)})::jsonb) AS details
                              ),
                              update_claims AS(
                                     UPDATE billing.claims
@@ -953,6 +968,74 @@ module.exports = {
         sql.append(whereQuery);
 
         sql.append(SQL` AND (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) > 0::money GROUP BY bch.id,bc.id ORDER BY bc.id `);
+
+        return await query(sql);
+    },
+
+    getStudyCpt:async function (params) {
+        let {
+            payerId,
+            cpt_code,
+            display_description,
+            sortField,
+            sortOrder,
+            study_dt,
+            customDt
+        } = params;
+
+        let whereQuery=[];
+
+        params.sortOrder = params.sortOrder || ' ASC';
+
+        whereQuery.push(` o.patient_id = ${payerId}
+                                AND NOT sc.has_deleted
+                                AND NOT o.has_deleted
+                                AND NOT c.has_deleted
+                                AND o.order_status NOT IN ('CAN','NOS')
+                                AND s.study_status NOT IN ('CAN','NOS')`);
+
+        if(study_dt){
+            whereQuery.push(generator('study_dt', study_dt));
+        }else if(customDt){
+            whereQuery.push(generator('study_dt', customDt));
+        }
+
+        if (cpt_code) {
+            whereQuery.push(`sc.cpt_code ILIKE '%${cpt_code}%'`);
+        }
+
+        if (display_description) {
+            whereQuery.push(`c.display_description ILIKE '%${display_description}%'`);
+        }
+
+        const sql = SQL`
+                        SELECT
+                            sc.id,
+                            sc.cpt_code_id,
+                            sc.cpt_code,
+                            c.display_description,
+                            s.accession_no,
+                            s.study_dt::text,
+                            s.facility_id
+                        FROM
+                            study_cpt sc
+                            INNER JOIN
+                                studies s ON sc.study_id = s.id
+                            INNER JOIN
+                                orders o ON s.order_id = o.id
+                            INNER JOIN
+                                cpt_codes c ON sc.cpt_code_id = c.id
+                            `;
+
+        if (whereQuery.length) {
+            sql.append(SQL` WHERE `)
+                .append(whereQuery.join(' AND '));
+        }
+
+        sql.append(SQL` ORDER BY  `)
+            .append(sortField)
+            .append(' ')
+            .append(sortOrder);
 
         return await query(sql);
     }

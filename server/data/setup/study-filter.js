@@ -112,7 +112,7 @@ module.exports = {
             whereQuery.push(` filter_order :: TEXT ILIKE '%${filter_order}%'`);
         }
 
-        whereQuery.push(` filter_type = '${filter_type}' AND user_id = ${userId}`);
+        whereQuery.push(` filter_type = '${filter_type}' AND (user_id = ${userId} OR is_global_filter)`);
 
         let get_all = SQL` SELECT
         id
@@ -123,6 +123,7 @@ module.exports = {
         ,display_as_tab
         ,is_global_filter
         ,display_in_ddl
+        ,user_id
         ,inactivated_dt IS NULL AS is_active
         ,COUNT(1) OVER (range unbounded preceding) AS total_records
         FROM  billing.grid_filters`;
