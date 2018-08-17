@@ -1486,6 +1486,7 @@ define(['jquery',
                             });
                         });
                         commonjs.validateControls();
+                        commonjs.isMaskValidate();
                         self.setFeeFields({}, true);
 
                         $('#ddlAdjustmentCode_fast').append($('<option/>', { value: '', text: 'Select' }));
