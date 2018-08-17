@@ -812,6 +812,7 @@ module.exports = {
     deleteInsuranceProvider: async (params) => {
 
         const {
+            is_current_responsible,
             payer_type,
             claim_id
         } = params;
@@ -831,8 +832,14 @@ module.exports = {
                     CASE ${payer_type}
                         WHEN 'tertiary_insurance' THEN NULL ELSE tertiary_patient_insurance_id
                     END,
-                payer_type = 'patient',
-                billing_method = 'patient_payment'
+                payer_type =
+                    CASE ${is_current_responsible}
+                        WHEN 'true' THEN 'patient' ELSE payer_type
+                    END,
+                billing_method =
+                    CASE ${is_current_responsible}
+                        WHEN 'true' THEN 'patient_payment' ELSE billing_method
+                    END
             WHERE id = ${claim_id}
             RETURNING id,xmin as claim_row_version `;
 
