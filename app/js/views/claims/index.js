@@ -2988,7 +2988,7 @@ define(['jquery',
             },
 
             convertToTimeZone: function (facility_id, date_data) {
-                return moment.tz(date_data, "YYYY-MM-DD HH:mm a", commonjs.getFacilityTimeZone(facility_id));
+                return commonjs.convertToFacilityTimeZone(facility_id, date_data)
             },
 
             validateFromAndToDate: function (objFromDate, objToDate) {
