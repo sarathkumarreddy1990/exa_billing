@@ -23,26 +23,26 @@ block content
                     a#aPayments.nav-link(href='#billing/payments/list') Payments
                 li.nav-item
                     a#aEob.nav-link(href='#billing/era/list') EOB
-                    
+
                 li.nav-item.dropdown
                     a#aReports.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Reports
                     .dropdown-menu
                         a.dropdown-item(href='#reports/r/aged-ar-summary', class='aAgedARSummary') Aged AR Summary
                         a.dropdown-item(href='#reports/r/aged-ar-details', class='aAgedARDetails') Aged AR Details
                         .dropdown-divider
-                        a.dropdown-item(href='#reports/r/charges', class='aCharges') Charges                        
+                        a.dropdown-item(href='#reports/r/charges', class='aCharges') Charges
                         a.dropdown-item(href='#reports/r/claim-activity', class='aClaimActivity') Claim Activity
                         a.dropdown-item(href='#reports/r/claim-inquiry', class='aClaimInquiry') Claim Inquiry
                         a.dropdown-item(href='#reports/r/claim-transaction', class='aClaimTransaction') Claim Transaction
                         a.dropdown-item(href='#reports/r/credit-balance-encounters', class='aCreditBalanceEncounters') Credit Balance Encounters
-                        a.dropdown-item(href='#reports/r/diagnosis-count', class='aDiagnosisCount') Diagnosis Count  
+                        a.dropdown-item(href='#reports/r/diagnosis-count', class='aDiagnosisCount') Diagnosis Count
                         .dropdown-divider
                         a.dropdown-item(href='#reports/r/insurance-vs-lop', class='aInsuranceLOP') Insurance VS LOP
                         a.dropdown-item(href='#reports/r/modality-summary', class='aModalitySummary') Modality Summary
                         a.dropdown-item(href='#reports/r/monthly-recap', class='aMonthlyRecap') Monthly Recap
                         a.dropdown-item(href='#reports/r/patient-statement', class='aPatientStatement') Patient Statement
                         a.dropdown-item(href='#reports/r/payer-mix', class='aPayerMix') Payer Mix
-                        a.dropdown-item(href='#reports/r/payment-report' class='aPaymentDetails') Payments  
+                        a.dropdown-item(href='#reports/r/payment-report' class='aPaymentDetails') Payments
                         a.dropdown-item(href='#reports/r/patients-by-insurance-company' class='aPatientsByInsCompany') Patients By Insurance Company
                         a.dropdown-item(href='#reports/r/payments-by-ins-company', class='aPaymentsByInsurance') Payments By Ins Company
                         a.dropdown-item(href='#reports/r/procedure-analysis-by-insurance', class='aProcedureAnlaysis') Procedure Analysis By Insurance
@@ -52,12 +52,12 @@ block content
                         a.dropdown-item(href='#reports/r/referring-provider-count', class='aRefProCount') Referring Provider Count
                         a.dropdown-item(href='#reports/r/referring-provider-summary', class='aRefProSummary') Referring Provider Summary
                         a.dropdown-item(href='#reports/r/transaction-summary', class='aTransactionSummary') Transaction Summary
-                    
+
                 li.nav-item.dropdown
                     a#aSetup.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Setup
                     .dropdown-menu
-                        a.dropdown-item(href='javascript:layout.refreshAppSettings(true);') Refresh Settings
-                            i.icon-ic-loop(title='Refresh settings', style="margin-left: 10px;") 
+                        a.dropdown-item(href='javascript:window.appLayout.refreshAppSettings(true);') Refresh Settings
+                            i.icon-ic-loop(title='Refresh settings', style="margin-left: 10px;")
                         .dropdown-divider
                         a.dropdown-item(href='#setup/adjustment_codes/list', class='aAdjustmentCodes') Adjustment Codes
                         a.dropdown-item(href='#setup/billing_codes/list' , class='aBillingCodes') Billing codes
