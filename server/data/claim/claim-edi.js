@@ -244,7 +244,7 @@ module.exports = {
 					WITH cte_billing_providers AS (
 					SELECT (Row_to_json(billingProvider1)) "billingProvider"
 												FROM   (
-														SELECT id,
+														SELECT id as "billingProviderID",
 															taxonomy_code as "taxonomyCode",
 															billing_providers.name as "lastName",
 															npi_no as "npiNo",
@@ -272,7 +272,7 @@ module.exports = {
 
 					SELECT (Row_to_json(billingProvider)) "payToProvider"
 												FROM   (
-														SELECT id,
+														SELECT id as "payToProviderID",
 															billing_providers.name as "lastName",
 															billing_providers.name as "firstName",
 															npi_no as "npiNo",
@@ -299,22 +299,24 @@ module.exports = {
 														( SELECT
 
 										(  CASE UPPER(description)
-											WHEN 'SELF' THEN 18
-											WHEN 'FATHER' THEN 33
-											WHEN 'MOTHER' THEN 32
-											WHEN 'SIBLING' THEN 32
-											WHEN 'GRANDPARENT' THEN 04
-											WHEN 'GREAT GRANDPARENT' THEN 04
-											WHEN 'UNKNOWN' THEN 21
-											WHEN 'SPOUSE' THEN 21
-											WHEN 'CHILD' THEN 19
-											WHEN 'BROTHER' THEN 23
-											WHEN 'SISTER' THEN 20
+											WHEN 'SELF' THEN '18'
+											WHEN 'FATHER' THEN '33'
+											WHEN 'MOTHER' THEN '32'
+											WHEN 'SIBLING' THEN '32'
+											WHEN 'GRANDPARENT' THEN '04'
+											WHEN 'GREAT GRANDPARENT' THEN '04'
+											WHEN 'UNKNOWN' THEN '21'
+											WHEN 'SPOUSE' THEN '21'
+											WHEN 'CHILD' THEN '19'
+											WHEN 'BROTHER' THEN '23'
+                                            WHEN 'SISTER' THEN '20'
+                                            WHEN 'OTHER RELATIONSHIP' THEN 'G8'
+                                            WHEN 'LIFE PARTNER' THEN '53'
 											END)
 										FROM  relationship_status WHERE  subscriber_relationship_id =relationship_status.id ) as  relationship,
 
 										policy_number  as "policyNo",
-										group_name as "planName",
+										patient_insurances.group_name as "planName",
 										group_number as "planType",
 										insurance_provider_details.claim_filing_indicator_code as "claimFilingCode",
 										subscriber_firstname as "firstName",
@@ -330,8 +332,8 @@ module.exports = {
 										assign_benefits_to_patient as "acceptAssignment",
 										subscriber_dob as "dob",
 										to_char(subscriber_dob, 'YYYYMMDD')  as "dobFormat",
-										(  CASE subscriber_gender 
-											WHEN 'Male' THEN 'M'						
+										(  CASE subscriber_gender
+											WHEN 'Male' THEN 'M'
 											WHEN 'Female' THEN 'F'
 											WHEN 'Unknown' THEN 'U'
 											WHEN 'Others' THEN 'O'
@@ -354,9 +356,9 @@ module.exports = {
 										) as payer)
 										,(
 											SELECT Json_agg(Row_to_json(patient)) "patient"
-																	FROM   (
-																				SELECT patients.id,
-																				last_name as "lastName",
+												FROM   (
+													SELECT patients.id as patient_id,
+															last_name as "lastName",
 															first_name as "firstName",
 															middle_name as "middleName",
 															suffix_name as "suffix",
@@ -380,19 +382,21 @@ module.exports = {
 																END) as gender,
 
 															( SELECT
-																(  CASE UPPER(description)
-																	WHEN 'SELF' THEN 18
-																	WHEN 'FATHER' THEN 33
-																	WHEN 'MOTHER' THEN 32
-																	WHEN 'SIBLING' THEN 32
-																	WHEN 'GRANDPARENT' THEN 04
-																	WHEN 'GREAT GRANDPARENT' THEN 04
-																	WHEN 'UNKNOWN' THEN 21
-																	WHEN 'SPOUSE' THEN 21
-																	WHEN 'CHILD' THEN 19
-																	WHEN 'BROTHER' THEN 23
-																	WHEN 'SISTER' THEN 20
-																END)
+                                                                (  CASE UPPER(description)
+                                                                    WHEN 'SELF' THEN '18'
+                                                                    WHEN 'FATHER' THEN '33'
+                                                                    WHEN 'MOTHER' THEN '32'
+                                                                    WHEN 'SIBLING' THEN '32'
+                                                                    WHEN 'GRANDPARENT' THEN '04'
+                                                                    WHEN 'GREAT GRANDPARENT' THEN '04'
+                                                                    WHEN 'UNKNOWN' THEN '21'
+                                                                    WHEN 'SPOUSE' THEN '21'
+                                                                    WHEN 'CHILD' THEN '19'
+                                                                    WHEN 'BROTHER' THEN '23'
+                                                                    WHEN 'SISTER' THEN '20'
+                                                                    WHEN 'OTHER RELATIONSHIP' THEN 'G8'
+                                                                    WHEN 'LIFE PARTNER' THEN '53'
+                                                                END)
 															FROM  relationship_status WHERE  subscriber_relationship_id =relationship_status.id ) as  relationship
 										)AS patient)
 							,( SELECT Json_agg(Row_to_json(claim)) "claim"
@@ -426,7 +430,8 @@ module.exports = {
 										to_char(hospitalization_to_date, 'YYYYMMDD')  as "hospitailizationFromDateFormat",
 										hospitalization_to_date::text as "hospitailizationToDate",
 										to_char(unable_to_work_to_date, 'YYYYMMDD')  as "hospitailizationToDateFormat",
-
+										group_info->'stateLicenseNo' as "stateLicenseNo",
+										group_info->'cliaNumber' as "cliaNumber",
 										(SELECT Json_agg(Row_to_json(payerpaidAmount)) "payerpaidAmount" FROM (
 										 SELECT primary_paid_total as "primaryPaidTotal"
 										 ,primary_adj_total as "primaryAdjTotal"
@@ -460,10 +465,10 @@ module.exports = {
 							,(SELECT Json_agg(Row_to_json(servicefacility)) "servicefacility"
 									FROM
 										(SELECT
-											group_name as "lastName",
-											group_name as "firstName",
-											group_name as "middileName",
-											group_name as "suffix",
+											provider_groups.group_name as "lastName",
+											provider_groups.group_name as "firstName",
+											provider_groups.group_name as "middleName",
+											provider_groups.group_name as "suffix",
 											'' as "prefix",
 											group_info->'npi_no' as "NPINO",
 											group_info->'taxonomy_code' as "taxonomyCode",
@@ -475,9 +480,9 @@ module.exports = {
 											group_info->'ZipPlus' as "zipPlus",
 											group_info->'Phone' as "phone",
 											group_info->'Email' as "email",
-											group_info->'stateLicenseNo' as "stateLicenseNo"
-											FROM provider_groups
-											WHERE  claims.ordering_facility_id = provider_groups.id)
+											group_info->'stateLicenseNo' as "stateLicenseNo",
+											group_info->'cliaNumber' as "cliaNumber"
+											)
 										as servicefacility)
 
 							,(SELECT Json_agg(Row_to_json(referringProvider)) "referringProvider"
@@ -507,23 +512,25 @@ module.exports = {
 												WHEN 'tertiary' THEN 'T' END) as "otherClaimResponsibleParty",
 									( SELECT
 
-										(  CASE UPPER(description) 
-																	WHEN 'SELF' THEN 18
-																	WHEN 'FATHER' THEN 33
-																	WHEN 'MOTHER' THEN 32
-																	WHEN 'SIBLING' THEN 32
-																	WHEN 'GRANDPARENT' THEN 04
-																	WHEN 'GREAT GRANDPARENT' THEN 04
-																	WHEN 'UNKNOWN' THEN 21
-																	WHEN 'SPOUSE' THEN 21
-																	WHEN 'CHILD' THEN 19
-																	WHEN 'BROTHER' THEN 23
-																	WHEN 'SISTER' THEN 20
-																END)  
+										(  CASE UPPER(description)
+                                                    WHEN 'SELF' THEN '18'
+                                                    WHEN 'FATHER' THEN '33'
+                                                    WHEN 'MOTHER' THEN '32'
+                                                    WHEN 'SIBLING' THEN '32'
+                                                    WHEN 'GRANDPARENT' THEN '04'
+                                                    WHEN 'GREAT GRANDPARENT' THEN '04'
+                                                    WHEN 'UNKNOWN' THEN '21'
+                                                    WHEN 'SPOUSE' THEN '21'
+                                                    WHEN 'CHILD' THEN '19'
+                                                    WHEN 'BROTHER' THEN '23'
+                                                    WHEN 'SISTER' THEN '20'
+                                                    WHEN 'OTHER RELATIONSHIP' THEN 'G8'
+                                                    WHEN 'LIFE PARTNER' THEN '53'
+										END)
 												FROM  relationship_status WHERE  subscriber_relationship_id =relationship_status.id ) as  relationship,
 
 											policy_number  as "policyNo",
-											group_name as "groupName",
+											patient_insurances.group_name as "groupName",
 											group_number as "groupNumber",
 											other_ins_details.claim_filing_indicator_code as "claimFilingCode",
 					medicare_insurance_type_code as "insuranceTypeCode",
@@ -537,10 +544,10 @@ module.exports = {
 					subscriber_city as "city",
 					subscriber_state as "state",
 					subscriber_zipcode as "zipCode",
-					assign_benefits_to_patient as "acceptAssignment",					
+					assign_benefits_to_patient as "acceptAssignment",
 					subscriber_dob as "dob",
 					to_char(subscriber_dob, 'YYYYMMDD')  as "dobFormat"
-					FROM   patient_insurances 
+					FROM   patient_insurances
 					LEFT JOIN billing.insurance_provider_details  other_ins_details ON other_ins_details.insurance_provider_id = patient_insurances.insurance_provider_id
 									WHERE  patient_insurances.id =
 						(  CASE payer_type
@@ -596,14 +603,14 @@ module.exports = {
 					pointer1 as "pointer1",
 					pointer2 as "pointer2",
 					pointer3 as "pointer3",
-					pointer4 as "pointer4"
-
+					pointer4 as "pointer4",
+					group_info->'cliaNumber' as "cliaNumber"
 					,(SELECT Json_agg(Row_to_json(lineAdjudication)) "lineAdjudication"
 									FROM
 					(SELECT
 					display_code as "cpt",
-					charges.id as "chargeID",	
-					(CASE coverage_level 
+					charges.id as "chargeID",
+					(CASE coverage_level
 						WHEN 'primary' THEN 'P'
 						WHEN 'secondary' THEN 'S'
 						WHEN 'tertiary' THEN 'T' END) as "claimResponsibleParty",
@@ -656,7 +663,7 @@ module.exports = {
 					)AS claim
 					)
 					) AS subscriber)
-					SELECT *
+					SELECT claims.id,*
 					FROM
 						cte_billing_providers,cte_pay_to_providers,cte_subscriber
 					)
@@ -677,6 +684,7 @@ module.exports = {
 									LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
 									LEFT JOIN relationship_status ON  subscriber_relationship_id =relationship_status.id
 									LEFT JOIN public.insurance_provider_payer_types  ON insurance_provider_payer_types.id = insurance_providers.provider_payer_type_id
+									LEFT JOIN provider_groups  ON  claims.ordering_facility_id = provider_groups.id
 
 							WHERE claims.id= ANY(${claimIds})
                             `;

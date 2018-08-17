@@ -83,7 +83,11 @@
             "next": "Next",
             "self": "Self",
             "serviceFacility": "Service Facility",
-            "adjustments": "Adjustments"
+            "adjustments": "Adjustments",
+            "SegmentID": "Segment ID",
+            "SegmentName": "Segment Name",
+            "fieldName": "Field Name",
+            "Message": "Message"
         },
         "payments": {
             "postingDate": "Posting Date",
@@ -177,6 +181,7 @@
             "lastName": "Last Name",
             "firstName": "First Name",
             "mrn": "MRN",
+            "patientMRN": "Patient MRN",
             "patientSearchResults": "Patient Search Results",
             "yourSearch": "Your Search",
             "didNotMatchAnyPatients": "Did not match any patient",

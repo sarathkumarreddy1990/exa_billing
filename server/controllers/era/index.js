@@ -348,6 +348,8 @@ module.exports = {
         payerDetails.screenName = params.screenName;
         payerDetails.moduleName = params.moduleName;
         payerDetails.logDescription = 'Payment created via ERA';
+        payerDetails.isERAPayment = true;
+        payerDetails.file_id = params.file_id;
 
         try {
 

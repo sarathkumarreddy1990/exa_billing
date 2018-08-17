@@ -367,8 +367,8 @@ define([
                     gridelementid: '#tblStudyFilterGrid',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
-                    colNames: ['', '', '', ''],
-                    i18nNames: ['', '', 'setup.studyFilters.filterName', 'setup.studyFilters.filterOrder'],
+                    colNames: ['', '', '', '', ''],
+                    i18nNames: ['', '', '', 'setup.studyFilters.filterName', 'setup.studyFilters.filterOrder'],
                     colModel: [
                         {
                             name: 'edit',
@@ -380,6 +380,9 @@ define([
                                 self.showForm(rowID);
                             },
                             formatter: function (e, model, data) {
+                                if (data.user_id != app.userID && data.is_global_filter) {
+                                    return "";
+                                }
                                 return "<i class='icon-ic-edit' title='Edit'></i>";
                             },
                             cellattr: function () {
@@ -406,6 +409,9 @@ define([
                             },
 
                             formatter: function (e, model, data) {
+                                if (data.user_id != app.userID && data.is_global_filter) {
+                                    return "";
+                                }
                                 return "<i class='icon-ic-delete' title='Click here to delete'></i>";
                             },
 
@@ -414,7 +420,10 @@ define([
                             }
                         },
                         {
-                            name: 'filter_name',
+                            name: 'is_global_filter', sortable: false, resizable: false, search: false, hidden: true
+                        },
+                        {
+                            name: 'filter_name'
                         },
                         {
                             name: 'filter_order',

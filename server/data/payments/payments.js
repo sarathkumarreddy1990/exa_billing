@@ -40,7 +40,10 @@ module.exports = {
             isGetTotal,
             from,
             patientID,
-            countFlag
+            countFlag,
+            default_facility_id,
+            notes,
+            account_no
         } = params;
 
         if (fromDate && toDate) {
@@ -72,7 +75,7 @@ module.exports = {
         }
 
         if (payer_name) {
-            whereQuery.push(`  (  CASE payer_type 
+            whereQuery.push(`  (  CASE payer_type
                 WHEN 'insurance' THEN insurance_providers.insurance_name
                 WHEN 'ordering_facility' THEN provider_groups.group_name
                 WHEN 'ordering_provider' THEN ref_provider.full_name
@@ -111,6 +114,18 @@ module.exports = {
             whereQuery.push(` patient_id = ${patientID} AND ( SELECT payment_status from billing.get_payment_totals(payments.id)) = 'unapplied' `);
         }
 
+        if (from === 'ris') {
+            whereQuery.push(` payer_type = 'patient'`);
+        }
+
+        if (notes) {
+            whereQuery.push(` billing.payments.notes ILIKE '%${notes}%'`);
+        }
+
+        if (account_no) {
+            whereQuery.push(` account_no ILIKE '%${account_no}%'`);
+        }
+
         let joinQuery = `
             INNER JOIN public.users ON users.id = payments.created_by
             LEFT JOIN public.patients ON patients.id = payments.patient_id
@@ -119,14 +134,22 @@ module.exports = {
             LEFT JOIN public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
             LEFT JOIN public.insurance_providers  ON insurance_providers.id = payments.insurance_provider_id
             LEFT JOIN LATERAL (select * from billing.get_payment_totals(payments.id)) payment_totals  ON true
-            LEFT JOIN public.facilities ON facilities.id = payments.facility_id
         `;
+
+        if (default_facility_id) {
+            joinQuery = joinQuery + `LEFT JOIN public.facilities ON facilities.id = coalesce(payments.facility_id,${default_facility_id})`;
+        }
+        else{
+            joinQuery = joinQuery + 'LEFT JOIN public.facilities ON facilities.id = coalesce(payments.facility_id)';
+        }
+
+
         let sql = '';
 
         if (isGetTotal) {
-            sql = SQL` 
+            sql = SQL`
                 SELECT SUM(amount) AS total_amount,
-                    SUM(payment_totals.payments_applied_total) AS total_applied       
+                    SUM(payment_totals.payments_applied_total) AS total_applied
                     ,SUM(payment_totals.adjustments_applied_total) AS total_adjustment
                 FROM billing.payments
             `;
@@ -143,7 +166,7 @@ module.exports = {
         else if (countFlag == 'true') {
             sql = SQL`  SELECT
                         COUNT(1) AS total_records
-                        FROM billing.payments   
+                        FROM billing.payments
                         `;
 
             sql.append(joinQuery);
@@ -158,6 +181,7 @@ module.exports = {
 
         sql = SQL`SELECT
                         payments.id
+                    , account_no
                     , payments.id as payment_id
                     , payments.facility_id
                     , patient_id
@@ -167,7 +191,7 @@ module.exports = {
                     , payment_reason_id
                     , amount MONEY
                     , alternate_payment_id AS display_id
-                    , (  CASE payer_type 
+                    , (  CASE payer_type
                             WHEN 'insurance' THEN insurance_providers.insurance_name
                             WHEN 'ordering_facility' THEN provider_groups.group_name
                             WHEN 'ordering_provider' THEN ref_provider.full_name
@@ -185,9 +209,9 @@ module.exports = {
                     , get_full_name(users.last_name, users.first_name) as user_full_name
                     , facilities.facility_name
                     , amount
-                    
+
                     , payment_totals.payment_balance_total AS available_balance
-                    , payment_totals.payments_applied_total AS applied       
+                    , payment_totals.payments_applied_total AS applied
                     , payment_totals.adjustments_applied_total AS adjustment_amount
                     , payment_totals.payment_status AS current_status
                 FROM billing.payments`;
@@ -257,7 +281,7 @@ module.exports = {
                         , facilities.facility_name
                         , amount
                         , (select payment_balance_total from billing.get_payment_totals(payments.id)) AS available_balance
-                        , (select payments_applied_total from billing.get_payment_totals(payments.id)) AS applied       
+                        , (select payments_applied_total from billing.get_payment_totals(payments.id)) AS applied
                         , (select adjustments_applied_total from billing.get_payment_totals(payments.id)) AS adjustment_amount
                         , (select payment_status from billing.get_payment_totals(payments.id)) AS current_status
                         , billing.payments.XMIN as payment_row_version
@@ -271,7 +295,7 @@ module.exports = {
                     LEFT JOIN public.provider_contacts ON provider_contacts.id = payments.provider_contact_id
                     LEFT JOIN public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
 
-                    WHERE 
+                    WHERE
                         payments.id = ${id}`;
 
         return await query(sql);
@@ -313,7 +337,7 @@ module.exports = {
             logDescription = `Created Payment with $${amount} Payment Id as a `;
         }
 
-        const sql = SQL`WITH insert_data as 
+        const sql = SQL`WITH insert_data as
                         ( INSERT INTO billing.payments
                             (   company_id
                                 , facility_id
@@ -343,7 +367,7 @@ module.exports = {
                                 , ${payment_reason_id}
                                 , ${amount}
                                 , timezone(public.get_facility_tz(${facility_id}), ${accounting_date}::TIMESTAMP)
-                                , ${user_id}                     
+                                , ${user_id}
                                 , timezone(get_facility_tz(${facility_id}), now()::timestamp)
                                 , ${invoice_no}
                                 , ${display_id}
@@ -370,16 +394,16 @@ module.exports = {
                                 , mode = ${payment_mode}
                                 , card_name = ${credit_card_name}
                                 , card_number = ${credit_card_number}
-                                WHERE 
+                                WHERE
                                 id = ${paymentId}
-                                AND NOT EXISTS(SELECT 1 FROM insert_data) 
+                                AND NOT EXISTS(SELECT 1 FROM insert_data)
                                 AND (SELECT (SELECT xmin as claim_row_version from billing.payments WHERE id = ${paymentId}) =  ${payment_row_version})
                                 RETURNING *,
                                 (
-                                    SELECT row_to_json(old_row) 
-                                    FROM   (SELECT * 
-                                            FROM   billing.payments 
-                                            WHERE  id = ${paymentId}) old_row 
+                                    SELECT row_to_json(old_row)
+                                    FROM   (SELECT *
+                                            FROM   billing.payments
+                                            WHERE  id = ${paymentId}) old_row
                                 ) old_values
                             ),
                             insert_audit_cte AS(
@@ -396,7 +420,7 @@ module.exports = {
                                       'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM insert_data) temp_row)
                                     )::jsonb
                                   , ${user_id}
-                                ) AS id 
+                                ) AS id
                                 FROM insert_data
                                 WHERE id IS NOT NULL
                             ),
@@ -407,21 +431,21 @@ module.exports = {
                                   , id
                                   , ${screenName}
                                   , ${moduleName}
-                                  , ${logDescription} || id 
+                                  , ${logDescription} || id
                                   , ${clientIp}
                                   , json_build_object(
                                       'old_values', COALESCE(old_values, '{}'),
                                       'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM payment_update) temp_row)
                                     )::jsonb
                                   , ${user_id}
-                                ) AS id 
+                                ) AS id
                                 FROM payment_update
                                 WHERE id IS NOT NULL
                             )
                             SELECT id from insert_data
-                            UNION 
+                            UNION
                             SELECT id from payment_update
-                            UNION 
+                            UNION
                             SELECT id from insert_audit_cte
                             UNION
                             SELECT id from update_audit_cte `;
@@ -435,7 +459,7 @@ module.exports = {
             payment_id,
             auditDetails } = params;
 
-        const sql = SQL` SELECT billing.purge_payment (${payment_id}, (${JSON.stringify(auditDetails)})::json) AS details`;
+        const sql = SQL` SELECT billing.purge_payment (${payment_id}, (${JSON.stringify(auditDetails)})::jsonb) AS details`;
 
         return await query(sql);
     },
@@ -451,7 +475,7 @@ module.exports = {
         logDescription = `Claim updated Id : ${params.claimId}`;
 
         const sql = SQL`WITH claim_comment_details AS(
-                                    SELECT 
+                                    SELECT
                                           claim_id
                                         , note
                                         , type
@@ -463,7 +487,7 @@ module.exports = {
                                         , created_by BIGINT)
                                     ),
                              insert_application AS(
-                                SELECT billing.create_payment_applications(${paymentId},${adjustmentId},${user_id},(${line_items})::jsonb,(${JSON.stringify(auditDetails)})::json) AS details
+                                SELECT billing.create_payment_applications(${paymentId},${adjustmentId},${user_id},(${line_items})::jsonb,(${JSON.stringify(auditDetails)})::jsonb) AS details
                              ),
                              update_claims AS(
                                     UPDATE billing.claims
@@ -474,10 +498,10 @@ module.exports = {
                                         id = ${params.claimId}
                                     RETURNING *,
                                     (
-                                        SELECT row_to_json(old_row) 
-                                        FROM   (SELECT * 
-                                            FROM   billing.claims 
-                                            WHERE  id = ${params.claimId}) old_row 
+                                        SELECT row_to_json(old_row)
+                                        FROM   (SELECT *
+                                            FROM   billing.claims
+                                            WHERE  id = ${params.claimId}) old_row
                                     ) old_values
                             ),
                              insert_calim_comments AS(
@@ -488,7 +512,7 @@ module.exports = {
                                     , is_internal
                                     , created_by
                                     , created_dt)
-                                    SELECT 
+                                    SELECT
                                       claim_id
                                     , note
                                     , type
@@ -512,7 +536,7 @@ module.exports = {
                                         'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_claims) temp_row)
                                     )::jsonb
                                     , ${user_id}
-                                ) AS id 
+                                ) AS id
                                 FROM update_claims
                                 WHERE id IS NOT NULL
                             ),
@@ -530,7 +554,7 @@ module.exports = {
                                         'new_values', (${params.claimCommentDetails})::text
                                     )::jsonb
                                     , ${user_id}
-                                ) AS id 
+                                ) AS id
                                 FROM insert_calim_comments
                                 WHERE id IS NOT NULL
                             ),
@@ -553,7 +577,7 @@ module.exports = {
         let logDescription = ` Payment application updated for claim id : ${params.claimId} For payment id : `;
 
         const sql = SQL`WITH update_application_details AS(
-                            SELECT 
+                            SELECT
                                 payment_application_id
                               , amount
                               , adjustment_id
@@ -568,7 +592,7 @@ module.exports = {
                             , parent_application_id BIGINT
                             , parent_applied_dt TIMESTAMPTZ)),
                         claim_comment_details AS(
-                                SELECT 
+                                SELECT
                                       claim_id
                                     , note
                                     , type
@@ -596,7 +620,7 @@ module.exports = {
                                   , parent_application_id BIGINT)
                                 ),
                         update_applications AS(
-                            UPDATE billing.payment_applications 
+                            UPDATE billing.payment_applications
                                 SET
                                     amount = uad.amount
                                   , adjustment_code_id = uad.adjustment_id
@@ -604,13 +628,13 @@ module.exports = {
                             WHERE id = uad.payment_application_id
                             RETURNING *,
                             (
-                                SELECT row_to_json(old_row) 
-                                FROM   (SELECT * 
-                                    FROM   billing.payment_applications 
-                                    WHERE  id = uad.payment_application_id) old_row 
+                                SELECT row_to_json(old_row)
+                                FROM   (SELECT *
+                                    FROM   billing.payment_applications
+                                    WHERE  id = uad.payment_application_id) old_row
                             ) old_value),
                         insert_applications AS(
-                            INSERT INTO billing.payment_applications( 
+                            INSERT INTO billing.payment_applications(
                                 payment_id,
                                 charge_id,
                                 amount_type,
@@ -618,8 +642,8 @@ module.exports = {
                                 adjustment_code_id,
                                 created_by,
                                 applied_dt
-                            ) 
-                            SELECT 
+                            )
+                            SELECT
                                   ${params.paymentId}
                                 , charge_id
                                 , 'adjustment'
@@ -640,10 +664,10 @@ module.exports = {
                                 id = ${params.claimId}
                             RETURNING *,
                             (
-                                SELECT row_to_json(old_row) 
-                                FROM   (SELECT * 
-                                    FROM   billing.claims 
-                                    WHERE  id = ${params.claimId}) old_row 
+                                SELECT row_to_json(old_row)
+                                FROM   (SELECT *
+                                    FROM   billing.claims
+                                    WHERE  id = ${params.claimId}) old_row
                             ) old_value),
                         update_claim_comments AS(
                             INSERT INTO billing.claim_comments
@@ -653,7 +677,7 @@ module.exports = {
                             , is_internal
                             , created_by
                             , created_dt)
-                            SELECT 
+                            SELECT
                               claim_id
                             , note
                             , type
@@ -672,13 +696,13 @@ module.exports = {
                                           , cas_reason_code_id = cad.reason_code_id
                                           , amount = cad.amount
                                     FROM cas_application_details cad
-                                    WHERE bcpad.id = cad.cas_id 
+                                    WHERE bcpad.id = cad.cas_id
                                     RETURNING *,
                                     (
-                                        SELECT row_to_json(old_row) 
-                                        FROM   (SELECT * 
-                                            FROM   billing.cas_payment_application_details 
-                                            WHERE  id = cad.cas_id) old_row 
+                                        SELECT row_to_json(old_row)
+                                        FROM   (SELECT *
+                                            FROM   billing.cas_payment_application_details
+                                            WHERE  id = cad.cas_id) old_row
                                     ) old_values
                                 ),
                         insert_cas_applications AS (
@@ -687,10 +711,10 @@ module.exports = {
                                     payment_application_id
                                   , cas_group_code_id
                                   , cas_reason_code_id
-                                  , amount 
+                                  , amount
                                 )
-                                SELECT 
-                                    billing.get_cas_application_id(cas.parent_application_id) 
+                                SELECT
+                                    billing.get_cas_application_id(cas.parent_application_id)
                                   , cas.group_code_id
                                   , cas.reason_code_id
                                   , cas.amount
@@ -717,7 +741,7 @@ module.exports = {
                                         'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_applications limit 1) temp_row)
                                     )::jsonb
                                     , ${params.userId}
-                                ) AS id 
+                                ) AS id
                                 FROM update_applications
                                 WHERE id IS NOT NULL
                             ),
@@ -735,7 +759,7 @@ module.exports = {
                                         'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_claim_details) temp_row)
                                     )::jsonb
                                     , ${params.userId}
-                                ) AS id 
+                                ) AS id
                                 FROM update_claim_details
                                 WHERE id IS NOT NULL
                             ),
@@ -753,7 +777,7 @@ module.exports = {
                                         'new_values', (${params.claimCommentDetails})::text
                                     )::jsonb
                                     , ${params.userId}
-                                ) AS id 
+                                ) AS id
                                 FROM update_claim_comments
                                 WHERE id IS NOT NULL
                             ),
@@ -771,7 +795,7 @@ module.exports = {
                                         'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM insert_cas_applications limit 1) temp_row)
                                     )::jsonb
                                     , ${params.userId}
-                                ) AS id 
+                                ) AS id
                                 FROM insert_cas_applications
                                 WHERE id IS NOT NULL
                             ),
@@ -789,7 +813,7 @@ module.exports = {
                                         'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_cas_application limit 1) temp_row)
                                     )::jsonb
                                     , ${params.userId}
-                                ) AS id 
+                                ) AS id
                                 FROM update_cas_application
                                 WHERE id IS NOT NULL
                             )
@@ -811,11 +835,11 @@ module.exports = {
     getAppliedAmount: async function (paymentId) {
         return await query(
             `
-            WITH 
+            WITH
                 applied AS (
-                    SELECT(SELECT 
-                        payments_applied_total 
-                    FROM 
+                    SELECT(SELECT
+                        payments_applied_total
+                    FROM
                         billing.get_payment_totals(${paymentId}))
                     AS applied
                 ),
@@ -841,9 +865,9 @@ module.exports = {
 
         let whereQuery = payer_type == 'patient' ? ` WHERE bc.patient_id = ${payer_id} ` : ` WHERE bc.invoice_no = ${invoice_no}::text `;
 
-        const sql = SQL`WITH 
+        const sql = SQL`WITH
                     claims_details AS (
-                        SELECT 
+                        SELECT
                             bc.id AS claim_id,
                             bc.patient_id,
                             bc.invoice_no,
@@ -852,22 +876,22 @@ module.exports = {
 
         sql.append(whereQuery);
 
-        sql.append(SQL` AND (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) > 0::money 
+        sql.append(SQL` AND (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) > 0::money
                     )
                     , charges AS (
                         SELECT
                             c.id as charge_id
                             ,sum(c.bill_fee * c.units)       AS charges_bill_fee_total
                             ,(
-                                SELECT   
-                                    ( coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)  +  
-			                          coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment'),0::money) 
+                                SELECT
+                                    ( coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)  +
+			                          coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment'),0::money)
 			                        ) as charge_applied_total
                                 FROM
-                                   billing.charges 
+                                   billing.charges
                                    INNER JOIN billing.payment_applications AS pa ON pa.charge_id = charges.id
                                    INNER JOIN billing.payments AS p ON pa.payment_id = p.id
-                                WHERE charges.id = c.id 
+                                WHERE charges.id = c.id
                             )
                           , cd.claim_id
                           , cd.invoice_no
@@ -878,15 +902,15 @@ module.exports = {
                             billing.charges AS c
                             INNER JOIN claims_details AS cd ON cd.claim_id = c.claim_id
                             INNER JOIN public.cpt_codes AS pc ON pc.id = c.cpt_id
-                            GROUP BY  
-                            c.id 
+                            GROUP BY
+                            c.id
                             , cd.claim_id
                             , cd.patient_id
                             , cd.invoice_no
                             , cd.claim_dt
                             , pc.display_code
                     )
-                SELECT 
+                SELECT
                     charges.* ,
                     ( charges_bill_fee_total - COALESCE(charge_applied_total,'0') )::numeric AS balance ,
                     ( SELECT payment_balance_total::numeric FROM billing.get_payment_totals(${paymentId}) ),
@@ -896,9 +920,9 @@ module.exports = {
 		            pp.middle_name AS patient_mname,
 		            pp.last_name AS patient_lname,
 		            pp.suffix_name AS patient_suffix
-                FROM 
+                FROM
                     charges
-                INNER JOIN public.patients pp on pp.id = charges.patient_id 
+                INNER JOIN public.patients pp on pp.id = charges.patient_id
                 ORDER BY claim_id `);
 
         return await query(sql);
@@ -916,34 +940,102 @@ module.exports = {
         let whereQuery = payer_type == 'patient' ? ` WHERE bc.patient_id = ${payer_id} ` : ` WHERE bc.invoice_no = ${invoice_no}::text `;
 
         const sql = SQL`
-            SELECT 
+            SELECT
                 bch.id as charge_id,
                 bc.id as claim_id,
                 (sum(bch.bill_fee * bch.units) - (
-                    SELECT   
-                        ( coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)  +  
-                          coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment'),0::money) 
+                    SELECT
+                        ( coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)  +
+                          coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment'),0::money)
                         ) as charge_applied_total
                     FROM
-                        billing.charges 
+                        billing.charges
                         INNER JOIN billing.payment_applications AS pa ON pa.charge_id = charges.id
                         INNER JOIN billing.payments AS p ON pa.payment_id = p.id
-                    WHERE charges.id = bch.id 
+                    WHERE charges.id = bch.id
                     ))::numeric  AS balance
                 ,(SELECT payment_balance_total::numeric FROM billing.get_payment_totals(${paymentId}))
                 ,(SELECT count(1) FROM billing.claims bc `; // WHERE ${whereQuery} ) AS total_claims
         sql.append(whereQuery);
 
         sql.append(SQL` ) AS total_claims
-            FROM 
+            FROM
                 billing.claims bc
-            INNER JOIN public.patients pp on pp.id = bc.patient_id 
+            INNER JOIN public.patients pp on pp.id = bc.patient_id
             INNER JOIN billing.charges bch on bch.claim_id = bc.id
             INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id `);
 
         sql.append(whereQuery);
 
         sql.append(SQL` AND (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) > 0::money GROUP BY bch.id,bc.id ORDER BY bc.id `);
+
+        return await query(sql);
+    },
+
+    getStudyCpt:async function (params) {
+        let {
+            payerId,
+            cpt_code,
+            display_description,
+            sortField,
+            sortOrder,
+            study_dt,
+            customDt
+        } = params;
+
+        let whereQuery=[];
+
+        params.sortOrder = params.sortOrder || ' ASC';
+
+        whereQuery.push(` o.patient_id = ${payerId}
+                                AND NOT sc.has_deleted
+                                AND NOT o.has_deleted
+                                AND NOT c.has_deleted
+                                AND o.order_status NOT IN ('CAN','NOS')
+                                AND s.study_status NOT IN ('CAN','NOS')`);
+
+        if(study_dt){
+            whereQuery.push(generator('study_dt', study_dt));
+        }else if(customDt){
+            whereQuery.push(generator('study_dt', customDt));
+        }
+
+        if (cpt_code) {
+            whereQuery.push(`sc.cpt_code ILIKE '%${cpt_code}%'`);
+        }
+
+        if (display_description) {
+            whereQuery.push(`c.display_description ILIKE '%${display_description}%'`);
+        }
+
+        const sql = SQL`
+                        SELECT
+                            sc.id,
+                            sc.cpt_code_id,
+                            sc.cpt_code,
+                            c.display_description,
+                            s.accession_no,
+                            s.study_dt::text,
+                            s.facility_id
+                        FROM
+                            study_cpt sc
+                            INNER JOIN
+                                studies s ON sc.study_id = s.id
+                            INNER JOIN
+                                orders o ON s.order_id = o.id
+                            INNER JOIN
+                                cpt_codes c ON sc.cpt_code_id = c.id
+                            `;
+
+        if (whereQuery.length) {
+            sql.append(SQL` WHERE `)
+                .append(whereQuery.join(' AND '));
+        }
+
+        sql.append(SQL` ORDER BY  `)
+            .append(sortField)
+            .append(' ')
+            .append(sortOrder);
 
         return await query(sql);
     }

@@ -11,10 +11,11 @@ define(['jquery',
     'models/claim-filters',
     'grid',
     'shared/fields',
-    'text!templates/claims/ediResult.html',
+    'text!templates/claims/edi-result.html',
     'text!templates/claims/ohipResult.html',
     'text!templates/claims/claim-validation.html',
-    'text!templates/claims/invoice-claim.html'
+    'text!templates/claims/invoice-claim.html',
+    'text!templates/claims/edi-warning.html'
 ],
     function ($,
               Immutable,
@@ -32,7 +33,8 @@ define(['jquery',
               ediResultHTML,
               ohipResultHTML,
               claimValidation,
-              invoiceClaim) {
+              invoiceClaim,
+              ediWarning) {
 
         var paperClaim = new PaperClaim();
         var paperClaimNested = new PaperClaim(true);
@@ -262,6 +264,7 @@ define(['jquery',
                 self.indexTemplate = _.template(IndexHTML);
                 self.claimValidation = _.template(claimValidation);
                 self.invoiceClaim = _.template(invoiceClaim);
+                self.ediWarning = _.template(ediWarning);
                 self.$el.html(self.indexTemplate({
                     gadget: '',
                     customStudyStatus: []
@@ -394,9 +397,9 @@ define(['jquery',
                 $('#chkStudyHeader_' + filterID).prop('checked', true);
                 commonjs.setFilter(filterID, filter);
             },
-            createClaims:function (e) {
-                var self=this;
-                var billingMethodFormat ='';
+            createClaims: function (e) {
+                var self = this;
+                var billingMethodFormat = '';
                 if (e.target) {
                     if ($(e.target).closest('li') && $(e.target).closest('li').hasClass('disabled')) {
                         return false;
@@ -405,17 +408,17 @@ define(['jquery',
                     billingMethodFormat = $(e.target).attr('data-method');
                     if (claimFormat) {
 
-                        if(billingMethodFormat=='paper_claim'){
-                            localStorage.setItem('default_paperclaim_format',  $(e.target).attr('data-format'));
-                            localStorage.setItem('default_paperclaim',  $(e.target).attr('data-value'));
-                            $("#btnClaimFormat").attr('data-format',  $(e.target).attr('data-format'));
+                        if (billingMethodFormat == 'paper_claim') {
+                            localStorage.setItem('default_paperclaim_format', $(e.target).attr('data-format'));
+                            localStorage.setItem('default_paperclaim', $(e.target).attr('data-value'));
+                            $("#btnClaimFormat").attr('data-format', $(e.target).attr('data-format'));
 
                         }
 
-                        if(billingMethodFormat=='direct_billing'){
-                            localStorage.setItem('default_directbilling_format',  $(e.target).attr('data-format'));
-                            localStorage.setItem('default_directbilling',  $(e.target).attr('data-value'));
-                            $("#btnClaimFormat").attr('data-format',  $(e.target).attr('data-format'));
+                        if (billingMethodFormat == 'direct_billing') {
+                            localStorage.setItem('default_directbilling_format', $(e.target).attr('data-format'));
+                            localStorage.setItem('default_directbilling', $(e.target).attr('data-value'));
+                            $("#btnClaimFormat").attr('data-format', $(e.target).attr('data-format'));
                         }
 
 
@@ -459,7 +462,7 @@ define(['jquery',
 
                     var clearingHouse = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'clearing_house');
                     if (existingClearingHouse == '') existingClearingHouse = clearingHouse;
-                    if (existingClearingHouse != clearingHouse && billingMethod=='electronic_billing') {
+                    if (existingClearingHouse != clearingHouse && billingMethod == 'electronic_billing') {
                         commonjs.showWarning('Please select claims with same type of clearing house Claims ');
                         return false;
                     } else {
@@ -538,11 +541,11 @@ define(['jquery',
                     }
                 }
 
-                if(existingBillingMethod === 'patient_payment') {
-                        paperClaim.print('patient_invoice', claimIds, {
-                            sortBy: sortBy
-                        });
-                        return;
+                if (existingBillingMethod === 'patient_payment') {
+                    paperClaim.print('patient_invoice', claimIds, {
+                        sortBy: sortBy
+                    });
+                    return;
                 }
 
                 self.ediResultTemplate = _.template(ediResultHTML);
@@ -554,17 +557,17 @@ define(['jquery',
                     url: "/exa_modules/billing/claim_workbench/create_claim",
                     type: "POST",
                     data: {
-                        claimIds:claimIds.toString()
+                        claimIds: claimIds.toString()
                     },
                     success: function (data, textStatus, jqXHR) {
                         commonjs.hideLoading();
-                        data.err=data.err||data.message;
+                        data.err = data.err || data.message;
                         if (data && data.err) {
                             commonjs.showWarning(data.err);
                         }
 
                         if (data && data.ediText && data.ediText.length) {
-                            var str='';
+                            var str = '';
                             $.each(data.ediText.split('~'), function (index, val) {
                                 if (val != '') {
                                     if (index == 0 || index == 1) {
@@ -574,19 +577,58 @@ define(['jquery',
                                         str += "<tr><td style='width: 20px; padding: 5px;'>" + (index - 1) + "</td><td style='padding: 5px; border-right: none;'>" + val + "</td></tr>";
                                     }
                                 }
-                            })
-
+                            });
                             commonjs.showDialog({
                                 header: 'EDI Claim',
                                 width: '95%',
                                 height: '75%',
                                 html: self.ediResultTemplate()
                             });
+
                             $('#tblEDIResp').append(str);
-                            $('#modal_div_container .downloadEDI').on('click', function() {
-                                self.downloadClaimSubmission(data.ediText, 'edi.txt', 'utf-8');
+
+                            if (data.validations && data.validations.length) {
+                                $('#divEDIErrorMsgs').empty();
+
+                                var result = _.groupBy(data.validations, "dataID");
+
+                                $('#divEDIErrorMsgs').append(self.ediWarning({ result: result }));
+                                commonjs.initializeScreen({ buttons: [] });
+                            } else {
+                                $('#liErrorMessages').hide();
+                                $("#btnClaimsRefresh").click();
+                            }
+
+                            $('#tabsEDIResponses li').click(function (e) {
+                                if (e.target.id == 'aEDIResp') {
+                                    $('#liEDI').addClass('active');
+                                    $('#liErrorMessages').removeClass('active');
+                                    $('#divEDIResult').show();
+                                    $('#divErrorMsgs').hide();
+                                }
+                                else {
+                                    $('#liEDI,#aEDIResp').removeClass('active');
+                                    $('#liErrorMessages').addClass('active');
+                                    $('#divEDIResult').hide();
+                                    $('#divErrorMsgs').show()
+                                }
                             });
-                            $("#btnClaimsRefresh").click();
+
+                            $('#modal_div_container .downloadEDI').on('click', function () {
+                                var element = document.createElement('a');
+                                element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data.ediText));
+                                element.setAttribute('download', 'edi.txt');
+
+                                element.style.display = 'none';
+                                document.body.appendChild(element);
+
+                                element.click();
+
+                                document.body.removeChild(element);
+                                $('#modal_div_container .downloadEDI').on('click', function () {
+                                    self.downloadClaimSubmission(data.ediText, 'edi.txt', 'utf-8');
+                                });
+                            });
                         } else if (data && data.ohipText && data.ohipText.length) {
                             var str = data.ohipText.replace(/\r/g, '<br/>').replace('\x1A', '');
 
@@ -597,7 +639,7 @@ define(['jquery',
                                 html: self.ohipResultTemplate()
                             });
                             $('#divOHIPResp').append(str);
-                            $('#modal_div_container .downloadOHIP').on('click', function() {
+                            $('#modal_div_container .downloadOHIP').on('click', function () {
                                 self.downloadClaimSubmission(data.ohipText, data.ohipFilename, 'acsii');
                             });
                         }

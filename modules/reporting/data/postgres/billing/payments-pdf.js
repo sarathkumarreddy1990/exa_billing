@@ -46,34 +46,35 @@ LEFT JOIN public.provider_groups ppg ON ppg.id = bp.provider_group_id
 LEFT JOIN public.provider_contacts ppc ON ppc.id = bp.provider_contact_id
 LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
 LEFT JOIN public.facilities pf ON pf.id = bp.facility_id
+<% if (from === 'ris') { %> WHERE  bp.payer_type = 'patient' <% } %>
 order by payment_id DESC
-LIMIT <%=  pageSize %> 
+LIMIT <%=  pageSize %>
   )
   SELECT
     facility_name AS "Facility Name",
-    payment_id AS "Payment ID",    
+    payment_id AS "Payment ID",
     patient_full_name AS "Patient Name",
-    account_no AS "MRN #", 
-     notes AS "Note",    
+    account_no AS "MRN #",
+     notes AS "Note",
     cheque_card_number AS "CHK/CC#",
     payment_date AS "Payment Date",
     accounting_dt  AS "Accounting Date",
-    COALESCE(status, '~~ TOTAL ~~') AS "Payment Status" ,  
+    COALESCE(status, '~~ TOTAL ~~') AS "Payment Status" ,
     SUM(amount) AS "Payment"
   FROM
         paymentsPDF
-     WHERE  1=1      
-    <% if (paymentStatus) { %>AND <% print(paymentStatus); } %>    
-      
-         
+     WHERE  1=1
+    <% if (paymentStatus) { %>AND <% print(paymentStatus); } %>
+
+
   GROUP BY
      grouping sets(
         ( facility_name),
             (
               facility_name,
-              payment_id, 
-              patient_full_name, 
-              account_no,              
+              payment_id,
+              patient_full_name,
+              account_no,
               cheque_card_number,
               payment_date,
               accounting_dt ,
@@ -85,21 +86,22 @@ LIMIT <%=  pageSize %>
 
            SELECT
            NULL AS "Facility Name",
-           NULL AS "Payment ID",    
+           NULL AS "Payment ID",
            NULL AS "Patient Name",
-           NULL AS "MRN #", 
-           NULL AS "Note",    
+           NULL AS "MRN #",
+           NULL AS "Note",
            NULL AS "CHK/CC#",
            NULL AS "Payment Date",
-           NULL AS "Accounting Date",   
-           'GRAND TOTAL'::TEXT AS "Payment Status" , 
+           NULL AS "Accounting Date",
+           'GRAND TOTAL'::TEXT AS "Payment Status" ,
          SUM(amount) AS "Payment"
          FROM
                paymentsPDF
-               WHERE  1=1      
-               <% if (paymentStatus) { %>AND <% print(paymentStatus); } %> 
-       
-        
+               WHERE  1=1
+               <% if (paymentStatus) { %>AND <% print(paymentStatus); } %>
+
+
+
 
 `);
 
@@ -179,10 +181,11 @@ const api = {
         const filters = {
           paymentDate : null,
           paymentStatus : null,
-          pageSize : null
-        };    
-        
-        
+          pageSize : null,
+          from: null
+        };
+
+
         //  scheduled_dt
         // if (reportParams.fromDate === reportParams.toDate) {
         //     params.push(reportParams.fromDate);
@@ -197,7 +200,7 @@ const api = {
         if (reportParams.paymentStatus) {
             params.push(reportParams.paymentStatus);
             filters.paymentStatus = queryBuilder.whereIn('status', [params.length]);
-        }       
+        }
 
         if (reportParams.filterFlag === 'paymentsExportPDFFlag') {
             if (config.get('paymentsExportRecordsCount')) {
@@ -206,8 +209,9 @@ const api = {
                 filters.pageSize = 1000;
             }
          }
-      
-        
+
+         filters.from = reportParams.from;
+
         return {
             queryParams: params,
             templateData: filters

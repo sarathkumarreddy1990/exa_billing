@@ -94,7 +94,8 @@ module.exports = {
 
             let ediRequestJson = {
                 'config': {
-                    'ALLOW_EMPTY_SEGMENT': true
+                    'ALLOW_EMPTY_SEGMENT': true,
+                    'VALIDATION_SET': 'Default'
                 },
                 header: result.rows[0].header,
                 'bht': {
@@ -112,6 +113,7 @@ module.exports = {
                 WHERE
                     id = 1
             `, [])).rows[0].country_alpha_3_code;
+
             if (country_alpha_3_code === 'can') {
 
                 const enc = new OHIPEncoderV03();
@@ -119,6 +121,7 @@ module.exports = {
                 const mappedData = queryAdapter.getMappedData();
 
                 ediResponse = '';
+
                 mappedData.forEach((batch) => {
 
                     const context = {
@@ -130,12 +133,15 @@ module.exports = {
 
                     // for each claim
                     let claimStr = enc.encode(batch, context);
+
                     ediResponse = {
                         ohipText: claimStr,
                         ohipFilename: filename
                     };
+
                     const fullOHIPFilepath = path.join('ohip-out', filename);
-                    fs.writeFile(fullOHIPFilepath, claimStr, constants.encoding, (err, response) => {
+
+                    fs.writeFile(fullOHIPFilepath, claimStr, constants.encoding, (err) => {
                         if (err) {
                             logger.error('While generating OHIP Claim Submission file', err);
                         }
@@ -147,13 +153,17 @@ module.exports = {
             }
             else {
 
-    	        ediResponse = await ediConnect.generateEdi(result.rows[0].header.edi_template_name, ediRequestJson);
-    	        params.claim_status = 'PP';
-    	        params.type = 'auto';
-    	        params.success_claimID = params.claimIds.split(',');
-    	        params.isClaim = true;
-    	        params.claimDetails = JSON.stringify(claimDetails);
-    	        await data.changeClaimStatus(params);
+                ediResponse = await ediConnect.generateEdi(result.rows[0].header.edi_template_name, ediRequestJson);
+
+                if (!ediResponse.errMsg && (ediResponse.validations && ediResponse.validations.length == 0)) {
+                    params.claim_status = 'PP';
+                    params.type = 'auto';
+                    params.success_claimID = params.claimIds.split(',');
+                    params.isClaim = true;
+                    params.claimDetails = JSON.stringify(claimDetails);
+                    await data.changeClaimStatus(params);
+                }
+
             }
         } else {
             ediResponse = result;

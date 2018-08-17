@@ -666,6 +666,7 @@ define(['jquery',
                     self.bindEditClaimInsuranceDetails(claim_data);
                     var responsibleIndex = _.find(self.responsible_list, function (item) { return item.payer_type_name == claim_data.payer_type; });
                     $('#ddlResponsible').val(responsibleIndex.payer_type);
+                    $('#ddlResponsible').data('current-payer',claim_data.payer_type);
                     $('#ddlClaimStatus').val(claim_data.claim_status_id || '');
                     $('#ddlFrequencyCode').val(claim_data.frequency || '')
                     $('#ddlPOSType').val(claim_data.place_of_service_id || '');
@@ -924,7 +925,7 @@ define(['jquery',
                 });
 
                 $("#btnResetPriInsurance, #btnResetSecInsurance, #btnResetTerInsurance").off().click(function (e) {
-                    self.resetInsurances(e);
+                   self.insuranceUpdate(e);
                 });
 
                 $("#btnValidateClaim").off().click(function (e) {
@@ -2232,7 +2233,8 @@ define(['jquery',
                         payer_type = 'PIP_P';
                         coverage_level = 'Primary Insurance';
                         // it's remove the existing selected insurances
-                        $('#ddlExistPriIns').val(0);
+                        $('#ddlExistPriIns').val('');
+                        self.primaryPatientInsuranceId = null;
                         self.updateInsAddress('Pri', res);
                         self.is_primary_available = true;
                         if($('#ddlPriInsurance').val() !='') {
@@ -2246,7 +2248,8 @@ define(['jquery',
                         payer_type = 'PIP_S';
                         coverage_level = 'Secondary Insurance';
                         // it's remove the existing selected insurances
-                        $('#ddlExistSecIns').val(0);
+                        $('#ddlExistSecIns').val('');
+                        self.secondaryPatientInsuranceId = null;
                         self.updateInsAddress('Sec', res);
                         self.is_secondary_available = true;
                         if($('#ddlSecInsurance').val() !='') {
@@ -2260,7 +2263,8 @@ define(['jquery',
                         payer_type = 'PIP_T';
                         coverage_level = 'Tertiary Insurance';
                         // it's remove the existing selected insurances
-                        $('#ddlExistTerIns').val(0);
+                        $('#ddlExistTerIns').val('');
+                        self.tertiaryPatientInsuranceId = null;
                         self.updateInsAddress('Ter', res);
                         self.is_tertiary_available = true;
                         if($('#ddlTerInsurance').val() !='') {
@@ -2383,6 +2387,7 @@ define(['jquery',
                                 billing_method: result.billing_method
                             });
                             self.is_primary_available = true;
+                            self.priClaimInsID = null;
                             break;
 
                         case 'secondary':
@@ -2399,6 +2404,7 @@ define(['jquery',
                                 billing_method: result.billing_method
                             });
                             self.is_secondary_available = true;
+                            self.secClaimInsID = null;
                             break;
 
                         case 'tertiary':
@@ -2415,6 +2421,7 @@ define(['jquery',
                                 billing_method: result.billing_method
                             });
                             self.is_tertiary_available = true;
+                            self.terClaimInsID = null;
                             break;
                     }
 
@@ -2478,8 +2485,8 @@ define(['jquery',
                 else
                     billingMethod = 'direct_billing';
                 var primary_insurance_details = {
-                    claim_patient_insurance_id: self.primaryPatientInsuranceId || null,
-                    claim_insurance_id: self.priClaimInsID ? parseInt(self.priClaimInsID) : null,
+                    claim_patient_insurance_id: parseInt(self.primaryPatientInsuranceId) || null,
+                    claim_insurance_id: parseInt(self.priClaimInsID) || null,
                     patient_id: self.cur_patient_id || null,
                     insurance_provider_id: self.priInsID ? parseInt(self.priInsID) : null,
                     subscriber_relationship_id: $('#ddlPriRelationShip option:selected').val() != '' ? parseInt($('#ddlPriRelationShip option:selected').val()) : null,
@@ -2501,11 +2508,12 @@ define(['jquery',
                     medicare_insurance_type_code: null,
                     valid_from_date: $('#txtPriStartDate').val() != '' ? $('#txtPriStartDate').val() : null,
                     valid_to_date: $('#txtPriExpDate').val() != '' ? $('#txtPriExpDate').val() :null,
-                    is_deleted: self.priClaimInsID && self.priInsID == '' ? true : false
+                    is_deleted: self.priClaimInsID && self.priInsID == '' ? true : false,
+                    is_new: !self.priClaimInsID ? !(self.primaryPatientInsuranceId) : false
                 },
                 secondary_insurance_details = {
-                    claim_patient_insurance_id: self.secondaryPatientInsuranceId || null,
-                    claim_insurance_id: self.secClaimInsID ? parseInt(self.secClaimInsID) : null,
+                    claim_patient_insurance_id: parseInt(self.secondaryPatientInsuranceId) || null,
+                    claim_insurance_id: parseInt(self.secClaimInsID) || null,
                     patient_id: self.cur_patient_id || null,
                     insurance_provider_id: self.secInsID ? parseInt(self.secInsID) : null,
                     subscriber_relationship_id: $('#ddlSecRelationShip option:selected').val() != '' ? parseInt($('#ddlSecRelationShip option:selected').val()) : null,
@@ -2527,11 +2535,12 @@ define(['jquery',
                     medicare_insurance_type_code: $('#selectMedicalPayer option:selected').val() != '' ? parseInt($('#selectMedicalPayer option:selected').val()) : null,
                     valid_from_date: $('#txtSecStartDate').val() != '' ? $('#txtSecStartDate').val() : null,
                     valid_to_date: $('#txtSecExpDate').val() != '' ? $('#txtSecExpDate').val() : null,
-                    is_deleted: self.secClaimInsID && self.secInsID == '' ? true : false
+                    is_deleted: self.secClaimInsID && self.secInsID == '' ? true : false,
+                    is_new: !self.secClaimInsID ? !(self.secondaryPatientInsuranceId) : false
                 },
                 teritiary_insurance_details = {
-                    claim_patient_insurance_id: self.tertiaryPatientInsuranceId || null,
-                    claim_insurance_id: self.terClaimInsID ? parseInt(self.terClaimInsID) : null,
+                    claim_patient_insurance_id: parseInt(self.tertiaryPatientInsuranceId) || null,
+                    claim_insurance_id: parseInt(self.terClaimInsID) || null,
                     patient_id: self.cur_patient_id || null,
                     insurance_provider_id: self.terInsID ? parseInt(self.terInsID) : null,
                     coverage_level: 'tertiary',
@@ -2553,7 +2562,8 @@ define(['jquery',
                     medicare_insurance_type_code: null,
                     valid_from_date: $('#txtTerStartDate').val() != '' ? $('#txtTerStartDate').val() : null,
                     valid_to_date: $('#txtTerExpDate').val() != '' ? $('#txtTerExpDate').val() : null,
-                    is_deleted: self.terClaimInsID && self.terInsID == '' ? true : false
+                    is_deleted: self.terClaimInsID && self.terInsID == '' ? true : false,
+                    is_new: !self.terClaimInsID ? !(self.tertiaryPatientInsuranceId) : false
                 }
                 if (self.is_primary_available || self.priClaimInsID)
                     claim_model.insurances.push(primary_insurance_details);
@@ -2593,9 +2603,9 @@ define(['jquery',
                     is_employed: $('#chkEmployment').is(':checked'),
                     service_by_outside_lab: $('#chkOutSideLab').is(':checked'),
                     claim_status_id: $('#ddlClaimStatus option:selected').val() != '' ? parseInt($('#ddlClaimStatus option:selected').val()) : null,
-                    primary_patient_insurance_id: self.is_primary_available && self.priClaimInsID ? parseInt(self.priClaimInsID) : null,
-                    secondary_patient_insurance_id: self.is_secondary_available && self.secClaimInsID ? parseInt(self.secClaimInsID) : null,
-                    tertiary_patient_insurance_id: self.is_tertiary_available && self.terClaimInsID ? parseInt(self.terClaimInsID) : null
+                    primary_patient_insurance_id: self.is_primary_available && parseInt(self.primaryPatientInsuranceId) || ( self.is_primary_available && parseInt(self.priClaimInsID) || null ),
+                    secondary_patient_insurance_id: self.is_secondary_available && parseInt(self.secondaryPatientInsuranceId) || ( self.is_secondary_available && parseInt(self.secClaimInsID) || null ),
+                    tertiary_patient_insurance_id: self.is_tertiary_available && parseInt(self.tertiaryPatientInsuranceId) || ( self.is_tertiary_available && parseInt(self.terClaimInsID) || null )
 
                 }
 
@@ -2846,7 +2856,7 @@ define(['jquery',
                 if (self.secInsID || !mandatory_fields.secondaryfields.every(checkEmpty)) {
                     if (!self.priInsID) {
 
-                        commonjs.showWarning("shared.warning.priMissingValidation");
+                        commonjs.showWarning("messages.warning.claims.priMissingValidation");
                         return false;
                     }
                     else {
@@ -2869,7 +2879,7 @@ define(['jquery',
                 if (self.terInsID || !mandatory_fields.tertiaryfields.every(checkEmpty)) {
                     if (!self.secInsID) {
 
-                        commonjs.showWarning("shared.warning.secMissingValidation");
+                        commonjs.showWarning("messages.warning.claims.secMissingValidation");
                         return false;
                     }
                     else {
@@ -2978,7 +2988,7 @@ define(['jquery',
             },
 
             convertToTimeZone: function (facility_id, date_data) {
-                return moment.tz(date_data, "YYYY-MM-DD HH:mm a", commonjs.getFacilityTimeZone(facility_id));
+                return commonjs.convertToFacilityTimeZone(facility_id, date_data)
             },
 
             validateFromAndToDate: function (objFromDate, objToDate) {
@@ -3089,6 +3099,7 @@ define(['jquery',
                     self.priInsID = '';
                     self.priInsName = '';
                     self.is_primary_available = false;
+                    self.priClaimInsID = null;
 
                 }
                 else if (id == 'btnResetSecInsurance') {
@@ -3099,6 +3110,7 @@ define(['jquery',
                     $('#chkSecMedicarePayer').prop('checked', false);
                     $('#selectMedicalPayer').toggle(false);
                     self.is_secondary_available = false;
+                    self.secClaimInsID = null;
 
                 }
                 else if (id == 'btnResetTerInsurance') {
@@ -3107,6 +3119,7 @@ define(['jquery',
                     self.terInsID = '';
                     self.terInsName = '';
                     self.is_tertiary_available = false;
+                    self.terClaimInsID = null;
 
                 }
 
@@ -3797,6 +3810,72 @@ define(['jquery',
                     { payer_type: "POF", payer_type_name: "ordering_facility", payer_id: null, payer_name: null },
                     { payer_type: "RF", payer_type_name: "referring_provider", payer_id: null, payer_name: null }
                 ]
+            },
+
+            insuranceUpdate:function(e){
+                var self =this;
+
+                // before clear check is that current responsible/Not.
+                var _currentPayerType = $('#ddlResponsible').data('current-payer') || '';
+                var id = e.target.id || '';
+
+                var _currentPayer = id == 'btnResetPriInsurance' && _currentPayerType == 'primary_insurance' ? self.priInsID
+                    : id == 'btnResetSecInsurance' && _currentPayerType == 'secondary_insurance' ? self.secInsID
+                        : id == 'btnResetTerInsurance' && _currentPayerType == 'tertiary_insurance' ? self.terInsID
+                            : 0;
+
+                if (_currentPayer && self.isEdit) {
+
+                    if(id == 'btnResetPriInsurance' && self.secClaimInsID){
+                        commonjs.showWarning("messages.warning.claims.priMissingValidation");
+                        return false;
+                    }
+                    else if(id == 'btnResetSecInsurance' && self.terClaimInsID){
+                        commonjs.showWarning("messages.warning.claims.secMissingValidation");
+                        return false;
+                    }
+
+                    if (confirm(commonjs.geti18NString("messages.confirm.billing.insuranceReferencedAreYouSure"))) {
+                        $.ajax({
+                            url: '/exa_modules/billing/claims/claim/remove_insurance_provider',
+                            type: 'POST',
+                            data: {
+                                claim_id: self.claim_Id,
+                                provider_id: _currentPayer,
+                                payer_type: _currentPayerType
+                            },
+                            success: function (result) {
+                                if (result.length) {
+                                    commonjs.showStatus(commonjs.geti18NString("messages.status.successfullyUpdated"));
+                                    self.resetInsurances(e);
+                                    $('#ddlResponsible').val('PPP');
+                                    commonjs.showStatus("messages.status.responseUpdated");
+                                    self.claim_row_version = result[0].claim_row_version || self.claim_row_version;
+                                    $("#btnClaimsRefresh").click();
+                                    $("#btnStudiesRefresh").click();
+                                    if (_currentPayerType == 'primary_insurance') {
+                                        self.is_primary_available = false;
+                                        self.priClaimInsID = null;
+                                    }
+                                    else if (_currentPayerType == 'secondary_insurance') {
+                                        self.is_secondary_available = false;
+                                        self.secClaimInsID = null;
+                                    }
+                                    else if (_currentPayerType == 'tertiary_insurance') {
+                                        self.is_tertiary_available = false;
+                                        self.terClaimInsID = null;
+                                    }
+                                }
+                            },
+                            error: function (err, response) {
+                                commonjs.handleXhrError(err, response);
+                            }
+                        });
+                    }
+
+                } else {
+                    self.resetInsurances(e);
+                }
             }
 
         });

@@ -44,7 +44,7 @@ module.exports = {
 
         params.audit_json = JSON.stringify(audit_json);
 
-        const sql = SQL` SELECT billing.purge_claim_or_charge(${target_id}, ${type}, ${params.audit_json}::json)`;
+        const sql = SQL` SELECT billing.purge_claim_or_charge(${target_id}, ${type}, ${params.audit_json}::jsonb)`;
 
         return await query(sql);
     },
@@ -238,7 +238,7 @@ module.exports = {
         let updateData = SQL`UPDATE
 							billing.claims bc
                         SET claim_status_id = (SELECT id FROM getStatus),
-                            invoice_no = (SELECT billing.get_invoice_no(${params.success_claimID})),
+                            invoice_no = (SELECT NEXTVAL('billing.invoice_no_seq')),
                             submitted_dt=timezone(get_facility_tz(bc.facility_id::int), now()::timestamp)
 						WHERE bc.id = ANY(${params.success_claimID})
                         RETURNING bc.id,invoice_no`;
@@ -333,7 +333,6 @@ module.exports = {
     updateFollowUp: async (params) => {
         let {
             claimIDs,
-            assignedTo,
             followupDate,
             followUpDetails,
             companyId,
@@ -341,7 +340,8 @@ module.exports = {
             clientIp,
             userId,
             entityName,
-            moduleName
+            moduleName,
+            assignedTo
         } = params;
         let sql;
         claimIDs = claimIDs.split(',');
@@ -352,6 +352,7 @@ module.exports = {
                         DELETE FROM billing.claim_followups
                         WHERE
                             claim_id = ANY(${claimIDs})
+                            AND assigned_to = ${assignedTo}
                         RETURNING *, '{}'::jsonb old_values),
                         audit_cte AS (
                             SELECT billing.create_audit(
@@ -375,27 +376,30 @@ module.exports = {
                         FROM    audit_cte`;
         }
         else {
-            sql = SQL`WITH update_followup AS(
-                UPDATE
-                    billing.claim_followups
-                SET
-                      followup_date = ${followupDate}
-                    , assigned_to= ${assignedTo}
-                WHERE
-                    claim_id = ANY(${claimIDs})
-                RETURNING * , '{}'::jsonb old_values
-            ),
-            followup_details AS (
+            sql = SQL`
+            WITH followup_details AS (
                 SELECT
-                      "claimID" AS claim_id
-                    , "assignedTo" AS assigned_to
-                    , "followupDate" AS followup_date
+                      "claimID" AS followup_claim_id
+                    , "followUPUserID" AS assigned_to
+                    , "followupDate" AS followup_dt
                 FROM json_to_recordset(${followUpDetails}) AS followup
                 (
                     "claimID" bigint,
-                    "assignedTo" integer,
+                    "followUPUserID" integer,
                     "followupDate" date
                 )
+            ),
+            update_followup AS(
+                UPDATE
+                    billing.claim_followups bcf
+                SET
+                      followup_date = fd.followup_dt
+                    , assigned_to = fd.assigned_to
+                FROM followup_details fd
+                WHERE
+                    bcf.claim_id = fd.followup_claim_id
+                    AND bcf.assigned_to = fd.assigned_to
+                RETURNING * , '{}'::jsonb old_values
             ),
             insert_followup AS(
                 INSERT INTO billing.claim_followups(
@@ -404,12 +408,12 @@ module.exports = {
                     , assigned_to
                 )
                 SELECT
-                      claim_id
-                    , followup_date
-                    , assigned_to
+                      followup_claim_id
+                    , followup_dt
+                    , coalesce(assigned_to,${userId})
                 FROM
                     followup_details
-                WHERE NOT EXISTS ( SELECT claim_id FROM billing.claim_followups  WHERE billing.claim_followups.claim_id = followup_details.claim_id )
+                WHERE NOT EXISTS ( SELECT 1 FROM update_followup  WHERE update_followup.claim_id = followup_details.followup_claim_id )
                 RETURNING *, '{}'::jsonb old_values
             ),
             insert_audit_followup AS (
@@ -437,7 +441,7 @@ module.exports = {
                     , id
                     , ${screenName}
                     , 'claims'
-                    , 'Follow Up Updated  ' || update_followup.id ||' Date ' || update_followup.followup_date || ' Claim ID  ' || update_followup.claim_id
+                    , 'Follow Up Updated  ' || update_followup.id ||' Date ' || update_followup.followup_dt || ' Claim ID  ' || update_followup.claim_id
                     , ${clientIp}
                     , json_build_object(
                         'old_values', COALESCE(old_values, '{}'),
@@ -481,7 +485,7 @@ module.exports = {
                             details.claims,
                             details.insurances,
                             details.claim_icds,
-                            (${JSON.stringify(auditDetails)})::json,
+                            (${JSON.stringify(auditDetails)})::jsonb,
                             details.charges)
                       FROM details
                         `;
