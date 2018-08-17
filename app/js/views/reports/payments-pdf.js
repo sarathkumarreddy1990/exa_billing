@@ -92,7 +92,7 @@ define([
 
                 }
                 else if (reportArgs.flag == 'RISPrintReceipt') {
-                    reportArgsFlag = 'RISPrintReceipt';
+                    reportArgsFlag = 'print-receipt';
                 }
                 else if (reportArgs.flag == 'payment-print-pdf') {
                     reportArgsFlag = 'payment-receipt-pdf';
