@@ -397,9 +397,9 @@ define(['jquery',
                 $('#chkStudyHeader_' + filterID).prop('checked', true);
                 commonjs.setFilter(filterID, filter);
             },
-            createClaims:function (e) {
-                var self=this;
-                var billingMethodFormat ='';
+            createClaims: function (e) {
+                var self = this;
+                var billingMethodFormat = '';
                 if (e.target) {
                     if ($(e.target).closest('li') && $(e.target).closest('li').hasClass('disabled')) {
                         return false;
@@ -408,17 +408,17 @@ define(['jquery',
                     billingMethodFormat = $(e.target).attr('data-method');
                     if (claimFormat) {
 
-                        if(billingMethodFormat=='paper_claim'){
-                            localStorage.setItem('default_paperclaim_format',  $(e.target).attr('data-format'));
-                            localStorage.setItem('default_paperclaim',  $(e.target).attr('data-value'));
-                            $("#btnClaimFormat").attr('data-format',  $(e.target).attr('data-format'));
+                        if (billingMethodFormat == 'paper_claim') {
+                            localStorage.setItem('default_paperclaim_format', $(e.target).attr('data-format'));
+                            localStorage.setItem('default_paperclaim', $(e.target).attr('data-value'));
+                            $("#btnClaimFormat").attr('data-format', $(e.target).attr('data-format'));
 
                         }
 
-                        if(billingMethodFormat=='direct_billing'){
-                            localStorage.setItem('default_directbilling_format',  $(e.target).attr('data-format'));
-                            localStorage.setItem('default_directbilling',  $(e.target).attr('data-value'));
-                            $("#btnClaimFormat").attr('data-format',  $(e.target).attr('data-format'));
+                        if (billingMethodFormat == 'direct_billing') {
+                            localStorage.setItem('default_directbilling_format', $(e.target).attr('data-format'));
+                            localStorage.setItem('default_directbilling', $(e.target).attr('data-value'));
+                            $("#btnClaimFormat").attr('data-format', $(e.target).attr('data-format'));
                         }
 
 
@@ -462,7 +462,7 @@ define(['jquery',
 
                     var clearingHouse = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'clearing_house');
                     if (existingClearingHouse == '') existingClearingHouse = clearingHouse;
-                    if (existingClearingHouse != clearingHouse && billingMethod=='electronic_billing') {
+                    if (existingClearingHouse != clearingHouse && billingMethod == 'electronic_billing') {
                         commonjs.showWarning('Please select claims with same type of clearing house Claims ');
                         return false;
                     } else {
@@ -541,11 +541,11 @@ define(['jquery',
                     }
                 }
 
-                if(existingBillingMethod === 'patient_payment') {
-                        paperClaim.print('patient_invoice', claimIds, {
-                            sortBy: sortBy
-                        });
-                        return;
+                if (existingBillingMethod === 'patient_payment') {
+                    paperClaim.print('patient_invoice', claimIds, {
+                        sortBy: sortBy
+                    });
+                    return;
                 }
 
                 self.ediResultTemplate = _.template(ediResultHTML);
@@ -557,17 +557,17 @@ define(['jquery',
                     url: "/exa_modules/billing/claim_workbench/create_claim",
                     type: "POST",
                     data: {
-                        claimIds:claimIds.toString()
+                        claimIds: claimIds.toString()
                     },
                     success: function (data, textStatus, jqXHR) {
                         commonjs.hideLoading();
-                        data.err=data.err||data.message;
+                        data.err = data.err || data.message;
                         if (data && data.err) {
                             commonjs.showWarning(data.err);
                         }
 
                         if (data && data.ediText && data.ediText.length) {
-                            var str='';
+                            var str = '';
                             $.each(data.ediText.split('~'), function (index, val) {
                                 if (val != '') {
                                     if (index == 0 || index == 1) {
@@ -593,8 +593,8 @@ define(['jquery',
                                 var result = _.groupBy(data.validations, "dataID");
 
                                 $('#divEDIErrorMsgs').append(self.ediWarning({ result: result }));
-                                commonjs.initializeScreen({buttons:[]});
-                            }else {
+                                commonjs.initializeScreen({ buttons: [] });
+                            } else {
                                 $('#liErrorMessages').hide();
                                 $("#btnClaimsRefresh").click();
                             }
@@ -625,10 +625,10 @@ define(['jquery',
                                 element.click();
 
                                 document.body.removeChild(element);
-                            $('#modal_div_container .downloadEDI').on('click', function() {
-                                self.downloadClaimSubmission(data.ediText, 'edi.txt', 'utf-8');
+                                $('#modal_div_container .downloadEDI').on('click', function () {
+                                    self.downloadClaimSubmission(data.ediText, 'edi.txt', 'utf-8');
+                                });
                             });
-                        });                        
                         } else if (data && data.ohipText && data.ohipText.length) {
                             var str = data.ohipText.replace(/\r/g, '<br/>').replace('\x1A', '');
 
@@ -639,7 +639,7 @@ define(['jquery',
                                 html: self.ohipResultTemplate()
                             });
                             $('#divOHIPResp').append(str);
-                            $('#modal_div_container .downloadOHIP').on('click', function() {
+                            $('#modal_div_container .downloadOHIP').on('click', function () {
                                 self.downloadClaimSubmission(data.ohipText, data.ohipFilename, 'acsii');
                             });
                         }

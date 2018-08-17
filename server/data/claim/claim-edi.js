@@ -356,9 +356,9 @@ module.exports = {
 										) as payer)
 										,(
 											SELECT Json_agg(Row_to_json(patient)) "patient"
-																	FROM   (
-																				SELECT patients.id as patient_id,
-																				last_name as "lastName",
+												FROM   (
+													SELECT patients.id as patient_id,
+															last_name as "lastName",
 															first_name as "firstName",
 															middle_name as "middleName",
 															suffix_name as "suffix",
@@ -467,7 +467,7 @@ module.exports = {
 										(SELECT
 											provider_groups.group_name as "lastName",
 											provider_groups.group_name as "firstName",
-											provider_groups.group_name as "middileName",
+											provider_groups.group_name as "middleName",
 											provider_groups.group_name as "suffix",
 											'' as "prefix",
 											group_info->'npi_no' as "NPINO",
