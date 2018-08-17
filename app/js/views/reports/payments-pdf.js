@@ -75,7 +75,8 @@ define([
                 var urlParams = {
                     pamentIds: reportArgs.payment_id,
                     paymentStatus: reportArgs.paymentStatus || " " ,
-                    filterFlag: "paymentsExportPDFFlag"                  
+                    filterFlag: "paymentsExportPDFFlag",
+                    from: reportArgs.from
                 }
                 if (reportArgs.flag == 'paymentPDF') {
                     reportArgsFlag = 'payment-print-pdf';
