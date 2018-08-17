@@ -412,7 +412,7 @@ define(['jquery',
                 var paymentPDFArgs = {
                     paymentStatus: $("#ulPaymentStatus").val(),
                     'isDateFlag': $('#filterByPostingDt').prop('checked') ? true : false,
-                    from: self.from
+                    from: self.from ?self.from: 'Billing'
                 }
                 self.paymentPDF.onReportViewClick(e, paymentPDFArgs);
             },
