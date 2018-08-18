@@ -660,8 +660,8 @@
         "title": "Claim Inquiry",
         "description": "Report shows all submitted claims and order payment/balance.",
         "jsreport": {
-            "html": {             
-                    "template": { "name": "billing-claim-inquiry-html" }              
+            "html": {
+                    "template": { "name": "billing-claim-inquiry-html" }
             },
             "pdf": {
                 "template": {
@@ -1523,6 +1523,19 @@
             "xml": {
                 "template": {
                     "name": "default-table-xml"
+                }
+            }
+        }
+    },
+    {
+        "id": "print-receipt",
+        "category": "billing",
+        "title": "Patient wise Print Receipt - RIS",
+        "description": "",
+        "jsreport": {
+            "pdf": {
+                "template": {
+                    "name": "billing-charge-payment-receipt-pdf"
                 }
             }
         }
