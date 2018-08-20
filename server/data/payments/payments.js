@@ -572,6 +572,24 @@ module.exports = {
         return await query(sql);
     },
 
+    getRecoupmentDetails : async function(adjustment_code_id)
+    {
+        const sql = SQL`SELECT
+                            coalesce(accounting_entry_type = 'recoupment_debit', false) AS is_recoupment_debit
+                        FROM billing.adjustment_codes
+                        WHERE id = nullif(${adjustment_code_id},'')::bigint`;
+
+        let result = await query(sql);
+
+        if (result.rowCount != 0) {
+            result = result.rows[0].is_recoupment_debit;
+        } else {
+            result = false;
+        }
+
+        return result;
+    },
+
     updatePaymentApplication: async function (params) {
 
         let logDescription = ` Payment application updated for claim id : ${params.claimId} For payment id : `;
@@ -584,13 +602,15 @@ module.exports = {
                               , charge_id
                               , parent_application_id
                               , parent_applied_dt
+                              , is_recoupment
                             FROM json_to_recordset(${JSON.stringify(params.updateAppliedPayments)}) AS details(
                                payment_application_id BIGINT
                              , amount MONEY
                              , adjustment_id BIGINT
                              , charge_id BIGINT
-                            , parent_application_id BIGINT
-                            , parent_applied_dt TIMESTAMPTZ)),
+                             , parent_application_id BIGINT
+                             , parent_applied_dt TIMESTAMPTZ
+                             , is_recoupment BOOLEAN)),
                         claim_comment_details AS(
                                 SELECT
                                       claim_id
@@ -652,7 +672,7 @@ module.exports = {
                                 , ${params.userId}
                                 , parent_applied_dt
                             FROM update_application_details
-                            WHERE  payment_application_id is null and amount != 0::money
+                            WHERE  payment_application_id is null and (amount != 0::money OR is_recoupment)
                             RETURNING *
                         ),
                         update_claim_details AS(

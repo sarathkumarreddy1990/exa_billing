@@ -1860,6 +1860,21 @@ define(['jquery',
                         self.isRefundApplied = false;
                         return true;
                     }
+                } else if (isDebit && adjustment_codetype === 'refund_debit') {
+                    var lineItems = $("#tBodyApplyPendingPayment tr");
+                    var adjustment_has_value = 0;
+                    $.each(lineItems, function () {
+                        thisAdjustment = $(this).find('td:nth-child(8)>input').val();
+                        if (parseFloat(thisAdjustment) != 0.00) {
+                            adjustment_has_value = adjustment_has_value + 1;
+                        }
+                    });
+                    if (adjustment_has_value === 0) {
+                        alert('Please enter refund adjustment.');
+                        adjustment_has_value = 0;
+                        return false;
+                    }
+                    else return true;
                 }
                 else return true;
             },
@@ -2461,7 +2476,7 @@ define(['jquery',
                             studyCptIDs: studyCptIDs,
                             flag: 'RISPrintReceipt',
                             patient_id: self.patient_id,
-                            payment_id : self.payment_id
+                            payment_id: self.payment_id
                         }
                         self.paymentEditPDF.onReportViewClick(e, paymentPDFArgs);
                     }
