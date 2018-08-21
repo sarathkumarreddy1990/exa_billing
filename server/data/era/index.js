@@ -187,7 +187,7 @@ module.exports = {
                                 application_details.original_reference,
                                 application_details.service_date,
                                 application_details.code,
-                                billing.get_era_charge_id(application_details.claim_number, application_details.cpt_code, application_details.service_date::date, application_details.duplicate, application_details.index) as charge_id,
+                                billing.get_era_charge_id(application_details.claim_number, application_details.cpt_code, application_details.duplicate, application_details.index) as charge_id,
                                 application_details.payment,
                                 application_details.adjustment,
                                 application_details.cas_details,
