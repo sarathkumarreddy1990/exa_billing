@@ -169,7 +169,7 @@ if (require && require.config) {
         Bootstrap,
         bootstrapNotify,
         commonjs_,
-        layout,
+        layout_,
         constants,
         debug,
         i18n,
@@ -190,6 +190,7 @@ if (require && require.config) {
             window.browserLocale = typeof browserLocale == 'undefined' ? 'en-US' : browserLocale;
             window.Immutable = Immutable;
             window.commonjs = commonjs;
+            window.appLayout = layout;
             window._get = _get;
 
             window.AppServer = Appserver;

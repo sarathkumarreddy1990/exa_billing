@@ -155,7 +155,7 @@ module.exports = {
 
                 ediResponse = await ediConnect.generateEdi(result.rows[0].header.edi_template_name, ediRequestJson);
 
-                if (!ediResponse.errMsg && !ediResponse.validations) {
+                if (!ediResponse.errMsg && (ediResponse.validations && ediResponse.validations.length == 0)) {
                     params.claim_status = 'PP';
                     params.type = 'auto';
                     params.success_claimID = params.claimIds.split(',');

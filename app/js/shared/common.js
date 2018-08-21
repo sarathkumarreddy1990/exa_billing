@@ -2076,13 +2076,24 @@ var commonjs = {
             oncomplete: function () { return false; }
         });
 
-        $('.maskFee, .maskUnits').focus(function (e) {
+        $('.maskFeeAllowMinus').inputmask("numeric", {
+            radixPoint: ".",
+            groupSeparator: "",
+            digits: 2,
+            autoGroup: true,
+            prefix: '',
+            rightAlign: true,
+            allowMinus: true,
+            oncomplete: function () { return false; }
+        });
+
+        $('.maskFee, .maskFeeAllowMinus, .maskUnits').focus(function (e) {
             if (parseFloat($(this).val()) == 0) {
                 $(this).val('');
             }
         });
 
-        $(".maskFee").on("keypress", function (e) {     // function for allow 8 digits before decimal point in amount
+        $(".maskFee, .maskFeeAllowMinus").on("keypress", function (e) {     // function for allow 8 digits before decimal point in amount
             value1 = $(this).val();
             value = value1;
             if (value1 > 99999999.99)
@@ -2090,9 +2101,9 @@ var commonjs = {
             else
                 this.oldvalue = this.value;
         });
-        $('.maskFee').attr('placeHolder', '0.00');
+        $('.maskFee, .maskFeeAllowMinus').attr('placeHolder', '0.00');
 
-        $(".maskFee, .maskUnits").on("keydown", function (e) {
+        $(".maskFee, .maskFeeAllowMinus, .maskUnits").on("keydown", function (e) {
             if (e.ctrlKey) return false;
         });
 

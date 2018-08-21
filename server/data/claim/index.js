@@ -47,24 +47,22 @@ module.exports = {
                                 , s.accession_no
                                 , sc.study_id
                                 , sc.cpt_code
-                                , atp.modifier1_id AS m1
-                                , atp.modifier2_id AS m2
-                                , atp.modifier3_id AS m3
-                                , atp.modifier4_id AS m4
+                                , sc.modifier1_id AS m1
+                                , sc.modifier2_id AS m2
+                                , sc.modifier3_id AS m3
+                                , sc.modifier4_id AS m4
                                 , string_to_array(regexp_replace(study_cpt_info->'diagCodes_pointer', '[^0-9,]', '', 'g'),',')::int[] AS icd_pointers
                                 , (CASE WHEN (select id from beneficiary_details) IS NOT NULL THEN
-                                        billing.get_computed_bill_fee(null,cpt_codes.id,atp.modifier2_id,atp.modifier2_id,atp.modifier3_id,atp.modifier4_id,'billing','primary_insurance',(select id from beneficiary_details), o.facility_id)::NUMERIC
+                                    billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier2_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'billing','primary_insurance',(select id from beneficiary_details), o.facility_id)::NUMERIC
                                   ELSE
-                                        billing.get_computed_bill_fee(null,cpt_codes.id,atp.modifier1_id,atp.modifier2_id,atp.modifier3_id,atp.modifier4_id,'billing','patient',${params.patient_id},o.facility_id)::NUMERIC
+                                    billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'billing','patient',${params.patient_id},o.facility_id)::NUMERIC
                                   END) as bill_fee
-                                  , (CASE WHEN (select id from beneficiary_details) IS NOT NULL THEN
-                                        billing.get_computed_bill_fee(null,cpt_codes.id,atp.modifier2_id,atp.modifier2_id,atp.modifier3_id,atp.modifier4_id,'allowed','primary_insurance',(select id from beneficiary_details), o.facility_id)::NUMERIC
+                                , (CASE WHEN (select id from beneficiary_details) IS NOT NULL THEN
+                                    billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'allowed','primary_insurance',(select id from beneficiary_details), o.facility_id)::NUMERIC
                                   ELSE
-                                        billing.get_computed_bill_fee(null,cpt_codes.id,atp.modifier1_id,atp.modifier2_id,atp.modifier3_id,atp.modifier4_id,'allowed','patient',${params.patient_id},o.facility_id)::NUMERIC
+                                    billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'allowed','patient',${params.patient_id},o.facility_id)::NUMERIC
                                   END) as allowed_fee
-                                , COALESCE(sc.study_cpt_info->'units','1')::NUMERIC AS units
-                                , (COALESCE(sc.study_cpt_info->'bill_fee','0')::NUMERIC * COALESCE(sc.study_cpt_info->'units','1')::NUMERIC) AS total_bill_fee
-                                , (COALESCE(sc.study_cpt_info->'allowed_fee','0')::NUMERIC * COALESCE(sc.study_cpt_info->'units','1')::NUMERIC) AS total_allowed_fee
+                                , COALESCE(sc.units,'1')::NUMERIC AS units
                                 , sc.authorization_info->'authorization_no' AS authorization_no
                                 , display_description
                                 , additional_info
@@ -73,8 +71,6 @@ module.exports = {
                             INNER JOIN public.studies s ON s.id = sc.study_id
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
                             INNER JOIN public.orders o on o.id = s.order_id
-                            LEFT JOIN appointment_types at ON at.id = s.appointment_type_id
-                            LEFT JOIN appointment_type_procedures atp ON atp.procedure_id = sc.cpt_code_id AND atp.appointment_type_id = s.appointment_type_id
                             WHERE
                                 study_id = ANY(${studyIds}) AND sc.has_deleted = FALSE
                             ORDER BY s.accession_no DESC
@@ -816,6 +812,7 @@ module.exports = {
     deleteInsuranceProvider: async (params) => {
 
         const {
+            is_current_responsible,
             payer_type,
             claim_id
         } = params;
@@ -835,8 +832,14 @@ module.exports = {
                     CASE ${payer_type}
                         WHEN 'tertiary_insurance' THEN NULL ELSE tertiary_patient_insurance_id
                     END,
-                payer_type = 'patient',
-                billing_method = 'patient_payment'
+                payer_type =
+                    CASE ${is_current_responsible}
+                        WHEN 'true' THEN 'patient' ELSE payer_type
+                    END,
+                billing_method =
+                    CASE ${is_current_responsible}
+                        WHEN 'true' THEN 'patient_payment' ELSE billing_method
+                    END
             WHERE id = ${claim_id}
             RETURNING id,xmin as claim_row_version `;
 

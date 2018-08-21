@@ -72,14 +72,27 @@ define([
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = openInNewTab && rFormat === 'pdf';
                 this.viewModel.paymentOptions = $('#ddlPaymentOption').val();
-                var urlParams = {
-                    pamentIds: reportArgs.payment_id,
-                    paymentStatus: reportArgs.paymentStatus || " " ,
-                    filterFlag: "paymentsExportPDFFlag"                  
+                if (reportArgs && reportArgs.flag == 'RISPrintReceipt') {
+                    var urlParams = {
+                        cptCodeIds: reportArgs.studyCptIDs,
+                        patient_id: reportArgs.patient_id,
+                        payment_id: reportArgs.payment_id
+                    }
                 }
+                else {
+                    var urlParams = {
+                        pamentIds: reportArgs.payment_id,
+                        paymentStatus: reportArgs.paymentStatus || " ",
+                        filterFlag: "paymentsExportPDFFlag"
+                    }
+                }
+
                 if (reportArgs.flag == 'paymentPDF') {
                     reportArgsFlag = 'payment-print-pdf';
 
+                }
+                else if (reportArgs.flag == 'RISPrintReceipt') {
+                    reportArgsFlag = 'print-receipt';
                 }
                 else if (reportArgs.flag == 'payment-print-pdf') {
                     reportArgsFlag = 'payment-receipt-pdf';
