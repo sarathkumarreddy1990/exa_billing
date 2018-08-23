@@ -92,9 +92,6 @@ module.exports = {
                                         COALESCE(NULLIF(order_info->'oa',''), 'false')::boolean AS is_other_accident,
                                         COALESCE(NULLIF(order_info->'aa',''), 'false')::boolean AS is_auto_accident,
                                         COALESCE(NULLIF(order_info->'emp',''), 'false')::boolean AS is_employed,
-                                        order_info -> 'claim_status' AS claim_status,
-                                        order_info->'billing_code' AS billing_code,
-                                        order_info->'billing_class' AS billing_class,
                                         orders.referring_providers [ 1 ] AS ref_prov_full_name,
                                         referring_provider_ids [ 1 ] AS referring_provider_contact_id,
                                         (   SELECT
@@ -114,7 +111,6 @@ module.exports = {
                                         facility_info->'billing_provider_id' as fac_billing_provider_id,
                                         order_info -> 'ordering_facility_id' AS ordering_facility_id,
                                         order_info -> 'ordering_facility' AS ordering_facility_name,
-                                        order_info -> 'pos' AS pos_type,
                                         orders.order_status AS order_status,
                                         order_info -> 'billing_provider' AS billing_provider_id,
                                         order_info -> 'pos_type_code' AS pos_type_code,
