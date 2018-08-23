@@ -725,24 +725,6 @@ module.exports = {
                                             WHERE  id = cad.cas_id) old_row
                                     ) old_values
                                 ),
-                        insert_cas_applications AS (
-                                INSERT INTO billing.cas_payment_application_details
-                                (
-                                    payment_application_id
-                                  , cas_group_code_id
-                                  , cas_reason_code_id
-                                  , amount
-                                )
-                                SELECT
-                                    billing.get_cas_application_id(cas.parent_application_id)
-                                  , cas.group_code_id
-                                  , cas.reason_code_id
-                                  , cas.amount
-                                FROM cas_application_details cas
-                                WHERE cas.cas_id is null
-                                AND parent_application_id IS NOT NULL
-                                RETURNING *, '{}'::jsonb old_values
-                            ),
                         purge_cas_details as (
                             DELETE FROM billing.cas_payment_application_details
                             WHERE id = ANY (${(JSON.parse(params.casDeleted)).map(Number)})
@@ -801,24 +783,6 @@ module.exports = {
                                 FROM update_claim_comments
                                 WHERE id IS NOT NULL
                             ),
-                            insert_cas_applications_audit as(
-                                SELECT billing.create_audit(
-                                    ${params.companyId}
-                                    , 'cas_payment_application_details'
-                                    , id
-                                    , ${params.screenName}
-                                    , ${params.moduleName}
-                                    , 'Cas details inserted For payment id : ' || ${params.paymentId}
-                                    , ${params.clientIp}
-                                    , json_build_object(
-                                        'old_values', COALESCE(old_values, '{}'),
-                                        'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM insert_cas_applications limit 1) temp_row)
-                                    )::jsonb
-                                    , ${params.userId}
-                                ) AS id
-                                FROM insert_cas_applications
-                                WHERE id IS NOT NULL
-                            ),
                             update_cas_applications_audit as(
                                 SELECT billing.create_audit(
                                     ${params.companyId}
@@ -845,9 +809,70 @@ module.exports = {
                             UNION
                             SELECT id,null from update_cas_applications_audit
                             UNION
-                            SELECT id,null from insert_cas_applications_audit
-                            UNION
                             SELECT null,result::text from change_responsible_party`;
+
+        let result = await query(sql);
+
+        await this.insetCasApplications(params);
+
+        return result;
+    },
+
+    insetCasApplications: async function (params) {
+
+        let sql = SQL`WITH cas_application_details AS(
+                        SELECT
+                            cas_id
+                        , group_code_id
+                        , reason_code_id
+                        , payment_application_id
+                        , amount
+                        , parent_application_id
+                        FROM json_to_recordset(${JSON.stringify(params.save_cas_details)}) AS details(
+                            cas_id BIGINT
+                        , group_code_id BIGINT
+                        , reason_code_id BIGINT
+                        , payment_application_id BIGINT
+                        , amount MONEY
+                        , parent_application_id BIGINT)
+                        ),
+                        insert_cas_applications AS (
+                            INSERT INTO billing.cas_payment_application_details
+                            (
+                                payment_application_id
+                              , cas_group_code_id
+                              , cas_reason_code_id
+                              , amount
+                            )
+                            SELECT
+                                billing.get_cas_application_id(cas.parent_application_id)
+                              , cas.group_code_id
+                              , cas.reason_code_id
+                              , cas.amount
+                            FROM cas_application_details cas
+                            WHERE cas.cas_id is null
+                            AND parent_application_id IS NOT NULL
+                            RETURNING *, '{}'::jsonb old_values
+                        ),
+                        insert_cas_applications_audit as(
+                            SELECT billing.create_audit(
+                                ${params.companyId}
+                                , 'cas_payment_application_details'
+                                , id
+                                , ${params.screenName}
+                                , ${params.moduleName}
+                                , 'Cas details inserted For payment id : ' || ${params.paymentId}
+                                , ${params.clientIp}
+                                , json_build_object(
+                                    'old_values', COALESCE(old_values, '{}'),
+                                    'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM insert_cas_applications limit 1) temp_row)
+                                )::jsonb
+                                , ${params.userId}
+                            ) AS id
+                            FROM insert_cas_applications
+                            WHERE id IS NOT NULL
+                        )
+                        SELECT id,null from insert_cas_applications_audit`;
 
         return await query(sql);
     },
