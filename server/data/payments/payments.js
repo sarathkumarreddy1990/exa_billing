@@ -813,7 +813,11 @@ module.exports = {
 
         let result = await query(sql);
 
-        await this.insetCasApplications(params);
+        let casInsertResult  = await this.insetCasApplications(params);
+
+        if (casInsertResult.name === 'error') {
+            return casInsertResult;
+        }
 
         return result;
     },
