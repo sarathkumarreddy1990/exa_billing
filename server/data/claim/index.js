@@ -53,7 +53,7 @@ module.exports = {
                                 , sc.modifier4_id AS m4
                                 , string_to_array(regexp_replace(study_cpt_info->'diagCodes_pointer', '[^0-9,]', '', 'g'),',')::int[] AS icd_pointers
                                 , (CASE WHEN (select id from beneficiary_details) IS NOT NULL THEN
-                                    billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier2_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'billing','primary_insurance',(select id from beneficiary_details), o.facility_id)::NUMERIC
+                                    billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'billing','primary_insurance',(select id from beneficiary_details), o.facility_id)::NUMERIC
                                   ELSE
                                     billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'billing','patient',${params.patient_id},o.facility_id)::NUMERIC
                                   END) as bill_fee
@@ -92,9 +92,6 @@ module.exports = {
                                         COALESCE(NULLIF(order_info->'oa',''), 'false')::boolean AS is_other_accident,
                                         COALESCE(NULLIF(order_info->'aa',''), 'false')::boolean AS is_auto_accident,
                                         COALESCE(NULLIF(order_info->'emp',''), 'false')::boolean AS is_employed,
-                                        order_info -> 'claim_status' AS claim_status,
-                                        order_info->'billing_code' AS billing_code,
-                                        order_info->'billing_class' AS billing_class,
                                         orders.referring_providers [ 1 ] AS ref_prov_full_name,
                                         referring_provider_ids [ 1 ] AS referring_provider_contact_id,
                                         (   SELECT
@@ -114,7 +111,6 @@ module.exports = {
                                         facility_info->'billing_provider_id' as fac_billing_provider_id,
                                         order_info -> 'ordering_facility_id' AS ordering_facility_id,
                                         order_info -> 'ordering_facility' AS ordering_facility_name,
-                                        order_info -> 'pos' AS pos_type,
                                         orders.order_status AS order_status,
                                         order_info -> 'billing_provider' AS billing_provider_id,
                                         order_info -> 'pos_type_code' AS pos_type_code,
