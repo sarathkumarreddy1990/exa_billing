@@ -2725,6 +2725,8 @@ define(['jquery',
                                     });
                                 }, 800);
                             }
+
+                            commonjs.hideLoading();
                         },
                         error: function (model, response) {
                             commonjs.handleXhrError(model, response);
@@ -3215,10 +3217,15 @@ define(['jquery',
                         if (data) {
                             commonjs.hideLoading();
 
-                            if (!data.invalidClaim_data.length)
+                            if (!data.invalidClaim_data.length){
                                 commonjs.showStatus(commonjs.geti18NString("messages.status.validatedSuccessfully"));
-                            else
+                                if(data.validClaim_data && data.validClaim_data.rows && data.validClaim_data.rows.length){
+                                    self.claim_row_version = data.validClaim_data.rows[0].claim_row_version || self.claim_row_version;
+                                }
+                            }
+                            else{
                                 commonjs.showNestedDialog({ header: 'Validation Results', i18nHeader: 'billing.claims.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });
+                            }
                         }
                     },
                     error: function (err, response) {
