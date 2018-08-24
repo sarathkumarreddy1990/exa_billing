@@ -2,16 +2,16 @@ const _ = require('lodash')
     , Promise = require('bluebird')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder')    
+    , queryBuilder = require('../queryBuilder')
     , logger = require('../../../../../logger');
 
 // generate query template ***only once*** !!!
 
 const claimInquiryDataSetQueryTemplate = _.template(`
 with claim_data as (
-    SELECT 
+    SELECT
     bc.id as claim_id,
-      get_full_name(pp.last_name,pp.last_name) as patient_name,
+      get_full_name(pp.last_name,pp.first_name) as patient_name,
      pp.patient_info->'c1AddressLine1' AS address1,
            pp.patient_info->'c1AddressLine2' AS address2,
            pp.patient_info->'c1City' AS city,
@@ -44,8 +44,8 @@ with claim_data as (
       , pm4.code                                              AS "M4"
       , bch.units
       , pcc.display_code
-      , pcc.display_description 
-      ,  billing.get_charge_icds(bch.id) 
+      , pcc.display_description
+      ,  billing.get_charge_icds(bch.id)
       , pp.id
       , (bch.bill_fee*bch.units)								AS "Charge"
    FROM billing.claims bc
@@ -54,11 +54,11 @@ with claim_data as (
    INNER JOIN public.patients pp ON pp.id = bc.patient_id
    INNER JOIN public.facilities pf ON pf.id = bc.facility_id
    INNER JOIN public.companies pc ON pc.id = bc.company_id
-   INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id 
+   INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
    LEFT JOIN public.modifiers pm1 on pm1.id = bch.modifier1_id
 LEFT JOIN public.modifiers pm2 on pm2.id = bch.modifier2_id
 LEFT JOIN public.modifiers pm3 on pm3.id = bch.modifier3_id
-LEFT JOIN public.modifiers pm4 on pm4.id = bch.modifier4_id 
+LEFT JOIN public.modifiers pm4 on pm4.id = bch.modifier4_id
    where 1=1 AND <%= companyId %> AND  <%= claimIds %>
     )
     select * from claim_data
@@ -71,11 +71,11 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
-        return Promise.join(            
+        return Promise.join(
             api.createclaimInquiryDataSet(initialReportData.report.params),
             // other data sets could be added here...
             (claimInquiryDataSet) => {
-                // add report filters                
+                // add report filters
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 // add report specific data sets
@@ -156,7 +156,7 @@ const api = {
         const filters = {
             companyId: null,
             claimIds: null
-           
+
         };
 
         // company id
@@ -189,7 +189,7 @@ const api = {
 
         return {
             queryParams: params,
-            templateData: filters         
+            templateData: filters
         }
     }
 }
