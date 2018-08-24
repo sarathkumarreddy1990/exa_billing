@@ -53,7 +53,7 @@ module.exports = {
                                 , sc.modifier4_id AS m4
                                 , string_to_array(regexp_replace(study_cpt_info->'diagCodes_pointer', '[^0-9,]', '', 'g'),',')::int[] AS icd_pointers
                                 , (CASE WHEN (select id from beneficiary_details) IS NOT NULL THEN
-                                    billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier2_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'billing','primary_insurance',(select id from beneficiary_details), o.facility_id)::NUMERIC
+                                    billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'billing','primary_insurance',(select id from beneficiary_details), o.facility_id)::NUMERIC
                                   ELSE
                                     billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'billing','patient',${params.patient_id},o.facility_id)::NUMERIC
                                   END) as bill_fee
