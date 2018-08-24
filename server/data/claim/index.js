@@ -420,7 +420,6 @@ module.exports = {
                     , c.secondary_patient_insurance_id
                     , c.tertiary_patient_insurance_id
                     , c.ordering_facility_id
-                    , c.referring_provider_contact_id
                     , c.xmin as claim_row_version
                     , p.account_no AS patient_account_no
                     , p.birth_date::text AS patient_dob
