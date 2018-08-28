@@ -124,7 +124,7 @@ function getTableContents(claimData) {
 
 }
 
-function numToAlphabet(index){    
+function numToAlphabet(index){
     let char = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.charAt(parseInt(index)-1);
     return char;
 }
@@ -478,8 +478,8 @@ function formatRedForm(claimData) {
                                         [
                                             {
                                                 text: claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].claimDt ?
-                                                ((new Date(claimData.subscriber[0].claim[0].claimDt).getMonth() + 1).toString() + '-' + 
-                                                new Date(claimData.subscriber[0].claim[0].claimDt).getDate().toString() + '-' + 
+                                                ((new Date(claimData.subscriber[0].claim[0].claimDt).getMonth() + 1).toString() + '-' +
+                                                new Date(claimData.subscriber[0].claim[0].claimDt).getDate().toString() + '-' +
                                                 new Date(claimData.subscriber[0].claim[0].claimDt).getFullYear().toString()  ): '', colSpan: 2
                                             }
                                         ],
@@ -728,7 +728,7 @@ function formatRedForm(claimData) {
             margin: [10, 18, 0, 0],
             table: {
                 widths: [106, 7, 22, 102, 30, 45, 0, 45, 15, 0, 35, 10, 55, 10],
-                heights: [17, 10, 10],
+                heights: [17, 13, 10],
                 body: [
                     [
                         { text: claimData.billingProvider && claimData.billingProvider.federalTaxID ? claimData.billingProvider.federalTaxID.toString().substring(0, 16) : '' },
@@ -805,22 +805,22 @@ function getClaimResponsible(claimData) {
 }
 
 function getPrimaryAmountPaid(claimData) {
-    let primary = claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].payerpaidAmount ? 
+    let primary = claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].payerpaidAmount ?
     claimData.subscriber[0].claim[0].payerpaidAmount[0].primaryPaidTotal ? parseInt(claimData.subscriber[0].claim[0].payerpaidAmount[0].primaryPaidTotal) : 0 : 0;
-    let adj = claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].payerpaidAmount  ? 
+    let adj = claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].payerpaidAmount  ?
     claimData.subscriber[0].claim[0].payerpaidAmount[0].primaryAdjTotal ? parseInt(claimData.subscriber[0].claim[0].payerpaidAmount[0].primaryAdjTotal) : 0 : 0;
     let total = primary + adj;
     return total;
 }
 
 function getSecondaryAmountPaid(claimData) {
-    let primary = claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].payerpaidAmount ? 
+    let primary = claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].payerpaidAmount ?
     claimData.subscriber[0].claim[0].payerpaidAmount[0].primaryPaidTotal ? parseInt(claimData.subscriber[0].claim[0].payerpaidAmount[0].primaryPaidTotal) : 0 : 0;
-    let adj = claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].payerpaidAmount  ? 
+    let adj = claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].payerpaidAmount  ?
     claimData.subscriber[0].claim[0].payerpaidAmount[0].primaryAdjTotal ? parseInt(claimData.subscriber[0].claim[0].payerpaidAmount[0].primaryAdjTotal) : 0 : 0;
-    let secondary = claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].payerpaidAmount ? claimData.subscriber[0].claim[0].payerpaidAmount[0].secondaryPaidTotal ? 
+    let secondary = claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].payerpaidAmount ? claimData.subscriber[0].claim[0].payerpaidAmount[0].secondaryPaidTotal ?
     parseInt(claimData.subscriber[0].claim[0].payerpaidAmount[0].secondaryPaidTotal) : 0 : 0;
-    let adj2 = claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].payerpaidAmount ? claimData.subscriber[0].claim[0].payerpaidAmount[0].secondaryAdjTotal ? 
+    let adj2 = claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].payerpaidAmount ? claimData.subscriber[0].claim[0].payerpaidAmount[0].secondaryAdjTotal ?
     parseInt(claimData.subscriber[0].claim[0].payerpaidAmount[0].secondaryAdjTotal) : 0 : 0;
     let total = primary + adj + secondary + adj2;
     return total;
