@@ -9,14 +9,14 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                 default_column: 'study_status',
                 default_column_order_by: "Asc",
                 default_tab: 'All Studies',
-                field_order: [1, 10, 15, 50],
+                field_order: [1, 10, 15, 50, 65],
                 grid_name: "studies"
             };
             var claimSetting = {
                 default_column: 'claim_dt',
                 default_column_order_by: "Asc",
                 default_tab: 'All Claims',
-                field_order: [1, 19, 2, 12, 22, 27],
+                field_order: [1, 19, 2, 12, 22, 27, 11, 17],
                 grid_name: "claims"
             };
 
