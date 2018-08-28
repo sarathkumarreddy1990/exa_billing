@@ -94,7 +94,7 @@ define([
                 });
             },
 
-            // Insurance Auto Complete           
+            // Insurance Auto Complete
             bindInsuranceAutocomplete: function (userMessage, btnAdd, ulList) {
                 var self = this;
                 $("#txtInsuranceName").select2({
@@ -180,8 +180,8 @@ define([
                                 q: params.term || '',
                                 pageSize: 10,
                                 sortField: "description",
-                                sortOrder: "ASC",                            
-                                company_id: 1                            
+                                sortOrder: "ASC",
+                                company_id: 1
                             };
                         },
 
@@ -194,7 +194,7 @@ define([
                                 }
                             };
                         },
-                        cache: true                      
+                        cache: true
                     },
                     placeholder: 'Select Insurance  Provider',
                     escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
@@ -328,7 +328,7 @@ define([
                         }));
                     }
                 }
-                // For Multi Select drop down 
+                // For Multi Select drop down
                 $('#ddlBillingProvider').multiselect({
                     maxHeight: 200,
                     buttonWidth: '250px',
@@ -625,7 +625,7 @@ define([
                         return repo.text;
                     }
                     var markup1 = "<table class='ref-result' style='width: 100%'><tr>";
-                    markup1 += "<td data-id='" + repo.group_id + " ' title='" + repo.full_name + "'> <div>" + repo.full_name + "</div>";
+                    markup1 += "<td data-id='" + repo.provider_id + " ' title='" + repo.full_name + "'> <div>" + repo.full_name + "</div>";
                     markup1 += "</td></tr></table>";
                     return markup1;
 
@@ -647,7 +647,7 @@ define([
                         commonjs.showWarning("Provider is already selected");
                         return false;
                     }
-                    var data_id = $('#' + txtprovider).select2('data')[0].id;
+                    var data_id = $('#' + txtprovider).select2('data')[0].provider_id;
                     var bind_text = $('#' + txtprovider).select2('data')[0].full_name;
                     $('#' + ulListProvider).append('<li id="' + data_id + '"><span style="background:#3c91f0; color:white; border:1px solid black">' + bind_text + '</span><a class="remove" data-id="' + $('#' + txtprovider).select2('data')[0].id + '"><span class="icon-ic-close" style="margin-left:8px;"></span></a></li>')
                     $('#' + txtprovider + 'a span').html('Select Provider');

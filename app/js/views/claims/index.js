@@ -1573,7 +1573,7 @@ define(['jquery',
                             return {
                                 results: data,
                                 pagination: {
-                                    more: (params.page * 30) < data[0].total_records
+                                    more: data && data.length ? (params.page * 30) < data[0].total_records : 0
                                 }
                             };
                         },
@@ -1706,7 +1706,7 @@ define(['jquery',
                             return {
                                 results: data,
                                 pagination: {
-                                    more: (params.page * 30) < data[0].total_records
+                                    more: data && data.length ? (params.page * 30) < data[0].total_records : 0
                                 }
                             };
                         },
@@ -1785,7 +1785,7 @@ define(['jquery',
                             return {
                                 results: data,
                                 pagination: {
-                                    more: (params.page * 30) < data[0].total_records
+                                    more: data && data.length ? (params.page * 30) < data[0].total_records : 0
                                 }
                             };
                         },
@@ -1940,7 +1940,7 @@ define(['jquery',
                         $('#hdnDiagCodes').val(curDiagnosis.join(','));
 
                         // Adding same ICD after deleted, change[is_deleted,deleted_by] flag from icd list
-                        if (_.findIndex(self.claimICDLists, { icd_id: self.ICDID }) > -1) {
+                        if (_.findIndex(self.claimICDLists, { icd_id: parseInt(self.ICDID) }) > -1) {
                             self.claimICDLists = _.map(self.claimICDLists, function (obj) {
                                 if (obj.icd_id === parseInt(self.ICDID)) {
                                     obj.is_deleted = false;
@@ -2134,7 +2134,7 @@ define(['jquery',
                             return {
                                 results: data,
                                 pagination: {
-                                    more: (params.page * 30) < data[0].total_records
+                                    more: data && data.length ? (params.page * 30) < data[0].total_records : 0
                                 }
                             };
                         },
@@ -2192,7 +2192,7 @@ define(['jquery',
                             return {
                                 results: data,
                                 pagination: {
-                                    more: (params.page * 30) < data[0].total_records
+                                    more: data && data.length ? (params.page * 30) < data[0].total_records : 0
                                 }
                             };
                         },
@@ -2352,6 +2352,7 @@ define(['jquery',
                 var self = this;
                 var id = e.target.id;
                 var patientInsID = $('#' + id + ' option:selected').val();
+
                 if (patientInsID > 0) {
                     var self = this;
                     this.patInsModel.set({ id: patientInsID });
@@ -2387,7 +2388,8 @@ define(['jquery',
                                 billing_method: result.billing_method
                             });
                             self.is_primary_available = true;
-                            self.priClaimInsID = null;
+                            if (result.id != self.priClaimInsID)
+                                self.priClaimInsID = null;
                             break;
 
                         case 'secondary':
@@ -2404,7 +2406,8 @@ define(['jquery',
                                 billing_method: result.billing_method
                             });
                             self.is_secondary_available = true;
-                            self.secClaimInsID = null;
+                            if (result.id != self.secClaimInsID)
+                                self.secClaimInsID = null;
                             break;
 
                         case 'tertiary':
@@ -2421,7 +2424,8 @@ define(['jquery',
                                 billing_method: result.billing_method
                             });
                             self.is_tertiary_available = true;
-                            self.terClaimInsID = null;
+                             if (result.id != self.terClaimInsID)
+                                self.terClaimInsID = null;
                             break;
                     }
 
@@ -2637,7 +2641,7 @@ define(['jquery',
                         modifier4_id: $('#txtModifier4_' + id).attr('data-id') ? parseInt($('#txtModifier4_' + id).attr('data-id')) : null,
                         bill_fee: parseFloat($('#txtBillFee_' + id).val()) || 0.00,
                         allowed_amount: parseFloat($('#txtAllowedFee_' + id).val()) || 0.00,
-                        units: parseFloat($('#txtUnits_' + id).val()),
+                        units: parseFloat($('#txtUnits_' + id).val()) || 1.000,
                         created_by: 1,
                         authorization_no: $('#txtAuthInfo_' + id).val() || null,
                         charge_dt: self.cur_study_date || null,
@@ -2721,6 +2725,8 @@ define(['jquery',
                                     });
                                 }, 800);
                             }
+
+                            commonjs.hideLoading();
                         },
                         error: function (model, response) {
                             commonjs.handleXhrError(model, response);
@@ -3211,10 +3217,15 @@ define(['jquery',
                         if (data) {
                             commonjs.hideLoading();
 
-                            if (!data.invalidClaim_data.length)
+                            if (!data.invalidClaim_data.length){
                                 commonjs.showStatus(commonjs.geti18NString("messages.status.validatedSuccessfully"));
-                            else
+                                if(data.validClaim_data && data.validClaim_data.rows && data.validClaim_data.rows.length){
+                                    self.claim_row_version = data.validClaim_data.rows[0].claim_row_version || self.claim_row_version;
+                                }
+                            }
+                            else{
                                 commonjs.showNestedDialog({ header: 'Validation Results', i18nHeader: 'billing.claims.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });
+                            }
                         }
                     },
                     error: function (err, response) {
@@ -3819,12 +3830,15 @@ define(['jquery',
                 var _currentPayerType = $('#ddlResponsible').data('current-payer') || '';
                 var id = e.target.id || '';
 
-                var _currentPayer = id == 'btnResetPriInsurance' && _currentPayerType == 'primary_insurance' ? self.priInsID
-                    : id == 'btnResetSecInsurance' && _currentPayerType == 'secondary_insurance' ? self.secInsID
-                        : id == 'btnResetTerInsurance' && _currentPayerType == 'tertiary_insurance' ? self.terInsID
-                            : 0;
+                var _isCurrentResponsible = id == 'btnResetPriInsurance' && _currentPayerType == 'primary_insurance' ? true
+                    : id == 'btnResetSecInsurance' && _currentPayerType == 'secondary_insurance' ? true
+                        : id == 'btnResetTerInsurance' && _currentPayerType == 'tertiary_insurance' ? true
+                            : false;
+                var _payerType = id == 'btnResetPriInsurance' ? 'primary_insurance'
+                    : id == 'btnResetSecInsurance' ? 'secondary_insurance'
+                        : 'tertiary_insurance';
 
-                if (_currentPayer && self.isEdit) {
+                if (self.isEdit) {
 
                     if(id == 'btnResetPriInsurance' && self.secClaimInsID){
                         commonjs.showWarning("messages.warning.claims.priMissingValidation");
@@ -3834,34 +3848,50 @@ define(['jquery',
                         commonjs.showWarning("messages.warning.claims.secMissingValidation");
                         return false;
                     }
+                    // below conditions check if claim have insurances in DB level using [self.priClaimInsID,self.secClaimInsID,self.terClaimInsID]
+                    else if(id == 'btnResetPriInsurance' && !self.priClaimInsID && !_isCurrentResponsible){
+                        self.resetInsurances(e);
+                        return false;
+                    }
+                    else if(id == 'btnResetSecInsurance' && !self.secClaimInsID && !_isCurrentResponsible){
+                        self.resetInsurances(e);
+                        return false;
+                    }
+                    else if(id == 'btnResetTerInsurance' && !self.terClaimInsID && !_isCurrentResponsible){
+                        self.resetInsurances(e);
+                        return false;
+                    }
+                    var msg = _isCurrentResponsible ? commonjs.geti18NString("messages.confirm.billing.insuranceReferencedAreYouSure") : commonjs.geti18NString("messages.confirm.billing.insuranceAreYouSure");
 
-                    if (confirm(commonjs.geti18NString("messages.confirm.billing.insuranceReferencedAreYouSure"))) {
+                    if (confirm(msg)) {
                         $.ajax({
                             url: '/exa_modules/billing/claims/claim/remove_insurance_provider',
                             type: 'POST',
                             data: {
                                 claim_id: self.claim_Id,
-                                provider_id: _currentPayer,
-                                payer_type: _currentPayerType
+                                is_current_responsible: _isCurrentResponsible,
+                                payer_type: _payerType
                             },
                             success: function (result) {
                                 if (result.length) {
                                     commonjs.showStatus(commonjs.geti18NString("messages.status.successfullyUpdated"));
                                     self.resetInsurances(e);
-                                    $('#ddlResponsible').val('PPP');
-                                    commonjs.showStatus("messages.status.responseUpdated");
+                                    if(_isCurrentResponsible){
+                                        $('#ddlResponsible').val('PPP');
+                                        commonjs.showStatus("messages.status.responseUpdated");
+                                    }
                                     self.claim_row_version = result[0].claim_row_version || self.claim_row_version;
                                     $("#btnClaimsRefresh").click();
                                     $("#btnStudiesRefresh").click();
-                                    if (_currentPayerType == 'primary_insurance') {
+                                    if (_payerType == 'primary_insurance') {
                                         self.is_primary_available = false;
                                         self.priClaimInsID = null;
                                     }
-                                    else if (_currentPayerType == 'secondary_insurance') {
+                                    else if (_payerType == 'secondary_insurance') {
                                         self.is_secondary_available = false;
                                         self.secClaimInsID = null;
                                     }
-                                    else if (_currentPayerType == 'tertiary_insurance') {
+                                    else if (_payerType == 'tertiary_insurance') {
                                         self.is_tertiary_available = false;
                                         self.terClaimInsID = null;
                                     }

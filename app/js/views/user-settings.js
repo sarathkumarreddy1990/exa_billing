@@ -67,7 +67,7 @@ define([
                         billingClaimGridFields.push({ "name": input.val(), "id": input.attr('id').split('~')[1], "width": $(this).find('input[type=hidden]')[0].value });
                     }
                 });
-                
+
                 this.model.set({
                     flag: self.gridFilterName,
                     default_tab: self.default_tab,
@@ -86,7 +86,7 @@ define([
                 this.model.save({},
                     {
                         success: function (model, response) {
-                           
+
                             $('#save_settings').attr('disabled', false);
                             if (self.gridFilterName == 'studies'){
                                 app.study_user_settings.field_order = claimSettingFields.map(Number);
@@ -94,7 +94,7 @@ define([
                                 app.study_user_settings.default_column =claim_col_name;
                                 app.study_user_settings.default_tab =self.default_tab;
                                 $('#btnStudiesCompleteRefresh').click();
-                            }                                  
+                            }
                             else if (self.gridFilterName == 'claims'){
                                 app.claim_user_settings.field_order =claimSettingFields.map(Number);
                                 app.claim_user_settings.default_column_order_by =claim_sort_order;
@@ -102,7 +102,7 @@ define([
                                 app.claim_user_settings.default_tab =self.default_tab;
                                 $('#btnClaimsCompleteRefresh').click();
                             }
-                                  
+
                             commonjs.hideDialog();
                             commonjs.hideLoading();
                         },
@@ -214,6 +214,9 @@ define([
                         });
 
                         self.ulListBinding(displayFields, 'ulSortList', checkedGridFields);
+
+                        // Remove Billed status column in dropdown
+                        self.billingDisplayFields = _.reject(self.billingDisplayFields, function(obj){ return obj.field_code === 'billed_status'; });
 
                         for (var i = 0; i < self.billingDisplayFields.length; i++) {
                             $('<option/>').val(self.billingDisplayFields[i].field_code).html(self.billingDisplayFields[i].field_name).appendTo('#ddlBillingDefaultColumns');

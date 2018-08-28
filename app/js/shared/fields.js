@@ -1379,7 +1379,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     formatter: function(cellvalue) {
                         var regSlash = /\\/g;
                         var authorizations = typeof cellvalue === 'string' && cellvalue.length > 0 ?
-                            JSON.parse(cellvalue.replace('{""}', '{}').replace(regSlash, '\\\\')) :
+                            JSON.parse(cellvalue.replace('{""}', '{}').replace(regSlash, '\\')) :
                             cellvalue && typeof cellvalue === 'object' ?
                                 cellvalue : '';
 
