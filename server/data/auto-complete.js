@@ -256,7 +256,9 @@ module.exports = {
                             INNER JOIN public.user_groups on user_groups.id = users.user_group_id
                             INNER JOIN public.user_roles AS ur ON ur.id = ANY (user_groups.user_roles)
                         WHERE
-                             ( LOWER(user_groups.group_name) = 'billing' OR LOWER(ur.role_name) = 'billing' OR LOWER(ur.role_name) = 'billing1.5') AND                             users.has_deleted=FALSE AND
+                             ( LOWER(user_groups.group_name) = 'billing' OR LOWER(ur.role_name) = 'billing' OR LOWER(ur.role_name) = 'billing1.5'
+                             OR (group_info->'user_nav')::jsonb ? 'billing') AND
+                             users.has_deleted=FALSE AND
                              users.is_active AND
                              users.has_deleted = false AND
                              users.company_id= ${params.company_id} `;
@@ -265,8 +267,8 @@ module.exports = {
             user_sql.append(users_q);
         }
 
-        user_sql.append(SQL`ORDER BY  ${params.sortField}`)
-            .append(params.sortOrder)
+        user_sql.append(SQL`GROUP BY users.id `)
+            .append(SQL`ORDER BY username ASC `)
             .append(SQL` LIMIT ${params.pageSize}`)
             .append(SQL` OFFSET ${((params.page * params.pageSize) - params.pageSize)}`);
 

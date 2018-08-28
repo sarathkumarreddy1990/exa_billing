@@ -97,8 +97,6 @@ define(['jquery',
                             page: params.page || 1,
                             q: params.term || '',
                             pageSize: 10,
-                            sortField: "user_name",
-                            sortOrder: "ASC",
                             company_id: 1
                         };
                     },
@@ -107,7 +105,7 @@ define(['jquery',
                         return {
                             results: data,
                             pagination: {
-                                more: (params.page * 30) < data[0].total_records
+                                more: (params.page * 10) < data[0].total_records
                             }
                         };
                     },
