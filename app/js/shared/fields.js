@@ -337,9 +337,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 "Payer Name": {
                     "id": 13,
                     "field_code": "payer_name",
-                    "field_name": "Payer Name",
-                    "field_name": "Payer Name",
-                    "i18n_name": "billing.fileInsurance.payerNameGrid",
+                    "field_name": "Responsible Party",
+                    "i18n_name": "setup.userSettings.responsibleParty",
                     "field_info": {
                         "name": "payer_name",
                         "width": 150,
