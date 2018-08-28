@@ -1117,8 +1117,8 @@ define('grid', [
             if (doExport) {
                 var searchFilterFlag = grid.getGridParam("postData")._search;
                 var colHeader = studyFields.colName;
-                if (options.filterid != 'Follow_up_queue') {
-                commonjs.showLoading();
+
+                    commonjs.showLoading();
 
                     $.ajax({
                         'url': '/exa_modules/billing/claim_workbench',
@@ -1147,8 +1147,7 @@ define('grid', [
                             $('#btnValidateExport').css('display', 'inline');
                         }
                     });
-                return true;
-                }
+                    return true;
             }
 
             claimsTable.render({
