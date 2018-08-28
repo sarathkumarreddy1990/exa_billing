@@ -56,7 +56,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var billingCodeValue = commonjs.makeValue(app.billing_codes, ":All;", "id", "description");
         var billingClassesValue = commonjs.makeValue(app.billing_classes, ":All;", "id", "description");
         var claimStatusValue = commonjs.makeValue(app.claim_status, ":All;", "id", "description");
-        var billedStatus = ':All;billed:Billed;unbilled:Unbilled'; 
+        var billedStatus = ':All;billed:Billed;unbilled:Unbilled';
         var balanceSearchList = ':All;=:= 0;>:> 0;<:< 0';
         var studyFlagArray = app.studyflag;
         var isNoneExist = false;
@@ -127,7 +127,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                                                        ":All;","id", "description");
 
         var modalityRoomValue = commonjs.makeValue(app.modality_room, ":All;", "id", "modality_room_name");
-        var reportQueueValue = commonjs.makeValue(app.report_queue_status, ":All;", "code", "description");       
+        var reportQueueValue = commonjs.makeValue(app.report_queue_status, ":All;", "code", "description");
 
         var imageDeliveryOptions = [{
             'type': 'delivery_cd',
@@ -179,7 +179,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             commonjs.convertToFacilityTimeZone(rowObject.facility_id, cellvalue).format('L LT z') :
             '';
         };
-      
+
 
         var claimDateFormatter = function ( cellvalue, options, rowObject ) {
             return commonjs.checkNotEmpty(cellvalue) ?
@@ -270,7 +270,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "width": 200,
                         "searchFlag": "%"
                     }
-                    
+
                 },
                 "Referring Providers": {
                     "id":7,
@@ -281,7 +281,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "name": "referring_providers",
                         "width": 200,
                         "searchFlag": "%"
-                    }                    
+                    }
                 },
                 "Rendering Providers": {
                     "id":8,
@@ -291,7 +291,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_info": {
                         "name": "rendering_provider",
                         "width": 200
-                    }                    
+                    }
                 },
                 "Billing Fee": {
                     "id":9,
@@ -301,7 +301,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_info": {
                         "name": "billing_fee",
                         "width": 200
-                    }                    
+                    }
                 },
                 "Payer Type": {
                     "id": 11,
@@ -311,7 +311,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_info": {
                         "name": "payer_type",
                         "stype": "select",
-                        "searchoptions": { 
+                        "searchoptions": {
                             "value": payerTypeValue,
                             "tempvalue":payerTypeValue
                         },
@@ -337,9 +337,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 "Payer Name": {
                     "id": 13,
                     "field_code": "payer_name",
-                    "field_name": "Payer Name",
-                    "field_name": "Payer Name",
-                    "i18n_name": "billing.fileInsurance.payerNameGrid",
+                    "field_name": "Responsible Party",
+                    "i18n_name": "setup.userSettings.responsibleParty",
                     "field_info": {
                         "name": "payer_name",
                         "width": 150,
@@ -371,7 +370,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "name": "billing_class",
                         "width": 120,
                         "stype": "select",
-                        "searchoptions": { 
+                        "searchoptions": {
                             "value": billingClassesValue,
                             "tempvalue":billingClassesValue
                          }
@@ -399,9 +398,9 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "i18n_name": "billing.fileInsurance.claimStatus",
                     "field_info": {
                         "name": "claim_status",
-                        "width": 120, 
+                        "width": 120,
                         "stype": "select",
-                        "searchoptions": { 
+                        "searchoptions": {
                             "value": claimStatusValue,
                             "tempvalue": claimStatusValue
                         },
@@ -434,7 +433,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "name": "claim_no",
                         "width": 75
                     }
-                },                
+                },
                 "Invoice": {
                     "id": 21,
                     "field_code": "invoice_no",
@@ -459,7 +458,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         },
                         "width": 150,
                         "stype": "select",
-                        "searchoptions": { 
+                        "searchoptions": {
                             "value": billingMethodValue,
                             "tempvalue":billingMethodValue
                         }
@@ -533,11 +532,11 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                       "formatter": claimDateFormatter,
                       "width": 200
                     }
-                    
+
                   }
 
 
-            });   
+            });
         }else{
         return Immutable.Map({
             "Account#": {
@@ -857,7 +856,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     },
                     "cellattr": function ( id, cellvalue, rowObject ) {
                         return 'style="background:' + (app.stat_level[ cellvalue ] && app.stat_level[ cellvalue ].color || 'transparent') + ';"';
-                    },                    
+                    },
                     "searchoptions": {
                         "value": statLevelValue,
                         "tempvalue": statLevelValue
@@ -1079,7 +1078,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "sortable": true
                 },
                 "field_code": "vehicle_name"
-            },           
+            },
             "Responsible": {
                 "id": 35,
                 "field_name": "Responsible",
@@ -1200,7 +1199,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "defaultValue": ""
                 },
                 "field_code": "check_indate"
-            },            
+            },
             "Status Changed Date": {
                 "id": 45,
                 "field_name": "Status Changed Date",
@@ -1329,7 +1328,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "custom_name": "Modality Room",
                     "name": "modality_room_id",
                     "width": 150,
-                    "formatter": function ( cellvalue ) {                       
+                    "formatter": function ( cellvalue ) {
                         return commonjs.getModalityRoomFromId(cellvalue);
                     },
                     "stype": "select",
@@ -1545,7 +1544,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     }
                 },
                 "field_code": "eligibility_verified"
-            },           
+            },
             "Provider Alerts": {
                 "id": 58,
                 "field_name": "Provider Alerts",
@@ -1661,7 +1660,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         var statusDetail = commonjs.getClaimColorCodeForStatus(rowObject.claim_id > 0 ? 'billed' : 'unbilled', 'study');
                         var statusObj = statusDetail[ 0 ];
                         return 'style="background:' + (statusObj && statusObj.color_code || 'transparent') + ';"';
-                    },                    
+                    },
                     "searchFlag": "%",
                     "stype": "select",
                     "sortable": false,
@@ -1673,10 +1672,10 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "tempvalue": billedStatus
                     }
                 }
-            }               
-             
-        });      
-    
+            }
+
+        });
+
     }
     };
 });

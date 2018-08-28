@@ -884,10 +884,6 @@ const api = {
         let sort = '';
         let sorting = [];
 
-        if (tables.studies){
-            sorting.push('coalesce(studies.stat_level,0) DESC');
-        }
-
         if (sortField){
             sorting.push(`${sortField} ${sortOrder}`);
         }
