@@ -57,7 +57,7 @@ module.exports = {
 
         cas_details = cas_details.rows && cas_details.rows.length ? cas_details.rows[0] : {};
 
-        await _.each(claimLists, function (claim) {
+        await _.each(claimLists, function (claim, claim_index) {
             let claimPaymentInformation = claim.claimPaymentInformation && claim.claimPaymentInformation.length ? claim.claimPaymentInformation : {};
 
             _.each(claimPaymentInformation, function (value) {
@@ -189,7 +189,8 @@ module.exports = {
                         */
                         let duplicateObj = _.findLast(lineItems, {
                             claim_number: value.claimNumber,
-                            cpt_code: val.qualifierData.cptCode
+                            cpt_code: val.qualifierData.cptCode,
+                            claim_index: claim_index
                         });
 
                         let index = 1;
@@ -231,7 +232,8 @@ module.exports = {
                             index: index,
                             duplicate: duplicate_flag,
                             is_debit: isDebit,
-                            code: adjustment_code
+                            code: adjustment_code,
+                            claim_index: claim_index
                         });
                     });
 
