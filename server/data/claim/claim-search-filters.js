@@ -395,7 +395,7 @@ const api = {
             if (config.get('claimsExportRecordsCount')) {
                 args.pageSize = config.get('claimsExportRecordsCount');
             } else {
-                args.pageSize = 25000;
+                args.pageSize = 1000;
             }
         }
 
