@@ -226,7 +226,8 @@
                 "columnSort": "Column Order",
                 "printerTemplates": "Printer Template"
             },
-            "submittedDate": "Submitted Date"
+            "submittedDate": "Submitted Date",
+            "alwaysLaunchBillingTab": "Always open billing in a new tab"
         },
         "rightClickMenu": {
             "billingStatus": "Change Billing Status",

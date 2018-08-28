@@ -25,6 +25,7 @@ module.exports = {
                  ,patient_invoice_template_id
                  ,company_id
                  ,default_date_range
+                 ,is_launch_billing_tab
                 )
             SELECT
                   ${args.userId}
@@ -39,6 +40,7 @@ module.exports = {
                 , ${args.patient_invoice}
                 , ${args.companyId}
                 , 'this_year'
+                , ${args.launch_billing_tab}
             WHERE NOT EXISTS (
                 SELECT * FROM billing.user_settings WHERE user_id = ${args.userId} AND grid_name = ${args.flag}
             )
@@ -57,6 +59,7 @@ module.exports = {
                 ,paper_claim_original_template_id = ${args.paper_claim_original}
                 ,direct_invoice_template_id = ${args.direct_invoice}
                 ,patient_invoice_template_id = ${args.patient_invoice}
+                ,is_launch_billing_tab = ${args.launch_billing_tab}
             WHERE
                 user_id = ${args.userId}
                 AND grid_name = ${args.flag}
@@ -126,6 +129,7 @@ module.exports = {
             , paper_claim_original_template_id AS "paper_claim_original"
             , direct_invoice_template_id AS "direct_invoice"
             , patient_invoice_template_id AS "patient_invoice"
+            , is_launch_billing_tab AS launch_billing_tab
 
         FROM
            billing.user_settings WHERE user_id = ${params.userId}
