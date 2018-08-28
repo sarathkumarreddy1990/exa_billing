@@ -424,18 +424,20 @@ define(['jquery',
             },
             exportExcel: function () {
                 var self = this;
+                filterData = JSON.stringify(self.pager.get("FilterData"));
+                filterCol = JSON.stringify(self.pager.get("FilterCol"));
                 var searchFilterFlag = grid.getGridParam("postData")._search;
                 $('#btnGenerateExcel').prop('disabled', true);
-
                 commonjs.showLoading();
-
                 $.ajax({
                     url: "/exa_modules/billing/payments/payments_list",
                     type: 'GET',
                     data: {
                         paymentReportFlag: searchFilterFlag ? false : true,
                         paymentStatus: $("#ulPaymentStatus").val(),
-                        from: self.from
+                        from: self.from,
+                        filterData: filterData,
+                        filterCol: filterCol
                     },
                     success: function (data, response) {
                         commonjs.prepareCsvWorker({
