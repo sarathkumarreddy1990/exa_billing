@@ -1573,7 +1573,7 @@ define(['jquery',
                             return {
                                 results: data,
                                 pagination: {
-                                    more: (params.page * 30) < data[0].total_records
+                                    more: data && data.length ? (params.page * 30) < data[0].total_records : 0
                                 }
                             };
                         },
@@ -1706,7 +1706,7 @@ define(['jquery',
                             return {
                                 results: data,
                                 pagination: {
-                                    more: (params.page * 30) < data[0].total_records
+                                    more: data && data.length ? (params.page * 30) < data[0].total_records : 0
                                 }
                             };
                         },
@@ -1785,7 +1785,7 @@ define(['jquery',
                             return {
                                 results: data,
                                 pagination: {
-                                    more: (params.page * 30) < data[0].total_records
+                                    more: data && data.length ? (params.page * 30) < data[0].total_records : 0
                                 }
                             };
                         },
@@ -2134,7 +2134,7 @@ define(['jquery',
                             return {
                                 results: data,
                                 pagination: {
-                                    more: (params.page * 30) < data[0].total_records
+                                    more: data && data.length ? (params.page * 30) < data[0].total_records : 0
                                 }
                             };
                         },
@@ -2192,7 +2192,7 @@ define(['jquery',
                             return {
                                 results: data,
                                 pagination: {
-                                    more: (params.page * 30) < data[0].total_records
+                                    more: data && data.length ? (params.page * 30) < data[0].total_records : 0
                                 }
                             };
                         },

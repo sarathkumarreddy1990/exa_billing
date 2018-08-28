@@ -204,17 +204,24 @@ module.exports = {
                                     SELECT Json_agg(Row_to_json(billing_user_list)) billing_user_list
                                     FROM  (
                                     SELECT
+                                    distinct users.id,
                                     username,
                                     first_name,
                                     last_name,
-                                    user_type,
-                                    users.id
-                                    FROM public.users inner join public.user_groups on user_groups.id=user_group_id
+                                    user_type
+                                    FROM
+                                        public.users
+                                    INNER JOIN public.user_groups on user_groups.id = users.user_group_id
                                     INNER JOIN public.user_roles AS ur ON ur.id = ANY (user_groups.user_roles)
-                                    WHERE
-                                    ( LOWER(user_groups.group_name) = 'billing' OR LOWER(ur.role_name) = 'billing' OR LOWER(ur.role_name) = 'billing1.5')
-                                    AND users.has_deleted=false and users.is_active = true
-                                    AND users.company_id = ${companyID} ) AS billing_user_list)
+                                WHERE
+                                     ( LOWER(user_groups.group_name) = 'billing' OR LOWER(ur.role_name) = 'billing'
+                                     OR LOWER(ur.role_name) = 'billing1.5'
+                                     OR (group_info->'user_nav')::jsonb ? 'billing'
+                                    ) AND
+                                     users.has_deleted=FALSE AND
+                                     users.is_active AND
+                                     users.has_deleted = false AND
+                                     users.company_id = ${companyID} ) AS billing_user_list)
                 , cte_payment_reasons_list AS(
                                     SELECT Json_agg(Row_to_json(payment_reasons)) payment_reasons
                                     FROM  (

@@ -153,8 +153,6 @@ module.exports = {
             , audit_details
         } = params;
 
-        let conditionalJoin = paymentDetails.isFrom && paymentDetails.isFrom == 'EOB' ? ' AND ch.charge_dt::date = fcc.service_date ' : ' ';
-
         const sql = SQL` WITH
                         application_details AS (
                             SELECT
@@ -252,19 +250,11 @@ module.exports = {
                             INNER JOIN billing.charges ch on ch.id = fcc.charge_id
                             WHERE
                                 (   CASE
-                                    WHEN    ( fcc.patient_fname != '' )
-                                        AND ( fcc.patient_lname != '' )
-                                        AND ( CASE WHEN fcc.patient_mname  != ''  THEN lower(p.middle_name) = lower(fcc.patient_mname)  else '1' END)
-                                        AND ( CASE WHEN fcc.patient_prefix != ''  THEN lower(p.prefix_name) = lower(fcc.patient_prefix) else '1' END)
-                                        AND ( CASE WHEN fcc.patient_suffix != ''  THEN lower(p.suffix_name) = lower(fcc.patient_suffix) else '1' END)
-                                    THEN ( lower(p.first_name) = lower(fcc.patient_fname) AND lower(p.last_name) = lower(fcc.patient_lname) )
+                                    WHEN fcc.patient_lname != ''
+                                    THEN lower(p.last_name) = lower(fcc.patient_lname)
                                         ELSE '0'
                                     END
-                                ) `;
-        sql.append(conditionalJoin);
-
-        sql.append(SQL`
-                            ORDER BY  fcc.claim_id
+                                )
                         ),
                         insert_payment_adjustment AS (
                             SELECT
@@ -280,58 +270,58 @@ module.exports = {
                             FROM
                                 matched_claims
                         )
-                            ,update_payment AS (
-                               UPDATE billing.payments
-                                SET
-                                    amount = ( SELECT COALESCE(sum(payment),'0')::numeric FROM matched_claims ),
-                                    notes =  notes || E'\n' || 'Amount received for matching orders : ' || ( SELECT COALESCE(sum(payment),'0')::numeric FROM matched_claims ) || E'\n\n' || ${paymentDetails.uploaded_file_name}
-                                WHERE id = ${paymentDetails.id}
-                                AND 'EOB' = ${paymentDetails.isFrom}
+                        ,update_payment AS (
+                           UPDATE billing.payments
+                            SET
+                                amount = ( SELECT COALESCE(sum(payment),'0')::numeric FROM matched_claims ),
+                                notes =  notes || E'\n' || 'Amount received for matching orders : ' || ( SELECT COALESCE(sum(payment),'0')::numeric FROM matched_claims ) || E'\n\n' || ${paymentDetails.uploaded_file_name}
+                            WHERE id = ${paymentDetails.id}
+                            AND 'EOB' = ${paymentDetails.isFrom}
+                        )
+                        ,insert_claim_comments AS (
+                            INSERT INTO billing.claim_comments
+                            (
+                                claim_id
+                                ,note
+                                ,type
+                                ,created_by
+                                ,created_dt
                             )
-                            ,insert_claim_comments AS (
-                                INSERT INTO billing.claim_comments
+                            SELECT
+                                claim_number
+                                ,note
+                                ,type
+                                ,${paymentDetails.created_by}
+                                ,'now()'
+                            FROM
+                                json_to_recordset(${JSON.stringify(claimComments)}) AS claim_notes
                                 (
+                                    claim_number bigint
+                                    ,note text
+                                    ,type text
+                                )
+                            INNER JOIN matched_claims mc on mc.claim_id = claim_notes.claim_number
+                            RETURNING id AS claim_comment_id
+                        ),
+                            update_claim_status_and_payer AS (
+                                SELECT
                                     claim_id
-                                    ,note
-                                    ,type
-                                    ,created_by
-                                    ,created_dt
-                                )
-                                SELECT
-                                    claim_number
-                                    ,note
-                                    ,type
-                                    ,${paymentDetails.created_by}
-                                    ,'now()'
+                                    ,billing.change_responsible_party(claim_id, claim_status_code, ${paymentDetails.company_id}, original_reference)
                                 FROM
-                                    json_to_recordset(${JSON.stringify(claimComments)}) AS claim_notes
-                                    (
-                                        claim_number bigint
-                                        ,note text
-                                        ,type text
-                                    )
-                                INNER JOIN matched_claims mc on mc.claim_id = claim_notes.claim_number
-                                RETURNING id AS claim_comment_id
-                            ),
-                                update_claim_status_and_payer AS (
-                                    SELECT
-                                        claim_id
-                                        ,billing.change_responsible_party(claim_id, claim_status_code, ${paymentDetails.company_id}, original_reference)
-                                    FROM
-                                        matched_claims
-                                )
-                                SELECT
-	                            ( SELECT json_agg(row_to_json(insert_payment_adjustment)) insert_payment_adjustment
-                                            FROM (
-                                                    SELECT
-                                                          *
-                                                          , ( SELECT array_agg(claim_id) FROM update_claim_status_and_payer LIMIT 1 )
-                                                    FROM
-                                                    insert_payment_adjustment
+                                    matched_claims
+                            )
+                            SELECT
+	                        ( SELECT json_agg(row_to_json(insert_payment_adjustment)) insert_payment_adjustment
+                                        FROM (
+                                                SELECT
+                                                      *
+                                                      , ( SELECT array_agg(claim_id) FROM update_claim_status_and_payer LIMIT 1 )
+                                                FROM
+                                                insert_payment_adjustment
 
-                                                ) AS insert_payment_adjustment
-                                ) AS insert_payment_adjustment
-                            `);
+                                            ) AS insert_payment_adjustment
+                            ) AS insert_payment_adjustment
+                        `;
 
         return await query(sql);
     },
