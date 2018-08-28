@@ -268,8 +268,7 @@ module.exports = {
                                             OR LOWER(ur.role_name) = 'billing1.5'
                                             OR (group_info -> 'user_nav')::jsonb ? 'billing'
                                          )
-                                    AND
-users.has_deleted = FALSE
+                                    AND users.has_deleted = FALSE
                                     ${users_q}
                                     AND users.is_active
                                     AND users.has_deleted = FALSE
