@@ -991,12 +991,6 @@ define('grid', [
                     "searchoptions": {
                         "value": billingUserList,
                         "defaultValue":billingUserList
-                    },
-                    formatter: function (cellvalue, options, rowObject) {
-                        var users = commonjs.getBillingUserName(rowObject.assigned_to);
-                        if (users && users.length)
-                            return users[0].username + ' ( ' + users[0].last_name + ', ' + users[0].first_name + ' ) ';
-                        else ''
                     }
                 },
                 {
