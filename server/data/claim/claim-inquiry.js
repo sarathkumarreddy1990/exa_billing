@@ -404,7 +404,7 @@ module.exports = {
                         SELECT row_to_json(old_row)
                         FROM   (SELECT *
                                 FROM   billing.claim_followups
-                                WHERE  claim_id = ${claim_id} ) old_row
+                                WHERE  claim_id = ${claim_id} and assigned_to= ${userId}) old_row
                     ) old_values
                 ),
                 insert_followup AS(
