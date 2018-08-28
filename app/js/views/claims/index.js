@@ -520,23 +520,6 @@ define(['jquery',
                                 $('#btPatientDocuemnt').prop('disabled', true);
 
                             commonjs.hideLoading();
-
-                            //open reports if available for patient
-
-                            $.ajax({
-                                type: 'GET',
-                                url: '/exa_modules/billing/claims/claim/getApprovedReportsByPatient',
-                                data: {
-                                    patient_id: self.options.patient_id
-                                },
-                                success: function (model, response) {
-                                    if(model && model.length > 0) {
-                                        window.localStorage.setItem('last_billing_screen', 'patientReport');
-                                        $('#btPatientDocuemnt').click();
-                                    }
-                                }
-                            });
-
                         }
                     },
                     error: function (model, response) {
