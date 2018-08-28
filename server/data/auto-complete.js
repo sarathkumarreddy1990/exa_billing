@@ -237,11 +237,14 @@ module.exports = {
     },
 
     getUsers: async function (params) {
+        let users_q = '';
 
-        let users_q = ` AND (username ILIKE '%${params.q}%' ) `;
+        if (params.q) {
+            users_q = ` AND (username ILIKE '%${params.q}%' ) `;
+        }
 
-        const user_sql = SQL`SELECT
-                                DISTINCT users.id AS id,
+        const user_sql = `SELECT
+                                users.id AS id,
                                 username AS user_name,
                                 first_name AS first_name,
                                 last_name AS last_name,
@@ -250,31 +253,32 @@ module.exports = {
                                 users.user_group_id AS users_group_id,
                                 users.user_type AS users_type,
                                 users.password_changed_dt AS change_pwd_dt,
-                                COUNT(1) OVER (range unbounded preceding) AS total_records
+                                user_group_details.total_records as total_records
+                            FROM public.users
+                            INNER JOIN LATERAL (
+                                SELECT
+                                    users.id,
+                                    COUNT(1) OVER (range UNBOUNDED PRECEDING) AS total_records
                                 FROM
                                     public.users
-                                    INNER JOIN LATERAL(
-                            SELECT
-                            user_groups.id as user_group_id
-                            FROM public.user_groups
-                            INNER JOIN public.user_roles AS ur ON ur.id = ANY (user_groups.user_roles)
-                            WHERE
-                                ( LOWER(user_groups.group_name) = 'billing' OR LOWER(ur.role_name) = 'billing' OR LOWER(ur.role_name) = 'billing1.5'
-                                OR (group_info->'user_nav')::jsonb ? 'billing')
-                                ) user_group_details on user_group_details.user_group_id  = users.user_group_id
-                                WHERE users.has_deleted=FALSE AND
-                                users.is_active AND
-                                users.has_deleted = false AND
-                                users.company_id= ${params.company_id} `;
-
-        if (params.q != '') {
-            user_sql.append(users_q);
-        }
-
-        user_sql.append(SQL`ORDER BY username ASC `)
-            .append(SQL` LIMIT ${params.pageSize}`)
-            .append(SQL` OFFSET ${((params.page * params.pageSize) - params.pageSize)}`);
-
+                                    INNER JOIN user_groups ON user_groups.id = users.user_group_id
+                                    INNER JOIN public.user_roles AS ur ON ur.id = ANY (user_groups.user_roles)
+                                    WHERE( LOWER(user_groups.group_name) = 'billing'
+                                            OR LOWER(ur.role_name) = 'billing'
+                                            OR LOWER(ur.role_name) = 'billing1.5'
+                                            OR (group_info -> 'user_nav')::jsonb ? 'billing'
+                                         )
+                                    AND
+users.has_deleted = FALSE
+                                    ${users_q}
+                                    AND users.is_active
+                                    AND users.has_deleted = FALSE
+                                    AND users.company_id= ${params.company_id}
+                                    GROUP BY users.id
+                                    LIMIT ${params.pageSize}
+                                    OFFSET ${((params.page * params.pageSize) - params.pageSize)}
+                            ) user_group_details ON user_group_details.id = users.id
+                            ORDER BY username ASC`;
         return await query(user_sql);
     },
 
