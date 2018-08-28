@@ -20,7 +20,7 @@ function getTableContents(claimData) {
     for (let i = start; i < end; i++) {
         if (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].serviceLine &&
             claimData.subscriber[0].claim[0].serviceLine[i] && claimData.subscriber[0].claim[0].serviceLine[i].examCpt) {
-            totalBill += claimData.subscriber[0].claim[0].serviceLine[i].totalBillFee ? parseFloat(claimData.subscriber[0].claim[0].serviceLine[i].totalBillFee).toFixed(2) : 0.00;
+            // totalBill += claimData.subscriber[0].claim[0].serviceLine[i].totalBillFee ? +claimData.subscriber[0].claim[0].serviceLine[i].totalBillFee : 0.00;
             let claimDt = claimData.subscriber[0].claim[0].claimDt ? claimData.subscriber[0].claim[0].claimDt.toString() : '';
             cptRows.push([
                 {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
@@ -41,7 +41,7 @@ function getTableContents(claimData) {
                     },
                     {
                         text: claimDt && new Date(claimDt) ?
-                            (new Date(claimDt).getFullYear()).toString().substring(0, 2) : ''
+                            (new Date(claimDt).getFullYear()).toString().substring(2, 4) : ''
                     },
                     {
                         text: claimDt && new Date(claimDt) ?
@@ -53,7 +53,7 @@ function getTableContents(claimData) {
                     },
                     {
                         text: claimDt && new Date(claimDt) ?
-                            (new Date(claimDt).getFullYear()).toString().substring(0, 2) : ''
+                            (new Date(claimDt).getFullYear()).toString().substring(2, 4) : ''
                     },
                     { text: claimData.subscriber[0].claim[0].POS ? claimData.subscriber[0].claim[0].POS.toString().substring(0, 3) : '' }, { text: '' },
                     { text: claimData.subscriber[0].claim[0].serviceLine[i].examCpt ? claimData.subscriber[0].claim[0].serviceLine[i].examCpt.toString().substring(0, 5) : '' },
@@ -121,11 +121,21 @@ function getTableContents(claimData) {
     }
 
     return cptRows;
-
 }
 
-function numToAlphabet(index){
-    let char = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.charAt(parseInt(index)-1);
+function getTotalBill(claimData) {
+    let _totalBill = 0;
+    if (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].serviceLine) {
+        for (let i = 0; i < claimData.subscriber[0].claim[0].serviceLine.length; i++) {
+            if (claimData.subscriber[0].claim[0].serviceLine[i] && claimData.subscriber[0].claim[0].serviceLine[i].examCpt)
+                _totalBill += claimData.subscriber[0].claim[0].serviceLine[i].totalBillFee ? +claimData.subscriber[0].claim[0].serviceLine[i].totalBillFee : 0.00;
+        }
+    }
+    return _totalBill;
+}
+
+function numToAlphabet(index) {
+    let char = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.charAt(parseInt(index) - 1);
     return char;
 }
 
@@ -138,7 +148,8 @@ function getPayerDetails(claimData) {
     let details = [];
     if (claimData && claimData.subscriber && claimData.subscriber[0].payer && claimData.subscriber[0].payer.payerName) {
         console.log(claimData.subscriber[0].claimFilingCode + '' + claimData.subscriber[0].payer.payerName);
-        if (claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() !== 'AT') {
+      //  if (claimData.subscriber[0].claimFilingCode === null || claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() !== 'AT') {
+        if (claimData.subscriber[0].claimFilingCode === null || claimData.subscriber[0].claimFilingCode === "" || (claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() !== 'AT')) {
             details.push(
                 [
                     { text: '', colSpan: 7 },
@@ -193,6 +204,7 @@ function getPayerDetails(claimData) {
 function formatRedForm(claimData) {
     cpt = getTableContents(claimData);
     payerDets = getPayerDetails(claimData);
+    totalBill = getTotalBill(claimData);
     return ([
         {
             style: 'myTable',
@@ -255,7 +267,7 @@ function formatRedForm(claimData) {
                                             },
                                             {
                                                 text: claimData.subscriber && claimData.subscriber[0].patient && claimData.subscriber[0].patient[0].dob &&
-                                                    new Date(claimData.subscriber[0].patient[0].dob) ? (new Date(claimData.subscriber[0].patient[0].dob.toString()).getFullYear()).toString().substring(0, 2) : ''
+                                                    new Date(claimData.subscriber[0].patient[0].dob) ? (new Date(claimData.subscriber[0].patient[0].dob.toString()).getFullYear()).toString().substring(2, 4) : ''
                                             },
                                         ],
                                     ],
@@ -333,14 +345,14 @@ function formatRedForm(claimData) {
                         },
                         {
                             text: claimData.subscriber && claimData.subscriber[0].patient && claimData.subscriber[0].patient[0].homePhone ?
-                                (claimData.subscriber[0].patient[0].homePhone).toString().substring(0, 13) : '', margin: [-60, 5, 0, 0]
+                                (claimData.subscriber[0].patient[0].homePhone).toString().substring(0, 13) : '(    )', margin: [-60, 5, 0, 0]
                         },
                         {},
                         {},
                         { text: claimData.subscriber && claimData.subscriber[0].zipCode ? (claimData.subscriber[0].zipCode).toString().substring(0, 12) : '' },
                         {
                             text: claimData.subscriber && claimData.subscriber[0].payer && claimData.subscriber[0].payer.phoneNo ?
-                                (claimData.subscriber[0].payer.phoneNo).toString().substring(0, 13) : '', margin: [-75, 5, 0, 0]
+                                (claimData.subscriber[0].payer.phoneNo).toString().substring(0, 13) : '(     )', margin: [-75, 5, 0, 0]
                         }
                     ],
                     [
@@ -412,7 +424,7 @@ function formatRedForm(claimData) {
                         ],
                     ],
                     [//ANS
-                        { text: "NUCC1", colSpan: 2 }, {},
+                        { text: "", colSpan: 2 }, {},
                         {
                             text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].relatedCauseCode2.toString() &&
                                 claimData.subscriber[0].claim[0].relatedCauseCode2.toString().toUpperCase() === 'TRUE') ? '√' : '', alignment: 'center', margin: [-20, 0, 0, 0]
@@ -424,7 +436,7 @@ function formatRedForm(claimData) {
                         { text: "", colSpan: 2 }, {}
                     ],
                     [//ANS
-                        { text: "NUCC2", colSpan: 2 }, {},
+                        { text: "", colSpan: 2 }, {},
                         {
                             text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].relatedCauseCode3.toString() &&
                                 claimData.subscriber[0].claim[0].relatedCauseCode3.toString().toUpperCase() === 'TRUE') ? '√' : '', alignment: 'center', margin: [-20, 0, 0, 0]
@@ -478,9 +490,9 @@ function formatRedForm(claimData) {
                                         [
                                             {
                                                 text: claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].claimDt ?
-                                                ((new Date(claimData.subscriber[0].claim[0].claimDt).getMonth() + 1).toString() + '-' +
-                                                new Date(claimData.subscriber[0].claim[0].claimDt).getDate().toString() + '-' +
-                                                new Date(claimData.subscriber[0].claim[0].claimDt).getFullYear().toString()  ): '', colSpan: 2
+                                                    ((new Date(claimData.subscriber[0].claim[0].claimDt).getMonth() + 1).toString() + '-' +
+                                                        new Date(claimData.subscriber[0].claim[0].claimDt).getDate().toString() + '-' +
+                                                        new Date(claimData.subscriber[0].claim[0].claimDt).getFullYear().toString()) : '', colSpan: 2
                                             }
                                         ],
                                     ],
@@ -556,7 +568,7 @@ function formatRedForm(claimData) {
                     [
                         {}, {}, {}, {}, {},
                         { text: '' },
-                        { text: '2850380358', colSpan: 3 }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+                        { text: '', colSpan: 3 }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
                     ],
                     [
                         {
@@ -597,11 +609,16 @@ function formatRedForm(claimData) {
                         }
                     ],
                     [
-                        { text: 'DSADSADSADSADSAD', colSpan: 9 },
+                        { text: '', colSpan: 9 },
                         {}, {}, {}, {}, {}, {}, {}, {},
-                        { text: '√', alignment: 'center' }, {},
-                        { text: '√', alignment: 'center' },
-                        { text: '784596', colSpan: 3, alignment: 'right' }, {}, {},
+                        {
+                            text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].outSideLab &&
+                                claimData.subscriber[0].claim[0].outSideLab.toString().toUpperCase() === 'TRUE' ? '√' : '', alignment: 'center'
+                        }, {},
+                        {
+                            text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].outSideLab.toString() &&
+                            claimData.subscriber[0].claim[0].outSideLab.toString().toUpperCase() === 'FALSE' ? '√' : '', alignment: 'center' },
+                        { text: '', colSpan: 3, alignment: 'right' }, {}, {},
                         { text: '00', alignment: 'left', colSpan: 2 }, {}
                     ],
                 ],
@@ -759,10 +776,10 @@ function formatRedForm(claimData) {
                         {
                             text: (claimData.billingProvider ? (claimData.billingProvider.lastName.substring(0, 30)) : '') + '\n' + (claimData.payToProvider ? (claimData.payToProvider.addressLine1 ?
                                 claimData.payToProvider.addressLine1.substring(0, 30) : '') : (claimData.billingProvider && claimData.billingProvider.addressLine1 ? claimData.billingProvider.addressLine1.substring(0, 30) : '') + '\n' + (claimData.billingProvider ? claimData.billingProvider.city + ' ' +
-                                    claimData.billingProvider.state + ' ' + claimData.billingProvider.zipCode : '').substring(0, 30)) , colSpan: 5
+                                    claimData.billingProvider.state + ' ' + claimData.billingProvider.zipCode : '').substring(0, 30)), colSpan: 5
                         },
                         {}, {}, {}, {},
-                        {text: claimData.billingProvider && claimData.billingProvider.phoneNo ? claimData.billingProvider.phoneNo : '', colSpan: 2}, {}
+                        { text: claimData.billingProvider && claimData.billingProvider.phoneNo ? claimData.billingProvider.phoneNo : '(     )', colSpan: 2 }, {}
                     ],
                 ],
             }, layout: 'noBorders'
@@ -776,7 +793,10 @@ function formatRedForm(claimData) {
                 body: [
                     [
                         { text: 'SIGNED' },
-                        { text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0] ? claimData.subscriber[0].claim[0].claimDt : '' },
+                        { text: claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].claimDt ?
+                            ((new Date(claimData.subscriber[0].claim[0].claimDt).getMonth() + 1).toString() + ' ' +
+                                new Date(claimData.subscriber[0].claim[0].claimDt).getDate().toString() + ' ' +
+                                new Date(claimData.subscriber[0].claim[0].claimDt).getFullYear().toString()) : '' },
                         {
                             text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0] && claimData.subscriber[0].claim[0].servicefacility
                                 && claimData.subscriber[0].claim[0].servicefacility[0].NPINO ? claimData.subscriber[0].claim[0].servicefacility[0].NPINO.toString().substring(0, 10) : ''
@@ -801,29 +821,37 @@ function getClaimResponsible(claimData) {
         } else if (claimData.subscriber[0].claimResponsibleParty.toString().toUpperCase() === 'T') {
             return getSecondaryAmountPaid(claimData);
         }
-    }
+    } else return '';
 }
 
 function getPrimaryAmountPaid(claimData) {
     let primary = claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].payerpaidAmount ?
-    claimData.subscriber[0].claim[0].payerpaidAmount[0].primaryPaidTotal ? parseInt(claimData.subscriber[0].claim[0].payerpaidAmount[0].primaryPaidTotal) : 0 : 0;
-    let adj = claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].payerpaidAmount  ?
-    claimData.subscriber[0].claim[0].payerpaidAmount[0].primaryAdjTotal ? parseInt(claimData.subscriber[0].claim[0].payerpaidAmount[0].primaryAdjTotal) : 0 : 0;
+        claimData.subscriber[0].claim[0].payerpaidAmount[0].primaryPaidTotal ? paidAmt(claimData.subscriber[0].claim[0].payerpaidAmount[0].primaryPaidTotal.toString()) : 0 : 0;
+    let adj = claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].payerpaidAmount ?
+        claimData.subscriber[0].claim[0].payerpaidAmount[0].primaryAdjTotal ? paidAmt(claimData.subscriber[0].claim[0].payerpaidAmount[0].primaryAdjTotal.toString()) : 0 : 0;
     let total = primary + adj;
     return total;
 }
 
 function getSecondaryAmountPaid(claimData) {
     let primary = claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].payerpaidAmount ?
-    claimData.subscriber[0].claim[0].payerpaidAmount[0].primaryPaidTotal ? parseInt(claimData.subscriber[0].claim[0].payerpaidAmount[0].primaryPaidTotal) : 0 : 0;
-    let adj = claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].payerpaidAmount  ?
-    claimData.subscriber[0].claim[0].payerpaidAmount[0].primaryAdjTotal ? parseInt(claimData.subscriber[0].claim[0].payerpaidAmount[0].primaryAdjTotal) : 0 : 0;
+        claimData.subscriber[0].claim[0].payerpaidAmount[0].primaryPaidTotal ? paidAmt(claimData.subscriber[0].claim[0].payerpaidAmount[0].primaryPaidTotal.toString()) : 0 : 0;
+    let adj = claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].payerpaidAmount ?
+        claimData.subscriber[0].claim[0].payerpaidAmount[0].primaryAdjTotal ? paidAmt(claimData.subscriber[0].claim[0].payerpaidAmount[0].primaryAdjTotal.toString()) : 0 : 0;
     let secondary = claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].payerpaidAmount ? claimData.subscriber[0].claim[0].payerpaidAmount[0].secondaryPaidTotal ?
-    parseInt(claimData.subscriber[0].claim[0].payerpaidAmount[0].secondaryPaidTotal) : 0 : 0;
+        paidAmt(claimData.subscriber[0].claim[0].payerpaidAmount[0].secondaryPaidTotal.toString()) : 0 : 0;
     let adj2 = claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].payerpaidAmount ? claimData.subscriber[0].claim[0].payerpaidAmount[0].secondaryAdjTotal ?
-    parseInt(claimData.subscriber[0].claim[0].payerpaidAmount[0].secondaryAdjTotal) : 0 : 0;
+        paidAmt(claimData.subscriber[0].claim[0].payerpaidAmount[0].secondaryAdjTotal.toString()) : 0 : 0;
     let total = primary + adj + secondary + adj2;
     return total;
+}
+
+function paidAmt(amt) {
+    let isDollar = amt.substring(0,1);
+    if (isDollar === '$') {
+        return (+amt.substring(1));
+    }
+    else return (+amt);
 }
 
 function mergeData(claim) {
