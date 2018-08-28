@@ -1233,7 +1233,7 @@ define(['jquery',
                             });
                             table.renderStudy();
 
-                            $('#btnValidateExport').one().click(function (e) {
+                            $('#btnValidateExport').off().click(function (e) {
                                 $('#btnValidateExport').css('display', 'none');
                                 var filter = commonjs.loadedStudyFilters.get(filterID)
                                 filterData= JSON.stringify(filter.pager.get('FilterData')),

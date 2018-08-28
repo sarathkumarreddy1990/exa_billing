@@ -1117,38 +1117,38 @@ define('grid', [
             if (doExport) {
                 var searchFilterFlag = grid.getGridParam("postData")._search;
                 var colHeader = studyFields.colName;
-
+                if (options.filterid != 'Follow_up_queue') {
                 commonjs.showLoading();
 
-                $.ajax({
-                    'url': '/exa_modules/billing/claim_workbench',
-                    type: 'GET',
-                    data: {
-                        filterData: filterData,
-                        filterCol: filterCol ,
-                        customArgs: {
-                            filter_id: filterID,
-                            flag: 'exportExcel'
+                    $.ajax({
+                        'url': '/exa_modules/billing/claim_workbench',
+                        type: 'GET',
+                        data: {
+                            filterData: filterData,
+                            filterCol: filterCol,
+                            customArgs: {
+                                filter_id: filterID,
+                                flag: 'exportExcel'
+                            }
+                        },
+                        success: function (data, response) {
+                            commonjs.prepareCsvWorker({
+                                data: data,
+                                reportName: 'CLAIMS',
+                                fileName: 'Claims'
+                            }, {
+                                    afterDownload: function () {
+                                        $('#btnValidateExport').css('display', 'inline');
+                                    }
+                                });
+                        },
+                        error: function (err) {
+                            commonjs.handleXhrError(err);
+                            $('#btnValidateExport').css('display', 'inline');
                         }
-                    },
-                    success: function (data, response) {
-                        commonjs.prepareCsvWorker({
-                            data: data,
-                            reportName: 'CLAIMS',
-                            fileName: 'Claims'
-                        }, {
-                                afterDownload: function () {
-                                    $('#btnValidateExport').css('display', 'inline');
-                                }
-                            });
-                    },
-                    error: function (err) {
-                        commonjs.handleXhrError(err);
-                        $('#btnValidateExport').css('display', 'inline');
-                    }
-                });
-
+                    });
                 return true;
+                }
             }
 
             claimsTable.render({
