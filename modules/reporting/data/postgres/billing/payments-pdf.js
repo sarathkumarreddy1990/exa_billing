@@ -61,6 +61,7 @@ WITH paymentsPDF as (
             AND bp.alternate_payment_id ILIKE '%<%= display_id %>%'
         <% } %>
         <% if(payer_name) { %>
+            <% if(payer_type_column) { %>
             AND  (
                 CASE '<%= payer_type_column %>'
                     WHEN 'insurance' THEN pip.insurance_name
@@ -68,6 +69,15 @@ WITH paymentsPDF as (
                     WHEN 'ordering_provider' THEN get_full_name(ppr.first_name,ppr.last_name)
                     WHEN 'patient' THEN  get_full_name(pp.first_name,pp.last_name)
                 END)  ILIKE '%<%= payer_name %>%'
+        <% } else { %>
+            AND (
+            CASE ''
+            WHEN '' THEN pip.insurance_name
+            WHEN '' THEN ppg.group_name
+            WHEN '' THEN get_full_name(ppr.first_name,ppr.last_name)
+            WHEN '' THEN  get_full_name(pp.first_name,pp.last_name)
+        END)  ILIKE '%<%= payer_name %>%'
+        <% } %>
         <% } %>
         <% if(amount) { %>
             AND (SELECT payment_balance_total FROM billing.get_payment_totals(bp.id))::numeric = <%= amount %>
@@ -78,6 +88,10 @@ WITH paymentsPDF as (
         <% if(applied) { %>
             AND (SELECT payments_applied_total from billing.get_payment_totals(bp.id))::numeric = <%=applied %>
         <%}%>
+        <% if(payment_amount) { %>
+            AND amount::numeric = <%=payment_amount %>
+        <%}%>
+
         <% if(user_full_name) { %>
             AND  get_full_name(pu.last_name, pu.first_name)  ILIKE '%<%= user_full_name %>%'
         <%}%>
@@ -236,7 +250,8 @@ const api = {
             payment_mode: null,
             applied: null,
             facility_name: null,
-            accounting_date: null
+            accounting_date: null,
+            payment_amount:null
         };
 
         if (reportParams.paymentStatus) {
@@ -286,8 +301,6 @@ const api = {
                 }
             }
 
-
-
             if (value == "payer_type") {
                 filters.payer_type_column = reportParams.filterData[i];
             }
@@ -315,6 +328,10 @@ const api = {
 
             if (value == "available_balance") {
                 filters.amount = reportParams.filterData[i];
+            }
+
+            if (value == "amount") {
+                filters.payment_amount = reportParams.filterData[i];
             }
 
             if (value == "adjustment_amount") {
