@@ -54,4 +54,9 @@ router.get('/insurance_payer_types', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/edi_templates', async function (req, res) {
+    const data = await autoCompleteController.getEDITemplateList();
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;

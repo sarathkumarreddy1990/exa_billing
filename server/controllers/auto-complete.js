@@ -31,5 +31,8 @@ module.exports = {
     },
     insurance_payer_types: function (params) {
         return data.insurance_payer_types(params);
+    },
+    getEDITemplateList: () => {
+        return data.getEDITemplateList();
     }
 };
