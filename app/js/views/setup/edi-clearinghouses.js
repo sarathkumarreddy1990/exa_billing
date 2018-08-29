@@ -378,8 +378,6 @@ define(['jquery',
                     type: 'GET',
                     async: false,
                     success: function (data, response) {
-                        console.log('data', data);
-                        console.log('response ', response)
                         templates = data && data.length > 0 ? data : [];
                     },
                     error: function (err, response) {
