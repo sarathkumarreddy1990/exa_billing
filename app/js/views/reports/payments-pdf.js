@@ -83,7 +83,9 @@ define([
                     var urlParams = {
                         pamentIds: reportArgs.payment_id,
                         paymentStatus: reportArgs.paymentStatus || " ",
-                        filterFlag: "paymentsExportPDFFlag"
+                        filterFlag: "paymentsExportPDFFlag",
+                        filterData : JSON.parse(reportArgs.filterData),
+                        filterColumn:JSON.parse(reportArgs.filterColumn)
                     }
                 }
 
