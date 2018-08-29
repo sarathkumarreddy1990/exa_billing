@@ -414,11 +414,11 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 },
                 "Notes": {
                     "id": 18,
-                    "field_code": "claim_notes",
+                    "field_code": "billing_notes",
                     "field_name": "Notes",
                     "i18n_name": "billing.COB.notes",
                     "field_info": {
-                        "name": "claim_notes",
+                        "name": "billing_notes",
                         "width": 100,
                         "defaultValue": ""
                     }

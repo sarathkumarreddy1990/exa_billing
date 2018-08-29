@@ -148,8 +148,8 @@ const colModel = [
         searchFlag: 'left%'
     },
     {
-        name: 'claim_notes',
-        searchColumns: ['claims.claim_notes'],
+        name: 'billing_notes',
+        searchColumns: ['claims.billing_notes'],
         searchFlag: '%'
     },
     {
@@ -236,7 +236,7 @@ const api = {
             case 'billing_code': return 'billing_codes.description';
             case 'billing_class': return 'billing_classes.description';
             case 'gender': return 'patients.gender';
-            case 'claim_notes': return 'claims.claim_notes';
+            case 'billing_notes': return '(claims.billing_notes  IS NULL) ,claims.billing_notes ';
             case 'submitted_dt': return 'claims.submitted_dt';
         }
 
@@ -360,7 +360,7 @@ const api = {
             'bgct.claim_balance_total as claim_balance',
             'billing_codes.description as billing_code',
             'billing_classes.description as billing_class',
-            'claims.claim_notes',
+            'claims.billing_notes',
             'patients.gender',
             'patients.id as patient_id',
             'invoice_no'
