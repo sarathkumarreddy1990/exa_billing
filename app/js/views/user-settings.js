@@ -33,13 +33,11 @@ define([
                     self.gridFilterName = 'studies';
                     self.default_tab = 'All Studies';
                     $('#divPrinterTemplates').hide();
-                    $('#alwaysLaunchBillingTab').hide();                    
                 }
                 if (window.location && window.location.hash.split('/')[1] == 'claim_workbench') {
                     self.gridFilterName = 'claims';
                     self.default_tab = 'All Claims';
                     $('#divPrinterTemplates').show();
-                    $('#alwaysLaunchBillingTab').show();
                 }
                 var height = $('#modal_div_container').height() - 70;
                 $("#ulSortList").css('height', height);
@@ -59,10 +57,8 @@ define([
                 var claimFieldOrder = [];
                 var claimSettingFields = [];
                 var billingClaimGridFields = [];
-                var launchBillingTab = true;
                 claim_col_name = $('#ddlBillingDefaultColumns').val();
                 claim_sort_order = $('#ddlBillingSortOrder').val();
-                launchBillingTab = $('#launchBillingTab').prop('checked');
                 $('#ulSortList li').each(function () {
                     var input = $($(this).find('input[type=checkbox]')[0]);
                     claimFieldOrder.push(input.attr('id').split('~')[1]);
@@ -78,7 +74,6 @@ define([
                     userId: userId,
                     claim_col_name: claim_col_name,
                     claim_sort_order: claim_sort_order,
-                    launch_billing_tab: launchBillingTab,
                     billingClaimGridFields: billingClaimGridFields,
                     claimFieldOrder: JSON.stringify(claimFieldOrder),
                     claimSettingFields: claimSettingFields,
@@ -229,7 +224,6 @@ define([
 
                         $('#ddlBillingDefaultColumns').val(result_data.default_column);
                         $('#ddlBillingSortOrder').val(result_data.default_column_order_by);
-                        $('#launchBillingTab').prop('checked', result_data.launch_billing_tab);
                         self.loadPrinterTemplates('ddlPaperClaimFullForm','paper_claim_full', result_data.paper_claim_full);
                         self.loadPrinterTemplates('ddlPaperClaimOriginalForm','paper_claim_original', result_data.paper_claim_original);
                         self.loadPrinterTemplates('ddlDirectInvoice','direct_invoice', result_data.direct_invoice);
