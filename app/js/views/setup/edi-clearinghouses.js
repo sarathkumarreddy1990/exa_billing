@@ -120,7 +120,7 @@ define(['jquery',
                     container: self.el,
                     customizeSort: true,
                     offsetHeight: 01,
-                    sortname: "id",
+                    sortname: "ech.id",
                     sortorder: "desc",
                     sortable: {
                         exclude: '#jqgh_tblEDIClearingHousesGrid,#jqgh_tblEDIClearingHousesGrid_edit,#jqgh_tblEDIClearingHousesGrid_del'
@@ -157,7 +157,8 @@ define(['jquery',
 
             renderForm: function (id) {
                 var self=this;
-                $('#divEDIClearingHousesForm').html(this.ediClearingHousesFormTemplate());
+                var ediTemplates = self.getEDITemplates();
+                $('#divEDIClearingHousesForm').html(this.ediClearingHousesFormTemplate({ediTemplates: ediTemplates}));
                 if (id > 0) {
                     this.model.set({ id: id });
                     this.model.fetch({
@@ -170,7 +171,7 @@ define(['jquery',
                                     $('#txtCode').val(data.code ? data.code : '');
                                     $('#txtReceiverName').val(data.receiver_name ? data.receiver_name : '');
                                     $('#txtReceiverID').val(data.receiver_id ? data.receiver_id : '');
-                                    $('#txtEdiTemplateName').val(data.edi_template_name ? data.edi_template_name : '');
+                                    $('#txtEdiTemplateName').val(data.edi_template_name ? data.edi_template_name : '0');
                                     $('#chkIsActive').prop('checked', data.inactivated_dt ? true : false);
                                     $('#txtAuthInfo').val(info.authorizationInformation ? info.authorizationInformation : '');
                                     $('#txtAuthInfoQualifier').val(info.authorizationInformationQualifier ? info.authorizationInformationQualifier : '');
@@ -204,7 +205,7 @@ define(['jquery',
                                         $('#txtPassword').val(info.password ? info.password : '');
                                     }
                                 }
-                            }     
+                            }
                         }
                     });
                 } else {
@@ -256,7 +257,8 @@ define(['jquery',
                     appSenderCode: {required: true},
                     responsibleAgencyCode: {required: true},
                     appReceiverCode: {required: true},
-                    providerOfficeNo: {required: true}
+                    providerOfficeNo: {required: true},
+                    ediTemplate: {required: true}
                 }
                 if ($('#ddlXmlTempSyn').val() != 1) {
                     rules.username = { required: true }
@@ -284,7 +286,8 @@ define(['jquery',
                         appReceiverCode: commonjs.getMessage("e", "Application Receiver Code"),
                         providerOfficeNo: commonjs.getMessage("e", "Provider Office No"),
                         username: commonjs.getMessage("e", "Username"),
-                        password: commonjs.getMessage("e", "Password")
+                        password: commonjs.getMessage("e", "Password"),
+                        ediTemplate: commonjs.getMessage("e", "EDI Template")
                     },
                     submitHandler: function () {
                         self.save();
@@ -330,7 +333,7 @@ define(['jquery',
                     "code": $('#txtCode').val(),
                     "receiverName": $('#txtReceiverName').val(),
                     "receiverId": $('#txtReceiverID').val(),
-                    "ediTemplateName": $('#txtEdiTemplateName').val(),
+                    "ediTemplateName": $('#txtEdiTemplateName').val() != '0' ? $('#txtEdiTemplateName').val() : null ,
                     "company_id": app.companyID,
                     "isActive": !$('#chkIsActive').prop('checked'),
                     "communicationInfo": JSON.stringify(communication_info)
@@ -344,7 +347,7 @@ define(['jquery',
                             }
                         },
                         error: function (model, response) {
-                            commonjs.handleXhrError(model, response); 
+                            commonjs.handleXhrError(model, response);
                         }
                     });
             },
@@ -366,6 +369,25 @@ define(['jquery',
             checkValidDelimiter: function (e) {
                 var val = $('#txtSubElementDelimiter').val().trim();
                 if (val && e.key == val)$('#txtElementDelimiter').val('');
+            },
+
+            getEDITemplates: function() {
+                var templates = [];
+                $.ajax({
+                    url: '/exa_modules/billing/autoCompleteRouter/edi_templates',
+                    type: 'GET',
+                    async: false,
+                    success: function (data, response) {
+                        console.log('data', data);
+                        console.log('response ', response)
+                        templates = data && data.length > 0 ? data : [];
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
+
+                return templates;
             }
         });
         return EDIClearingHousesView;

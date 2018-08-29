@@ -336,4 +336,14 @@ module.exports = {
         return await query(sqlInsurancePayerType);
     },
 
+    getEDITemplateList: async () =>{
+        const sql = SQL`SELECT
+                              id
+                            , name
+                        FROM
+                        billing.edi_templates
+                        WHERE template_type = 'edi' `;
+
+        return await query(sql);
+    }
 };
