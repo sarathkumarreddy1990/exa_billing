@@ -60,13 +60,11 @@ const _ = require('lodash')
                                                     END
                                                 )
         <% if (billingProID) { %> INNER JOIN billing.providers bpp ON bpp.id = bc.billing_provider_id <% } %>
-
         LEFT JOIN public.patient_insurances ppi ON ppi.id =  bc.primary_patient_insurance_id
         LEFT JOIN public.insurance_providers ip ON ip.id = ppi.insurance_provider_id
         LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = ip.provider_payer_type_id
         LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
         LEFT JOIN public.providers pr ON  pr.id = ppc.provider_id
-
         JOIN LATERAL (
             SELECT
                         DISTINCT bch.claim_id
@@ -94,8 +92,6 @@ const _ = require('lodash')
                        INNER JOIN billing.payment_applications ibpa on ibch.id = ibpa.charge_id
                        WHERE ibch.claim_id = bc.id) ) <% }
                    %>
-
-
         ) payments  on true
         WHERE 1=1
         AND  <%= companyId %>
@@ -105,16 +101,16 @@ const _ = require('lodash')
         <% if (facilityIds) { %>AND <% print(facilityIds); } %>
         <% if(billingProID) { %> AND <% print(billingProID); } %>
         <% if(insGroups) { %> AND <%=insGroups%> <%}%>
-
          ORDER BY p.full_name,p.account_no ASC)
         SELECT
              *
         FROM
              claim_data
+             order by carrier
     `);
 
     const claimInquiryDataSetQueryTemplate1 = _.template(`
-    with claim_data_comments as (
+    with claim_data as (
         SELECT
         bc.id as claim_id
         , p.full_name
@@ -154,70 +150,67 @@ const _ = require('lodash')
 
       billing_comments as
         (
-        SELECT
-                 cc.claim_id AS id
-                ,'claim' AS type
-                , note   AS comments
-                , to_char(created_dt, 'MM/DD/YYYY') AS commented_dt
-                , null AS charges
-                , u.username AS commented_by
-                , null::money AS adjustment_amount
-                , null::money AS payment_amount
-                , null::bigint AS payment_id
-                , null AS cpt_codes
-        FROM
-              billing.claim_comments cc
-        INNER JOIN claim_data_comments cd on cd.claim_id = cc.claim_id
-        INNER join users u  on u.id = cc.created_by
-        UNION ALL
-        SELECT
-                c.claim_id AS id
-              , 'charge' AS type
-              , cc.short_description AS comments
-              , to_char(c.charge_dt,'MM/DD/YYYY') AS commented_dt
-              , (c.bill_fee*c.units) AS amount
-              , u.username AS commented_by
-              , null::money AS adjustment_amount
-              , null::money AS payment_amount
-              , null::bigint AS payment_id
-              , cc.display_code as cpt_codes
-        FROM
-             billing.charges c
-        INNER JOIN claim_data_comments cd on cd.claim_id = c.claim_id
-        INNER JOIN cpt_codes cc on cc.id = c.cpt_id
-        INNER JOIN users u  on u.id = c.created_by
-        UNION ALL
-        SELECT
-                bc.claim_id AS id
-              , amount_type AS type,
-                CASE
-                    WHEN bp.payer_type = 'patient' THEN
-                        pp.full_name
-                    WHEN bp.payer_type = 'insurance' THEN
-                        ip.insurance_name
-                    WHEN bp.payer_type = 'ordering_facility' THEN
-                        pg.group_name
-                    WHEN bp.payer_type = 'ordering_provider' THEN
-                        p.full_name
-                    END     AS comments,
-                to_char(bp.accounting_dt,'MM/DD/YYYY') as commented_dt,
-                pa.amount as amount,
+            select
+                cc.claim_id as id,
+                'claim' as type ,
+                note as comments ,
+                to_char(created_dt::date,'MM/DD/YYYY') as commented_dt,
+                null as amount,
                 u.username as commented_by,
-                (bp.amount) AS total_payment,
-                (SELECT adjustments_applied_total FROM billing.get_payment_totals(bp.id)) AS adjustments,
-                bp.id as payment_id,
-                null
-        FROM
-                    billing.payments bp
-        INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
-        INNER JOIN billing.charges bc on bc.id = pa.charge_id
-        INNER JOIN claim_data_comments cd on cd.claim_id = bc.claim_id
-        INNER JOIN users u  on u.id = bp.created_by
-        LEFT JOIN public.patients pp on pp.id = bp.patient_id
-        LEFT JOIN public.insurance_providers ip on ip.id = bp.insurance_provider_id
-        LEFT JOIN public.provider_groups  pg on pg.id = bp.provider_group_id
-        LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
-        LEFT JOIN public.providers p on p.id = pc.provider_id
+                null as code,
+                null::bigint as payment_id
+            from  billing.claim_comments cc
+            INNER JOIN claim_data cd on cd.claim_id = cc.claim_id
+            inner join users u  on u.id = cc.created_by
+            where  cc.is_internal
+            UNION ALL
+            select
+                c.claim_id as id,
+                'charge' as type,
+                cc.short_description as comments,
+                to_char(c.charge_dt::date,'MM/DD/YYYY') as commented_dt,
+                (c.bill_fee*c.units) as amount,
+                u.username as commented_by,
+                cc.display_code as code,
+                null::bigint as payment_id
+            from billing.charges c
+            INNER JOIN claim_data cd on cd.claim_id = c.claim_id
+            inner join cpt_codes cc on cc.id = c.cpt_id
+            inner join users u  on u.id = c.created_by
+            UNION ALL
+            select  bc.claim_id as id,amount_type as type,
+            CASE WHEN bp.payer_type = 'patient' THEN
+                       pp.full_name
+                 WHEN bp.payer_type = 'insurance' THEN
+                       pip.insurance_name
+                 WHEN bp.payer_type = 'ordering_facility' THEN
+                       pg.group_name
+                 WHEN bp.payer_type = 'ordering_provider' THEN
+                       p.full_name
+            END as comments,
+            to_char(bp.accounting_dt::date,'MM/DD/YYYY') as commented_dt,
+            pa.amount as amount,
+            u.username as commented_by,
+            CASE amount_type
+                 WHEN 'adjustment' THEN 'Adj'
+                 WHEN 'payment' THEN (CASE bp.payer_type
+                                     WHEN 'patient' THEN 'Patient'
+                                     WHEN 'insurance' THEN 'Insurance'
+                                     WHEN 'ordering_facility' THEN 'Ordering facility'
+                                     WHEN 'ordering_provider' THEN 'Provider'
+                                     END)
+            END as code,
+            bp.id as payment_id
+            from billing.payments bp
+            inner join billing.payment_applications pa on pa.payment_id = bp.id
+            inner join billing.charges bc on bc.id = pa.charge_id
+            INNER JOIN claim_data cd on cd.claim_id = bc.claim_id
+            inner join users u  on u.id = bp.created_by
+            LEFT JOIN public.patients pp on pp.id = bp.patient_id
+            LEFT JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id
+            LEFT JOIN public.provider_groups  pg on pg.id = bp.provider_group_id
+            LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
+            LEFT JOIN public.providers p on p.id = pc.provider_id
         <% if (userIds) { %>  INNER join public.users on users.id = bp.created_by    <% } %>
 
         WHERE 1 =1
@@ -319,11 +312,14 @@ const _ = require('lodash')
                             if (claimInquiryDataSet1.rows[j][0] === claimInquiryDataSet.rows[i][0]) {
                                 comments.push(claimInquiryDataSet1.rows[j]);
                             }
+
                         }
+                        _.uniqBy(claimInquiryDataSet.rows[i][8], function (e) { console.log('sssssssssssssssssssss', e)})
                         claimInquiryDataSet.rows[i].push(comments);
 
                     }
                     // add report specific data sets
+
                     initialReportData.dataSets.push(claimInquiryDataSet);
                     initialReportData.dataSetCount = initialReportData.dataSets.length;
                     return initialReportData;
