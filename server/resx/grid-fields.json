@@ -198,7 +198,7 @@
             "id": 17
         },
         {
-            "field_code": "claim_notes",
+            "field_code": "billing_notes",
             "field_name": "Notes",
             "i18n_name": "setup.userSettings.notes",
             "field_info": {
