@@ -2321,7 +2321,6 @@ define(['jquery',
                     });
 
                     $('.multiselect-container li').css('width', '300px');
-                    $('label').css('color', 'black');
                     $('.multiselect-container li a').css('padding', '0');
 
                     $.each($('.multiselect-item span'), function (index, obj) {
