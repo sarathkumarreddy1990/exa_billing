@@ -84,7 +84,7 @@ module.exports = {
                     }
                 );
 
-                if ((obj.subscriper_relationship).toUpperCase() != 'SELF') {
+                if ((obj.subscriber_relationShip).toUpperCase() != 'SELF') {
                     obj.data[0].subscriber[0].patient[0].claim = obj.data[0].subscriber[0].claim;
                     delete obj.data[0].subscriber[0].claim;
                 }
@@ -95,7 +95,7 @@ module.exports = {
             let ediRequestJson = {
                 'config': {
                     'ALLOW_EMPTY_SEGMENT': true,
-                    'VALIDATION_SET': 'Default'
+                    'VALIDATION_SET': 'default_validation'
                 },
                 header: result.rows[0].header,
                 'bht': {
