@@ -1117,7 +1117,8 @@ define('grid', [
             if (doExport) {
                 var searchFilterFlag = grid.getGridParam("postData")._search;
                 var colHeader = studyFields.colName;
-
+                var current_filter_id = $('#claimsTabs').find('.active a').attr('data-container')
+                if (options.filterid != 'Follow_up_queue') {
                     commonjs.showLoading();
 
                     $.ajax({
@@ -1127,7 +1128,7 @@ define('grid', [
                             filterData: filterData,
                             filterCol: filterCol,
                             customArgs: {
-                                filter_id: filterID,
+                                filter_id: current_filter_id,
                                 flag: 'exportExcel'
                             }
                         },
@@ -1148,6 +1149,11 @@ define('grid', [
                         }
                     });
                     return true;
+                }
+                else {
+                    $('#btnValidateExport').css('display', 'inline');
+                    options.filterid = '';
+                }
             }
 
             claimsTable.render({
