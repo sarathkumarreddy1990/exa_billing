@@ -260,11 +260,11 @@ const api = {
                 billing.claims
                 INNER JOIN facilities ON facilities.id=claims.facility_id
             ${permissionQuery}
-            ${api.getWLQueryJoin(tables, true, args.customArgs.filter_id) + args.filterQuery}
+            ${api.getWLQueryJoin(tables, true, args.customArgs.filter_id, args.user_id) + args.filterQuery}
             `;
         return query;
     },
-    getWLQueryJoin: function (columns, isInnerQuery, filterID) {
+    getWLQueryJoin: function (columns, isInnerQuery, filterID, userID) {
         let tables = isInnerQuery ? columns : api.getTables(columns);
         let r = ' INNER JOIN LATERAL billing.get_claim_totals(claims.id) bgct ON TRUE ';
 
@@ -291,7 +291,8 @@ const api = {
         if (filterID == 'Follow_up_queue') {
             r += ' INNER JOIN billing.claim_followups ON  claim_followups.claim_id=claims.id left join users on users.id=assigned_to';
         } else if (tables.claim_followups) {
-            r += ' LEFT JOIN billing.claim_followups  ON claim_followups.claim_id=claims.id left join users on users.id=assigned_to';
+            r += ` LEFT JOIN billing.claim_followups  ON claim_followups.claim_id=claims.id and assigned_to=${userID}
+                   left join users on users.id=assigned_to `;
         }
 
         if (tables.patient_insurances || tables.insurance_providers || tables.edi_clearinghouses) {
@@ -377,7 +378,7 @@ const api = {
 
             stdcolumns.push( ' claim_followups.followup_date::text as followup_date ');
             stdcolumns.push( ' users.id as assigned_id ');
-            stdcolumns.push( ' users.username as assigned_to ');
+            stdcolumns.push( ` users.username||'('||get_full_name(users.first_name,users.last_name)||')' as assigned_to `);
 
         }
 
@@ -394,7 +395,7 @@ const api = {
             if (config.get('claimsExportRecordsCount')) {
                 args.pageSize = config.get('claimsExportRecordsCount');
             } else {
-                args.pageSize = 25000;
+                args.pageSize = 1000;
             }
         }
 
@@ -427,7 +428,7 @@ const api = {
         let followupselect = '';
 
         if(args.customArgs.filter_id=='Follow_up_queue'){
-            followupselect = ', users.id as assigned_user_id , users.username as assigned_user,claim_followups.followup_date::text as assigned_dt ';
+            followupselect = `, users.id as assigned_user_id , users.username||'('||get_full_name(users.first_name,users.last_name)||')' as assigned_user,claim_followups.followup_date::text as assigned_dt `;
         }
 
         let innerQuery = api.getWLQuery(`
@@ -450,11 +451,10 @@ const api = {
             ${columns}
             FROM (${innerQuery}) as FinalClaims
             INNER JOIN billing.claims ON FinalClaims.claim_id = claims.id
-            ${api.getWLQueryJoin(columns, '', args.customArgs.filter_id)}
+            ${api.getWLQueryJoin(columns, '', args.customArgs.filter_id, args.user_id)}
             ORDER BY FinalClaims.number
             `
             ;
-
         return await query(sql, params);
     },
 

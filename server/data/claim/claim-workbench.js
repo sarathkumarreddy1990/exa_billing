@@ -380,7 +380,7 @@ module.exports = {
             WITH followup_details AS (
                 SELECT
                       "claimID" AS followup_claim_id
-                    , "followUPUserID" AS assigned_to
+                    , coalesce("followUPUserID",${userId}) AS assigned_to
                     , "followupDate" AS followup_dt
                 FROM json_to_recordset(${followUpDetails}) AS followup
                 (

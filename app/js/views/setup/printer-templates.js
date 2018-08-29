@@ -223,6 +223,11 @@ define(['jquery',
                 commonjs.initializeScreen({
                     header: { screen: 'PaperClaimTemplates', ext: 'paperClaimTemplates' }, buttons: [
                         {
+                            value: 'LoaadDefaultTemplate', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.reloaddefault', clickEvent: function () {
+                                self.reloadDefaultTemplate($("#ddlTemplateType").val());
+                            }
+                        },
+                        {
                             value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
                                 $("#txtTemplateName").val($.trim($('#txtTemplateName').val()) || null);
                                 self.savePaperClaimTemplates(false);
@@ -357,6 +362,33 @@ define(['jquery',
                         showStatus(err);
                         return;
                     }
+                }
+            },
+
+            reloadDefaultTemplate: function (templateType) {
+                var self = this;
+                var templateNames = {
+                    'direct_invoice': 'direct_invoice.template',
+                    'patient_invoice': 'patient_Invoice.template',
+                    'paper_claim_full': 'paper_claim_BW.template',
+                    'paper_claim_original': 'paper_claim_red.template'
+                };
+
+                if (templateType) {
+                    commonjs.showLoading();
+                    $.ajax({
+                        url: '/exa_modules/billing/static/resx/printer_templates/' + templateNames[templateType],
+                        success: function (model, response) {
+                            self.setEditorContents(model);
+                            commonjs.hideLoading();
+                        },
+                        error: function (err, response) {
+                            commonjs.handleXhrError(err, response);
+                        }
+                    });
+                }
+                else {
+                    commonjs.showWarning('Select Template type');
                 }
             },
 
