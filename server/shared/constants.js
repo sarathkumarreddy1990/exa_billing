@@ -120,15 +120,6 @@ module.exports = {
         'claims_total_records': 'CLIM',
         'create_claim': 'CLIM',
         'claim_filters': 'CLIM',
-        'providers': 'CLIM', // AS OF NOW ---->  providers Auto Complete if claim have right then all drop will get rights
-        'icd_codes': 'CLIM', //Auto Cpmplete
-        'provider_group': 'CLIM', //Auto Cpmplete
-        'insurances': 'CLIM', //Auto Cpmplete
-        'orderingFacility': 'CLIM', //Auto Cpmplete
-        'patients': 'CLIM',  //Auto Cpmplete
-        'getUsers': 'CLIM',  //Auto Cpmplete
-        'autoCompleteRouter': 'CLIM', //Auto Cpmplete cpt code
-        'getUserRoles': 'CLIM', //Auto Cpmplete
         'printer_template': 'CLIM', //when claim
         'invoice_data': 'CLIM', //when claim
         'claim_json': 'CLIM', //when claim
