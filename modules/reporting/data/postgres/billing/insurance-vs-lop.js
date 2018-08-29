@@ -19,10 +19,10 @@ WITH study_cte AS (
       public.studies AS ps
       INNER JOIN billing.charges_studies bcs ON bcs.study_id = ps.id
       INNER JOIN billing.charges bch ON bch.id = bcs.charge_id
-      INNER JOIN billing.claims bc ON bc.id = bch.id
+      INNER JOIN billing.claims bc ON bc.id = bch.claim_id
     WHERE 1=1
     AND NOT ps.has_deleted
-    AND ps.accession_no NOT ILIKE '%.c' 
+    AND ps.accession_no NOT ILIKE '%.c'
       AND  <%= companyId %>
       AND <%= claimDate %>
   ),
