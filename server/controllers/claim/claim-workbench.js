@@ -95,7 +95,7 @@ module.exports = {
             let ediRequestJson = {
                 'config': {
                     'ALLOW_EMPTY_SEGMENT': true,
-                    'VALIDATION_SET': 'Default'
+                    'VALIDATION_SET': 'default_validation'
                 },
                 header: result.rows[0].header,
                 'bht': {

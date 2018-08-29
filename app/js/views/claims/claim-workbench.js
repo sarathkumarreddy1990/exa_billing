@@ -567,50 +567,41 @@ define(['jquery',
                         }
 
                         if (data && data.ediText && data.ediText.length) {
-                            var str = '';
-                            $.each(data.ediText.split('~'), function (index, val) {
-                                if (val != '') {
-                                    if (index == 0 || index == 1) {
-                                        str += "<tr><td style='width: 20px; padding: 5px;'>" + (0) + "</td><td style='padding: 5px; border-right: none;'>" + val + "</td></tr>";
-                                    }
-                                    else {
-                                        str += "<tr><td style='width: 20px; padding: 5px;'>" + (index - 1) + "</td><td style='padding: 5px; border-right: none;'>" + val + "</td></tr>";
-                                    }
-                                }
-                            });
+
+                            var result = [];
+                            if (data.validations && data.validations.length) {
+                                 result = _.groupBy(data.validations, "dataID");
+                            }
+
                             commonjs.showDialog({
                                 header: 'EDI Claim',
                                 width: '95%',
                                 height: '75%',
-                                html: self.ediResultTemplate()
+                                html: self.ediResultTemplate({result:result,ediText:data.ediText})
                             });
 
-                            $('#tblEDIResp').append(str);
-
-                            if (data.validations && data.validations.length) {
-                                $('#divEDIErrorMsgs').empty();
-
-                                var result = _.groupBy(data.validations, "dataID");
-
-                                $('#divEDIErrorMsgs').append(self.ediWarning({ result: result }));
-                                commonjs.initializeScreen({ buttons: [] });
-                            } else {
-                                $('#liErrorMessages').hide();
+                            if (result == 0) {
+                                $('#liErrorMessages').css({'display':'none'});
                                 $("#btnClaimsRefresh").click();
+                                $('#liEDI,#aEDIResp').addClass('active');
+                            }else{
+                                $('#divEDIResult').css({'display':'none'});
+                                $('#divErrorMsgs').css({'display':'block'});
                             }
 
+                            commonjs.initializeScreen({ buttons: [] });
                             $('#tabsEDIResponses li').click(function (e) {
                                 if (e.target.id == 'aEDIResp') {
                                     $('#liEDI').addClass('active');
                                     $('#liErrorMessages').removeClass('active');
-                                    $('#divEDIResult').show();
-                                    $('#divErrorMsgs').hide();
+                                    $('#divErrorMsgs').css({'display':'none'});
+                                    $('#divEDIResult').css({'display':'block'});
                                 }
                                 else {
                                     $('#liEDI,#aEDIResp').removeClass('active');
                                     $('#liErrorMessages').addClass('active');
-                                    $('#divEDIResult').hide();
-                                    $('#divErrorMsgs').show()
+                                    $('#divEDIResult').css({'display':'none'});
+                                    $('#divErrorMsgs').css({'display':'block'});
                                 }
                             });
 
@@ -1233,9 +1224,10 @@ define(['jquery',
                             });
                             table.renderStudy();
 
-                            $('#btnValidateExport').one().click(function (e) {
+                            $('#btnValidateExport').off().click(function (e) {
                                 $('#btnValidateExport').css('display', 'none');
-                                var filter = commonjs.loadedStudyFilters.get(filterID)
+                                var filter_current_id = $('#claimsTabs').find('.active a').attr('data-container')
+                                var filter = commonjs.loadedStudyFilters.get(filter_current_id)
                                 filterData= JSON.stringify(filter.pager.get('FilterData')),
                                 filterCol =JSON.stringify(filter.pager.get('FilterCol'));
                                 table.renderStudy(true, filterData, filterCol);
