@@ -11,44 +11,92 @@ const _ = require('lodash')
 const paymentsPDFDataSetQueryTemplate = _.template(`
 WITH paymentsPDF as (
     SELECT
-    bp.id AS payment_id,
-    get_full_name(pu.first_name,pu.last_name) as user_full_name,
-    get_full_name(pp.first_name,pp.last_name) as patient_full_name,
-    get_full_name(ppr.first_name,ppr.last_name) as provider_full_name,
-    pip.insurance_name,
-    pip.insurance_code,
-    bp.alternate_payment_id,
-    bp.facility_id,
-    bp.payment_dt,
-    to_char(bp.accounting_dt, 'MM/DD/YYYY') as accounting_dt,
-    bp.payer_type,
-    bp.invoice_no,
-    bp.amount AS amount,
-    bp.notes as notes,
-bp.card_number AS cheque_card_number,
-    pp.account_no as account_no,
-    (SELECT payments_applied_total FROM billing.get_payment_totals(bp.id)) AS applied,
-    (SELECT adjustments_applied_total FROM billing.get_payment_totals(bp.id)) AS adjustments,
-    (SELECT payment_balance_total FROM billing.get_payment_totals(bp.id)) AS balance,
-    (SELECT payment_status FROM billing.get_payment_totals(bp.id)) AS status,
-    CASE WHEN payer_type = 'patient' THEN  get_full_name(pp.first_name,pp.last_name)
-         WHEN payer_type = 'insurance' THEN pip.insurance_name
-         WHEN payer_type = 'ordering_facility' THEN ppg.group_name
-         WHEN payer_type = 'ordering_provider' THEN get_full_name(ppr.first_name,ppr.last_name)
-    END payer_name,
-    pf.facility_name as facility_name,
-    to_char(bp.payment_dt,'MM/DD/YYYY') as payment_date
-FROM billing.payments bp
-INNER JOIN public.users pu ON pu.id = bp.created_by
-LEFT JOIN public.patients pp ON pp.id = bp.patient_id
-LEFT JOIN public.insurance_providers pip ON pip.id = bp.insurance_provider_id
-LEFT JOIN public.provider_groups ppg ON ppg.id = bp.provider_group_id
-LEFT JOIN public.provider_contacts ppc ON ppc.id = bp.provider_contact_id
-LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
-LEFT JOIN public.facilities pf ON pf.id = bp.facility_id
-<% if (from === 'ris') { %> WHERE  bp.payer_type = 'patient' <% } %>
-order by payment_id DESC
-LIMIT <%=  pageSize %>
+         bp.id AS payment_id,
+         get_full_name(pu.first_name,pu.last_name) AS user_full_name,
+         get_full_name(pp.first_name,pp.last_name) AS patient_full_name,
+         get_full_name(ppr.first_name,ppr.last_name) AS provider_full_name,
+         pip.insurance_name,
+         pip.insurance_code,
+         bp.alternate_payment_id,
+         bp.facility_id,
+         bp.payment_dt,
+         to_char(bp.accounting_dt, 'MM/DD/YYYY') as accounting_dt,
+         bp.payer_type,
+         bp.invoice_no,
+         bp.amount AS amount,
+         bp.notes as notes,
+         bp.card_number AS cheque_card_number,
+         pp.account_no as account_no,
+         (SELECT payments_applied_total FROM billing.get_payment_totals(bp.id)) AS applied,
+         (SELECT adjustments_applied_total FROM billing.get_payment_totals(bp.id)) AS adjustments,
+         (SELECT payment_balance_total FROM billing.get_payment_totals(bp.id)) AS balance,
+         (SELECT payment_status FROM billing.get_payment_totals(bp.id)) AS status,
+         CASE WHEN payer_type = 'patient' THEN  get_full_name(pp.first_name,pp.last_name)
+              WHEN payer_type = 'insurance' THEN pip.insurance_name
+              WHEN payer_type = 'ordering_facility' THEN ppg.group_name
+              WHEN payer_type = 'ordering_provider' THEN get_full_name(ppr.first_name,ppr.last_name)
+         END payer_name,
+         pf.facility_name as facility_name,
+         to_char(bp.payment_dt,'MM/DD/YYYY') as payment_date
+    FROM
+         billing.payments bp
+    INNER JOIN public.users pu ON pu.id = bp.created_by
+    LEFT JOIN public.patients pp ON pp.id = bp.patient_id
+    LEFT JOIN public.insurance_providers pip ON pip.id = bp.insurance_provider_id
+    LEFT JOIN public.provider_groups ppg ON ppg.id = bp.provider_group_id
+    LEFT JOIN public.provider_contacts ppc ON ppc.id = bp.provider_contact_id
+    LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
+    LEFT JOIN public.facilities pf ON pf.id = bp.facility_id
+        <% if (from === 'ris') { %>
+            WHERE  bp.payer_type = 'patient'
+        <% } %>
+    WHERE 1=1
+        <% if(payer_type_column) { %>
+            AND payer_type = '<%= payer_type_column %>'
+        <% } %>
+        <% if(payment_id) { %>
+            AND <%= payment_id %>
+        <% } %>
+        <% if(display_id) { %>
+            AND bp.alternate_payment_id ILIKE '%<%= display_id %>%'
+        <% } %>
+        <% if(payer_name) { %>
+            AND  (
+                CASE '<%= payer_type_column %>'
+                    WHEN 'insurance' THEN pip.insurance_name
+                    WHEN 'ordering_facility' THEN ppg.group_name
+                    WHEN 'ordering_provider' THEN get_full_name(ppr.first_name,ppr.last_name)
+                    WHEN 'patient' THEN  get_full_name(pp.first_name,pp.last_name)
+                END)  ILIKE '%<%= payer_name %>%'
+        <% } %>
+        <% if(amount) { %>
+            AND (SELECT payment_balance_total FROM billing.get_payment_totals(bp.id))::numeric = <%= amount %>
+        <%}%>
+        <% if(adjustment_amount) { %>
+            AND  (SELECT adjustments_applied_total FROM billing.get_payment_totals(bp.id))::numeric = <%= adjustment_amount %>
+        <%}%>
+        <% if(applied) { %>
+            AND (SELECT payments_applied_total from billing.get_payment_totals(bp.id))::numeric = <%=applied %>
+        <%}%>
+        <% if(user_full_name) { %>
+            AND  get_full_name(pu.last_name, pu.first_name)  ILIKE '%<%= user_full_name %>%'
+        <%}%>
+        <% if(facility_name) { %>
+            AND  facility_name  ILIKE '%<%= facility_name %>%'
+        <%}%>
+        <% if(payment_mode) { %>
+            AND  mode ILIKE  '%<%= payment_mode %>%'
+        <%}%>
+        <% if(paymentDate) { %>
+            AND  <%= paymentDate %>
+        <%}%>
+        <% if(accounting_date) { %>
+            AND  <%= accounting_date %>
+        <%}%>
+    ORDER BY
+         payment_id DESC
+    LIMIT
+         <%=  pageSize %>
   )
   SELECT
     facility_name AS "Facility Name",
@@ -65,8 +113,6 @@ LIMIT <%=  pageSize %>
         paymentsPDF
      WHERE  1=1
     <% if (paymentStatus) { %>AND <% print(paymentStatus); } %>
-
-
   GROUP BY
      grouping sets(
         ( facility_name),
@@ -100,9 +146,6 @@ LIMIT <%=  pageSize %>
                WHERE  1=1
                <% if (paymentStatus) { %>AND <% print(paymentStatus); } %>
 
-
-
-
 `);
 
 const api = {
@@ -116,7 +159,7 @@ const api = {
             api.createpaymentsPDFDataSet(initialReportData.report.params),
             // other data sets could be added here...
             (paymentsPDFDataSet) => {
-                // add report filters                
+                // add report filters
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 // add report specific data sets
@@ -156,8 +199,8 @@ const api = {
         const lookups = initialReportData.lookups;
         const params = initialReportData.report.params;
         const filtersUsed = [];
-        
-        filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });  
+
+        filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
 
     },
 
@@ -179,23 +222,22 @@ const api = {
     getpaymentsPDFDataSetQueryContext: (reportParams) => {
         const params = [];
         const filters = {
-          paymentDate : null,
-          paymentStatus : null,
-          pageSize : null,
-          from: null
+            paymentDate: null,
+            paymentStatus: null,
+            pageSize: null,
+            from: null,
+            payer_type_column: null,
+            payment_id: null,
+            display_id: null,
+            payer_name: null,
+            amount: null,
+            adjustment_amount: null,
+            user_full_name: null,
+            payment_mode: null,
+            applied: null,
+            facility_name: null,
+            accounting_date: null
         };
-
-
-        //  scheduled_dt
-        // if (reportParams.fromDate === reportParams.toDate) {
-        //     params.push(reportParams.fromDate);
-        //     filters.paymentDate = queryBuilder.whereDate('bp.payment_dt', '=', [params.length], 'f.time_zone');
-        // } else {
-        //     params.push(reportParams.fromDate);
-        //     params.push(reportParams.toDate);
-        //     filters.paymentDate = queryBuilder.whereDateBetween('bp.payment_dt', [params.length - 1, params.length], 'f.time_zone');
-        // }
-
 
         if (reportParams.paymentStatus) {
             params.push(reportParams.paymentStatus);
@@ -208,9 +250,86 @@ const api = {
             } else {
                 filters.pageSize = 1000;
             }
-         }
+        }
 
-         filters.from = reportParams.from;
+        filters.from = reportParams.from;
+
+        _.each(reportParams.filterColumn, function (value, i) {
+
+            //  scheduled_dt
+            if (value == "payment_dt") {
+                var payment_dt_range = reportParams.filterData[i].split(' - ');
+                var payment_from_date = payment_dt_range[0];
+                var payment_to_date = payment_dt_range[1];
+                if (payment_from_date === payment_to_date) {
+                    params.push(payment_from_date);
+                    filters.paymentDate = queryBuilder.whereDate('bp.payment_dt', '=', [params.length], 'f.time_zone');
+                } else {
+                    params.push(payment_from_date);
+                    params.push(payment_to_date);
+                    filters.paymentDate = queryBuilder.whereDateBetween('bp.payment_dt', [params.length - 1, params.length], 'f.time_zone');
+                }
+            }
+
+
+            if (value == "accounting_dt") {
+                var accounting_dt_range = reportParams.filterData[i].split(' - ');
+                var accounting_from_date = accounting_dt_range[0];
+                var accounting_to_date = accounting_dt_range[1];
+                if (accounting_from_date === accounting_to_date) {
+                    params.push(accounting_from_date);
+                    filters.accounting_date = queryBuilder.whereDate('bp.accounting_dt', '=', [params.length], 'f.time_zone');
+                } else {
+                    params.push(accounting_from_date);
+                    params.push(accounting_to_date);
+                    filters.accounting_date = queryBuilder.whereDateBetween('bp.accounting_dt', [params.length - 1, params.length], 'f.time_zone');
+                }
+            }
+
+
+
+            if (value == "payer_type") {
+                filters.payer_type_column = reportParams.filterData[i];
+            }
+
+            if (value == "payment_id") {
+                params.push(reportParams.filterData[i]);
+                filters.payment_id = queryBuilder.where('bp.id', '=', [params.length]);
+            }
+
+            if (value == "display_id") {
+                filters.display_id = reportParams.filterData[i];
+            }
+
+            if (value == "payer_name") {
+                filters.payer_name = reportParams.filterData[i];
+            }
+
+            if (value == "facility_name") {
+                filters.facility_name = reportParams.filterData[i];
+            }
+
+            if (value == "payment_mode") {
+                filters.payment_mode = reportParams.filterData[i];
+            }
+
+            if (value == "available_balance") {
+                filters.amount = reportParams.filterData[i];
+            }
+
+            if (value == "adjustment_amount") {
+                filters.adjustment_amount = reportParams.filterData[i];
+            }
+
+            if (value == "applied") {
+                filters.applied = reportParams.filterData[i];
+            }
+
+            if (value == "user_full_name") {
+                filters.user_full_name = reportParams.filterData[i];
+            }
+        })
+
 
         return {
             queryParams: params,
