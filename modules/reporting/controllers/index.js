@@ -5,7 +5,7 @@ const logger = require('../../../logger')
     , moment = require('moment-timezone')
     , DEBUG_ENABLED = false
     ;
-    const jsReportClient = require("jsreport-client")('http://localhost:5488/', 'jsradmin', 'JSR1q2w3e4r5t');
+    const jsReportClient = require("jsreport-client")('http://192.168.1.170:5488/', 'jsradmin', 'JSR1q2w3e4r5t');
 let reqNum = 0;
 
 const api = {

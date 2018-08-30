@@ -24,6 +24,7 @@ var rjsConfig = {
         'datetimepicker': '../libs/datetimepicker/js/bootstrap-datetimepicker',
         'daterangepicker': '../node_modules/bootstrap-daterangepicker/daterangepicker',
         'commonjs': 'shared/common',
+        'permissionsjs': 'shared/permissions_',
         'mail-merge': 'shared/mail-merge',
         'layout': 'shared/layout',
         'constants': 'shared/constants',
@@ -91,6 +92,9 @@ var rjsConfig = {
             deps: ['jquery', 'immutable', 'underscore'],
             exports: 'commonjs'
         },
+        'permissionsjs': {
+            deps: ['jquery', 'underscore']
+        },
         'i18nscript': {
             deps: ['jquery']
         },
@@ -157,6 +161,7 @@ if (require && require.config) {
         'beautify',
         '_get',
         'mail-merge',
+        'permissionsjs'
     ], function (
         MomentTimezone,
         jqueryvalidate,
@@ -185,12 +190,14 @@ if (require && require.config) {
         maskjs,
         beautify,
         _get,
-        mailMerge
+        mailMerge,
+        permissionsjs
         ) {
             window.browserLocale = typeof browserLocale == 'undefined' ? 'en-US' : browserLocale;
             window.Immutable = Immutable;
             window.commonjs = commonjs;
             window.appLayout = layout;
+            window.appRights = permissions;
             window._get = _get;
 
             window.AppServer = Appserver;
