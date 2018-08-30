@@ -45,7 +45,7 @@ module.exports = {
                             , ech.communication_info
                             , COUNT(1) OVER (range unbounded preceding) as total_records
                         FROM   billing.edi_clearinghouses ech
-                        INNER JOIN billing.edi_templates et ON et.id = ech.edi_template_id`;
+                        LEFT JOIN billing.edi_templates et ON et.id = ech.edi_template_id`;
 
         if (isFrom == 'InsuranceEDIMapping') {
             sql.append(SQL` WHERE ech.inactivated_dt IS NULL`);
@@ -84,7 +84,7 @@ module.exports = {
                               , ech.receiver_id
                               , ech.communication_info
                         FROM   billing.edi_clearinghouses ech
-                        INNER JOIN billing.edi_templates et ON et.id = ech.edi_template_id
+                        LEFT JOIN billing.edi_templates et ON et.id = ech.edi_template_id
                         WHERE
                         ech.id = ${id} `;
 
