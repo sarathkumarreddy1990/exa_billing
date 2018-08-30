@@ -257,8 +257,7 @@ define(['jquery',
                     appSenderCode: {required: true},
                     responsibleAgencyCode: {required: true},
                     appReceiverCode: {required: true},
-                    providerOfficeNo: {required: true},
-                    ediTemplate: {required: true}
+                    providerOfficeNo: {required: true}
                 }
                 if ($('#ddlXmlTempSyn').val() != 1) {
                     rules.username = { required: true }
@@ -286,8 +285,7 @@ define(['jquery',
                         appReceiverCode: commonjs.getMessage("e", "Application Receiver Code"),
                         providerOfficeNo: commonjs.getMessage("e", "Provider Office No"),
                         username: commonjs.getMessage("e", "Username"),
-                        password: commonjs.getMessage("e", "Password"),
-                        ediTemplate: commonjs.getMessage("e", "EDI Template")
+                        password: commonjs.getMessage("e", "Password")
                     },
                     submitHandler: function () {
                         self.save();
