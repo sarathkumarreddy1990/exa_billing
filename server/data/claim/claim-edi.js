@@ -211,7 +211,9 @@ module.exports = {
 						communication_info->'interchangeControlStandardsIdentifier' as "interchangeCtrlStdIdentifier",
 						communication_info->'implementationConventionRef' as "interchangeCtrlVersionNo",
 						communication_info->'interchangeControlVersionNumber' as "interchangeCtrlNo",
-						communication_info->'acknowledgementRequested' as "acqRequested",
+						(CASE communication_info->'acknowledgementRequested'
+											WHEN 'true' THEN '0'
+											WHEN 'false' THEN '1' END ) as "acqRequested",
 						communication_info->'usageIndicator' as "usageIndicator",
 						'HC' as "functionalIDCode",
 						communication_info->'applicationSenderCode' as "applicationSenderCode",
@@ -433,7 +435,11 @@ module.exports = {
 										hospitalization_to_date::text as "hospitailizationToDate",
 										to_char(unable_to_work_to_date, 'YYYYMMDD')  as "hospitailizationToDateFormat",
 										group_info->'stateLicenseNo' as "stateLicenseNo",
-										group_info->'cliaNumber' as "cliaNumber",
+                                        group_info->'cliaNumber' as "cliaNumber",
+                                        (CASE coverage_level
+                                            WHEN 'primary' THEN 'P'
+                                            WHEN 'secondary' THEN 'S'
+                                            WHEN 'tertiary' THEN 'T' END) as "claimResponsibleParty",
 										(SELECT Json_agg(Row_to_json(payerpaidAmount)) "payerpaidAmount" FROM (
 										 SELECT primary_paid_total as "primaryPaidTotal"
 										 ,primary_adj_total as "primaryAdjTotal"
