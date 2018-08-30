@@ -320,7 +320,7 @@ module.exports = {
 										FROM  relationship_status WHERE  subscriber_relationship_id =relationship_status.id ) as  relationship,
 
 										policy_number  as "policyNo",
-										patient_insurances.group_name as "planName",
+										pi.group_name as "planName",
 										group_number as "planType",
 										insurance_provider_details.claim_filing_indicator_code as "claimFilingCode",
 										subscriber_firstname as "firstName",
@@ -554,7 +554,17 @@ module.exports = {
 					subscriber_zipcode as "zipCode",
 					assign_benefits_to_patient as "acceptAssignment",
 					subscriber_dob as "dob",
-					to_char(subscriber_dob, 'YYYYMMDD')  as "dobFormat"
+                    to_char(subscriber_dob, 'YYYYMMDD')  as "dobFormat",
+                    (CASE pi.coverage_level
+                        WHEN 'primary' THEN 'P'
+                        WHEN 'secondary' THEN 'S'
+                        WHEN 'tertiary' THEN 'T' END) as "claimResponsibleParty",
+                    (SELECT Json_agg(Row_to_json(payerpaidAmount)) "payerpaidAmount" FROM (
+                        SELECT primary_paid_total as "primaryPaidTotal"
+                        ,primary_adj_total as "primaryAdjTotal"
+                        ,secondary_paid_total as "secondaryPaidTotal"
+                        ,secondary_adj_total  as "secondaryAdjTotal"
+                        FROM  billing.get_payer_claim_payments(claims.id)  ) as payerpaidAmount)
 					FROM   patient_insurances
 					LEFT JOIN billing.insurance_provider_details  other_ins_details ON other_ins_details.insurance_provider_id = patient_insurances.insurance_provider_id
 									WHERE  patient_insurances.id =
@@ -682,7 +692,7 @@ module.exports = {
 					FROM billing.claims
 					INNER JOIN facilities ON facilities.id=claims.facility_id
 					INNER JOIN patients ON patients.id=claims.patient_id
-					INNER JOIN    patient_insurances  ON  patient_insurances.id =
+					INNER JOIN    patient_insurances pi  ON  pi.id =
 											(  CASE COALESCE(${params.payerType}, payer_type)
 											WHEN 'primary_insurance' THEN primary_patient_insurance_id
 											WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
