@@ -24,7 +24,7 @@ var rjsConfig = {
         'datetimepicker': '../libs/datetimepicker/js/bootstrap-datetimepicker',
         'daterangepicker': '../node_modules/bootstrap-daterangepicker/daterangepicker',
         'commonjs': 'shared/common',
-        'permissionsjs': 'shared/permissions_',
+        'permissionsjs': 'shared/permissions',
         'mail-merge': 'shared/mail-merge',
         'layout': 'shared/layout',
         'constants': 'shared/constants',
