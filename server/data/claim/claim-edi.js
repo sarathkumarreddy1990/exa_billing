@@ -204,7 +204,7 @@ module.exports = {
 						communication_info->'securityInformationQualifier' as "securityInfoQualifier",
  						communication_info->'securityInformation' as "securityInfo",
  						communication_info->'interchangeSenderIdQualifier' as "interchangeSenderIDQualifier",
-						communication_info->'interchangeSenderID' as "interchangeSenderID",
+						communication_info->'interchangeSenderId' as "interchangeSenderID",
 						communication_info->'interchangeReceiverIdQualifier' as "interchangeReceiverIDQualifier",
 						communication_info->'interchangeReceiverId' as "interchangeReceiverID",
 						communication_info->'interchangeControlStandardsIdentifier' as "interchangeCtrlStdIdentifier",

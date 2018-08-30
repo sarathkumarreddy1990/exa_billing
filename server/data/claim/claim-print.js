@@ -165,13 +165,13 @@ module.exports = {
         sql.append(SQL`
                             (SELECT	id
                                 FROM	billing.printer_templates
-                                WHERE	template_type = ${templateType}
+                                WHERE	template_type = ${templateType} AND is_default
                                 ORDER BY id DESC
                                 LIMIT  1 )
                             ) AS id
                         FROM	billing.user_settings
                         WHERE	user_id = ${userId} AND grid_name = 'claims'
-                    ) OR is_default)
+                    ))
                 `);
 
         return await query(sql);
