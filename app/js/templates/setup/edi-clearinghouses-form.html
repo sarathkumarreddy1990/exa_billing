@@ -243,7 +243,15 @@
                     <div class="form-group row">
                         <label for="txtEdiTemplateName" class="col-sm-4 col-form-label" i18n="setup.ediClearingHouses.ediTemplate"></label>
                         <div class="col-sm-5">
-                            <input type="text" class="form-control" id="txtEdiTemplateName">
+                            <!-- <input type="text" class="form-control" id="txtEdiTemplateName"> -->
+                            <select id="txtEdiTemplateName" class="form-control" style="height:32px;" name="ediTemplate">
+                                <option value='0'>Select</option>
+                                <% _.each(ediTemplates, function(template) { %>
+                                    <option value="<%= template.id %>">
+                                        <%= template.name %>
+                                    </option>
+                                    <% }); %>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -253,8 +261,8 @@
                         <div class="col-sm-5">
                             <select id="ddlXmlTemplateSyntax" class="form-control" style="height:32px;" name="state">
                                 <option value="1" selected i18n="setup.ediClearingHouses.rawEDI"></option>
-                                <option value="2" i18n="setup.ediClearingHouses.availity"></option>
-                                <option value="3" i18n="setup.ediClearingHouses.unitedHealthCare"></option>
+                                <option value="2" i18n="setup.ediClearingHouses.availity" hidden></option>
+                                <option value="3" i18n="setup.ediClearingHouses.unitedHealthCare" hidden></option>
                             </select>
                         </div>
                     </div>

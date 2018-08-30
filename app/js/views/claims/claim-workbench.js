@@ -1224,9 +1224,10 @@ define(['jquery',
                             });
                             table.renderStudy();
 
-                            $('#btnValidateExport').one().click(function (e) {
+                            $('#btnValidateExport').off().click(function (e) {
                                 $('#btnValidateExport').css('display', 'none');
-                                var filter = commonjs.loadedStudyFilters.get(filterID)
+                                var filter_current_id = $('#claimsTabs').find('.active a').attr('data-container')
+                                var filter = commonjs.loadedStudyFilters.get(filter_current_id)
                                 filterData= JSON.stringify(filter.pager.get('FilterData')),
                                 filterCol =JSON.stringify(filter.pager.get('FilterCol'));
                                 table.renderStudy(true, filterData, filterCol);
