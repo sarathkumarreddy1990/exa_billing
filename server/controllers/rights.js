@@ -21,6 +21,10 @@ module.exports = {
             return true;
         }
 
+        if(moduleNameInternal == 'autoCompleteRouter') {
+            return true;
+        }
+
         if (defaultAPIs.indexOf(route) > -1) {
             return true;
         }

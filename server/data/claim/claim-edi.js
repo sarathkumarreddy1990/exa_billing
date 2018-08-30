@@ -54,7 +54,7 @@ module.exports = {
 									, 'payer_state', p_ip.insurance_info->'State'
 									, 'payer_zip_code', p_ip.insurance_info->'ZipCode'
 									, 'claimClearingHouse', p_edi_clearinghouse.receiver_name
-									, 'edi_request_templates_id',  p_edi_clearinghouse.edi_template_name
+									, 'edi_request_templates_id', p_edi_templates.name
 									)
 								WHEN bc.payer_type = 'secondary_insurance' THEN
 									json_build_object('payer_name',  s_ip.insurance_name
@@ -63,7 +63,7 @@ module.exports = {
 									, 'payer_state', s_ip.insurance_info->'State'
 									, 'payer_zip_code', s_ip.insurance_info->'ZipCode'
 									, 'claimClearingHouse',  s_edi_clearinghouse.receiver_name
-									, 'edi_request_templates_id',  s_edi_clearinghouse.edi_template_name
+									, 'edi_request_templates_id',  s_edi_templates.name
 									)
 								WHEN bc.payer_type = 'tertiary_insurance' THEN
 									json_build_object( 'payer_name', t_ip.insurance_name
@@ -72,7 +72,7 @@ module.exports = {
 									, 'payer_state', t_ip.insurance_info->'State'
 									, 'payer_zip_code', t_ip.insurance_info->'ZipCode'
 									, 'claimClearingHouse', t_edi_clearinghouse.receiver_name
-									, 'edi_request_templates_id', t_edi_clearinghouse.edi_template_name)
+									, 'edi_request_templates_id', t_edi_templates.name)
 								WHEN bc.payer_type = 'ordering_facility' THEN
 								json_build_object(
 									'payer_name',  pg.group_name
@@ -170,7 +170,10 @@ module.exports = {
 					LEFT JOIN billing.insurance_provider_details t_ins_det ON t_ins_det.insurance_provider_id = t_ip.id
 					LEFT JOIN billing.edi_clearinghouses p_edi_clearinghouse ON p_edi_clearinghouse.id=p_ins_det.clearing_house_id
 					LEFT JOIN billing.edi_clearinghouses s_edi_clearinghouse ON s_edi_clearinghouse.id=s_ins_det.clearing_house_id
-					LEFT JOIN billing.edi_clearinghouses t_edi_clearinghouse ON t_edi_clearinghouse.id=t_ins_det.clearing_house_id
+                    LEFT JOIN billing.edi_clearinghouses t_edi_clearinghouse ON t_edi_clearinghouse.id=t_ins_det.clearing_house_id
+                    LEFT JOIN billing.edi_templates p_edi_templates ON p_edi_templates.id = p_edi_clearinghouse.edi_template_id
+                    LEFT JOIN billing.edi_templates s_edi_templates ON s_edi_templates.id = s_edi_clearinghouse.edi_template_id
+                    LEFT JOIN billing.edi_templates t_edi_templates ON t_edi_templates.id = t_edi_clearinghouse.edi_template_id
 					LEFT JOIN public.relationship_status prs ON prs.id = p_pi.subscriber_relationship_id
 					LEFT JOIN public.relationship_status srs ON srs.id = s_pi.subscriber_relationship_id
 					LEFT JOIN public.relationship_status trs ON trs.id = t_pi.subscriber_relationship_id
@@ -190,15 +193,15 @@ module.exports = {
         let sql = SQL`
 
             SELECT
-			relationship_status.description as subscriper_relationShip,
+			relationship_status.description as subscriber_relationship,
 			claims.id as claim_id,
 			insurance_name,
 			coverage_level,
             (SELECT (Row_to_json(header)) "header"
 
 				FROM (
-                        SELECT id,
-                        edi_template_name,
+                        SELECT billing.edi_clearinghouses.id,
+                        et.name AS edi_template_name,
 						communication_info->'securityInformationQualifier' as "authInfoQualifier",
 						communication_info->'authorizationInformation' as "authInfo",
 						communication_info->'securityInformationQualifier' as "securityInfoQualifier",
@@ -234,6 +237,7 @@ module.exports = {
 						edi_clearinghouses.receiver_name as clearinghouses_receiver_name,
 						edi_clearinghouses.receiver_id as clearinghouses_receiver_id
                                     FROM   billing.edi_clearinghouses
+                                    INNER JOIN billing.edi_templates et ON et.id = billing.edi_clearinghouses.edi_template_id
                                     WHERE  billing.edi_clearinghouses.id=insurance_provider_details.clearing_house_id)
 
 					as header),
