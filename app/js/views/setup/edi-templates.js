@@ -315,6 +315,8 @@ define([
                             commonjs.handleXhrError(err);
                         }
                     });
+                } else {
+                    commonjs.showWarning("Please enter valid json");
                 }
             }
         });
