@@ -240,10 +240,10 @@ function bindInvoice(data, columns) {
                                             heights: [50],
                                             body:[
                                                 bindHead(
-                                                    row.claim_no, 
-                                                    ClaimDetails, 
-                                                    ["name", "address", "city", "state", "phone_no"], 
-                                                    'responsinble_party_address'
+                                                    row.claim_no,
+                                                    ClaimDetails,
+                                                    ["name", "address", "city", "state", "phone_no"],
+                                                    'billing_provider_details'
                                                 )
                                             ]
                                         },layout: 'noBorders'
