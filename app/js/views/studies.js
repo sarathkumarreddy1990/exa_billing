@@ -220,6 +220,14 @@ define(['jquery',
                 $document
                     .off('keyup', self.finishFilterMerge)
                     .on('keyup', self.finishFilterMerge);
+
+                if (app.userInfo.user_type != 'SU') {
+                    var rights = (window.appRights).init();
+                    this.screenCode = rights.screenCode;
+                }
+                else {
+                    this.screenCode = [];
+                }
             },
 
             showFilterMergeUI: function (event) {
@@ -291,6 +299,12 @@ define(['jquery',
                     $('.emergencyAccess').hide();
                 else
                     commonjs.blinkStat('#emergencyAccess', 1500);
+
+                if (self.screenCode.indexOf('CLIM') > -1) {
+                    $('#btnCreateNew').attr('disabled', true);
+                    $('#btnbatchClaim').attr('disabled', true);
+                }
+
             },
 
             bindDateRangeOnSearchBox: function (gridObj, tabtype) {

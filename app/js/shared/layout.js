@@ -158,7 +158,7 @@ var layout = {
                 window.location.href = '#config/company/edit/' + app.company_code;
             });
         }
-
+        (window.appRights).init();
         commonjs.hideLoading();
     },
 

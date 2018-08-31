@@ -1,9 +1,8 @@
 define([
     'backbone',
-    'shared/permissions',
     'routes/app-router',
     'text!templates/about.html'
-], function (Backbone, Permissions, AppRouter, AboutTemplate) {
+], function (Backbone, AppRouter, AboutTemplate) {
 
     return {
         initialize: function () {
@@ -16,9 +15,9 @@ define([
             commonjs.initSessionHandler();
 
             commonjs.AboutTemplate = AboutTemplate;
-            
+
             if (app.userInfo.user_type != 'SU') {
-                (new Permissions()).init();
+                window.appRights.init();
             }
 
         }

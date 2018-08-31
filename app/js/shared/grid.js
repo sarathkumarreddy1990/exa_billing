@@ -13,9 +13,8 @@ define('grid', [
     'text!templates/setup/study-filter-grid.html',
     'views/claims/claim-inquiry',
     'views/claims/split-claim',
-    'views/claims/followup',
-    'shared/permissions'
-], function (jQuery, _, initChangeGrid, utils, Pager, StudyFields, Studies, claimWorkbench, claimsView, UserSettingsView, StudyFilterView, studyFilterGrid, claimInquiryView, splitClaimView, followUpView, Permission) {
+    'views/claims/followup'
+], function (jQuery, _, initChangeGrid, utils, Pager, StudyFields, Studies, claimWorkbench, claimsView, UserSettingsView, StudyFilterView, studyFilterGrid, claimInquiryView, splitClaimView, followUpView) {
     var $ = jQuery;
     var isTrue = utils.isTrue;
     var isFalse = utils.isFalse;
@@ -47,7 +46,7 @@ define('grid', [
         var studyDataStore =[];
         var screenCode = [];
         if(app.userInfo.user_type != 'SU'){ // for Super User No need to check rights. But normal user need to chcek user. For right click options right it is used
-            var rights = (new Permission()).init();
+            var rights = (window.appRights).init();
             rightclickMenuRights = rights.screenID;
             screenCode = rights.screenCode;
         }
@@ -1358,7 +1357,10 @@ define('grid', [
         };
 
         self.checkRights = function(menuId) {
-            rightclickMenuRights.indexOf(menuId) !== -1 ? $('#'+ menuId).addClass('disabled') : ''
+            if (rightclickMenuRights.indexOf(menuId) !== -1 ) {
+                $('#'+ menuId).addClass('disabled') ;
+                $('#'+ menuId).append('<span class="access">(Access Denied)</span>');
+            }
         },
 
         self.checkSubMenuRights = function(menuId) {
