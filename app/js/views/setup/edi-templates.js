@@ -75,8 +75,7 @@ define([
                                         })
                                     );
                                     $('#divTemlateList').css({
-                                        'height': $('#editor').height(),
-                                        'overflow-x': 'hidden'
+                                        'height': 'auto', 'max-height': '200px', 'overflow-x': 'hidden'
                                     });
                                 }
                                 var ediTemplate = self.getTemplateFromLocalStroage('EDITEMPLATE');
