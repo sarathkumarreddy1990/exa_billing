@@ -26,7 +26,7 @@ define(['jquery',
         patientCollection,
         patSearchContent,
         claimValidation,
-        icd9to10Template,
+        icd9to10Template
     ) {
         var claimView = Backbone.View.extend({
             el: null,
