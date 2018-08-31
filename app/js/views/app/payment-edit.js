@@ -16,7 +16,6 @@ define(['jquery',
     'text!templates/app/patientSearchResult.html',
     'views/reports/payments-pdf',
     'views/claims/claim-inquiry',
-    'shared/permissions',
     'collections/app/studycpt-list'],
 
     function (
@@ -38,7 +37,6 @@ define(['jquery',
         patSearchContent,
         paymentEditPDF,
         claimInquiryView,
-        Permission,
         studycptCollection
     ) {
         return Backbone.View.extend({
@@ -158,7 +156,7 @@ define(['jquery',
                 this.studycptList = new studycptCollection();
                 this.studyCptPager = new ModelPaymentsPager();
                 if (app.userInfo.user_type != 'SU') {
-                    var rights = (new Permission()).init();
+                    var rights = (window.appRights).init();
                     this.screenCode = rights.screenCode;
                 }
                 else {
