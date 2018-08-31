@@ -158,7 +158,8 @@ var layout = {
                 window.location.href = '#config/company/edit/' + app.company_code;
             });
         }
-        (window.appRights).init();
+        if(app.userInfo.user_type != 'SU')
+            (window.appRights).init();
         commonjs.hideLoading();
     },
 
