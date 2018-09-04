@@ -416,7 +416,8 @@ define(['jquery',
                     'isDateFlag': $('#filterByPostingDt').prop('checked') ? true : false,
                     from: self.from ?self.from: 'Billing',
                     filterData: filterData,
-                    filterColumn : filterCol
+                    filterColumn : filterCol,
+                    filterFlag: true
 
                 }
                 self.paymentPDF.onReportViewClick(e, paymentPDFArgs);
