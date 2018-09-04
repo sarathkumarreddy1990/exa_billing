@@ -101,6 +101,10 @@ define([
                 var self = this;
                 var docDefinition = this.mergeTemplate(templateType, template, claimData);
 
+                if (!docDefinition || typeof docDefinition !== 'object') {
+                    return false;
+                }
+
                 options = options || {};
 
                 try {
@@ -174,7 +178,8 @@ define([
 
                 if (!dd || typeof dd !== 'object') {
                     commonjs.hideLoading();
-                    return commonjs.showError('Invalid data/template');
+                    commonjs.showError('Invalid data/template');
+                    return false;
                 }
 
                 //template = mailMerge.mergeData(dd, claimData);
