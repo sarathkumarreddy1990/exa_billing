@@ -20,7 +20,7 @@ module.exports = {
         let whereQuery = [];
 
         if (name) {
-            whereQuery.push(` name ILIKE '%${name}%'`);
+            whereQuery.push(` ech.name ILIKE '%${name}%'`);
         }
 
         if (receiver_name) {
@@ -28,24 +28,27 @@ module.exports = {
         }
 
         if (edi_template_name) {
-            whereQuery.push(` edi_template_name ILIKE '%${edi_template_name}%'`);
+            whereQuery.push(` et.name ILIKE '%${edi_template_name}%'`);
         }
 
-        const sql = SQL`SELECT 
-                            id
-                            , company_id
-                            , inactivated_dt
-                            , code
-                            , name
-                            , receiver_name
-                            , edi_template_name
-                            , receiver_id
-                            , communication_info
+        sortField = sortField == 'name' ? 'ech.name' : sortField;
+
+        const sql = SQL`SELECT
+                              ech.id
+                            , ech.company_id
+                            , ech.inactivated_dt
+                            , ech.code
+                            , ech.name
+                            , ech.receiver_name
+                            , et.name AS edi_template_name
+                            , ech.receiver_id
+                            , ech.communication_info
                             , COUNT(1) OVER (range unbounded preceding) as total_records
-                        FROM   billing.edi_clearinghouses`;
+                        FROM   billing.edi_clearinghouses ech
+                        LEFT JOIN billing.edi_templates et ON et.id = ech.edi_template_id`;
 
         if (isFrom == 'InsuranceEDIMapping') {
-            sql.append(SQL` WHERE inactivated_dt IS NULL`);
+            sql.append(SQL` WHERE ech.inactivated_dt IS NULL`);
         }
 
         if (whereQuery.length) {
@@ -70,19 +73,20 @@ module.exports = {
 
         let { id } = params;
 
-        const sql = SQL`SELECT 
-                              id
-                              , company_id
-                              , inactivated_dt
-                              , code
-                              , name
-                              , receiver_name
-                              , edi_template_name
-                              , receiver_id
-                              , communication_info
-                        FROM   billing.edi_clearinghouses
-                        WHERE 
-                            id = ${id} `;
+        const sql = SQL`SELECT
+                                ech.id
+                              , ech.company_id
+                              , ech.inactivated_dt
+                              , ech.code
+                              , ech.name
+                              , ech.receiver_name
+                              , et.id AS edi_template_name
+                              , ech.receiver_id
+                              , ech.communication_info
+                        FROM   billing.edi_clearinghouses ech
+                        LEFT JOIN billing.edi_templates et ON et.id = ech.edi_template_id
+                        WHERE
+                        ech.id = ${id} `;
 
         return await query(sql);
     },
@@ -108,7 +112,7 @@ module.exports = {
                                                   , code
                                                   , name
                                                   , receiver_name
-                                                  , edi_template_name
+                                                  , edi_template_id
                                                   , receiver_id
                                                   , communication_info)
                                                 values
@@ -149,7 +153,7 @@ module.exports = {
                               code = ${code}
                             , name = ${name}
                             , receiver_name = ${receiverName}
-                            , edi_template_name = ${ediTemplateName}
+                            , edi_template_id = ${ediTemplateName}
                             , receiver_id = ${receiverId}
                             , communication_info = ${communicationInfo}
                             , inactivated_dt = ${inactivated_dt}
@@ -157,10 +161,10 @@ module.exports = {
                               id = ${id}
                               RETURNING *,
                                 (
-                                    SELECT row_to_json(old_row) 
-                                    FROM   (SELECT * 
-                                            FROM   billing.edi_clearinghouses 
-                                            WHERE  id = ${id}) old_row 
+                                    SELECT row_to_json(old_row)
+                                    FROM   (SELECT *
+                                            FROM   billing.edi_clearinghouses
+                                            WHERE  id = ${id}) old_row
                                 ) old_values`;
 
         return await queryWithAudit(sql, {

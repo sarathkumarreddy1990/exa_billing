@@ -84,7 +84,7 @@ module.exports = {
                     }
                 );
 
-                if ((obj.subscriber_relationShip).toUpperCase() != 'SELF') {
+                if ((obj.subscriber_relationship).toUpperCase() != 'SELF') {
                     obj.data[0].subscriber[0].patient[0].claim = obj.data[0].subscriber[0].claim;
                     delete obj.data[0].subscriber[0].claim;
                 }

@@ -19,7 +19,6 @@ define([
     'text!templates/claims/claim-invoice.html',
     'text!templates/claims/invoice-age-summary.html',
     'collections/claim-patient-log',
-    'shared/permissions',
     'views/app/unapplied-payment'
 ], function (
     $,
@@ -38,11 +37,10 @@ define([
     claimInvoiceList,
     claimPatientInquiryTemplate,
     agingSummaryHTML,
-    claimPatientLogHTML,    
+    claimPatientLogHTML,
     claimInvoiceHTML,
     claimInvoiceAgeHTML,
     claimPatientLogList,
-    Permission,
     unappliedPaymentView
 ) {
         var paperClaim = new PaperClaim(true);
@@ -54,11 +52,11 @@ define([
             claimPatientTemplate: _.template(claimPatientInquiryTemplate),
             paymentTemplate: _.template(paymentDetails),
             agingSummaryTemplate: _.template(agingSummaryHTML),
-            claimPatientLogTemplate: _.template(claimPatientLogHTML), 
+            claimPatientLogTemplate: _.template(claimPatientLogHTML),
             claimInvoiceTemplate: _.template(claimInvoiceHTML),
             invoiceAgingSummaryTemplate: _.template(claimInvoiceAgeHTML),
             payCmtGrid: '',
-            claim_id: null,     
+            claim_id: null,
             events: {
                 "click #radioActivityStatus": "showActivityStatus",
                 "click #radActivityAllStatus": "showAllActivity",
@@ -75,7 +73,7 @@ define([
                 this.claimInvoiceList = new claimInvoiceList();
                 this.claimPatientLogList = new claimPatientLogList();
                 if(app.userInfo.user_type != 'SU'){
-                    var rights = (new Permission()).init();
+                    var rights = (window.appRights).init();
                     this.screenCode = rights.screenCode;
                 }
                 else {
@@ -93,7 +91,7 @@ define([
                 });
 
                 this.bindEvents();
-                this.followDate =  commonjs.bindDateTimePicker("divFollowUpDate", { format: 'L', minDate: moment().startOf('day') });               
+                this.followDate =  commonjs.bindDateTimePicker("divFollowUpDate", { format: 'L', minDate: moment().startOf('day') });
                 this.followDate.date();
                 this.claimInquiryDetails(cid, false, from);
                 $('#modal_div_container').removeAttr('style');
@@ -203,7 +201,7 @@ define([
                     error: function (err) {
                         commonjs.handleXhrError(err);
                     }
-                });                
+                });
 
                 $('#btnCIPrintInvoice').on().click(function () {
                     self.generatePrintInvoice(claimID);
@@ -364,8 +362,8 @@ define([
                     colNames: ['', '', 'Invoice No', 'Date', 'Total Billing Fee', 'Total Payments', 'Total Adjustment',  'Balance',''],
                     i18nNames: ['', '', 'billing.fileInsurance.invoiceNo', 'billing.claims.Date', 'billing.COB.billingFee','billing.claims.totalPayments', 'billing.fileInsurance.totalAdjustment',  'billing.claims.Balance',''],
                     colModel: [
-                        { name: '', index: 'id', key: true, hidden: true, search: false },  
-                        { name: 'claim_ids', hidden: true} ,                    
+                        { name: '', index: 'id', key: true, hidden: true, search: false },
+                        { name: 'claim_ids', hidden: true} ,
                         {
                             name: 'invoice_no', search: true, width: 100
                         },
@@ -377,7 +375,7 @@ define([
                         },
                         {
                             name: 'invoice_payment', search: true, width: 150
-                        },                       
+                        },
                         {
                             name: 'invoice_adjustment', search: true, width: 150
                         },
@@ -447,7 +445,7 @@ define([
                             $('#tdPtAge60').text(data[0].to60 || '$0.00')
                             $('#tdPtAge90').text(data[0].to90 || '$0.00')
                             $('#tdPtAge120').text(data[0].to120 || '$0.00')
-                            $('#tdPtAgeTotal').text(data[0].sum || '$0.00') 
+                            $('#tdPtAgeTotal').text(data[0].sum || '$0.00')
                         }
                     },
                     error: function (err, response) {
@@ -549,7 +547,7 @@ define([
                     $('#tdAge60').html(age_summary && age_summary.total_age_61_90 || '$0.00');
                     $('#tdAge90').html(age_summary && age_summary.total_age_91_120 || '$0.00');
                     $('#tdAge120').html(age_summary && age_summary.total_age_121 || '$0.00');
-                    $('#tdAgeTotal').html(age_summary && age_summary.total_balance || '$0.00'); 
+                    $('#tdAgeTotal').html(age_summary && age_summary.total_balance || '$0.00');
                     $('#spUnapplied').html(age_summary && age_summary.total_unapplied || '$0.00');
             },
 
@@ -572,7 +570,7 @@ define([
                             cellattr: function (rowId, tv, rowdata) {
                                 if(rowdata && rowdata.code == 'manual')
                                     return ' style="display:none;"';
-                            } 
+                            }
                         },
                         {
                             name: 'payment_id', width: 30, search: false, sortable: false,
@@ -596,21 +594,21 @@ define([
                             cellattr: function (rowId, tv, rowdata) {
                                 if(rowdata && rowdata.code == 'manual')
                                     return ' colspan=8 style="white-space : nowrap ';
-                            } 
+                            }
                         },
                         { name: 'charge_pointer', width: 20, search: false, sortable: false, formatter: self.pointerFormatter,
                             cellattr: function (rowId, tv, rowdata) {
                                 if(rowdata && rowdata.code == 'manual')
                                     return 'style="display:none;" ';
-                            } 
+                            }
                         },
                         { name: 'charge_amount', width: 20, search: false, sortable: false,
                             cellattr: function (rowId, tv, rowdata) {
                                 if(rowdata && rowdata.code == 'manual')
                                     return 'style="display:none;" ';
-                            } 
+                            }
                         },
-                        { name: 'payment', width: 20, search: false, sortable: false, 
+                        { name: 'payment', width: 20, search: false, sortable: false,
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.code && (rowObject.code == 'adjustment' || rowObject.payment == null || rowObject.code == null))
                                     return '';
@@ -620,19 +618,19 @@ define([
                             cellattr: function (rowId, tv, rowdata) {
                                 if(rowdata && rowdata.code == 'manual')
                                     return 'style="display:none;" ';
-                            }  
+                            }
                         },
                         { name: 'adjustment', width: 30, search: false, sortable: false,
                             formatter: function(cellvalue, options, rowObject){
                                 if(rowObject.adjustment && rowObject.adjustment == '$0.00' || rowObject.adjustment == null)
                                     return '';
-                                else 
+                                else
                                     return rowObject.adjustment
                             },
                             cellattr: function (rowId, tv, rowdata) {
                                 if(rowdata && rowdata.code == 'manual')
                                     return 'style="display:none;" ';
-                            }  
+                            }
                         },
                         {
                             name: 'view_payment', width: 20, sortable: false, search: false,
@@ -650,7 +648,7 @@ define([
                             cellattr: function (rowId, tv, rowdata) {
                                 if(rowdata && rowdata.code == 'manual')
                                     return 'style="display:none;" ';
-                            } 
+                            }
                         },
                         {name: 'comment_space', width: 10, search: false, sortable: false },
                         {
@@ -715,7 +713,7 @@ define([
                     shrinkToFit: true,
                     customargs: {
                         claim_id: self.claim_id
-                    }                   
+                    }
                 })
                 $('#gview_tblCIClaimComments').find('.ui-jqgrid-bdiv').css('max-height', '180px')
                 commonjs.initializeScreen({ header: { screen: 'Claim Comments', ext: 'Claim Comments' } });
@@ -859,7 +857,7 @@ define([
             saveIsInternalComment: function () {
                 var comments = [];
                 var self = this;
-                var selectedFollowUpDate = $('#txtCIFollowUpDate').val() ? moment($('#txtCIFollowUpDate').val()).format('L') : '';             
+                var selectedFollowUpDate = $('#txtCIFollowUpDate').val() ? moment($('#txtCIFollowUpDate').val()).format('L') : '';
 
                 $('#tblCIClaimComments  td input:checkbox').each(function () {
                     var content = {};
@@ -931,10 +929,10 @@ define([
                 this.$el.html(this.claimPatientTemplate());
                  var headerName = 'Patient Claims: ' + patientName ;
                  $(parent.document).find('#spanModalHeader').html(headerName)
-                this.fromDate =  commonjs.bindDateTimePicker("divFDate", { format: 'L' }); 
-                this.fromDate.date(); 
-                this.toDate =  commonjs.bindDateTimePicker("divTDate", { format: 'L' }); 
-                this.toDate.date(); 
+                this.fromDate =  commonjs.bindDateTimePicker("divFDate", { format: 'L' });
+                this.fromDate.date();
+                this.toDate =  commonjs.bindDateTimePicker("divTDate", { format: 'L' });
+                this.toDate.date();
                 $('#radActivityAllStatus').prop('checked', true);
                 $('#activityDetails').hide();
                 if(this.screenCode.indexOf('PACT') > -1)
@@ -959,7 +957,7 @@ define([
                         toDate = $('#txtOtherDate').val();
                     }
                     else return false;
-                    
+
                     var billing_pro = [], selectedBillingProList, allBillingProvider;
                     selectedBillingProList = $('#ddlBillingProvider option:selected').val() ? [$('#ddlBillingProvider option:selected').val()] : [];
 
@@ -967,7 +965,7 @@ define([
                     $('#modal_div_container').removeAttr('style');
                 });
             },
-            
+
             validateFromAndToDate: function (objFromDate, objToDate) {
                 var validationResult = commonjs.validateDateTimePickerRange(objFromDate, objToDate, false);
                 if($('#txtDate').val() == '' && $('#txtOtherDate').val() == ''){
@@ -1142,7 +1140,7 @@ define([
                 self.patientActivityStatement = new patientActivityStatement({ el: $('#reportFrame') });
                 var claimInfo = {
                     'claimID': claimId,
-                     flag: "paymentInvoice"                    
+                     flag: "paymentInvoice"
                 }
                 self.patientActivityStatement.onReportViewClick(e, claimInfo);
             },
@@ -1177,7 +1175,7 @@ define([
 
             showUnAppliedPayments: function(patientID) {
                 var self = this;
-                self.unappliedPaymentView = new unappliedPaymentView({el: $('#modal_div_container_nested')}); 
+                self.unappliedPaymentView = new unappliedPaymentView({el: $('#modal_div_container_nested')});
                 self.unappliedPaymentView.render(patientID);
             },
 

@@ -140,6 +140,22 @@ define([
                     // anchor.click();
                 };
 
+                try {
+                    docDefinition.pageSize = {
+                        width: parseInt(template.page_width) || 612,
+                        height: parseInt(template.page_height) || 792
+                    };
+
+                    docDefinition.pageMargins = [
+                        parseFloat(template.left_margin) || 12,
+                        parseFloat(template.top_margin) || 20,
+                        parseFloat(template.right_margin) || 0,
+                        parseFloat(template.bottom_margin) || 0
+                    ];
+                } catch (err) {
+                    console.error(err);
+                }
+
                 pdfWorker.postMessage(docDefinition);
             };
 
