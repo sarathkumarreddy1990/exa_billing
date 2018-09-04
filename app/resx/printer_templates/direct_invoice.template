@@ -105,7 +105,7 @@ function Dateformat(data){
 function header(data, columns, value){
 	var body = [];
 	for(i=0; i<1; i++){
-		{           
+		{
 		    var dataRow = [];
             for(var key in data[i][value])
             {
@@ -162,7 +162,7 @@ function buildHeader() {
                             table: {
                                 heights: [50],
                                 headerRows: 1,
-                                body: [header(data, ["name", "address","address2", "city", "state", "zip_code", "phone_no"],'responsinble_party_address')],
+                                body: [header(data, ["name", "address","address2", "city", "state", "zip_code", "phone_no"],'billing_provider_details')],
                             },layout: 'noBorders'
                         },
                         {
@@ -181,7 +181,7 @@ function buildHeader() {
                             fontSize:10,
                             table: {
                                 heights: [50],
-                                body: [header(data, ["name", "address","address2", "city", "state", "zip_code", "phone_no"],'billing_provider_details')]
+                                body: [header(data, ["name", "address","address2", "city", "state", "zip_code", "phone_no"],'responsinble_party_address')]
                             },layout: 'noBorders'
                         }, {}
                     ]
@@ -216,7 +216,7 @@ function bindPatient(claimNo, data, columns) {
 function bindCharges(claimNo, data, columns) {
 	var body = [];
 	if(data&&data.length){
-		data.forEach(function(row) { 
+		data.forEach(function(row) {
 			var dataRow = [];
 			if(row['claim_no']===claimNo){
 				if(columns&&columns.length){
@@ -245,7 +245,7 @@ function bindTotal(claimNo, data, columns) {
 	var sum = "0.00";
 	var dataRow = [];
 	if(data&&data.length){
-		data.forEach(function(row) { 
+		data.forEach(function(row) {
 			var temp=[];
 			if(row['claim_no']===claimNo){
 				temp.push(row['bill_fee'])
@@ -268,7 +268,7 @@ function bindGrandTotal(data, columns) {
 	var sum = "0.00";
 	var dataRow = [];
 	if(data&&data.length){
-		data.forEach(function(row) { 
+		data.forEach(function(row) {
 			var temp=[];
 				temp.push(row['bill_fee'])
 				for(i=0; i<temp.length;i++){
@@ -321,7 +321,7 @@ function bindClaim(data, columns) {
 								{
 									style: 'myTable',
 									bold:true,
-									table: 
+									table:
 									{
 										widths: [75, 90, 120, 257],
 										body:bindCharges(row.claim_no, ClaimDetails, ['claim_no', 'claim_dt', 'referring_physician_name', 'reason_for_exam'])
@@ -334,7 +334,7 @@ function bindClaim(data, columns) {
 							[
 								{
 									style: 'myTable',
-									table: 
+									table:
 									{
 										widths: [445,120],
 										headerRows: 1,
@@ -342,7 +342,7 @@ function bindClaim(data, columns) {
 											[
 												{
 													style: 'myTable',
-													table: 
+													table:
 													{
 														widths: [48, 65, 95, 45, 220],
 														body:bindCharges(row.claim_no, chargeDetails, ['display_code', 'modifier1','get_charge_icds', 'units', 'display_description'])
@@ -351,7 +351,7 @@ function bindClaim(data, columns) {
 												{
 													alignment: 'right',
 													style: 'myTable',
-													table: 
+													table:
 													{
 														 widths: [120],
 														body:bindCharges(row.claim_no, chargeDetails, ['bill_fee'])
@@ -373,13 +373,13 @@ function bindClaim(data, columns) {
 								{
 									alignment: 'right',
 									style: 'myTable',
-									table: 
+									table:
 									{
 										widths: [180],
 										body:bindTotal(row.claim_no, chargeDetails, ['bill_fee'])
 									},layout: 'noBorders'
 								},
-								
+
 							]
 						);
 					}
@@ -433,7 +433,7 @@ var dd = {
         {
             alignment: 'right',
             style: 'myTable',
-            table: 
+            table:
             {
                 widths: [390, 180],
                 headerRows: 1,
@@ -447,7 +447,7 @@ var dd = {
         {
             alignment: 'right',
             style: 'myTable',
-            table: 
+            table:
             {
                 widths: [385, 180],
                 headerRows: 1,
