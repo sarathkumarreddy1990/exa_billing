@@ -417,7 +417,10 @@ module.exports = {
 										is_auto_accident as  "relatedCauseCode3",
 										current_illness_date::date as "illnessDate",
 										service_by_outside_lab as "outSideLab",
-										account_no as "accountNumber",
+                                        account_no as "accountNumber",
+                                        (SELECT display_description FROM billing.charges
+                                            inner join cpt_codes on cpt_codes.id=cpt_id
+                                            WHERE claims.id=charges.claim_id AND display_description ILIKE '%MAMMO%' LIMIT 1) as "mammoStudyDescription",
 										to_char(current_illness_date, 'YYYYMMDD')  as "illnessDateFormat",
 										authorization_no as "authorizationNo",
 										original_reference as "originalReference",
