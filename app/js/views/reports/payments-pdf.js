@@ -80,12 +80,21 @@ define([
                     }
                 }
                 else {
-                    var urlParams = {
-                        pamentIds: reportArgs.payment_id,
-                        paymentStatus: reportArgs.paymentStatus || " ",
-                        filterFlag: "paymentsExportPDFFlag",
-                        filterData : JSON.parse(reportArgs.filterData),
-                        filterColumn:JSON.parse(reportArgs.filterColumn)
+                    if (reportArgs &&  reportArgs.filterFlag == true) {
+                        var urlParams = {
+                            pamentIds: reportArgs.payment_id,
+                            paymentStatus: reportArgs.paymentStatus || " ",
+                            filterFlag: "paymentsExportPDFFlag",
+                            filterData: JSON.parse(reportArgs.filterData),
+                            filterColumn: JSON.parse(reportArgs.filterColumn)
+                        }
+                    }
+                    else {
+                        var urlParams = {
+                            pamentIds: reportArgs.payment_id,
+                            paymentStatus: reportArgs.paymentStatus || " ",
+                            filterFlag: "paymentsExportPDFFlag"
+                        }
                     }
                 }
 
