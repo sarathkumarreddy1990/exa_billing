@@ -220,15 +220,15 @@ define(['jquery',
                         $("#txtReceiverID").val($.trim($('#txtReceiverID').val()) || null);
                         $("#txtEdiTemplateName").val($.trim($('#txtEdiTemplateName').val()) || null);
                         $("#txtAuthInfoQualifier").val($.trim($('#txtAuthInfoQualifier').val()) || null);
-                        $("#txtSecurityAuthQualifier").val($.trim($('#txtSecurityAuthQualifier').val()) || null);
-                        $("#txtSenderID").val($.trim($('#txtSenderID').val()) || null);
-                        $("#txtSenderIDQualifier").val($.trim($('#txtSenderIDQualifier').val()) || null);
-                        $("#txtIReceiverID").val($.trim($('#txtIReceiverID').val()) || null);
-                        $("#txtIReceiverIDQualifier").val($.trim($('#txtIReceiverIDQualifier').val()) || null);
+                        $("#txtSecurityAuthQualifier").val($('#txtSecurityAuthQualifier').val() || null);
+                        $("#txtSenderID").val($('#txtSenderID').val() || null);
+                        $("#txtSenderIDQualifier").val($('#txtSenderIDQualifier').val() || null);
+                        $("#txtIReceiverID").val($('#txtIReceiverID').val() || null);
+                        $("#txtIReceiverIDQualifier").val($('#txtIReceiverIDQualifier').val() || null);
                         $("#txtInterCtrlStandID").val($.trim($('#txtInterCtrlStandID').val()) || null);
-                        $("#txtAppSenderCode").val($.trim($('#txtAppSenderCode').val()) || null);
+                        $("#txtAppSenderCode").val($('#txtAppSenderCode').val() || null);
                         $("#txtResAgencyCode").val($.trim($('#txtResAgencyCode').val()) || null);
-                        $("#txtAppReceiverCode").val($.trim($('#txtAppReceiverCode').val()) || null);
+                        $("#txtAppReceiverCode").val($('#txtAppReceiverCode').val() || null);
                         self.saveEDIClearingHouses();
                     }},
                     {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
