@@ -408,11 +408,17 @@ define(['jquery',
 
             generatePDF: function (e) {
                 var self = this;
+                filterData = JSON.stringify(self.pager.get("FilterData"));
+                filterCol = JSON.stringify(self.pager.get("FilterCol"));
                 self.paymentPDF = new paymentPDF({ el: $('#modal_div_container') });
                 var paymentPDFArgs = {
                     paymentStatus: $("#ulPaymentStatus").val(),
                     'isDateFlag': $('#filterByPostingDt').prop('checked') ? true : false,
-                    from: self.from ?self.from: 'Billing'
+                    from: self.from ?self.from: 'Billing',
+                    filterData: filterData,
+                    filterColumn : filterCol,
+                    filterFlag: true
+
                 }
                 self.paymentPDF.onReportViewClick(e, paymentPDFArgs);
             },

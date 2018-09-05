@@ -75,8 +75,7 @@ define([
                                         })
                                     );
                                     $('#divTemlateList').css({
-                                        'height': $('#editor').height(),
-                                        'overflow-x': 'hidden'
+                                        'height': 'auto', 'max-height': '200px', 'overflow-x': 'hidden'
                                     });
                                 }
                                 var ediTemplate = self.getTemplateFromLocalStroage('EDITEMPLATE');
@@ -87,6 +86,8 @@ define([
                             } else {
                                 if(data && data.error) {
                                     commonjs.showWarning("Unable To Connect EDI Server");
+                                } else {
+                                    commonjs.showWarning("No EDI Templates found");
                                 }
                             }
                         } else {
@@ -102,6 +103,8 @@ define([
                                 ace.edit('editor').setValue("{}", 1);
                                 if(data && data.error) {
                                     commonjs.showWarning("Unable To Connect EDI Server");
+                                } else {
+                                    commonjs.showWarning("No ERA Templates found");
                                 }
                             }
                         }
@@ -137,7 +140,10 @@ define([
                     $.ajax({
                         url: '/exa_modules/billing/setup/x12/' + this.templateFlag + '/' + templateName,
                         type: 'GET',
-                        success: function (data, response) {
+                        success: function (data) {
+                            if(data.err) {
+                                return commonjs.showWarning(data.err);
+                            }
                             if (data) {
                                 ace.edit('editor').setValue(JSON.stringify(data, null, '\t'), 1);
                                 if(self.templateFlag == 'edi') {
@@ -174,8 +180,12 @@ define([
                     url: '/exa_modules/billing/setup/x12/default/' + this.templateFlag,
                     type: 'GET',
                     success: function (data) {
+                        if(data && data.err) {
+                            return commonjs.showWarning(err);
+                        }
                         if (data) {
                             ace.edit('editor').setValue(JSON.stringify(data, null, '\t'), 1);
+                            commonjs.showStatus("Default template loaded sucessfully");
                         }
                     },
                     error: function (err) {
@@ -304,6 +314,8 @@ define([
                             commonjs.handleXhrError(err);
                         }
                     });
+                } else {
+                    commonjs.showWarning("Please enter valid json");
                 }
             }
         });
