@@ -296,7 +296,7 @@ const api = {
                 var commentsByClaim = [];
                 var finalInquiryDataset = { rows: [] };
                 var coverage_result = [];
-                var total_balance = 0;
+                var total_balance;
 
                 function addCommentsByCarrier(carrierName, comments) {
                     finalInquiryDataset.rows.push({
@@ -307,34 +307,35 @@ const api = {
                 }
 
                 for (var i = 0; i < claimInquiryDataSet.rows.length; i++) {
-
+                    total_balance = 0;
                     if (i > 0 && claimInquiryDataSet.rows[i][carrierIdIndex] != lastCarrierId) {
-                       var my_result = parseFloat(claimInquiryDataSet.rows[i][22].replace(/[&\/\\#,+()$~%'":*?<>{}]/g, ''))
                         var index = 1;
                         _.map(commentsByCarrier, function (Obj) {
                             Obj.claim[0].carrier_count = index;
-                           total_balance += Obj.claim[0].claim_balance.replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '');
-                           index++;
+                            total_balance += JSON.parse(Obj.claim[0].claim_balance.replace(/[&\/\\#,+()$~%'":*?<>{}]/g, ''));
+                            index++;
                         });
+
+                        _.map(commentsByCarrier, function (Obj) {
+                            Obj.claim[0].carrier_balance = total_balance || '0.00';
+                         });
 
                         addCommentsByCarrier(lastCarrierName, commentsByCarrier);
                         commentsByCarrier = {};
                         lastCarrierId = 0;
                     }
-
                     commentsByClaim = [];
                     lastCarrierId = claimInquiryDataSet.rows[i][carrierIdIndex];
                     lastCarrierName = claimInquiryDataSet.rows[i][carrierNameIndex];
 
                     var claimId = claimInquiryDataSet.rows[i][0];
-                    if (claimId == claimInquiryDataSet.rows[i][0]){
+                    if (claimId == claimInquiryDataSet.rows[i][0]) {
                         coverage_result.push(claimInquiryDataSet.rows[i][20]);
                     }
 
                     for (var j = 0; j < claimInquiryDataSet1.rows.length; j++) {
                         if (claimInquiryDataSet1.rows[j][0] === claimId) {
                             commentsByClaim.push(claimInquiryDataSet1.rows[j]);
-                            total_balance += parseFloat(claimInquiryDataSet.rows[i][22].replace(/[&\/\\#,+()$~%'":*?<>{}]/g, ''));
                         }
                     }
 
@@ -372,15 +373,15 @@ const api = {
                         fax: claimInquiryDataSet.rows[i][17],
                         claim_dt: claimInquiryDataSet.rows[i][18],
                         carrier: claimInquiryDataSet.rows[i][19],
-                        coverage:(claimInquiryDataSet.rows[i][20].slice(0))[0],
-                        company_name:(claimInquiryDataSet.rows[i][20].slice(0))[1],
-                        exp_date:(claimInquiryDataSet.rows[i][20].slice(0))[2],
-                        group_no:(claimInquiryDataSet.rows[i][20].slice(0))[3],
-                        policy_no:(claimInquiryDataSet.rows[i][20].slice(0))[4],
+                        coverage: (claimInquiryDataSet.rows[i][20].slice(0))[0],
+                        company_name: (claimInquiryDataSet.rows[i][20].slice(0))[1],
+                        exp_date: (claimInquiryDataSet.rows[i][20].slice(0))[2],
+                        group_no: (claimInquiryDataSet.rows[i][20].slice(0))[3],
+                        policy_no: (claimInquiryDataSet.rows[i][20].slice(0))[4],
                         billing_provider: claimInquiryDataSet.rows[i][21],
                         claim_balance: claimInquiryDataSet.rows[i][22],
                         carrier_count: 0,
-                        total_carrier_balance : total_balance
+                        total_carrier_balance: total_balance
                     };
 
                     commentsByCarrier[claimId] = {
@@ -394,10 +395,10 @@ const api = {
                     //         comments.push(claimInquiryDataSet1.rows[j]);
                     //     }
                     // }
-                   // finalInquiryDataset.rows[i].push(claimInquiryDataSet);
+                    // finalInquiryDataset.rows[i].push(claimInquiryDataSet);
                 }
 
-                addCommentsByCarrier( lastCarrierName, commentsByCarrier);
+                addCommentsByCarrier(lastCarrierName, commentsByCarrier);
 
                 // add report specific data sets
                 initialReportData.dataSets.push(finalInquiryDataset);
