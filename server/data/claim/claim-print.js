@@ -160,17 +160,16 @@ module.exports = {
                         AND (id IN (
                 `;
 
-        sql.append(`SELECT	COALESCE(${colName[templateType]},`);
+        sql.append(`SELECT	COALESCE(
+                        (SELECT ${colName[templateType]} FROM	billing.user_settings
+                        WHERE	user_id = ${userId} AND grid_name = 'claims'),`);
 
-        sql.append(SQL`
-                            (SELECT	id
+        sql.append(SQL` (SELECT	id
                                 FROM	billing.printer_templates
                                 WHERE	template_type = ${templateType} AND is_default
                                 ORDER BY id DESC
                                 LIMIT  1 )
                             ) AS id
-                        FROM	billing.user_settings
-                        WHERE	user_id = ${userId} AND grid_name = 'claims'
                     ))
                 `);
 
