@@ -147,7 +147,8 @@
             "processPayement": "Process Payments",
             "exportToExcel": "Export To Excel",
             "paperclaimOrg": "Paper Claim (RED)",
-            "paperclaimFull": "Paper Claim (B & W)"
+            "paperclaimFull": "Paper Claim (B & W)",
+            "reloaddefault":"Reload Default Template"
         },
         "screens": {},
         "fields": {

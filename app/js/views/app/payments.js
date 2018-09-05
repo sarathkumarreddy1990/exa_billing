@@ -408,11 +408,17 @@ define(['jquery',
 
             generatePDF: function (e) {
                 var self = this;
+                filterData = JSON.stringify(self.pager.get("FilterData"));
+                filterCol = JSON.stringify(self.pager.get("FilterCol"));
                 self.paymentPDF = new paymentPDF({ el: $('#modal_div_container') });
                 var paymentPDFArgs = {
                     paymentStatus: $("#ulPaymentStatus").val(),
                     'isDateFlag': $('#filterByPostingDt').prop('checked') ? true : false,
-                    from: self.from ?self.from: 'Billing'
+                    from: self.from ?self.from: 'Billing',
+                    filterData: filterData,
+                    filterColumn : filterCol,
+                    filterFlag: true
+
                 }
                 self.paymentPDF.onReportViewClick(e, paymentPDFArgs);
             },
@@ -424,18 +430,20 @@ define(['jquery',
             },
             exportExcel: function () {
                 var self = this;
+                filterData = JSON.stringify(self.pager.get("FilterData"));
+                filterCol = JSON.stringify(self.pager.get("FilterCol"));
                 var searchFilterFlag = grid.getGridParam("postData")._search;
                 $('#btnGenerateExcel').prop('disabled', true);
-
                 commonjs.showLoading();
-
                 $.ajax({
                     url: "/exa_modules/billing/payments/payments_list",
                     type: 'GET',
                     data: {
                         paymentReportFlag: searchFilterFlag ? false : true,
                         paymentStatus: $("#ulPaymentStatus").val(),
-                        from: self.from
+                        from: self.from,
+                        filterData: filterData,
+                        filterCol: filterCol
                     },
                     success: function (data, response) {
                         commonjs.prepareCsvWorker({

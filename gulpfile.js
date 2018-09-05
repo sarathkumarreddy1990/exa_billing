@@ -94,13 +94,25 @@ gulp.task('install', ['copy'], () => {
         }));
 });
 
-gulp.task('less', ['install'], () => {
+/// TODO: Following two tasks should be combined
+gulp.task('less-default', ['install'], () => {
     return gulp.src('./app/skins/default/*.less')
         .pipe(less({
             paths: [path.join(__dirname, 'app/skins/default/index.less')]
         }))
         .pipe(gulp.dest('./build/app/skins/default'))
-    //.pipe(gulp.dest('./app/skins/default'))
+});
+
+gulp.task('less', ['less-default'], () => {
+    return gulp.src([
+        './app/skins/dark/*.less'
+    ])
+        .pipe(less({
+            paths: [
+                path.join(__dirname, 'app/skins/dark/index.less')
+            ]
+        }))
+        .pipe(gulp.dest('./build/app/skins/dark'))
 });
 
 gulp.task('requirejsBuild', ['less'], (done) => {

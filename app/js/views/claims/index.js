@@ -11,8 +11,8 @@ define(['jquery',
 'collections/app/patientsearch',
 'text!templates/app/patientSearchResult.html',
 'text!templates/claims/claim-validation.html',
-'text!templates/claims/icd9-icd10.html',
-'shared/permissions'],
+'text!templates/claims/icd9-icd10.html'
+],
     function ($,
         _,
         Backbone,
@@ -26,8 +26,8 @@ define(['jquery',
         patientCollection,
         patSearchContent,
         claimValidation,
-        icd9to10Template,
-        Permission) {
+        icd9to10Template
+    ) {
         var claimView = Backbone.View.extend({
             el: null,
             rendered: false,
@@ -86,7 +86,7 @@ define(['jquery',
                 this.patientListcoll = new patientCollection();
                 this. screenCode = [];
                 if(app.userInfo.user_type != 'SU'){
-                    var rights = (new Permission()).init();
+                    var rights = (window.appRights).init();
                     this.screenCode = rights.screenCode;
                 }
             },
@@ -520,23 +520,6 @@ define(['jquery',
                                 $('#btPatientDocuemnt').prop('disabled', true);
 
                             commonjs.hideLoading();
-
-                            //open reports if available for patient
-
-                            $.ajax({
-                                type: 'GET',
-                                url: '/exa_modules/billing/claims/claim/getApprovedReportsByPatient',
-                                data: {
-                                    patient_id: self.options.patient_id
-                                },
-                                success: function (model, response) {
-                                    if(model && model.length > 0) {
-                                        window.localStorage.setItem('last_billing_screen', 'patientReport');
-                                        $('#btPatientDocuemnt').click();
-                                    }
-                                }
-                            });
-
                         }
                     },
                     error: function (model, response) {
@@ -1573,7 +1556,7 @@ define(['jquery',
                             return {
                                 results: data,
                                 pagination: {
-                                    more: (params.page * 30) < data[0].total_records
+                                    more: data && data.length ? (params.page * 30) < data[0].total_records : 0
                                 }
                             };
                         },
@@ -1706,7 +1689,7 @@ define(['jquery',
                             return {
                                 results: data,
                                 pagination: {
-                                    more: (params.page * 30) < data[0].total_records
+                                    more: data && data.length ? (params.page * 30) < data[0].total_records : 0
                                 }
                             };
                         },
@@ -1785,7 +1768,7 @@ define(['jquery',
                             return {
                                 results: data,
                                 pagination: {
-                                    more: (params.page * 30) < data[0].total_records
+                                    more: data && data.length ? (params.page * 30) < data[0].total_records : 0
                                 }
                             };
                         },
@@ -2134,7 +2117,7 @@ define(['jquery',
                             return {
                                 results: data,
                                 pagination: {
-                                    more: (params.page * 30) < data[0].total_records
+                                    more: data && data.length ? (params.page * 30) < data[0].total_records : 0
                                 }
                             };
                         },
@@ -2192,7 +2175,7 @@ define(['jquery',
                             return {
                                 results: data,
                                 pagination: {
-                                    more: (params.page * 30) < data[0].total_records
+                                    more: data && data.length ? (params.page * 30) < data[0].total_records : 0
                                 }
                             };
                         },
@@ -2338,7 +2321,6 @@ define(['jquery',
                     });
 
                     $('.multiselect-container li').css('width', '300px');
-                    $('label').css('color', 'black');
                     $('.multiselect-container li a').css('padding', '0');
 
                     $.each($('.multiselect-item span'), function (index, obj) {
