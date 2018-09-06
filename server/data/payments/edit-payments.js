@@ -424,7 +424,8 @@ module.exports = {
                             tips.insurance_code AS tertiary_ins_provider_code,
 
                             provider_groups.group_name AS ordering_facility_name,
-                            providers.full_name AS provider_name
+                            providers.full_name AS provider_name,
+                            bc.claim_status_id
                     FROM billing.claims bc
                         LEFT JOIN public.patients ON patients.id = bc.patient_id
                         LEFT JOIN public.facilities ON facilities.id = bc.facility_id
