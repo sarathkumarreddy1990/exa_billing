@@ -132,6 +132,19 @@
                     </div>
                     <div class="col">
                         <div class="form-group row">
+                            <label for="ddlClaimStatus" class="control-label col-sm-4 field-required" i18n="billing.claims.claimStatus"></label>
+                            <div class="col-sm-5">
+                                <select class="form-control select-box" id="ddlClaimStatus" style="height:32px;">
+                                    <option value="">Select</option>
+                                    <% _.each(claim_statuses, function(claimStatus) { %>
+                                        <option value='<%= claimStatus.id %>' data-desc='<%= claimStatus.code %>'>
+                                            <%= claimStatus.description %>
+                                        </option>
+                                        <% }); %>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
                             <label class="control-label field-required col-sm-4" i18n="billing.payments.responsible"></label>
                             <div class="col-sm-8">
                                 <select id="ddlResponsible" class="form-control" style="width:250px">
@@ -187,7 +200,7 @@
         </div>
     </div>
 </div>
-<div id="divPaymentCAS" class="divBackgroundPayment form-horizontal commonBorder" style="display: none; position: absolute; border-radius:10px;z-index:10000; width: 97.5%; padding:20px;background-color: white;  
+<div id="divPaymentCAS" class="divBackgroundPayment form-horizontal commonBorder" style="display: none; position: absolute; border-radius:10px;z-index:10000; width: 97.5%; padding:20px;background-color: white;
           text-align: center;top: 2%;border: 1px solid #dee2e6;">
     <div class="row modal-header" style="margin-bottom: 10px;">
         <div class="col">
