@@ -333,6 +333,7 @@ define(['jquery',
                     $('#select2-txtautoPayerPIP-container').html('Select Insurance');
                     $('#divPayerInsurnace').show();
                     $('#lblIpEob').show();
+                    $('#chkIpEob').prop('checked', true);
                     $('#divPayerInsurnace').show();
                     $('#lblInputType').text('Input Type');
                 }
@@ -656,6 +657,8 @@ define(['jquery',
                     $('#invoiceNo').val(response.invoice_no);
                     $('#anc_search').click();
                     from !== 'ris' ? $('#btnPaymentApplyAll').show() : '';
+                } else if (response.payer_type === "insurance") {
+                    $('#chkIpEob').prop('checked', true);
                 }
                 else if (response.payer_type === "patient" && response.patient_id) {
                     from !== 'ris' ? $('#btnPaymentApplyAll').show() : '';
@@ -780,7 +783,15 @@ define(['jquery',
                             $('#gbox_tblAppliedPaymentsGrid').find("#gs_claim_id").focus();
                         } else if (e.target.id == 'aPeningPaymentsWithAccInv') {
                             $('#gbox_tblpendPaymentsGrid').find("#gs_claim_id").focus();
-                            $("#lname").focus();
+
+                            if($('#chkIpEob').is(":checked")){
+                                $("#claimId").focus();
+                            }else if($('#chkIpInvoice').is(":checked")){
+                                $("#invoiceNo").focus();
+                            }else{
+                                $("#lname").focus();
+                            }
+
                         } else if (e.target.id == 'aPeningPayments') {
                             $('#gbox_tblpendPaymentsGridOnly').find("#gs_claim_id").focus();
                         }
@@ -1216,6 +1227,16 @@ define(['jquery',
                             if (self.saveClick || self.dblclickPat ) {
                                 $('#gbox_tblpendPaymentsGrid').find("#gs_claim_id").focus();
                                 self.dblclickPat = false;
+                            }
+                            if (gridObj.options && gridObj.options.customargs && gridObj.options.customargs.claimIdToSearch) {
+                                self.order_payment_id = 0;
+                                rowID = $('#tblpendPaymentsGrid').jqGrid('getDataIDs');
+
+                                if (rowID && rowID.length) {
+                                    var gridData = $('#tblpendPaymentsGrid').jqGrid('getRowData', rowID[0]);
+                                    self.showApplyAndCas(gridData.claim_id, paymentID || self.payment_id, 'pending', gridData.charge_id, gridData);
+                                }
+
                             }
                         }
                     });
@@ -2400,7 +2421,15 @@ define(['jquery',
             backToPatient: function (e) {
                 $('#btnBackToPatient').hide();
                 $('#diVPatient').show();
-                $("#lname").focus();
+
+                if($('#chkIpEob').is(":checked")){
+                    $("#claimId").focus();
+                }else if($('#chkIpInvoice').is(":checked")){
+                    $("#invoiceNo").focus();
+                }else{
+                    $("#lname").focus();
+                }
+
                 $('#divPendingRecords').hide();
             },
 
