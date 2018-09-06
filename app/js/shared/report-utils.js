@@ -739,7 +739,7 @@ define([
                     $('#' + ddl + 'Add').show();
                     $('#' + ddl + 'Box').show();
                 }
-            }            
+            }
         };
 
         return UI;
