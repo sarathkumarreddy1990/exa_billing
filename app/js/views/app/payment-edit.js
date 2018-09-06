@@ -1142,6 +1142,7 @@ define(['jquery',
             showPendingPaymentsGrid: function (paymentID, payerType, payerId, patientId, claimIdToSearch, invoiceNoToSearch,dblclickPat) {
                 var self = this;
                 self.dblclickPat = dblclickPat || claimIdToSearch || invoiceNoToSearch;
+                $("#divGrid_pendPayments").hide();
                 if (!self.pendingGridLoaderd) {
                     this.pendPaymentTable = new customGrid();
                     this.pendPaymentTable.render({
@@ -1224,21 +1225,31 @@ define(['jquery',
                             self.setCustomArgs(paymentID, payerId, payerType, patientId, claimIdToSearch, invoiceNoToSearch);
                         },
                         onaftergridbind: function (model, gridObj) {
+
                             self.setMoneyMask();
                             if (self.saveClick || self.dblclickPat ) {
                                 $('#gbox_tblpendPaymentsGrid').find("#gs_claim_id").focus();
                                 self.dblclickPat = false;
                             }
+
+
                             if (gridObj.options && gridObj.options.customargs && gridObj.options.customargs.claimIdToSearch) {
                                 self.order_payment_id = 0;
                                 rowID = $('#tblpendPaymentsGrid').jqGrid('getDataIDs');
-
                                 if (rowID && rowID.length) {
                                     var gridData = $('#tblpendPaymentsGrid').jqGrid('getRowData', rowID[0]);
                                     self.showApplyAndCas(gridData.claim_id, paymentID || self.payment_id, 'pending', gridData.charge_id, gridData);
+                                    $("#divGrid_pendPayments").show();
+                                } else {
+                                    commonjs.showWarning('Invalid claim id ' + gridObj.options.customargs.claimIdToSearch);
+                                    $('#btnBackToPatient').click();
+                                    $('#lname').focus();
                                 }
 
+                            }else{
+                                $("#divGrid_pendPayments").show();
                             }
+
                         }
                     });
 
