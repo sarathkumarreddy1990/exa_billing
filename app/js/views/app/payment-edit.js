@@ -142,6 +142,7 @@ define(['jquery',
                 this.adjustmentCodeList = new modelCollection(adjustment_codes);
                 this.claimStatusList = new modelCollection(claim_status);
                 this.paymentReasons = new modelCollection(app.payment_reasons);
+                this.claimStatuses = new modelCollection(app.claim_status);
                 this.model = new ModelPayments();
                 this.pager = new ModelPaymentsPager();
                 this.pendPager = new ModelPaymentsPager();
@@ -333,6 +334,7 @@ define(['jquery',
                     $('#select2-txtautoPayerPIP-container').html('Select Insurance');
                     $('#divPayerInsurnace').show();
                     $('#lblIpEob').show();
+                    $('#chkIpEob').prop('checked', true);
                     $('#divPayerInsurnace').show();
                     $('#lblInputType').text('Input Type');
                 }
@@ -656,6 +658,8 @@ define(['jquery',
                     $('#invoiceNo').val(response.invoice_no);
                     $('#anc_search').click();
                     from !== 'ris' ? $('#btnPaymentApplyAll').show() : '';
+                } else if (response.payer_type === "insurance") {
+                    $('#chkIpEob').prop('checked', true);
                 }
                 else if (response.payer_type === "patient" && response.patient_id) {
                     from !== 'ris' ? $('#btnPaymentApplyAll').show() : '';
@@ -780,7 +784,15 @@ define(['jquery',
                             $('#gbox_tblAppliedPaymentsGrid').find("#gs_claim_id").focus();
                         } else if (e.target.id == 'aPeningPaymentsWithAccInv') {
                             $('#gbox_tblpendPaymentsGrid').find("#gs_claim_id").focus();
-                            $("#lname").focus();
+
+                            if($('#chkIpEob').is(":checked")){
+                                $("#claimId").focus();
+                            }else if($('#chkIpInvoice').is(":checked")){
+                                $("#invoiceNo").focus();
+                            }else{
+                                $("#lname").focus();
+                            }
+
                         } else if (e.target.id == 'aPeningPayments') {
                             $('#gbox_tblpendPaymentsGridOnly').find("#gs_claim_id").focus();
                         }
@@ -1217,6 +1229,16 @@ define(['jquery',
                                 $('#gbox_tblpendPaymentsGrid').find("#gs_claim_id").focus();
                                 self.dblclickPat = false;
                             }
+                            if (gridObj.options && gridObj.options.customargs && gridObj.options.customargs.claimIdToSearch) {
+                                self.order_payment_id = 0;
+                                rowID = $('#tblpendPaymentsGrid').jqGrid('getDataIDs');
+
+                                if (rowID && rowID.length) {
+                                    var gridData = $('#tblpendPaymentsGrid').jqGrid('getRowData', rowID[0]);
+                                    self.showApplyAndCas(gridData.claim_id, paymentID || self.payment_id, 'pending', gridData.charge_id, gridData);
+                                }
+
+                            }
                         }
                     });
 
@@ -1405,7 +1427,7 @@ define(['jquery',
                 var others_paid = rowData.others_paid ? rowData.others_paid.substr(1) : '0.00';
                 var claimDt = (commonjs.checkNotEmpty(rowData.claim_dt) ? commonjs.convertToFacilityTimeZone(rowData.facility_id, rowData.claim_dt).format('L') : '');
 
-                commonjs.showDialog({ header: 'Claim : # <strong>'+rowData.claim_id+',  '+rowData.full_name +'  ' + claimDt+'</strong>', width: '85%', height: '72%', html: self.applyCasTemplate({ adjustmentCodes: self.adjustmentCodeList.toJSON(), 'claimStatusList': this.claimStatusList.toJSON(), cas_group_codes: self.cas_group_codes, cas_reason_codes: self.cas_reason_codes, patient_paid: patient_paid, others_paid: others_paid }) });
+                commonjs.showDialog({ header: 'Claim : # <strong>'+rowData.claim_id+',  '+rowData.full_name +'  ' + claimDt+'</strong>', width: '85%', height: '72%', html: self.applyCasTemplate({ adjustmentCodes: self.adjustmentCodeList.toJSON(), 'claimStatusList': this.claimStatusList.toJSON(), cas_group_codes: self.cas_group_codes, cas_reason_codes: self.cas_reason_codes, patient_paid: patient_paid, others_paid: others_paid, claim_statuses: self.claimStatuses.toJSON() }) });
 
                 $('#siteModal').removeAttr('tabindex');
                 $('#divApplyPendingPayments').height($('#modal_div_container').height() - 340);
@@ -1560,6 +1582,7 @@ define(['jquery',
                                 $('#ddlResponsible').append($('<option/>', { value: payerType.referring_provider_contact_id, text: payerType.provider_name + '(Provider)', 'data-payerType': 'referring_provider' }));
                         });
                         $("#ddlResponsible option[data-payerType=" + payerTypes[0].payer_type + "]").attr('selected', 'selected');
+                        $('#ddlClaimStatus').val( payerTypes && payerTypes[0].claim_status_id);
 
                         $.each(charges, function (index, charge_details) {
                             if (charge_details.adjustment_code_id) {
@@ -2400,7 +2423,15 @@ define(['jquery',
             backToPatient: function (e) {
                 $('#btnBackToPatient').hide();
                 $('#diVPatient').show();
-                $("#lname").focus();
+
+                if($('#chkIpEob').is(":checked")){
+                    $("#claimId").focus();
+                }else if($('#chkIpInvoice').is(":checked")){
+                    $("#invoiceNo").focus();
+                }else{
+                    $("#lname").focus();
+                }
+
                 $('#divPendingRecords').hide();
             },
 

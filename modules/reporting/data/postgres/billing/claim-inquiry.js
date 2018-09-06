@@ -47,7 +47,8 @@ const claimInquiryDataSetQueryTemplate = _.template(`
              WHEN bc.payer_type = 'ordering_facility' THEN f.id
              WHEN bc.payer_type = 'referring_provider' THEN null
              ELSE  NULL
-           END AS carrier_id
+           END AS carrier_id,
+           payments.payment_claim_id is not null has_payments
         FROM
             billing.claims bc
         INNER JOIN LATERAL billing.get_claim_totals(bc.id) AS claim_totals ON TRUE
@@ -63,9 +64,9 @@ const claimInquiryDataSetQueryTemplate = _.template(`
         LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = ip.provider_payer_type_id
         LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
         LEFT JOIN public.providers pr ON  pr.id = ppc.provider_id
-        JOIN LATERAL (
+        <%if(unPaid || (!patPaid && !insPaid && !unPaid)){ %> LEFT  <%}%> JOIN LATERAL (
             SELECT
-                        DISTINCT bch.claim_id
+                        DISTINCT bch.claim_id as payment_claim_id
                     FROM billing.payments bp
                    INNER JOIN billing.payment_applications bpa ON bpa.payment_id = bp.id
                    INNER JOIN billing.charges bch ON bch.id = bpa.charge_id
@@ -76,9 +77,8 @@ const claimInquiryDataSetQueryTemplate = _.template(`
                    <%
                    if(patPaid && !insPaid && !unPaid) { %> AND ( bp.payer_type = 'patient')   <% }
                    else if(!patPaid && insPaid && !unPaid) { %> AND ( bp.payer_type = 'insurance') <% }
-                   else if(!patPaid && !insPaid && unPaid)  { %> AND  NOT EXISTS (select 1  From billing.charges  ibch
-                       INNER JOIN billing.payment_applications ibpa on ibch.id = ibpa.charge_id
-                       WHERE ibch.claim_id = bc.id) <% }
+                   else if(!patPaid && !insPaid && unPaid)  { %> AND EXISTS (select 1  From billing.charges  ibch INNER JOIN billing.payment_applications ibpa on ibch.id = ibpa.charge_id
+                                                                WHERE ibch.claim_id = bc.id) <% }
                    else if(insPaid && patPaid && !unPaid)  { %> AND ( bp.payer_type = 'patient'  OR  bp.payer_type = 'insurance' ) <% }
                    else if(patPaid &&  unPaid && !insPaid)  { %> AND ( bp.payer_type = 'patient' OR NOT EXISTS (select 1  From billing.charges  ibch
                        INNER JOIN billing.payment_applications ibpa on ibch.id = ibpa.charge_id
@@ -86,7 +86,7 @@ const claimInquiryDataSetQueryTemplate = _.template(`
                    else if(unPaid && insPaid && !patPaid)  { %> AND ( bp.payer_type = 'insurance' OR NOT EXISTS (select 1  From billing.charges  ibch
                        INNER JOIN billing.payment_applications ibpa on ibch.id = ibpa.charge_id
                        WHERE ibch.claim_id = bc.id)) <% }
-                   else if(unPaid && insPaid && patPaid)  { %> AND ( bp.payer_type = 'patient' OR bp.payer_type = 'insurance' OR NOT EXISTS (select 1  From billing.charges  ibch
+                   else if(unPaid && insPaid && patPaid)  { %> AND ( bp.payer_type = 'patient' OR bp.payer_type = 'insurance' OR  EXISTS (select 1  From billing.charges  ibch
                        INNER JOIN billing.payment_applications ibpa on ibch.id = ibpa.charge_id
                        WHERE ibch.claim_id = bc.id) ) <% }
                    %>
@@ -104,7 +104,8 @@ const claimInquiryDataSetQueryTemplate = _.template(`
              *
         FROM
              claim_data
-             order by carrier
+        <% if(unPaid) { %> WHERE NOT has_payments <%}%>
+         order by carrier
     `);
 const claimInquiryDataSetQueryTemplate1 = _.template(`
     with claim_data as (
@@ -299,6 +300,7 @@ const api = {
                 var total_balance;
 
                 function addCommentsByCarrier(carrierName, comments) {
+
                     finalInquiryDataset.rows.push({
                         [carrierName]: comments
                     });
@@ -308,7 +310,7 @@ const api = {
 
                 for (var i = 0; i < claimInquiryDataSet.rows.length; i++) {
                     total_balance = 0;
-                    if (i > 0 && claimInquiryDataSet.rows[i][carrierIdIndex] != lastCarrierId) {
+                    if (i > -1 && Object.keys(commentsByCarrier).length && claimInquiryDataSet.rows[i][carrierIdIndex] != lastCarrierId) {
                         var index = 1;
                         _.map(commentsByCarrier, function (Obj) {
                             Obj.claim[0].carrier_count = index;
@@ -317,13 +319,17 @@ const api = {
                         });
 
                         _.map(commentsByCarrier, function (Obj) {
-                            Obj.claim[0].carrier_balance = total_balance || '0.00';
-                         });
+                            Obj.claim[0].carrier_balance = parseFloat(total_balance).toFixed(2) || '0.00';
+                        });
 
                         addCommentsByCarrier(lastCarrierName, commentsByCarrier);
                         commentsByCarrier = {};
                         lastCarrierId = 0;
                     }
+                    else {
+                        total_balance += JSON.parse(claimInquiryDataSet.rows[0][6].replace(/[&\/\\#,+()$~%'":*?<>{}]/g, ''));
+                    }
+
                     commentsByClaim = [];
                     lastCarrierId = claimInquiryDataSet.rows[i][carrierIdIndex];
                     lastCarrierName = claimInquiryDataSet.rows[i][carrierNameIndex];
@@ -380,8 +386,8 @@ const api = {
                         policy_no: (claimInquiryDataSet.rows[i][20].slice(0))[4],
                         billing_provider: claimInquiryDataSet.rows[i][21],
                         claim_balance: claimInquiryDataSet.rows[i][22],
-                        carrier_count: 0,
-                        total_carrier_balance: total_balance
+                        carrier_count: 1,
+                        total_carrier_balance: parseFloat(total_balance).toFixed(2) || '0.00'
                     };
 
                     commentsByCarrier[claimId] = {
@@ -389,21 +395,26 @@ const api = {
                         commentsByClaim
                     };
 
-                    // var comments = [];
-                    // for (var j = 0; j < claimInquiryDataSet1.rows.length; j++) {
-                    //     if (claimInquiryDataSet1.rows[j][0] === claimInquiryDataSet.rows[i][0]) {
-                    //         comments.push(claimInquiryDataSet1.rows[j]);
-                    //     }
-                    // }
-                    // finalInquiryDataset.rows[i].push(claimInquiryDataSet);
                 }
+
+                var index = 1;
+                total_balance = 0;
+
+                _.map(commentsByCarrier, function (Obj) {
+                    Obj.claim[0].carrier_count = index;
+                    total_balance += JSON.parse(Obj.claim[0].claim_balance.replace(/[&\/\\#,+()$~%'":*?<>{}]/g, ''));
+                    index++;
+                });
+
+                _.map(commentsByCarrier, function (Obj) {
+                    Obj.claim[0].carrier_balance = parseFloat(total_balance).toFixed(2) || '0.00';
+                });
 
                 addCommentsByCarrier(lastCarrierName, commentsByCarrier);
 
                 // add report specific data sets
                 initialReportData.dataSets.push(finalInquiryDataset);
                 initialReportData.dataSetCount = initialReportData.dataSets.length;
-
                 return initialReportData;
             });
     },

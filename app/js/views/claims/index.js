@@ -3203,6 +3203,7 @@ define(['jquery',
                                 commonjs.showStatus(commonjs.geti18NString("messages.status.validatedSuccessfully"));
                                 if(data.validClaim_data && data.validClaim_data.rows && data.validClaim_data.rows.length){
                                     self.claim_row_version = data.validClaim_data.rows[0].claim_row_version || self.claim_row_version;
+                                    $('#ddlClaimStatus').val($("option[data-desc = 'PS']").val());
                                 }
                             }
                             else{
