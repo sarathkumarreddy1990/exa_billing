@@ -142,6 +142,7 @@ define(['jquery',
                 this.adjustmentCodeList = new modelCollection(adjustment_codes);
                 this.claimStatusList = new modelCollection(claim_status);
                 this.paymentReasons = new modelCollection(app.payment_reasons);
+                this.claimStatuses = new modelCollection(app.claim_status);
                 this.model = new ModelPayments();
                 this.pager = new ModelPaymentsPager();
                 this.pendPager = new ModelPaymentsPager();
@@ -1426,7 +1427,7 @@ define(['jquery',
                 var others_paid = rowData.others_paid ? rowData.others_paid.substr(1) : '0.00';
                 var claimDt = (commonjs.checkNotEmpty(rowData.claim_dt) ? commonjs.convertToFacilityTimeZone(rowData.facility_id, rowData.claim_dt).format('L') : '');
 
-                commonjs.showDialog({ header: 'Claim : # <strong>'+rowData.claim_id+',  '+rowData.full_name +'  ' + claimDt+'</strong>', width: '85%', height: '72%', html: self.applyCasTemplate({ adjustmentCodes: self.adjustmentCodeList.toJSON(), 'claimStatusList': this.claimStatusList.toJSON(), cas_group_codes: self.cas_group_codes, cas_reason_codes: self.cas_reason_codes, patient_paid: patient_paid, others_paid: others_paid }) });
+                commonjs.showDialog({ header: 'Claim : # <strong>'+rowData.claim_id+',  '+rowData.full_name +'  ' + claimDt+'</strong>', width: '85%', height: '72%', html: self.applyCasTemplate({ adjustmentCodes: self.adjustmentCodeList.toJSON(), 'claimStatusList': this.claimStatusList.toJSON(), cas_group_codes: self.cas_group_codes, cas_reason_codes: self.cas_reason_codes, patient_paid: patient_paid, others_paid: others_paid, claim_statuses: self.claimStatuses.toJSON() }) });
 
                 $('#siteModal').removeAttr('tabindex');
                 $('#divApplyPendingPayments').height($('#modal_div_container').height() - 340);
@@ -1581,6 +1582,7 @@ define(['jquery',
                                 $('#ddlResponsible').append($('<option/>', { value: payerType.referring_provider_contact_id, text: payerType.provider_name + '(Provider)', 'data-payerType': 'referring_provider' }));
                         });
                         $("#ddlResponsible option[data-payerType=" + payerTypes[0].payer_type + "]").attr('selected', 'selected');
+                        $('#ddlClaimStatus').val( payerTypes && payerTypes[0].claim_status_id);
 
                         $.each(charges, function (index, charge_details) {
                             if (charge_details.adjustment_code_id) {
