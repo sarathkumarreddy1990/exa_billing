@@ -144,6 +144,11 @@ WITH claim_data AS (
     <% if (billingProviderIds) { %>AND <% print(billingProviderIds); } %>
     <% if (facilityIds) { %>AND <% print(facilityIds); } %>
     <% if (patientIds) { %>AND <% print(patientIds); } %>
+
+    <% if (patientLastnameFrom && patientLastnameTo) { %>
+    AND p.last_name BETWEEN '<%= patientLastnameFrom %>' AND '<%= patientLastnameTo %>Z'
+    <% } %>
+
     ORDER BY first_name),
 
     detail_cte AS (
@@ -543,10 +548,17 @@ const api = {
 
         filtersUsed.push({ name: 'sDate', label: 'Statement Date', value: params.sDate });
 
-        const patientNames = params.patientOption === 'All' ? 'All' : _(lookups.patients).map(f => f.name).value();
-        filtersUsed.push({ name: 'patientNames', label: 'Patients', value: patientNames });
+        if (params.patientOption !== 'R') {
+            const patientNames = params.patientOption === 'All' ? 'All' : _(lookups.patients).map(f => f.name).value();
+            filtersUsed.push({ name: 'patientNames', label: 'Patients', value: patientNames });
+        }
 
-        filtersUsed.push({ name: 'payToProvider', label: 'Use address of Pay-To Provider', value: params.payToProvider ? 'Yes' : 'No' })
+        filtersUsed.push({ name: 'payToProvider', label: 'Use address of Pay-To Provider', value: params.payToProvider ? 'Yes' : 'No' });
+
+        if (params.patientOption === 'R') {
+            filtersUsed.push({name: 'patientLastnameFrom', label: 'Patient Lastname From', value: params.patientLastnameFrom });
+            filtersUsed.push({name: 'patientLastnameTo', label: 'Patient Lastname To', value: params.patientLastnameTo });
+        }
 
         return filtersUsed;
     },
@@ -572,7 +584,9 @@ const api = {
             patientIds: null,
             billingProviderIds: null,
             facilityIds: null,
-            statementDate: null
+            statementDate: null,
+            patientLastnameFrom: null,
+            patientLastnameTo: null
         };
 
         // patients
@@ -603,6 +617,10 @@ const api = {
         filters.whereDate = queryBuilder.whereDateInTz(` CASE  WHEN type = 'charge' THEN  bc.claim_dt ELSE pc.commented_dt END `, `<=`, [params.length], `f.time_zone`);
         filters.payToProvider = reportParams.payToProvider;
 
+        if (reportParams.patientOption === 'R') {
+            filters.patientLastnameFrom = reportParams.patientLastnameFrom;
+            filters.patientLastnameTo = reportParams.patientLastnameTo;
+        }
 
         if ( /^html|pdf$/i.test(reportParams.reportFormat) ) {
             filters.rowFlag = `, row_flag`;

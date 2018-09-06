@@ -1,5 +1,10 @@
 {
     "report": {
+        "all": "All",
+        "selected": "Selected",
+        "patientLastnameFrom": "Last Name From",
+        "patientLastnameTo": "Last Name To",
+        "rangeByPatientLastname": "Range By Patient Last Name",
         "arCutoffDate": "A/R Cut-off Date",
         "facilities": "Facility",
         "billingProviders": "Billing Provider",

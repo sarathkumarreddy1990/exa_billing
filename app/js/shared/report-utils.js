@@ -728,7 +728,18 @@ define([
                 $('#' + ulListCPTCode).delegate('a.remove', 'click', function () {
                     $(this).closest('li').remove();
                 });
-            }
+            },
+
+            hideShowBox: function (ddl) {
+                if ($('#' + ddl + 'Option').val() !== 'S') {
+                    $('#' + ddl + 'Add').hide();
+                    $('#' + ddl + 'Box').hide();
+                }
+                else {
+                    $('#' + ddl + 'Add').show();
+                    $('#' + ddl + 'Box').show();
+                }
+            }            
         };
 
         return UI;
