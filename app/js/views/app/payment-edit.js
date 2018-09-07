@@ -951,6 +951,10 @@ define(['jquery',
                     $('#txtCheque').focus();
                     return false;
                 }
+                if ($("#chkIpInvoice").is(':checked') && $.trim($("#txtInvoice").val()) == "") {
+                    commonjs.showWarning("Please enter invoice #");
+                    return false;
+                }
                 return true;
             },
 
