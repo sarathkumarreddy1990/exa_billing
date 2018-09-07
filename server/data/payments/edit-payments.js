@@ -487,7 +487,8 @@ module.exports = {
     },
 
     getGroupCodesAndReasonCodes: async function (params) {
-        return await query(`
+
+        const sql =  SQL`
         WITH cte_cas_group_codes AS
         (
             SELECT Json_agg(Row_to_json(cas_group_codes)) cas_group_codes
@@ -512,14 +513,16 @@ module.exports = {
                         FROM billing.cas_reason_codes
                     WHERE company_id = ${params.companyID}
                         AND inactivated_dt IS NULL
+                    ORDER BY regexp_replace(code, '^([^[:digit:]]*).*$', '\\1'),
+                             regexp_replace(code, '^.*?([[:digit:]]*)$', '\\1')::bigint
                         )
                     AS cas_reason_codes)
             SELECT *
                 FROM
                 cte_cas_group_codes,
-                cte_cas_reason_codes
-                 `
-        );
+                cte_cas_reason_codes`;
+
+        return await query(sql);
     },
 
     getPayemntApplications: async function (params) {
