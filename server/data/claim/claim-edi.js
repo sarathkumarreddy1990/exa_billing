@@ -547,7 +547,7 @@ module.exports = {
                                                 WHEN 'EMPLOYEE' THEN '20'
                                                 WHEN 'ORGAN DONOR' THEN '39'
                                                 WHEN 'CADAVER DONOR' THEN '40'
-										END)
+                                        END)
 												FROM  relationship_status WHERE  subscriber_relationship_id =relationship_status.id ) as  relationship,
 
 											policy_number  as "policyNo",
