@@ -24,11 +24,13 @@ define([
                 facilities: null,
                 allFacilities: null,
                 fromDate: null,
-                allBillingProvider: false
+                allBillingProvider: false,
+                patientLastnameFrom: null,
+                patientLastnameTo: null
             },
             selectedFacilityList: [],
             events: {
-                'change #ddlOption': 'onOptionChange',
+                'change #ddlPatientOption': 'onPatientOptionChange',
                 'click #btnViewReport': 'onReportViewClick',
                 'click #btnViewReportNewTabPatStatement': 'onReportViewClick',
                 'click #btnPdfReport': 'onReportViewClick',
@@ -74,7 +76,7 @@ define([
                 UI.bindBillingProvider();
                 UI.bindPatient('txtPatient', this.usermessage.selectPatient, 'btnAddPatient', 'ulListPatients');
 
-                $('#ddlOption').multiselect({
+                $('#ddlPatientOption').multiselect({
                     maxHeight: '200px',
                     buttonWidth: '220px',
                     width: '200px'
@@ -137,9 +139,11 @@ define([
                     return this.id;
                 }).get();
 
-                this.viewModel.patientOption = $('#ddlOption').val();
+                this.viewModel.patientOption = $('#ddlPatientOption').val();
                 this.viewModel.billingProvider = $('#ddlBillingProvider').val();
                 this.viewModel.minAmount = $('#minAmount').val() || "0";
+                this.viewModel.patientLastnameFrom = $('#patientLastnameFrom').val() === '' ? 'a' : $('#patientLastnameFrom').val();
+                this.viewModel.patientLastnameTo = $('#patientLastnameTo').val() === '' ? 'z' : $('#patientLastnameTo').val();
 
                 if (this.hasValidViewModel()) {
                     var urlParams = this.getReportParams();
@@ -158,15 +162,17 @@ define([
 
             getReportParams: function () {
                 return urlParams = {
-                    'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
-                    'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
+                    facilityIds: this.selectedFacilityList ? this.selectedFacilityList : [],
+                    allFacilities: this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
                     patientOption: this.viewModel.patientOption,
                     patientIds: this.viewModel.patientIds,
                     billingProviderIds: this.viewModel.billingProvider,
                     minAmount: this.viewModel.minAmount || "0",
                     payToProvider: $('#chkPayToProvider').prop('checked'),
                     sDate: this.viewModel.fromDate.date().format('YYYY-MM-DD'),
-                    'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : ''
+                    allBillingProvider: this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
+                    patientLastnameFrom: this.viewModel.patientLastnameFrom,
+                    patientLastnameTo: this.viewModel.patientLastnameTo
                 };
             },
 
@@ -182,12 +188,16 @@ define([
                 }
             },
 
-            onOptionChange: function () {
-                if ($('#ddlOption').val() !== 'S')
-                    $("#ddlOptionBox").hide();
-                else $("#ddlOptionBox").show();
-            }
+            onPatientOptionChange: function () {
+                UI.hideShowBox('ddlPatient');
 
+                if ($('#ddlPatientOption').val() !== 'R') {
+                    $('#ddlPatientLastNameBox').hide();
+                }
+                else {
+                    $('#ddlPatientLastNameBox').show();
+                }
+            }
         });
 
         return PatientStatementView;
