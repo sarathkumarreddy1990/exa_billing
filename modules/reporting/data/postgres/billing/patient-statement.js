@@ -22,8 +22,14 @@ WITH claim_data as(
     select cc.claim_id as id,'claim' as type ,note as comments ,created_dt::date as commented_dt,null as amount,u.username as commented_by,null as code from  billing.claim_comments cc
     INNER JOIN claim_data cd on cd.claim_id = cc.claim_id
     inner join users u  on u.id = cc.created_by
-    where cc.type in ('manual', 'co_pay','co_insurance','deductible')
-    AND (CASE WHEN cc.type = 'manual' THEN cc.is_internal END)
+     where
+    (
+        CASE WHEN cc.type = 'manual' THEN
+             cc.is_internal
+        ELSE
+            cc.type in ('co_pay','co_insurance','deductible')
+        END
+    )
     UNION ALL
     select  c.claim_id as id,'charge' as type,cc.short_description as comments,c.charge_dt::date as commented_dt,(c.bill_fee*c.units) as amount,u.username as commented_by,cc.display_code as code from billing.charges c
     INNER JOIN claim_data cd on cd.claim_id = c.claim_id
