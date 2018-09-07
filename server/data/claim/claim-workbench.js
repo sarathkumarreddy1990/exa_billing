@@ -467,18 +467,19 @@ module.exports = {
         const sql = SQL`
                     WITH batch_claim_details AS (
                         SELECT
-		                    patient_id, study_id
+		                    patient_id, study_id, order_id
 	                    FROM
 	                        json_to_recordset(${study_ids}) AS study_ids
 		                    (
 		                        patient_id bigint,
-		                        study_id bigint
+                                study_id bigint,
+                                order_id bigint
                             )
                     ), details AS (
                         SELECT bcd.study_id, d.*
                         FROM
                            batch_claim_details bcd
-                        LEFT JOIN LATERAL (select * from billing.get_batch_claim_details(bcd.study_id, ${params.created_by}, bcd.patient_id)) d ON true
+                        LEFT JOIN LATERAL (select * from billing.get_batch_claim_details(bcd.study_id, ${params.created_by}, bcd.patient_id, bcd.order_id)) d ON true
                       )
                       SELECT
                         billing.create_claim_charge(

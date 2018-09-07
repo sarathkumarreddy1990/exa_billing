@@ -306,7 +306,7 @@ module.exports = {
                             update_claim_status_and_payer AS (
                                 SELECT
                                     claim_id
-                                    ,billing.change_responsible_party(claim_id, claim_status_code, ${paymentDetails.company_id}, original_reference)
+                                    ,billing.change_responsible_party(claim_id, claim_status_code, ${paymentDetails.company_id}, original_reference, 0)
                                 FROM
                                     matched_claims
                             )
