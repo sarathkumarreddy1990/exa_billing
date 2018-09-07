@@ -154,8 +154,12 @@ module.exports = {
             else {
 
                 ediResponse = await ediConnect.generateEdi(result.rows[0].header.edi_template_name, ediRequestJson);
+                let segmentValidations = ediResponse.ediTextWithValidations.filter(segmentData => typeof segmentData !== 'string' && segmentData.v)
+                    .map(segmentData => segmentData.v)
+                    .reduce((result, item) => result.concat(item));
+                let validation = ediResponse.validations.concat(segmentValidations);
 
-                if (!ediResponse.errMsg && (ediResponse.validations && ediResponse.validations.length == 0)) {
+                if (!ediResponse.errMsg && (validation && validation.length == 0)) {
                     params.claim_status = 'PP';
                     params.type = 'auto';
                     params.success_claimID = params.claimIds.split(',');

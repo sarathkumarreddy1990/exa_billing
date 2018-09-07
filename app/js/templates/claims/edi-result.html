@@ -60,24 +60,38 @@
     </div>
     <div id="divEDIResult">
         <table id="tblEDIResp" class="table table-bordered">
-            <% _.each(ediText.split('~'),function(val,index){ %>
+            <% _.each(ediText,function(val,index){ %>
                 <% if (val != '')  { %>
-                    <% if (index == 0 || index == 1) { %>
+                    <% if (typeof val == 'object') { %>
                         <tr>
                             <td style='width: 20px; padding: 5px;'>
-                                <%=(0)%>
+                                <%=index%>
+                            </td>
+                            <td style='width: 20px; padding: 5px;'>
+                                    <% var fieldName = ""; %>
+                                    <% _.each(val.v,function(v,index){ %>
+                                        <% if (fieldName == '') { %>
+                                        <% fieldName +=(  (v.fieldName ? v.fieldName +'-' :'') + v.message )  %>
+                                        <% }else {  %>
+                                            <% fieldName +=('\n'+((v.fieldName ? v.fieldName +'-' :'') + v.message ))  %>
+                                        <% }  %>
+                                    <%})%>
+                                <span class="popoverWarning" data-toggle="popover" data-placement="top"  title='<%=val.v[0].segmentName%>' data-content="<%=fieldName%>">
+                                    <i class="icon-ic-warning" style="color:blue;"></i></span>
+                                </div>
                             </td>
                             <td style='padding: 5px; border-right: none;'>
-                                <%=val%>
+                            <%=(val.e).replace(/ /g,' ')%>
                             </td>
                         </tr>
                         <% }else {  %>
                             <tr>
                                 <td style='width: 20px; padding: 5px;'>
-                                    <%=(index - 1)%>
+                                    <%=(index)%>
                                 </td>
+                                <td style='width: 20px; padding: 5px;'></td>
                                 <td style='padding: 5px; border-right: none;'>
-                                    <%=val%>
+                                    <%=val.replace(/ /g, '&nbsp;')%>
                                 </td>
                             </tr>
                     <%} %>
