@@ -35,7 +35,6 @@ WITH claim_data as(
      INNER JOIN insurance_providers AS ip ON ip.id = pis.insurance_provider_id
      INNER JOIN billing.claims bc ON bc.patient_id = pis.patient_id
      INNER JOIN facilities f on f.id = bc.facility_id
-
           WHERE 1=1
           AND <%= patientInsIds %>
           <% if(reportBy == 'false') { %> AND <% print(claimDate); } %>
@@ -44,21 +43,12 @@ WITH claim_data as(
      billing_comments as
     (
     <% if (billingComments == "true")  { %>
-    SELECT
-          cc.claim_id AS id
-        , 'claim' AS type
-        , note AS comments
-        , to_char(created_dt ,'MM/DD/YYYY') AS commented_dt
-        , null AS amount
-        , u.username AS commented_by
-        , null AS code
-    FROM
-          billing.claim_comments cc
+    select cc.claim_id as id,'claim' as type ,note as comments ,created_dt::date as commented_dt,null as amount,u.username as commented_by,null as code from  billing.claim_comments cc
     INNER JOIN claim_data cd on cd.claim_id = cc.claim_id
-    INNER JOIN users u  on u.id = cc.created_by
-    UNION
+    inner join users u  on u.id = cc.created_by
+    UNION ALL
     <% } %>
-    SELECT  c.claim_id as id,'charge' as type,cc.short_description as comments,to_char(c.charge_dt,'MM/DD/YYYY') AS commented_dt,(c.bill_fee*c.units) as amount,u.username as commented_by,cc.display_code as code from billing.charges c
+    select  c.claim_id as id,'charge' as type,cc.short_description as comments,c.charge_dt::date as commented_dt,(c.bill_fee*c.units) as amount,u.username as commented_by,cc.display_code as code from billing.charges c
     INNER JOIN claim_data cd on cd.claim_id = c.claim_id
     inner join cpt_codes cc on cc.id = c.cpt_id
     inner join users u  on u.id = c.created_by
@@ -72,8 +62,8 @@ WITH claim_data as(
                pg.group_name
          WHEN bp.payer_type = 'ordering_provider' THEN
                p.full_name
-    END AS comments,
-    to_char(bp.accounting_dt,'MM/DD/YYYY') as commented_dt,
+    END as comments,
+    bp.accounting_dt::date as commented_dt,
     pa.amount as amount,
     u.username as commented_by,
     CASE amount_type
@@ -85,12 +75,11 @@ WITH claim_data as(
                              WHEN 'ordering_provider' THEN 'Provider'
                              END)
     END as code
-    from
-         billing.payments bp
-    INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
-    INNER JOIN billing.charges bc on bc.id = pa.charge_id
+    from billing.payments bp
+    inner join billing.payment_applications pa on pa.payment_id = bp.id
+    inner join billing.charges bc on bc.id = pa.charge_id
     INNER JOIN claim_data cd on cd.claim_id = bc.claim_id
-    INNER join users u  on u.id = bp.created_by
+    inner join users u  on u.id = bp.created_by
     LEFT JOIN public.patients pp on pp.id = bp.patient_id
     LEFT JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id
     LEFT JOIN public.provider_groups  pg on pg.id = bp.provider_group_id
@@ -304,7 +293,52 @@ WITH claim_data as(
       FROM patient_insurance
 
       UNION
-         -- Statement Amount
+          -- Billing Information
+
+              SELECT
+                billing_provider_name
+              , billing_proaddress1
+              , billing_proaddress2
+              , billing_procity
+              , billing_prostate
+              , billing_prozip
+              , billing_zip_plus
+              , billing_phoneno
+              , to_char('2018-04-12'::date, 'MM/DD/YYYY')
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , pid
+
+          , 0
+          , null
+          , 0
+          , 0                              AS sort_order
+          , 0
+          FROM detail_cte
+          UNION
+
+
+              -- Statement Amount
               SELECT
                 null
               , null
@@ -387,7 +421,7 @@ WITH claim_data as(
               , 0                              AS sort_order
               , 2
               FROM detail_cte
-              UNION 
+              UNION
 
 
           -- Details
@@ -516,6 +550,48 @@ WITH claim_data as(
           FROM statement_cte
 
           UNION
+              SELECT
+                billing_provider_name
+              , billing_proaddress1
+              , billing_proaddress2
+              , billing_procity
+              , billing_prostate
+              , billing_prozip
+              , billing_zip_plus
+              , billing_phoneno
+              , to_char('2018-04-12'::date, 'MM/DD/YYYY')
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , pid
+              , null
+              , null
+              , 6
+              , 99   AS sort_order
+              , 1
+              FROM detail_cte
+
+
+              UNION
 
               SELECT
                 null
