@@ -567,6 +567,11 @@ define(['jquery',
                         }
 
                         if (data && data.ediText && data.ediText.length) {
+                            
+                            let segmentValidations = data.ediTextWithValidations.filter(segmentData => typeof segmentData !== 'string' && segmentData.v)
+                            .map(segmentData => segmentData.v)
+                            .reduce((result, item) => result.concat(item));
+                            data.validations = data.validations.concat(segmentValidations);
 
                             var result = [];
                             if (data.validations && data.validations.length) {
@@ -577,8 +582,9 @@ define(['jquery',
                                 header: 'EDI Claim',
                                 width: '95%',
                                 height: '75%',
-                                html: self.ediResultTemplate({result:result,ediText:data.ediText})
+                                html: self.ediResultTemplate({result:result,ediText:data.ediTextWithValidations})
                             });
+                            $(".popoverWarning").popover();
 
                             if (result == 0) {
                                 $('#liErrorMessages').css({'display':'none'});
