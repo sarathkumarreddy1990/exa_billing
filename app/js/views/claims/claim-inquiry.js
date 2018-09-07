@@ -592,8 +592,10 @@ define([
                         },
                         { name: 'comments', width: 50, search: false, sortable: false,
                             cellattr: function (rowId, tv, rowdata) {
-                                if(rowdata && rowdata.code == 'manual')
-                                    return ' colspan=8 style="white-space : nowrap ';
+                                if (rowdata && rowdata.code == 'manual')
+                                    return ' colspan=8 title="' + rowdata.comments + '" style="white-space : nowrap ';
+                                else
+                                    return 'title="' + rowdata.comments + '"';
                             }
                         },
                         { name: 'charge_pointer', width: 20, search: false, sortable: false, formatter: self.pointerFormatter,
