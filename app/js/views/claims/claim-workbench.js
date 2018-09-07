@@ -567,10 +567,10 @@ define(['jquery',
                         }
 
                         if (data && data.ediText && data.ediText.length) {
-                            
+
                             let segmentValidations = data.ediTextWithValidations.filter(segmentData => typeof segmentData !== 'string' && segmentData.v)
-                            .map(segmentData => segmentData.v)
-                            .reduce((result, item) => result.concat(item));
+                                .map(segmentData => segmentData.v)
+                                .reduce((result, item) => result.concat(item));
                             data.validations = data.validations.concat(segmentValidations);
 
                             var result = [];
