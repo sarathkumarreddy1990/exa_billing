@@ -2462,9 +2462,6 @@ define(['jquery',
                     case "check":
                     case "EFT":
                         $("#txtCheque").removeAttr("disabled");
-                        // if (!isBind) {
-                        //     $("#txtCheque").focus();
-                        // }
                         $("#txtCardName").attr("disabled", "disabled");
                         $("#paymentExpiryMonth").attr("disabled", "disabled");
                         $("#paymentExpiryYear").attr("disabled", "disabled");
@@ -2472,9 +2469,7 @@ define(['jquery',
                         $("#txtCVN").attr("disabled", "disabled");
                         break;
                     case "card":
-                        // if (!isBind) {
-                        //     $("#txtCheque").focus();
-                        // }
+                    case "adjustment":
                         $("#txtCheque").removeAttr("disabled");
                         $("#txtCardName").removeAttr("disabled");
                         $("#paymentExpiryMonth").removeAttr("disabled");
