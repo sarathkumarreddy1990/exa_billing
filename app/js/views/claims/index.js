@@ -3203,7 +3203,13 @@ define(['jquery',
                                 commonjs.showStatus(commonjs.geti18NString("messages.status.validatedSuccessfully"));
                                 if(data.validClaim_data && data.validClaim_data.rows && data.validClaim_data.rows.length){
                                     self.claim_row_version = data.validClaim_data.rows[0].claim_row_version || self.claim_row_version;
-                                    $('#ddlClaimStatus').val($("option[data-desc = 'PS']").val());
+                                    $('#ddlClaimStatus').val(data.validClaim_data.rows[0].claim_status_id);
+                                    var pending_submission_status = app.claim_status.filter(obj => {
+                                        return obj.id === parseInt(data.validClaim_data.rows[0].claim_status_id)
+                                    });
+                                    var statusDetail = commonjs.getClaimColorCodeForStatus(pending_submission_status[0].code,'claim');
+                                    var color_code = statusDetail && statusDetail[ 0 ] && statusDetail[ 0 ].color_code ? statusDetail[ 0 ].color_code : 'transparent'
+                                    $('#tblClaimGridAll_Claims tr#'+ self.claim_Id,parent.document).find('td[aria-describedby=tblClaimGridAll_Claims_claim_status]').text(pending_submission_status && pending_submission_status[0].description).css("background-color", color_code);
                                 }
                             }
                             else{

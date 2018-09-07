@@ -120,8 +120,8 @@ module.exports = {
 							billing.claims bc
 						SET claim_status_id = (SELECT id FROM getStatus)
 						WHERE bc.id = ANY(${params.success_claimID})
-                        RETURNING bc.id,bc.xmin as claim_row_version,'{}'::jsonb old_values)
-                        SELECT billing.create_audit(
+                        RETURNING bc.id,bc.xmin as claim_row_version,'{}'::jsonb old_values, claim_status_id)
+                    SELECT billing.create_audit(
                             ${params.companyId}
                           , ${params.screenName}
                           , id
@@ -134,7 +134,7 @@ module.exports = {
                               'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_cte LIMIT 1 ) temp_row)
                               )::jsonb
                           , ${params.userId}
-                          ) AS id, claim_row_version
+                          ) AS id, claim_row_version, claim_status_id
                           FROM update_cte
                           WHERE id IS NOT NULL`;
 
