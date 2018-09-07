@@ -209,6 +209,7 @@ module.exports = {
 						communication_info->'interchangeReceiverIdQualifier' as "interchangeReceiverIDQualifier",
 						communication_info->'interchangeReceiverId' as "interchangeReceiverID",
 						communication_info->'interchangeControlStandardsIdentifier' as "interchangeCtrlStdIdentifier",
+                        communication_info->'interchangeControlStandardsIdentifier' as "repetitionSeparator",
 						communication_info->'implementationConventionRef' as "interchangeCtrlVersionNo",
 						communication_info->'interchangeControlVersionNumber' as "interchangeCtrlNo",
 						(CASE communication_info->'acknowledgementRequested'

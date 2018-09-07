@@ -3204,7 +3204,7 @@ define(['jquery',
                                 if(data.validClaim_data && data.validClaim_data.rows && data.validClaim_data.rows.length){
                                     self.claim_row_version = data.validClaim_data.rows[0].claim_row_version || self.claim_row_version;
                                     $('#ddlClaimStatus').val(data.validClaim_data.rows[0].claim_status_id);
-                                    var pending_submission_status = app.claim_status.filter(obj => {
+                                    var pending_submission_status = app.claim_status.filter(function(obj) {
                                         return obj.id === parseInt(data.validClaim_data.rows[0].claim_status_id)
                                     });
                                     var statusDetail = commonjs.getClaimColorCodeForStatus(pending_submission_status[0].code,'claim');
