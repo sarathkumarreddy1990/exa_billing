@@ -570,9 +570,9 @@ define(['jquery',
 
                             var segmentValidations = data.ediTextWithValidations.filter(segmentData => typeof segmentData !== 'string' && segmentData.v)
                                 .map(segmentData => segmentData.v)
-                                .reduce((result, item) => result.concat(item));
+                                .reduce((result, item) => result.concat(item),[]);
                             data.validations = data.validations.concat(segmentValidations);
-
+                            
                             var result = [];
                             if (data.validations && data.validations.length) {
                                  result = _.groupBy(data.validations, "dataID");
