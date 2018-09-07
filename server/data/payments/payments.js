@@ -559,7 +559,25 @@ module.exports = {
                                 WHERE id IS NOT NULL
                             ),
                             change_responsible_party AS (
-                                    SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId},null) AS result
+                                    SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId},null, ${params.claimStatusID}) AS result
+                            ),
+                            create_audit_study_status AS (
+                                SELECT billing.create_audit(
+                                      ${auditDetails.company_id}
+                                    , ${auditDetails.screen_name}
+                                    , id
+                                    , ${auditDetails.screen_name}
+                                    , ${auditDetails.module_name}
+                                    , 'Claim Status '|| ${params.claimId} || ' manually changed by user ( ' || ${user_id} || ' ) to Claim status id  ' || ${params.claimStatusID}
+                                    , ${auditDetails.client_ip}
+                                    , json_build_object(
+                                        'old_values', '{}',
+                                        'new_values', '{}'
+                                    )::jsonb
+                                    , ${user_id}
+                                ) AS id
+                                FROM update_claims
+                                WHERE id IS NOT NULL AND ${params.claimStatusID} != 0
                             )
                             SELECT details,null,null FROM insert_application
                             UNION ALL
@@ -567,7 +585,9 @@ module.exports = {
                             UNION ALL
                             SELECT null,id,null FROM insert_claim_comment_audit_cte
                             UNION ALL
-                            SELECT null,null,result::text FROM change_responsible_party`;
+                            SELECT null,null,result::text FROM change_responsible_party
+                            UNION ALL
+                            SELECT null, id, null FROM create_audit_study_status`;
 
         return await query(sql);
     },
@@ -707,7 +727,7 @@ module.exports = {
                             FROM claim_comment_details
                             RETURNING *, '{}'::jsonb old_values),
                             change_responsible_party AS (
-                                    SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId},null) AS result
+                                    SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId},null, ${params.claimStatusID}) AS result
                             ),
                         update_cas_application AS(
                                     UPDATE billing.cas_payment_application_details bcpad
@@ -800,6 +820,24 @@ module.exports = {
                                 ) AS id
                                 FROM update_cas_application
                                 WHERE id IS NOT NULL
+                            ),
+                            create_audit_study_status AS (
+                                SELECT billing.create_audit(
+                                      ${params.companyId}
+                                    , ${params.screenName}
+                                    , id
+                                    , ${params.screenName}
+                                    , ${params.moduleName}
+                                    , 'Claim Status '|| ${params.claimId} || ' manually changed by user ( ' || ${params.user_id} || ' ) to Claim status id  ' || ${params.claimStatusID}
+                                    , ${params.clientIp}
+                                    , json_build_object(
+                                        'old_values', '{}',
+                                        'new_values', '{}'
+                                    )::jsonb
+                                    , ${params.user_id}
+                                ) AS id
+                                FROM update_claims_audit_cte
+                                WHERE id IS NOT NULL AND ${params.claimStatusID} != 0
                             )
                             SELECT id,null from update_applications_audit_cte
                             UNION
@@ -809,7 +847,9 @@ module.exports = {
                             UNION
                             SELECT id,null from update_cas_applications_audit
                             UNION
-                            SELECT null,result::text from change_responsible_party`;
+                            SELECT null,result::text from change_responsible_party
+                            UNION ALL
+                            SELECT id, null FROM create_audit_study_status`;
 
         let result = await query(sql);
 
