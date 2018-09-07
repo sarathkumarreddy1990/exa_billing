@@ -94,13 +94,13 @@ module.exports = {
                             }
                         }
 
-                        let serviceAdjustment = _.reject(val.serviceAdjustment, { groupCode: 'PR' });
+                        let serviceAdjustment = val.serviceAdjustment;
                         let adjustmentAmount = _.map(serviceAdjustment, function (obj) {
                             let amountArray = [];
 
                             for (let i = 1; i <= 7; i++) {
 
-                                if (obj['monetaryAmount' + i]) {
+                                if (obj['monetaryAmount' + i] && obj.groupCode !='PR') {
                                     amountArray.push(parseFloat(obj['monetaryAmount' + i]));
                                 }
                             }
