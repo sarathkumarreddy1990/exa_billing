@@ -154,10 +154,14 @@ module.exports = {
             else {
 
                 ediResponse = await ediConnect.generateEdi(result.rows[0].header.edi_template_name, ediRequestJson);
-                let segmentValidations = ediResponse.ediTextWithValidations.filter(segmentData => typeof segmentData !== 'string' && segmentData.v)
-                    .map(segmentData => segmentData.v)
-                    .reduce((result, item) => result.concat(item));
-                let validation = ediResponse.validations.concat(segmentValidations);
+                let validation =[];
+
+                if (ediResponse && ediResponse.ediTextWithValidations) {
+                    let segmentValidations = ediResponse.ediTextWithValidations.filter(segmentData => typeof segmentData !== 'string' && segmentData.v)
+                        .map(segmentData => segmentData.v)
+                        .reduce((result, item) => result.concat(item), []);
+                    validation = ediResponse.validations.concat(segmentValidations);
+                }
 
                 if (!ediResponse.errMsg && (validation && validation.length == 0)) {
                     params.claim_status = 'PP';

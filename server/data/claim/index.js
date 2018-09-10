@@ -180,6 +180,14 @@ module.exports = {
     getPatientInsurances: async function (params) {
 
         const sql = SQL`WITH
+                order_level_beneficiary AS (
+                    SELECT ARRAY[COALESCE(primary_patient_insurance_id, '0')::bigint, COALESCE(secondary_patient_insurance_id, '0')::bigint, COALESCE(tertiary_patient_insurance_id, '0')::bigint] AS patient_ins_id
+                    FROM public.orders
+                    WHERE primary_patient_insurance_id IS NOT NULL
+                    AND id = ANY(${params.order_ids})
+                    ORDER BY id ASC
+                    LIMIT 1
+                ),
                 beneficiary_details as (
                         SELECT
                               pi.id
@@ -233,6 +241,7 @@ module.exports = {
                         ) as expiry ON TRUE
                         WHERE
                             pi.patient_id = ${params.patient_id}  AND (expiry.valid_to_date = pi.valid_to_date OR expiry.valid_to_date IS NULL) AND expiry.coverage_level = pi.coverage_level
+                            AND CASE WHEN EXISTS(SELECT patient_ins_id FROM order_level_beneficiary) THEN pi.id = ANY(SELECT UNNEST(patient_ins_id) FROM order_level_beneficiary) ELSE TRUE END
                             ORDER BY id ASC
                 ),
                 existing_insurance as (
