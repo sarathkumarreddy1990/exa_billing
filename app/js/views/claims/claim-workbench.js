@@ -548,114 +548,175 @@ define(['jquery',
                     return;
                 }
 
+
+                commonjs.showLoading();
+
+                if ($('#chkStudyHeader_' + filterID).is(':checked')) {
+                    self.selectAllClaim(filter, filterID, 'EDI');
+
+                } else {
+                    jQuery.ajax({
+                        url: "/exa_modules/billing/claim_workbench/create_claim",
+                        type: "POST",
+                        data: {
+                            claimIds: claimIds.toString()
+                        },
+                        success: function (data, textStatus, jqXHR) {
+                            commonjs.hideLoading();
+                            self.ediResponse(data);
+
+                        },
+                        error: function (err) {
+                            commonjs.handleXhrError(err);
+                        }
+                    });
+                }
+
+            },
+
+            selectAllClaim: function (filter, filterID, targetType) {
+                var self = this;
+                filterData = JSON.stringify(filter.pager.get('FilterData'));
+                filterCol = JSON.stringify(filter.pager.get('FilterCol'));
+
+                jQuery.ajax({
+                    url: "/exa_modules/billing/claim_workbench",
+                    type: "post",
+                    data: {
+                        "filterData": filterData,
+                        "filterCol": filterCol,
+                        "sortField": filter.pager.get('SortField'),
+                        "sortOrder": filter.pager.get('SortOrder'),
+                        pageNo: 1,
+                        pageSize: 1000,
+                        targetType: targetType,
+                        customArgs: {
+                            filter_id: filterID,
+                            isClaimGrid: true
+                        }
+                    },
+                    success: function (data, textStatus, jqXHR) {
+                        commonjs.hideLoading();
+                        if (targetType == 'EDI') {
+                            self.ediResponse(data);
+                        } else {
+                            if (!data.invalidClaim_data.length) {
+                                commonjs.showStatus(commonjs.geti18NString("messages.status.validatedSuccessfully"));
+                                $("#btnClaimsRefresh").click();
+                            }
+                            else
+                                commonjs.showDialog({ header: 'Validation Results', i18nHeader: 'billing.claims.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });
+                        }
+                    },
+                    error: function (err) {
+                        commonjs.handleXhrError(err);
+
+                    }
+                });
+            },
+
+            ediResponse: function (data) {
                 self.ediResultTemplate = _.template(ediResultHTML);
                 self.ohipResultTemplate = _.template(ohipResultHTML);
 
                 commonjs.showLoading();
 
-                jQuery.ajax({
-                    url: "/exa_modules/billing/claim_workbench/create_claim",
-                    type: "POST",
-                    data: {
-                        claimIds: claimIds.toString()
-                    },
-                    success: function (data, textStatus, jqXHR) {
-                        commonjs.hideLoading();
-                        data.err = data.err || data.message;
-                        if (data && data.err) {
-                            commonjs.showWarning(data.err);
-                        }
+                commonjs.hideLoading();
+                data.err = data.err || data.message;
+                if (data && data.err) {
+                    commonjs.showWarning(data.err);
+                }
 
-                        if (data && data.ediText && data.ediText.length) {
+                if (data && data.ediText && data.ediText.length) {
 
-                            var segmentValidations = data.ediTextWithValidations
-                                .filter(function (segmentData) {
-                                    return typeof segmentData !== 'string' && segmentData.v;
-                                })
-                                .map(function (segmentData) {
-                                    return segmentData.v;
-                                }).reduce(function (result, item) {
-                                    return result.concat(item);
-                                }, []);
+                    var segmentValidations = data.ediTextWithValidations
+                        .filter(function (segmentData) {
+                            return typeof segmentData !== 'string' && segmentData.v;
+                        })
+                        .map(function (segmentData) {
+                            return segmentData.v;
+                        }).reduce(function (result, item) {
+                            return result.concat(item);
+                        }, []);
 
 
-                            data.validations = data.validations.concat(segmentValidations);
+                    data.validations = data.validations.concat(segmentValidations);
 
-                            var result = [];
-                            if (data.validations && data.validations.length) {
-                                 result = _.groupBy(data.validations, "dataID");
-                            }
+                    var result = [];
+                    if (data.validations && data.validations.length) {
+                        result = _.groupBy(data.validations, "dataID");
+                    }
 
-                            commonjs.showDialog({
-                                header: 'EDI Claim',
-                                width: '95%',
-                                height: '75%',
-                                html: self.ediResultTemplate({result:result,ediText:data.ediTextWithValidations})
-                            });
-                            $(".popoverWarning").popover();
+                    commonjs.showDialog({
+                        header: 'EDI Claim',
+                        width: '95%',
+                        height: '75%',
+                        html: self.ediResultTemplate({ result: result, ediText: data.ediTextWithValidations })
+                    });
+                    $(".popoverWarning").popover();
 
-                            if (result == 0) {
-                                $('#liErrorMessages').css({'display':'none'});
-                                $("#btnClaimsRefresh").click();
-                                $('#liEDI,#aEDIResp').addClass('active');
-                            }else{
-                                $('#divEDIResult').css({'display':'none'});
-                                $('#divErrorMsgs').css({'display':'block'});
-                            }
+                    if (data.validations && data.validations.length == 0) {
+                        $('#liErrorMessages').css({ 'display': 'none' });
+                        $('#aDownloadEDI').css({ 'display': 'block' });
+                        $("#btnClaimsRefresh").click();
+                        $('#liEDI,#aEDIResp').addClass('active');
+                    } else {
+                        $('#divEDIResult').css({ 'display': 'none' });
+                        $('#divErrorMsgs').css({ 'display': 'block' });
+                        $('#aDownloadEDI').css({ 'display': 'none' });
+                    }
 
-                            commonjs.initializeScreen({ buttons: [] });
-                            $('#tabsEDIResponses li').click(function (e) {
-                                if (e.target.id == 'aEDIResp') {
-                                    $('#liEDI').addClass('active');
-                                    $('#liErrorMessages').removeClass('active');
-                                    $('#divErrorMsgs').css({'display':'none'});
-                                    $('#divEDIResult').css({'display':'block'});
-                                }
-                                else {
-                                    $('#liEDI,#aEDIResp').removeClass('active');
-                                    $('#liErrorMessages').addClass('active');
-                                    $('#divEDIResult').css({'display':'none'});
-                                    $('#divErrorMsgs').css({'display':'block'});
-                                }
-                            });
-
-                            $('#modal_div_container .downloadEDI').on('click', function () {
-                                var element = document.createElement('a');
-                                element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data.ediText));
-                                element.setAttribute('download', 'edi.txt');
-
-                                element.style.display = 'none';
-                                document.body.appendChild(element);
-
-                                element.click();
-
-                                document.body.removeChild(element);
-                                $('#modal_div_container .downloadEDI').on('click', function () {
-                                    self.downloadClaimSubmission(data.ediText, 'edi.txt', 'utf-8');
-                                });
-                            });
-                        } else if (data && data.ohipText && data.ohipText.length) {
-                            var str = data.ohipText.replace(/\r/g, '<br/>').replace('\x1A', '');
-
-                            commonjs.showDialog({
-                                header: 'OHIP Claim',
-                                width: '95%',
-                                height: '75%',
-                                html: self.ohipResultTemplate()
-                            });
-                            $('#divOHIPResp').append(str);
-                            $('#modal_div_container .downloadOHIP').on('click', function () {
-                                self.downloadClaimSubmission(data.ohipText, data.ohipFilename, 'acsii');
-                            });
+                    commonjs.initializeScreen({ buttons: [] });
+                    $('#tabsEDIResponses li').click(function (e) {
+                        if (e.target.id == 'aEDIResp') {
+                            $('#liEDI').addClass('active');
+                            $('#liErrorMessages').removeClass('active');
+                            $('#divErrorMsgs').css({ 'display': 'none' });
+                            $('#divEDIResult').css({ 'display': 'block' });
+                            $('#aDownloadEDI').css({ 'display': 'block' });
                         }
                         else {
-                            commonjs.showWarning('NO_DATA');
+                            $('#liEDI,#aEDIResp').removeClass('active');
+                            $('#liErrorMessages').addClass('active');
+                            $('#divEDIResult').css({ 'display': 'none' });
+                            $('#divErrorMsgs').css({ 'display': 'block' });
+                            $('#aDownloadEDI').css({ 'display': 'none' });
                         }
-                    },
-                    error: function (err) {
-                        commonjs.handleXhrError(err);
-                    }
-                });
+                    });
+
+                    $('#modal_div_container .downloadEDI').on('click', function () {
+                        var element = document.createElement('a');
+                        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data.ediText));
+                        element.setAttribute('download', 'edi.txt');
+
+                        element.style.display = 'none';
+                        document.body.appendChild(element);
+
+                        element.click();
+
+                        document.body.removeChild(element);
+                        $('#modal_div_container .downloadEDI').on('click', function () {
+                            self.downloadClaimSubmission(data.ediText, 'edi.txt', 'utf-8');
+                        });
+                    });
+                } else if (data && data.ohipText && data.ohipText.length) {
+                    var str = data.ohipText.replace(/\r/g, '<br/>').replace('\x1A', '');
+
+                    commonjs.showDialog({
+                        header: 'OHIP Claim',
+                        width: '95%',
+                        height: '75%',
+                        html: self.ohipResultTemplate()
+                    });
+                    $('#divOHIPResp').append(str);
+                    $('#modal_div_container .downloadOHIP').on('click', function () {
+                        self.downloadClaimSubmission(data.ohipText, data.ohipFilename, 'acsii');
+                    });
+                }
+                else {
+                    commonjs.showWarning('NO_DATA');
+                }
+
             },
 
             downloadClaimSubmission: function(fileText, fileName, encoding) {
@@ -1792,31 +1853,35 @@ define(['jquery',
                     commonjs.showWarning('Please select claims');
                     return false;
                 }
+                if ($('#chkStudyHeader_' + filterID).is(':checked')) {
+                    self.selectAllClaim(filter, filterID, 'VALIDATE');
+                } else {
 
-                $.ajax({
-                    url: '/exa_modules/billing/claim_workbench/validate_claims',
-                    type: 'POST',
-                    data: {
-                        claim_ids: claimIds
-                    },
-                    success: function(data, response){
-                        $("#btnValidateOrder").attr("disabled", false);
-                        if (data) {
-                            commonjs.hideLoading();
+                    $.ajax({
+                        url: '/exa_modules/billing/claim_workbench/validate_claims',
+                        type: 'POST',
+                        data: {
+                            claim_ids: claimIds
+                        },
+                        success: function (data, response) {
+                            $("#btnValidateOrder").attr("disabled", false);
+                            if (data) {
+                                commonjs.hideLoading();
 
-                            if (!data.invalidClaim_data.length){
-                                commonjs.showStatus(commonjs.geti18NString("messages.status.validatedSuccessfully"));
-                                $("#btnClaimsRefresh").click();
+                                if (!data.invalidClaim_data.length) {
+                                    commonjs.showStatus(commonjs.geti18NString("messages.status.validatedSuccessfully"));
+                                    $("#btnClaimsRefresh").click();
+                                }
+                                else
+                                    commonjs.showDialog({ header: 'Validation Results', i18nHeader: 'billing.claims.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });
                             }
-                            else
-                                commonjs.showDialog({ header: 'Validation Results', i18nHeader: 'billing.claims.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });
+                        },
+                        error: function (err, response) {
+                            $("#btnValidateOrder").attr("disabled", false);
+                            commonjs.handleXhrError(err, response);
                         }
-                    },
-                    error: function (err, response) {
-                        $("#btnValidateOrder").attr("disabled", false);
-                        commonjs.handleXhrError(err, response);
-                    }
-                })
+                    });
+                }
             }
         });
     });
