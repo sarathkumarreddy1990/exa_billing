@@ -176,7 +176,7 @@ module.exports = {
                                 ,duplicate boolean
                                 ,code text
                                 ,is_debit boolean
-                                ,claim_index boolean
+                                ,claim_index bigint
                             )
                         )
                         ,un_matched_charges AS (
