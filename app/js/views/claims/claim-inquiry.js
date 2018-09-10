@@ -1018,6 +1018,7 @@ define([
                     },
                     success: function (data, response) {
                         commonjs.showStatus(commonjs.geti18NString("messages.status.reportFaxedSuccessfully"));
+                        $('#divFaxRecipient').hide();
                     },
                     error: function (err) {
                         commonjs.handleXhrError(err);
@@ -1175,25 +1176,6 @@ define([
                     commonjs.showWarning('Error on process claim');
                 }
             },
-
-            // generatePatientActivity: function (claimId, patientId, reportBy, fromDate, toDate, selectedBillingProList, e) {
-            //     var self = this;
-            //     self.patientActivityStatement = new patientActivityStatement({
-            //         el: $('#reportFrame')
-            //     });
-            //
-            //     var claimInfo = {
-            //         'claimID': patientIds,
-            //         flag: "patient-activity-statement",
-            //         'patientId': claimIds,
-            //         reportByFlag: reportBy ,
-            //         'fromDate': fromDate || '',
-            //         'toDate': toDate || '',
-            //         'billingProId': selectedBillingProList || [],
-            //         'billingComments': $('#bindComments').prop('checked')
-            //     }
-            //     self.patientActivityStatement.onReportViewClick(e, claimInfo);
-            // },
 
             generatePrintInvoice: function(claimId, e){
                 var self = this;

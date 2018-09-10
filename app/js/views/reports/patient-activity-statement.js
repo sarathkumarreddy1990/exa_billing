@@ -141,7 +141,6 @@ define([
                         billingComments: claimInfo.billingComments
                     }
                 }
-                //UI.showReport(reportName, this.viewModel.reportCategory, rFormat, urlParams, true);
                 $('#divPageLoading').hide();
 
                 return UI.generateReportUrl(reportName, this.viewModel.reportCategory, rFormat, urlParams);
