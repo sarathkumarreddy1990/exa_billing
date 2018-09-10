@@ -19,7 +19,12 @@ define([
                 reportId: null,
                 reportCategory: null,
                 reportTitle: null,
-                reportFormat: null
+                reportFormat: null,
+                facilities: null,
+                allFacilities: false,
+                facilityIds: null,
+                billingProvider: null,
+                allBillingProvider: false
             },
 
             events: {
@@ -55,12 +60,22 @@ define([
                 var modelCollection = Backbone.Collection.extend({
                     model: Backbone.Model.extend({})
                 });
-                this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());   
+                this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
                 this.$el.html(this.mainTemplate(this.viewModel));
                 // bind DRP and initialize it
                 this.bindDateRangePicker();
                 this.drpStudyDt.setStartDate(this.viewModel.dateFrom);
-                this.drpStudyDt.setEndDate(this.viewModel.dateTo); 
+                this.drpStudyDt.setEndDate(this.viewModel.dateTo);
+                $('#ddlFacilityFilter').multiselect({
+                    maxHeight: 200,
+                    buttonWidth: '300px',
+                    width: '300px',
+                    enableFiltering: true,
+                    includeSelectAllOption: true,
+                    enableCaseInsensitiveFiltering: true
+                });
+                // Binding Billing Provider MultiSelect
+                UI.bindBillingProvider();
             },
 
             bindDateRangePicker: function () {
@@ -92,8 +107,32 @@ define([
                 }, allFacilities);
             },
 
+            // multi select facilities - worked
+            getSelectedFacility: function (e) {
+                var selected = $("#ddlFacilityFilter option:selected");
+                var facilities = [];
+                selected.each(function () {
+                    facilities.push($(this).val());
+                });
+                this.selectedFacilityList = facilities
+                this.viewModel.allFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlFacilityFilter option").length;
+            },
+
+            // multi select billing provider - worked
+            getBillingProvider: function (e) {
+                var billing_pro = []
+                var selected = $("#ddlBillingProvider option:selected");
+                selected.each(function () {
+                    billing_pro.push($(this).val());
+                });
+                this.selectedBillingProList = billing_pro;
+                this.viewModel.allBillingProvider = this.selectedBillingProList && this.selectedBillingProList.length === $("#ddlBillingProvider option").length;
+            },
+
             onReportViewClick: function (e) {
                 var btnClicked = e && e.target ? $(e.target) : null;
+                this.getSelectedFacility();
+                this.getBillingProvider();
                 if (btnClicked && btnClicked.prop('tagName') === 'I') {
                     btnClicked = btnClicked.parent(); // in case FA icon 'inside'' button was clicked...
                 }
@@ -112,12 +151,12 @@ define([
                     commonjs.showWarning('Please check report id, category, and/or format!');
                     return false;
                 }
-                
+
                 if (this.viewModel.dateFrom == null || this.viewModel.dateTo == null) {
                     commonjs.showWarning('Please select study date range!');
                     return false;
                 }
-            
+
                 return true;
             },
 
@@ -125,10 +164,15 @@ define([
                 return urlParams = {
                     'fromDate': this.viewModel.dateFrom.format('YYYY-MM-DD'),
                     'toDate': this.viewModel.dateTo.format('YYYY-MM-DD'),
-                    'studyStatusCodes': this.viewModel.studyStatusCodes
+                    'studyStatusCodes': this.viewModel.studyStatusCodes,
+                    'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
+                    'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
+                    'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
+                    'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
+                    'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false
                 };
             }
         });
 
-        return InsuranceVsLOPView;
+return InsuranceVsLOPView;
     });
