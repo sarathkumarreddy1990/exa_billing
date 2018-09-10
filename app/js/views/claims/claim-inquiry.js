@@ -961,6 +961,7 @@ define([
 
                     var patientActivityParams = self.createPatientActivityParams(claimId, patientId);
                     var reportURL = self.patientActivityStatement.onReportFaxClick(e, patientActivityParams);
+                    reportURL = reportURL.replace(/^[.]{2}/, '');
                     $('#divFaxRecipient').show();
 
                     $('#btnSendFax').off().click(function (e) {
