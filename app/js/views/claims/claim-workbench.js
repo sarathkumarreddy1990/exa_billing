@@ -657,16 +657,12 @@ define(['jquery',
 
                     if (data.validations && data.validations.length == 0) {
                         $('#liErrorMessages').css({ 'display': 'none' });
-                        $('#aDownloadEDI').css({ 'display': 'none' });
+                        $('#aDownloadEDI').css({ 'display': 'block' });
                         $("#btnClaimsRefresh").click();
                         $('#liEDI,#aEDIResp').addClass('active');
                     } else {
                         $('#divEDIResult').css({ 'display': 'none' });
                         $('#divErrorMsgs').css({ 'display': 'block' });
-                        $('#aDownloadEDI').css({ 'display': 'block' });
-                    }
-
-                    if ($('#liErrorMessages').hasClass('active')) {
                         $('#aDownloadEDI').css({ 'display': 'none' });
                     }
 
