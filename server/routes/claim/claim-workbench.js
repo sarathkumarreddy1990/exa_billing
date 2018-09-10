@@ -142,34 +142,5 @@ router.put('/invoice_no', async function (req, res) {
 });
 
 
-router.post('/', async function (req, res) {
-
-    req.body.company_id = req.body.companyId;
-    req.body.user_id = req.body.userId;
-    const data = await claimWorkbenchController.getData(req.body);
-
-    if (req.body.targetType == 'EDI') {
-
-        let claimIds = _.map(data.rows, 'claim_id');
-        req.body.claimIds = claimIds.toString();
-        const result = await claimWorkbenchController.getEDIClaim(req.body);
-        httpHandler.send(req, res, result);
-
-    }
-    else if (req.body.targetType == 'VALIDATE') {
-
-        let claimIds = _.map(data.rows, 'claim_id');
-        req.body.claim_ids = claimIds;
-        const result = await claimWorkbenchController.validateClaim(req.body);
-
-        httpHandler.send(req, res, result);
-
-    }
-    else {
-        httpHandler.sendRows(req, res, data);
-    }
-
-});
-
 
 module.exports = router;
