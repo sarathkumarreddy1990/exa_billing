@@ -4,7 +4,8 @@
             "validatedSuccessfully": "Validated Successfully",
             "successfullyCompleted": "Successfully completed",
             "successfullyUpdated": "Successfully updated",
-            "responseUpdated": "Responsible and Billing method changed to default"
+            "responseUpdated": "Responsible and Billing method changed to default",
+            "reportFaxedSuccessfully": "Report faxed successfully"
         },
         "errors": {
             "notconnected": "Not connected",

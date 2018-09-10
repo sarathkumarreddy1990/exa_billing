@@ -964,16 +964,13 @@ define([
                     $('#divFaxRecipient').show();
 
                     $('#btnSendFax').off().click(function (e) {
-                        console.log(reportURL);
+                        self.faxReport(patientActivityParams, reportURL);
                     });
 
                     $('#btnFaxCancel').off().click(function (e) {
                         $('#divFaxRecipient').hide();
                     });
                 });
-
-
-
             },
 
             createPatientActivityParams: function(claimId, patientId) {
@@ -1003,6 +1000,29 @@ define([
                     'billingProId': selectedBillingProList || [],
                     'billingComments': $('#bindComments').prop('checked')
                 }
+            },
+
+            faxReport: function(patientActivityParams, reportUrl) {
+                $.ajax({
+                    url: '/queueReport',
+                    type: 'POST',
+                    data: {
+                        receiverType: 'OT',
+                        receiverName: $('#txtOtherFaxName').val(),
+                        deliveryMethod: 'FX',
+                        deliveryAddress: $('#txtOtherFaxNumber').val(),
+                        reportUrl: reportUrl,
+                        reportFormat: 'application/pdf',
+                        patientId: patientActivityParams.patientId,
+                        claimId: patientActivityParams.claimID
+                    },
+                    success: function (data, response) {
+                        commonjs.showStatus(commonjs.geti18NString("messages.status.reportFaxedSuccessfully"));
+                    },
+                    error: function (err) {
+                        commonjs.handleXhrError(err);
+                    }
+                });
             },
 
             validateFromAndToDate: function (objFromDate, objToDate) {
