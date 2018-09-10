@@ -1,6 +1,8 @@
 /node_modules/**
 /app/**
 /dist/**
+/build/**
+/build2/**
 /test/**
 /modules/reporting/**
 /modules/ohip/**
