@@ -56,6 +56,7 @@ module.exports = {
 
         const options = rows[0].web_config;
         this.setKeys(options);
+        this.setOptions(options);
 
         return true;
     },
@@ -65,6 +66,23 @@ module.exports = {
             keys[obj.id] = obj.id;
             return keys;
         }, {}));
+    },
+
+    setOptions: function (options) {
+        const total = options.length;
+
+        for (let i = 0; i < total; ++i) {
+            const option = options[i];
+            const current = this.get(option.id);
+
+            if (current != null) {
+                option.value = current;
+            } else {
+                this.set(option.id, option.value);
+            }
+        }
+
+        return options;
     },
 
     set: function (key, value, callback) {
