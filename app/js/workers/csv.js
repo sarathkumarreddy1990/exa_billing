@@ -4,7 +4,7 @@ importScripts('/exa_modules/billing/static/node_modules/moment-timezone/builds/m
 
 var claimColumns = {
 
-    "Claim No" : "claim_id",
+    "Claim No": "claim_id",
     "Claim Date": "claim_dt",
     "Patient Name": "patient_name",
     "Clearing House": "clearing_house",
@@ -26,10 +26,10 @@ var claimColumns = {
     "Payer Type": "payer_type",
     "Billing Class": "billing_class",
     "Billing Code": "billing_code",
-    "Notes" : "billing_notes",
-    "Responsible Party" : "payer_name",
+    "Notes": "billing_notes",
+    "Responsible Party": "payer_name",
     "Submitted Date": "submitted_dt",
-    "Date of Injury":"current_illness_date"
+    "Date of Injury": "current_illness_date"
 };
 
 var paymentsColumns = {
@@ -63,7 +63,7 @@ onmessage = function (req) {
         });
     }).then(function (data) {
         var csvData = data;
-        postMessage({ csvData});
+        postMessage({ csvData });
     });
 };
 
@@ -84,14 +84,13 @@ function generateCsvData(dbResponse, callback) {
 
     switch (dbResponse.reportName) {
         case 'CLAIMS':
-        if(dbResponse.filter_order){
-            var finalList = {};
-            columnHeader.reduce((result, col) => claimColumns[col] ? finalList[col] = claimColumns[col] : finalList , {})
-             columnMap = finalList ;
-        }
-        else {
-            columnMap = claimColumns;
-        }
+            if (dbResponse.filter_order) {
+                var finalList = {};
+                columnHeader.reduce((result, col) => claimColumns[col] ? finalList[col] = claimColumns[col] : finalList, {})
+                columnMap = finalList;
+            } else {
+                columnMap = claimColumns;
+            }
 
             break;
 
@@ -120,7 +119,7 @@ function generateCsvData(dbResponse, callback) {
 
     var csvSimplified = '"' + dbData.map(function (dbRow, rowIndex) {
 
-        return columns.map(function (colName, colIndex ) {
+        return columns.map(function (colName, colIndex) {
             var csvText = showLabel && rowIndex == 0 ? colName : dbRow[columnMap[colName]];
 
             if (rowIndex && dateColumns.indexOf(colName) > -1) {
