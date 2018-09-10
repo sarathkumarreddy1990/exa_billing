@@ -828,6 +828,7 @@ define(['jquery',
                 var self = this;
                 var selectedStudyIds = JSON.parse(window.localStorage.getItem('selected_studies'));
                 var primaryStudyDetails = JSON.parse(window.localStorage.getItem('primary_study_details'));
+                self.selectedOrderIds = JSON.parse(window.localStorage.getItem('selected_orders'));
                 self.cur_patient_id = primaryStudyDetails.patient_id ? parseInt(primaryStudyDetails.patient_id) : null;
                 self.cur_patient_name = primaryStudyDetails.patient_name;
                 self.cur_patient_acc_no = primaryStudyDetails.account_no;
@@ -2030,12 +2031,12 @@ define(['jquery',
                     type: 'GET',
                     data: {
                         'patient_id': self.cur_patient_id || 0,
-                        'claim_date': self.cur_study_date || 'now()'
+                        'claim_date': self.cur_study_date || 'now()',
+                        'order_ids': self.selectedOrderIds || [0]
                     },
                     success: function (response) {
 
                         if (response.length > 0) {
-
                             self.existingPrimaryInsurance = [];
                             self.existingSecondaryInsurance = [];
                             self.existingTriInsurance = [];
@@ -3204,7 +3205,7 @@ define(['jquery',
                                 if(data.validClaim_data && data.validClaim_data.rows && data.validClaim_data.rows.length){
                                     self.claim_row_version = data.validClaim_data.rows[0].claim_row_version || self.claim_row_version;
                                     $('#ddlClaimStatus').val(data.validClaim_data.rows[0].claim_status_id);
-                                    var pending_submission_status = app.claim_status.filter(obj => {
+                                    var pending_submission_status = app.claim_status.filter(function(obj) {
                                         return obj.id === parseInt(data.validClaim_data.rows[0].claim_status_id)
                                     });
                                     var statusDetail = commonjs.getClaimColorCodeForStatus(pending_submission_status[0].code,'claim');

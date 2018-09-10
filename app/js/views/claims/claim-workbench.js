@@ -568,6 +568,19 @@ define(['jquery',
 
                         if (data && data.ediText && data.ediText.length) {
 
+                            var segmentValidations = data.ediTextWithValidations
+                                .filter(function (segmentData) {
+                                    return typeof segmentData !== 'string' && segmentData.v;
+                                })
+                                .map(function (segmentData) {
+                                    return segmentData.v;
+                                }).reduce(function (result, item) {
+                                    return result.concat(item);
+                                }, []);
+
+
+                            data.validations = data.validations.concat(segmentValidations);
+
                             var result = [];
                             if (data.validations && data.validations.length) {
                                  result = _.groupBy(data.validations, "dataID");
@@ -577,8 +590,9 @@ define(['jquery',
                                 header: 'EDI Claim',
                                 width: '95%',
                                 height: '75%',
-                                html: self.ediResultTemplate({result:result,ediText:data.ediText})
+                                html: self.ediResultTemplate({result:result,ediText:data.ediTextWithValidations})
                             });
+                            $(".popoverWarning").popover();
 
                             if (result == 0) {
                                 $('#liErrorMessages').css({'display':'none'});

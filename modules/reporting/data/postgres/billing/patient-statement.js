@@ -12,7 +12,7 @@ WITH claim_data AS (
     FROM billing.claims
     WHERE payer_type = 'patient'
     ),
-    
+
     billing_comments AS (
     SELECT cc.claim_id as id,
            'claim' as type,
@@ -20,27 +20,32 @@ WITH claim_data AS (
            created_dt::date as commented_dt,
            null as amount,
            u.username as commented_by,
-           null as code 
+           null as code
     FROM billing.claim_comments cc
     INNER JOIN claim_data cd on cd.claim_id = cc.claim_id
     INNER JOIN users u on u.id = cc.created_by
-    WHERE cc.type in ('manual', 'co_pay', 'co_insurance', 'deductible')
-    AND (CASE WHEN cc.type = 'manual' THEN cc.is_internal END)
-    
+    WHERE(
+        CASE WHEN cc.type = 'manual' THEN
+            cc.is_internal
+        ELSE
+            cc.type in ('co_pay', 'co_insurance', 'deductible')
+        END
+    )
+
     UNION ALL
-    
+
     SELECT c.claim_id as id,
            'charge' as type,
            cc.short_description as comments,
            c.charge_dt::date as commented_dt,
            (c.bill_fee*c.units) as amount,
            u.username as commented_by,
-           cc.display_code as code 
+           cc.display_code as code
     FROM billing.charges c
     INNER JOIN claim_data cd on cd.claim_id = c.claim_id
     INNER JOIN cpt_codes cc on cc.id = c.cpt_id
     INNER JOIN users u on u.id = c.created_by
-    
+
     UNION ALL
 
     SELECT bc.claim_id as id,
@@ -55,7 +60,7 @@ WITH claim_data AS (
            u.username as commented_by,
            CASE amount_type
                 WHEN 'adjustment' THEN 'Adj'
-                WHEN 'payment' THEN (CASE bp.payer_type 
+                WHEN 'payment' THEN (CASE bp.payer_type
                                      WHEN 'patient' THEN 'Patient'
                                      WHEN 'insurance' THEN 'Insurance'
                                      WHEN 'ordering_facility' THEN 'Ordering facility'
@@ -73,7 +78,7 @@ WITH claim_data AS (
     LEFT JOIN public.provider_contacts pc on pc.id = bp.provider_contact_id
     LEFT JOIN public.providers p on p.id = pc.provider_id
     ),
-    
+
     main_detail_cte as (
     SELECT
         p.id as pid,
@@ -113,7 +118,7 @@ WITH claim_data AS (
         case when type = 'charge' then amount end as charge,
         case when type = 'payment' then amount end as payment,
         case when type = 'adjustment' then amount end as adjustment,
-        
+
         <% if (payToProvider == true) {%>
           bp.name as billing_provider_name,
           bp.pay_to_address_line1 as billing_proaddress1,
@@ -144,16 +149,21 @@ WITH claim_data AS (
     <% if (billingProviderIds) { %>AND <% print(billingProviderIds); } %>
     <% if (facilityIds) { %>AND <% print(facilityIds); } %>
     <% if (patientIds) { %>AND <% print(patientIds); } %>
+
+    <% if (patientLastnameFrom && patientLastnameTo) { %>
+    AND p.last_name BETWEEN '<%= patientLastnameFrom %>' AND '<%= patientLastnameTo %>Z'
+    <% } %>
+
     ORDER BY first_name),
 
     detail_cte AS (
-    SELECT * 
+    SELECT *
     FROM main_detail_cte
     WHERE (CASE WHEN payment_type = 'adjustment' THEN amount != 0::money ELSE true END)
     AND sum_amount >=  <%= minAmount  %>::money
     AND sum_amount != 0::money
     ),
-    
+
     date_cte AS (
     SELECT
         pid,
@@ -165,8 +175,8 @@ WITH claim_data AS (
     ),
 
     sum_encounter_cte AS (
-    SELECT 
-        dc.pid, 
+    SELECT
+        dc.pid,
         dc.enc_id,
         coalesce(payment_type_date1, payment_type_date2) AS bucket_date,
         sum(dc.amount) AS enc_total_amount
@@ -190,7 +200,7 @@ WITH claim_data AS (
     FROM sum_encounter_cte
     GROUP BY pid
     ),
- 
+
     statement_cte AS (
     SELECT
         coalesce(statement_total_amount, 0::money) AS statement_total_amount,
@@ -199,7 +209,7 @@ WITH claim_data AS (
         coalesce(over60_amount,0::money) AS over60_amount,
         coalesce(over90_amount,0::money) AS over90_amount,
         coalesce(over120_amount,0::money) AS over120_amount,
-        (SELECT description 
+        (SELECT description
          FROM billing.messages
          WHERE company_id = 1
          AND CODE = (SELECT CASE
@@ -210,7 +220,7 @@ WITH claim_data AS (
                      WHEN current_amount IS NOT NULL THEN '0-30'
                      ELSE 'collections'
                      END)
-        ) AS billing_msg, 
+        ) AS billing_msg,
         pid AS pid
     FROM sum_statement_credit_cte
     ),
@@ -543,10 +553,17 @@ const api = {
 
         filtersUsed.push({ name: 'sDate', label: 'Statement Date', value: params.sDate });
 
-        const patientNames = params.patientOption === 'All' ? 'All' : _(lookups.patients).map(f => f.name).value();
-        filtersUsed.push({ name: 'patientNames', label: 'Patients', value: patientNames });
+        if (params.patientOption !== 'R') {
+            const patientNames = params.patientOption === 'All' ? 'All' : _(lookups.patients).map(f => f.name).value();
+            filtersUsed.push({ name: 'patientNames', label: 'Patients', value: patientNames });
+        }
 
-        filtersUsed.push({ name: 'payToProvider', label: 'Use address of Pay-To Provider', value: params.payToProvider ? 'Yes' : 'No' })
+        filtersUsed.push({ name: 'payToProvider', label: 'Use address of Pay-To Provider', value: params.payToProvider ? 'Yes' : 'No' });
+
+        if (params.patientOption === 'R') {
+            filtersUsed.push({name: 'patientLastnameFrom', label: 'Patient Lastname From', value: params.patientLastnameFrom });
+            filtersUsed.push({name: 'patientLastnameTo', label: 'Patient Lastname To', value: params.patientLastnameTo });
+        }
 
         return filtersUsed;
     },
@@ -572,7 +589,9 @@ const api = {
             patientIds: null,
             billingProviderIds: null,
             facilityIds: null,
-            statementDate: null
+            statementDate: null,
+            patientLastnameFrom: null,
+            patientLastnameTo: null
         };
 
         // patients
@@ -603,6 +622,10 @@ const api = {
         filters.whereDate = queryBuilder.whereDateInTz(` CASE  WHEN type = 'charge' THEN  bc.claim_dt ELSE pc.commented_dt END `, `<=`, [params.length], `f.time_zone`);
         filters.payToProvider = reportParams.payToProvider;
 
+        if (reportParams.patientOption === 'R') {
+            filters.patientLastnameFrom = reportParams.patientLastnameFrom;
+            filters.patientLastnameTo = reportParams.patientLastnameTo;
+        }
 
         if ( /^html|pdf$/i.test(reportParams.reportFormat) ) {
             filters.rowFlag = `, row_flag`;
