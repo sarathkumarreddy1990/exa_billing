@@ -949,23 +949,41 @@ define([
                     self.showUnAppliedPayments(patientId);
                 })
 
-                $('#btnPatientActivity').on().click(function () {
-                    if ($('#radActivityAllStatus').prop("checked")) {
-                        reportBy = true;
-                    }
-                    else if ($('#radioActivityStatus').prop("checked") && self.validateFromAndToDate(self.fromDate, self.toDate)) {
-                        reportBy = false;
-                        fromDate = $('#txtDate').val();
-                        toDate = $('#txtOtherDate').val();
-                    }
-                    else return false;
+                $('#btnPatientActivity').on().click(function (e) {
 
-                    var billing_pro = [], selectedBillingProList, allBillingProvider;
-                    selectedBillingProList = $('#ddlBillingProvider option:selected').val() ? [$('#ddlBillingProvider option:selected').val()] : [];
-
-                    reportBy  ? self.generatePatientActivity(claimId, patientId, reportBy,null,null, selectedBillingProList) : self.generatePatientActivity(claimId, patientId, reportBy, fromDate, toDate, selectedBillingProList)
+                    var patientActivityParams = self.createPatientActivityParams(claimId, patientId);
+                    self.patientActivityStatement.onReportViewClick(e, patientActivityParams);
                     $('#modal_div_container').removeAttr('style');
                 });
+            },
+
+            createPatientActivityParams: function(claimId, patientId) {
+                if ($('#radActivityAllStatus').prop("checked")) {
+                    reportBy = true;
+                }
+                else if ($('#radioActivityStatus').prop("checked") && this.validateFromAndToDate(this.fromDate, this.toDate)) {
+                    reportBy = false;
+                    fromDate = $('#txtDate').val();
+                    toDate = $('#txtOtherDate').val();
+                }
+                else return false;
+
+                var selectedBillingProList = $('#ddlBillingProvider option:selected').val() ? [$('#ddlBillingProvider option:selected').val()] : [];
+
+                this.patientActivityStatement = new patientActivityStatement({
+                    el: $('#reportFrame')
+                });
+
+                return {
+                    'claimID': claimId,
+                    flag: "patient-activity-statement",
+                    'patientId': patientId,
+                    reportByFlag: reportBy ,
+                    'fromDate': reportBy ? '': fromDate,
+                    'toDate': reportBy ? '': toDate,
+                    'billingProId': selectedBillingProList || [],
+                    'billingComments': $('#bindComments').prop('checked')
+                }
             },
 
             validateFromAndToDate: function (objFromDate, objToDate) {
@@ -1119,23 +1137,24 @@ define([
                 }
             },
 
-            generatePatientActivity: function (patientIds, claimIds, reportBy, fromDate, toDate, selectedBillingProList, e) {
-                var self = this;
-                self.patientActivityStatement = new patientActivityStatement({
-                    el: $('#reportFrame')
-                });
-                var claimInfo = {
-                    'claimID': patientIds,
-                    flag: "patient-activity-statement",
-                    'patientId': claimIds,
-                     reportByFlag: reportBy ,
-                    'fromDate': fromDate || '',
-                    'toDate': toDate || '',
-                    'billingProId': selectedBillingProList || [],
-                     'billingComments': $('#bindComments').prop('checked')
-                }
-                self.patientActivityStatement.onReportViewClick(e, claimInfo);
-            },
+            // generatePatientActivity: function (claimId, patientId, reportBy, fromDate, toDate, selectedBillingProList, e) {
+            //     var self = this;
+            //     self.patientActivityStatement = new patientActivityStatement({
+            //         el: $('#reportFrame')
+            //     });
+            //
+            //     var claimInfo = {
+            //         'claimID': patientIds,
+            //         flag: "patient-activity-statement",
+            //         'patientId': claimIds,
+            //         reportByFlag: reportBy ,
+            //         'fromDate': fromDate || '',
+            //         'toDate': toDate || '',
+            //         'billingProId': selectedBillingProList || [],
+            //         'billingComments': $('#bindComments').prop('checked')
+            //     }
+            //     self.patientActivityStatement.onReportViewClick(e, claimInfo);
+            // },
 
             generatePrintInvoice: function(claimId, e){
                 var self = this;
