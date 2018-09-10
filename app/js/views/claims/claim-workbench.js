@@ -673,7 +673,10 @@ define(['jquery',
                             $('#liErrorMessages').removeClass('active');
                             $('#divErrorMsgs').css({ 'display': 'none' });
                             $('#divEDIResult').css({ 'display': 'block' });
-                            $('#aDownloadEDI').css({ 'display': 'block' });
+                            if (data.validations && data.validations.length == 0) {
+                                $('#aDownloadEDI').css({ 'display': 'block' });
+                            }
+
                         }
                         else {
                             $('#liEDI,#aEDIResp').removeClass('active');
