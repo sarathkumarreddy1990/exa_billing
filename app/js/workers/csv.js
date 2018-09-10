@@ -3,7 +3,8 @@ importScripts('/exa_modules/billing/static/node_modules/moment/min/moment-with-l
 importScripts('/exa_modules/billing/static/node_modules/moment-timezone/builds/moment-timezone-with-data.js');
 
 var claimColumns = {
-    "Claim #" : "claim_id",
+
+    "Claim No" : "claim_id",
     "Claim Date": "claim_dt",
     "Patient Name": "patient_name",
     "Clearing House": "clearing_house",
@@ -16,7 +17,7 @@ var claimColumns = {
     "Date Of Birth": "birth_date",
     "Invoice": "invoice_no",
     "Follow-up Date": "followup_date",
-    "Place OF Service": "place_of_service",
+    "Place Of Service": "place_of_service",
     "Balance": "claim_balance",
     "Referring Providers": "referring_providers",
     "Rendering Providers": "rendering_provider",
@@ -24,7 +25,11 @@ var claimColumns = {
     "Group Number": "group_number",
     "Payer Type": "payer_type",
     "Billing Class": "billing_class",
-    "Billing Code": "billing_code"
+    "Billing Code": "billing_code",
+    "Notes" : "billing_notes",
+    "Responsible Party" : "payer_name",
+    "Submitted Date": "submitted_dt",
+    "Date of Injury":"current_illness_date"
 };
 
 var paymentsColumns = {
@@ -58,7 +63,7 @@ onmessage = function (req) {
         });
     }).then(function (data) {
         var csvData = data;
-        postMessage({ csvData });
+        postMessage({ csvData});
     });
 };
 
@@ -75,10 +80,19 @@ function generateCsvData(dbResponse, callback) {
 
     var showLabel = true;
     var dbData = typeof dbResponse.data != 'object' ? JSON.parse(dbResponse.data) : dbResponse.data;
+    var columnHeader = dbResponse.columnHeader;
 
     switch (dbResponse.reportName) {
         case 'CLAIMS':
+        if(dbResponse.filter_order){
+            var finalList = {};
+            columnHeader.reduce((result, col) => claimColumns[col] ? finalList[col] = claimColumns[col] : finalList , {})
+             columnMap = finalList ;
+        }
+        else {
             columnMap = claimColumns;
+        }
+
             break;
 
         case 'PAYMENTS':
@@ -106,7 +120,7 @@ function generateCsvData(dbResponse, callback) {
 
     var csvSimplified = '"' + dbData.map(function (dbRow, rowIndex) {
 
-        return columns.map(function (colName, colIndex) {
+        return columns.map(function (colName, colIndex ) {
             var csvText = showLabel && rowIndex == 0 ? colName : dbRow[columnMap[colName]];
 
             if (rowIndex && dateColumns.indexOf(colName) > -1) {
