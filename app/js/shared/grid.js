@@ -123,7 +123,6 @@ define('grid', [
             var target = event.currentTarget;
             var $target = $(target);
             var studyArray = [];
-            var orderIds = [];
             var selectedStudies = [];
             var divObj = 'studyRightMenu';
             var $divObj = $(document.getElementById(divObj));
@@ -145,7 +144,6 @@ define('grid', [
                 var rowId = $checkedInputs[r].parentNode.parentNode.id;
                 _storeEle = getData(rowId, store, gridID);
                 studyArray.push(rowId);
-                orderIds.push(_storeEle.order_id);
                 var study = {
                     study_id: rowId,
                     patient_id: _storeEle.patient_id,
@@ -626,7 +624,6 @@ define('grid', [
                             window.localStorage.setItem('selected_studies', null);
                             window.localStorage.setItem('primary_study_details', JSON.stringify(selectedStudies[0]));
                             window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
-                            window.localStorage.setItem('selected_orders', JSON.stringify(orderIds));
 
                             self.claimView = new claimsView();
                             self.claimView.showClaimForm(studyIds, 'studies');
@@ -673,8 +670,7 @@ define('grid', [
                 }
                 batchClaimArray.push({
                     patient_id :studyStoreValue.patient_id,
-                    study_id :studyStoreValue.study_id,
-                    order_id: studyStoreValue.order_id
+                    study_id :studyStoreValue.study_id
                 });
             }
 
@@ -1133,13 +1129,18 @@ define('grid', [
                             customArgs: {
                                 filter_id: current_filter_id,
                                 flag: 'exportExcel'
+
                             }
                         },
                         success: function (data, response) {
+
                             commonjs.prepareCsvWorker({
                                 data: data,
                                 reportName: 'CLAIMS',
-                                fileName: 'Claims'
+                                fileName: 'Claims',
+                                filter_order: userSettings.field_order,
+                                filterType: userSettings.grid_name,
+                                columnHeader: colHeader
                             }, {
                                     afterDownload: function () {
                                         $('#btnValidateExport').css('display', 'inline');
