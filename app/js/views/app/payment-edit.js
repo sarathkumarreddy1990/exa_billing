@@ -784,22 +784,22 @@ define(['jquery',
                             $('#gbox_tblAppliedPaymentsGrid').find("#gs_claim_id").focus();
                         } else if (e.target.id == 'aPeningPaymentsWithAccInv') {
                             $('#gbox_tblpendPaymentsGrid').find("#gs_claim_id").focus();
-                            if(from === 'save') $('#btnBackToPatient').click();
-                            
-                            if($('#chkIpEob').is(":checked")){
+                            if (from === 'save') $('#btnBackToPatient').click();
+
+                            if ($('#chkIpEob').is(":checked")) {
                                 $("#claimId").focus();
-                            }else if($('#chkIpInvoice').is(":checked")){
+                            } else if ($('#chkIpInvoice').is(":checked")) {
                                 $("#invoiceNo").focus();
-                            }else{
+                            } else {
                                 $("#lname").focus();
-                            }                            
+                            }
 
                         } else if (e.target.id == 'aPeningPayments') {
                             $('#gbox_tblpendPaymentsGridOnly').find("#gs_claim_id").focus();
                         }
                     }, 100);
 
-               });
+                });
             },
 
             bindDateRangeOnSearchBox: function (gridObj, gridId) {
@@ -1116,7 +1116,7 @@ define(['jquery',
                         payerId: payerId,
                         payerType: payerType
                     },
-                    onaftergridbind: function (model, gridObj) {                        
+                    onaftergridbind: function (model, gridObj) {
                         self.setMoneyMask();
                         //$("#gs_claim_id").focus()
                     }
