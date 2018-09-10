@@ -176,6 +176,7 @@ module.exports = {
                                 ,duplicate boolean
                                 ,code text
                                 ,is_debit boolean
+                                ,claim_index boolean
                             )
                         )
                         ,un_matched_charges AS (
@@ -195,6 +196,7 @@ module.exports = {
                                 application_details.patient_mname,
                                 application_details.patient_prefix,
                                 application_details.patient_suffix,
+                                application_details.claim_index,
                                 c.patient_id
                             FROM
                                 application_details
@@ -218,6 +220,7 @@ module.exports = {
                                 application_details.patient_mname,
                                 application_details.patient_prefix,
                                 application_details.patient_suffix,
+                                application_details.claim_index,
                                 c.patient_id
                             FROM
                                 application_details
@@ -242,7 +245,10 @@ module.exports = {
                                     'charge_id'     ,fcc.charge_id,
                                     'adjustment'    ,fcc.adjustment,
                                     'cas_details'   ,fcc.cas_details,
-                                    'applied_dt'    ,CASE WHEN fcc.is_debit THEN now() + INTERVAL '0.01' SECOND ELSE now() END
+                                    'applied_dt'    ,CASE WHEN fcc.is_debit
+                                    THEN now() + INTERVAL '0.02' SECOND * fcc.claim_index
+                                    ELSE now() + INTERVAL '0.01' SECOND * fcc.claim_index
+                                    END
                                 )
                             FROM
                                 final_claim_charges fcc
@@ -335,8 +341,9 @@ module.exports = {
 
         const sql = SQL`
                     WITH claim_payment AS (
-			                SELECT
-                                distinct ch.claim_id
+                            SELECT
+                                DISTINCT ch.id AS charge_id
+                                ,ch.claim_id
                                 ,efp.payment_id
                                 ,pa.applied_dt
                             FROM
@@ -349,12 +356,12 @@ module.exports = {
                     )
                     ,unapplied_charges AS (
                         SELECT cp.payment_id,
-                            json_build_object('charge_id',ch.id,'payment',0,'adjustment',0,'cas_details','[]','applied_dt',cp.applied_dt)
+                            json_build_object('charge_id',ch.id,'payment',0,'adjustment',0,'cas_details','[]'::jsonb,'applied_dt',cp.applied_dt)
                         FROM
                             billing.charges ch
                         INNER JOIN billing.claims AS c ON ch.claim_id = c.id
                         INNER JOIN claim_payment AS cp ON cp.claim_id = c.id
-                        WHERE ch.id NOT IN ( SELECT charge_id FROM  billing.payment_applications pa WHERE pa.charge_id = ch.id AND pa.payment_id = cp.payment_id )
+                        WHERE ch.id NOT IN ( SELECT charge_id FROM  billing.payment_applications pa WHERE pa.charge_id = ch.id AND pa.payment_id = cp.payment_id AND pa.applied_dt = cp.applied_dt )
                     ),insert_payment_adjustment AS (
                         SELECT
                             billing.create_payment_applications(
