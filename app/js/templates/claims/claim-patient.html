@@ -84,6 +84,46 @@
             </div>
         </div>
     </div>
+    <div id="divFaxRecipient" class="row" style="display: none;">
+        <div class="col-12 form-group form-inline">
+            <div class="col-form-label col-right-label">
+                <label class="control-label"
+                       for="txtOtherFaxName"
+                       i18n="shared.fields.faxReceiverName"></label>
+            </div>
+            <div class="col-form-content">
+                <input type="text"
+                       id="txtOtherFaxName"
+                       class="form-control" />
+            </div>
+
+            <div class="col-form-label col-right-label">
+                <label class="control-label"
+                       for="txtOtherFaxNumber"
+                       i18n="shared.fields.faxReceiverNumber"></label>
+            </div>
+            <div class="col-form-content">
+                <input type="text"
+                       id="txtOtherFaxNumber"
+                       class="form-control maskPhone" />
+            </div>
+
+            <div class="pull-right">
+                <input
+                        type="button"
+                        id="btnSendFax"
+                        class="btn btn-primary"
+                        i18n="shared.buttons.sendFax"/>
+                <input
+                        type="button"
+                        id="btnFaxCancel"
+                        class="btn btn-primary"
+                        i18n="shared.buttons.cancel"/>
+
+            </div>
+        </div>
+
+    </div>
     <div class="row" style="margin: auto;">
         <table id="tblPatientClaimsGrid"></table>
         <div id="gridPager_PatientClaim"></div>

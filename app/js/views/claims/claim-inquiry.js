@@ -18,6 +18,7 @@ define([
     'text!templates/claims/claim-patient-log.html',
     'text!templates/claims/claim-invoice.html',
     'text!templates/claims/invoice-age-summary.html',
+    'text!templates/faxDialog.html',
     'collections/claim-patient-log',
     'views/app/unapplied-payment'
 ], function (
@@ -40,6 +41,7 @@ define([
     claimPatientLogHTML,
     claimInvoiceHTML,
     claimInvoiceAgeHTML,
+    faxDialogHtml,
     claimPatientLogList,
     unappliedPaymentView
 ) {
@@ -949,12 +951,29 @@ define([
                     self.showUnAppliedPayments(patientId);
                 })
 
-                $('#btnPatientActivity').on().click(function (e) {
+                $('#btnPatientActivity').off().click(function (e) {
 
                     var patientActivityParams = self.createPatientActivityParams(claimId, patientId);
                     self.patientActivityStatement.onReportViewClick(e, patientActivityParams);
                     $('#modal_div_container').removeAttr('style');
                 });
+                $('#btnFaxPatientActivity').off().click(function (e) {
+
+                    var patientActivityParams = self.createPatientActivityParams(claimId, patientId);
+                    var reportURL = self.patientActivityStatement.onReportFaxClick(e, patientActivityParams);
+                    $('#divFaxRecipient').show();
+
+                    $('#btnSendFax').off().click(function (e) {
+                        console.log(reportURL);
+                    });
+
+                    $('#btnFaxCancel').off().click(function (e) {
+                        $('#divFaxRecipient').hide();
+                    });
+                });
+
+
+
             },
 
             createPatientActivityParams: function(claimId, patientId) {

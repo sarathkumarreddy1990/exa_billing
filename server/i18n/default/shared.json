@@ -148,7 +148,8 @@
             "exportToExcel": "Export To Excel",
             "paperclaimOrg": "Paper Claim (RED)",
             "paperclaimFull": "Paper Claim (B & W)",
-            "reloaddefault":"Reload Default Template"
+            "reloaddefault":"Reload Default Template",
+            "sendFax": "Send Fax"
         },
         "screens": {},
         "fields": {
@@ -160,7 +161,10 @@
             "id": "ID",
             "studyDate": "Study Date",
             "series": "Series",
-            "default": "Default"
+            "default": "Default",
+            "faxReceiverName": "Recipient Name",
+            "faxReceiverNumber": "Fax #"
+
         },
         "status": {
             "approved": "APPROVED",

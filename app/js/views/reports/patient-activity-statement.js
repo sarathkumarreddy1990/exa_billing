@@ -66,7 +66,7 @@ define([
                 if (btnClicked && btnClicked.prop('tagName') === 'I') {
                     btnClicked = btnClicked.parent(); // in case FA icon 'inside'' button was clicked...
                 }
-                var rFormat = btnClicked ? btnClicked.attr('data-rformat') : null;
+                var rFormat = btnClicked ? btnClicked.attr('data-rformat') : 'pdf';
                 var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnCIPatientInquiry' : false;
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = openInNewTab && rFormat === 'pdf';
@@ -80,7 +80,7 @@ define([
                     }
                 }
                 else if (claimInfo.flag == "paymentInvoice"){
-                  var reportName = "payment-invoice";
+                    var reportName = "payment-invoice";
                     var urlParams = {
                         claimIds: claimInfo.claimID,
                         sDate: '2018-06-23'
@@ -98,8 +98,53 @@ define([
                         billingComments: claimInfo.billingComments
                     }
                 }
-                UI.showReport(reportName, this.viewModel.reportCategory, 'pdf', urlParams, true);
+                UI.showReport(reportName, this.viewModel.reportCategory, rFormat, urlParams, true);
                 $('#divPageLoading').hide();
+            },
+
+            onReportFaxClick: function (e, claimInfo) {
+                var btnClicked = e && e.target ? $(e.target) : null;
+                this.getSelectedFacility();
+                this.getBillingProvider();
+                if (btnClicked && btnClicked.prop('tagName') === 'I') {
+                    btnClicked = btnClicked.parent(); // in case FA icon 'inside'' button was clicked...
+                }
+                var rFormat = btnClicked ? btnClicked.attr('data-rformat') : 'pdf';
+                var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnCIPatientInquiry' : false;
+                this.viewModel.reportFormat = rFormat;
+                this.viewModel.openInNewTab = openInNewTab && rFormat === 'pdf';
+                this.viewModel.paymentOptions = $('#ddlPaymentOption').val();
+                if (claimInfo.flag == "patientInvoice") {
+                    reportName = "patient-invoice";
+                    var urlParams = {
+                        claimIds: claimInfo.claimID,
+                        sDate: '2018-06-23'
+
+                    }
+                }
+                else if (claimInfo.flag == "paymentInvoice"){
+                    var reportName = "payment-invoice";
+                    var urlParams = {
+                        claimIds: claimInfo.claimID,
+                        sDate: '2018-06-23'
+                    }
+                }
+                else {
+                    var reportName = "patient-activity-statement";
+                    var urlParams = {
+                        patientIID: claimInfo.patientId,
+                        fromDate: claimInfo.fromDate,
+                        reportBy: claimInfo.reportByFlag,
+                        toDate: claimInfo.toDate,
+                        billingProviderIds: claimInfo.billingProId,
+                        sDate: moment().format('MM/DD/YYYY'),
+                        billingComments: claimInfo.billingComments
+                    }
+                }
+                //UI.showReport(reportName, this.viewModel.reportCategory, rFormat, urlParams, true);
+                $('#divPageLoading').hide();
+
+                return UI.generateReportUrl(reportName, this.viewModel.reportCategory, rFormat, urlParams);
             },
 
             getSelectedFacility: function (e) {
