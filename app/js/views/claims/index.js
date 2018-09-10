@@ -563,11 +563,11 @@ define(['jquery',
 
                 /* Claim section start*/
 
-                var renderingProvider = claim_data.reading_phy_full_name || claim_data.fac_reading_phy_full_name || self.usermessage.selectStudyReadPhysician;
+                var renderingProvider = claim_data.fac_reading_phy_full_name || claim_data.reading_phy_full_name || self.usermessage.selectStudyReadPhysician;
                 var referringProvider = claim_data.ref_prov_full_name || self.usermessage.selectStudyRefProvider;
                 var orderingFacility = claim_data.ordering_facility_name || claim_data.service_facility_name || self.usermessage.selectOrdFacility;
 
-                self.ACSelect.readPhy.contact_id = claim_data.rendering_provider_contact_id || claim_data.fac_rendering_provider_contact_id || null;
+                self.ACSelect.readPhy.contact_id = claim_data.fac_rendering_provider_contact_id || claim_data.rendering_provider_contact_id || null;
                 self.ACSelect.refPhy.contact_id = claim_data.referring_provider_contact_id || null;
                 self.ACSelect.refPhy.Code = claim_data.ref_prov_code || null;
                 self.ACSelect.refPhy.Desc = referringProvider;
@@ -828,6 +828,7 @@ define(['jquery',
                 var self = this;
                 var selectedStudyIds = JSON.parse(window.localStorage.getItem('selected_studies'));
                 var primaryStudyDetails = JSON.parse(window.localStorage.getItem('primary_study_details'));
+                self.selectedOrderIds = JSON.parse(window.localStorage.getItem('selected_orders'));
                 self.cur_patient_id = primaryStudyDetails.patient_id ? parseInt(primaryStudyDetails.patient_id) : null;
                 self.cur_patient_name = primaryStudyDetails.patient_name;
                 self.cur_patient_acc_no = primaryStudyDetails.account_no;
@@ -2030,12 +2031,12 @@ define(['jquery',
                     type: 'GET',
                     data: {
                         'patient_id': self.cur_patient_id || 0,
-                        'claim_date': self.cur_study_date || 'now()'
+                        'claim_date': self.cur_study_date || 'now()',
+                        'order_ids': self.selectedOrderIds || [0]
                     },
                     success: function (response) {
 
                         if (response.length > 0) {
-
                             self.existingPrimaryInsurance = [];
                             self.existingSecondaryInsurance = [];
                             self.existingTriInsurance = [];

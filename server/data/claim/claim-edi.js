@@ -311,12 +311,15 @@ module.exports = {
 											WHEN 'GRANDPARENT' THEN '04'
 											WHEN 'GREAT GRANDPARENT' THEN '04'
 											WHEN 'UNKNOWN' THEN '21'
-											WHEN 'SPOUSE' THEN '21'
+											WHEN 'SPOUSE' THEN '01'
 											WHEN 'CHILD' THEN '19'
 											WHEN 'BROTHER' THEN '23'
                                             WHEN 'SISTER' THEN '20'
                                             WHEN 'OTHER RELATIONSHIP' THEN 'G8'
                                             WHEN 'LIFE PARTNER' THEN '53'
+                                            WHEN 'EMPLOYEE' THEN '20'
+                                            WHEN 'ORGAN DONOR' THEN '39'
+                                            WHEN 'CADAVER DONOR' THEN '40'
 											END)
 										FROM  relationship_status WHERE  subscriber_relationship_id =relationship_status.id ) as  relationship,
 
@@ -388,19 +391,22 @@ module.exports = {
 
 															( SELECT
                                                                 (  CASE UPPER(description)
-                                                                    WHEN 'SELF' THEN '18'
-                                                                    WHEN 'FATHER' THEN '33'
-                                                                    WHEN 'MOTHER' THEN '32'
-                                                                    WHEN 'SIBLING' THEN '32'
-                                                                    WHEN 'GRANDPARENT' THEN '04'
-                                                                    WHEN 'GREAT GRANDPARENT' THEN '04'
-                                                                    WHEN 'UNKNOWN' THEN '21'
-                                                                    WHEN 'SPOUSE' THEN '21'
-                                                                    WHEN 'CHILD' THEN '19'
-                                                                    WHEN 'BROTHER' THEN '23'
-                                                                    WHEN 'SISTER' THEN '20'
-                                                                    WHEN 'OTHER RELATIONSHIP' THEN 'G8'
-                                                                    WHEN 'LIFE PARTNER' THEN '53'
+                                                                        WHEN 'SELF' THEN '18'
+                                                                        WHEN 'FATHER' THEN '33'
+                                                                        WHEN 'MOTHER' THEN '32'
+                                                                        WHEN 'SIBLING' THEN '32'
+                                                                        WHEN 'GRANDPARENT' THEN '04'
+                                                                        WHEN 'GREAT GRANDPARENT' THEN '04'
+                                                                        WHEN 'UNKNOWN' THEN '21'
+                                                                        WHEN 'SPOUSE' THEN '01'
+                                                                        WHEN 'CHILD' THEN '19'
+                                                                        WHEN 'BROTHER' THEN '23'
+                                                                        WHEN 'SISTER' THEN '20'
+                                                                        WHEN 'OTHER RELATIONSHIP' THEN 'G8'
+                                                                        WHEN 'LIFE PARTNER' THEN '53'
+                                                                        WHEN 'EMPLOYEE' THEN '20'
+                                                                        WHEN 'ORGAN DONOR' THEN '39'
+                                                                        WHEN 'CADAVER DONOR' THEN '40'
                                                                 END)
 															FROM  relationship_status WHERE  subscriber_relationship_id =relationship_status.id ) as  relationship
 										)AS patient)
@@ -525,20 +531,23 @@ module.exports = {
 									( SELECT
 
 										(  CASE UPPER(description)
-                                                    WHEN 'SELF' THEN '18'
-                                                    WHEN 'FATHER' THEN '33'
-                                                    WHEN 'MOTHER' THEN '32'
-                                                    WHEN 'SIBLING' THEN '32'
-                                                    WHEN 'GRANDPARENT' THEN '04'
-                                                    WHEN 'GREAT GRANDPARENT' THEN '04'
-                                                    WHEN 'UNKNOWN' THEN '21'
-                                                    WHEN 'SPOUSE' THEN '21'
-                                                    WHEN 'CHILD' THEN '19'
-                                                    WHEN 'BROTHER' THEN '23'
-                                                    WHEN 'SISTER' THEN '20'
-                                                    WHEN 'OTHER RELATIONSHIP' THEN 'G8'
-                                                    WHEN 'LIFE PARTNER' THEN '53'
-										END)
+                                                WHEN 'SELF' THEN '18'
+                                                WHEN 'FATHER' THEN '33'
+                                                WHEN 'MOTHER' THEN '32'
+                                                WHEN 'SIBLING' THEN '32'
+                                                WHEN 'GRANDPARENT' THEN '04'
+                                                WHEN 'GREAT GRANDPARENT' THEN '04'
+                                                WHEN 'UNKNOWN' THEN '21'
+                                                WHEN 'SPOUSE' THEN '01'
+                                                WHEN 'CHILD' THEN '19'
+                                                WHEN 'BROTHER' THEN '23'
+                                                WHEN 'SISTER' THEN '20'
+                                                WHEN 'OTHER RELATIONSHIP' THEN 'G8'
+                                                WHEN 'LIFE PARTNER' THEN '53'
+                                                WHEN 'EMPLOYEE' THEN '20'
+                                                WHEN 'ORGAN DONOR' THEN '39'
+                                                WHEN 'CADAVER DONOR' THEN '40'
+                                        END)
 												FROM  relationship_status WHERE  subscriber_relationship_id =relationship_status.id ) as  relationship,
 
 											policy_number  as "policyNo",

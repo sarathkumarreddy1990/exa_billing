@@ -57,7 +57,7 @@ function getSubstring(str, len) {
 }
 
 function getICDCodeType(data) {
-   if (data.subscriber && data.subscriber[0].claim && data.subscriber[0].claim[0].icd[0].code_type)
+   if (data.subscriber && data.subscriber[0].claim && data.subscriber[0].claim[0] && data.subscriber[0].claim[0].icd && data.subscriber[0].claim[0].icd[0] && data.subscriber[0].claim[0].icd[0].code_type)
         return data.subscriber[0].claim[0].icd[0].code_type;
     return '\t\t';
 }

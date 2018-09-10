@@ -1,6 +1,6 @@
 <div>
     <input type="button" id="aDownloadEDI" class="downloadEDI btn btn-default btn-primary" title="Download Response XML" i18n="billing.fileInsurance.download"
-        style="float: right;cursor: pointer;position:fixed;right:20px;z-index:1;" value="Download">
+        style="float: right;cursor: pointer;position:fixed;right:20px;z-index:1;display:none;" value="Download">
 </div>
 <ul class="nav tn-menu tn-menu-a" id="tabsEDIResponses" style="margin-bottom: 5px !important;position: fixed;width: 98%;">
     <li id="liErrorMessages" class="active" >
@@ -69,9 +69,9 @@
                             </td>
                             <td style='width: 20px; padding: 5px;'>
                                     <% var fieldName = ""; %>
-                                    <% _.each(val.v,function(v,index){ %>
+                                    <% _.each(val.v,function(v,index1){ %>
                                         <% if (fieldName == '') { %>
-                                        <% fieldName +=(  (v.fieldName ? v.fieldName +'-' :'') + v.message )  %>
+                                            <% fieldName +=(  (v.fieldName ? v.fieldName +'-' :'') + v.message )  %>
                                         <% }else {  %>
                                             <% fieldName +=('\n'+((v.fieldName ? v.fieldName +'-' :'') + v.message ))  %>
                                         <% }  %>
@@ -81,7 +81,11 @@
                                 </div>
                             </td>
                             <td style='padding: 5px; border-right: none;'>
-                            <%=(val.e).replace(/ /g,'&nbsp;')%>
+                                    <% if (index == 0) { %>
+                                        <%=(val.e).replace(/ /g,'&nbsp;')%>
+                                    <% } else{ %>
+                                        <%=(val.e)%>
+                                    <%}%>
                             </td>
                         </tr>
                         <% }else {  %>
@@ -91,7 +95,11 @@
                                 </td>
                                 <td style='width: 20px; padding: 5px;'></td>
                                 <td style='padding: 5px; border-right: none;'>
-                                    <%=val.replace(/ /g, '&nbsp;')%>
+                                    <% if (index == 0) { %>
+                                        <%=val.replace(/ /g, '&nbsp;')%>
+                                    <% } else{ %>
+                                        <%=(val)%>
+                                    <%}%>
                                 </td>
                             </tr>
                     <%} %>

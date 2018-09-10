@@ -951,6 +951,10 @@ define(['jquery',
                     $('#txtCheque').focus();
                     return false;
                 }
+                if ($("#chkIpInvoice").is(':checked') && $.trim($("#txtInvoice").val()) == "") {
+                    commonjs.showWarning("Please enter invoice #");
+                    return false;
+                }
                 return true;
             },
 
@@ -1593,7 +1597,8 @@ define(['jquery',
                                 $('#ddlResponsible').append($('<option/>', { value: payerType.referring_provider_contact_id, text: payerType.provider_name + '(Provider)', 'data-payerType': 'referring_provider' }));
                         });
                         $("#ddlResponsible option[data-payerType=" + payerTypes[0].payer_type + "]").attr('selected', 'selected');
-                        $('#ddlClaimStatus').val( payerTypes && payerTypes[0].claim_status_id);
+                        self.received_claim_status_id = payerTypes && payerTypes[0].claim_status_id
+                        $('#ddlClaimStatus').val(self.received_claim_status_id);
 
                         $.each(charges, function (index, charge_details) {
                             if (charge_details.adjustment_code_id) {
@@ -1993,6 +1998,7 @@ define(['jquery',
                     var deduction = $('#txtDeduction').val();
                     var coInsurance = $('#txtCoInsurance').val();
                     var coPay = $('#txtCoPay').val();
+                    var claimStatusID = self.received_claim_status_id != $('#ddlClaimStatus').val() ? $('#ddlClaimStatus').val() : 0;
 
                     commonjs.showLoading();
                     targetObj.attr('disabled', true);
@@ -2013,7 +2019,8 @@ define(['jquery',
                             payerType: payerType,
                             adjustmentId: adjustmentType,
                             paymentStatus: paymentStatus,
-                            casDeleted: JSON.stringify(self.casDeleted)
+                            casDeleted: JSON.stringify(self.casDeleted),
+                            claimStatusID: claimStatusID
                         },
                         success: function (model, response) {
                             commonjs.showStatus(paymentStatus === 'applied' ? 'Payment has been updated successfully' : 'Payment has been applied successfully');
@@ -2462,9 +2469,6 @@ define(['jquery',
                     case "check":
                     case "EFT":
                         $("#txtCheque").removeAttr("disabled");
-                        // if (!isBind) {
-                        //     $("#txtCheque").focus();
-                        // }
                         $("#txtCardName").attr("disabled", "disabled");
                         $("#paymentExpiryMonth").attr("disabled", "disabled");
                         $("#paymentExpiryYear").attr("disabled", "disabled");
@@ -2472,9 +2476,7 @@ define(['jquery',
                         $("#txtCVN").attr("disabled", "disabled");
                         break;
                     case "card":
-                        // if (!isBind) {
-                        //     $("#txtCheque").focus();
-                        // }
+                    case "adjustment":
                         $("#txtCheque").removeAttr("disabled");
                         $("#txtCardName").removeAttr("disabled");
                         $("#paymentExpiryMonth").removeAttr("disabled");
