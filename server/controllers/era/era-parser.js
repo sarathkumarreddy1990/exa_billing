@@ -50,12 +50,26 @@ module.exports = {
 
         let claimComments = [];
         let lineItems = [];
+        let claimPaymentInformation = [];
 
         let payer_details = params.payer_details ? JSON.parse(params.payer_details) : {};
 
         let cas_details = await data.getcasReasonGroupCodes(payer_details);
 
         cas_details = cas_details.rows && cas_details.rows.length ? cas_details.rows[0] : {};
+
+        // split and merge multiple claims in ~LX segments
+        _.each(claimLists, function (obj) {
+
+            if (obj.claimPaymentInformation && obj.claimPaymentInformation.length > 1) {
+                claimPaymentInformation = obj.claimPaymentInformation.map(item => { return { claimPaymentInformation: [item] }; });
+            }
+
+        });
+
+        if(claimPaymentInformation && claimPaymentInformation.length){
+            claimLists = claimPaymentInformation;
+        }
 
         await _.each(claimLists, function (claim, claim_index) {
             let claimPaymentInformation = claim.claimPaymentInformation && claim.claimPaymentInformation.length ? claim.claimPaymentInformation : {};
