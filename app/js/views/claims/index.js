@@ -563,11 +563,11 @@ define(['jquery',
 
                 /* Claim section start*/
 
-                var renderingProvider = claim_data.reading_phy_full_name || claim_data.fac_reading_phy_full_name || self.usermessage.selectStudyReadPhysician;
+                var renderingProvider = claim_data.fac_reading_phy_full_name || claim_data.reading_phy_full_name || self.usermessage.selectStudyReadPhysician;
                 var referringProvider = claim_data.ref_prov_full_name || self.usermessage.selectStudyRefProvider;
                 var orderingFacility = claim_data.ordering_facility_name || claim_data.service_facility_name || self.usermessage.selectOrdFacility;
 
-                self.ACSelect.readPhy.contact_id = claim_data.rendering_provider_contact_id || claim_data.fac_rendering_provider_contact_id || null;
+                self.ACSelect.readPhy.contact_id = claim_data.fac_rendering_provider_contact_id || claim_data.rendering_provider_contact_id || null;
                 self.ACSelect.refPhy.contact_id = claim_data.referring_provider_contact_id || null;
                 self.ACSelect.refPhy.Code = claim_data.ref_prov_code || null;
                 self.ACSelect.refPhy.Desc = referringProvider;
