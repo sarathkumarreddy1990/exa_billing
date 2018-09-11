@@ -1240,7 +1240,7 @@ define(['jquery',
                                     commonjs.showWarning('Invalid claim id ' + gridObj.options.customargs.claimIdToSearch);
                                 }
                                 $('#btnBackToPatient').click();
-                                $('#lname').focus();
+                                $('#claimId').focus();
 
                             } else {
                                 $("#divGrid_pendPayments").show();
