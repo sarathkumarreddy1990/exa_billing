@@ -21,7 +21,7 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
                 WHEN 'insurance' THEN pip.insurance_name
                 WHEN 'ordering_provider' THEN ppr.full_name
                 WHEN 'ordering_facility' THEN ppg.group_name END AS payer_name
-            , cppg.group_name AS group_name
+            , cppg.group_name AS group_name           
             , COALESCE(pplc.reading_provider_percent_level,0) AS reading_provider_percent_level
             , to_char(bc.claim_dt, 'MM/DD/YYYY') as claim_dt
         FROM billing.claims bc
@@ -44,7 +44,8 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
         AND  <%= companyId %>
         AND <%= claimDate %>
         <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
-        <% if(billingProID) { %> AND <% print(billingProID); } %>
+        <% if(billingProID) { %> AND <% print(billingProID); } %>        
+        <% if(providerGroupID) { %>AND <% print(providerGroupID);} %>
     )
     SELECT
         claim_id AS "Claim ID",
@@ -63,7 +64,7 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
         , round(rpf.reading_provider_percent_level,2) AS "Reading Fee %"
         , round(SUM((rpf.amount::numeric/100) * rpf.reading_provider_percent_level),2) AS "Reading Fee"
     FROM     
-        reading_provider_fees rpf
+        reading_provider_fees rpf   
     GROUP BY
     GROUPING SETS (
         (group_name),
@@ -105,13 +106,19 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
+          // convert Array of Referring provider Ids String to Integer
+        if(initialReportData.report.params.refProviderGroupList) {
+            initialReportData.report.params.refProviderGroupList =  initialReportData.report.params.refProviderGroupList.map(Number);
+        }
         return Promise.join(
             api.createreadingProviderFeesDataSet(initialReportData.report.params),
             dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
+            dataHelper.getProviderGroupInfo(initialReportData.report.params.companyId,initialReportData.report.params.refProviderGroupList),
             // other data sets could be added here...
-            (readingProviderFeesDataSet, providerInfo) => {
+            (readingProviderFeesDataSet, providerInfo, providerGroupList) => {
                 // add report filters  
                 initialReportData.lookups.billingProviderInfo = providerInfo || [];
+                initialReportData.lookups.providerGroupList = providerGroupList || [];
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 // add report specific data sets
@@ -160,6 +167,15 @@ const api = {
             const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
         }
+
+      //   Provider Group Filter
+      if(params.refProviderGroupList)  {
+        const refProviderGroupNames = _(lookups.providerGroupList).map(f => f.name).value();
+        filtersUsed.push({name: 'providerGroupList', label: 'Provider Group', value: refProviderGroupNames });
+    }
+    else {
+        filtersUsed.push({name: 'providerGroupList', label: 'Provider Group', value: 'All'});
+    }  
       
 
         filtersUsed.push({ name: 'fromDate', label: 'From', value: params.fromDate });
@@ -188,8 +204,8 @@ const api = {
             companyId: null,
             claimDate: null,
             facilityIds: null,
-            billingProID: null
-
+            billingProID: null,
+            providerGroupID: null
         };
 
         // company id
@@ -211,6 +227,13 @@ const api = {
             params.push(reportParams.toDate);
             filters.claimDate = queryBuilder.whereDateBetween('bp.accounting_dt', [params.length - 1, params.length], 'f.time_zone');
         }
+
+         //  Provider Group Single or Multiple
+        if (reportParams.refProviderGroupList)  {
+            params.push(reportParams.refProviderGroupList);
+            filters.providerGroupID = queryBuilder.whereIn('cppc.provider_group_id ', [params.length]);
+        }
+        
 
         // billingProvider single or multiple
         if (reportParams.billingProvider) {

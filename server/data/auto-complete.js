@@ -345,5 +345,35 @@ module.exports = {
                         WHERE template_type = 'edi' `;
 
         return await query(sql);
+    },
+
+    getProviderGroupDetail: async function (params) {
+
+        let provider_group_q = ` AND (group_code ILIKE '%${params.q}%' OR group_name ILIKE '%${params.q}%' ) `;
+
+        const provider_group_sql = SQL`SELECT
+                                     id
+                                     ,id As provider_group_id
+                                     ,group_code
+                                     ,group_name
+                                     ,group_info
+                                     ,is_active
+                                     ,company_id
+                                     ,COUNT(1) OVER (range unbounded preceding) AS total_records
+                                FROM provider_groups
+                                WHERE
+                                    NOT provider_groups.has_deleted
+                                    AND provider_groups.company_id = ${params.company_id} AND is_active `;
+
+        if (params.q != '') {
+            provider_group_sql.append(provider_group_q);
+        }
+
+        provider_group_sql.append(SQL` ORDER BY  ${params.sortField} `)
+            .append(params.sortOrder)
+            .append(SQL` LIMIT ${params.pageSize}`)
+            .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
+
+        return await query(provider_group_sql);
     }
 };
