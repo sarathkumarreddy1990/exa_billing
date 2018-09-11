@@ -34,5 +34,9 @@ module.exports = {
     },
     getEDITemplateList: () => {
         return data.getEDITemplateList();
+    },
+
+    getProviderGroupDetail: (params) => {
+        return data.getProviderGroupDetail(params);
     }
 };

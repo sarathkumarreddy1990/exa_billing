@@ -59,4 +59,9 @@ router.get('/edi_templates', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/provider_group_info', async function (req, res) {
+    const data = await autoCompleteController.getProviderGroupDetail(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;
