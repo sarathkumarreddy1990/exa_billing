@@ -112,7 +112,6 @@ module.exports = {
                                         order_info -> 'ordering_facility_id' AS ordering_facility_id,
                                         order_info -> 'ordering_facility' AS ordering_facility_name,
                                         orders.order_status AS order_status,
-                                        order_info -> 'billing_provider' AS billing_provider_id,
                                         order_info -> 'pos_type_code' AS pos_type_code,
                                         p.full_name AS patient_name,
                                         p.account_no AS patient_account_no,

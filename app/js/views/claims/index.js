@@ -574,7 +574,7 @@ define(['jquery',
                 self.group_id = claim_data.ordering_facility_id ? parseInt(claim_data.ordering_facility_id || claim_data.service_facility_id) : null;
                 self.group_name = orderingFacility;
 
-                $('#ddlBillingProvider').val(claim_data.billing_provider_id ||claim_data.fac_billing_provider_id || '');
+                $('#ddlBillingProvider').val(claim_data.fac_billing_provider_id || claim_data.billing_provider_id || '');
                 $('#ddlFacility').val(claim_data.facility_id || '');
                 $('#select2-ddlRenderingProvider-container').html(renderingProvider);
                 $('#select2-ddlReferringProvider-container').html(referringProvider);
