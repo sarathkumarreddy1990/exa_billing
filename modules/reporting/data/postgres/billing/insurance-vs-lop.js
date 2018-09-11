@@ -20,11 +20,14 @@ WITH study_cte AS (
       INNER JOIN billing.charges_studies bcs ON bcs.study_id = ps.id
       INNER JOIN billing.charges bch ON bch.id = bcs.charge_id
       INNER JOIN billing.claims bc ON bc.id = bch.claim_id
+      <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
     WHERE 1=1
     AND NOT ps.has_deleted
     AND ps.accession_no NOT ILIKE '%.c'
       AND  <%= companyId %>
       AND <%= claimDate %>
+      <% if (facilityIds) { %>AND <% print(facilityIds); } %>
+      <% if(billingProID) { %> AND <% print(billingProID); } %>
   ),
   insurance_flag_cte AS (
     SELECT
@@ -87,7 +90,7 @@ WITH study_cte AS (
               other_sum AS other,
               not_assigned_sum AS not_assigned,
               insurance_sum + lop_sum + other_sum + not_assigned_sum AS total,
-              NULL::DATE AS sort_calim_date 
+              NULL::DATE AS sort_calim_date
             FROM
               modality_sum_cte AS c
             LEFT JOIN modalities AS m ON c.modality_id = m.id
@@ -100,7 +103,7 @@ WITH study_cte AS (
           other_sum AS other,
           not_assigned_sum AS not_assigned,
           insurance_sum + lop_sum + other_sum + not_assigned_sum AS total,
-          NULL::DATE AS sort_calim_date 
+          NULL::DATE AS sort_calim_date
         FROM
           grand_sum_cte
         UNION
@@ -119,7 +122,7 @@ WITH study_cte AS (
   )
     SELECT
       CASE WHEN claim_dt IS NULL THEN NULL
-       ELSE modality_code 
+       ELSE modality_code
       END AS "Modality",
       CASE WHEN modality_code IS NOT NULL AND claim_dt IS NULL THEN 'Modality Totals'
            WHEN modality_code IS NULL AND claim_dt IS NULL THEN 'Grand Total'
@@ -131,7 +134,9 @@ WITH study_cte AS (
       not_assigned AS "Not Assigned",
       total AS "Total"
    FROM union_cte
-   ORDER BY modality_code, sort_calim_date   
+   ORDER BY
+         modality_code
+       , sort_calim_date
 `);
 
 const api = {
@@ -143,9 +148,11 @@ const api = {
     getReportData: (initialReportData) => {
         return Promise.join(
             api.createInsuranceVSLOPDataSet(initialReportData.report.params),
+            dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
             // other data sets could be added here...
-            (InsuranceVSLOPDataSet) => {
-                // add report filters                
+            (InsuranceVSLOPDataSet, providerInfo) => {
+                // add report filters
+                initialReportData.lookups.billingProviderInfo = providerInfo || [];
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 // add report specific data sets
@@ -189,6 +196,21 @@ const api = {
 
         filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
         filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
+
+        if (params.allFacilities && params.facilityIds)
+            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
+        else {
+            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
+            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
+        }
+
+        // Billing provider Filter
+        if (params.allBillingProvider == 'true')
+            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
+        else {
+            const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
+            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
+        }
         return filtersUsed;
     },
 
@@ -211,14 +233,16 @@ const api = {
         const params = [];
         const filters = {
             companyId: null,
-            claimDate: null
+            claimDate: null,
+            facilityIds: null,
+            billingProID: null
         };
 
         // company id
         params.push(reportParams.companyId);
         filters.companyId = queryBuilder.where('bc.company_id', '=', [params.length]);
 
-        //  scheduled_dt
+        //  claim_date
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);
             filters.claimDate = queryBuilder.whereDate('bc.claim_dt', '=', [params.length], 'f.time_zone');
@@ -226,6 +250,18 @@ const api = {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
             filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+        }
+
+        //claim facilities
+        if (!reportParams.allFacilities && reportParams.facilityIds) {
+            params.push(reportParams.facilityIds);
+            filters.facilityIds = queryBuilder.whereIn('bc.facility_id', [params.length]);
+        }
+
+        // billingProvider single or multiple
+        if (reportParams.billingProvider) {
+            params.push(reportParams.billingProvider);
+            filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
         }
 
         return {

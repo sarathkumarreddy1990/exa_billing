@@ -63,7 +63,7 @@ module.exports = {
                                     billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'allowed','patient',${params.patient_id},o.facility_id)::NUMERIC
                                   END) as allowed_fee
                                 , COALESCE(sc.units,'1')::NUMERIC AS units
-                                , sc.authorization_info->'authorization_no' AS authorization_no
+                                , COALESCE ( NULLIF(sc.authorization_info->'Primary', '')::json->'authorization_no', 'null') AS authorization_no
                                 , display_description
                                 , additional_info
                                 , sc.cpt_code_id AS cpt_id
@@ -79,7 +79,7 @@ module.exports = {
                         ,claim_details AS (
                                     SELECT
                                         orders.facility_id,
-                                        order_info->'currentDate' AS current_illness_date,
+                                        studies_details.accident_date AS current_illness_date,
                                         order_info->'similarIll' AS same_illness_first_date,
                                         order_info->'wTo' AS unable_to_work_to_date,
                                         order_info->'wFrom' AS unable_to_work_from_date,
@@ -89,9 +89,9 @@ module.exports = {
                                         order_info->'original_ref' AS original_reference,
                                         order_info->'authorization_no' AS authorization_no,
                                         order_info->'frequency_code' AS frequency,
-                                        COALESCE(NULLIF(order_info->'oa',''), 'false')::boolean AS is_other_accident,
-                                        COALESCE(NULLIF(order_info->'aa',''), 'false')::boolean AS is_auto_accident,
-                                        COALESCE(NULLIF(order_info->'emp',''), 'false')::boolean AS is_employed,
+                                        studies_details.oa AS is_other_accident,
+                                        studies_details.aa AS is_auto_accident,
+                                        studies_details.emp AS is_employed,
                                         orders.referring_providers [ 1 ] AS ref_prov_full_name,
                                         referring_provider_ids [ 1 ] AS referring_provider_contact_id,
                                         (   SELECT
@@ -112,7 +112,6 @@ module.exports = {
                                         order_info -> 'ordering_facility_id' AS ordering_facility_id,
                                         order_info -> 'ordering_facility' AS ordering_facility_name,
                                         orders.order_status AS order_status,
-                                        order_info -> 'billing_provider' AS billing_provider_id,
                                         order_info -> 'pos_type_code' AS pos_type_code,
                                         p.full_name AS patient_name,
                                         p.account_no AS patient_account_no,
@@ -130,11 +129,19 @@ module.exports = {
                                         JOIN LATERAL (
                                             SELECT
                                                 providers.full_name AS reading_phy_full_name,
-                                                reading_physician_id as rendering_provider_contact_id
-                                                FROM
-                                                public.studies s LEFT JOIN provider_contacts ON   provider_contacts.id = s.reading_physician_id
+                                                reading_physician_id as rendering_provider_contact_id,
+                                                COALESCE ( NULLIF(cpt.authorization_info->'Primary', '')::json->'accident_date', null)::text  AS accident_date,
+                                                COALESCE ( NULLIF(cpt.authorization_info->'Primary', '')::json->'aa', 'false')::text::boolean AS aa,
+                                                COALESCE ( NULLIF(cpt.authorization_info->'Primary', '')::json->'oa', 'false')::text::boolean AS oa,
+                                                COALESCE ( NULLIF(cpt.authorization_info->'Primary', '')::json->'emp', 'false')::text::boolean AS emp
+                                            FROM
+                                                public.studies s
+                                                LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
+                                                LEFT JOIN public.study_cpt cpt ON cpt.study_id = s.id
+                                                LEFT JOIN provider_contacts ON   provider_contacts.id = st.approving_provider_id
                                                 LEFT JOIN providers ON providers.id = provider_contacts.provider_id
-                                                WHERE s.id = ${firstStudyId} LIMIT 1
+                                                WHERE s.id = ${firstStudyId}
+                                                ORDER BY cpt.id ASC LIMIT 1
                                         ) as studies_details ON TRUE
                                     WHERE orders.id IN (SELECT order_id FROM public.studies s WHERE s.id = ${firstStudyId})
                             )

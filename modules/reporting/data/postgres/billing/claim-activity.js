@@ -9,7 +9,7 @@ const _ = require('lodash')
 
 const claimActivityDataSetQueryTemplate = _.template(`
 with claim_details as (
-SELECT 
+SELECT
     bc.id as claim_id,
     get_full_name(p.last_name,p.first_name,p.middle_name,p.prefix_name,p.suffix_name) as patient_name,
     p.account_no as account_no,
@@ -19,10 +19,10 @@ SELECT
     pg.group_name as ordering_facility,
     f.time_zone as facility_timezone,
     f.facility_code as facility_code
-FROM 
+FROM
    billing.claims bc
    INNER JOIN public.patients p on p.id = bc.patient_id
-   INNER JOIN public.facilities f on f.id = bc.facility_id 
+   INNER JOIN public.facilities f on f.id = bc.facility_id
    LEFT JOIN public.provider_contacts pcref on pcref.id = bc.referring_provider_contact_id
    LEFT JOIN public.providers ppref on ppref.id =pcref.provider_id
    LEFT JOIN public.provider_contacts pcren on pcren.id = bc.rendering_provider_contact_id
@@ -32,12 +32,13 @@ FROM
    WHERE 1=1
    AND  <%= companyId %>
    AND <%= claimDate %>
-   <% if (facilityIds) { %>AND <% print(facilityIds); } %>  
+   <% if (facilityIds) { %>AND <% print(facilityIds); } %>
    <% if(billingProID) { %> AND <% print(billingProID); } %>
       ),
 
 charge_details as (
-SELECT 
+SELECT
+    ps.accession_no as accession_no,
     cd.claim_id as claim_id,
     cd.patient_name as patient_name,
     cd.account_no as account_no,
@@ -61,15 +62,17 @@ from
     INNER JOIN billing.charges bch on bch.claim_id = cd.claim_id
     INNER JOIN public.cpt_codes pcpt on pcpt.id = bch.cpt_id
     INNER JOIN public.users u on u.id = bch.created_by
+    LEFT JOIN billing.charges_studies bchs on bchs.charge_id = bch.id
+    LEFT JOIN public.studies ps on ps.id = bchs.study_id
     LEFT JOIN public.modifiers pm1 on pm1.id = bch.modifier1_id
     LEFT JOIN public.modifiers pm2 on pm2.id = bch.modifier2_id
     LEFT JOIN public.modifiers pm3 on pm3.id = bch.modifier3_id
     LEFT JOIN public.modifiers pm4 on pm4.id = bch.modifier4_id
-    GROUP BY cd.claim_id,cd.patient_name,cd.claim_date,claim_date,cd.account_no,
+    GROUP BY cd.claim_id,cd.patient_name,cd.claim_date,claim_date,cd.account_no,ps.accession_no,
     referring_physician,reading_physician,ordering_facility,facility_code,payment_id,
     payment_date,accounting_date,pcpt.display_code,pcpt.display_description,amount,
     created_on,created_by,pm1.code,pm2.code,pm3.code,
-    pm4.code,get_full_name(u.last_name,u.first_name,u.middle_initial,null,u.suffix) 
+    pm4.code,get_full_name(u.last_name,u.first_name,u.middle_initial,null,u.suffix)
 ),
 
 payment_details as(
@@ -82,7 +85,7 @@ SELECT
     cd.reading_physician as reading_physician,
     cd.ordering_facility as ordering_facility,
     cd.facility_code as facility_code,
-    ('payment')::text as type,
+    pa.amount_type as type,
     bp.id as payment_id,
     bp.payment_dt::date as payment_date,
     bp.accounting_dt::date as accounting_date,
@@ -99,7 +102,8 @@ SELECT
     array['']::text[] as modifiers,
     sum(pa.amount) as amount,
     bp.payment_dt::date as created_on,
-    get_full_name(u.last_name,u.first_name,u.middle_initial,null,u.suffix) as created_by
+    get_full_name(u.last_name,u.first_name,u.middle_initial,null,u.suffix) as created_by,
+    null as accession_no
 FROM claim_details cd
      INNER JOIN billing.charges bch on bch.claim_id = cd.claim_id
      INNER JOIN billing.payment_applications pa on pa.charge_id= bch.id
@@ -111,10 +115,11 @@ FROM claim_details cd
      LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
      LEFT JOIN public.providers p on p.id = pc.provider_id
      GROUP by bp.id,cd.claim_id,cd.patient_name,cd.account_no,cd.claim_date, cd.referring_physician,
-     cd.reading_physician,cd.ordering_facility,cd.facility_code,bp.payment_dt,bp.accounting_dt,description
-     ,modifiers,created_on,get_full_name(u.last_name,u.first_name,u.middle_initial,null,u.suffix)
+     cd.reading_physician,cd.ordering_facility,cd.facility_code,bp.payment_dt,bp.accounting_dt,description,pa.amount_type,
+     modifiers,created_on,get_full_name(u.last_name,u.first_name,u.middle_initial,null,u.suffix)
 )
 SELECT
+    accession_no as "Accession No",
     claim_id as "Claim#",
     patient_name as "Patient Name",
     account_no as "Account#",
@@ -137,6 +142,7 @@ FROM
     charge_details
 UNION ALL
 SELECT
+    accession_no,
     claim_id,
     patient_name,
     account_no,
@@ -159,9 +165,9 @@ FROM
     payment_details
 ORDER BY
 "Claim#",
-"Account#",
+"Accession No",
 "Payment ID",
-"CPT Code"
+"Type"
 DESC
 `);
 
@@ -177,7 +183,7 @@ const api = {
             dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
             // other data sets could be added here...
             (claimActivityDataSet, providerInfo) => {
-                // add report filters  
+                // add report filters
                 initialReportData.lookups.billingProviderInfo = providerInfo || [];
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
