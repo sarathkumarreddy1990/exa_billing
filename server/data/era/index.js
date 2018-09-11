@@ -306,7 +306,7 @@ module.exports = {
                                     ,note text
                                     ,type text
                                 )
-                            INNER JOIN matched_claims mc on mc.claim_id = claim_notes.claim_number
+                            WHERE EXISTS ( SELECT claim_id FROM matched_claims WHERE claim_id = claim_notes.claim_number LIMIT 1 )
                             RETURNING id AS claim_comment_id
                         ),
                             update_claim_status_and_payer AS (

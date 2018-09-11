@@ -142,7 +142,7 @@ define([
                     },
                     ondblClickRow: function (rowID) {
                         var gridData = $('#tblEOBFileList').jqGrid('getRowData', rowID);
-                        if (['failure', 'success'].indexOf(gridData.current_status) == -1) {
+                        if (['failure', 'success'].indexOf(gridData.current_status.toLowerCase()) == -1) {
                             self.processFile(rowID, gridData, null);
                         }
                         else {

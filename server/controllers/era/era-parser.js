@@ -62,7 +62,8 @@ module.exports = {
         _.each(claimLists, function (obj) {
 
             if (obj.claimPaymentInformation && obj.claimPaymentInformation.length > 1) {
-                claimPaymentInformation = obj.claimPaymentInformation.map(item => { return { claimPaymentInformation: [item] }; });
+                let tempArray = obj.claimPaymentInformation.map(item => { return { claimPaymentInformation: [item] }; });
+                claimPaymentInformation = claimPaymentInformation.concat(tempArray);
             }
 
         });
