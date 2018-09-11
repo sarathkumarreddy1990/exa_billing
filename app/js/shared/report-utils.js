@@ -254,7 +254,7 @@ define([
                                 q: params.term || '',
                                 pageSize: 10,
                                 sortField: "group_name",
-                                sortOrder: "ASC",                               
+                                sortOrder: "ASC",
                                 company_id: 1
                             };
                         },

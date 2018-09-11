@@ -106,14 +106,14 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
-          // convert Array of Referring provider Ids String to Integer
-        if(initialReportData.report.params.refProviderGroupList) {
-            initialReportData.report.params.refProviderGroupList =  initialReportData.report.params.refProviderGroupList.map(Number);
+        // convert Array of Referring provider Ids String to Integer
+        if (initialReportData.report.params.refProviderGroupList) {
+            initialReportData.report.params.refProviderGroupList = initialReportData.report.params.refProviderGroupList.map(Number);
         }
         return Promise.join(
             api.createreadingProviderFeesDataSet(initialReportData.report.params),
             dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
-            dataHelper.getProviderGroupInfo(initialReportData.report.params.companyId,initialReportData.report.params.refProviderGroupList),
+            dataHelper.getProviderGroupInfo(initialReportData.report.params.companyId, initialReportData.report.params.refProviderGroupList),
             // other data sets could be added here...
             (readingProviderFeesDataSet, providerInfo, providerGroupList) => {
                 // add report filters  
@@ -168,15 +168,15 @@ const api = {
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
         }
 
-      //   Provider Group Filter
-      if(params.refProviderGroupList)  {
-        const refProviderGroupNames = _(lookups.providerGroupList).map(f => f.name).value();
-        filtersUsed.push({name: 'providerGroupList', label: 'Provider Group', value: refProviderGroupNames });
-    }
-    else {
-        filtersUsed.push({name: 'providerGroupList', label: 'Provider Group', value: 'All'});
-    }  
-      
+        //   Provider Group Filter
+        if (params.refProviderGroupList) {
+            const refProviderGroupNames = _(lookups.providerGroupList).map(f => f.name).value();
+            filtersUsed.push({ name: 'providerGroupList', label: 'Provider Group', value: refProviderGroupNames });
+        }
+        else {
+            filtersUsed.push({ name: 'providerGroupList', label: 'Provider Group', value: 'All' });
+        }
+
 
         filtersUsed.push({ name: 'fromDate', label: 'From', value: params.fromDate });
         filtersUsed.push({ name: 'toDate', label: 'To', value: params.toDate });
@@ -228,12 +228,12 @@ const api = {
             filters.claimDate = queryBuilder.whereDateBetween('bp.accounting_dt', [params.length - 1, params.length], 'f.time_zone');
         }
 
-         //  Provider Group Single or Multiple
-        if (reportParams.refProviderGroupList)  {
+        //  Provider Group Single or Multiple
+        if (reportParams.refProviderGroupList) {
             params.push(reportParams.refProviderGroupList);
             filters.providerGroupID = queryBuilder.whereIn('cppc.provider_group_id ', [params.length]);
         }
-        
+
 
         // billingProvider single or multiple
         if (reportParams.billingProvider) {
