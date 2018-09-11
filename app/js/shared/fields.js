@@ -420,7 +420,13 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_info": {
                         "name": "billing_notes",
                         "width": 100,
-                        "defaultValue": ""
+                        "defaultValue": "",
+                        "formatter": function ( cellvalue ) {
+                            cellvalue = cellvalue || '';
+                            cellvalue = cellvalue.replace(/(?:\n)/g, '<br />');
+                            var regex = /<br\s*[\/]?>/gi;
+                            return cellvalue.replace(regex, "\n");
+                        }
                     }
 
                 },

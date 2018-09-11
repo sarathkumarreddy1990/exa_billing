@@ -209,9 +209,9 @@ module.exports = {
 						communication_info->'interchangeReceiverIdQualifier' as "interchangeReceiverIDQualifier",
 						communication_info->'interchangeReceiverId' as "interchangeReceiverID",
 						communication_info->'interchangeControlStandardsIdentifier' as "interchangeCtrlStdIdentifier",
-                        communication_info->'interchangeControlStandardsIdentifier' as "repetitionSeparator",
-						communication_info->'implementationConventionRef' as "interchangeCtrlVersionNo",
-						communication_info->'interchangeControlVersionNumber' as "interchangeCtrlNo",
+                        communication_info->'implementationConventionRef' as "implementationConventionRef",
+                        nextval('billing.interchange_control_no_seq') as "interchangeCtrlNo",
+						communication_info->'interchangeControlVersionNumber' as "interchangeCtrlVersionNo",
 						(CASE communication_info->'acknowledgementRequested'
 											WHEN 'true' THEN '0'
 											WHEN 'false' THEN '1' END ) as "acqRequested",
