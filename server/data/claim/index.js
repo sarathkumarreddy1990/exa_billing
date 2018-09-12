@@ -150,14 +150,14 @@ module.exports = {
                                             DISTINCT icd_codes.id
                                             ,code
                                             ,icd_codes.description
-                                            ,order_no
+                                            ,pi.order_no
                                         FROM public.icd_codes
                                         INNER JOIN patient_icds pi ON pi.icd_id = icd_codes.id
                                         INNER JOIN public.orders o on o.id = pi.order_id
                                         INNER JOIN public.studies s ON s.order_id = o.id
                                         WHERE s.id = ANY(${studyIds})
                                         AND s.has_deleted = FALSE
-                                        ORDER BY order_no
+                                        ORDER BY pi.order_no
                             )
                             SELECT  ( SELECT COALESCE(json_agg(row_to_json(charge)),'[]') charges
 		                                FROM (

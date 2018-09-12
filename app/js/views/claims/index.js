@@ -967,6 +967,7 @@ define(['jquery',
                             claim_date: self.cur_study_date || 'now()'
                         },
                         success: function (model, response) {
+                            self.claimICDLists =[];
                             if (model && model.length > 0) {
                                 $('#tBodyCharge').empty();
                                 var modelDetails = model[0];
