@@ -1005,15 +1005,14 @@ define([
 
             faxReport: function(patientActivityParams, reportUrl) {
                 $.ajax({
-                    url: '/queueReport',
+                    url: '/faxReport',
                     type: 'POST',
                     data: {
+                        facility_id: app.userInfo.default_facility_id,
                         receiverType: 'OT',
                         receiverName: $('#txtOtherFaxName').val(),
-                        deliveryMethod: 'FX',
                         deliveryAddress: $('#txtOtherFaxNumber').val(),
                         reportUrl: reportUrl,
-                        reportFormat: 'application/pdf',
                         patientId: patientActivityParams.patientId,
                         claimId: patientActivityParams.claimID
                     },
