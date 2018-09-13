@@ -200,8 +200,7 @@
             "allActivity": "All Activity",
             "activityByDate": "Activity By Date",
             "comment": "Include All Comments",
-            "unappliedPay": "Unapplied Payments",
-            "fax": "Fax"
+            "unappliedPay": "Unapplied Payments"
         },
         "refund": {
             "scheduleDate": "Schedule Date",

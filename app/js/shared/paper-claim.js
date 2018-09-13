@@ -35,6 +35,8 @@ define([
                 var self = this;
                 var win = null;
 
+                options = options || {};
+
                 if (!this.pdfDetails[templateType]) {
                     return commonjs.showError('Not yet implemented');
                 }

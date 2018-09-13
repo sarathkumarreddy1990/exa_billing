@@ -142,7 +142,7 @@ define([
                     },
                     ondblClickRow: function (rowID) {
                         var gridData = $('#tblEOBFileList').jqGrid('getRowData', rowID);
-                        if (['failure', 'success'].indexOf(gridData.current_status) == -1) {
+                        if (['failure', 'success'].indexOf(gridData.current_status.toLowerCase()) == -1) {
                             self.processFile(rowID, gridData, null);
                         }
                         else {
@@ -177,7 +177,7 @@ define([
                     fileUploadedObj.innerHTML = '';
                 }
             },
-            
+
             setPhoneMask: function (obj1, obj2) {
                 $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar input[name=id]").addClass('integerbox');
                 commonjs.validateControls();
@@ -206,6 +206,7 @@ define([
                     company_id: app.companyID
                 });
                 $('#btnProcessPayment').prop('disabled', true);
+                commonjs.showLoading();
                 $.ajax({
                     url: '/exa_modules/billing/era/process-file',
                     type: "POST",
@@ -249,10 +250,12 @@ define([
                                 //commonjs.showWarning('Already Payment Processed');
                             }
                             $('#btnProcessPayment').prop('disabled', false);
+                            commonjs.hideLoading();
                         }
 
                     },
                     error: function (err, response) {
+                        commonjs.hideLoading();
                         commonjs.handleXhrError(err, response);
                     }
                 });
@@ -363,7 +366,7 @@ define([
                 var fileUploadedObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileNameUploaded');
                 var fileDuplicateObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileIsDuplicate');
                 var fileStoreExist = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileStoreExist');
-                
+
                 var hdnPreviewFileName = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('hdnPreviewFileName');
 
                 if(hdnPreviewFileName && hdnPreviewFileName.innerHTML && hdnPreviewFileName.innerHTML.length > 0) {
@@ -446,7 +449,7 @@ define([
                             if (model && model.rows && model.rows.length) {
                                 var $eraTable = $('#eraResultTable');
                                 fileName = fileName.substr(0, fileName.lastIndexOf('.'));
-                                
+
                                 var ins = model.rows[0];
                                 var claims = [];
 
@@ -477,14 +480,14 @@ define([
                                     row["totalAllowedFee"] = totalAllowedFee;
                                     row["totalAdjusmtment"] = totalAdjusmtment;
                                 });
-                                
+
                                 $('#eraResultTitle').html('Result : ' + fileName);
-                                commonjs.showDialog({ 
-                                    header: 'Result : ' + fileName, 
-                                    width: '80%', 
-                                    height: '70%', 
+                                commonjs.showDialog({
+                                    header: 'Result : ' + fileName,
+                                    width: '80%',
+                                    height: '70%',
                                     padding: '0px',
-                                    html: self.eraResponseTemplate({ claims: claims, ins: ins }) 
+                                    html: self.eraResponseTemplate({ claims: claims, ins: ins })
                                 });
 
                                 try {
@@ -495,7 +498,7 @@ define([
                                 catch (err) {
                                     console.log(err);
                                 }
-                                
+
                                 $('#divResponseSection').height($(window).height() - 450);
                                 $('#era-processed-preview').height(($(window).height() - 360));
                             }

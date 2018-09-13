@@ -605,7 +605,7 @@ function customGrid ( datastore, gridID ) {
         self.setSearchQuery();
         if (self.options.gridelementid === "#tblpaymentsGrid") {
             commonjs.paymentFilterFields = [];
-        }       
+        }
         var customArgs = null;
         var params = $tblGrid.jqGrid("getGridParam");
         if ( params && params.customargs ) {
@@ -620,7 +620,7 @@ function customGrid ( datastore, gridID ) {
         /*if ( !isScroll || typeof isScroll === 'function' ) {
             self.datastore.reset();
         }*/
-
+        $("#chkStudyHeader_"+self.options.filterid ).prop('checked',false);
         var nextIndex = self.datastore.length;
         var filterData = self.pager.get('FilterData');
         var filterCol = self.pager.get('FilterCol');
@@ -628,6 +628,7 @@ function customGrid ( datastore, gridID ) {
         // Added fromDate/toDate
         var _fromDate = (self.fromDate && $(self.fromDate).length)? $(self.fromDate).val() : null;
         var _toDate = (self.toDate && $(self.toDate).length)? $(self.toDate).val() : null;
+
 
         var _data = {
             "pageNo": self.pager.get('PageNo'),
@@ -670,7 +671,7 @@ function customGrid ( datastore, gridID ) {
                     // console.log('datastore.fetch, url: %s, data: %O', self.datastore.url ? self.datastore.url: "---", _data);
                     // console.log('datastore.fetch, response: %O', response);
                     //app.workListStudiesData = response.result;
-                    
+
                     if ( typeof isScroll === 'function' ) {
                         isScroll(self);
                     }
@@ -751,9 +752,9 @@ function customGrid ( datastore, gridID ) {
             paymentFilterValues =  $.grep(commonjs.paymentFilterFields, function (obj) {
                     return obj && (obj.split('~')[0] == elementID)
             });
-            return paymentFilterValues[0].split('~')[1];   
+            return paymentFilterValues[0].split('~')[1];
         }else return '';
-       
+
     };
 
     this.setSearchQuery = function () {
@@ -762,7 +763,7 @@ function customGrid ( datastore, gridID ) {
         var filterCol = [];
         var searchFlagArr=[];
         var $toolBar = $('#gview_' + self.options.gridelementid.replace('#', '')).find('.ui-search-toolbar');
-        
+
         var elements = $toolBar.find('.ui-th-column')
             .filter(function() {
                 var element = $(this);
@@ -872,7 +873,7 @@ function customGrid ( datastore, gridID ) {
                 $("#liINPN").addClass('disabled');
                 $("#liPP").addClass('disabled');
                 $("#btnClaimFormat").attr('data-method', 'paper_claim');
-                
+
                 if (localStorage.getItem('default_paperclaim')) {
                     $("#btnClaimFormat").text(localStorage.getItem('default_paperclaim'));
                     $("#btnClaimFormat").attr('data-format', localStorage.getItem('default_paperclaim_format'));
@@ -1346,7 +1347,7 @@ function customGrid ( datastore, gridID ) {
         return fieldValue.replace(/'/g, "''").replace(/_/g, '\\_');
     };
 
-    this.getRowCount = function () {      
+    this.getRowCount = function () {
         return (typeof app.currentrowsToDisplay == 'undefined' || !app.currentrowsToDisplay ) ? 25 : app.currentrowsToDisplay;
     };
 

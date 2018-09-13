@@ -777,19 +777,20 @@ define(['jquery',
                 }, 500);
             },
 
-            paymentTabClick: function () {
+            paymentTabClick: function (from) {
                 $(".nav-item").on("click", function (e) {
                     setTimeout(function () {
                         if (e.target.id == 'aAppliedPayments') {
                             $('#gbox_tblAppliedPaymentsGrid').find("#gs_claim_id").focus();
                         } else if (e.target.id == 'aPeningPaymentsWithAccInv') {
                             $('#gbox_tblpendPaymentsGrid').find("#gs_claim_id").focus();
+                            if (from === 'save') $('#btnBackToPatient').click();
 
-                            if($('#chkIpEob').is(":checked")){
+                            if ($('#chkIpEob').is(":checked")) {
                                 $("#claimId").focus();
-                            }else if($('#chkIpInvoice').is(":checked")){
+                            } else if ($('#chkIpInvoice').is(":checked")) {
                                 $("#invoiceNo").focus();
-                            }else{
+                            } else {
                                 $("#lname").focus();
                             }
 
@@ -798,7 +799,7 @@ define(['jquery',
                         }
                     }, 100);
 
-               });
+                });
             },
 
             bindDateRangeOnSearchBox: function (gridObj, gridId) {
@@ -1030,7 +1031,7 @@ define(['jquery',
                                     else
                                         Backbone.history.navigate('#billing/payments/edit/' + model.attributes[0].id, true);
                                 }
-                                self.paymentTabClick();
+                                self.paymentTabClick('save');
 
                             },
                             error: function (err, response) {
@@ -1116,9 +1117,6 @@ define(['jquery',
                         payerType: payerType
                     },
                     onaftergridbind: function (model, gridObj) {
-                        if (self.saveClick) {
-                            $('#gbox_tblpendPaymentsGridOnly').find("#gs_claim_id").focus();
-                        }
                         self.setMoneyMask();
                         //$("#gs_claim_id").focus()
                     }
@@ -1231,11 +1229,6 @@ define(['jquery',
                         onaftergridbind: function (model, gridObj) {
 
                             self.setMoneyMask();
-                            if (self.saveClick || self.dblclickPat ) {
-                                $('#gbox_tblpendPaymentsGrid').find("#gs_claim_id").focus();
-                                self.dblclickPat = false;
-                            }
-
 
                             if (gridObj.options && gridObj.options.customargs && gridObj.options.customargs.claimIdToSearch) {
                                 self.order_payment_id = 0;
@@ -1243,14 +1236,13 @@ define(['jquery',
                                 if (rowID && rowID.length) {
                                     var gridData = $('#tblpendPaymentsGrid').jqGrid('getRowData', rowID[0]);
                                     self.showApplyAndCas(gridData.claim_id, paymentID || self.payment_id, 'pending', gridData.charge_id, gridData);
-                                    $("#divGrid_pendPayments").show();
                                 } else {
                                     commonjs.showWarning('Invalid claim id ' + gridObj.options.customargs.claimIdToSearch);
-                                    $('#btnBackToPatient').click();
-                                    $('#lname').focus();
                                 }
+                                $('#btnBackToPatient').click();
+                                $('#claimId').focus();
 
-                            }else{
+                            } else {
                                 $("#divGrid_pendPayments").show();
                             }
 
@@ -2036,7 +2028,8 @@ define(['jquery',
                             // }
                             // else {
                             paymentStatus != 'applied' ? paymentApplicationId = model[0].details.create_payment_applications.payment_application_id : paymentApplicationId;
-                            self.getClaimBasedCharges(claimId, paymentId, 'applied', chargeId, paymentApplicationId, false)
+                            self.getClaimBasedCharges(claimId, paymentId, 'applied', chargeId, paymentApplicationId, false);
+                            $('.modal-footer button').focus();
                             // }
                         },
                         error: function (err, response) {

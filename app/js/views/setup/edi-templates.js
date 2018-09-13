@@ -265,7 +265,10 @@ define([
                     type: 'DELETE',
                     success: function (data, response) {
                         if(data.err){
-                            commonjs.showWarning("Template Not Found");
+                            if(data.err.indexOf("edi_clearinghouses_edi_template_id_fk") > -1) {
+                                return commonjs.showError('Dependent records found');
+                            }
+                            commonjs.handleXhrError(data.err);
                         }else{
                             commonjs.showStatus("Deleted Successfully");
                             self.cancel();

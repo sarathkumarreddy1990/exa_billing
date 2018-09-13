@@ -39,6 +39,7 @@
         "insurances": "Insurance",
         "insuranceProvider": "Insurance Provider",
         "cpt": "CPT",
-        "commentDate" : "Comment Date"
+        "commentDate" : "Comment Date",
+        "providerGroups" : "Provider Group"
     }
 }

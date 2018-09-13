@@ -245,7 +245,7 @@ define([
                 var self = this;
                 $("#txtProviderGroupName").select2({
                     ajax: {
-                        url: "/exa_modules/billing/autoCompleteRouter/provider_group",
+                        url: "/exa_modules/billing/autoCompleteRouter/provider_group_info",
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
@@ -255,7 +255,6 @@ define([
                                 pageSize: 10,
                                 sortField: "group_name",
                                 sortOrder: "ASC",
-                                groupType: 'OF',
                                 company_id: 1
                             };
                         },
@@ -281,7 +280,7 @@ define([
                         return repo.text;
                     }
                     var markup = "<table class='ref-result' style='width: 100%'><tr>";
-                    markup += "<td class='movie-info'><div class='movie-title'><b>" + repo.group_name + "</b> data-id='" + repo.id + "'</div>";
+                    markup += "<td class='movie-info'><div class='movie-title'><b>" + repo.group_name + "</b> </div>";
                     markup += "</td></tr></table>";
                     return markup;
 

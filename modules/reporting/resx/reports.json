@@ -670,7 +670,7 @@
             },
             "xlsx": {
                 "template": {
-                    "name": "default-table-excel"
+                    "name": "billing-claim-inquiry-excel"
                 }
             },
             "csv": {

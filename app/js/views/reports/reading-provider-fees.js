@@ -25,7 +25,9 @@ define([
                 reportFormat: null,
                 reportDate: null,
                 billingProvider: null,
-                allBillingProvider: false
+                allBillingProvider: false,
+                allRefProList: false,
+                refProviderGroupList: null,
             },
             selectedFacilityList: [],
             defaultyFacilityId: null,
@@ -35,7 +37,9 @@ define([
                 'click #btnPdfReport': 'onReportViewClick',
                 'click #btnExcelReport': 'onReportViewClick',
                 'click #btnCsvReport': 'onReportViewClick',
-                'click #btnXmlReport': 'onReportViewClick'
+                'click #btnXmlReport': 'onReportViewClick',
+                "click #ddlReferringPhysicianOption": "onReferringDoctorBinding",
+                "click #ddlRefProviderGroupOption": "onReferringProviderGroupBinding",
             },
 
             initialize: function (options) {
@@ -76,6 +80,9 @@ define([
                 });
                 // Binding Billing Provider MultiSelect
                 UI.bindBillingProvider();
+                
+                //Provider Group Multiselect              
+                UI.bindReferringPhysicianGroupAutoComplete('txtReferringPhysician', 'btnAddReferringPhysician', 'ulListReferringPhysicians');
             },
 
             bindDateRangePicker: function () {
@@ -125,6 +132,12 @@ define([
                 var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnViewReportNewTabReadingFees' : false;
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = openInNewTab && rFormat === 'html';
+
+                this.viewModel.refProviderGroupList = $('ul#ulListProviderGroup li').map(function () {
+                    return this.id;
+                }).get();
+
+
                 if (this.hasValidViewModel()) {
                     var urlParams = this.getReportParams();
                     UI.showReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
@@ -143,7 +156,23 @@ define([
                 }
 
                 return true;
-            },           
+            },
+
+
+            // Binding Referring Provider Group Auto Complete
+            onReferringProviderGroupBinding: function () {
+                if ($('#ddlRefProviderGroupOption').val() == 'S') {
+                    $('#ddlProviderGroupBox').show();
+                    $('#divListProviderGroup').show();
+                }
+                else {
+                    $('#ddlProviderGroupBox').hide();
+                    $('#divListProviderGroup').hide();
+                    $('#ulListProviderGroup').empty();
+                    this.viewModel.refProviderGroupList = [];
+                    $('#ulListProviderGroup').data('ids', []);
+                }
+            },
 
 
             getReportParams: function () {
@@ -154,7 +183,8 @@ define([
                     'toDate': this.viewModel.dateTo.format('YYYY-MM-DD'),
                     'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
-                    'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false
+                    'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
+                    'refProviderGroupList': this.viewModel.refProviderGroupList ? this.viewModel.refProviderGroupList : [],
                 };
             }
         });

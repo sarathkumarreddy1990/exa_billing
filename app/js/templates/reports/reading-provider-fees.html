@@ -1,10 +1,11 @@
 <form class="form-horizontal form-list" novalidate="" _lpchecked="1">
 
     <!-- row: form elements -->
-    <div class="col-xs-12 col-md-12 col-lg-12">
+    <div class="row">
+
 
         <!-- col: form elements -->
-        <div class="col-xs-4">
+        <div class="col-3">
             <div class="form-group form-inline">
                 <div>
                     <label class="control-label" for="txtDateRangeFromTo" i18n="report.accountingDate" />
@@ -17,7 +18,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-xs-4">
+        <div class="col-3">
             <div class="form-group form-inline">
                 <div class="col-form-label" class="multiselect">
                     <label class="control-label" i18n="report.facilities" />
@@ -31,18 +32,61 @@
                 </div>
             </div>
         </div>
-        <div class="col-xs-4" style="display:none;">
-            <div class="form-group form-inline">
-                <div class="col-form-label">
-                    <label class="control-label">Billing Provider
-                    </label>
+
+        <div class="col-3">
+            <div class="form-group form-inline" id="refProviderGroup" style="">
+                <div class="col-form-label" style="max-width: 100px">
+                    <label class="control-label" i18n="report.providerGroups"></label>
                 </div>
-                <div class="col-form-label" class="multiselect">
-                    <select id="ddlBillingProvider" multiple="multiple" />
+                <div class="form-content">
+                    <div class="input-group" style="width: 250px;">
+                        <select id="ddlRefProviderGroupOption" class="form-control form-control-lg">
+                            <option value="All">All </option>
+                            <option value="S">Provider Group</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="ddlProviderGroupBox" class="form-group form-inline" style="display:none; width:300px">
+                    <div id="txtProviderGroupSelect">
+                        <label class="control-label" i18n="report.providerGroups"></label>
+                        <a class="btn btn-primary" id="btnAddProviderGroup" title="Add Referring Physican Group">
+                            <i class="icon-ic-plus"></i>
+                        </a>
+                    </div>
+                    <div style="width: 250px; margin-top:10px">
+                        <select id="txtProviderGroupName" tabindex="-1" class="select2-hidden-accessible" aria-hidden="true"> </select><span
+                            class="select2 select2-container select2-container--default" dir="ltr" style="width: auto;">
+
+                    </div>
                 </div>
             </div>
         </div>
-        <!-- /col: form elements -->
+
+        <div id="divListProviderGroup" style="display: none;">
+            <div class="col-form-label" style="max-width: 110px;">
+                <label class="inline field-chk" i18n="report.providerGroups"></label>
+            </div>
+            <div>
+                <ul id="ulListProviderGroup" class="ulSelectionList tagList" style="overflow: auto;width: 220px;height:90px; border: 1px solid;">
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xs-4" style="display:none;">
+        <div class="form-group form-inline">
+            <div class="col-form-label">
+                <label class="control-label">Billing Provider
+                </label>
+            </div>
+            <div class="col-form-label" class="multiselect">
+                <select id="ddlBillingProvider" multiple="multiple" />
+            </div>
+        </div>
+    </div>
+
+    <!-- /col: form elements -->
 
     </div>
     <!-- /row: form elements -->
