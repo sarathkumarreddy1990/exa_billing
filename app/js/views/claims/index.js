@@ -967,6 +967,7 @@ define(['jquery',
                             claim_date: self.cur_study_date || 'now()'
                         },
                         success: function (model, response) {
+                            self.claimICDLists =[];
                             if (model && model.length > 0) {
                                 $('#tBodyCharge').empty();
                                 var modelDetails = model[0];
@@ -2428,7 +2429,7 @@ define(['jquery',
                     var priSelf = ($('#ddl' + flag + 'RelationShip'+' option:selected').text()).toLowerCase();
                     ($.trim(priSelf) == 'self' || $.trim(priSelf) == 'select') ? $('#show'+ flag + 'Self').hide() : $('#show'+ flag + 'Self').show();
                     $('#txt' + flag + 'SubFirstName').val(result.subscriber_firstname);
-                    $('#txt' + flag + 'MiddleName').val(result.subscriber_middlename);
+                    $('#txt' + flag + 'SubMiName').val(result.subscriber_middlename);
                     $('#txt' + flag + 'SubLastName').val(result.subscriber_lastname);
                     $('#txt' + flag + 'SubSuffix').val(result.subscriber_name_suffix);
                     if (app.gender.indexOf(result.subscriber_gender) > -1) {
