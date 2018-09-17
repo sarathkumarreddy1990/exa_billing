@@ -97,7 +97,7 @@ define(['jquery',
                             page: params.page || 1,
                             q: params.term || '',
                             pageSize: 10,
-                            company_id: 1
+                            company_id: app.companyID
                         };
                     },
                     processResults: function (data, params) {
