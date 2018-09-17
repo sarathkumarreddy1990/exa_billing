@@ -375,6 +375,7 @@ define(['jquery',
 
                         if (model && model.length > 0) {
                             var claimDetails = model[0];
+                            $('.claimProcess').attr('disabled', false);
 
                             self.cur_patient_acc_no = claimDetails.patient_account_no;
                             self.cur_patient_name = claimDetails.patient_full_name;
@@ -523,6 +524,7 @@ define(['jquery',
                         }
                     },
                     error: function (model, response) {
+                        $('.claimProcess').attr('disabled', false);
                         commonjs.hideLoading();
                         commonjs.handleXhrError(model, response);
                     }
@@ -1550,7 +1552,7 @@ define(['jquery',
                                 pageSize: 10,
                                 sortField: "trim(display_description)",
                                 sortOrder: "asc",
-                                company_id: 1
+                                company_id: app.companyID
                             };
                         },
                         processResults: function (data, params) {
@@ -1683,7 +1685,7 @@ define(['jquery',
                                 pageSize: 10,
                                 sortField: "p.last_name",
                                 sortOrder: "asc",
-                                company_id: 1
+                                company_id: app.companyID
                             };
                         },
                         processResults: function (data, params) {
@@ -1762,7 +1764,7 @@ define(['jquery',
                                 pageSize: 10,
                                 sortField: "code",
                                 sortOrder: "ASC",
-                                company_id: 1
+                                company_id: app.companyID
                             };
                         },
                         processResults: function (data, params) {
@@ -2111,7 +2113,7 @@ define(['jquery',
                                 sortField: "group_name",
                                 sortOrder: "ASC",
                                 groupType: 'OF',
-                                company_id: 1
+                                company_id: app.companyID
                             };
                         },
                         processResults: function (data, params) {
@@ -2169,7 +2171,7 @@ define(['jquery',
                                 pageSize: 10,
                                 sortField: "insurance_code",
                                 sortOrder: "ASC",
-                                company_id: 1
+                                company_id: app.companyID
                             };
                         },
                         processResults: function (data, params) {
@@ -2626,7 +2628,7 @@ define(['jquery',
                         bill_fee: parseFloat($('#txtBillFee_' + id).val()) || 0.00,
                         allowed_amount: parseFloat($('#txtAllowedFee_' + id).val()) || 0.00,
                         units: parseFloat($('#txtUnits_' + id).val()) || 1.000,
-                        created_by: 1,
+                        created_by: app.userID,
                         authorization_no: $('#txtAuthInfo_' + id).val() || null,
                         charge_dt: self.cur_study_date || null,
                         study_id: rowData.study_id || null,
@@ -2668,12 +2670,14 @@ define(['jquery',
 
                     commonjs.showLoading();
                     saveButton.attr('disabled', true);
+                    $('.claimProcess').attr('disabled', true);
 
                     self.model.save({}, {
                         success: function (model, response) {
                             if (response && response.message) {
                                 commonjs.showWarning(response.message);
                                 saveButton.attr('disabled', false);
+                                $('.claimProcess').attr('disabled', false);
                             } else {
 
                                 if (self.isEdit) {
@@ -2715,11 +2719,14 @@ define(['jquery',
                         error: function (model, response) {
                             commonjs.handleXhrError(model, response);
                             saveButton.attr('disabled', false);
+                            $('.claimProcess').attr('disabled', false);
                         }
                     });
                 }
-                else
+                else {
                     saveButton.attr('disabled', false);
+                    $('.claimProcess').attr('disabled', false);
+                }
             },
 
             validateClaimData: function () {

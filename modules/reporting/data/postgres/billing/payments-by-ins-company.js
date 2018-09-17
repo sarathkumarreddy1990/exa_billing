@@ -30,18 +30,18 @@ WITH paymentsByInsCompany as (
     AND bp.payer_type = 'insurance'
     AND <%= companyId %>
     AND <%= paymentDate %>
-    <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+    <% if (facilityIds) { %>AND <% print(facilityIds); } %>
     <% if(billingProID) { %> AND <% print(billingProID); } %>
-    GROUP BY 
+    GROUP BY
       grouping sets( (ip.insurance_name) ,
        (payment_id,insurance_code, ip.insurance_name,facility_name, f.id, bp.card_number, bp.mode,payment_date),())
   ORDER BY
     ip.insurance_name,
-    bp.id    
+    bp.id
 )
-    SELECT 
+    SELECT
         payment_id AS "Payment ID",
-        insurance_name AS "Insurance Name",      
+        insurance_name AS "Insurance Name",
         amount AS "Amount",
         payment_applied_amount AS "Applied",
         payment_balance AS "Balance",
@@ -64,7 +64,7 @@ const api = {
             dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
             // other data sets could be added here...
             (paymentByInsuranceCompanyDataSet, providerInfo) => {
-                // add report filters     
+                // add report filters
                 initialReportData.lookups.billingProviderInfo = providerInfo || [];
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
@@ -112,7 +112,7 @@ const api = {
         else {
             const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
-        }       
+        }
 
         filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
         filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
@@ -158,11 +158,11 @@ const api = {
         //  scheduled_dt
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);
-            filters.paymentDate = queryBuilder.whereDate('bp.accounting_dt', '=', [params.length], 'f.time_zone');
+            filters.paymentDate = queryBuilder.whereDateInTz('bp.accounting_dt', '=', [params.length], 'f.time_zone');
         } else {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
-            filters.paymentDate = queryBuilder.whereDateBetween('bp.accounting_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.paymentDate = queryBuilder.whereDateInTzBetween('bp.accounting_dt', [params.length - 1, params.length], 'f.time_zone');
         }
 
         // billingProvider single or multiple
