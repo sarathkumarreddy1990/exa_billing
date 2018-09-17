@@ -392,11 +392,8 @@ define(['jquery',
                     case "card":
                          colvalue = 'Card';
                         break;
-                    case "adjustment":
-                        colvalue = "Adjustments";
-                        break;
-                        
 
+                        
                 }
                 return colvalue;
             },
