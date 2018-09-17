@@ -375,6 +375,7 @@ define(['jquery',
 
                         if (model && model.length > 0) {
                             var claimDetails = model[0];
+                            $('.claimProcess').attr('disabled', false);
 
                             self.cur_patient_acc_no = claimDetails.patient_account_no;
                             self.cur_patient_name = claimDetails.patient_full_name;
@@ -523,6 +524,7 @@ define(['jquery',
                         }
                     },
                     error: function (model, response) {
+                        $('.claimProcess').attr('disabled', false);
                         commonjs.hideLoading();
                         commonjs.handleXhrError(model, response);
                     }
@@ -2668,12 +2670,14 @@ define(['jquery',
 
                     commonjs.showLoading();
                     saveButton.attr('disabled', true);
+                    $('.claimProcess').attr('disabled', true);
 
                     self.model.save({}, {
                         success: function (model, response) {
                             if (response && response.message) {
                                 commonjs.showWarning(response.message);
                                 saveButton.attr('disabled', false);
+                                $('.claimProcess').attr('disabled', false);
                             } else {
 
                                 if (self.isEdit) {
@@ -2715,11 +2719,14 @@ define(['jquery',
                         error: function (model, response) {
                             commonjs.handleXhrError(model, response);
                             saveButton.attr('disabled', false);
+                            $('.claimProcess').attr('disabled', false);
                         }
                     });
                 }
-                else
+                else {
                     saveButton.attr('disabled', false);
+                    $('.claimProcess').attr('disabled', false);
+                }
             },
 
             validateClaimData: function () {
