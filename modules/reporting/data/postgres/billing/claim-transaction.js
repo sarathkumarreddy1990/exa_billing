@@ -292,11 +292,11 @@ const api = {
         if (reportParams.fromDate != '' && reportParams.toDate != '') {
             if (reportParams.fromDate === reportParams.toDate) {
                 params.push(reportParams.fromDate);
-                filters.claimDate = queryBuilder.whereDate('bc.claim_dt', '=', [params.length], 'f.time_zone');
+                filters.claimDate = queryBuilder.whereDateInTz('bc.claim_dt', '=', [params.length], 'f.time_zone');
             } else {
                 params.push(reportParams.fromDate);
                 params.push(reportParams.toDate);
-                filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+                filters.claimDate = queryBuilder.whereDateInTzBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
             }
         }
 
@@ -311,12 +311,12 @@ const api = {
             filters.cptPaymentDate = reportParams.cptDateOption == 'accounting_dt' ? false : true;
             if (reportParams.cptDateFrom === reportParams.toDate && (reportParams.cptDateFrom && reportParams.toDate)) {
                 params.push(reportParams.cptDateFrom);
-                filters.CPTDate = queryBuilder.whereDate('bp.' + filterDate, '=', [params.length]);
+                filters.CPTDate = queryBuilder.whereDateInTz('bp.' + filterDate, '=', [params.length], 'f.time_zone');
             } else {
                 params.push(reportParams.cmtFromDate);
                 params.push(reportParams.cmtToDate);
-                filters.CPTDate = queryBuilder.whereDateBetween('bp.' + filterDate, [params.length - 1, params.length]);
-                filters.CPTDate_count = queryBuilder.whereDateBetween('bp.' + filterDate, [params.length - 1, params.length]);
+                filters.CPTDate = queryBuilder.whereDateInTzBetween('bp.' + filterDate, [params.length - 1, params.length], 'f.time_zone');
+                filters.CPTDate_count = queryBuilder.whereDateInTzBetween('bp.' + filterDate, [params.length - 1, params.length]);
             }
         }
 

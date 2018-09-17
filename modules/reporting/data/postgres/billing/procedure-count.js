@@ -9,7 +9,7 @@ const _ = require('lodash')
 
 const procedureCountDataSetQueryTemplate = _.template(`
     WITH procedure_count AS(
-        SELECT 
+        SELECT
                   ch.cpt_id
                 , SUM(ch.units) AS total_charge_units
                 , SUM(ch.bill_fee * ch.units) AS total_charge_billfee
@@ -21,21 +21,21 @@ const procedureCountDataSetQueryTemplate = _.template(`
         WHERE 1=1
         AND <%= companyId %>
         AND <%= claimDate %>
-        <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+        <% if (facilityIds) { %>AND <% print(facilityIds); } %>
         <% if(billingProID) { %> AND <% print(billingProID); } %>
-        GROUP BY 
+        GROUP BY
             ROLLUP(ch.cpt_id)
     )
-    SELECT 
+    SELECT
           cpt.display_code									AS "Code"
         , COALESCE(cpt.display_description, 'Grand Total') 	AS "Description"
         , total_charge_billfee 			                    AS "Billing Fee"
         , total_charge_units                                AS "Units"
         , (total_charge_billfee / total_charge_units)       AS "Average"
-    FROM 
+    FROM
         procedure_count
-    LEFT JOIN public.cpt_codes cpt ON cpt.id = procedure_count.cpt_id    
-    ORDER BY 
+    LEFT JOIN public.cpt_codes cpt ON cpt.id = procedure_count.cpt_id
+    ORDER BY
     "Code"
 
 
@@ -53,7 +53,7 @@ const api = {
             dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
             // other data sets could be added here...
             (procedureCountDataSet, providerInfo) => {
-                // add report filters  
+                // add report filters
                 initialReportData.lookups.billingProviderInfo = providerInfo || [];
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
@@ -154,11 +154,11 @@ const api = {
         // //  Claim Date
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);
-            filters.claimDate = queryBuilder.whereDate('bc.claim_dt', '=', [params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateInTz('bc.claim_dt', '=', [params.length], 'f.time_zone');
         } else {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
-            filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateInTzBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
         }
 
         // billingProvider single or multiple

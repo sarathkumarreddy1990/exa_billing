@@ -15,8 +15,8 @@ WITH modalitySummary as (
     count(DISTINCT s.id) AS study_count, -- why was this in v1 referred to as "order_count" ?
     count(DISTINCT cs.study_id) AS studies_count, -- just another way to get study count which may be faster
     count(c.id) AS charges_count,
-    sum(c.bill_fee * c.units) AS charges_bill_fee_total 
---, sum(c.allowed_amount * c.units) AS charges_allowed_amount_total   
+    sum(c.bill_fee * c.units) AS charges_bill_fee_total
+--, sum(c.allowed_amount * c.units) AS charges_allowed_amount_total
 FROM
     public.orders AS o
     INNER JOIN public.studies s ON o.id = s.order_id
@@ -29,7 +29,7 @@ FROM
 WHERE 1=1
 AND <%= companyId %>
 AND <%= claimDate %>
-<% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+<% if (facilityIds) { %>AND <% print(facilityIds); } %>
 <% if(billingProID) { %> AND <% print(billingProID); } %>
 AND  <%= companyId %>
     AND NOT o.has_deleted
@@ -41,14 +41,14 @@ AND  <%= companyId %>
 GROUP BY
     ROLLUP (m.modality_name)
 )
-SELECT 
+SELECT
    COALESCE(modality_name , 'Total')AS "Modality Name",
-    order_count AS "Claim Count", 
-    study_count AS "Study Count",  
+    order_count AS "Claim Count",
+    study_count AS "Study Count",
     charges_count AS "Charges Count",
     charges_bill_fee_total AS "Total Bill Fee"
 FROM
-     modalitySummary 
+     modalitySummary
 `);
 
 const api = {
@@ -63,8 +63,8 @@ const api = {
             dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
             // other data sets could be added here...
             (modalitySummaryDataSet, providerInfo) => {
-                // add report filters   
-                initialReportData.lookups.billingProviderInfo = providerInfo || [];             
+                // add report filters
+                initialReportData.lookups.billingProviderInfo = providerInfo || [];
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 // add report specific data sets
@@ -163,11 +163,11 @@ const api = {
         //  scheduled_dt
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);
-            filters.claimDate = queryBuilder.whereDate('bc.claim_dt', '=', [params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateInTz('bc.claim_dt', '=', [params.length], 'f.time_zone');
         } else {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
-            filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateInTzBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
         }
 
         // billingProvider single or multiple

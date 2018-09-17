@@ -9,7 +9,7 @@ const _ = require('lodash')
 
 const claimActivityDataSetQueryTemplate = _.template(`
 WITH agg_claim AS(
-    SELECT 
+    SELECT
          pippt.description AS provider_type
 	    , f.facility_name as facility_name
     	, f.id as facility_id
@@ -28,67 +28,67 @@ WITH agg_claim AS(
      WHERE 1 = 1
      AND <%= companyId %>
      AND <%= claimDate %>
-     <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+     <% if (facilityIds) { %>AND <% print(facilityIds); } %>
      <% if(billingProID) { %> AND <% print(billingProID); } %>
   )
 ,
 charge_details AS(
-	SELECT       
+	SELECT
         SUM(ch.bill_fee * ch.units) AS total_bill_fee
       , SUM(ch.allowed_amount * ch.units) AS expected_amount
       , SUM(ch.units) AS units
       , COUNT(cpt_id) AS cpt_count
       , agg_claim.claim_id
-   FROM agg_claim 
-   INNER JOIN billing.charges ch ON ch.claim_id = agg_claim.claim_id 
-    GROUP BY 
-    agg_claim.claim_id    	
+   FROM agg_claim
+   INNER JOIN billing.charges ch ON ch.claim_id = agg_claim.claim_id
+    GROUP BY
+    agg_claim.claim_id
  ),
  pri_ins_payment AS (
-	SELECT 
+	SELECT
     	agg_claim.claim_id ,
     	SUM(CASE WHEN amount_type = 'payment' THEN bpa.amount ELSE 0::money  END) pri_payment,
-    	SUM(CASE WHEN amount_type = 'adjustment' THEN bpa.amount  ELSE 0::money END) pri_adjustment 
-    FROM agg_claim  
-    INNER JOIN billing.charges ch ON ch.claim_id = agg_claim.claim_id 
+    	SUM(CASE WHEN amount_type = 'adjustment' THEN bpa.amount  ELSE 0::money END) pri_adjustment
+    FROM agg_claim
+    INNER JOIN billing.charges ch ON ch.claim_id = agg_claim.claim_id
     INNER JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id
     WHERE agg_claim.payer_type = 'primary_insurance'
     GROUP BY agg_claim.claim_id
 ),
 sec_ins_payment AS (
-	SELECT 
+	SELECT
     	SUM(CASE WHEN amount_type = 'payment' THEN bpa.amount ELSE 0::money  END) sec_payment
     	, agg_claim.claim_id
-    FROM agg_claim  
-    INNER JOIN billing.charges ch ON ch.claim_id = agg_claim.claim_id 
+    FROM agg_claim
+    INNER JOIN billing.charges ch ON ch.claim_id = agg_claim.claim_id
 	INNER JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id
     WHERE agg_claim.payer_type = 'secondary_insurance'
     GROUP BY agg_claim.claim_id
 ),
 ter_ins_payment AS (
-	SELECT 
+	SELECT
     	agg_claim.claim_id ,
     	SUM(CASE WHEN amount_type = 'payment' THEN bpa.amount ELSE 0::money  END) ter_payment
-    FROM agg_claim 
-    INNER JOIN billing.charges ch ON ch.claim_id = agg_claim.claim_id 
+    FROM agg_claim
+    INNER JOIN billing.charges ch ON ch.claim_id = agg_claim.claim_id
     INNER JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id
     WHERE agg_claim.payer_type = 'tertiary_insurance'
     GROUP BY agg_claim.claim_id
 ),
 payment_details AS (
-	SELECT 
+	SELECT
     	SUM(CASE WHEN amount_type = 'payment' THEN bpa.amount ELSE 0::money END) payment,
         SUM(CASE WHEN amount_type = 'adjustment' and accounting_entry_type != 'refund_debit'  THEN bpa.amount ELSE 0::money END) adjustment ,
         sum(CASE when amount_type = 'adjustment' and accounting_entry_type = 'refund_debit' then bpa.amount else 0::money end ) as refund_amount,
-    	agg_claim.claim_id 
-    FROM agg_claim 
+    	agg_claim.claim_id
+    FROM agg_claim
     INNER JOIN billing.charges ch ON ch.claim_id = agg_claim.claim_id
     INNER JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id
     LEFT JOIN billing.adjustment_codes bac ON bac.id = bpa.adjustment_code_id
     GROUP BY agg_claim.claim_id
 ),
 total_credit AS(
-	SELECT 
+	SELECT
     	payment_details.claim_id ,
         SUM(payment + adjustment) AS tot_credit,
         refund_amount
@@ -96,17 +96,17 @@ total_credit AS(
     GROUP BY payment_details.claim_id,refund_amount
 ),
 patient_payment AS(
-	SELECT 
+	SELECT
          SUM(bpa.amount) AS patient_pay
     	, agg_claim.claim_id
-    FROM agg_claim 
-    INNER JOIN billing.charges ch ON ch.claim_id = agg_claim.claim_id 
+    FROM agg_claim
+    INNER JOIN billing.charges ch ON ch.claim_id = agg_claim.claim_id
     INNER JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id AND bpa.amount_type = 'payment'
     GROUP BY agg_claim.claim_id
 )
 SELECT
     provider_type  AS "Ins Class"
-    , COALESCE(agg_claim.facility_name, '─ TOTAL ─')  AS "Facility Name"    
+    , COALESCE(agg_claim.facility_name, '─ TOTAL ─')  AS "Facility Name"
     , SUM(charge_details.total_bill_fee) AS "Charges"
     , SUM(COALESCE(pri_ins_payment.pri_adjustment,0::money)) AS "Adjustments"
     , SUM(agg_claim.claim_balance) AS "Balance"
@@ -144,14 +144,14 @@ GROUP BY GROUPING SETS(
     , SUM(COALESCE(patient_payment.patient_pay,0::money)) AS "Patient Payment"
     , SUM(COALESCE(charge_details.units,0::numeric)) AS "Units"
     , SUM(charge_details.cpt_count) AS "Num Process."
-    FROM agg_claim 
+    FROM agg_claim
 LEFT JOIN pri_ins_payment ON agg_claim.claim_id = pri_ins_payment.claim_id
 LEFT JOIN sec_ins_payment ON  agg_claim.claim_id = sec_ins_payment.claim_id
 LEFT JOIN ter_ins_payment ON agg_claim.claim_id = ter_ins_payment.claim_id
 LEFT JOIN total_credit ON agg_claim.claim_id = total_credit.claim_id
 LEFT JOIN charge_details ON agg_claim.claim_id = charge_details.claim_id
 LEFT JOIN patient_payment ON agg_claim.claim_id = patient_payment.claim_id
-    ORDER BY "Ins Class" 
+    ORDER BY "Ins Class"
 `);
 
 const api = {
@@ -166,7 +166,7 @@ const api = {
             dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
             // other data sets could be added here...
             (claimActivityDataSet, providerInfo) => {
-                // add report filters  
+                // add report filters
                 initialReportData.lookups.billingProviderInfo = providerInfo || [];
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
@@ -267,11 +267,11 @@ const api = {
         // //  Claim Date
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);
-            filters.claimDate = queryBuilder.whereDate('bc.claim_dt', '=', [params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateInTz('bc.claim_dt', '=', [params.length], 'f.time_zone');
         } else {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
-            filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateInTzBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
         }
 
         // billingProvider single or multiple
