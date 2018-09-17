@@ -18,7 +18,7 @@ define([
     'text!templates/claims/claim-patient-log.html',
     'text!templates/claims/claim-invoice.html',
     'text!templates/claims/invoice-age-summary.html',
-    'text!templates/faxDialog.html',
+    // 'text!templates/faxDialog.html',
     'collections/claim-patient-log',
     'views/app/unapplied-payment'
 ], function (
@@ -41,7 +41,7 @@ define([
     claimPatientLogHTML,
     claimInvoiceHTML,
     claimInvoiceAgeHTML,
-    faxDialogHtml,
+    // faxDialogHtml,
     claimPatientLogList,
     unappliedPaymentView
 ) {
