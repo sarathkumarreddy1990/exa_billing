@@ -640,15 +640,15 @@ module.exports = {
 									FROM
 					(SELECT
 					display_code as "cpt",
-					charges.id as "chargeID",
-					(CASE coverage_level
-						WHEN 'primary' THEN 'P'
-						WHEN 'secondary' THEN 'S'
-						WHEN 'tertiary' THEN 'T' END) as "claimResponsibleParty",
+                    charges.id as "chargeID",
                     insurance_info->'PayerID' as "claimPayerID",
                     (SELECT insurance_info->'PayerID' FROM    patient_insurances p_pi
                     INNER JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id
                     WHERE  p_pi.id = claims.primary_patient_insurance_id) as "payerID",
+					(CASE coverage_level
+						WHEN 'primary' THEN 'P'
+						WHEN 'secondary' THEN 'S'
+						WHEN 'tertiary' THEN 'T' END) as "claimResponsibleParty",
 					modifier1.code as "modifier1",
 					modifier2.code as "modifier2",
 					modifier3.code as "modifier3",
