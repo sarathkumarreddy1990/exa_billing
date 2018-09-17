@@ -187,7 +187,7 @@ define([
                                 $("#tblCIDiagnosis").jqGrid('setGridParam', { datatype: 'local', data: data.icdcode_details }).trigger("reloadGrid");
 
                             } else {
-                                self.showInsuranceGrid(data.insurance_details, claimID);
+                                self.showInsuranceGrid(data.insurance_details);
                                 self.showDiagnosisGrid(data.icdcode_details);
                                 self.showClaimCommentsGrid();
                             }
@@ -203,12 +203,12 @@ define([
                     }
                 });
 
-                $('#btnCIPrintInvoice').on().click(function () {
-                    self.generatePrintInvoice(claimID);
+                $('#btnCIPrintInvoice').off().click(function () {
+                    self.generatePrintInvoice(self.claim_id);
                 });
             },
 
-            showInsuranceGrid: function (data, claimID) {
+            showInsuranceGrid: function (data) {
                 var self = this;
 
                 $('#tblCIInsurance').jqGrid({
@@ -251,9 +251,9 @@ define([
                         var payerType = $(target).attr('data-payer-type');
 
                         if (target.className.indexOf('btn-paper-claim-original') > -1) {
-                            self.showPaperClaim('paper_claim_original', [claimID], rowid, payerType);
+                            self.showPaperClaim('paper_claim_original', [self.claim_id], rowid, payerType);
                         } else if (target.className.indexOf('btn-paper-claim-full') > -1) {
-                            self.showPaperClaim('paper_claim_full', [claimID], rowid, payerType);
+                            self.showPaperClaim('paper_claim_full', [self.claim_id], rowid, payerType);
                         }
                     },
                 });
