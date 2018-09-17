@@ -9,14 +9,14 @@ const _ = require('lodash')
 
 const ProcedureAnalysisInsuranceDataSetQueryTemplate = _.template(`
 with claim_details as (
-    WITH payment_details AS ( SELECT 
+    WITH payment_details AS ( SELECT
         CASE WHEN bpa.amount_type = 'payment' THEN bpa.amount END payment_amount,
         CASE WHEN bpa.amount_type = 'adjustment' THEN bpa.amount END adjustment,
         CASE WHEN bp.payer_type = 'patient' THEN 'P'
              WHEN (bp.payer_type = 'insurance' and (bp.insurance_provider_id = ppi.insurance_provider_id))  THEN 'I'
              ELSE 'O' END pymt_tag,
            bpa.charge_id
-     FROM billing.payments bp 
+     FROM billing.payments bp
      INNER JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
      INNER JOIN billing.charges bch on bch.id = bpa.charge_id
      INNER JOIN billing.claims bc on bc.id = bch.claim_id
@@ -58,16 +58,16 @@ with claim_details as (
             COALESCE (ps.adj_p, 0::money) AS "Patient Adj",
             COALESCE (ps.pmt_o, 0::money) AS "Others Pay",
             COALESCE (ps.adj_o, 0::money) AS "Others Adj",
-            (bch.bill_fee * bch.units ) - COALESCE (cpt_pymt_adj , 0::money) AS "Balance"  
-            <% if ( refProviderFlagValue === 'true' ) { %> 
-           , ppr.full_name   AS "Ref. Name" 
-	       
-            <% } %>       
+            (bch.bill_fee * bch.units ) - COALESCE (cpt_pymt_adj , 0::money) AS "Balance"
+            <% if ( refProviderFlagValue === 'true' ) { %>
+           , ppr.full_name   AS "Ref. Name"
+
+            <% } %>
         FROM
         billing.claims bc
         INNER JOIN public.patients pp ON pp.id = bc.patient_id
         INNER JOIN public.facilities AS f ON f.id = bc.facility_id
-        INNER JOIN billing.charges bch ON bch.claim_id = bc.id 
+        INNER JOIN billing.charges bch ON bch.claim_id = bc.id
         INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
         LEFT JOIN payment_summary ps ON ps.charge_id = bch.id
         INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
@@ -76,10 +76,10 @@ with claim_details as (
         INNER  JOIN public.patient_insurances AS ppi ON ppi.id =  bc.primary_patient_insurance_id
         LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
         LEFT JOIN public.modalities pm on pm.id = pss.modality_id
-        <% if ( refProviderFlagValue === 'true' ) { %> 
+        <% if ( refProviderFlagValue === 'true' ) { %>
             LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
             LEFT JOIN public.providers as ppr ON ppr.id = ppc.provider_id
-            <% } %>     
+            <% } %>
 
         WHERE 1=1
         AND   <%= companyId %>
@@ -90,7 +90,7 @@ with claim_details as (
        <% if(cptIds) { %>AND <% print(cptIds);} %>
        <% if(referringProID) { %>AND <% print(referringProID);} %>
        <% if(providerGroupID) { %>AND <% print(providerGroupID);} %>
-     
+
     )
     select * from claim_details
 `);
@@ -122,7 +122,7 @@ const api = {
             initialReportData.report.params.refProviderGroupList =  initialReportData.report.params.refProviderGroupList.map(Number);
         }
 
-        return Promise.join(          
+        return Promise.join(
 
             dataHelper.getCptCodesInfo(initialReportData.report.params.companyId, initialReportData.report.params.cptIds),
             dataHelper.getInsuranceProvidersInfo(initialReportData.report.params.companyId, initialReportData.report.params.insuranceProviderIds),
@@ -193,7 +193,7 @@ const api = {
         else {
             const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
             filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
-        }     
+        }
 
         if (params.cptIds) {
             const cptCode = _(lookups.cptCodes).map(f => f.code).value();
@@ -229,7 +229,7 @@ const api = {
         }
         else {
             filtersUsed.push({name: 'providerGroupList', label: 'Provider Group', value: 'All'});
-        }  
+        }
 
         filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
         filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
@@ -266,7 +266,7 @@ const api = {
 
         };
 
-        // Referring Provider Flag         
+        // Referring Provider Flag
          filters.refProviderFlagValue  = reportParams.refProviderFlag;
 
         // company id
@@ -278,16 +278,16 @@ const api = {
         if (!reportParams.allFacilities && reportParams.facilityIds) {
             params.push(reportParams.facilityIds);
             filters.facilityIds = queryBuilder.whereIn('bc.facility_id', [params.length]);
-        }       
+        }
 
         // //  Claim Date
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);
-            filters.claimDate = queryBuilder.whereDate('bc.claim_dt', '=', [params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateInTz('bc.claim_dt', '=', [params.length], 'f.time_zone');
         } else {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
-            filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateInTzBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
         }
 
         // billingProvider single or multiple

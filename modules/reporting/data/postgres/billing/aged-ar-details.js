@@ -11,15 +11,15 @@ const agedARDetailsDataSetQueryTemplate = _.template(`
 WITH charges_cwt AS (
     SELECT
           bc.id                           AS claim_id
-        , max(date_part('day', ((timezone(f.time_zone,  <%= claimDate %>)))  - bc.claim_dt)) as age
+        , max(date_part('day', ((timezone(f.time_zone,  <%= claimDate %>)))  - timezone(f.time_zone, bc.claim_dt))) as age
         , sum(c.bill_fee * c.units)       AS charges_bill_fee_total
     FROM  billing.claims AS bc
         INNER JOIN billing.charges AS c ON c.claim_id = bc.id
         INNER JOIN facilities f on f.id = bc.facility_id
     WHERE 1=1
-       AND (bc.claim_dt <  (timezone(f.time_zone,  <%= claimDate %>)))   
+    AND (timezone(f.time_zone, bc.claim_dt) <=   <%= claimDate %>)
     GROUP BY bc.id
-), 
+),
 applications_cwt AS (
     SELECT  cc.claim_id
         ,  coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)    AS payments_applied_total
@@ -29,14 +29,14 @@ applications_cwt AS (
     INNER JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
     INNER JOIN billing.payments AS p ON pa.payment_id = p.id
     GROUP BY cc.claim_id
-),   
+),
 get_claim_details AS(
-    SELECT 
+    SELECT
         cc.claim_id as claim_id,
         cc.age as age,
        (cc.charges_bill_fee_total - ( coalesce(ac.payments_applied_total,0::money) +  coalesce(ac.ajdustments_applied_total,0::money) )) AS balance
     FROM charges_cwt cc
-    LEFT JOIN applications_cwt ac ON cc.claim_id = ac.claim_id  
+    LEFT JOIN applications_cwt ac ON cc.claim_id = ac.claim_id
     WHERE (cc.charges_bill_fee_total - ( coalesce(ac.payments_applied_total,0::money) +  coalesce(ac.ajdustments_applied_total,0::money) )) != 0::money
  ),
  aging_details  AS( SELECT
@@ -47,38 +47,38 @@ get_claim_details AS(
  get_full_name(pp.last_name,pp.first_name) AS "Patient Name",
  to_char(bc.claim_dt, 'MM/DD/YYYY') AS "Claim Date",
  pp.account_no as "Account #",
- 
+
  CASE WHEN payer_type = 'primary_insurance' THEN 1
  WHEN payer_type = 'secondary_insurance' THEN 1
  WHEN payer_type = 'tertiary_insurance' THEN 1
  WHEN payer_type = 'referring_provider' THEN 4
  WHEN payer_type = 'patient' THEN 2
- WHEN payer_type = 'ordering_facility' THEN 3  
+ WHEN payer_type = 'ordering_facility' THEN 3
 END AS "Responsible Party_order_by",
 
- <% if(incPatDetail == 'true') { %>     
-    CASE WHEN primary_patient_insurance_id is not null THEN 'Primary Insurance' ELSE '-No payer-'  END AS "Responsible Party",     
-<%} else {%>    
+ <% if(incPatDetail == 'true') { %>
+    CASE WHEN primary_patient_insurance_id is not null THEN 'Primary Insurance' ELSE '-No payer-'  END AS "Responsible Party",
+<%} else {%>
 CASE WHEN payer_type = 'primary_insurance' THEN 'Insurance'
 WHEN payer_type = 'secondary_insurance' THEN 'Insurance'
 WHEN payer_type = 'tertiary_insurance' THEN 'Insurance'
 WHEN payer_type = 'referring_provider' THEN 'Provider'
 WHEN payer_type = 'patient' THEN 'Patient'
-WHEN payer_type = 'ordering_facility' THEN 'Ordering Facility'     
+WHEN payer_type = 'ordering_facility' THEN 'Ordering Facility'
 END AS "Responsible Party",
 <% } %>
-<% if(incPatDetail == 'true') { %>     
-CASE WHEN primary_patient_insurance_id is not null THEN pip.insurance_name 
-ELSE  
-    CASE 
+<% if(incPatDetail == 'true') { %>
+CASE WHEN primary_patient_insurance_id is not null THEN pip.insurance_name
+ELSE
+    CASE
         WHEN payer_type = 'secondary_insurance' THEN pip.insurance_name
         WHEN payer_type = 'tertiary_insurance' THEN pip.insurance_name
         WHEN payer_type = 'referring_provider' THEN  ppr.full_name
         WHEN payer_type = 'patient' THEN get_full_name(pp.last_name,pp.first_name)
         WHEN payer_type = 'ordering_facility' THEN ppg.group_name
     END
-END AS "Payer Name",     
-<%} else {%>   
+END AS "Payer Name",
+<%} else {%>
 CASE WHEN payer_type = 'primary_insurance' THEN pip.insurance_name
 WHEN payer_type = 'secondary_insurance' THEN pip.insurance_name
 WHEN payer_type = 'tertiary_insurance' THEN pip.insurance_name
@@ -106,7 +106,7 @@ COALESCE(CASE WHEN gcd.age > 30 and gcd.age <=60  THEN gcd.balance END,0::money)
 COALESCE(CASE WHEN gcd.age > 60 and gcd.age <=90  THEN gcd.balance END,0::money) AS "60-90 Sum",
 COALESCE(CASE WHEN gcd.age > 90 and gcd.age <=120 THEN gcd.balance END,0::money) AS "90-120 Sum",
 
-  <% if(excelExtented == 'true') { %>    
+  <% if(excelExtented == 'true') { %>
     COALESCE(CASE WHEN gcd.age > 120 and gcd.age <=150  THEN gcd.balance END,0::money) AS "120-150 Sum",
     COALESCE(CASE WHEN gcd.age > 150 and gcd.age <=180  THEN gcd.balance END,0::money) AS "150-180 Sum",
     COALESCE(CASE WHEN gcd.age > 180 and gcd.age <=210 THEN gcd.balance END,0::money) AS "180-210 Sum",
@@ -120,12 +120,12 @@ COALESCE(CASE WHEN gcd.age > 90 and gcd.age <=120 THEN gcd.balance END,0::money)
     COALESCE(CASE WHEN gcd.age > 540 and gcd.age <=630 THEN gcd.balance END,0::money) AS "540-630 Sum (Q2)",
     COALESCE(CASE WHEN gcd.age > 630 and gcd.age <=730 THEN gcd.balance END,0::money) AS "630-730 Sum (Q1)",
     COALESCE(CASE WHEN gcd.age > 730 THEN gcd.balance END,0::money) AS "730+ Sum",
- 
- 
-     <% } else { %> 
+
+
+     <% } else { %>
         COALESCE(CASE WHEN gcd.age > 120 THEN gcd.balance END,0::money) AS "120+ Sum",
 
-     <%}%>  
+     <%}%>
      gcd.balance AS "Total"
  FROM billing.claims bc
  INNER JOIN get_claim_details gcd ON gcd.claim_id = bc.id
@@ -145,29 +145,29 @@ COALESCE(CASE WHEN gcd.age > 90 and gcd.age <=120 THEN gcd.balance END,0::money)
   <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
       WHERE 1 = 1
       AND <%=companyId%>
-      <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+      <% if (facilityIds) { %>AND <% print(facilityIds); } %>
       <% if(billingProID) { %> AND <% print(billingProID); } %>
-      <% if(excCreditBal == 'true'){ %> AND  gcd.balance::money > '0' <% } %>      
+      <% if(excCreditBal == 'true'){ %> AND  gcd.balance::money > '0' <% } %>
       GROUP BY "Payer Name","Facility","Claim ID","Cut-off Date","Billing Pro Name","Patient Name","Claim Date","Account #","Responsible Party","EDI","Provider Type", gcd.age,gcd.balance
 ),
-aged_ar_sum AS ( SELECT 
-       null::text as "Facility", 
-       null::bigint as "Claim ID", 
-       null::text as "Cut-off Date", 
-       null::text as "Billing Pro Name", 
-       null::text as "Patient Name", 
-       null::text as "Claim Date", 
-       null::varchar(64) as "Account #", 
+aged_ar_sum AS ( SELECT
+       null::text as "Facility",
+       null::bigint as "Claim ID",
+       null::text as "Cut-off Date",
+       null::text as "Billing Pro Name",
+       null::text as "Patient Name",
+       null::text as "Claim Date",
+       null::varchar(64) as "Account #",
        "Responsible Party_order_by" ,
        null::text as "Responsible Party",
        "Payer Name",
        null::text as "EDI",
-       ('A/R Total')::TEXT as "Provider Type", 
-       sum(cast("0-30 Sum" AS NUMERIC))::MONEY as "0-30 Sum", 
+       ('A/R Total')::TEXT as "Provider Type",
+       sum(cast("0-30 Sum" AS NUMERIC))::MONEY as "0-30 Sum",
        sum(cast("30-60 Sum" AS NUMERIC))::MONEY as "30-60 Sum",
-       sum("60-90 Sum") as "60-90 Sum",sum("90-120 Sum") as "90-120 Sum", 
+       sum("60-90 Sum") as "60-90 Sum",sum("90-120 Sum") as "90-120 Sum",
 
-       <% if(excelExtented == 'true') { %>    
+       <% if(excelExtented == 'true') { %>
         sum(cast("120-150 Sum" AS NUMERIC))::MONEY as "120-150 Sum",
         sum(cast("150-180 Sum" AS NUMERIC))::MONEY as "150-180 Sum",
         sum(cast("180-210 Sum" AS NUMERIC))::MONEY as "180-210 Sum",
@@ -181,34 +181,34 @@ aged_ar_sum AS ( SELECT
         sum(cast("540-630 Sum (Q2)" AS NUMERIC))::MONEY as "540-630 Sum (Q2)",
         sum(cast("630-730 Sum (Q1)" AS NUMERIC))::MONEY as "630-730 Sum (Q1)",
 	    sum(cast("730+ Sum" AS NUMERIC))::MONEY as "730+ Sum",
-             <% } else { %> 
+             <% } else { %>
                 sum(cast("120+ Sum" AS NUMERIC))::MONEY as "120+ Sum",
-             <%}%>  
+             <%}%>
 
-       sum("Total") AS "Total" 
-   FROM 
-       aging_details 
-   GROUP BY 
-   "Responsible Party_order_by", "Payer Name"            
+       sum("Total") AS "Total"
+   FROM
+       aging_details
+   GROUP BY
+   "Responsible Party_order_by", "Payer Name"
 ),
-aged_ar_total AS ( SELECT 
-    null::text as "Facility", 
-    null::bigint as "Claim ID", 
-    null::text as "Cut-off Date", 
-    null::text as "Billing Pro Name", 
-    null::text as "Patient Name", 
-    null::text as "Claim Date", 
-    null::varchar(64) as "Account #", 
+aged_ar_total AS ( SELECT
+    null::text as "Facility",
+    null::bigint as "Claim ID",
+    null::text as "Cut-off Date",
+    null::text as "Billing Pro Name",
+    null::text as "Patient Name",
+    null::text as "Claim Date",
+    null::varchar(64) as "Account #",
     null::bigint "Responsible Party_order_by" ,
     null::text as "Responsible Party",
     null::text AS "Payer Name",
     null::text as "EDI",
-    ('- Total -')::text as "Provider Type", 
-    sum(cast("0-30 Sum" AS NUMERIC))::MONEY as "0-30 Sum", 
+    ('- Total -')::text as "Provider Type",
+    sum(cast("0-30 Sum" AS NUMERIC))::MONEY as "0-30 Sum",
     sum(cast("30-60 Sum" AS NUMERIC))::MONEY as "30-60 Sum",
     sum("60-90 Sum") as "60-90 Sum",
-    sum("90-120 Sum") as "90-120 Sum", 
-    <% if(excelExtented == 'true') { %>    
+    sum("90-120 Sum") as "90-120 Sum",
+    <% if(excelExtented == 'true') { %>
         sum(cast("120-150 Sum" AS NUMERIC))::MONEY as "120-150 Sum",
         sum(cast("150-180 Sum" AS NUMERIC))::MONEY as "150-180 Sum",
         sum(cast("180-210 Sum" AS NUMERIC))::MONEY as "180-210 Sum",
@@ -222,33 +222,33 @@ aged_ar_total AS ( SELECT
         sum(cast("540-630 Sum (Q2)" AS NUMERIC))::MONEY as "540-630 Sum (Q2)",
         sum(cast("630-730 Sum (Q1)" AS NUMERIC))::MONEY as "630-730 Sum (Q1)",
         sum(cast("730+ Sum" AS NUMERIC))::MONEY as "730+ Sum",
-             <% } else { %> 
+             <% } else { %>
                 sum(cast("120+ Sum" AS NUMERIC))::MONEY as "120+ Sum",
-             <%}%>  
+             <%}%>
     sum("Total") AS "Total"
-FROM 
+FROM
 aging_details ),
-aging_result as ( SELECT 
-                    * 
-                  FROM aging_details 
-                  UNION ALL  
-                  SELECT 
-                    * 
-                  FROM aged_ar_sum 
-                  UNION ALL  
-                  SELECT 
-                  * 
-                  FROM aged_ar_total 
-) 
-SELECT 
-	   "Facility" 
-	 , "Claim ID" 
+aging_result as ( SELECT
+                    *
+                  FROM aging_details
+                  UNION ALL
+                  SELECT
+                    *
+                  FROM aged_ar_sum
+                  UNION ALL
+                  SELECT
+                  *
+                  FROM aged_ar_total
+)
+SELECT
+	   "Facility"
+	 , "Claim ID"
 	 , "Cut-off Date"
 	 , "Billing Pro Name"
 	 , "Patient Name"
 	 , "Claim Date"
 	 , "Account #"
-	 , "Responsible Party" 
+	 , "Responsible Party"
 	 , "Payer Name"
 	 , "EDI"
 	 , "Provider Type"
@@ -256,7 +256,7 @@ SELECT
 	 , "30-60 Sum"
 	 , "60-90 Sum"
      , "90-120 Sum",
-     <% if(excelExtented == 'true') { %>  
+     <% if(excelExtented == 'true') { %>
           "120-150 Sum",
           "150-180 Sum",
           "180-210 Sum",
@@ -270,15 +270,15 @@ SELECT
           "540-630 Sum (Q2)",
           "630-730 Sum (Q1)",
           "730+ Sum",
-        <% } else { %> 
+        <% } else { %>
              "120+ Sum",
         <% }%>
 	  "Total"
 FROM
-    aging_result 
+    aging_result
 ORDER BY   "Responsible Party_order_by","Payer Name", "Responsible Party"
 
-   
+
 `);
 
 const api = {
@@ -293,7 +293,7 @@ const api = {
             dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
             // other data sets could be added here...
             (agedARDetailsDataSet, providerInfo) => {
-                // add report filters    
+                // add report filters
                 initialReportData.lookups.billingProviderInfo = providerInfo || [];
                 initialReportData.filters = api.createReportFilters(initialReportData);
 

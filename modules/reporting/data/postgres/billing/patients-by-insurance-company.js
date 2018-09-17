@@ -18,7 +18,7 @@ with patientByInsCompanyDetailQuery as (
    	    policy_number                                                                                         AS "Policy",
         ip.insurance_name                                                                                     AS "Insurance",
 	    group_number					                                                                      AS "Group"
-    FROM 
+    FROM
         public.patients AS p
     INNER JOIN public.patient_insurances AS pi ON pi.patient_id = p.id
     INNER JOIN billing.claims bc ON bc.patient_id = p.id
@@ -27,13 +27,13 @@ with patientByInsCompanyDetailQuery as (
     WHERE  1 = 1
          AND <%= companyId %>
          AND <%= claimDate %>
-         <% if (facilityIds) { %>AND <% print(facilityIds); } %>    
+         <% if (facilityIds) { %>AND <% print(facilityIds); } %>
          <% if(insuranceProviderIds) { %>AND <% print(insuranceProviderIds);} %>
     GROUP BY ip.insurance_code,pi.coverage_level,"Patient","DOB","Gender",policy_number,ip.insurance_name,group_number
-    ORDER BY 
+    ORDER BY
         "Patient","Level"
 )
-SELECT * FROM patientByInsCompanyDetailQuery 
+SELECT * FROM patientByInsCompanyDetailQuery
 `);
 
 const api = {
@@ -54,7 +54,7 @@ const api = {
             dataHelper.getInsuranceProvidersInfo(initialReportData.report.params.companyId, initialReportData.report.params.insuranceProviderIds),
             // other data sets could be added here...
             (patientsByInsCompanyDataSet, providerInfo, insuranceProvidersInfo) => {
-                // add report filters  
+                // add report filters
                 initialReportData.lookups.billingProviderInfo = providerInfo || [];
                 initialReportData.lookups.insuranceProviders = insuranceProvidersInfo || [];
                 initialReportData.filters = api.createReportFilters(initialReportData);
@@ -104,16 +104,16 @@ const api = {
         else {
             const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
-        }     
+        }
 
-       
+
             if (params.insuranceProviderIds) {
                 const insuranceProviderNames = _(lookups.insuranceProviders).map(f => f.name).value();
                 filtersUsed.push({ name: 'insuranceProviderNames', label: 'Insurance Provider', value: insuranceProviderNames });
             }
             else
                 filtersUsed.push({ name: 'insuranceProviderNames', label: 'Insurance Provider', value: 'All' });
-           
+
 
         filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
         filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
@@ -158,11 +158,11 @@ const api = {
         // //  Claim Date
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);
-            filters.claimDate = queryBuilder.whereDate('bc.claim_dt', '=', [params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateInTz('bc.claim_dt', '=', [params.length], 'f.time_zone');
         } else {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
-            filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateInTzBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
         }
 
         //InsuranceProvider filter

@@ -9,30 +9,32 @@ const _ = require('lodash')
 
 const creditBalanceEncounterDataSetQueryTemplate = _.template(`
 WITH get_patient_balance As (
-    SELECT 
+    SELECT
        bc.patient_id AS patient_id,
        sum(bgct.claim_balance_total) AS pat_balance
     FROM billing.claims bc
     INNER JOIN public.patients pp ON pp.id = bc.patient_id
     INNER JOIN LATERAL billing.get_claim_totals(bc.id) bgct ON true
+    INNER JOIN facilities f on f.id = bc.facility_id
     WHERE  <%=companyId%>
     AND <%= claimDate %>
     AND payer_type = 'patient'
-    <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+    <% if (facilityIds) { %>AND <% print(facilityIds); } %>
     <% if(billingProID) { %> AND <% print(billingProID); } %>
     GROUP BY bc.patient_id
 ),
 get_insurance_balance As (
-    SELECT 
+    SELECT
        bc.patient_id AS patient_id,
        sum(bgct.claim_balance_total) AS ins_balance
     FROM billing.claims bc
     INNER JOIN public.patients pp ON pp.id = bc.patient_id
     INNER JOIN LATERAL billing.get_claim_totals(bc.id) bgct ON true
+    INNER JOIN facilities f on f.id = bc.facility_id
     WHERE  <%=companyId%>
     AND <%= claimDate %>
     AND payer_type != 'patient'
-    <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+    <% if (facilityIds) { %>AND <% print(facilityIds); } %>
     <% if(billingProID) { %> AND <% print(billingProID); } %>
     GROUP BY bc.patient_id
 ),
@@ -53,11 +55,12 @@ FROM billing.claims bc
      INNER JOIN public.patients pp ON pp.id = bc.patient_id
      INNER JOIN billing.claim_status bcs ON bcs.id = bc.claim_status_id
      INNER JOIN LATERAL billing.get_claim_totals(bc.id) bgct ON true
+     INNER JOIN facilities f on f.id = bc.facility_id
 	   WHERE 1 = 1
     AND <%=companyId%>
     AND bgct.claim_balance_total < 0::money
     AND <%= claimDate %>
-    <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+    <% if (facilityIds) { %>AND <% print(facilityIds); } %>
     <% if(billingProID) { %> AND <% print(billingProID); } %>
 GROUP BY
     bc.id,
@@ -74,12 +77,12 @@ SELECT
     agg.status AS "Status",
     agg.account_number AS "Account #",
     agg.encounter_date As "Accounting Date",
-    agg.total || ' CR' AS "Total", 
+    agg.total || ' CR' AS "Total",
     CASE WHEN payer_type = 'patient' THEN  (agg.patient_balance::numeric  - agg.total)::text ELSE '    ─ ─   ' END  AS  "Patient Balance",
     CASE WHEN payer_type != 'patient' THEN (agg.insurance_balance::numeric - agg.total)::text  ELSE '    ─ ─   ' END  AS  "Insurance Balance"
 
 FROM agg
-UNION 
+UNION
 SELECT
     NULL,
     NULL,
@@ -107,7 +110,7 @@ const api = {
             dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
             // other data sets could be added here...
             (creditBalanceEncounterDataSet, providerInfo) => {
-                // add report filters    
+                // add report filters
                 initialReportData.lookups.billingProviderInfo = providerInfo || [];
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
@@ -207,11 +210,11 @@ const api = {
         //  scheduled_dt
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);
-            filters.claimDate = queryBuilder.whereDate('bc.claim_dt', '=', [params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateInTz('bc.claim_dt', '=', [params.length], 'f.time_zone');
         } else {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
-            filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateInTzBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
         }
 
         // billingProvider single or multiple

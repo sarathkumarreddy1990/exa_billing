@@ -299,11 +299,11 @@ const api = {
         //  scheduled_dt
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);
-            filters.claimDate = queryBuilder.whereDate(' bp.accounting_dt', '=', [params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateInTz(' bp.accounting_dt', '=', [params.length], 'f.time_zone');
         } else {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
-            filters.claimDate = queryBuilder.whereDateBetween(' bp.accounting_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateInTzBetween(' bp.accounting_dt', [params.length - 1, params.length], 'f.time_zone');
         }
 
         // billingProvider single or multiple
