@@ -12,7 +12,7 @@ function getTick(data, code, fromOthers) {
 
 function getName(patientData) {
     if (patientData)
-        return ((patientData.lastName? patientData.lastName: "") + ', ' +( patientData.firstName?patientData.firstName:""));
+        return ((patientData.lastName? (patientData.lastName.toString().toUpperCase()): "") + ', ' +(patientData.firstName? (patientData.firstName.toString().toUpperCase()):""));
 }
 
 function getDecimalNumericValue(data) {
@@ -36,8 +36,15 @@ function getDecimalPointsValue(data) {
     );
 }
 
+function getph(data) {
+	data1 = data.replace(/\(|,/g, "")
+	data = data1.replace(/\)|,/g, "\t")
+	return data;
+}
+
 function getICDCodeType(data) {
-   if (data.subscriber && data.subscriber[0].claim && data.subscriber[0].claim[0].icd[0].code_type) {
+   if (data.subscriber && data.subscriber[0].claim && data.subscriber[0].claim[0].icd && data.subscriber[0].claim[0].icd[0].code_type) {
+	   console.log('22')
 		if(data.subscriber[0].claim[0].icd[0].code_type==='1')
 			return '0';
 		else if (data.subscriber[0].claim[0].icd[0].code_type==='0')
@@ -185,15 +192,15 @@ function getPayerDetails(claimData) {
             details.push(
                 [
                     { text: '', colSpan: 7 },
-                    {}, {}, {}, {}, {}, {}, { text: claimData.subscriber[0].payer.payerName }
+                    {}, {}, {}, {}, {}, {}, { text: claimData.subscriber[0].payer.payerName.toString().toUpperCase() }
                 ],
                 [
                     { text: '', colSpan: 7 },
-                    {}, {}, {}, {}, {}, {}, { text: claimData.subscriber[0].payer.insuranceprovideraddressline1 }
+                    {}, {}, {}, {}, {}, {}, { text: claimData.subscriber[0].payer.insuranceprovideraddressline1.toString().toUpperCase() }
                 ],
                 [
                     { text: '', colSpan: 7 },
-                    {}, {}, {}, {}, {}, {}, { text: claimData.subscriber[0].payer.payerCity + ' ' + claimData.subscriber[0].payer.payerState + ' ' + claimData.subscriber[0].payer.payerZIPCode + claimData.subscriber[0].payer.zipPlus }
+                    {}, {}, {}, {}, {}, {}, { text: (claimData.subscriber[0].payer.payerCity.toString().toUpperCase() + ' ' + claimData.subscriber[0].payer.payerState.toString().toUpperCase() + ' ' + claimData.subscriber[0].payer.payerZIPCode + claimData.subscriber[0].payer.zipPlus) }
                 ]
             );
         } else {
@@ -325,7 +332,7 @@ function formatRedForm(claimData) {
                     [//Ans-------#############
                         {
                             text: claimData.subscriber && claimData.subscriber[0].patient && claimData.subscriber[0].patient[0].addressLine1 ?
-                                (claimData.subscriber[0].patient[0].addressLine1).toString().substring(0, 28) : '', colSpan: 2
+                                (claimData.subscriber[0].patient[0].addressLine1).toString().toUpperCase().substring(0, 28) : '', colSpan: 2
                         },
                         {},
                         [
@@ -350,22 +357,22 @@ function formatRedForm(claimData) {
                             }
                         ],
                         {},
-                        { text: claimData.subscriber && claimData.subscriber[0].addressLine1 ? (claimData.subscriber[0].addressLine1).toString().substring(0, 30) : '' },
+                        { text: claimData.subscriber && claimData.subscriber[0].addressLine1 ? (claimData.subscriber[0].addressLine1).toString().toUpperCase().substring(0, 30) : '' },
                         {}
                     ],
                     [
                         {
                             text: claimData.subscriber && claimData.subscriber[0].patient && claimData.subscriber[0].patient[0].city ?
-                                (claimData.subscriber[0].patient[0].city).toString().substring(0, 25) : ''
+                                ((claimData.subscriber[0].patient[0].city).toString().toUpperCase()).substring(0, 25) : ''
                         },
                         {
                             text: claimData.subscriber && claimData.subscriber[0].patient && claimData.subscriber[0].patient[0].state ?
-                                (claimData.subscriber[0].patient[0].state).toString().substring(0, 3) : '', alignment: 'center'
+                                (claimData.subscriber[0].patient[0].state).toString().toUpperCase().substring(0, 3) : '', alignment: 'center'
                         },
                         {},
                         {},
-                        { text: claimData.subscriber && claimData.subscriber[0].city ? (claimData.subscriber[0].city).toString().substring(0, 23) : '' },
-                        { text: claimData.subscriber && claimData.subscriber[0].state ? (claimData.subscriber[0].state).toString().substring(0, 6) : '' }
+                        { text: claimData.subscriber && claimData.subscriber[0].city ? (claimData.subscriber[0].city).toString().toUpperCase().substring(0, 23) : '' },
+                        { text: claimData.subscriber && claimData.subscriber[0].state ? (claimData.subscriber[0].state).toString().toUpperCase().substring(0, 6) : '' }
                     ],
                     [//Ans
                         {
@@ -374,15 +381,12 @@ function formatRedForm(claimData) {
                         },
                         {
                             text: claimData.subscriber && claimData.subscriber[0].patient && claimData.subscriber[0].patient[0].homePhone ?
-                                (claimData.subscriber[0].patient[0].homePhone).toString().substring(0, 13) : '', margin: [-60, 5, 0, 0]
+                                (getph(claimData.subscriber[0].patient[0].homePhone)).toString().substring(0, 13) : '', margin: [-60, 5, 0, 0]
                         },
                         {},
                         {},
                         { text: claimData.subscriber && claimData.subscriber[0].zipCode ? (claimData.subscriber[0].zipCode).toString().substring(0, 12) : '' },
-                        {
-                            text: claimData.subscriber && claimData.subscriber[0].payer && claimData.subscriber[0].payer.phoneNo ?
-                                (claimData.subscriber[0].payer.phoneNo).toString().substring(0, 13) : '', margin: [-75, 5, 0, 0]
-                        }
+                        { text:  ((claimData.subscriber && claimData.subscriber[0].relationship === "18") ? (claimData.subscriber && claimData.subscriber[0].patient && claimData.subscriber[0].patient[0].homePhone ? (getph(claimData.subscriber[0].patient[0].homePhone)).toString().substring(0, 13) : ''): "") , margin: [-75, 5, 0, 0] }
                     ],
                     [
                         {
@@ -392,7 +396,7 @@ function formatRedForm(claimData) {
                         {},
                         { text: "", colSpan: 2 },
                         {},
-                        { text: claimData.subscriber && claimData.subscriber[0].planType ? claimData.subscriber[0].planType.toString().substring(0, 30) : '' }, //.toString().substring(0, 30)
+                        { text: claimData.subscriber && claimData.subscriber[0].planType ? claimData.subscriber[0].planType.toString().toUpperCase().substring(0, 30) : '' }, //.toString().substring(0, 30)
                         {}
                     ],
                     [//ANS
@@ -480,7 +484,7 @@ function formatRedForm(claimData) {
                     [//ANS
                         {
                             text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].OtherPayer && claimData.subscriber[0].claim[0].OtherPayer[0].name ?
-                                (claimData.subscriber[0].claim[0].OtherPayer[0].name).toString().substring(0, 28) : '', colSpan: 2
+                                (claimData.subscriber[0].claim[0].OtherPayer[0].name).toString().toUpperCase().substring(0, 28) : '', colSpan: 2
                         }, {},
                         { text: "", colSpan: 2, margin: [5, 0, 0, 0] }, {},
                         [
@@ -497,8 +501,8 @@ function formatRedForm(claimData) {
                                                     claimData.subscriber[0].claim[0].OtherPayer[0].name && claimData.subscriber[0].claim[0].OtherPayer[0].name.toString().length > 0) ? '√' : ''
                                             },
                                             {
-                                                text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].OtherPayer &&
-                                                    claimData.subscriber[0].claim[0].OtherPayer[0].name && claimData.subscriber[0].claim[0].OtherPayer[0].name.toString().length === 0) ? '√' : ''
+                                                text: (!(claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].OtherPayer &&
+                                                    claimData.subscriber[0].claim[0].OtherPayer[0].name && claimData.subscriber[0].claim[0].OtherPayer[0].name)) ? '√' : ''
                                             },
                                         ],
                                     ],
@@ -604,7 +608,7 @@ function formatRedForm(claimData) {
                     [
                         {
                             text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].referringProvider ?
-                                getName(claimData.subscriber[0].claim[0].referringProvider[0]).toString().substring(0, 26) : '', colSpan: 4
+                                ("DN\t"+getName(claimData.subscriber[0].claim[0].referringProvider[0]).toString().toUpperCase().substring(0, 26)) : '', colSpan: 4
                         },
                         {}, {}, {}, {},
                         { text: '' },//NPI
@@ -648,9 +652,9 @@ function formatRedForm(claimData) {
                         }, {},
                         {
                             text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].outSideLab.toString() &&
-                            claimData.subscriber[0].claim[0].outSideLab.toString().toUpperCase() === 'FALSE' ? '√' : '', alignment: 'center' },
+                            claimData.subscriber[0].claim[0].outSideLab.toString().toUpperCase() === 'FALSE' ? '√' : '', alignment: 'center', margin:[-10,0,0,0] },
                         { text: '', colSpan: 3, alignment: 'right' }, {}, {},
-                        { text: '00', alignment: 'left', colSpan: 2 }, {}
+                        { text: '', alignment: 'left', colSpan: 2 }, {}
                     ],
                 ],
 
@@ -667,8 +671,8 @@ function formatRedForm(claimData) {
                         { text: '' },
                         { text: '' },
                         { text: '' },
-                        { text: getICDCodeType(claimData) , margin: [-8, -10, 0, 0] },
-                        { text: claimData.subscriber && claimData.subscriber[0].claim ? getResubmissionCode(claimData.subscriber[0].claim[0], 'claimFrequencyCode') : '' },
+                        { text: claimData?getICDCodeType(claimData): "" , margin: [-8, -10, 0, 0] },
+                        { text: claimData.subscriber && claimData.subscriber[0].claim ? (getResubmissionCode(claimData.subscriber[0].claim[0], 'claimFrequencyCode').toString().toUpperCase()) : '' },
                         {
                             text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0] && claimData.subscriber[0].claim[0].originalReference ?
                                 claimData.subscriber[0].claim[0].originalReference.toString().substring(0, 18) : ''
@@ -679,19 +683,19 @@ function formatRedForm(claimData) {
                     [
                         {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].icd && claimData.subscriber[0].claim[0].icd[0]
-                                && claimData.subscriber[0].claim[0].icd[0].code) ? claimData.subscriber[0].claim[0].icd[0].code.toString().substring(0, 7) : '', margin: [0, -10, 0, 0]
+                                && claimData.subscriber[0].claim[0].icd[0].code) ? ((claimData.subscriber[0].claim[0].icd[0].code).toString().substring(0, 7).replace(/\.|,/g, "")) : '', margin: [0, -10, 0, 0]
                         },
                         {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].icd && claimData.subscriber[0].claim[0].icd[1]
-                                && claimData.subscriber[0].claim[0].icd[1].code) ? claimData.subscriber[0].claim[0].icd[1].code.toString().substring(0, 7) : '', margin: [0, -10, 0, 0]
+                                && claimData.subscriber[0].claim[0].icd[1].code) ? ((claimData.subscriber[0].claim[0].icd[1].code).toString().substring(0, 7).replace(/\.|,/g, "")) : '', margin: [0, -10, 0, 0]
                         },
                         {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].icd && claimData.subscriber[0].claim[0].icd[2]
-                                && claimData.subscriber[0].claim[0].icd[2].code) ? claimData.subscriber[0].claim[0].icd[2].code.toString().substring(0, 7) : '', margin: [0, -10, 0, 0]
+                                && claimData.subscriber[0].claim[0].icd[2].code) ? ((claimData.subscriber[0].claim[0].icd[2].code).toString().substring(0, 7).replace(/\.|,/g, "")) : '', margin: [0, -10, 0, 0]
                         },
                         {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].icd && claimData.subscriber[0].claim[0].icd[3]
-                                && claimData.subscriber[0].claim[0].icd[3].code) ? claimData.subscriber[0].claim[0].icd[3].code.toString().substring(0, 7) : '', margin: [0, -10, 0, 0]
+                                && claimData.subscriber[0].claim[0].icd[3].code) ? ((claimData.subscriber[0].claim[0].icd[3].code).toString().substring(0, 7).replace(/\.|,/g, "")) : '', margin: [0, -10, 0, 0]
                         },
                         {},
                         {},
@@ -700,19 +704,19 @@ function formatRedForm(claimData) {
                     [
                         {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].icd && claimData.subscriber[0].claim[0].icd[4]
-                                && claimData.subscriber[0].claim[0].icd[4].code) ? claimData.subscriber[0].claim[0].icd[4].code.toString().substring(0, 7) : '', margin: [0, -12, 0, 0]
+                                && claimData.subscriber[0].claim[0].icd[4].code) ? ((claimData.subscriber[0].claim[0].icd[4].code).toString().substring(0, 7).replace(/\.|,/g, "")) : '', margin: [0, -12, 0, 0]
                         },
                         {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].icd && claimData.subscriber[0].claim[0].icd[5]
-                                && claimData.subscriber[0].claim[0].icd[5].code) ? claimData.subscriber[0].claim[0].icd[5].code.toString().substring(0, 7) : '', margin: [0, -12, 0, 0]
+                                && claimData.subscriber[0].claim[0].icd[5].code) ? ((claimData.subscriber[0].claim[0].icd[5].code).toString().substring(0, 7).replace(/\.|,/g, "")) : '', margin: [0, -12, 0, 0]
                         },
                         {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].icd && claimData.subscriber[0].claim[0].icd[6]
-                                && claimData.subscriber[0].claim[0].icd[6].code) ? claimData.subscriber[0].claim[0].icd[6].code.toString().substring(0, 7) : '', margin: [0, -12, 0, 0]
+                                && claimData.subscriber[0].claim[0].icd[6].code) ? ((claimData.subscriber[0].claim[0].icd[6].code).toString().substring(0, 7).replace(/\.|,/g, "")) : '', margin: [0, -12, 0, 0]
                         },
                         {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].icd && claimData.subscriber[0].claim[0].icd[7]
-                                && claimData.subscriber[0].claim[0].icd[7].code) ? claimData.subscriber[0].claim[0].icd[7].code.toString().substring(0, 7) : '', margin: [0, -12, 0, 0], colspan: 3
+                                && claimData.subscriber[0].claim[0].icd[7].code) ? ((claimData.subscriber[0].claim[0].icd[7].code).toString().substring(0, 7).replace(/\.|,/g, "")) : '', margin: [0, -12, 0, 0], colspan: 3
                         },
                         {}, {}
 
@@ -720,19 +724,19 @@ function formatRedForm(claimData) {
                     [
                         {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].icd && claimData.subscriber[0].claim[0].icd[8]
-                                && claimData.subscriber[0].claim[0].icd[8].code) ? claimData.subscriber[0].claim[0].icd[8].code.toString().substring(0, 7) : '', margin: [0, -14, 0, 0]
+                                && claimData.subscriber[0].claim[0].icd[8].code) ? ((claimData.subscriber[0].claim[0].icd[8].code).toString().substring(0, 7).replace(/\.|,/g, "")) : '', margin: [0, -14, 0, 0]
                         },
                         {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].icd && claimData.subscriber[0].claim[0].icd[9]
-                                && claimData.subscriber[0].claim[0].icd[9].code) ? claimData.subscriber[0].claim[0].icd[9].code.toString().substring(0, 7) : '', margin: [0, -14, 0, 0]
+                                && claimData.subscriber[0].claim[0].icd[9].code) ? ((claimData.subscriber[0].claim[0].icd[9].code).toString().substring(0, 7).replace(/\.|,/g, "")) : '', margin: [0, -14, 0, 0]
                         },
                         {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].icd && claimData.subscriber[0].claim[0].icd[10]
-                                && claimData.subscriber[0].claim[0].icd[10].code) ? claimData.subscriber[0].claim[0].icd[10].code.toString().substring(0, 7) : '', margin: [0, -14, 0, 0]
+                                && claimData.subscriber[0].claim[0].icd[10].code) ? ((claimData.subscriber[0].claim[0].icd[10].code).toString().substring(0, 7).replace(/\.|,/g, "")) : '', margin: [0, -14, 0, 0]
                         },
                         {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].icd && claimData.subscriber[0].claim[0].icd[11]
-                                && claimData.subscriber[0].claim[0].icd[11].code) ? claimData.subscriber[0].claim[0].icd[11].code.toString().substring(0, 7) : '', margin: [0, -14, 0, 0]
+                                && claimData.subscriber[0].claim[0].icd[11].code) ? ((claimData.subscriber[0].claim[0].icd[11].code).toString().substring(0, 7).replace(/\.|,/g, "")) : '', margin: [0, -14, 0, 0]
                         },
                         {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0] && claimData.subscriber[0].claim[0].authorizationNo)
@@ -773,10 +777,10 @@ function formatRedForm(claimData) {
         },
         {
             style: 'myTable',
-            margin: [10, 13, 0, 0],
+            margin: [8, 13, 0, 0],
             table: {
                 widths: [106, 7, 22, 102, 30, 45, 0, 45, 15, 0, 35, 10, 55, 10],
-                heights: [20, 18, 15],
+                heights: [22, 20, 15],
                 body: [
                     [
                         { text: claimData.billingProvider && claimData.billingProvider.federalTaxID ? claimData.billingProvider.federalTaxID.toString().substring(0, 16) : '' },
@@ -801,12 +805,12 @@ function formatRedForm(claimData) {
 							(
 								( claimData.subscriber[0].claim[0].servicefacility[0] ?
 									(
-										(getName(claimData.subscriber[0].claim[0].servicefacility[0]) ? getName(claimData.subscriber[0].claim[0].servicefacility[0]).toString().substring(0, 26) :"")+ "\n"+
-										(claimData.subscriber[0].claim[0].servicefacility[0].addressLine1 ? claimData.subscriber[0].claim[0].servicefacility[0].addressLine1.substring(0, 26) :"")+"\n"+
+										(getName(claimData.subscriber[0].claim[0].servicefacility[0]) ? getName(claimData.subscriber[0].claim[0].servicefacility[0]).toString().toUpperCase().substring(0, 26) :"")+ "\n"+
+										(claimData.subscriber[0].claim[0].servicefacility[0].addressLine1 ? claimData.subscriber[0].claim[0].servicefacility[0].addressLine1.toString().toUpperCase().substring(0, 26) :"")+"\n"+
 										(
-											(claimData.subscriber[0].claim[0].servicefacility[0].city ? claimData.subscriber[0].claim[0].servicefacility[0].city : "") +
-											(claimData.subscriber[0].claim[0].servicefacility[0].state ? claimData.subscriber[0].claim[0].servicefacility[0].state :"")+
-											(claimData.subscriber[0].claim[0].servicefacility[0].zip ? claimData.subscriber[0].claim[0].servicefacility[0].zip: "")
+											(claimData.subscriber[0].claim[0].servicefacility[0].city ? claimData.subscriber[0].claim[0].servicefacility[0].city.toString().toUpperCase() : "") +
+											(claimData.subscriber[0].claim[0].servicefacility[0].state ? claimData.subscriber[0].claim[0].servicefacility[0].state.toString().toUpperCase() :"")+
+											(claimData.subscriber[0].claim[0].servicefacility[0].zip ? claimData.subscriber[0].claim[0].servicefacility[0].zip.toString().toUpperCase(): "")
 										).substring(0, 26)
 									):" "
 								)
@@ -814,13 +818,13 @@ function formatRedForm(claimData) {
                         },
                         {}, {}, {},
                         {
-                            text: (claimData.billingProvider ? (claimData.billingProvider.lastName.substring(0, 30)) : '') + '\n' +
-							((claimData.billingProvider && claimData.billingProvider.addressLine1 ? claimData.billingProvider.addressLine1.substring(0, 30) : '') + '\n' + (claimData.billingProvider ? claimData.billingProvider.city + ' ' +
-                                    claimData.billingProvider.state + ' ' + claimData.billingProvider.zipCode : '').substring(0, 30)
+                            text: (claimData.billingProvider ? (claimData.billingProvider.lastName.toString().toUpperCase().substring(0, 30)) : '') + '\n' +
+							((claimData.billingProvider && claimData.billingProvider.addressLine1 ? claimData.billingProvider.addressLine1.toString().toUpperCase().substring(0, 30) : '') + '\n' + (claimData.billingProvider ? claimData.billingProvider.city.toString().toUpperCase() + ' ' +
+                                    claimData.billingProvider.state.toString().toUpperCase() + ' ' + claimData.billingProvider.zipCode : '').substring(0, 30)
 							), colSpan: 5
                         },
                         {}, {}, {}, {},
-                        { text: claimData.billingProvider && claimData.billingProvider.phoneNo ? claimData.billingProvider.phoneNo : '', colSpan: 2 , margin:[-25, -8, 0, 0]}, {}
+                        { text: claimData.billingProvider && claimData.billingProvider.phoneNo ? (getph(claimData.billingProvider.phoneNo)) : '', colSpan: 2 , margin:[-30, -8, 0, 0]}, {}
                     ],
                 ],
             }, layout: 'noBorders'
@@ -837,7 +841,7 @@ function formatRedForm(claimData) {
                         { text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].claimDate ?
                             (((claimData.subscriber[0].claim[0].claimDate).toString().substring(4,6))+ ' ' +
                                 ((claimData.subscriber[0].claim[0].claimDate).toString().substring(6,8)) + ' ' +
-                                ((claimData.subscriber[0].claim[0].claimDate).toString().substring(0,4))) : '') ,margin:[-2,0,0,0]},
+                                ((claimData.subscriber[0].claim[0].claimDate).toString().substring(2,4))) : '') ,margin:[-2,0,0,0]},
                         {
                             text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0] && claimData.subscriber[0].claim[0].servicefacility
                                 && claimData.subscriber[0].claim[0].servicefacility[0].NPINO ? claimData.subscriber[0].claim[0].servicefacility[0].NPINO.toString().substring(0, 10) : ''
