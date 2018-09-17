@@ -13,8 +13,8 @@ WITH diagnosisCount as (
     icd.code  AS code,
     f.facility_name AS "facility_name",
     CASE
-    WHEN icd.description IS  NULL AND  icd.code IS NOT NULL THEN '--Total--'
-    WHEN icd.description IS  NULL AND  icd.code IS  NULL AND f.facility_name IS NULL THEN '--Grand Total--'
+    WHEN icd.description IS  NULL AND  icd.code IS NOT NULL THEN '─ Total ─'
+    WHEN icd.description IS  NULL AND  icd.code IS  NULL AND f.facility_name IS NULL THEN '─ Grand Total ─'
     ELSE   icd.description
 END AS "description",
     COUNT(1) AS icd_code_count
@@ -36,6 +36,7 @@ END AS "description",
          icd.code
         , f.facility_name
         , icd_code_count
+        , "description" DESC
   )
   SELECT
         code AS "ICD Code",
