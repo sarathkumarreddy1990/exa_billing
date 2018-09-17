@@ -162,19 +162,9 @@
                         <div class="col-sm-2" style="padding-left:0px;">
                             <select id="ddlState" class="form-control" style="height:32px;" name="state">
                                 <option selected>Select</option>
-                                <option value="Alabama">Alabama</option>
-                                <option value="Alaska">Alaska</option>
-                                <option value="California">California</option>
-                                <option value="Colorado">Colorado</option>
-                                <option value="Florida">Florida</option>
-                                <option value="Georgia">Georgia</option>
-                                <option value="Illinois">Illinois</option>
-                                <option value="NC">NC</option>
-                                <option value="New Jersey">New Jersey</option>
-                                <option value="Ohio">Ohio</option>
-                                <option value="Tamil nadu">Tamil nadu</option>
-                                <option value="Virginia">Virginia</option>
-                                <option value="Washington">Washington</option>
+                                    <% _.each(app.states[0].app_states, function(states) { %>
+                                        <option value="<%= states %>" ><%= states %></option>
+                                    <% }); %>
                             </select>
                         </div>
                         <div class="col-sm-2" style="padding-left:0px;">
@@ -237,19 +227,9 @@
                         <div class="col-sm-2" style="padding-left:0px;">
                             <select id="ddlPayState" class="form-control" style="height:32px;" name="payState">
                                 <option selected>Select</option>
-                                <option value="Alabama">Alabama</option>
-                                <option value="Alaska">Alaska</option>
-                                <option value="California">California</option>
-                                <option value="Colorado">Colorado</option>
-                                <option value="Florida">Florida</option>
-                                <option value="Georgia">Georgia</option>
-                                <option value="Illinois">Illinois</option>
-                                <option value="NC">NC</option>
-                                <option value="New Jersey">New Jersey</option>
-                                <option value="Ohio">Ohio</option>
-                                <option value="Tamil nadu">Tamil nadu</option>
-                                <option value="Virginia">Virginia</option>
-                                <option value="Washington">Washington</option>
+                                <% _.each(app.states[0].app_states, function(states) { %>
+                                    <option value="<%= states %>" ><%= states %></option>
+                                <% }); %>
                             </select>
                         </div>
                         <div class="col-sm-2" style="padding-left:0px;">

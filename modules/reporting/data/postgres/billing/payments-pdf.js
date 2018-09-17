@@ -12,9 +12,9 @@ const paymentsPDFDataSetQueryTemplate = _.template(`
 WITH paymentsPDF as (
     SELECT
          bp.id AS payment_id,
-         get_full_name(pu.first_name,pu.last_name) AS user_full_name,
-         get_full_name(pp.first_name,pp.last_name) AS patient_full_name,
-         get_full_name(ppr.first_name,ppr.last_name) AS provider_full_name,
+         get_full_name(pu.last_name,pu.first_name) AS user_full_name,
+         get_full_name(pp.last_name,pp.first_name) AS patient_full_name,
+         get_full_name(ppr.last_name,ppr.first_name) AS provider_full_name,
          pip.insurance_name,
          pip.insurance_code,
          bp.alternate_payment_id,
@@ -66,8 +66,8 @@ WITH paymentsPDF as (
                 CASE '<%= payer_type_column %>'
                     WHEN 'insurance' THEN pip.insurance_name
                     WHEN 'ordering_facility' THEN ppg.group_name
-                    WHEN 'ordering_provider' THEN get_full_name(ppr.first_name,ppr.last_name)
-                    WHEN 'patient' THEN  get_full_name(pp.first_name,pp.last_name)
+                    WHEN 'ordering_provider' THEN get_full_name(ppr.last_name,ppr.first_name)
+                    WHEN 'patient' THEN  get_full_name(pp.last_name,pp.first_name)
                 END)  ILIKE '%<%= payer_name %>%'
         <% } else { %>
             AND (
@@ -99,13 +99,19 @@ WITH paymentsPDF as (
             AND  facility_name  ILIKE '%<%= facility_name %>%'
         <%}%>
         <% if(payment_mode) { %>
-            AND  mode ILIKE  '%<%= payment_mode %>%'
+            AND  mode ILIKE '%<%= payment_mode %>%'
         <%}%>
         <% if(paymentDate) { %>
             AND  <%= paymentDate %>
         <%}%>
         <% if(accounting_date) { %>
             AND  <%= accounting_date %>
+        <%}%>
+        <% if(account_no) { %>
+            AND account_no  ILIKE  '%<%=account_no %>%'
+        <%}%>
+        <% if(notes) { %>
+            AND bp.notes  ILIKE  '%<%=notes %>%'
         <%}%>
     ORDER BY
          payment_id DESC
@@ -251,7 +257,9 @@ const api = {
             applied: null,
             facility_name: null,
             accounting_date: null,
-            payment_amount:null
+            payment_amount:null,
+            account_no : null,
+            notes : null
         };
 
         if (reportParams.paymentStatus) {
@@ -289,9 +297,13 @@ const api = {
 
             if (value == "accounting_dt") {
                 var accounting_dt_range = reportParams.filterData[i].split(' - ');
-                var accounting_from_date = accounting_dt_range[0];
-                var accounting_to_date = accounting_dt_range[1];
-                if (accounting_from_date === accounting_to_date) {
+                var accounting_from_date = accounting_dt_range[0] || "";
+                var accounting_to_date = accounting_dt_range[1] ||  "";
+                if (accounting_from_date && accounting_to_date == "") {
+                    params.push(accounting_from_date);
+                    filters.accounting_date = queryBuilder.whereDate('bp.accounting_dt', '=', [params.length], 'f.time_zone');
+                }
+                else if (accounting_from_date === accounting_to_date) {
                     params.push(accounting_from_date);
                     filters.accounting_date = queryBuilder.whereDate('bp.accounting_dt', '=', [params.length], 'f.time_zone');
                 } else {
@@ -344,6 +356,14 @@ const api = {
 
             if (value == "user_full_name") {
                 filters.user_full_name = reportParams.filterData[i];
+            }
+
+            if (value == "account_no") {
+                filters.account_no = reportParams.filterData[i];
+            }
+
+            if (value == "notes") {
+                filters.notes = reportParams.filterData[i];
             }
         })
 
