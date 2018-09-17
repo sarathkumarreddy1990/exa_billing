@@ -1550,7 +1550,7 @@ define(['jquery',
                                 pageSize: 10,
                                 sortField: "trim(display_description)",
                                 sortOrder: "asc",
-                                company_id: 1
+                                company_id: app.companyID
                             };
                         },
                         processResults: function (data, params) {
@@ -1683,7 +1683,7 @@ define(['jquery',
                                 pageSize: 10,
                                 sortField: "p.last_name",
                                 sortOrder: "asc",
-                                company_id: 1
+                                company_id: app.companyID
                             };
                         },
                         processResults: function (data, params) {
@@ -1762,7 +1762,7 @@ define(['jquery',
                                 pageSize: 10,
                                 sortField: "code",
                                 sortOrder: "ASC",
-                                company_id: 1
+                                company_id: app.companyID
                             };
                         },
                         processResults: function (data, params) {
@@ -2111,7 +2111,7 @@ define(['jquery',
                                 sortField: "group_name",
                                 sortOrder: "ASC",
                                 groupType: 'OF',
-                                company_id: 1
+                                company_id: app.companyID
                             };
                         },
                         processResults: function (data, params) {
@@ -2169,7 +2169,7 @@ define(['jquery',
                                 pageSize: 10,
                                 sortField: "insurance_code",
                                 sortOrder: "ASC",
-                                company_id: 1
+                                company_id: app.companyID
                             };
                         },
                         processResults: function (data, params) {
@@ -2626,7 +2626,7 @@ define(['jquery',
                         bill_fee: parseFloat($('#txtBillFee_' + id).val()) || 0.00,
                         allowed_amount: parseFloat($('#txtAllowedFee_' + id).val()) || 0.00,
                         units: parseFloat($('#txtUnits_' + id).val()) || 1.000,
-                        created_by: 1,
+                        created_by: app.userID,
                         authorization_no: $('#txtAuthInfo_' + id).val() || null,
                         charge_dt: self.cur_study_date || null,
                         study_id: rowData.study_id || null,
