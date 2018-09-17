@@ -460,7 +460,7 @@ module.exports = {
 										,(SELECT Json_agg(Row_to_json(icd)) "icd" FROM
 										(SELECT icd_id,  code,description,(CASE code_type
 											WHEN 'icd9' THEN '0'
-											WHEN 'icd10' THEN '1' END ) as code_type   FROM billing.claim_icds ci INNER JOIN icd_codes ON icd_codes.id=ci.icd_id  WHERE ci.claim_id = claims.id) as icd)
+											WHEN 'icd10' THEN '1' END ) as code_type   FROM billing.claim_icds ci INNER JOIN icd_codes ON icd_codes.id=ci.icd_id  WHERE ci.claim_id = claims.id order by  ci.id ) as icd)
 
 							,(SELECT Json_agg(Row_to_json(renderingProvider)) "renderingProvider"
 									FROM
@@ -605,7 +605,7 @@ module.exports = {
 										inner join insurance_providers on insurance_providers.id=insurance_provider_id
 										LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = insurance_providers.provider_payer_type_id
 									WHERE  patient_insurances.id =
-						(  CASE payer_type
+						(  CASE COALESCE(${params.payerType}, payer_type)
 						WHEN 'primary_insurance' THEN secondary_patient_insurance_id
 						WHEN 'secondary_insurance' THEN primary_patient_insurance_id
 						WHEN 'tertiary_insurance' THEN primary_patient_insurance_id
@@ -640,12 +640,15 @@ module.exports = {
 									FROM
 					(SELECT
 					display_code as "cpt",
-					charges.id as "chargeID",
+                    charges.id as "chargeID",
+                    insurance_info->'PayerID' as "claimPayerID",
+                    (SELECT insurance_info->'PayerID' FROM    patient_insurances p_pi
+                    INNER JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id
+                    WHERE  p_pi.id = claims.primary_patient_insurance_id) as "payerID",
 					(CASE coverage_level
 						WHEN 'primary' THEN 'P'
 						WHEN 'secondary' THEN 'S'
 						WHEN 'tertiary' THEN 'T' END) as "claimResponsibleParty",
-					insurance_info->'PayerID' as "payerID",
 					modifier1.code as "modifier1",
 					modifier2.code as "modifier2",
 					modifier3.code as "modifier3",
