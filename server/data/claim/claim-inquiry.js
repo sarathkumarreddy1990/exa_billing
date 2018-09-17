@@ -125,6 +125,7 @@ module.exports = {
             FROM public.patient_insurances pi
             INNER JOIN pat_ins_ids claim_ins ON pi.id = claim_ins.patient_insurance_id
             INNER JOIN insurance_providers ip ON ip.id = pi.insurance_provider_id
+            ORDER BY pi.coverage_level ASC
             ) AS ins
         )
     SELECT * FROM  claim_details, payment_details, icd_details, insurance_details, patient_details  `;

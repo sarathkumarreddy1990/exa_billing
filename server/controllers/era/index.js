@@ -294,7 +294,7 @@ module.exports = {
 
         const existsInsurance = await data.selectInsuranceEOB({
             payer_id: payerIdentification
-            , company_id: 1
+            , company_id: params.companyId || params.company_id
             , file_id: params.file_id
         });
 
