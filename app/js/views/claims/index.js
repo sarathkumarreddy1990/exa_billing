@@ -2762,16 +2762,16 @@ define(['jquery',
                         $('#txtPriZipCode').val().trim()
                     ],
                     primaryfieldObjs: [
-                        {obj: $('#txtPriPolicyNo'), msg: 'Please select policy #'},
-                        {obj: $('#ddlPriRelationShip'),msg: 'Please select subscriber relationship'},
-                        {obj: $('#txtPriSubFirstName'), msg: 'Please enter subscriber first name'},
-                        {obj: $('#txtPriSubLastName'), msg: 'Please enter subscriber last name'},
-                        {obj: $('#txtPriDOB'), msg: 'Please enter subscriber DOB'},
-                        {obj: $('#ddlPriGender'), msg: 'Please select subscriber gender'},
-                        {obj: $('#txtPriSubPriAddr'), msg: 'Please enter subscriber address'},
-                        {obj: $('#txtPriCity'), msg: 'Please enter subscriber city'},
-                        {obj: $('#ddlPriState'), msg: 'Please select state #'},
-                        {obj: $('#txtPriZipCode'), msg: 'Please enter xip code'}
+                        {obj: $('#txtPriPolicyNo'), msg: 'Please select policy # in primary insurance'},
+                        {obj: $('#ddlPriRelationShip'),msg: 'Please select subscriber relationship in primary insurance'},
+                        {obj: $('#txtPriSubFirstName'), msg: 'Please enter subscriber first name in primary insurance'},
+                        {obj: $('#txtPriSubLastName'), msg: 'Please enter subscriber last name in primary insurance'},
+                        {obj: $('#txtPriDOB'), msg: 'Please enter subscriber DOB in primary insurance'},
+                        {obj: $('#ddlPriGender'), msg: 'Please select subscriber gender in primary insurance'},
+                        {obj: $('#txtPriSubPriAddr'), msg: 'Please enter subscriber address in primary insurance'},
+                        {obj: $('#txtPriCity'), msg: 'Please enter subscriber city in primary insurance'},
+                        {obj: $('#ddlPriState'), msg: 'Please select state # in primary insurance'},
+                        {obj: $('#txtPriZipCode'), msg: 'Please enter zip code in primary insurance'}
                     ],
                     secondaryfields: [
                         $('#txtSecPolicyNo').val().trim(),
@@ -2786,16 +2786,16 @@ define(['jquery',
                         $('#txtSecZipCode').val().trim()
                     ],
                     secondaryfieldObjs: [
-                        {obj: $('#txtSecPolicyNo'), msg: 'Please enter policy #'},
-                        {obj: $('#ddlSecRelationShip'),msg: 'Please select subscriber relationship'},
-                        {obj: $('#txtSecSubFirstName'), msg: 'Please enter subscriber first name'},
-                        {obj: $('#txtSecSubLastName'), msg: 'Please enter subscriber last name'},
-                        {obj: $('#ddlSecGender'), msg: 'Please select subscriber gender'},
-                        {obj: $('#txtSecDOB'), msg: 'Please enter subscriber DOB'},
-                        {obj: $('#txtSecSubPriAddr'), msg: 'Please enter subscriber address'},
-                        {obj: $('#txtSecCity'), msg: 'Please enter subscriber city'},
-                        {obj: $('#ddlSecState'), msg: 'Please select state #'},
-                        {obj: $('#txtSecZipCode'), msg: 'Please enter xip code'}
+                        {obj: $('#txtSecPolicyNo'), msg: 'Please enter policy # in secondary insurance'},
+                        {obj: $('#ddlSecRelationShip'),msg: 'Please select subscriber relationship in secondary insurance'},
+                        {obj: $('#txtSecSubFirstName'), msg: 'Please enter subscriber first name in secondary insurance'},
+                        {obj: $('#txtSecSubLastName'), msg: 'Please enter subscriber last name in secondary insurance'},
+                        {obj: $('#ddlSecGender'), msg: 'Please select subscriber gender in secondary insurance'},
+                        {obj: $('#txtSecDOB'), msg: 'Please enter subscriber DOB in secondary insurance'},
+                        {obj: $('#txtSecSubPriAddr'), msg: 'Please enter subscriber address in secondary insurance'},
+                        {obj: $('#txtSecCity'), msg: 'Please enter subscriber city in secondary insurance'},
+                        {obj: $('#ddlSecState'), msg: 'Please select state # in secondary insurance'},
+                        {obj: $('#txtSecZipCode'), msg: 'Please enter zip code in secondary insurance'}
                     ],
                     tertiaryfields: [
                         $('#txtTerPolicyNo').val().trim(),
@@ -2810,16 +2810,16 @@ define(['jquery',
                         $('#txtTerZipCode').val().trim()
                     ],
                     tertiaryfieldObjs: [
-                        {obj: $('#txtTerPolicyNo'), msg: 'Please enter policy #'},
-                        {obj: $('#ddlTerRelationShip'),msg: 'Please select subscriber relationship'},
-                        {obj: $('#txtTerSubFirstName'), msg: 'Please enter subscriber first name'},
-                        {obj: $('#txtTerSubLastName'), msg: 'Please enter subscriber last name'},
-                        {obj: $('#ddlTerGender'), msg: 'Please select subscriber gender'},
-                        {obj: $('#txtTerDOB'), msg: 'Please enter subscriber DOB'},
-                        {obj: $('#txtTerSubPriAddr'), msg: 'Please enter subscriber address'},
-                        {obj: $('#txtTerCity'), msg: 'Please enter subscriber city'},
-                        {obj: $('#ddlTerState'), msg: 'Please select state #'},
-                        {obj: $('#txtTerZipCode'), msg: 'Please enter xip code'}
+                        {obj: $('#txtTerPolicyNo'), msg: 'Please enter policy # in tertiary insurance'},
+                        {obj: $('#ddlTerRelationShip'),msg: 'Please select subscriber relationship in tertiary insurance'},
+                        {obj: $('#txtTerSubFirstName'), msg: 'Please enter subscriber first name in tertiary insurance'},
+                        {obj: $('#txtTerSubLastName'), msg: 'Please enter subscriber last name in tertiary insurance'},
+                        {obj: $('#ddlTerGender'), msg: 'Please select subscriber gender in tertiary insurance'},
+                        {obj: $('#txtTerDOB'), msg: 'Please enter subscriber DOB in tertiary insurance'},
+                        {obj: $('#txtTerSubPriAddr'), msg: 'Please enter subscriber address in tertiary insurance'},
+                        {obj: $('#txtTerCity'), msg: 'Please enter subscriber city in tertiary insurance'},
+                        {obj: $('#ddlTerState'), msg: 'Please select state # in tertiary insurance'},
+                        {obj: $('#txtTerZipCode'), msg: 'Please enter zip code in tertiary insurance'}
                     ]
                 }
 
