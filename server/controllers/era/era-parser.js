@@ -110,19 +110,20 @@ module.exports = {
                         }
 
                         let serviceAdjustment = val.serviceAdjustment;
-                        let adjustmentAmount = _.map(serviceAdjustment, function (obj) {
-                            let amountArray = [];
+                        // reject CAS groupCode['PR'] for calculating adjustment
+                        let amountArray = [];
+
+                        _.map(_.reject(serviceAdjustment, { groupCode: 'PR' }), function (obj) {
 
                             for (let i = 1; i <= 7; i++) {
 
-                                if (obj['monetaryAmount' + i] && obj.groupCode !='PR') {
+                                if (obj['monetaryAmount' + i]) {
                                     amountArray.push(parseFloat(obj['monetaryAmount' + i]));
                                 }
                             }
-
-                            return _.sum(amountArray);
                         });
 
+                        let adjustmentAmount = _.sum(amountArray);
                         /**
                         *  Condition : Check valid CAS group and reason codes
                         *  DESC : CAS group and reason codes not matched means shouldn't apply adjustment (Ex: adjustment = 0)
@@ -148,7 +149,7 @@ module.exports = {
                         *  Condition : Apply adjustment only for primary payer
                         *  DESC : Primary payers are defined via the claim status of 1 or 19
                         */
-                        adjustmentAmount = ['1', '19'].indexOf(value.claimStatusCode) == -1 ? 0 : adjustmentAmount[0];
+                        adjustmentAmount = ['1', '19'].indexOf(value.claimStatusCode) == -1 ? 0 : adjustmentAmount;
 
                         /**
                         *  Condition : Check Is Valid CAS or Not
@@ -232,8 +233,10 @@ module.exports = {
                         lineItems.push({
                             claim_number: value.claimNumber,
                             cpt_code: val.qualifierData.cptCode,
-                            payment: val.paidamount,
+                            payment: parseFloat(val.paidamount) || 0.00,
                             adjustment: adjustmentAmount || 0.00,
+                            cas_total_amt: _.sum(amountArray) || 0.00,
+                            bill_fee: parseFloat(val.billFee) || 0.00,
                             original_reference: value.payerClaimContorlNumber || null,
                             claim_status_code: value.claimStatusCode || 0,
                             cas_details: cas_obj,
@@ -259,7 +262,9 @@ module.exports = {
                             claimComments.push({
                                 claim_number: value.claimNumber,
                                 note: commentDesc.description,
-                                type: 'auto'
+                                type: 'auto',
+                                claim_index: claim_index,
+                                status_code_desc: true
                             });
                         }
                     }
@@ -318,8 +323,36 @@ module.exports = {
             user_id: parseInt(payer_details.created_by)
         };
 
+        /**
+        *  Condition : ERA- Payment=0, adjustment == bill fee
+        *  DESC : Check adjustment amount is zero, Set claim status & Claim comments Denied
+        */
+        let lineItemsByGroup = _.groupBy(lineItems, 'claim_index');
+        let groupedLineItems = [];
+
+        _.map(lineItemsByGroup, items => {
+
+            if (_.sumBy(items, 'payment') == 0 && _.sumBy(items, 'cas_total_amt') == _.sumBy(items, 'bill_fee')) {
+                items = items.map(item => {
+                    item.claim_status_code = 4;
+                    return item;
+                });
+
+                claimComments = claimComments.map(comment => {
+                    comment.note = comment.claim_index == items[0].claim_index && comment.status_code_desc ? 'Denied' : comment.note;
+                    return comment;
+                });
+
+                groupedLineItems = groupedLineItems.concat(items);
+            } else {
+                groupedLineItems = groupedLineItems.concat(items);
+            }
+
+        });
+
+
         return {
-            lineItems: lineItems,
+            lineItems: groupedLineItems,
             claimComments: claimComments,
             audit_details: auditDetails
         };
