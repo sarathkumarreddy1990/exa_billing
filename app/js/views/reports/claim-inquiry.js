@@ -209,6 +209,11 @@ define([
 
             onReportViewClick: function (e) {
                 var btnClicked = e && e.target ? $(e.target) : null;
+
+                if (!($('#chkServiceDateBill').prop('checked')) && !($('#chkServicePayDateCPT').prop('checked')) && !($('#billCreatedDate').prop('checked'))) {
+                    $('#chkServiceDateBill').prop('checked', true)
+               }
+
                 if (btnClicked && btnClicked.prop('tagName') === 'I') {
                     btnClicked = btnClicked.parent(); // in case FA icon 'inside'' button was clicked...
                 }
