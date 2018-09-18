@@ -162,9 +162,9 @@
                         <div class="col-sm-2" style="padding-left:0px;">
                             <select id="ddlState" class="form-control" style="height:32px;" name="state">
                                 <option selected>Select</option>
-                                    <% _.each(app.states[0].app_states, function(states) { %>
-                                        <option value="<%= states %>" ><%= states %></option>
-                                    <% }); %>
+                                <% _.each(states, function(state) { %>
+                                    <option value="<%= state %>" ><%= state %></option>
+                                <% }); %>
                             </select>
                         </div>
                         <div class="col-sm-2" style="padding-left:0px;">
@@ -227,8 +227,8 @@
                         <div class="col-sm-2" style="padding-left:0px;">
                             <select id="ddlPayState" class="form-control" style="height:32px;" name="payState">
                                 <option selected>Select</option>
-                                <% _.each(app.states[0].app_states, function(states) { %>
-                                    <option value="<%= states %>" ><%= states %></option>
+                                <% _.each(states, function(state) { %>
+                                    <option value="<%= state %>" ><%= state %></option>
                                 <% }); %>
                             </select>
                         </div>
