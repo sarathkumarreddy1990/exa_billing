@@ -21,11 +21,11 @@ function getCityStatePincode(data, city, state, zip, len) {
 
 function getSubstring(str, len) {
     str = str ? str.toString() : '';
-    return (str.length > 0) ? str.substring(0, len) : '';
+    return (str.length > 0) ? ((str.substring(0, len)).toString().toUpperCase()) : '';
 }
 
 function getICDCodeType(data) {
-   if (data.subscriber && data.subscriber[0].claim && data.subscriber[0].claim[0].icd[0].code_type) {
+   if (data.subscriber && data.subscriber[0].claim && data.subscriber[0].claim[0].icd && data.subscriber[0].claim[0].icd[0].code_type) {
 		if(data.subscriber[0].claim[0].icd[0].code_type==='1')
 			return '0';
 		else if (data.subscriber[0].claim[0].icd[0].code_type==='0')
@@ -50,22 +50,22 @@ function getICDBlock(claimData) {
     let icdvalues = getICDCodes(claimData); //icd array
     return [
         [
-            { text: icdvalues[0], margin:[0,0,-10,0]},
-            { text: icdvalues[1], margin:[0,0,-10,0]},
-            { text: icdvalues[2], margin:[0,0,-12,0]},
-            { text: icdvalues[3], margin:[0,0,-18,0]}
+            { text: (icdvalues[0]?(icdvalues[0].toString().replace(/\.|,/g, "")):""), margin:[0,0,-10,0]},
+            { text: (icdvalues[1]?(icdvalues[1].toString().replace(/\.|,/g, "")):""), margin:[0,0,-10,0]},
+            { text: (icdvalues[2]?(icdvalues[2].toString().replace(/\.|,/g, "")):""), margin:[0,0,-12,0]},
+            { text: (icdvalues[3]?(icdvalues[3].toString().replace(/\.|,/g, "")):""), margin:[0,0,-18,0]}
         ],
         [
-            { text: icdvalues[4], margin:[0,-1,-10,0]},
-            { text: icdvalues[5], margin:[0,-1,-10,0]},
-            { text: icdvalues[6], margin:[0,-1,-12,0]},
-            { text: icdvalues[7], margin:[0,-1,-18,0]}
+            { text: (icdvalues[4]?(icdvalues[4].toString().replace(/\.|,/g, "")):""), margin:[0,-1,-10,0]},
+            { text: (icdvalues[5]?(icdvalues[5].toString().replace(/\.|,/g, "")):""), margin:[0,-1,-10,0]},
+            { text: (icdvalues[6]?(icdvalues[6].toString().replace(/\.|,/g, "")):""), margin:[0,-1,-12,0]},
+            { text: (icdvalues[7]?(icdvalues[7].toString().replace(/\.|,/g, "")):""), margin:[0,-1,-18,0]}
         ],
         [
-            { text: icdvalues[8], margin:[0,-2,-10,0]},
-            { text: icdvalues[9], margin:[0,-2,-10,0]},
-            { text: icdvalues[10], margin:[0,-2,-12,0]},
-            { text: icdvalues[11], margin:[0,-2,-18,0]}
+            { text: (icdvalues[8]?(icdvalues[8].toString().replace(/\.|,/g, "")):""), margin:[0,-2,-10,0]},
+            { text: (icdvalues[9]?(icdvalues[9].toString().replace(/\.|,/g, "")):""), margin:[0,-2,-10,0]},
+            { text: (icdvalues[10]?(icdvalues[10].toString().replace(/\.|,/g, "")):""), margin:[0,-2,-12,0]},
+            { text: (icdvalues[11]?(icdvalues[11].toString().replace(/\.|,/g, "")):""), margin:[0,-2,-18,0]}
         ],
     ];
 }
@@ -115,7 +115,7 @@ function getCPTValues(data) {
                 { text: getDecimalPointsValue(getKeyValue(cptvalues[pos], 'totalBillFee')), border: [true, false, true, true]},
                 { text: getKeyTrimValue(cptvalues[pos], 'unit', 3), border: [true, false, true, true]},
                 {text:"",  border: [true, false, true, true]}, { text: 'NPI', alignment: 'center' , border: [true, false, true, true]},
-                { text: data.subscriber[0].claim[0].renderingProvider ? getKeyTrimValue(data.subscriber[0].claim[0].renderingProvider[pos], 'NPINO', 12) : '' , border: [true, false, true, true]},
+                { text: data.subscriber[0].claim[0].renderingProvider ? getKeyTrimValue(data.subscriber[0].claim[0].renderingProvider[0], 'NPINO', 12) : '' , border: [true, false, true, true]},
             ]);
         } else cpt.push([{text:"",  border: [true, false, true, true]}, {text:"",  border: [true, false, true, true]}, {text:"",  border: [true, false, true, true]}, {text:"",  border: [true, false, true, true]}, {text:"",  border: [true, false, true, true]}, {text:"",  border: [true, false, true, true]}, {text:"",  border: [true, false, true, true]}, {text:"",  border: [true, false, true, true]}, {text:"",  border: [true, false, true, true]}, {text:"",  border: [true, false, true, true]}, {text:"",  border: [true, false, true, true]}, {text:"",  border: [true, false, true, true]}, {text:"",  border: [true, false, true, true]}, {text:"",  border: [true, false, true, true]}, {text:"",  border: [true, false, true, true]}, {text:"",  border: [true, false, true, true]}, {text:"",  border: [true, false, true, true]}, {text:"",  border: [true, false, true, true]},{text:"NPI", alignment:"center",  border: [true, false, true, true]},{text:"",  border: [true, false, true, true]}]);
     }
@@ -619,18 +619,18 @@ function formatSingleClaim(claimData) {
 					],
 					[
 					    {text: 'HEALTH INSURANCE CLAIM FORM', fontSize:12, bold: true, colSpan:2},{},
-					    { text: claimData.subscriber && claimData.subscriber[0].payer ? getKeyTrimValue(claimData.subscriber[0].payer, 'payerName', 30) : '' , fontSize: 8, colSpan:3},{},{}
+					    { text: claimData.subscriber && claimData.subscriber[0].payer ? getKeyTrimValue(claimData.subscriber[0].payer, 'payerName', 30) : '' , bold:true , fontSize: 8, colSpan:3},{},{}
 					 ],
 					 [
 					    {text: 'APPROVED BY NATIONAL UNIFORM CLAIM COMMITTEE (NUCC)02/12', colSpan:2},{},
-					    { text: claimData.subscriber && claimData.subscriber[0].payer ? getKeyTrimValue(claimData.subscriber[0].payer, 'insuranceprovideraddressline1', 30) : '' , fontSize: 8, colSpan:3},{},{}
+					    { text: claimData.subscriber && claimData.subscriber[0].payer ? getKeyTrimValue(claimData.subscriber[0].payer, 'insuranceprovideraddressline1', 30) : '' , bold:true , fontSize: 8, colSpan:3},{},{}
 					 ],
 					 [
 					    {image: 'PICAImage', fit: [20, 20], margin: [0, 0, 0, 0]},
 					    {text:"PICA"},
 					    {
                             text: (claimData.subscriber && claimData.subscriber[0].payer ? (getSubstring((getKeyValue(claimData.subscriber[0].payer, 'payerCity') + ' ' +
-                                getKeyValue(claimData.subscriber[0].payer, 'payerState') + ' ' + getKeyValue(claimData.subscriber[0].payer, 'payerZIPCode')), 30)) : ' ')
+                                getKeyValue(claimData.subscriber[0].payer, 'payerState') + ' ' + getKeyValue(claimData.subscriber[0].payer, 'payerZIPCode')), 30)) : ' '), bold:true
                                 ,fontSize: 8
                         },{text:"PICA", alignment:"right"},
                         {image: 'PICAImage', fit: [20, 20], margin: [0, 0, 0, 0]}
@@ -1395,10 +1395,10 @@ function formatSingleClaim(claimData) {
                     ],
                     [//Telephone
                         {text: claimData.subscriber && claimData.subscriber[0].patient ? getKeyTrimValue(claimData.subscriber[0].patient[0], 'zipCode', 13) : ''},
-                        {text: claimData.subscriber && claimData.subscriber[0].patient ? getTrimmedPhoneNo(getKeyTrimValue(claimData.subscriber[0].patient[0], 'homePhone', 13)) : '', colSpan:2},
+                        {text: claimData.subscriber && claimData.subscriber[0].patient ? getTrimmedPhoneNo(getKeyTrimValue(claimData.subscriber[0].patient[0], 'homePhone', 13)) : '', colSpan:2, margin:[-10, 0,0,0]},
                         {},{},
                         {text: claimData.subscriber && claimData.subscriber[0].zipCode ? getKeyTrimValue(claimData.subscriber[0], 'zipCode', 12) : ''},
-                        {text: claimData.subscriber && claimData.subscriber[0].payer ? getTrimmedPhoneNo(getKeyTrimValue(claimData.subscriber[0].payer, 'phoneNo', 13)) : '', colSpan:2, margin:[-28, 0,0,0]},
+                        {text: ( (claimData.subscriber && claimData.subscriber[0].relationship === "18") ? ( claimData.subscriber && claimData.subscriber[0].patient ? getTrimmedPhoneNo(getKeyTrimValue(claimData.subscriber[0].patient[0], 'homePhone', 13)):"") :"" ), colSpan:2, margin:[-25, 0,0,0]},
                         {}
                     ],
                     [//Other Insurance
@@ -1489,7 +1489,7 @@ function formatSingleClaim(claimData) {
                                 body: [
                                     [
                                         { image: getImage(claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].OtherPayer && claimData.subscriber[0].claim[0].OtherPayer[0].name && claimData.subscriber[0].claim[0].OtherPayer[0].name.toString().length > 0), fit: [8, 8]},
-                                        { image: getImage(claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].OtherPayer && claimData.subscriber[0].claim[0].OtherPayer[0].name && claimData.subscriber[0].claim[0].OtherPayer[0].name.toString().length === 0), fit: [8, 8]}
+                                        { image: getImage(!(claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].OtherPayer && claimData.subscriber[0].claim[0].OtherPayer[0].name && claimData.subscriber[0].claim[0].OtherPayer[0].name)), fit: [8, 8]}
                                     ]
                                 ]
                             },layout: 'noBorders', colSpan:3
@@ -1550,7 +1550,7 @@ function formatSingleClaim(claimData) {
                         }, {},{}
                     ],
                     [//ADDitional
-                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].referringProvider ? getName(claimData.subscriber[0].claim[0].referringProvider[0], 26) : '', colSpan:3},
+                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].referringProvider ? ("DN\t"+getName(claimData.subscriber[0].claim[0].referringProvider[0], 26)) : '', margin:[-5,0,0,0], colSpan:3},
                         {},{},
                         {
                            style: 'Ans',
@@ -1653,7 +1653,7 @@ function formatSingleClaim(claimData) {
             margin: [15,113,0,0],
             table: {
                 widths:[ 160, 85, 85, 85, 85, 85 ],
-                heights:[18],
+                heights:[18, 48],
                 body: [
                     [
                         {
@@ -1741,7 +1741,7 @@ function formatSingleClaim(claimData) {
                             style: 'Ans',
                             margin: [15,0,0,0],
                             table: {
-                                widths:[ 130],
+                                widths:[ 135],
                                 body: [
                                     [
                                         {text: (claimData.billingProvider ? getKeyTrimValue(claimData.billingProvider, 'lastName', 30)  : ' ')}
@@ -1764,7 +1764,7 @@ function formatSingleClaim(claimData) {
                     [//a. & b. NPI
                         {
                             style: 'Ans',
-                            margin: [20,-2,0,0],
+                            margin: [20,-12,0,0],
                             table: {
                                 widths:[87, 50],
                                 body: [
@@ -1775,12 +1775,10 @@ function formatSingleClaim(claimData) {
                                 ]
                             },layout: 'noBorders'
                         },
-                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].servicefacility ? getKeyTrimValue(claimData.subscriber[0].claim[0].servicefacility[0], 'NPINO', 10) : '', margin:[0,-2, 0 ,0]},
-                        {text:"", margin:[5, -2,0,0]},
-                        {text: claimData.billingProvider && claimData.billingProvider.npiNo ? getKeyTrimValue(claimData.billingProvider, 'npiNo', 10) : '', margin:[10,-2, 0 ,0]},
-                        { text: claimData.billingProvider && claimData.billingProvider.legacyID ? getKeyTrimValue(claimData.billingProvider, 'legacyID', 14) : '', margin:[7,-2, 0 ,0], colSpan:2},
-                        {}
-
+                        { text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].servicefacility ? getKeyTrimValue(claimData.subscriber[0].claim[0].servicefacility[0], 'NPINO', 10) : '', margin:[0,-12, 0 ,0] },
+                        { text:"", margin:[5, -12,0,0] },
+                        { text: claimData.billingProvider && claimData.billingProvider.npiNo ? getKeyTrimValue(claimData.billingProvider, 'npiNo', 10) : '', margin:[10,-12, 0 ,0] },
+                        { text: claimData.billingProvider && claimData.billingProvider.legacyID ? getKeyTrimValue(claimData.billingProvider, 'legacyID', 14) : '', margin:[7,-12, 0 ,0], colSpan:2 }, {}
                     ]
                 ]
 
@@ -1788,7 +1786,7 @@ function formatSingleClaim(claimData) {
 		},
 		{
             style: 'Ques',
-            margin: [-8, -228, 0, 0],
+            margin: [-8, -220, 0, 0],
             fontSize: 12,
             bold:"true",
             table: {
