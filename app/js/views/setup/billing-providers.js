@@ -176,9 +176,31 @@ define(['jquery',
 
             renderForm: function (id) {
                 var self = this;
+                // var ipForm = $(this.el).find('#divBillingProvidersForm');
+                // ipForm.html(this.billingProviderTemplateForm);
+                // commonjs.validateForm({
+                //     rules: {
+                //         code: {
+                //             minlength: 2,
+                //             maxlength: 16,
+                //             required: true
+                //         },
+                //         description: {
+                //             required: true,
+                //             minlength: 2
+                //         }
+                //     },
+                //     messages: {
+                //         code: commonjs.getMessage("*", "Icd Code(16 Characters only)"),
+                //         description: commonjs.getMessage("*", "Icd Description")
+                //     },
+                //     submitHandler: function () {
+                //         self.save();
+                //     },
+                // });
+                //     formID: '#inputFormICD'
                 var qualifierCodes = app.provider_id_code_qualifiers;
-                var states = app.states[0].app_states;
-                $('#divBillingProvidersForm').html(this.billingProvidersFormTemplate({ qualifierCodes: qualifierCodes, states: states }));
+                $('#divBillingProvidersForm').html(this.billingProvidersFormTemplate({qualifierCodes : qualifierCodes}));
                 if (id > 0) {
                     this.model.set({ id: id });
                     this.model.fetch({
