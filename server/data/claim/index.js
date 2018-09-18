@@ -92,8 +92,8 @@ module.exports = {
                                         studies_details.oa AS is_other_accident,
                                         studies_details.aa AS is_auto_accident,
                                         studies_details.emp AS is_employed,
-                                        orders.referring_providers [ 1 ] AS ref_prov_full_name,
-                                        referring_provider_ids [ 1 ] AS referring_provider_contact_id,
+                                        referring_provider.ref_prov_full_name,
+                                        referring_provider.referring_provider_contact_id,
                                         (   SELECT
                                                     studies.study_info->'refDescription'
                                             FROM
@@ -126,6 +126,18 @@ module.exports = {
                                                 INNER JOIN providers p ON p.id = pc.provider_id
                                             WHERE	pc.id = nullif(facility_info->'rendering_provider_id', '')::integer limit 1
                                         ) providers ON true
+                                        LEFT JOIN LATERAL (
+                                            SELECT
+                                                pc.id AS referring_provider_contact_id,
+                                                p.full_name AS ref_prov_full_name
+                                            FROM
+                                                providers p
+                                            INNER JOIN provider_contacts pc ON pc.provider_id = p.id
+                                            WHERE pc.id = COALESCE(NULLIF(orders.referring_provider_ids [ 1 ],'0'),'0')::numeric
+                                            AND NOT p.has_deleted
+                                            AND NOT pc.has_deleted
+                                            AND p.provider_type = 'RF'
+                                        ) referring_provider ON true
                                         JOIN LATERAL (
                                             SELECT
                                                 providers.full_name AS reading_phy_full_name,
