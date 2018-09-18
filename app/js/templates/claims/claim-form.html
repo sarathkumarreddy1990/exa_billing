@@ -365,7 +365,7 @@
                             <option value=''>Select</option>
                             <% _.each(posList, function(pos) { %>
                                 <option value='<%= pos.id %>' data-code='<%= pos.code %>'>
-                                    <%= pos.description %>
+                                    <%= pos.code %> (<%= pos.description %>)
                                 </option>
                                 <% }); %>
                         </select>
