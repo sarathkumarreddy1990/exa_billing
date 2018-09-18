@@ -113,6 +113,7 @@ module.exports = {
                                         order_info -> 'ordering_facility' AS ordering_facility_name,
                                         orders.order_status AS order_status,
                                         order_info -> 'pos_type_code' AS pos_type_code,
+                                        facilities.place_of_service_id AS fac_place_of_service_id,
                                         p.full_name AS patient_name,
                                         p.account_no AS patient_account_no,
                                         p.birth_date AS patient_dob,
@@ -140,8 +141,8 @@ module.exports = {
                                         ) referring_provider ON true
                                         JOIN LATERAL (
                                             SELECT
-                                                providers.full_name AS reading_phy_full_name,
-                                                reading_physician_id as rendering_provider_contact_id,
+                                                p.full_name AS reading_phy_full_name,
+                                                pc.id AS rendering_provider_contact_id,
                                                 COALESCE ( NULLIF(cpt.authorization_info->'Primary', '')::json->'accident_date', null)::text  AS accident_date,
                                                 COALESCE ( NULLIF(cpt.authorization_info->'Primary', '')::json->'aa', 'false')::text::boolean AS aa,
                                                 COALESCE ( NULLIF(cpt.authorization_info->'Primary', '')::json->'oa', 'false')::text::boolean AS oa,
@@ -150,8 +151,8 @@ module.exports = {
                                                 public.studies s
                                                 LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
                                                 LEFT JOIN public.study_cpt cpt ON cpt.study_id = s.id
-                                                LEFT JOIN provider_contacts ON   provider_contacts.id = st.approving_provider_id
-                                                LEFT JOIN providers ON providers.id = provider_contacts.provider_id
+                                                LEFT JOIN provider_contacts pc ON pc.id = st.approving_provider_id
+                                                LEFT JOIN providers p ON p.id = pc.provider_id
                                                 WHERE s.id = ${firstStudyId}
                                                 ORDER BY cpt.id ASC LIMIT 1
                                         ) as studies_details ON TRUE

@@ -573,7 +573,7 @@ define(['jquery',
                 self.ACSelect.refPhy.contact_id = claim_data.referring_provider_contact_id || null;
                 self.ACSelect.refPhy.Code = claim_data.ref_prov_code || null;
                 self.ACSelect.refPhy.Desc = referringProvider;
-                self.group_id = claim_data.ordering_facility_id ? parseInt(claim_data.ordering_facility_id || claim_data.service_facility_id) : null;
+                self.group_id = parseInt(claim_data.ordering_facility_id) || parseInt(claim_data.service_facility_id) || null;
                 self.group_name = orderingFacility;
 
                 $('#ddlBillingProvider').val(claim_data.fac_billing_provider_id || claim_data.billing_provider_id || '');
@@ -671,6 +671,8 @@ define(['jquery',
                     }
                     if (claim_data.pos_type_code && claim_data.pos_type_code != '') {
                         $('#ddlPOSType').val($('option[data-code = ' + claim_data.pos_type_code.trim() + ']').val());
+                    }else{
+                        $('#ddlPOSType').val(claim_data.fac_place_of_service_id || '');
                     }
                     var currentDate = new Date();
                     var defaultStudyDate = moment(currentDate).format('L');
