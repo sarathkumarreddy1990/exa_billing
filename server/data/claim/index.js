@@ -146,7 +146,7 @@ module.exports = {
                                                 COALESCE ( NULLIF(cpt.authorization_info->'Primary', '')::json->>'aa', 'false')::boolean AS aa,
                                                 COALESCE ( NULLIF(cpt.authorization_info->'Primary', '')::json->>'oa', 'false')::boolean AS oa,
                                                 COALESCE ( NULLIF(cpt.authorization_info->'Primary', '')::json->>'emp', 'false')::boolean AS emp,
-                                                COALESCE ( NULLIF(NULLIF(cpt.authorization_info->'Primary', '')::json->>'accident_date',''), null)::text  AS accident_date
+                                                COALESCE ( NULLIF(NULLIF(cpt.authorization_info->'Primary', '')::json->>'accident_date',''), null)  AS accident_date
                                             FROM
                                                 public.studies s
                                                 LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
