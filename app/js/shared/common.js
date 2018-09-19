@@ -704,6 +704,9 @@ var commonjs = {
             console.warn("DRP: Element with id: '" + drpTarget.attr("id") + "' is not a text input!");
             return null;
         }
+
+        //Removing cache/history for date textbox
+        drpTarget.attr("autocomplete", 'off');
         var selectedRanges = commonjs.getDateRangePickerRanges(rangeSetName);
         var defaultOptions = {
             ranges: selectedRanges,

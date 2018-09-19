@@ -13,8 +13,8 @@ WITH diagnosisCount as (
     icd.code  AS code,
     f.facility_name AS "facility_name",
     CASE
-    WHEN icd.description IS  NULL AND  icd.code IS NOT NULL THEN '--Total--'
-    WHEN icd.description IS  NULL AND  icd.code IS  NULL AND f.facility_name IS NULL THEN '--Grand Total--'
+    WHEN icd.description IS  NULL AND  icd.code IS NOT NULL THEN '─ Total ─'
+    WHEN icd.description IS  NULL AND  icd.code IS  NULL AND f.facility_name IS NULL THEN '─ Grand Total ─'
     ELSE   icd.description
 END AS "description",
     COUNT(1) AS icd_code_count
@@ -36,6 +36,7 @@ END AS "description",
          icd.code
         , f.facility_name
         , icd_code_count
+        , "description" DESC
   )
   SELECT
         code AS "ICD Code",
@@ -158,11 +159,11 @@ const api = {
         //  scheduled_dt
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);
-            filters.claimDate = queryBuilder.whereDate('cl.claim_dt', '=', [params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateInTz('cl.claim_dt', '=', [params.length], 'f.time_zone');
         } else {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
-            filters.claimDate = queryBuilder.whereDateBetween('cl.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateInTzBetween('cl.claim_dt', [params.length - 1, params.length], 'f.time_zone');
         }
 
         // billingProvider single or multiple

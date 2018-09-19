@@ -13,31 +13,31 @@ WITH payerMixDetails AS (
         pcc.display_code AS display_code,
         pip.insurance_code AS insurance_code,
         pip.insurance_name AS insurance_name,
-        pf.facility_name AS facility_name,
+        f.facility_name AS facility_name,
         to_char(bc.claim_dt, 'MM/DD/YYYY') AS claim_date,
-        SUM(bch.bill_fee) AS bill_fee,
+        SUM(bch.bill_fee *  bch.units) AS bill_fee,
         COUNT(bc.id) AS claim_count
-    FROM 
+    FROM
         billing.claims bc
-    INNER JOIN billing.charges bch ON bch.claim_id = bc.id 
+    INNER JOIN billing.charges bch ON bch.claim_id = bc.id
     INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
-    INNER JOIN public.facilities pf ON pf.id = bc.facility_id
+    INNER JOIN public.facilities f ON f.id = bc.facility_id
     LEFT JOIN public.patient_insurances ppi ON ppi.id = ANY (ARRAY[bc.primary_patient_insurance_id,bc.secondary_patient_insurance_id,bc.tertiary_patient_insurance_id])
-    LEFT JOIN public.insurance_providers pip ON pip.id= ppi.insurance_provider_id 
+    LEFT JOIN public.insurance_providers pip ON pip.id= ppi.insurance_provider_id
     <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
     WHERE 1=1
         AND <%= companyId %>
         AND <%= claimDate %>
-        <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+        <% if (facilityIds) { %>AND <% print(facilityIds); } %>
         <% if(billingProID) { %> AND <% print(billingProID); } %>
         GROUP BY grouping sets(
             ( pip.insurance_name ),
             ( pcc.display_code,
               pip.insurance_code,
               pip.insurance_name,
-              pf.facility_name,
+              f.facility_name,
               bc.claim_dt))
-    ORDER BY 
+    ORDER BY
         insurance_name,
         facility_name ASC
     )
@@ -77,7 +77,7 @@ const api = {
             dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
             // other data sets could be added here...
             (payerMixDataSet, providerInfo) => {
-                // add report filters       
+                // add report filters
                 initialReportData.lookups.billingProviderInfo = providerInfo || [];
                 initialReportData.filters = api.createReportFilters(initialReportData);
                 // add report specific data sets
@@ -176,11 +176,11 @@ const api = {
         //  scheduled_dt
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);
-            filters.claimDate = queryBuilder.whereDate('bc.claim_dt', '=', [params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateInTz('bc.claim_dt', '=', [params.length], 'f.time_zone');
         } else {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
-            filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateInTzBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
         }
 
         // billingProvider single or multiple

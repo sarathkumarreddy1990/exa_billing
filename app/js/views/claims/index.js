@@ -375,6 +375,7 @@ define(['jquery',
 
                         if (model && model.length > 0) {
                             var claimDetails = model[0];
+                            $('.claimProcess').attr('disabled', false);
 
                             self.cur_patient_acc_no = claimDetails.patient_account_no;
                             self.cur_patient_name = claimDetails.patient_full_name;
@@ -523,6 +524,7 @@ define(['jquery',
                         }
                     },
                     error: function (model, response) {
+                        $('.claimProcess').attr('disabled', false);
                         commonjs.hideLoading();
                         commonjs.handleXhrError(model, response);
                     }
@@ -571,7 +573,7 @@ define(['jquery',
                 self.ACSelect.refPhy.contact_id = claim_data.referring_provider_contact_id || null;
                 self.ACSelect.refPhy.Code = claim_data.ref_prov_code || null;
                 self.ACSelect.refPhy.Desc = referringProvider;
-                self.group_id = claim_data.ordering_facility_id ? parseInt(claim_data.ordering_facility_id || claim_data.service_facility_id) : null;
+                self.group_id = parseInt(claim_data.ordering_facility_id) || parseInt(claim_data.service_facility_id) || null;
                 self.group_name = orderingFacility;
 
                 $('#ddlBillingProvider').val(claim_data.fac_billing_provider_id || claim_data.billing_provider_id || '');
@@ -669,6 +671,8 @@ define(['jquery',
                     }
                     if (claim_data.pos_type_code && claim_data.pos_type_code != '') {
                         $('#ddlPOSType').val($('option[data-code = ' + claim_data.pos_type_code.trim() + ']').val());
+                    }else{
+                        $('#ddlPOSType').val(claim_data.fac_place_of_service_id || '');
                     }
                     var currentDate = new Date();
                     var defaultStudyDate = moment(currentDate).format('L');
@@ -1550,7 +1554,7 @@ define(['jquery',
                                 pageSize: 10,
                                 sortField: "trim(display_description)",
                                 sortOrder: "asc",
-                                company_id: 1
+                                company_id: app.companyID
                             };
                         },
                         processResults: function (data, params) {
@@ -1683,7 +1687,7 @@ define(['jquery',
                                 pageSize: 10,
                                 sortField: "p.last_name",
                                 sortOrder: "asc",
-                                company_id: 1
+                                company_id: app.companyID
                             };
                         },
                         processResults: function (data, params) {
@@ -1762,7 +1766,7 @@ define(['jquery',
                                 pageSize: 10,
                                 sortField: "code",
                                 sortOrder: "ASC",
-                                company_id: 1
+                                company_id: app.companyID
                             };
                         },
                         processResults: function (data, params) {
@@ -2111,7 +2115,7 @@ define(['jquery',
                                 sortField: "group_name",
                                 sortOrder: "ASC",
                                 groupType: 'OF',
-                                company_id: 1
+                                company_id: app.companyID
                             };
                         },
                         processResults: function (data, params) {
@@ -2169,7 +2173,7 @@ define(['jquery',
                                 pageSize: 10,
                                 sortField: "insurance_code",
                                 sortOrder: "ASC",
-                                company_id: 1
+                                company_id: app.companyID
                             };
                         },
                         processResults: function (data, params) {
@@ -2626,7 +2630,7 @@ define(['jquery',
                         bill_fee: parseFloat($('#txtBillFee_' + id).val()) || 0.00,
                         allowed_amount: parseFloat($('#txtAllowedFee_' + id).val()) || 0.00,
                         units: parseFloat($('#txtUnits_' + id).val()) || 1.000,
-                        created_by: 1,
+                        created_by: app.userID,
                         authorization_no: $('#txtAuthInfo_' + id).val() || null,
                         charge_dt: self.cur_study_date || null,
                         study_id: rowData.study_id || null,
@@ -2668,12 +2672,14 @@ define(['jquery',
 
                     commonjs.showLoading();
                     saveButton.attr('disabled', true);
+                    $('.claimProcess').attr('disabled', true);
 
                     self.model.save({}, {
                         success: function (model, response) {
                             if (response && response.message) {
                                 commonjs.showWarning(response.message);
                                 saveButton.attr('disabled', false);
+                                $('.claimProcess').attr('disabled', false);
                             } else {
 
                                 if (self.isEdit) {
@@ -2715,11 +2721,14 @@ define(['jquery',
                         error: function (model, response) {
                             commonjs.handleXhrError(model, response);
                             saveButton.attr('disabled', false);
+                            $('.claimProcess').attr('disabled', false);
                         }
                     });
                 }
-                else
+                else {
                     saveButton.attr('disabled', false);
+                    $('.claimProcess').attr('disabled', false);
+                }
             },
 
             validateClaimData: function () {
@@ -2762,16 +2771,16 @@ define(['jquery',
                         $('#txtPriZipCode').val().trim()
                     ],
                     primaryfieldObjs: [
-                        {obj: $('#txtPriPolicyNo'), msg: 'Please select policy #'},
-                        {obj: $('#ddlPriRelationShip'),msg: 'Please select subscriber relationship'},
-                        {obj: $('#txtPriSubFirstName'), msg: 'Please enter subscriber first name'},
-                        {obj: $('#txtPriSubLastName'), msg: 'Please enter subscriber last name'},
-                        {obj: $('#txtPriDOB'), msg: 'Please enter subscriber DOB'},
-                        {obj: $('#ddlPriGender'), msg: 'Please select subscriber gender'},
-                        {obj: $('#txtPriSubPriAddr'), msg: 'Please enter subscriber address'},
-                        {obj: $('#txtPriCity'), msg: 'Please enter subscriber city'},
-                        {obj: $('#ddlPriState'), msg: 'Please select state #'},
-                        {obj: $('#txtPriZipCode'), msg: 'Please enter xip code'}
+                        {obj: $('#txtPriPolicyNo'), msg: 'Please select policy # in primary insurance'},
+                        {obj: $('#ddlPriRelationShip'),msg: 'Please select subscriber relationship in primary insurance'},
+                        {obj: $('#txtPriSubFirstName'), msg: 'Please enter subscriber first name in primary insurance'},
+                        {obj: $('#txtPriSubLastName'), msg: 'Please enter subscriber last name in primary insurance'},
+                        {obj: $('#txtPriDOB'), msg: 'Please enter subscriber DOB in primary insurance'},
+                        {obj: $('#ddlPriGender'), msg: 'Please select subscriber gender in primary insurance'},
+                        {obj: $('#txtPriSubPriAddr'), msg: 'Please enter subscriber address in primary insurance'},
+                        {obj: $('#txtPriCity'), msg: 'Please enter subscriber city in primary insurance'},
+                        {obj: $('#ddlPriState'), msg: 'Please select state # in primary insurance'},
+                        {obj: $('#txtPriZipCode'), msg: 'Please enter zip code in primary insurance'}
                     ],
                     secondaryfields: [
                         $('#txtSecPolicyNo').val().trim(),
@@ -2786,16 +2795,16 @@ define(['jquery',
                         $('#txtSecZipCode').val().trim()
                     ],
                     secondaryfieldObjs: [
-                        {obj: $('#txtSecPolicyNo'), msg: 'Please enter policy #'},
-                        {obj: $('#ddlSecRelationShip'),msg: 'Please select subscriber relationship'},
-                        {obj: $('#txtSecSubFirstName'), msg: 'Please enter subscriber first name'},
-                        {obj: $('#txtSecSubLastName'), msg: 'Please enter subscriber last name'},
-                        {obj: $('#ddlSecGender'), msg: 'Please select subscriber gender'},
-                        {obj: $('#txtSecDOB'), msg: 'Please enter subscriber DOB'},
-                        {obj: $('#txtSecSubPriAddr'), msg: 'Please enter subscriber address'},
-                        {obj: $('#txtSecCity'), msg: 'Please enter subscriber city'},
-                        {obj: $('#ddlSecState'), msg: 'Please select state #'},
-                        {obj: $('#txtSecZipCode'), msg: 'Please enter xip code'}
+                        {obj: $('#txtSecPolicyNo'), msg: 'Please enter policy # in secondary insurance'},
+                        {obj: $('#ddlSecRelationShip'),msg: 'Please select subscriber relationship in secondary insurance'},
+                        {obj: $('#txtSecSubFirstName'), msg: 'Please enter subscriber first name in secondary insurance'},
+                        {obj: $('#txtSecSubLastName'), msg: 'Please enter subscriber last name in secondary insurance'},
+                        {obj: $('#ddlSecGender'), msg: 'Please select subscriber gender in secondary insurance'},
+                        {obj: $('#txtSecDOB'), msg: 'Please enter subscriber DOB in secondary insurance'},
+                        {obj: $('#txtSecSubPriAddr'), msg: 'Please enter subscriber address in secondary insurance'},
+                        {obj: $('#txtSecCity'), msg: 'Please enter subscriber city in secondary insurance'},
+                        {obj: $('#ddlSecState'), msg: 'Please select state # in secondary insurance'},
+                        {obj: $('#txtSecZipCode'), msg: 'Please enter zip code in secondary insurance'}
                     ],
                     tertiaryfields: [
                         $('#txtTerPolicyNo').val().trim(),
@@ -2810,16 +2819,16 @@ define(['jquery',
                         $('#txtTerZipCode').val().trim()
                     ],
                     tertiaryfieldObjs: [
-                        {obj: $('#txtTerPolicyNo'), msg: 'Please enter policy #'},
-                        {obj: $('#ddlTerRelationShip'),msg: 'Please select subscriber relationship'},
-                        {obj: $('#txtTerSubFirstName'), msg: 'Please enter subscriber first name'},
-                        {obj: $('#txtTerSubLastName'), msg: 'Please enter subscriber last name'},
-                        {obj: $('#ddlTerGender'), msg: 'Please select subscriber gender'},
-                        {obj: $('#txtTerDOB'), msg: 'Please enter subscriber DOB'},
-                        {obj: $('#txtTerSubPriAddr'), msg: 'Please enter subscriber address'},
-                        {obj: $('#txtTerCity'), msg: 'Please enter subscriber city'},
-                        {obj: $('#ddlTerState'), msg: 'Please select state #'},
-                        {obj: $('#txtTerZipCode'), msg: 'Please enter xip code'}
+                        {obj: $('#txtTerPolicyNo'), msg: 'Please enter policy # in tertiary insurance'},
+                        {obj: $('#ddlTerRelationShip'),msg: 'Please select subscriber relationship in tertiary insurance'},
+                        {obj: $('#txtTerSubFirstName'), msg: 'Please enter subscriber first name in tertiary insurance'},
+                        {obj: $('#txtTerSubLastName'), msg: 'Please enter subscriber last name in tertiary insurance'},
+                        {obj: $('#ddlTerGender'), msg: 'Please select subscriber gender in tertiary insurance'},
+                        {obj: $('#txtTerDOB'), msg: 'Please enter subscriber DOB in tertiary insurance'},
+                        {obj: $('#txtTerSubPriAddr'), msg: 'Please enter subscriber address in tertiary insurance'},
+                        {obj: $('#txtTerCity'), msg: 'Please enter subscriber city in tertiary insurance'},
+                        {obj: $('#ddlTerState'), msg: 'Please select state # in tertiary insurance'},
+                        {obj: $('#txtTerZipCode'), msg: 'Please enter zip code in tertiary insurance'}
                     ]
                 }
 

@@ -50,7 +50,7 @@
                     <label id="lblInsProviderPhoneNo" for="auditFromDate" class="control-label">
                         Phone # :&nbsp;
                         <b>
-                            <%= eraData.payerIdentification.payerContactInformation.commNumber1 ? eraData.payerIdentification.payerContactInformation.commNumber1 : '' %>
+                            <%= eraData.payerIdentification.payerContactInformation && eraData.payerIdentification.payerContactInformation.commNumber1 ? eraData.payerIdentification.payerContactInformation.commNumber1 : '' %>
                         </b>
                     </label>
                 </div>

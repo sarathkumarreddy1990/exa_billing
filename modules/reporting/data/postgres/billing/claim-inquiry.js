@@ -79,14 +79,14 @@ const claimInquiryDataSetQueryTemplate = _.template(`
                    else if(!patPaid && insPaid && !unPaid) { %> AND ( bp.payer_type = 'insurance') <% }
                    else if(!patPaid && !insPaid && unPaid)  { %> AND EXISTS (select 1  From billing.charges  ibch INNER JOIN billing.payment_applications ibpa on ibch.id = ibpa.charge_id
                                                                 WHERE ibch.claim_id = bc.id) <% }
-                   else if(insPaid && patPaid && !unPaid)  { %> AND ( bp.payer_type = 'patient'  OR  bp.payer_type = 'insurance' ) <% }
-                   else if(patPaid &&  unPaid && !insPaid)  { %> AND ( bp.payer_type = 'patient' OR NOT EXISTS (select 1  From billing.charges  ibch
+                   else if(insPaid && patPaid && !unPaid)  { %> AND ( bp.payer_type = 'patient'  AND  bp.payer_type = 'insurance' ) <% }
+                   else if(patPaid &&  unPaid && !insPaid)  { %> AND ( bp.payer_type = 'patient' AND NOT EXISTS (select 1  From billing.charges  ibch
                        INNER JOIN billing.payment_applications ibpa on ibch.id = ibpa.charge_id
                        WHERE ibch.claim_id = bc.id) ) <% }
-                   else if(unPaid && insPaid && !patPaid)  { %> AND ( bp.payer_type = 'insurance' OR NOT EXISTS (select 1  From billing.charges  ibch
+                   else if(unPaid && insPaid && !patPaid)  { %> AND ( bp.payer_type = 'insurance' AND NOT EXISTS (select 1  From billing.charges  ibch
                        INNER JOIN billing.payment_applications ibpa on ibch.id = ibpa.charge_id
                        WHERE ibch.claim_id = bc.id)) <% }
-                   else if(unPaid && insPaid && patPaid)  { %> AND ( bp.payer_type = 'patient' OR bp.payer_type = 'insurance' OR  EXISTS (select 1  From billing.charges  ibch
+                   else if(unPaid && insPaid && patPaid)  { %> AND ( bp.payer_type = 'patient' AND bp.payer_type = 'insurance' AND  EXISTS (select 1  From billing.charges  ibch
                        INNER JOIN billing.payment_applications ibpa on ibch.id = ibpa.charge_id
                        WHERE ibch.claim_id = bc.id) ) <% }
                    %>
@@ -211,14 +211,14 @@ const claimInquiryDataSetQueryTemplate1 = _.template(`
         else if(!patPaid && !insPaid && unPaid)  { %> AND  NOT EXISTS (select 1  From billing.charges  ibch
 			INNER JOIN billing.payment_applications ibpa on ibch.id = ibpa.charge_id
 			WHERE ibch.claim_id = bc.id) <% }
-        else if(insPaid && patPaid && !unPaid)  { %> AND ( bp.payer_type = 'patient'  OR  bp.payer_type = 'insurance' ) <% }
-        else if(patPaid &&  unPaid && !insPaid)  { %> AND ( bp.payer_type = 'patient' OR NOT EXISTS (select 1  From billing.charges  ibch
+        else if(insPaid && patPaid && !unPaid)  { %> AND ( bp.payer_type = 'patient'  AND  bp.payer_type = 'insurance' ) <% }
+        else if(patPaid &&  unPaid && !insPaid)  { %> AND ( bp.payer_type = 'patient' AND NOT EXISTS (select 1  From billing.charges  ibch
 			INNER JOIN billing.payment_applications ibpa on ibch.id = ibpa.charge_id
 			WHERE ibch.claim_id = bc.id) ) <% }
-        else if(unPaid && insPaid && !patPaid)  { %> AND ( bp.payer_type = 'insurance' OR NOT EXISTS (select 1  From billing.charges  ibch
+        else if(unPaid && insPaid && !patPaid)  { %> AND ( bp.payer_type = 'insurance' AND NOT EXISTS (select 1  From billing.charges  ibch
 			INNER JOIN billing.payment_applications ibpa on ibch.id = ibpa.charge_id
 			WHERE ibch.claim_id = bc.id)) <% }
-        else if(unPaid && insPaid && patPaid)  { %> AND ( bp.payer_type = 'patient' OR bp.payer_type = 'insurance' OR NOT EXISTS (select 1  From billing.charges  ibch
+        else if(unPaid && insPaid && patPaid)  { %> AND ( bp.payer_type = 'patient' AND bp.payer_type = 'insurance' AND NOT EXISTS (select 1  From billing.charges  ibch
 			INNER JOIN billing.payment_applications ibpa on ibch.id = ibpa.charge_id
 			WHERE ibch.claim_id = bc.id) ) <% }
         %>
@@ -545,11 +545,11 @@ const api = {
         if (reportParams.fromDate != '' && reportParams.toDate != '') {
             if (reportParams.fromDate === reportParams.toDate) {
                 params.push(reportParams.fromDate);
-                filters.claimDate = queryBuilder.whereDate('bc.claim_dt', '=', [params.length], 'f.time_zone');
+                filters.claimDate = queryBuilder.whereDateInTz('bc.claim_dt', '=', [params.length], 'f.time_zone');
             } else {
                 params.push(reportParams.fromDate);
                 params.push(reportParams.toDate);
-                filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+                filters.claimDate = queryBuilder.whereDateInTzBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
             }
         }
         if (reportParams.referringProIds && reportParams.referringProIds.length > 0) {

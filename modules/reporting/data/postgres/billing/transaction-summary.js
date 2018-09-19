@@ -12,8 +12,8 @@ WITH transaction_summary_by_month as (
     SELECT
         Date_trunc('month', bp.accounting_dt) AS txn_month,
         sum(CASE when amount_type = 'payment' then bpa.amount else 0::money end ) as payment_amount,
-        sum(CASE when amount_type = 'adjustment' and accounting_entry_type != 'refund_debit' then bpa.amount else 0::money end ) as adjustment_amount,
-        sum(CASE when amount_type = 'adjustment' and accounting_entry_type = 'refund_debit' then bpa.amount else 0::money end ) as refund_amount
+        sum(CASE when amount_type = 'adjustment' and coalesce(accounting_entry_type,'') != 'refund_debit' then bpa.amount else 0::money end ) as adjustment_amount,
+        sum(CASE when amount_type = 'adjustment' and coalesce(accounting_entry_type,'') = 'refund_debit' then bpa.amount else 0::money end ) as refund_amount
     FROM billing.payments bp
     INNER JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
     INNER JOIN billing.charges bc on bc.id = bpa.charge_id
@@ -21,9 +21,9 @@ WITH transaction_summary_by_month as (
     INNER JOIN facilities f on f.id = bcl.facility_id
     <% if (billingProID) { %> INNER JOIN billing.providers bbp ON bbp.id = bcl.billing_provider_id <% } %>
     LEFT JOIN billing.adjustment_codes bac ON bac.id = bpa.adjustment_code_id
-    WHERE 1 = 1    
+    WHERE 1 = 1
     AND <%= accounting_dt %>
-    <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+    <% if (facilityIds) { %>AND <% print(facilityIds); } %>
     <% if(billingProID) { %> AND <% print(billingProID); } %>
     GROUP BY  (date_trunc('month', bp.accounting_dt))
     ),
@@ -31,14 +31,14 @@ WITH transaction_summary_by_month as (
         Date_trunc('month', bc.claim_dt) AS txn_month,
         sum(bill_fee*units) as charge
     FROM billing.charges bch
-    INNER JOIN billing.claims bc on bc.id = bch.claim_id 
+    INNER JOIN billing.claims bc on bc.id = bch.claim_id
     INNER JOIN facilities f on f.id = bc.facility_id
     <% if (billingProID) { %> INNER JOIN billing.providers bbp ON bbp.id = bc.billing_provider_id <% } %>
     WHERE 1=1
     AND<%=claimDate%>
-    <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+    <% if (facilityIds) { %>AND <% print(facilityIds); } %>
     <% if(billingProID) { %> AND <% print(billingProID); } %>
-   
+
     GROUP BY (date_trunc('month', bc.claim_dt) ))
     SELECT
         COALESCE(to_char(ts.txn_month, 'MON-yy'), to_char(cs.txn_month, 'MON-yy') ) AS "Date",
@@ -47,14 +47,14 @@ WITH transaction_summary_by_month as (
         SUM(coalesce(adjustment_amount,0::money)) AS "Adjustments",
         SUM(coalesce(refund_amount,0::money)) AS "Refund",
         (coalesce(cs.charge, 0::money) - SUM ( coalesce(ts.payment_amount,0::money) +  coalesce(ts.adjustment_amount,0::money) + coalesce(ts.refund_amount,0::money))) AS "Net Activity"
-    
+
     FROM transaction_summary_by_month ts
     FULL  JOIN charge_summary cs ON ts.txn_month = cs.txn_month
     GROUP BY
          COALESCE(to_char(ts.txn_month, 'MON-yy'), to_char(cs.txn_month, 'MON-yy') ) , cs.charge
     ORDER BY
           to_date(COALESCE(to_char(ts.txn_month, 'MON-yy'), to_char(cs.txn_month, 'MON-yy') ),'MON-yy')
-    
+
 `);
 
 // Template by Month wise
@@ -64,8 +64,8 @@ WITH transaction_summary_by_day as (
     SELECT
         Date_trunc('day', bp.accounting_dt) AS txn_month,
         sum(CASE when amount_type = 'payment' then bpa.amount else 0::money end ) as payment_amount,
-        sum(CASE when amount_type = 'adjustment' and accounting_entry_type != 'refund_debit' then bpa.amount else 0::money end ) as adjustment_amount,
-        sum(CASE when amount_type = 'adjustment' and accounting_entry_type = 'refund_debit' then bpa.amount else 0::money end ) as refund_amount
+        sum(CASE when amount_type = 'adjustment' and coalesce(accounting_entry_type,'') != 'refund_debit' then bpa.amount else 0::money end ) as adjustment_amount,
+        sum(CASE when amount_type = 'adjustment' and coalesce(accounting_entry_type,'') = 'refund_debit' then bpa.amount else 0::money end ) as refund_amount
     FROM billing.payments bp
     INNER JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
     INNER JOIN billing.charges bc on bc.id = bpa.charge_id
@@ -73,9 +73,9 @@ WITH transaction_summary_by_day as (
     INNER JOIN facilities f on f.id = bcl.facility_id
     <% if (billingProID) { %> INNER JOIN billing.providers bbp ON bbp.id = bcl.billing_provider_id <% } %>
     LEFT JOIN billing.adjustment_codes bac ON bac.id = bpa.adjustment_code_id
-    WHERE 1 = 1    
+    WHERE 1 = 1
     AND <%= accounting_dt %>
-    <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+    <% if (facilityIds) { %>AND <% print(facilityIds); } %>
     <% if(billingProID) { %> AND <% print(billingProID); } %>
     GROUP BY  (date_trunc('day', bp.accounting_dt))
     ),
@@ -83,13 +83,13 @@ WITH transaction_summary_by_day as (
         Date_trunc('day', bc.claim_dt) AS txn_month,
         sum(bill_fee*units) as charge
         FROM billing.charges bch
-        INNER JOIN billing.claims bc on bc.id = bch.claim_id 
+        INNER JOIN billing.claims bc on bc.id = bch.claim_id
         INNER JOIN facilities f on f.id = bc.facility_id
         <% if (billingProID) { %> INNER JOIN billing.providers bbp ON bbp.id = bc.billing_provider_id <% } %>
 
     WHERE 1=1
     AND<%=claimDate%>
-    <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
+    <% if (facilityIds) { %>AND <% print(facilityIds); } %>
     <% if(billingProID) { %> AND <% print(billingProID); } %>
     GROUP BY (date_trunc('day', bc.claim_dt) ))
     SELECT
@@ -99,14 +99,14 @@ WITH transaction_summary_by_day as (
         SUM(coalesce(adjustment_amount,0::money)) AS "Adjustments",
         SUM(coalesce(refund_amount,0::money)) AS "Refund",
         (coalesce(cs.charge, 0::money) - SUM ( coalesce(ts.payment_amount,0::money) +  coalesce(ts.adjustment_amount,0::money) + coalesce(ts.refund_amount,0::money))) AS "Net Activity"
-    
+
     FROM transaction_summary_by_day ts
     FULL  JOIN charge_summary cs ON ts.txn_month = cs.txn_month
     GROUP BY
          COALESCE(to_char(ts.txn_month, 'MM/DD/YYYY'), to_char(cs.txn_month, 'MM/DD/YYYY') ) , cs.charge
     ORDER BY
           to_date(COALESCE(to_char(ts.txn_month, 'MM/DD/YYYY'), to_char(cs.txn_month, 'MM/DD/YYYY') ),'MM/DD/YYYY')
-    
+
 `);
 
 const api = {
@@ -121,8 +121,8 @@ const api = {
             dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
             // other data sets could be added here...
             (transactionSummaryDataSet, providerInfo) => {
-                // add report filters 
-                initialReportData.lookups.billingProviderInfo = providerInfo || [];               
+                // add report filters
+                initialReportData.lookups.billingProviderInfo = providerInfo || [];
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 // add report specific data sets
@@ -219,21 +219,21 @@ const api = {
         //  Accounting Date
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);
-            filters.accounting_dt = queryBuilder.whereDate('bp.accounting_dt', '=', [params.length], 'f.time_zone');
+            filters.accounting_dt = queryBuilder.whereDateInTz('bp.accounting_dt', '=', [params.length], 'f.time_zone');
         } else {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
-            filters.accounting_dt = queryBuilder.whereDateBetween('bp.accounting_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.accounting_dt = queryBuilder.whereDateInTzBetween('bp.accounting_dt', [params.length - 1, params.length], 'f.time_zone');
         }
 
         //  Claim Date
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);
-            filters.claimDate = queryBuilder.whereDate('bc.claim_dt', '=', [params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateInTz('bc.claim_dt', '=', [params.length], 'f.time_zone');
         } else {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
-            filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateInTzBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
         }
 
         // billingProvider single or multiple
