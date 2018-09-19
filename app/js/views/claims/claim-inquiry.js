@@ -993,9 +993,9 @@ define([
 
                 return {
                     'claimID': claimId,
-                    flag: "patient-activity-statement",
+                    'flag': "patient-activity-statement",
                     'patientId': patientId,
-                    reportByFlag: reportBy ,
+                    'reportByFlag': reportBy ,
                     'fromDate': reportBy ? '': fromDate,
                     'toDate': reportBy ? '': toDate,
                     'billingProId': selectedBillingProList || [],
