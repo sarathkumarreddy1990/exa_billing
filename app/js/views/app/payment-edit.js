@@ -2562,6 +2562,7 @@ define(['jquery',
                     self.paymentEditPDF = new paymentEditPDF({ el: $('#modal_div_container') });
                     var paymentEditPDFArgs = {
                         payment_id: this.payment_id,
+                        patient_id: self.patient_id,
                         flag: 'payment-print-pdf'
                     }
                 }
