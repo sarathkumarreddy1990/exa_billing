@@ -18,6 +18,7 @@ define([
     'text!templates/claims/claim-patient-log.html',
     'text!templates/claims/claim-invoice.html',
     'text!templates/claims/invoice-age-summary.html',
+    // 'text!templates/faxDialog.html',
     'collections/claim-patient-log',
     'views/app/unapplied-payment'
 ], function (
@@ -40,6 +41,7 @@ define([
     claimPatientLogHTML,
     claimInvoiceHTML,
     claimInvoiceAgeHTML,
+    // faxDialogHtml,
     claimPatientLogList,
     unappliedPaymentView
 ) {
@@ -949,22 +951,78 @@ define([
                     self.showUnAppliedPayments(patientId);
                 })
 
-                $('#btnPatientActivity').on().click(function () {
-                    if ($('#radActivityAllStatus').prop("checked")) {
-                        reportBy = true;
-                    }
-                    else if ($('#radioActivityStatus').prop("checked") && self.validateFromAndToDate(self.fromDate, self.toDate)) {
-                        reportBy = false;
-                        fromDate = $('#txtDate').val();
-                        toDate = $('#txtOtherDate').val();
-                    }
-                    else return false;
+                $('#btnPatientActivity').off().click(function (e) {
 
-                    var billing_pro = [], selectedBillingProList, allBillingProvider;
-                    selectedBillingProList = $('#ddlBillingProvider option:selected').val() ? [$('#ddlBillingProvider option:selected').val()] : [];
-
-                    reportBy  ? self.generatePatientActivity(claimId, patientId, reportBy,null,null, selectedBillingProList) : self.generatePatientActivity(claimId, patientId, reportBy, fromDate, toDate, selectedBillingProList)
+                    var patientActivityParams = self.createPatientActivityParams(claimId, patientId);
+                    self.patientActivityStatement.onReportViewClick(e, patientActivityParams);
                     $('#modal_div_container').removeAttr('style');
+                });
+                $('#btnFaxPatientActivity').off().click(function (e) {
+
+                    var patientActivityParams = self.createPatientActivityParams(claimId, patientId);
+                    var reportURL = self.patientActivityStatement.onReportFaxClick(e, patientActivityParams);
+                    reportURL = reportURL.replace(/^[.]{2}/, '');
+                    $('#divFaxRecipient').show();
+
+                    $('#btnSendFax').off().click(function (e) {
+                        self.faxReport(patientActivityParams, reportURL);
+                    });
+
+                    $('#btnFaxCancel').off().click(function (e) {
+                        $('#divFaxRecipient').hide();
+                    });
+                });
+            },
+
+            createPatientActivityParams: function(claimId, patientId) {
+                if ($('#radActivityAllStatus').prop("checked")) {
+                    reportBy = true;
+                }
+                else if ($('#radioActivityStatus').prop("checked") && this.validateFromAndToDate(this.fromDate, this.toDate)) {
+                    reportBy = false;
+                    fromDate = $('#txtDate').val();
+                    toDate = $('#txtOtherDate').val();
+                }
+                else return false;
+
+                var selectedBillingProList = $('#ddlBillingProvider option:selected').val() ? [$('#ddlBillingProvider option:selected').val()] : [];
+
+                this.patientActivityStatement = new patientActivityStatement({
+                    el: $('#reportFrame')
+                });
+
+                return {
+                    'claimID': claimId,
+                    'flag': "patient-activity-statement",
+                    'patientId': patientId,
+                    'reportByFlag': reportBy ,
+                    'fromDate': reportBy ? '': fromDate,
+                    'toDate': reportBy ? '': toDate,
+                    'billingProId': selectedBillingProList || [],
+                    'billingComments': $('#bindComments').prop('checked')
+                }
+            },
+
+            faxReport: function(patientActivityParams, reportUrl) {
+                $.ajax({
+                    url: '/faxReport',
+                    type: 'POST',
+                    data: {
+                        facility_id: app.userInfo.default_facility_id,
+                        receiverType: 'OT',
+                        receiverName: $('#txtOtherFaxName').val(),
+                        deliveryAddress: $('#txtOtherFaxNumber').val(),
+                        reportUrl: reportUrl,
+                        patientId: patientActivityParams.patientId,
+                        claimId: patientActivityParams.claimID
+                    },
+                    success: function (data, response) {
+                        commonjs.showStatus(commonjs.geti18NString("messages.status.reportFaxedSuccessfully"));
+                        $('#divFaxRecipient').hide();
+                    },
+                    error: function (err) {
+                        commonjs.handleXhrError(err);
+                    }
                 });
             },
 
@@ -1117,24 +1175,6 @@ define([
                 } else {
                     commonjs.showWarning('Error on process claim');
                 }
-            },
-
-            generatePatientActivity: function (patientIds, claimIds, reportBy, fromDate, toDate, selectedBillingProList, e) {
-                var self = this;
-                self.patientActivityStatement = new patientActivityStatement({
-                    el: $('#reportFrame')
-                });
-                var claimInfo = {
-                    'claimID': patientIds,
-                    flag: "patient-activity-statement",
-                    'patientId': claimIds,
-                     reportByFlag: reportBy ,
-                    'fromDate': fromDate || '',
-                    'toDate': toDate || '',
-                    'billingProId': selectedBillingProList || [],
-                     'billingComments': $('#bindComments').prop('checked')
-                }
-                self.patientActivityStatement.onReportViewClick(e, claimInfo);
             },
 
             generatePrintInvoice: function(claimId, e){
