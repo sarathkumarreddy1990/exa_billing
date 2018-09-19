@@ -143,10 +143,10 @@ module.exports = {
                                             SELECT
                                                 p.full_name AS reading_phy_full_name,
                                                 pc.id AS rendering_provider_contact_id,
-                                                COALESCE ( NULLIF(cpt.authorization_info->'Primary', '')::json->'accident_date', null)::text  AS accident_date,
-                                                COALESCE ( NULLIF(cpt.authorization_info->'Primary', '')::json->'aa', 'false')::text::boolean AS aa,
-                                                COALESCE ( NULLIF(cpt.authorization_info->'Primary', '')::json->'oa', 'false')::text::boolean AS oa,
-                                                COALESCE ( NULLIF(cpt.authorization_info->'Primary', '')::json->'emp', 'false')::text::boolean AS emp
+                                                COALESCE ( NULLIF(cpt.authorization_info->'Primary', '')::json->>'aa', 'false')::boolean AS aa,
+                                                COALESCE ( NULLIF(cpt.authorization_info->'Primary', '')::json->>'oa', 'false')::boolean AS oa,
+                                                COALESCE ( NULLIF(cpt.authorization_info->'Primary', '')::json->>'emp', 'false')::boolean AS emp,
+                                                COALESCE ( NULLIF(NULLIF(cpt.authorization_info->'Primary', '')::json->>'accident_date',''), null)  AS accident_date
                                             FROM
                                                 public.studies s
                                                 LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
