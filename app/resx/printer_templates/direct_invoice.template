@@ -307,7 +307,6 @@ function bindClaim(data, columns) {
 							[
 								{
 									style: 'myTable',
-									fillColor: '#AAAAAA',
 									bold:'true',
 									table: {
 										widths: [285, 275],
