@@ -94,17 +94,29 @@ module.exports = {
                 SELECT
                     bp.payer_type
                     , (  CASE bp.payer_type
-                            WHEN 'insurance' THEN pip.insurance_name
-                            WHEN 'ordering_facility' THEN ppg.group_name
-                            WHEN 'ordering_provider' THEN ppr.full_name
-                            WHEN 'patient' THEN patients.full_name 
+                            WHEN 'insurance' THEN 
+                                pip.insurance_name
+                            WHEN 'ordering_facility' THEN 
+                                ppg.group_name
+                            WHEN 'ordering_provider' THEN 
+                                ppr.full_name
+                            WHEN 'patient' THEN 
+                                patients.full_name 
                         END ) AS payer_name
                     , bpa.amount_type 
                     ,ch.claim_id
                     ,bp.id payment_id
                     ,bp.accounting_dt as payment_dt
-                    ,SUM(CASE WHEN bpa.amount_type = 'payment' THEN bpa.amount ELSE 0.00::money END)    AS payments_applied_total
-                    ,SUM(CASE WHEN bpa.amount_type = 'adjustment'  THEN bpa.amount  ELSE 0.00::money END)    AS ajdustments_applied_total
+                    ,SUM(CASE WHEN bpa.amount_type = 'payment' THEN 
+                                    bpa.amount 
+                              ELSE 
+                                    0.00::money 
+                        END) AS payments_applied_total
+                    ,SUM(CASE WHEN bpa.amount_type = 'adjustment' THEN 
+                                    bpa.amount  
+                              ELSE 
+                                    0.00::money 
+                        END)  AS ajdustments_applied_total
                 FROM billing.payments bp 
                 INNER JOIN billing.payment_applications bpa ON bpa.payment_id = bp.id
                 INNER JOIN billing.charges ch ON ch.id = bpa.charge_id
@@ -125,6 +137,8 @@ module.exports = {
                                 END)
                          WHEN ${params.flag}='invoice' THEN  
                             ch.claim_id in(SELECT claims.id FROM billing.claims WHERE invoice_no=${params.invoiceNo}) 
+                         ELSE 
+                            TRUE
                     END
                 GROUP BY 
                     bpa.applied_dt
