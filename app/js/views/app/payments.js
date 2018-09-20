@@ -94,6 +94,14 @@ define(['jquery',
                 commonjs.initHotkeys({
                     NEW_PAYMENT: '#btnPaymentAdd'
                 });
+
+                if (app.userInfo.user_type != 'SU') {
+                    var rights = (window.appRights).init();
+                    this.screenCode = rights.screenCode;
+                }
+                else {
+                    this.screenCode = [];
+                }
             },
 
             initializeDateTimePickers: function () {
@@ -153,6 +161,12 @@ define(['jquery',
             },
 
             showGrid: function (filterApplied, from) {
+
+                if(this.screenCode.indexOf('PAYM') > -1 && this.screenCode.indexOf('TOSP') === -1 && from !== 'ris') { 
+                    commonjs.showError('messages.errors.accessdenied');
+                    return false;
+                }
+
                 if (!this.rendered)
                     this.render(opener);
                 var self = this;
