@@ -93,7 +93,8 @@ define([
                         var urlParams = {
                             pamentIds: reportArgs.payment_id,
                             paymentStatus: reportArgs.paymentStatus || " ",
-                            filterFlag: "paymentsExportPDFFlag"
+                            filterFlag: "paymentsExportPDFFlag",
+                            patient_id: reportArgs.patient_id
                         }
                     }
                 }
@@ -106,6 +107,11 @@ define([
                     reportArgsFlag = 'print-receipt';
                 }
                 else if (reportArgs.flag == 'payment-print-pdf') {
+                     if(reportArgs.patient_id  == null)
+                     {
+                        commonjs.showWarning('Patient Not Available');
+                        return;
+                     }
                     reportArgsFlag = 'payment-receipt-pdf';
                 }
                 else {

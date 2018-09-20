@@ -1143,6 +1143,7 @@ define(['jquery',
 
             showPendingPaymentsGrid: function (paymentID, payerType, payerId, patientId, claimIdToSearch, invoiceNoToSearch,dblclickPat) {
                 var self = this;
+                self.claimID = claimIdToSearch;
                 self.dblclickPat = dblclickPat || claimIdToSearch || invoiceNoToSearch;
                 $("#divGrid_pendPayments").hide();
                 if (!self.pendingGridLoaderd) {
@@ -1230,12 +1231,14 @@ define(['jquery',
 
                             self.setMoneyMask();
 
-                            if (gridObj.options && gridObj.options.customargs && gridObj.options.customargs.claimIdToSearch) {
+                            if (gridObj.options && gridObj.options.customargs && gridObj.options.customargs.claimIdToSearch == self.claimID) {
                                 self.order_payment_id = 0;
                                 rowID = $('#tblpendPaymentsGrid').jqGrid('getDataIDs');
-                                if (rowID && rowID.length) {
-                                    var gridData = $('#tblpendPaymentsGrid').jqGrid('getRowData', rowID[0]);
-                                    self.showApplyAndCas(gridData.claim_id, paymentID || self.payment_id, 'pending', gridData.charge_id, gridData);
+                                if (model && model.length) {
+                                    if (rowID && rowID.length) {
+                                        var gridData = $('#tblpendPaymentsGrid').jqGrid('getRowData', rowID[0]);
+                                        self.showApplyAndCas(gridData.claim_id, paymentID || self.payment_id, 'pending', gridData.charge_id, gridData);
+                                    }
                                 } else {
                                     commonjs.showWarning('Invalid claim id ' + gridObj.options.customargs.claimIdToSearch);
                                 }
@@ -2559,6 +2562,7 @@ define(['jquery',
                     self.paymentEditPDF = new paymentEditPDF({ el: $('#modal_div_container') });
                     var paymentEditPDFArgs = {
                         payment_id: this.payment_id,
+                        patient_id: self.patient_id,
                         flag: 'payment-print-pdf'
                     }
                 }
