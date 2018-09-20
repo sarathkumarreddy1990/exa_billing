@@ -114,10 +114,23 @@ module.exports = {
                 LEFT JOIN public.provider_contacts ppc ON ppc.id = bp.provider_contact_id
                 LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
                 LEFT JOIN billing.adjustment_codes adj ON adj.id = bpa.adjustment_code_id
-                WHERE  CASE WHEN ${params.flag}='new' THEN  
-                            ch.claim_id = ANY(${params.claimIds}) AND (adj.accounting_entry_type != 'refund_debit' OR bpa.adjustment_code_id IS NULL) AND (CASE WHEN bpa.amount_type = 'adjustment' THEN bpa.amount != 0.00::money ELSE 1=1  END)
-                            WHEN ${params.flag}='invoice'  THEN  ch.claim_id in(SELECT claims.id FROM billing.claims WHERE invoice_no=${params.invoiceNo}) END
-                GROUP BY bpa.applied_dt,payer_name,bp.id,bpa.amount_type,ch.claim_id
+                WHERE 
+                    CASE WHEN ${params.flag}='new' THEN  
+                            ch.claim_id = ANY(${params.claimIds}) 
+                            AND (adj.accounting_entry_type != 'refund_debit' OR bpa.adjustment_code_id IS NULL) 
+                            AND (CASE WHEN bpa.amount_type = 'adjustment' THEN 
+                                        bpa.amount != 0.00::money 
+                                      ELSE 
+                                        TRUE  
+                                END)
+                         WHEN ${params.flag}='invoice' THEN  
+                            ch.claim_id in(SELECT claims.id FROM billing.claims WHERE invoice_no=${params.invoiceNo}) 
+                    END
+                GROUP BY 
+                    bpa.applied_dt
+                    ,payer_name,bp.id
+                    ,bpa.amount_type
+                    ,ch.claim_id
             )
 			SELECT (SELECT json_agg(row_to_json(claim_details)) AS claim_details FROM (SELECT * FROM claim_details) AS claim_details),
                     (SELECT json_agg(row_to_json(charge_details)) AS charge_details FROM (SELECT * FROM charge_details) AS charge_details),
