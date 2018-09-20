@@ -274,7 +274,7 @@ module.exports = {
 
                         claimComments.push({
                             claim_number: value.claimNumber,
-                            note: 'Co-Pay of ' + shared.roundFee(parseFloat(co_pay)) + ' is due',
+                            note: 'Co-Pay of ' + shared.roundFee(co_pay) + ' is due',
                             type: 'co_pay'
                         });
                     }
@@ -283,7 +283,7 @@ module.exports = {
 
                         claimComments.push({
                             claim_number: value.claimNumber,
-                            note: 'Co-Insurance of ' + shared.roundFee(parseFloat(co_insurance)) + ' is due',
+                            note: 'Co-Insurance of ' + shared.roundFee(co_insurance) + ' is due',
                             type: 'co_insurance'
                         });
                     }
@@ -292,7 +292,7 @@ module.exports = {
 
                         claimComments.push({
                             claim_number: value.claimNumber,
-                            note: 'Deductible of ' + shared.roundFee(parseFloat(deductible)) + ' is due',
+                            note: 'Deductible of ' + shared.roundFee(deductible) + ' is due',
                             type: 'deductible'
                         });
                     }
