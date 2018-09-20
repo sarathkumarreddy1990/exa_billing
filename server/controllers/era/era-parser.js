@@ -273,7 +273,7 @@ module.exports = {
 
                         claimComments.push({
                             claim_number: value.claimNumber,
-                            note: 'Co-Pay of ' + parseFloat(co_pay) + ' is due',
+                            note: 'Co-Pay of ' + parseFloat(co_pay).toFixed(2) + ' is due',
                             type: 'co_pay'
                         });
                     }
@@ -282,7 +282,7 @@ module.exports = {
 
                         claimComments.push({
                             claim_number: value.claimNumber,
-                            note: 'Co-Insurance of ' + parseFloat(co_insurance) + ' is due',
+                            note: 'Co-Insurance of ' + parseFloat(co_insurance).toFixed(2) + ' is due',
                             type: 'co_insurance'
                         });
                     }
@@ -291,7 +291,7 @@ module.exports = {
 
                         claimComments.push({
                             claim_number: value.claimNumber,
-                            note: 'Deductible of ' + parseFloat(deductible) + ' is due',
+                            note: 'Deductible of ' + parseFloat(deductible).toFixed(2) + ' is due',
                             type: 'deductible'
                         });
                     }
