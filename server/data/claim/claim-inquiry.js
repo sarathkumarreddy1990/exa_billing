@@ -161,7 +161,7 @@ module.exports = {
                         , cpt.short_description AS comments
                         , ch.charge_dt::date as commented_dt
                         , false AS is_internal
-                        , bill_fee AS charge_amount
+                        , (ch.units * ch.bill_fee) AS charge_amount
                         , ARRAY[COALESCE(pointer1, ''), COALESCE(pointer2, ''), COALESCE(pointer3, ''), COALESCE(pointer4, '')] AS charge_pointer
                         , null AS payment
                         , null AS adjustment

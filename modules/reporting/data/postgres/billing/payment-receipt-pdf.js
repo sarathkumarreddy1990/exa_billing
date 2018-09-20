@@ -8,61 +8,178 @@ const _ = require('lodash')
 // generate query template ***only once*** !!!
 
 const paymentsPrintPDFDataSetQueryTemplate = _.template(`
-WITH pymt_application_id AS (
-    SELECT 
-      min(bpa.id) AS application_id
-    FROM billing.payments bp
-    INNER JOIN billing.payment_applications bpa ON bpa.payment_id = bp.id 
-    where  <%= paymentId %>
-    ),
-    get_claim_id As (
-    select 
-       bch.claim_id as claim_id 
-    from billing.payment_applications bpa 
-    INNER JOIN pymt_application_id pai on pai.application_id = bpa.id 
-    INNER JOIN billing.charges bch on bch.id = bpa.charge_id 
-    ),
-    get_claim_details AS(SELECT 
+WITH patient_dtails AS (
+
+    SELECT
        get_full_name(pp.last_name, pp.first_name) AS patient_name,
        pp.account_no as account_no,
        (pp.patient_info->'c1AddressLine1'::text) || ' , ' || (pp.patient_info->'c1AddressLine2'::text) ||' , '|| (pp.patient_info->'c1City'::text) As address,
-       (pp.patient_info->'c1HomePhone'::text)  As phone_number,
+       (pp.patient_info->'c1WorkPhone'::text)  As phone_number,
        to_char(bc.claim_dt,'MM/DD/YYYY') as claim_dt,
-       pcc.display_code,
-       pcc.display_description,
-       billing.get_charge_icds(bch.id),
-       (bch.bill_fee * bch.units) as charge_bill_fee,
        bgct.adjustments_applied_total as adjustmet,
        bgct.claim_balance_total as balance,
        bgct.charges_allowed_amount_total as allowed_amount,
        bhcpop.patient_paid as patient_paid,
-       bhcpop.others_paid as others_paid
-    FROM billing.claims bc
-    INNER JOIN get_claim_id gci on gci.claim_id = bc.id 
-    INNER JOIN billing.charges bch on bch.claim_id = bc.id 
+       bhcpop.others_paid as others_paid,
+       bc.id as claim_id
+    FROM
+        billing.claims bc
+    INNER JOIN billing.charges bch on bch.claim_id = bc.id
     INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
-    INNER JOIN public.patients pp on bc.patient_id = pp.id 
+    INNER JOIN public.patients pp on bc.patient_id = pp.id
     INNER JOIN lateral billing.get_claim_totals(bc.id) bgct ON true
     INNER JOIN lateral billing.get_claim_patient_other_payment(bc.id) bhcpop ON true
-    ),
-    get_payment_details AS (
-    SELECT 
-      bp.id as payment_id,
-      bp.mode as payment_mode,
-      get_full_name(pp.last_name, pp.first_name) AS payer,
-      to_char(bp.payment_dt,'MM/DD/YYYY') as payment_date,
-      bp.amount as payment_amount,
-      bgpt.payments_applied_total,
-      (select sum(charge_bill_fee) from get_claim_details) as total_bill_fee
-    FROM billing.payments bp
-    INNER JOIN lateral billing.get_payment_totals(bp.id) bgpt ON true
-    left JOIN public.patients pp on pp.id = bp.patient_id  
-    
-    where <%= paymentId %>
-    )
-    select * FROM get_claim_details,get_payment_details
-    
-    
+    WHERE
+         <%= patientId %>
+),
+charge_details AS (
+
+    SELECT
+       bc.id AS claim_id,
+       to_char(bc.claim_dt,'MM/DD/YYYY') as claim_dt,
+       pcc.display_code,
+       pcc.display_description,
+       billing.get_charge_icds(ch.id)
+      , to_char(ch.charge_dt, 'MM/DD/YYYY') as commented_dt
+      , ( ch.bill_fee * ch.units) AS charge_amount
+      , billing.get_charge_icds(ch.id) AS charge_pointer
+      , bgct.claim_balance_total as balance
+      , bgct.adjustments_applied_total as adjustmet
+      , bgct.charges_allowed_amount_total as allowed_amount
+      , bhcpop.patient_paid as patient_paid
+      , bhcpop.others_paid as others_paid
+      , (select
+            SUM (bill_fee * units)
+        from
+            billing.charges bchl
+        INNER JOIN billing.claims bc on bc.id = bchl.claim_id
+        where
+                bchl.claim_id = claim_info.claim_id ) total_bill_fee
+    FROM
+        billing.charges ch
+    INNER JOIN billing.claims bc on bc.id = ch.claim_id
+    INNER JOIN public.cpt_codes pcc on pcc.id = ch.cpt_id
+    INNER JOIN public.patients pp on bc.patient_id = pp.id
+    INNER JOIN lateral billing.get_claim_totals(bc.id) bgct ON true
+    INNER JOIN lateral billing.get_claim_patient_other_payment(bc.id) bhcpop ON true
+    JOIN LATERAL (
+        SELECT
+             max( bch.claim_id) AS claim_id
+        FROM
+             billing.charges bch
+        INNER JOIN billing.payment_applications pa ON bch.id = pa.charge_id
+        WHERE
+            <%= paymentId %>
+        ) AS claim_info on True
+            WHERE bc.id = claim_info.claim_id
+ ),
+ payment_details AS(
+    SELECT
+                          pp.account_no as account_no
+                        , bp.mode as payment_mode
+                        , bp.id::text AS payment_id
+                        , get_full_name(pp.last_name, pp.first_name) AS payer
+                        , CASE WHEN bp.payer_type = 'patient' THEN
+                                pp.full_name
+                            WHEN bp.payer_type = 'insurance' THEN
+                                    pip.insurance_name
+                            WHEN bp.payer_type = 'ordering_facility' THEN
+                                    pg.group_name
+                            WHEN bp.payer_type = 'ordering_provider' THEN
+                                    p.full_name
+                            END  as payer
+                        , to_char(bp.payment_dt,'MM/DD/YYYY') as payment_date
+                        , to_char(bp.accounting_dt,'MM/DD/YYYY') as accounting_dt
+                        , SUM(CASE WHEN pa.amount_type = 'payment' THEN pa.amount ELSE 0.00::money END)::text as payment_amount
+                        , SUM(CASE
+                            WHEN pa.amount_type ='payment' THEN
+                                 pa.amount
+                            ELSE
+                                 0.00::MONEY
+                          END
+                           )  AS payment_applied
+                       , (SUM(
+                            CASE
+                                WHEN
+                                    pa.amount_type = 'payment' THEN
+                                        pa.amount
+                                    ELSE
+                                        0.00::money END)  -
+                           SUM(CASE
+                                        WHEN pa.amount_type ='payment' THEN
+                                            pa.amount
+                                        ELSE
+                                            0.00::MONEY
+                                        END)
+                          )AS total_payment_unapplied
+                       , claim_info.claim_id
+                        , (select SUM (payment_insurance_total + payment_patient_total) from BILLING.get_claim_payments(claim_info.claim_id)) AS paid_amount
+                        , (select payments_applied_total from BILLING.get_claim_payments(claim_info.claim_id)) AS payment_applied
+                    FROM
+                        billing.payments bp
+                        INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
+                        INNER JOIN billing.charges ch on ch.id = pa.charge_id
+                        INNER JOIN billing.claims bc on bc.id = ch.claim_id
+                         LEFT JOIN public.patients pp on pp.id = bp.patient_id
+                         LEFT JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id
+                         LEFT JOIN public.provider_groups  pg on pg.id = bp.provider_group_id
+                         LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
+                         LEFT JOIN public.providers p on p.id = pc.provider_id
+                         LEFT JOIN billing.adjustment_codes adj ON adj.id = pa.adjustment_code_id
+                         JOIN LATERAL (
+                            SELECT
+                                 max( bch.claim_id) AS claim_id
+                            FROM
+                                 billing.charges bch
+                            INNER JOIN billing.payment_applications pa ON bch.id = pa.charge_id
+                            WHERE
+                            <%= paymentId %>
+                         ) AS claim_info on True
+
+                    WHERE
+                        ch.claim_id = claim_info.claim_id
+                        AND  CASE
+                                WHEN
+                                    pa.amount_type = 'adjustment' THEN
+                                    pa.amount != 0.00::money
+                                    ELSE 1=1
+                                END
+
+                        --AND (accounting_entry_type != 'refund_debit' OR adjustment_code_id IS NULL)
+                    GROUP BY
+                        pa.applied_dt,
+                        bp.id ,
+                        pp.account_no,
+                        get_full_name(pp.last_name, pp.first_name),
+                        claim_info.claim_id, pp.full_name, pip.insurance_name, pg.group_name, p.full_name
+)
+
+        SELECT
+                ( SELECT
+                     COALESCE(json_agg(row_to_json(patient_dtails)),'[]') patient_dtails
+                        FROM (
+                                 SELECT
+                                     *
+                                 FROM
+                                    patient_dtails
+                            ) AS patient_dtails
+			            ) AS patient_dtails,
+
+                ( SELECT COALESCE(json_agg(row_to_json(charge_details)),'[]') charge_details
+                        FROM (
+                                SELECT
+                                  *
+                                FROM
+                                    charge_details
+                            ) AS charge_details
+			    ) AS charge_details,
+			   ( SELECT COALESCE(json_agg(row_to_json(payment_details)),'[]') payment_details
+                        FROM (
+                                SELECT
+                                   *
+                                 FROM payment_details
+                              ) AS payment_details
+			    ) AS payment_details
 `);
 
 const api = {
@@ -76,7 +193,7 @@ const api = {
             api.createpaymentsPrintPDFDataSet(initialReportData.report.params),
             // other data sets could be added here...
             (paymentsPrintPDFDataSet) => {
-                // add report filters                
+                // add report filters
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 // add report specific data sets
@@ -143,11 +260,16 @@ const api = {
         const params = [];
         const filters = {
             paymentId: null,
-
+            patient_id: null,
+            patientId : null
         };
-        params.push(reportParams.pamentIds);
-        filters.paymentId = queryBuilder.where('bp.id', '=', [params.length]);
 
+        params.push(reportParams.pamentIds);
+        filters.paymentId = queryBuilder.where('pa.payment_id', '=', [params.length]);
+
+        params.push(reportParams.patient_id);
+        filters.patient_id = queryBuilder.where('bp.patient_id', '=', [params.length]);
+        filters.patientId = queryBuilder.where('pp.id', '=', [params.length]);
 
         return {
             queryParams: params,
