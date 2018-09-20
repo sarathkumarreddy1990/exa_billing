@@ -543,7 +543,7 @@ define(['jquery',
 
                 if (existingBillingMethod === 'patient_payment') {
                     paperClaim.print('patient_invoice', claimIds, {
-                        sortBy: sortBy
+                        sortBy: 'patient_name'
                     });
                     return;
                 }

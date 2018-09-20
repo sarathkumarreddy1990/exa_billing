@@ -64,8 +64,9 @@ module.exports = {
                 WHERE  CASE WHEN ${params.flag}='new' THEN  bc.id = ANY(${params.claimIds})
                             WHEN ${params.flag}='invoice'  THEN  bc.id in(SELECT claims.id FROM billing.claims WHERE invoice_no=${params.invoiceNo})  END
 
-                ORDER BY ${params.sortBy}
-            ),
+            `
+            .append(` ORDER BY ${params.sortBy}) ,`)
+            .append( SQL`
 			charge_details as(
                 SELECT
                     bch.claim_id as claim_no,
@@ -91,47 +92,64 @@ module.exports = {
             ),
             payment_details as(
                 SELECT
-                    bp.payment_dt
-                    ,bp.payer_type
+                    bp.payer_type
                     , (  CASE bp.payer_type
-                            WHEN 'insurance' THEN pip.insurance_name
-                            WHEN 'ordering_facility' THEN ppg.group_name
-                            WHEN 'ordering_provider' THEN ppr.full_name
-                            WHEN 'patient' THEN patients.full_name        END) AS payer_name
-                    ,bc.id as claim_id
+                            WHEN 'insurance' THEN 
+                                pip.insurance_name
+                            WHEN 'ordering_facility' THEN 
+                                ppg.group_name
+                            WHEN 'ordering_provider' THEN 
+                                ppr.full_name
+                            WHEN 'patient' THEN 
+                                patients.full_name 
+                        END ) AS payer_name
+                    , bpa.amount_type 
+                    ,ch.claim_id
                     ,bp.id payment_id
-                    ,payments_applied_total
-                    ,ajdustments_applied_total
-
-                FROM billing.claims bc
-                INNER JOIN billing.charges ch ON ch.claim_id = bc.id
-                INNER JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id
-                LEFT JOIN billing.payments bp ON bp.id = bpa.payment_id
+                    ,bp.accounting_dt as payment_dt
+                    ,SUM(CASE WHEN bpa.amount_type = 'payment' THEN 
+                                    bpa.amount 
+                              ELSE 
+                                    0.00::money 
+                        END) AS payments_applied_total
+                    ,SUM(CASE WHEN bpa.amount_type = 'adjustment' THEN 
+                                    bpa.amount  
+                              ELSE 
+                                    0.00::money 
+                        END)  AS ajdustments_applied_total
+                FROM billing.payments bp 
+                INNER JOIN billing.payment_applications bpa ON bpa.payment_id = bp.id
+                INNER JOIN billing.charges ch ON ch.id = bpa.charge_id
                 LEFT JOIN public.patients ON patients.id = bp.patient_id
                 LEFT JOIN public.insurance_providers pip ON pip.id = bp.insurance_provider_id
-                LEFT JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id
-                LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
+                LEFT JOIN public.provider_groups ppg ON ppg.id = bp.provider_group_id
+                LEFT JOIN public.provider_contacts ppc ON ppc.id = bp.provider_contact_id
                 LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
-                LEFT OUTER JOIN (
-                            SELECT
-                                payment_id
-                                , count(payment_id) FILTER (WHERE amount_type = 'payment')    AS payments_applied_count
-                                , sum(amount)       FILTER (WHERE amount_type = 'payment')    AS payments_applied_total
-                                , count(payment_id) FILTER (WHERE amount_type = 'adjustment') AS adjustments_applied_count
-                                , sum(amount)       FILTER (WHERE amount_type = 'adjustment') AS ajdustments_applied_total
-                            FROM
-                                billing.payment_applications
-                            GROUP BY
-                                payment_id
-                        ) AS pa ON pa.payment_id = bp.id
-                            WHERE  CASE WHEN ${params.flag}='new' THEN  bc.id = ANY(${params.claimIds})
-                            WHEN ${params.flag}='invoice'  THEN  bc.id in(SELECT claims.id FROM billing.claims WHERE invoice_no=${params.invoiceNo}) END
-
+                LEFT JOIN billing.adjustment_codes adj ON adj.id = bpa.adjustment_code_id
+                WHERE 
+                    CASE WHEN ${params.flag}='new' THEN  
+                            ch.claim_id = ANY(${params.claimIds}) 
+                            AND (adj.accounting_entry_type != 'refund_debit' OR bpa.adjustment_code_id IS NULL) 
+                            AND (CASE WHEN bpa.amount_type = 'adjustment' THEN 
+                                        bpa.amount != 0.00::money 
+                                      ELSE 
+                                        TRUE  
+                                END)
+                         WHEN ${params.flag}='invoice' THEN  
+                            ch.claim_id in(SELECT claims.id FROM billing.claims WHERE invoice_no=${params.invoiceNo}) 
+                         ELSE 
+                            TRUE
+                    END
+                GROUP BY 
+                    bpa.applied_dt
+                    ,payer_name,bp.id
+                    ,bpa.amount_type
+                    ,ch.claim_id
             )
 			SELECT (SELECT json_agg(row_to_json(claim_details)) AS claim_details FROM (SELECT * FROM claim_details) AS claim_details),
                     (SELECT json_agg(row_to_json(charge_details)) AS charge_details FROM (SELECT * FROM charge_details) AS charge_details),
                     (SELECT json_agg(row_to_json(payment_details)) AS payment_details FROM (SELECT * FROM payment_details) AS payment_details)
-        `;
+        `);
 
         return await query(sql);
     },

@@ -14,6 +14,37 @@ module.exports = {
         return encoded ? new Buffer(encoded, 'base64').toString('utf8') : '';
     },
 
+    roundFee: function (value) {
+        return this.round(value, 2);
+    },
+    
+    roundUnits: function (value) {
+        return this.round(value, 3);
+    },
+
+    round: function (value, exp) {
+
+        if (typeof exp === 'undefined' || +exp === 0) {
+            return '0.00';
+        }
+
+        value = +value;
+        exp = +exp;
+
+        if (isNaN(value) || !(typeof exp === 'number' && exp % 1 === 0)) {
+            return '0.00';
+        }
+
+        // Shift
+        value = value.toString().split('e');
+        value = Math.round(+(value[0] + 'e' + (value[1] ? (+value[1] + exp) : exp)));
+
+        // Shift back
+        value = value.toString().split('e');
+
+        return (+(value[0] + 'e' + (value[1] ? (+value[1] - exp) : -exp))).toFixed(exp);
+    },
+
     getScreenDetails: function (routeParams) {
         let moduleName = 'setup';
         let screenName = 'UI';
